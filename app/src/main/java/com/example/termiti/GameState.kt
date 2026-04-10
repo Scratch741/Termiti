@@ -14,9 +14,10 @@ data class GameState(
             aiState.castleHP     <= 0  -> GameResult.AI_CASTLE_DESTROYED
             playerState.castleHP >= 60 -> GameResult.PLAYER_CASTLE_BUILT
             aiState.castleHP     >= 60 -> GameResult.AI_CASTLE_BUILT
-            // Oba balíčky (+ ruka) vyčerpány → rozhodne výška hradu
-            playerState.deck.isEmpty() && playerState.hand.isEmpty() &&
-            aiState.deck.isEmpty()     && aiState.hand.isEmpty() -> when {
+            // Oba balíčky vyčerpány → rozhodne výška hradu.
+            // Ruce záměrně nehlídáme: AI hraje jen 1 kartu za tah, takže kdyby se čekalo
+            // na prázdné ruce, hra by pokračovala zbytečně mnoho kol.
+            playerState.deck.isEmpty() && aiState.deck.isEmpty() -> when {
                 playerState.castleHP > aiState.castleHP -> GameResult.PLAYER_HP_WINS
                 aiState.castleHP > playerState.castleHP -> GameResult.AI_HP_WINS
                 else                                    -> GameResult.DRAW

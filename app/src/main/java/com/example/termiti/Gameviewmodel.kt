@@ -23,11 +23,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackPlayer(5))),
         Card("008", "Šípy",           "Zaútočí na nepřítele za 3.",              cost = 1, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AttackPlayer(3))),
-        Card("003", "Ohnivá koule",   "Přímý zásah ohněm: hrad −9, ignoruje hradby.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AttackCastle(9))),
-        Card("007", "Katapult",       "Zaútočí na nepřítele za 10.",             cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.AttackPlayer(10))),
-        Card("006", "Podmíněný útok", "Pokud máš >5 útoku, udeř za 10.",        cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+        Card("003", "Ohnivá koule",   "Přímý zásah ohněm: hrad −8.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
+            effects = listOf(CardEffect.AttackCastle(8))),
+        Card("007", "Katapult",       "Zaútočí na nepřítele za 11.",             cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+            effects = listOf(CardEffect.AttackPlayer(11))),
+        Card("006", "Podmíněný útok", "Pokud máš >5 útoku, udeř hrad za 10.",        cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.ConditionalEffect(
                 Condition.ResourceAbove(ResourceType.ATTACK, 5),
                 CardEffect.AttackCastle(10)
@@ -447,6 +447,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.DrainResource(ResourceType.MAGIC, 2),
                 CardEffect.DrainResource(ResourceType.ATTACK, 2),
                 CardEffect.DrainResource(ResourceType.STONES, 2))),
+        // Vzájemná zkáza: chaos zasáhne obě strany – soupeř dostane více, ale ty taky zaplatíš.
+        Card("C32", "Vzájemná zkáza",   "Soupeř −15 HP, vlastní hrad −7.",           cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
+            effects = listOf(CardEffect.AttackPlayer(15), CardEffect.BuildCastle(-7))),
 
         // ── Lízni karet ────────────────────────────────────────────────────────
         // Nová mechanika: DrawCard – líže karty z balíčku přímo do ruky.
@@ -457,10 +460,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.DrawCard(2))),
         Card("D03", "Kronika",         "Lízni 3 karty.",                              cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.DrawCard(3))),
-        Card("D04", "Bojová taktika",  "Zaútočí za 4. Lízni 1 kartu.",               cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
+        Card("D04", "Bojová taktika",  "Zaútočí za 4. Lízni 1 kartu.",               cost = 2, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AttackPlayer(4), CardEffect.DrawCard(1))),
-        Card("D05", "Stavební plány",  "Hradby +4. Lízni 1 kartu.",                  cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.BuildWall(4), CardEffect.DrawCard(1))),
+        Card("D05", "Stavební plány",  "Hradby +4. Lízni 1 kartu. [Combo]",                  cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
+            effects = listOf(CardEffect.BuildWall(4), CardEffect.DrawCard(1)), isCombo = true),
         Card("D06", "Elitní zvěd",     "Zaútočí za 8. Lízni 1 kartu.",               cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(8), CardEffect.DrawCard(1))),
         Card("D07", "Tajná knihovna",  "Lízni 2 karty. Trvale +1 důl magie.",        cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
@@ -473,13 +476,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // ── Speciální útočné karty ────────────────────────────────────────────
         // Hod cihlou: obětuje část vlastních hradeb a hodí je na soupeřův hrad.
         // Čím méně hradeb máš, tím riskantnější – ale silné, když na nich nezáleží.
-        Card("098", "Hod cihlou",      "Vlastní hradby −5, zaútočí na nepřítele za 11.", cost = 2, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.BuildWall(-5), CardEffect.AttackPlayer(11))),
+        Card("098", "Hod cihlou",      "Vlastní hradby −4, zaútočí na nepřítele za 11.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+            effects = listOf(CardEffect.BuildWall(-4), CardEffect.AttackPlayer(11))),
 
         // Vampirismus hradu: vysaje životy přímo z nepřátelského hradu do vlastního.
         // Na rozdíl od běžného útoku zároveň léčí – ideální při nízkém HP hradu.
-        Card("099", "Vampirismus hradu","Ukradni 10 životů hradu soupeři.",          cost = 6, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
+        Card("099", "Vampirismus hradu","Ukradni 10 životů hradu soupeři.",          cost = 7, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.StealCastle(10))),
+        // Obléhací sání: útočný variant krádeže hradu – kombinuje přímý útok se sáním životů.
+        Card("100", "Obléhací sání",    "Zaútočí za 5, ukradni 6 životů hradu.",     cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+            effects = listOf(CardEffect.AttackPlayer(5), CardEffect.StealCastle(6))),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
@@ -874,34 +880,34 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Kontrola výhry po tahu AI ─────────────────────────────────────
             val s2 = old.copy(playerState = player, aiState = ai)
             s2.checkWinCondition()?.let { result ->
-                if (result == GameResult.PLAYER_CASTLE_BUILT || result == GameResult.AI_CASTLE_DESTROYED)
-                    SoundManager.playWin() else SoundManager.playLose()
+                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
                 gameOver.value = result; gameState.value = s2; return@launch
             }
 
             // ── Mezistav: hráč chvíli vidí AI s méně kartami (po sehrání, před lízem) ──
-            // Stav se zobrazí před tím, než hráč dostane svou kartu na začátek kola.
-            gameState.value = s2  // AI má N-1 karet (zahrála 1, svůj líz byl na začátku)
-            delay(350L)           // krátká pauza – hráč vidí výsledek tahu AI
+            gameState.value = s2
+            delay(350L)
 
             // ── Konec kola: příprava hráčova tahu ────────────────────────────
-            // Hráč lízne 1 kartu na "začátek" svého kola (kromě kola 1, kde
-            // začíná s 5 z mulliganu – ale líz 1 je tu stejně OK, protože
-            // hráč v kole 1 zahrál/čekal a má méně karet).
-            // AI NELÍŽE znovu – doplnila si 1 na začátku SVÉHO tahu.
-            // Spálené karty mají tak trvalý efekt.
             player.generateResources()
             if (playerDrawsAtEnd) {
                 val burned = player.drawCards(1)
                 burned.forEach { b -> addToHistory(b, CardAction.BURNED, isMine = true) }
             }
 
-            gameState.value = old.copy(
+            // Kontrola po lízu: balíčky mohly dojít právě teď
+            val s3 = old.copy(
                 playerState  = player.deepCopy(),
-                aiState      = ai.deepCopy(),   // AI stále bez extra lízu
+                aiState      = ai.deepCopy(),
                 currentTurn  = old.currentTurn + 1,
                 activePlayer = ActivePlayer.PLAYER
             )
+            s3.checkWinCondition()?.let { result ->
+                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
+                gameOver.value = result; gameState.value = s3; return@launch
+            }
+
+            gameState.value = s3
         }
     }
 
@@ -977,7 +983,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.AttackPlayer   -> if (oppLowHp) 18 else 8
             is CardEffect.AttackCastle   -> if (oppLowHp) 20 else 6
             is CardEffect.AttackWall     -> 4
-            is CardEffect.BuildCastle    -> if (aiLowHp) 18 else 4
+            // Záporný amount = poškození vlastního hradu (penalta)
+            is CardEffect.BuildCastle    -> if (fx.amount >= 0) {
+                if (aiLowHp) 18 else 4
+            } else {
+                fx.amount * 2  // záporné skóre za ztrátu HP hradu (závažnější než ztráta hradeb)
+            }
             // Záporný amount = obětování vlastních hradeb (penalta)
             is CardEffect.BuildWall      -> if (fx.amount >= 0) {
                 if (aiLowWall) 15 else 5
