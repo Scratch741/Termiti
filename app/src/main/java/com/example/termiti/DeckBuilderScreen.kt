@@ -80,6 +80,8 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.StealCard         -> "🃏"
     is CardEffect.BurnCard          -> "🔥"
     is CardEffect.AddCardsToDeck    -> "📦"
+    is CardEffect.DrawCard          -> "🎴"
+    is CardEffect.StealCastle       -> "🧛"
     null                            -> "❓"
 }
 
