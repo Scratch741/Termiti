@@ -95,6 +95,8 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.StealCard         -> "🃏"
     is CardEffect.BurnCard          -> "🔥"
     is CardEffect.AddCardsToDeck    -> "📦"
+    is CardEffect.DrawCard          -> "🎴"
+    is CardEffect.StealCastle       -> "🧛"
     null                            -> "❓"
 }
 
@@ -297,11 +299,10 @@ fun GameScreen(
 
         gameOver?.let { result ->
             if (isArena) {
-                val isPlayerWin = result == GameResult.AI_CASTLE_DESTROYED ||
-                                  result == GameResult.PLAYER_CASTLE_BUILT
+                val isPlayerWin = result.isPlayerWin()
                 ArenaGameOverDialog(
                     result       = result,
-                    wins         = arenaWins,
+                    wins         = if (isPlayerWin) arenaWins + 1 else arenaWins,
                     isPlayerWin  = isPlayerWin,
                     onNextBattle = { onArenaWin() },
                     onEndArena   = { onArenaLose() }
@@ -1213,9 +1214,11 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
         GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."
         GameResult.PLAYER_CASTLE_BUILT     -> "Vítězství!"   to "Postavil jsi mocný hrad."
         GameResult.AI_CASTLE_BUILT         -> "Prohrál jsi"  to "Nepřítel dokončil svůj hrad."
-        GameResult.DECK_EXHAUSTED          -> "Remíza"       to "Obě strany vyčerpaly balíčky."
+        GameResult.PLAYER_HP_WINS          -> "Vítězství!"   to "Balíčky došly – tvůj hrad je vyšší."
+        GameResult.AI_HP_WINS              -> "Prohrál jsi"  to "Balíčky došly – nepřítel má vyšší hrad."
+        GameResult.DRAW                    -> "Remíza"       to "Balíčky došly – hrady jsou stejně vysoké."
     }
-    val isWin = result == GameResult.AI_CASTLE_DESTROYED || result == GameResult.PLAYER_CASTLE_BUILT
+    val isWin = result.isPlayerWin()
 
     Dialog(onDismissRequest = {}) {
         Column(
@@ -1274,7 +1277,9 @@ fun ArenaGameOverDialog(
         GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."
         GameResult.PLAYER_CASTLE_BUILT     -> "Vítězství!"   to "Postavil jsi mocný hrad."
         GameResult.AI_CASTLE_BUILT         -> "Prohrál jsi"  to "Nepřítel dokončil svůj hrad."
-        GameResult.DECK_EXHAUSTED          -> "Prohrál jsi"  to "Balíček byl vyčerpán."
+        GameResult.PLAYER_HP_WINS          -> "Vítězství!"   to "Balíčky došly – tvůj hrad je vyšší."
+        GameResult.AI_HP_WINS              -> "Prohrál jsi"  to "Balíčky došly – nepřítel má vyšší hrad."
+        GameResult.DRAW                    -> "Remíza"       to "Balíčky došly – hrady jsou stejně vysoké."
     }
 
     Dialog(onDismissRequest = {}) {

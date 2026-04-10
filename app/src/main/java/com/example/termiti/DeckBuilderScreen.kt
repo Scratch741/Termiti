@@ -8,14 +8,20 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -105,10 +111,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     var filterCat      by remember { mutableStateOf<String?>(null) }
 
     val filteredCards  = remember(filterRes, filterCat) {
-        viewModel.allCards.filter { card ->
-            (filterRes == null || card.costType == filterRes) &&
-            (filterCat == null || card.category() == filterCat)
-        }
+        viewModel.allCards
+            .filter { card ->
+                (filterRes == null || card.costType == filterRes) &&
+                (filterCat == null || card.category() == filterCat)
+            }
+            .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.name }))
     }
 
     Box(Modifier.fillMaxSize().background(BgDeep)) {
@@ -170,6 +178,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     onLoadPreset    = { viewModel.loadPreset(editingIdx, it) },
                     onClear         = { viewModel.clearDeck(editingIdx) },
                     onSetActive     = { viewModel.setActiveDeck(editingIdx) },
+                    onRename        = { viewModel.renameDeck(editingIdx, it) },
                     onRemove        = { cardId ->
                         val c = editingDeck.cardCounts[cardId] ?: 0
                         if (c > 0) viewModel.setCardCount(editingIdx, cardId, c - 1)
@@ -462,6 +471,7 @@ private fun DeckPanel(
     onLoadPreset: (Int) -> Unit,
     onClear: () -> Unit,
     onSetActive: () -> Unit,
+    onRename: (String) -> Unit,
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -478,6 +488,10 @@ private fun DeckPanel(
             .sortedWith(compareBy({ it.costType.ordinal }, { it.cost }, { it.name }))
     }
 
+    var isEditingName by remember(deck.id) { mutableStateOf(false) }
+    var nameInput     by remember(deck.name) { mutableStateOf(deck.name) }
+    val focusRequester = remember { FocusRequester() }
+
     Column(
         modifier.background(
             Brush.verticalGradient(listOf(BgPanel, BgDeep))
@@ -490,7 +504,60 @@ private fun DeckPanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(deck.name, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            if (isEditingName) {
+                BasicTextField(
+                    value         = nameInput,
+                    onValueChange = { if (it.length <= 20) nameInput = it },
+                    singleLine    = true,
+                    textStyle     = androidx.compose.ui.text.TextStyle(
+                        color      = TextPrimary,
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {
+                        onRename(nameInput)
+                        isEditingName = false
+                    }),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.07f))
+                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                )
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+                Spacer(Modifier.width(6.dp))
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Gold.copy(alpha = 0.15f))
+                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                        .clickable { onRename(nameInput); isEditingName = false }
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text("✓", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            } else {
+                Row(
+                    Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(deck.name, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.White.copy(alpha = 0.04f))
+                            .border(1.dp, TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .clickable { nameInput = deck.name; isEditingName = true }
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("✎", color = TextMuted, fontSize = 9.sp)
+                    }
+                }
+            }
             Text(
                 "${deck.totalCards} / 30",
                 color = validColor, fontSize = 13.sp, fontWeight = FontWeight.Bold

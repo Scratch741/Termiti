@@ -27,4 +27,8 @@ sealed class CardEffect {
     data class BurnCard(val count: Int = 1) : CardEffect()
     /** Přidá count kopií karty s daným id do vlastního balíčku (zamíchá). */
     data class AddCardsToDeck(val cardId: String, val count: Int = 1) : CardEffect()
+    /** Líže count karet z vlastního balíčku do ruky (přebytečné shoří). */
+    data class DrawCard(val count: Int = 1) : CardEffect()
+    /** Ukradne amount životů hradu soupeři a přidá je vlastnímu hradu. */
+    data class StealCastle(val amount: Int) : CardEffect()
 }

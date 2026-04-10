@@ -29,7 +29,7 @@ class MultiplayerViewModel(
             activeDeckIndex: Int = 0
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(mc: Class<T>): T =
+            override fun <T : ViewModel> create(modelClass: Class<T>): T =
                 MultiplayerViewModel(allCards, decks, activeDeckIndex) as T
         }
     }
@@ -430,10 +430,10 @@ class MultiplayerViewModel(
         (myCards + oppCards).forEach { cardByUid[it.id] = it }
 
         myState.value = PlayerState().also {
-            it.deck.addAll(myCards); it.generateResources(); it.drawCards(5)
+            it.deck.addAll(myCards); it.drawCards(5)
         }
         oppState.value = PlayerState().also {
-            it.deck.addAll(oppCards); it.generateResources(); it.drawCards(5)
+            it.deck.addAll(oppCards); it.drawCards(5)
         }
 
         phase.value = MpPhase.MULLIGAN
@@ -559,7 +559,7 @@ class MultiplayerViewModel(
         if (!isMyTurn.value && !isComboTurn.value) return
         val me  = myState.value.deepCopy()
         val opp = oppState.value.deepCopy()
-        applyEffects(card.effects, me, opp)
+        applyEffects(card.effects, me, opp, allCards)
         me.resources[card.costType] = (me.resources[card.costType] ?: 0) - card.cost
         me.hand.remove(card)
         me.discardPile.add(card)
@@ -605,7 +605,7 @@ class MultiplayerViewModel(
         val card = cardByUid[uid] ?: return
         val me  = myState.value.deepCopy()
         val opp = oppState.value.deepCopy()
-        applyEffects(card.effects, opp, me)
+        applyEffects(card.effects, opp, me, allCards)
         opp.resources[card.costType] = (opp.resources[card.costType] ?: 0) - card.cost
         // Karta záměrně zůstává v ruce – odstraníme ji až po vizuálním odhalení
         recordCard(card, CardAction.PLAYED, isMine = false)
@@ -664,11 +664,19 @@ class MultiplayerViewModel(
     private fun checkWin() {
         val me  = myState.value
         val opp = oppState.value
+        val bothExhausted = me.deck.isEmpty() && me.hand.isEmpty() &&
+                            opp.deck.isEmpty() && opp.hand.isEmpty()
         when {
-            opp.castleHP <= 0   -> finishGame(true,  "Zničil jsi soupeřův hrad!")
-            me.castleHP  <= 0   -> finishGame(false, "Tvůj hrad byl zničen.")
+            opp.castleHP <= 0  -> finishGame(true,  "Zničil jsi soupeřův hrad!")
+            me.castleHP  <= 0  -> finishGame(false, "Tvůj hrad byl zničen.")
             me.castleHP  >= 60 -> finishGame(true,  "Dostavěl jsi hrad na 60!")
             opp.castleHP >= 60 -> finishGame(false, "${oppName.value} dostavěl hrad na 60.")
+            bothExhausted && me.castleHP > opp.castleHP ->
+                finishGame(true,  "Balíčky došly – tvůj hrad je vyšší!")
+            bothExhausted && opp.castleHP > me.castleHP ->
+                finishGame(false, "Balíčky došly – soupeř má vyšší hrad.")
+            bothExhausted ->
+                finishGame(false, "Remíza! Balíčky došly a hrady jsou stejně vysoké.")
         }
     }
 
@@ -754,61 +762,4 @@ class MultiplayerViewModel(
         gameLog.value = (gameLog.value + msg).takeLast(20)
     }
 
-    // ─── Game logic (mirrors GameViewModel.applyEffects) ─────────────────────
-
-    private fun applyEffects(effects: List<CardEffect>, self: PlayerState, opp: PlayerState) {
-        for (e in effects) when (e) {
-            is CardEffect.AddResource    -> self.resources[e.type] = (self.resources[e.type] ?: 0) + e.amount
-            is CardEffect.AddMine        -> self.mines[e.type]     = (self.mines[e.type] ?: 0) + e.amount
-            is CardEffect.BuildWall      -> self.wallHP   = (self.wallHP   + e.amount).coerceAtMost(100)
-            is CardEffect.BuildCastle    -> self.castleHP = (self.castleHP + e.amount).coerceAtMost(100)
-            is CardEffect.AttackPlayer   -> {
-                val dmg  = e.amount.coerceAtMost(opp.wallHP); opp.wallHP -= dmg
-                val over = e.amount - dmg; if (over > 0) opp.castleHP -= over
-            }
-            is CardEffect.AttackWall     -> opp.wallHP   = (opp.wallHP   - e.amount).coerceAtLeast(0)
-            is CardEffect.AttackCastle   -> opp.castleHP -= e.amount
-            is CardEffect.StealResource  -> {
-                val taken = minOf(e.amount, opp.resources[e.type] ?: 0)
-                opp.resources[e.type]  = (opp.resources[e.type]  ?: 0) - taken
-                self.resources[e.type] = (self.resources[e.type] ?: 0) + taken
-            }
-            is CardEffect.DrainResource  -> {
-                val d = minOf(e.amount, opp.resources[e.type] ?: 0)
-                opp.resources[e.type] = (opp.resources[e.type] ?: 0) - d
-            }
-            is CardEffect.ConditionalEffect ->
-                if (checkCond(e.condition, self)) applyEffects(listOf(e.effect), self, opp)
-            is CardEffect.DestroyMine    -> {
-                val cur = opp.mines[e.type] ?: 0
-                if (cur > 0) opp.mines[e.type] = (cur - e.amount).coerceAtLeast(0)
-            }
-            is CardEffect.StealCard      -> repeat(e.count) {
-                if (opp.hand.isNotEmpty()) {
-                    val c = opp.hand.random(); opp.hand.remove(c); self.hand.add(c)
-                }
-            }
-            is CardEffect.BurnCard       -> repeat(e.count) {
-                if (opp.hand.isNotEmpty()) {
-                    val c = opp.hand.random(); opp.hand.remove(c); opp.discardPile.add(c)
-                }
-            }
-            is CardEffect.AddCardsToDeck -> {
-                val tmpl = allCards.find { it.id == e.cardId }
-                if (tmpl != null) {
-                    repeat(e.count) {
-                        self.deck.add(tmpl.copy(id = "${tmpl.id}_x${System.currentTimeMillis()}"))
-                    }
-                    self.deck.shuffle()
-                }
-            }
-        }
-    }
-
-    private fun checkCond(c: Condition, p: PlayerState) = when (c) {
-        is Condition.ResourceAbove -> (p.resources[c.type] ?: 0) > c.threshold
-        is Condition.WallAbove     -> p.wallHP   > c.threshold
-        is Condition.WallBelow     -> p.wallHP   < c.threshold
-        is Condition.CastleAbove   -> p.castleHP > c.threshold
-    }
 }

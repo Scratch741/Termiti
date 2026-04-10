@@ -10,11 +10,17 @@ data class GameState(
 ) {
     fun checkWinCondition(): GameResult? {
         return when {
-            playerState.castleHP <= 0 -> GameResult.PLAYER_CASTLE_DESTROYED
-            aiState.castleHP <= 0 -> GameResult.AI_CASTLE_DESTROYED
+            playerState.castleHP <= 0  -> GameResult.PLAYER_CASTLE_DESTROYED
+            aiState.castleHP     <= 0  -> GameResult.AI_CASTLE_DESTROYED
             playerState.castleHP >= 60 -> GameResult.PLAYER_CASTLE_BUILT
-            aiState.castleHP >= 60 -> GameResult.AI_CASTLE_BUILT
-            playerState.deck.isEmpty() && aiState.deck.isEmpty() -> GameResult.DECK_EXHAUSTED
+            aiState.castleHP     >= 60 -> GameResult.AI_CASTLE_BUILT
+            // Oba balíčky (+ ruka) vyčerpány → rozhodne výška hradu
+            playerState.deck.isEmpty() && playerState.hand.isEmpty() &&
+            aiState.deck.isEmpty()     && aiState.hand.isEmpty() -> when {
+                playerState.castleHP > aiState.castleHP -> GameResult.PLAYER_HP_WINS
+                aiState.castleHP > playerState.castleHP -> GameResult.AI_HP_WINS
+                else                                    -> GameResult.DRAW
+            }
             else -> null
         }
     }
