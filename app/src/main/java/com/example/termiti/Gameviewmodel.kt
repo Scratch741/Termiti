@@ -141,7 +141,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 Condition.ResourceAbove(ResourceType.MAGIC, 4),
                 CardEffect.AddResource(ResourceType.ATTACK, 8)
             ))),
-        Card("041", "Magické trio",   "+2 magie, +2 útoku, +2 kamene. [Combo]",  cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
+        Card("041", "Magické trio",   "+2 magie, +2 útoku, +2 kamene. [Combo]",  cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(
                 CardEffect.AddResource(ResourceType.MAGIC,  2),
                 CardEffect.AddResource(ResourceType.ATTACK, 2),
@@ -243,10 +243,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         Card("073", "Škola magie",    "+2 magie, trvale +1 důl magie.",          cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 2),
                 CardEffect.AddMine(ResourceType.MAGIC, 1))),
-        Card("074", "Tržiště",        "+2 magie, +2 útoku, +2 kameny. [Combo]",  cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 2),
-                CardEffect.AddResource(ResourceType.ATTACK, 2),
-                CardEffect.AddResource(ResourceType.STONES, 2)), isCombo = true),
+        Card("074", "Tržiště",        "+3 magie, +3 útoku, +3 kameny. [Combo]",  cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
+            effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 3),
+                CardEffect.AddResource(ResourceType.ATTACK, 3),
+                CardEffect.AddResource(ResourceType.STONES, 3)), isCombo = true),
         Card("075", "Zlaté doly",     "Trvale +2 magie a +1 kameny/kolo.",       cost = 6, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddMine(ResourceType.MAGIC, 2),
                 CardEffect.AddMine(ResourceType.STONES, 1))),
@@ -448,22 +448,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.DrainResource(ResourceType.ATTACK, 2),
                 CardEffect.DrainResource(ResourceType.STONES, 2))),
 
-        // ── Líz karet ────────────────────────────────────────────────────────
+        // ── Lízni karet ────────────────────────────────────────────────────────
         // Nová mechanika: DrawCard – líže karty z balíčku přímo do ruky.
         // Přebytečné karty (ruka plná) shoří jako u normálního lízání.
-        Card("D01", "Průzkumník",      "Líz 1 kartu. [Combo]",                     cost = 1, costType = ResourceType.MAGIC,  rarity = Rarity.COMMON,
+        Card("D01", "Průzkumník",      "Lízni 1 kartu. [Combo]",                     cost = 1, costType = ResourceType.MAGIC,  rarity = Rarity.COMMON,
             effects = listOf(CardEffect.DrawCard(1)), isCombo = true),
-        Card("D02", "Věštba",          "Líz 2 karty.",                              cost = 3, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
+        Card("D02", "Věštba",          "Lízni 2 karty.",                              cost = 3, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
             effects = listOf(CardEffect.DrawCard(2))),
-        Card("D03", "Kronika",         "Líz 3 karty.",                              cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
+        Card("D03", "Kronika",         "Lízni 3 karty.",                              cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.DrawCard(3))),
-        Card("D04", "Bojová taktika",  "Zaútočí za 4. Líz 1 kartu.",               cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
+        Card("D04", "Bojová taktika",  "Zaútočí za 4. Lízni 1 kartu.",               cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AttackPlayer(4), CardEffect.DrawCard(1))),
-        Card("D05", "Stavební plány",  "Hradby +4. Líz 1 kartu.",                  cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
+        Card("D05", "Stavební plány",  "Hradby +4. Lízni 1 kartu.",                  cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.BuildWall(4), CardEffect.DrawCard(1))),
-        Card("D06", "Elitní zvěd",     "Zaútočí za 8. Líz 1 kartu.",               cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+        Card("D06", "Elitní zvěd",     "Zaútočí za 8. Lízni 1 kartu.",               cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(8), CardEffect.DrawCard(1))),
-        Card("D07", "Tajná knihovna",  "Líz 2 karty. Trvale +1 důl magie.",        cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
+        Card("D07", "Tajná knihovna",  "Lízni 2 karty. Trvale +1 důl magie.",        cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.DrawCard(2), CardEffect.AddMine(ResourceType.MAGIC, 1))),
         Card("D08", "Vize",            "Pokud máš >4 magie, líz 2 karty.",          cost = 2, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
             effects = listOf(CardEffect.ConditionalEffect(
