@@ -80,6 +80,27 @@ private fun resourceIcon(type: ResourceType) = when (type) {
     ResourceType.CHAOS  -> "🌀"
 }
 
+/**
+ * Vrátí true/false pokud karta má podmínkový efekt a je/není splněn.
+ * Vrátí null pokud karta žádnou podmínku nemá.
+ * Prochází všechny efekty, ne jen první (podmínka může být i na 2. místě).
+ */
+private fun cardConditionMet(
+    card: Card,
+    resources: Map<ResourceType, Int>,
+    wallHp: Int,
+    castleHp: Int
+): Boolean? {
+    val ce = card.effects.filterIsInstance<CardEffect.ConditionalEffect>().firstOrNull()
+        ?: return null
+    return when (val c = ce.condition) {
+        is Condition.ResourceAbove -> (resources[c.type] ?: 0) > c.threshold
+        is Condition.WallAbove     -> wallHp   > c.threshold
+        is Condition.WallBelow     -> wallHp   < c.threshold
+        is Condition.CastleAbove   -> castleHp > c.threshold
+    }
+}
+
 private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.AttackPlayer      -> "⚔️"
     is CardEffect.AttackCastle      -> "🎯"
@@ -269,17 +290,19 @@ fun GameScreen(
             // ── Ruka hráče – přes celou šířku dole ───────────────────
             HorizontalDivider(color = Gold.copy(alpha = 0.2f))
             HandPanel(
-                hand            = state.playerState.hand,
-                isPlayerTurn    = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
-                isComboTurn     = isComboTurn,
-                playerResources = state.playerState.resources,
-                onPlayCard      = { viewModel.playCard(it) },
-                onDiscardCard   = { viewModel.discardCard(it) },
-                onWait          = { viewModel.waitTurn() },
-                onEndTurn       = { viewModel.endPlayerTurn() },
-                showHeader      = false,
-                modifier        = Modifier.fillMaxWidth().heightIn(max = 160.dp)
-                                          .background(BgDeep.copy(alpha = 0.82f))
+                hand             = state.playerState.hand,
+                isPlayerTurn     = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
+                isComboTurn      = isComboTurn,
+                playerResources  = state.playerState.resources,
+                onPlayCard       = { viewModel.playCard(it) },
+                onDiscardCard    = { viewModel.discardCard(it) },
+                onWait           = { viewModel.waitTurn() },
+                onEndTurn        = { viewModel.endPlayerTurn() },
+                showHeader       = false,
+                playerWallHp     = state.playerState.wallHP,
+                playerCastleHp   = state.playerState.castleHP,
+                modifier         = Modifier.fillMaxWidth().heightIn(max = 160.dp)
+                                           .background(BgDeep.copy(alpha = 0.82f))
             )
         }
 
@@ -883,7 +906,9 @@ fun HandPanel(
     onWait: () -> Unit,
     onEndTurn: () -> Unit,
     modifier: Modifier = Modifier,
-    showHeader: Boolean = true       // false = skryje "RUKA (n)" a tlačítko čekat
+    showHeader: Boolean = true,      // false = skryje "RUKA (n)" a tlačítko čekat
+    playerWallHp: Int = 0,
+    playerCastleHp: Int = 0
 ) {
     Column(modifier = modifier.padding(vertical = 6.dp)) {
 
@@ -918,12 +943,13 @@ fun HandPanel(
                 hand.forEach { card ->
                     val affordable = (playerResources[card.costType] ?: 0) >= card.cost
                     CardView(
-                        card        = card,
-                        canPlay     = isPlayerTurn && affordable,
-                        isComboCard = card.isCombo,
-                        discardMode = false,
-                        onClick     = { onPlayCard(card) },
-                        onDiscard   = if (isPlayerTurn) { { onDiscardCard(card) } } else null
+                        card          = card,
+                        canPlay       = isPlayerTurn && affordable,
+                        isComboCard   = card.isCombo,
+                        discardMode   = false,
+                        onClick       = { onPlayCard(card) },
+                        onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
+                        conditionMet  = cardConditionMet(card, playerResources, playerWallHp, playerCastleHp)
                     )
                 }
             }
@@ -939,7 +965,8 @@ fun CardView(
     discardMode: Boolean,
     onClick: () -> Unit,
     onDiscard: (() -> Unit)? = null,
-    isComboCard: Boolean = card.isCombo
+    isComboCard: Boolean = card.isCombo,
+    conditionMet: Boolean? = null   // null = karta nemá podmínku
 ) {
     val costColor  = resourceColor(card.costType)
     val offsetY    = remember { Animatable(0f) }
@@ -1029,6 +1056,27 @@ fun CardView(
                         Spacer(Modifier.width(2.dp))
                         Text("${card.cost}", color = costColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
+                }
+            }
+
+            // Indikátor podmínky – zobrazí se pouze u karet s podmíněným efektem
+            if (conditionMet != null) {
+                val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
+                val condText  = if (conditionMet) "✓ SPLNĚNO"       else "✗ NESPLNĚNO"
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(condColor.copy(alpha = if (conditionMet) 0.15f else 0.08f))
+                        .border(0.5.dp, condColor.copy(alpha = if (conditionMet) 0.7f else 0.35f), RoundedCornerShape(2.dp))
+                        .padding(horizontal = 3.dp, vertical = 1.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        condText,
+                        color = condColor,
+                        fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp
+                    )
                 }
             }
 

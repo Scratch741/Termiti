@@ -120,11 +120,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ))),
         Card("035", "Základní kámen", "Hradby +5 a hrad +3.",                    cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.BuildWall(5), CardEffect.BuildCastle(3))),
-        Card("036", "Hradní příkop",  "Hradby +7. Pokud hrad >50, hradby +5.",   cost = 3, costType = ResourceType.STONES, rarity = Rarity.EPIC,
+        Card("036", "Hradní příkop",  "Hradby +7. Pokud hrad >35, hradby +5.",   cost = 3, costType = ResourceType.STONES, rarity = Rarity.EPIC,
             effects = listOf(
                 CardEffect.BuildWall(7),
                 CardEffect.ConditionalEffect(
-                    Condition.CastleAbove(50),
+                    Condition.CastleAbove(35),
                     CardEffect.BuildWall(5)
                 )
             )),
