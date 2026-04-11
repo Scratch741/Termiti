@@ -551,13 +551,17 @@ class MultiplayerViewModel(
         isComboTurn.value = false
         isMyTurn.value    = false
         turnIndex++
-        currentTurn.value++
+        // Kolo se počítá jednou za oba tahy:
+        // když jsem nešel první, můj tah uzavírá kolo
+        if (!iGoFirst) currentTurn.value++
         startOppTurn()
     }
 
     private fun endOppTurn() {
         turnIndex++
-        currentTurn.value++
+        // Kolo se počítá jednou za oba tahy:
+        // když jsem šel první, soupeřův tah uzavírá kolo
+        if (iGoFirst) currentTurn.value++
         startMyTurn()
     }
 
