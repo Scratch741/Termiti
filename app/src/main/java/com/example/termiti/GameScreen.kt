@@ -301,7 +301,7 @@ fun GameScreen(
                 showHeader       = false,
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
-                modifier         = Modifier.fillMaxWidth().heightIn(max = 160.dp)
+                modifier         = Modifier.fillMaxWidth().height(160.dp)
                                            .background(BgDeep.copy(alpha = 0.82f))
             )
         }
