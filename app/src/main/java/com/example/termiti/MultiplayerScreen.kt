@@ -637,7 +637,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 showHeader      = false,
                 playerWallHp    = myS.wallHP,
                 playerCastleHp  = myS.castleHP,
-                modifier        = Modifier.fillMaxWidth().height(160.dp)
+                modifier        = Modifier.fillMaxWidth().height(130.dp)
             )
         }
 
