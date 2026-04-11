@@ -794,7 +794,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Karta se líže automaticky na začátku DALŠÍHO kola (v finishTurn).
         addLog("Hráč přeskočil kolo")
         isPlayerComboTurn.value = false
-        finishTurn(old, player, ai)
+        finishTurn(old, player, ai, playerWaited = true)
     }
 
     fun discardCard(card: Card) {
@@ -816,7 +816,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun finishTurn(
         old: GameState, player: PlayerState, ai: PlayerState,
         aiDrawsAtStart: Boolean = true,
-        playerDrawsAtEnd: Boolean = true
+        playerDrawsAtEnd: Boolean = true,
+        playerWaited: Boolean = false
     ) {
         // Zablokuj hráče – AI je na tahu
         gameState.value = old.copy(
@@ -865,6 +866,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // AI čeká = přeskočí tah (líz byl na začátku tahu, žádný bonus)
                         addLog("AI čekala")
                         aiContinues = false
+                        // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad
+                        if (playerWaited && player.deck.isEmpty() && ai.deck.isEmpty()) {
+                            val finalState = old.copy(playerState = player, aiState = ai)
+                            val result = finalState.resolveByHp()
+                            addLog("Oba přeskočili s prázdnými balíčky – konec hry!")
+                            if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
+                            gameOver.value = result; gameState.value = finalState; return@launch
+                        }
                     }
                     is AiAction.Discard -> {
                         val toDiscard = aiChoice.card
