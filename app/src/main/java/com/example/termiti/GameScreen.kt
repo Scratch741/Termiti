@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
@@ -622,36 +623,64 @@ fun CardBack(modifier: Modifier = Modifier) {
 /** Miniatura líce karty – stejná velikost jako CardBack (22×32 dp). */
 @Composable
 fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
-    val costColor = resourceColor(card.costType)
     val borderColor = rarityColor(card.rarity)
-    Column(
-        modifier = modifier
-            .size(width = 22.dp, height = 32.dp)
-            .clip(RoundedCornerShape(3.dp))
-            .background(BgCard)
-            .border(1.dp, borderColor.copy(alpha = 0.8f), RoundedCornerShape(3.dp))
-            .padding(1.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(effectIcon(card), fontSize = 8.sp, lineHeight = 9.sp)
-        Text(
-            text     = card.name,
-            color    = TextPrimary.copy(alpha = 0.85f),
-            fontSize = 3.8.sp,
-            lineHeight = 4.5.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center,
-            maxLines   = 2,
-            overflow   = TextOverflow.Ellipsis
-        )
-        Text(
-            text  = "${resourceIcon(card.costType)}${card.cost}",
-            color = costColor,
-            fontSize = 4.5.sp,
-            lineHeight = 5.sp,
-            fontWeight = FontWeight.Bold
-        )
+    if (card.artResId != null) {
+        // Miniatura textured karty
+        val context = LocalContext.current
+        val frameResId = remember {
+            context.resources.getIdentifier("card_frame", "drawable", context.packageName)
+        }
+        Box(
+            modifier = modifier
+                .size(width = 22.dp, height = 32.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .border(1.dp, borderColor.copy(alpha = 0.8f), RoundedCornerShape(3.dp))
+        ) {
+            Image(
+                painter = painterResource(card.artResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            if (frameResId != 0) {
+                Image(
+                    painter = painterResource(frameResId),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+            // Cena v levém horním rohu
+            Box(
+                Modifier.align(Alignment.TopStart).padding(1.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+    } else {
+        val costColor = resourceColor(card.costType)
+        Column(
+            modifier = modifier
+                .size(width = 22.dp, height = 32.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(BgCard)
+                .border(1.dp, borderColor.copy(alpha = 0.8f), RoundedCornerShape(3.dp))
+                .padding(1.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(effectIcon(card), fontSize = 8.sp, lineHeight = 9.sp)
+            Text(
+                text = card.name, color = TextPrimary.copy(alpha = 0.85f),
+                fontSize = 3.8.sp, lineHeight = 4.5.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${resourceIcon(card.costType)}${card.cost}", color = costColor,
+                fontSize = 4.5.sp, lineHeight = 5.sp, fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -1016,172 +1045,326 @@ fun CardView(
     isComboCard: Boolean = card.isCombo,
     conditionMet: Boolean? = null   // null = karta nemá podmínku
 ) {
-    val costColor  = resourceColor(card.costType)
-    val offsetY    = remember { Animatable(0f) }
-    val scope      = rememberCoroutineScope()
-    val density    = LocalDensity.current
-    val threshold  = remember(density) { with(density) { 68.dp.toPx() } }
-    val progress   = (-offsetY.value / threshold).coerceIn(0f, 1f)
+    val offsetY   = remember { Animatable(0f) }
+    val scope     = rememberCoroutineScope()
+    val density   = LocalDensity.current
+    val threshold = remember(density) { with(density) { 68.dp.toPx() } }
+    val progress  = (-offsetY.value / threshold).coerceIn(0f, 1f)
     val isDragging = offsetY.value < -6f
 
-    val borderColor = when {
-        isDragging          -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
-        discardMode         -> DiscardRed.copy(alpha = 0.7f)
-        canPlay && isComboCard -> ComboYellow
-        canPlay             -> Gold
-        else                -> TextMuted.copy(alpha = 0.25f)
+    val dragModifier = if (onDiscard != null) Modifier.pointerInput(card.id) {
+        detectVerticalDragGestures(
+            onDragEnd = {
+                scope.launch {
+                    if (offsetY.value <= -threshold) onDiscard()
+                    offsetY.animateTo(0f, spring(dampingRatio = 0.55f, stiffness = 280f))
+                }
+            },
+            onDragCancel = { scope.launch { offsetY.animateTo(0f, spring()) } },
+            onVerticalDrag = { _, delta ->
+                scope.launch { offsetY.snapTo((offsetY.value + delta).coerceAtMost(0f)) }
+            }
+        )
+    } else Modifier
+
+    if (card.artResId != null) {
+        // ── Textured card layout ─────────────────────────────────────────────
+        CardViewTextured(
+            card        = card,
+            artResId    = card.artResId,
+            canPlay     = canPlay,
+            discardMode = discardMode,
+            isDragging  = isDragging,
+            progress    = progress,
+            offsetY     = offsetY,
+            conditionMet = conditionMet,
+            isComboCard = isComboCard,
+            dragModifier = dragModifier,
+            onClick     = onClick
+        )
+    } else {
+        // ── Classic card layout ──────────────────────────────────────────────
+        val costColor = resourceColor(card.costType)
+        val borderColor = when {
+            isDragging             -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
+            discardMode            -> DiscardRed.copy(alpha = 0.7f)
+            canPlay && isComboCard -> ComboYellow
+            canPlay                -> Gold
+            else                   -> TextMuted.copy(alpha = 0.25f)
+        }
+        val bgColor = when {
+            isDragging || discardMode -> Color(0xFF250A0A)
+            canPlay && isComboCard    -> Color(0xFF1E1A10)
+            canPlay                   -> BgCard
+            else                      -> BgCard.copy(alpha = 0.45f)
+        }
+
+        Box(
+            modifier = Modifier
+                .size(width = 100.dp, height = 118.dp)
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .then(dragModifier)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bgColor)
+                    .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+                    .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
+                    .padding(7.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(effectIcon(card), fontSize = 16.sp)
+                    if (discardMode) {
+                        Box(
+                            Modifier.clip(RoundedCornerShape(10.dp))
+                                .background(DiscardRed.copy(alpha = 0.2f))
+                                .border(1.dp, DiscardRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 5.dp, vertical = 2.dp)
+                        ) { Text("✕", color = DiscardRed, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(costColor.copy(alpha = 0.18f))
+                                .border(1.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 5.dp, vertical = 2.dp)
+                        ) {
+                            Text(resourceIcon(card.costType), fontSize = 10.sp)
+                            Spacer(Modifier.width(2.dp))
+                            Text("${card.cost}", color = costColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                if (conditionMet != null) {
+                    val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
+                    val condText  = if (conditionMet) "✓ SPLNĚNO"       else "✗ NESPLNĚNO"
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(condColor.copy(alpha = if (conditionMet) 0.15f else 0.08f))
+                            .border(0.5.dp, condColor.copy(alpha = if (conditionMet) 0.7f else 0.35f), RoundedCornerShape(2.dp))
+                            .padding(horizontal = 3.dp, vertical = 1.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(condText, color = condColor, fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+                    }
+                }
+                Text(card.name,
+                    color = if (canPlay || discardMode || isDragging) TextPrimary else TextMuted,
+                    fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 13.sp)
+                Text(card.description,
+                    color = TextMuted, fontSize = 8.sp, textAlign = TextAlign.Center,
+                    maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 11.sp)
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    if (isComboCard) {
+                        Box(
+                            Modifier.fillMaxWidth()
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(ComboYellow.copy(alpha = if (canPlay) 0.18f else 0.07f))
+                                .border(0.5.dp, ComboYellow.copy(alpha = if (canPlay) 0.6f else 0.2f), RoundedCornerShape(3.dp))
+                                .padding(horizontal = 3.dp, vertical = 1.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("⚡ COMBO", color = ComboYellow.copy(alpha = if (canPlay) 1f else 0.4f),
+                                fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        }
+                    }
+                    val rc = rarityColor(card.rarity)
+                    Box(Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(2.dp))
+                        .background(rc.copy(alpha = if (canPlay || discardMode) 0.8f else 0.3f)))
+                }
+            }
+            if (isDragging) {
+                Box(
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                        .background(DiscardRed.copy(alpha = (progress * 0.55f).coerceAtMost(0.55f))),
+                    contentAlignment = Alignment.Center
+                ) { if (progress > 0.35f) Text("🗑️", fontSize = (12 + progress * 16).sp) }
+            }
+        }
     }
-    val bgColor = when {
-        isDragging || discardMode         -> Color(0xFF250A0A)
-        canPlay && isComboCard            -> Color(0xFF1E1A10)
-        canPlay                           -> BgCard
-        else                              -> BgCard.copy(alpha = 0.45f)
+}
+
+// ── Textured card view ────────────────────────────────────────────────────────
+@Composable
+private fun CardViewTextured(
+    card: Card,
+    artResId: Int,
+    canPlay: Boolean,
+    discardMode: Boolean,
+    isDragging: Boolean,
+    progress: Float,
+    offsetY: Animatable<Float, *>,
+    conditionMet: Boolean?,
+    isComboCard: Boolean,
+    dragModifier: Modifier,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    // Načtení rámu karty dynamicky — soubor res/drawable/card_frame.png
+    // Pokud neexistuje, vrátí 0 a rám se nepřikresluje.
+    val frameResId = remember {
+        context.resources.getIdentifier("card_frame", "drawable", context.packageName)
+    }
+
+    val borderColor = when {
+        isDragging             -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
+        discardMode            -> DiscardRed.copy(alpha = 0.8f)
+        canPlay && isComboCard -> ComboYellow
+        canPlay                -> Gold
+        else                   -> Color.Transparent
     }
 
     Box(
         modifier = Modifier
             .size(width = 100.dp, height = 118.dp)
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
-            .then(
-                if (onDiscard != null) Modifier.pointerInput(card.id) {
-                    detectVerticalDragGestures(
-                        onDragEnd = {
-                            scope.launch {
-                                if (offsetY.value <= -threshold) onDiscard()
-                                offsetY.animateTo(
-                                    0f, spring(dampingRatio = 0.55f, stiffness = 280f)
-                                )
-                            }
-                        },
-                        onDragCancel = {
-                            scope.launch { offsetY.animateTo(0f, spring()) }
-                        },
-                        onVerticalDrag = { _, delta ->
-                            scope.launch {
-                                // Pouze nahoru (drag dolů ignoruj)
-                                offsetY.snapTo((offsetY.value + delta).coerceAtMost(0f))
-                            }
-                        }
-                    )
-                } else Modifier
-            )
+            .then(dragModifier)
+            .clip(RoundedCornerShape(6.dp))
+            .then(if (borderColor != Color.Transparent)
+                Modifier.border(1.5.dp, borderColor, RoundedCornerShape(6.dp)) else Modifier)
+            .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
     ) {
-        // Tělo karty
+        // Vrstva 1: ilustrace karty (vyplní celou plochu, ořízne se rámem)
+        Image(
+            painter = painterResource(artResId),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = if (canPlay || discardMode) 1f else 0.6f
+        )
+
+        // Vrstva 2: rám karty (průhlednost v oblasti ilustrace zajistí soubor card_frame.png)
+        if (frameResId != 0) {
+            Image(
+                painter = painterResource(frameResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Vrstva 3: cena karty v levém horním kruhu rámu
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 5.dp, y = 4.dp)
+                .size(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "${card.cost}",
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+
+        // Vrstva 4: název karty v červeném obloukovém pásu (~58–73 dp od vrchu)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 58.dp)
+                .fillMaxWidth()
+                .height(15.dp)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                card.name,
+                color = Color.White,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Vrstva 5: text karty pod názvem (~74–106 dp od vrchu)
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))
-                .background(bgColor)
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-                .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
-                .padding(7.dp),
+                .align(Alignment.TopStart)
+                .offset(y = 74.dp)
+                .fillMaxWidth()
+                .height(32.dp)
+                .padding(horizontal = 9.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Horní řádek: efekt ikona vlevo, cena vpravo
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
-
-                Text(effectIcon(card), fontSize = 16.sp)
-
-                if (discardMode) {
-                    Box(
-                        Modifier.clip(RoundedCornerShape(10.dp))
-                            .background(DiscardRed.copy(alpha = 0.2f))
-                            .border(1.dp, DiscardRed.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                    ) { Text("✕", color = DiscardRed, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
-                } else {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(costColor.copy(alpha = 0.18f))
-                            .border(1.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 5.dp, vertical = 2.dp)
-                    ) {
-                        Text(resourceIcon(card.costType), fontSize = 10.sp)
-                        Spacer(Modifier.width(2.dp))
-                        Text("${card.cost}", color = costColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-
-            // Indikátor podmínky – zobrazí se pouze u karet s podmíněným efektem
+            // Indikátor podmínky
             if (conditionMet != null) {
                 val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
-                val condText  = if (conditionMet) "✓ SPLNĚNO"       else "✗ NESPLNĚNO"
+                val condText  = if (conditionMet) "✓ SPLNĚNO" else "✗ NESPLNĚNO"
                 Box(
-                    Modifier
-                        .fillMaxWidth()
+                    Modifier.fillMaxWidth()
                         .clip(RoundedCornerShape(2.dp))
-                        .background(condColor.copy(alpha = if (conditionMet) 0.15f else 0.08f))
-                        .border(0.5.dp, condColor.copy(alpha = if (conditionMet) 0.7f else 0.35f), RoundedCornerShape(2.dp))
-                        .padding(horizontal = 3.dp, vertical = 1.dp),
+                        .background(condColor.copy(alpha = 0.25f))
+                        .padding(horizontal = 2.dp, vertical = 1.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        condText,
-                        color = condColor,
-                        fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp
-                    )
+                    Text(condText, color = condColor, fontSize = 5.5.sp, fontWeight = FontWeight.Bold)
                 }
             }
+            if (isComboCard) {
+                Text("⚡ COMBO", color = ComboYellow, fontSize = 6.sp, fontWeight = FontWeight.Bold)
+            }
+            Text(
+                card.description,
+                color = Color(0xFFDDD0B0),
+                fontSize = 7.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 9.sp
+            )
+        }
 
-            Text(card.name,
-                color = if (canPlay || discardMode || isDragging) TextPrimary else TextMuted,
-                fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 13.sp)
-
-            Text(card.description,
-                color = TextMuted, fontSize = 8.sp, textAlign = TextAlign.Center,
-                maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 11.sp)
-
-            // Combo badge + Rarity proužek
-            Column(
-                Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
+        // Vrstva 6: typ karty v dolním pruhu (~106–118 dp od vrchu)
+        if (card.type.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                if (isComboCard) {
-                    Box(
-                        Modifier.fillMaxWidth()
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(ComboYellow.copy(alpha = if (canPlay) 0.18f else 0.07f))
-                            .border(0.5.dp, ComboYellow.copy(alpha = if (canPlay) 0.6f else 0.2f), RoundedCornerShape(3.dp))
-                            .padding(horizontal = 3.dp, vertical = 1.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "⚡ COMBO",
-                            color = ComboYellow.copy(alpha = if (canPlay) 1f else 0.4f),
-                            fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
-                        )
-                    }
-                }
-                val rc = rarityColor(card.rarity)
-                Box(
-                    Modifier.fillMaxWidth().height(3.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(rc.copy(alpha = if (canPlay || discardMode) 0.8f else 0.3f))
+                Text(
+                    card.type.uppercase(),
+                    color = Color(0xFFB8A070),
+                    fontSize = 5.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp
                 )
             }
         }
 
-        // Overlay při tažení nahoru
+        // Vrstva 7: overlay při tažení / discard
         if (isDragging) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(8.dp))
+                modifier = Modifier.fillMaxSize()
                     .background(DiscardRed.copy(alpha = (progress * 0.55f).coerceAtMost(0.55f))),
                 contentAlignment = Alignment.Center
+            ) { if (progress > 0.35f) Text("🗑️", fontSize = (12 + progress * 16).sp) }
+        } else if (discardMode) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(DiscardRed.copy(alpha = 0.35f)),
+                contentAlignment = Alignment.TopEnd
             ) {
-                if (progress > 0.35f) {
-                    Text(
-                        text = "🗑️",
-                        fontSize = (12 + progress * 16).sp
-                    )
-                }
+                Box(
+                    Modifier.padding(4.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(DiscardRed.copy(alpha = 0.7f))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) { Text("✕", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold) }
             }
         }
     }
