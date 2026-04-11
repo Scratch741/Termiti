@@ -486,6 +486,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Obléhací sání: útočný variant krádeže hradu – kombinuje přímý útok se sáním životů.
         Card("100", "Obléhací sání",    "Zaútočí za 5, ukradni 6 životů hradu.",     cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(5), CardEffect.StealCastle(6))),
+
+        // ── Testovací karta s texturou ─────────────────────────────────────
+        // artResId: až přidáš res/drawable/art_goblin.png, nahraď null za R.drawable.art_goblin
+        // frameResId: rám se načítá automaticky z res/drawable/card_frame.png
+        Card("T01", "Goblin šaman",
+            description = "Vyčaruje magii z chaosu za cenu vlastní krve.",
+            cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
+            effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 5)),
+            artResId = null,   // → nahraď: R.drawable.art_goblin
+            type = "Kouzlo"
+        ),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
