@@ -635,6 +635,8 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 onWait          = { vm.waitTurn() },
                 onEndTurn       = { vm.endComboTurn() },
                 showHeader      = false,
+                playerWallHp    = myS.wallHP,
+                playerCastleHp  = myS.castleHP,
                 modifier        = Modifier.fillMaxWidth().height(160.dp)
             )
         }

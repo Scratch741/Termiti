@@ -748,6 +748,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         // 1. Efekty (vč. podmínek) se vyhodnotí PŘED odečtením zdrojů
+        // Před aplikací: zaznamenej nesplněné podmínky pro hráče
+        card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
+            if (!checkCondition(ce.condition, player)) {
+                addLog("${card.name}: podmínka nesplněna!")
+            }
+        }
         applyEffects(card.effects, player, ai, allCards)
 
         // 2. Zaplatit a přesunout kartu
