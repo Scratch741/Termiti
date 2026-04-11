@@ -643,6 +643,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var lastCardAction     = androidx.compose.runtime.mutableStateOf(CardAction.PLAYED);   private set
     var lastCardIsPlayer   = androidx.compose.runtime.mutableStateOf(true);                private set
     var cardHistory        = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
+    /** Karty ztracené hráčem kvůli BurnCard / StealCard AI (celá hra). */
+    var lostToOpponent     = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     // Combo: hráč zahrál combo kartu – kolo nepokračuje automaticky
     var isPlayerComboTurn = androidx.compose.runtime.mutableStateOf(false)
         private set
@@ -841,7 +843,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 when (aiChoice) {
                     is AiAction.Play -> {
                         val aiCard = aiChoice.card
-                        applyEffects(aiCard.effects, ai, player, allCards)
+                        applyEffects(aiCard.effects, ai, player, allCards) { card, action ->
+                            recordOpponentLoss(card, action)
+                        }
                         ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
@@ -920,6 +924,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Karta ztracena hráčem kvůli efektu AI (BurnCard / StealCard). */
+    private fun recordOpponentLoss(card: Card, action: CardAction) {
+        addToHistory(card, action, isMine = true)
+        val list = lostToOpponent.value.toMutableList()
+        list.add(0, CardHistoryEntry(card, action, isMine = true))
+        lostToOpponent.value = list
+        val verb = if (action == CardAction.STOLEN) "ukradla" else "spálila"
+        addLog("AI $verb: ${card.name}")
+    }
+
     private fun addLog(message: String) {
         log.value = (log.value + message).takeLast(6)
     }
@@ -945,6 +959,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lastCardAction.value    = CardAction.PLAYED
         lastCardIsPlayer.value  = true
         cardHistory.value       = emptyList()
+        lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         gameState.value         = createInitialState()
         isMulligan.value        = true
@@ -1080,6 +1095,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lastCardAction.value    = CardAction.PLAYED
         lastCardIsPlayer.value  = true
         cardHistory.value       = emptyList()
+        lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()

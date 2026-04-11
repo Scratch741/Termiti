@@ -13,7 +13,8 @@ fun applyEffects(
     effects:  List<CardEffect>,
     self:     PlayerState,
     opponent: PlayerState,
-    allCards: List<Card>
+    allCards: List<Card>,
+    onOpponentCardLost: ((Card, CardAction) -> Unit)? = null
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
@@ -54,7 +55,7 @@ fun applyEffects(
 
         is CardEffect.ConditionalEffect ->
             if (checkCondition(effect.condition, self))
-                applyEffects(listOf(effect.effect), self, opponent, allCards)
+                applyEffects(listOf(effect.effect), self, opponent, allCards, onOpponentCardLost)
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
@@ -66,6 +67,7 @@ fun applyEffects(
                 val stolen = opponent.hand.random()
                 opponent.hand.remove(stolen)
                 self.hand.add(stolen)
+                onOpponentCardLost?.invoke(stolen, CardAction.STOLEN)
             }
         }
 
@@ -74,6 +76,7 @@ fun applyEffects(
                 val burned = opponent.hand.random()
                 opponent.hand.remove(burned)
                 opponent.discardPile.add(burned)
+                onOpponentCardLost?.invoke(burned, CardAction.BURNED)
             }
         }
 

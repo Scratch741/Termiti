@@ -88,6 +88,8 @@ class MultiplayerViewModel(
     var lastCardAction = mutableStateOf(CardAction.PLAYED);        private set
     /** Chronologická historie karet (nejnovější první). */
     var cardHistory    = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
+    /** Karty ztracené hráčem kvůli BurnCard / StealCard soupeře (celá hra). */
+    var lostToOpponent = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     var gameLog           = mutableStateOf<List<String>>(emptyList()); private set
     var gameOver          = mutableStateOf<Boolean?>(null);  private set   // true=win false=lose
     /** UIDs soupeřových karet, které se právě odhalují (lícem nahoru) */
@@ -122,6 +124,14 @@ class MultiplayerViewModel(
         h.add(0, CardHistoryEntry(card, action, isMine))
         if (h.size > 20) h.removeAt(h.size - 1)
         cardHistory.value = h
+    }
+
+    /** Karta ztracena mnou kvůli efektu soupeře (BurnCard / StealCard). */
+    private fun recordOpponentLoss(card: Card, action: CardAction) {
+        addToHistory(card, action, isMine = true)
+        val list = lostToOpponent.value.toMutableList()
+        list.add(0, CardHistoryEntry(card, action, isMine = true))
+        lostToOpponent.value = list
     }
     private var turnIndex            = 0   // total turns elapsed (for first-turn no-draw rule)
     private var closingIntentionally = false
@@ -605,7 +615,9 @@ class MultiplayerViewModel(
         val card = cardByUid[uid] ?: return
         val me  = myState.value.deepCopy()
         val opp = oppState.value.deepCopy()
-        applyEffects(card.effects, opp, me, allCards)
+        applyEffects(card.effects, opp, me, allCards) { lostCard, action ->
+            recordOpponentLoss(lostCard, action)
+        }
         opp.resources[card.costType] = (opp.resources[card.costType] ?: 0) - card.cost
         // Karta záměrně zůstává v ruce – odstraníme ji až po vizuálním odhalení
         recordCard(card, CardAction.PLAYED, isMine = false)

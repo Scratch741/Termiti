@@ -435,8 +435,10 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
     val oppRevealed      by vm.oppRevealedCardIds
     val lastCardAction by vm.lastCardAction
     val cardHistory    by vm.cardHistory
+    val lostToOpponent by vm.lostToOpponent
 
     var showLeaveConfirm by remember { mutableStateOf(false) }
+    var showLostCards    by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
 
@@ -493,6 +495,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                                         CardAction.PLAYED    -> MpTeal
                                         CardAction.DISCARDED -> MpRed
                                         CardAction.BURNED    -> Color(0xFFE07B39)
+                                        CardAction.STOLEN    -> Color(0xFF9B59B6)
                                     }
                                     Box(Modifier.scale(1.3f)) {
                                         Box(
@@ -540,17 +543,43 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                                         .padding(horizontal = 4.dp, vertical = 3.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("📜", fontSize = 9.sp,
-                                        modifier = Modifier.padding(end = 3.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(end = 4.dp)
+                                            .clickable(enabled = lostToOpponent.isNotEmpty()) {
+                                                showLostCards = true
+                                            }
+                                    ) {
+                                        Text("📜", fontSize = 9.sp)
+                                        if (lostToOpponent.isNotEmpty()) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .offset(x = 4.dp, y = (-2).dp)
+                                                    .size(9.dp)
+                                                    .clip(RoundedCornerShape(50))
+                                                    .background(Color(0xFFBF2D2D)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    "${lostToOpponent.size}",
+                                                    color = Color.White,
+                                                    fontSize = 5.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
                                     LazyRow(
                                         horizontalArrangement = Arrangement.spacedBy(3.dp),
                                         contentPadding = PaddingValues(horizontal = 2.dp)
                                     ) {
                                         itemsIndexed(cardHistory) { _, entry ->
                                             MiniHistoryCard(
-                                                card   = entry.card,
-                                                action = entry.action,
-                                                isMine = entry.isMine
+                                                card    = entry.card,
+                                                action  = entry.action,
+                                                isMine  = entry.isMine,
+                                                onClick = { showLostCards = true }
                                             )
                                         }
                                     }
@@ -643,6 +672,13 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                         Text("Zůstat", color = MpTeal, fontWeight = FontWeight.Bold)
                     }
                 }
+            )
+        }
+
+        if (showLostCards) {
+            LostCardsOverlay(
+                lostCards = lostToOpponent,
+                onDismiss = { showLostCards = false }
             )
         }
     }
@@ -849,20 +885,25 @@ private fun MpGameOverScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
 // ─── Mini karta v historii ────────────────────────────────────────────────────
 
 @Composable
-private fun MiniHistoryCard(card: Card, action: CardAction, isMine: Boolean) {
-    // Barva rámečku: modrá (teal) = já, červená = soupeř, oranžová = spálena
+private fun MiniHistoryCard(
+    card: Card, action: CardAction, isMine: Boolean,
+    onClick: () -> Unit = {}
+) {
     val borderColor = when (action) {
         CardAction.BURNED    -> Color(0xFFE07B39).copy(alpha = 0.85f)
+        CardAction.STOLEN    -> Color(0xFF9B59B6).copy(alpha = 0.85f)
         CardAction.DISCARDED -> if (isMine) MpTeal.copy(alpha = 0.55f) else MpRed.copy(alpha = 0.55f)
         CardAction.PLAYED    -> if (isMine) MpTeal.copy(alpha = 0.80f) else MpRed.copy(alpha = 0.80f)
     }
     val bgColor = when (action) {
         CardAction.BURNED    -> Color(0xFF1A1000)
+        CardAction.STOLEN    -> Color(0xFF1A0A2A)
         CardAction.DISCARDED -> Color(0xFF250A0A)
         CardAction.PLAYED    -> Color(0xFF1A1320)
     }
     val overlayIcon = when (action) {
         CardAction.BURNED    -> "🔥"
+        CardAction.STOLEN    -> "🃏"
         CardAction.DISCARDED -> "✕"
         CardAction.PLAYED    -> null
     }
@@ -872,6 +913,7 @@ private fun MiniHistoryCard(card: Card, action: CardAction, isMine: Boolean) {
             .clip(RoundedCornerShape(3.dp))
             .background(bgColor)
             .border(1.5.dp, borderColor, RoundedCornerShape(3.dp))
+            .clickable(onClick = onClick)
     ) {
         MiniCardFront(card = card)
         if (overlayIcon != null) {

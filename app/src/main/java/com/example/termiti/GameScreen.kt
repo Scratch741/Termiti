@@ -138,11 +138,13 @@ fun GameScreen(
     val lastCardAction   by viewModel.lastCardAction
     val lastCardIsPlayer by viewModel.lastCardIsPlayer
     val cardHistory      by viewModel.cardHistory
+    val lostToOpponent   by viewModel.lostToOpponent
     val isMulligan       by viewModel.isMulligan
     val mulliganSelected by viewModel.mulliganSelected
     val isComboTurn      by viewModel.isPlayerComboTurn
 
-    var showMenuConfirm by remember { mutableStateOf(false) }
+    var showMenuConfirm  by remember { mutableStateOf(false) }
+    var showLostCards    by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -201,6 +203,7 @@ fun GameScreen(
                                     CardAction.PLAYED    -> if (lastCardIsPlayer) Teal else Crimson
                                     CardAction.DISCARDED -> if (lastCardIsPlayer) Teal.copy(alpha = 0.6f) else Crimson.copy(alpha = 0.6f)
                                     CardAction.BURNED    -> Color(0xFFE07B39)
+                                    CardAction.STOLEN    -> Color(0xFF9B59B6)
                                 }
                                 Box(Modifier.scale(1.3f)) {
                                     Box(
@@ -240,14 +243,45 @@ fun GameScreen(
                                         .padding(horizontal = 4.dp, vertical = 3.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("📜", fontSize = 9.sp,
-                                        modifier = Modifier.padding(end = 3.dp))
+                                    // 📜 ikona s badge ztracených karet – kliknutí otevře popup
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(end = 4.dp)
+                                            .clickable(enabled = lostToOpponent.isNotEmpty()) {
+                                                showLostCards = true
+                                            }
+                                    ) {
+                                        Text("📜", fontSize = 9.sp)
+                                        if (lostToOpponent.isNotEmpty()) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .offset(x = 4.dp, y = (-2).dp)
+                                                    .size(9.dp)
+                                                    .clip(RoundedCornerShape(50))
+                                                    .background(Color(0xFFBF2D2D)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    "${lostToOpponent.size}",
+                                                    color = Color.White,
+                                                    fontSize = 5.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
                                     LazyRow(
                                         horizontalArrangement = Arrangement.spacedBy(3.dp),
                                         contentPadding        = PaddingValues(horizontal = 2.dp)
                                     ) {
                                         itemsIndexed(cardHistory) { _, entry ->
-                                            OfflineMiniHistoryCard(entry.card, entry.action, entry.isMine)
+                                            OfflineMiniHistoryCard(
+                                                card     = entry.card,
+                                                action   = entry.action,
+                                                isMine   = entry.isMine,
+                                                onClick  = { showLostCards = true }
+                                            )
                                         }
                                     }
                                 }
@@ -369,6 +403,13 @@ fun GameScreen(
                 onSkip           = { viewModel.skipMulligan() }
             )
         }
+
+        if (showLostCards) {
+            LostCardsOverlay(
+                lostCards = lostToOpponent,
+                onDismiss = { showLostCards = false }
+            )
+        }
     }
 }
 
@@ -441,19 +482,25 @@ private fun OfflineAiHandRow(handSize: Int, modifier: Modifier = Modifier) {
 // ─── Offline mini history card ────────────────────────────────────────────────
 
 @Composable
-private fun OfflineMiniHistoryCard(card: Card, action: CardAction, isMine: Boolean) {
+private fun OfflineMiniHistoryCard(
+    card: Card, action: CardAction, isMine: Boolean,
+    onClick: () -> Unit = {}
+) {
     val borderColor = when (action) {
         CardAction.BURNED    -> Color(0xFFE07B39).copy(alpha = 0.85f)
+        CardAction.STOLEN    -> Color(0xFF9B59B6).copy(alpha = 0.85f)
         CardAction.DISCARDED -> if (isMine) Teal.copy(alpha = 0.55f) else Crimson.copy(alpha = 0.55f)
         CardAction.PLAYED    -> if (isMine) TealLight.copy(alpha = 0.80f) else Crimson.copy(alpha = 0.80f)
     }
     val bgColor = when (action) {
         CardAction.BURNED    -> Color(0xFF1A1000)
+        CardAction.STOLEN    -> Color(0xFF1A0A2A)
         CardAction.DISCARDED -> Color(0xFF250A0A)
         CardAction.PLAYED    -> Color(0xFF1A1320)
     }
     val overlayIcon = when (action) {
         CardAction.BURNED    -> "🔥"
+        CardAction.STOLEN    -> "🃏"
         CardAction.DISCARDED -> "✕"
         CardAction.PLAYED    -> null
     }
@@ -463,6 +510,7 @@ private fun OfflineMiniHistoryCard(card: Card, action: CardAction, isMine: Boole
             .clip(RoundedCornerShape(3.dp))
             .background(bgColor)
             .border(1.5.dp, borderColor, RoundedCornerShape(3.dp))
+            .clickable(onClick = onClick)
     ) {
         MiniCardFront(card = card)
         if (overlayIcon != null) {
@@ -1249,6 +1297,98 @@ fun MulliganOverlay(
                         fontSize = 11.sp, fontWeight = FontWeight.Bold
                     )
                 }
+            }
+        }
+    }
+}
+
+// ─── Lost Cards Overlay ───────────────────────────────────────────────────────
+@Composable
+fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xD8000000))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable(enabled = false, onClick = {})   // zamezí průchodu kliknutí
+                .clip(RoundedCornerShape(16.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xFF1A1020), BgPanel)))
+                .border(1.dp, Color(0xFF9B59B6).copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+                .widthIn(max = 420.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // Nadpis
+            Text(
+                "SPÁLENÉ & UKRADENÉ KARTY",
+                color = Color(0xFF9B59B6), fontSize = 14.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 3.sp
+            )
+            Text(
+                "Karty, o které tě připravil soupeř.",
+                color = TextMuted, fontSize = 10.sp
+            )
+
+            if (lostCards.isEmpty()) {
+                Text(
+                    "Žádná karta zatím nebyla spálena ani ukradena.",
+                    color = TextMuted.copy(alpha = 0.6f), fontSize = 10.sp,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                // Scrollovatelná mřížka karet
+                val scroll = rememberScrollState()
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(scroll)
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    lostCards.forEach { entry ->
+                        val badgeColor = if (entry.action == CardAction.STOLEN)
+                            Color(0xFF9B59B6) else Color(0xFFE07B39)
+                        val badgeText  = if (entry.action == CardAction.STOLEN) "🃏 UKRADENO" else "🔥 SPÁLENO"
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .border(1.5.dp, badgeColor.copy(alpha = 0.7f), RoundedCornerShape(3.dp))
+                            ) {
+                                CardView(card = entry.card, canPlay = false, discardMode = false, onClick = {})
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(badgeColor.copy(alpha = 0.15f))
+                                    .border(0.5.dp, badgeColor.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(badgeText, color = badgeColor, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Zavřít
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                    .clickable(onClick = onDismiss)
+                    .padding(horizontal = 28.dp, vertical = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
