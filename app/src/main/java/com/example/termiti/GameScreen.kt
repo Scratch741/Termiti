@@ -1152,20 +1152,6 @@ fun CardView(
                         }
                     }
                 }
-                if (conditionMet != null) {
-                    val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
-                    val condText  = if (conditionMet) "✓ SPLNĚNO"       else "✗ NESPLNĚNO"
-                    Box(
-                        Modifier.fillMaxWidth()
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(condColor.copy(alpha = if (conditionMet) 0.15f else 0.08f))
-                            .border(0.5.dp, condColor.copy(alpha = if (conditionMet) 0.7f else 0.35f), RoundedCornerShape(2.dp))
-                            .padding(horizontal = 3.dp, vertical = 1.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(condText, color = condColor, fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                    }
-                }
                 Text(card.name,
                     color = if (canPlay || discardMode || isDragging) TextPrimary else TextMuted,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
@@ -1174,22 +1160,56 @@ fun CardView(
                     color = TextMuted, fontSize = 8.sp, textAlign = TextAlign.Center,
                     maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 11.sp)
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    if (isComboCard) {
-                        Box(
-                            Modifier.fillMaxWidth()
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(ComboYellow.copy(alpha = if (canPlay) 0.18f else 0.07f))
-                                .border(0.5.dp, ComboYellow.copy(alpha = if (canPlay) 0.6f else 0.2f), RoundedCornerShape(3.dp))
-                                .padding(horizontal = 3.dp, vertical = 1.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("⚡ COMBO", color = ComboYellow.copy(alpha = if (canPlay) 1f else 0.4f),
-                                fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                        }
-                    }
                     val rc = rarityColor(card.rarity)
                     Box(Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(2.dp))
                         .background(rc.copy(alpha = if (canPlay || discardMode) 0.8f else 0.3f)))
+                }
+            }
+            // Ikony stavu vpravo nahoře – nepřekrývají text karty
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 9.dp, end = 9.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                if (conditionMet != null) {
+                    val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
+                    val condIcon  = if (conditionMet) "✓" else "✗"
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.Black.copy(alpha = 0.60f))
+                            .border(1.dp, condColor.copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            condIcon,
+                            color = condColor,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 10.sp
+                        )
+                    }
+                }
+                if (isComboCard) {
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.Black.copy(alpha = 0.60f))
+                            .border(1.dp, ComboYellow.copy(alpha = if (canPlay) 0.75f else 0.35f), RoundedCornerShape(4.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "⚡",
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 10.sp
+                        )
+                    }
                 }
             }
             if (isDragging) {
@@ -1313,23 +1333,6 @@ private fun CardViewTextured(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Indikátor podmínky
-            if (conditionMet != null) {
-                val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
-                val condText  = if (conditionMet) "✓ SPLNĚNO" else "✗ NESPLNĚNO"
-                Box(
-                    Modifier.fillMaxWidth()
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(condColor.copy(alpha = 0.25f))
-                        .padding(horizontal = 2.dp, vertical = 1.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(condText, color = condColor, fontSize = 5.5.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            if (isComboCard) {
-                Text("⚡ COMBO", color = ComboYellow, fontSize = 6.sp, fontWeight = FontWeight.Bold)
-            }
             Text(
                 card.description,
                 color = Color(0xFFDDD0B0),
@@ -1339,6 +1342,54 @@ private fun CardViewTextured(
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 9.sp
             )
+        }
+
+        // Vrstva 5b: ikony stavu (splněno / combo) – vpravo nahoře, nepřekrývají text ani grafiku
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp, end = 8.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            if (conditionMet != null) {
+                val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
+                val condIcon  = if (conditionMet) "✓" else "✗"
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, condColor.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        condIcon,
+                        color = condColor,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
+            if (isComboCard) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, ComboYellow.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "⚡",
+                        fontSize = 9.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
         }
 
         // Vrstva 6: typ karty v dolním pruhu (~123–135 dp od vrchu, nad spodním rámem)
