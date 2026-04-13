@@ -14,12 +14,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +50,13 @@ private val AttackRed    = Color(0xFFBF2D2D)
 private val ChaosOrange  = Color(0xFFE67E22)
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+private fun cardFrameName(costType: ResourceType) = when (costType) {
+    ResourceType.MAGIC  -> "card_frame_magic"
+    ResourceType.ATTACK -> "card_frame_attack"
+    ResourceType.CHAOS  -> "card_frame_chaos"
+    ResourceType.STONES -> "card_frame_stones"
+}
+
 private fun resColor(type: ResourceType) = when (type) {
     ResourceType.MAGIC  -> MagicPurple
     ResourceType.ATTACK -> AttackRed
@@ -346,6 +359,90 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
     }
 }
 
+// ─── Card Preview (texturovaný náhled pro deck builder) ──────────────────────
+@Composable
+private fun CardPreview(card: Card) {
+    val artResId = card.artResId ?: return
+    val context = LocalContext.current
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+    Box(
+        modifier = Modifier
+            .size(width = 100.dp, height = 140.dp)
+            .clip(RoundedCornerShape(6.dp))
+    ) {
+        // Ilustrace
+        Image(
+            painter = painterResource(artResId),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alignment = BiasAlignment(card.artBiasX, card.artBiasY)
+        )
+        // Rám
+        if (frameResId != 0) {
+            Image(
+                painter = painterResource(frameResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+        // Cena
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 2.dp, y = 3.dp)
+                .size(18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("${card.cost}", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        // Název
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 70.dp)
+                .fillMaxWidth()
+                .height(20.dp)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(card.name, color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        // Popis
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 94.dp)
+                .fillMaxWidth()
+                .height(28.dp)
+                .clipToBounds()
+                .padding(horizontal = 9.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Text(card.description, color = Color(0xFFDDD0B0), fontSize = 7.sp,
+                textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp)
+        }
+        // Typ
+        if (card.type.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(y = 118.dp)
+                    .fillMaxWidth()
+                    .height(14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(card.type.uppercase(), color = Color(0xFFD4B870),
+                    fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+            }
+        }
+    }
+}
+
 // ─── Catalog Card Item ────────────────────────────────────────────────────────
 @Composable
 private fun CatalogCardItem(
@@ -358,85 +455,135 @@ private fun CatalogCardItem(
     val hasAny    = count > 0
     val costColor = resColor(card.costType)
     val border    = if (hasAny) costColor.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.07f)
-    val bg        = if (hasAny) BgCard else Color(0xFF0F0C14)
+    val rc        = rarityColor(card.rarity)
 
-    Column(
-        Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(7.dp))
-            .background(bg)
-            .border(1.dp, border, RoundedCornerShape(7.dp))
-            .padding(6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        // Icon + cost
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    if (card.artResId != null) {
+        // ── Texturovaná karta ─────────────────────────────────────────────────
+        Column(
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(7.dp))
+                .background(Color(0xFF0F0C14))
+                .border(1.5.dp, border, RoundedCornerShape(7.dp))
+                .padding(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(effectIcon(card), fontSize = 14.sp)
-            Row(
-                Modifier.clip(RoundedCornerShape(4.dp))
-                    .background(costColor.copy(alpha = 0.13f))
-                    .padding(horizontal = 4.dp, vertical = 1.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            // Náhled karty s texturou
+            CardPreview(card = card)
+
+            // Rarita
+            Box(
+                Modifier.clip(RoundedCornerShape(3.dp))
+                    .background(rc.copy(alpha = 0.15f))
+                    .border(0.5.dp, rc.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
             ) {
-                Text(resIcon(card.costType), fontSize = 8.sp)
-                Text("${card.cost}", color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Text(card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // Počítadlo: [−] puntíky [+]
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CountBtn("−", enabled = count > 0, onClick = onDecrement)
+                Spacer(Modifier.width(4.dp))
+                repeat(card.rarity.maxCopies) { i ->
+                    Box(
+                        Modifier.size(8.dp, 8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                if (i < count) rc.copy(alpha = 0.85f)
+                                else Color.White.copy(alpha = 0.07f)
+                            )
+                    )
+                    if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+                }
+                Spacer(Modifier.width(4.dp))
+                CountBtn("+", enabled = count < card.rarity.maxCopies && !deckFull, onClick = onIncrement)
             }
         }
-
-        // Name + rarity badge
-        Text(
-            card.name,
-            color = if (hasAny) TextPrimary else TextMuted,
-            fontSize = 9.sp, fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 1, overflow = TextOverflow.Ellipsis
-        )
-        val rc = rarityColor(card.rarity)
-        Box(
-            Modifier.clip(RoundedCornerShape(3.dp))
-                .background(rc.copy(alpha = 0.15f))
-                .border(0.5.dp, rc.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
-                .padding(horizontal = 5.dp, vertical = 1.dp)
+    } else {
+        // ── Klasická karta (bez textury) ──────────────────────────────────────
+        val bg = if (hasAny) BgCard else Color(0xFF0F0C14)
+        Column(
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(7.dp))
+                .background(bg)
+                .border(1.dp, border, RoundedCornerShape(7.dp))
+                .padding(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-        }
-
-        // Description (1 line)
-        Text(
-            card.description,
-            color = TextMuted.copy(alpha = 0.7f),
-            fontSize = 7.5.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-            lineHeight = 9.sp
-        )
-
-        // Count selector: [−] pips [+]
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CountBtn("−", enabled = count > 0, onClick = onDecrement)
-            Spacer(Modifier.width(4.dp))
-            repeat(card.rarity.maxCopies) { i ->
-                Box(
-                    Modifier.size(8.dp, 8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            if (i < count) rarityColor(card.rarity).copy(alpha = 0.85f)
-                            else Color.White.copy(alpha = 0.07f)
-                        )
-                )
-                if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+            // Icon + cost
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(effectIcon(card), fontSize = 14.sp)
+                Row(
+                    Modifier.clip(RoundedCornerShape(4.dp))
+                        .background(costColor.copy(alpha = 0.13f))
+                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(resIcon(card.costType), fontSize = 8.sp)
+                    Text("${card.cost}", color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
             }
-            Spacer(Modifier.width(4.dp))
-            CountBtn("+", enabled = count < card.rarity.maxCopies && !deckFull, onClick = onIncrement)
+
+            // Name + rarity badge
+            Text(
+                card.name,
+                color = if (hasAny) TextPrimary else TextMuted,
+                fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 1, overflow = TextOverflow.Ellipsis
+            )
+            Box(
+                Modifier.clip(RoundedCornerShape(3.dp))
+                    .background(rc.copy(alpha = 0.15f))
+                    .border(0.5.dp, rc.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
+            ) {
+                Text(card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // Description (1 line)
+            Text(
+                card.description,
+                color = TextMuted.copy(alpha = 0.7f),
+                fontSize = 7.5.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                lineHeight = 9.sp
+            )
+
+            // Count selector: [−] pips [+]
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CountBtn("−", enabled = count > 0, onClick = onDecrement)
+                Spacer(Modifier.width(4.dp))
+                repeat(card.rarity.maxCopies) { i ->
+                    Box(
+                        Modifier.size(8.dp, 8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                if (i < count) rc.copy(alpha = 0.85f)
+                                else Color.White.copy(alpha = 0.07f)
+                            )
+                    )
+                    if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+                }
+                Spacer(Modifier.width(4.dp))
+                CountBtn("+", enabled = count < card.rarity.maxCopies && !deckFull, onClick = onIncrement)
+            }
         }
     }
 }

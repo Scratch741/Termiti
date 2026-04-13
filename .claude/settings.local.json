@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python analyzer.py --games 3000 --top 12)",
+      "Bash(iconv -f utf-8 -t utf-8)",
+      "Bash(python analyzer.py --games 5000 --top 12 --chaos)",
+      "Bash(python analyzer.py --games 10000 --top 20 --chaos)",
+      "Bash(python analyzer.py --games 1000 --top 10 --chaos)",
+      "Bash(gradlew.bat compileDebugKotlin)",
+      "Bash(cmd /c \"gradlew.bat compileDebugKotlin 2>&1\")",
+      "Bash(cmd /c \"gradlew.bat compileDebugKotlin\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat compileDebugKotlin 2>&1 | Select-Object -Last 50\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\Gameviewmodel.kt' -Pattern 'isCombo = true' | Measure-Object | Select-Object -ExpandProperty Count\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat compileDebugKotlin 2>&1 | Select-Object -Last 20\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat compileDebugKotlin 2>&1 | Select-Object -Last 8\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-String -Pattern 'error:|warning:|BUILD' | Select-Object -Last 30\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-String -Pattern 'error:|BUILD' | Select-Object -Last 10\")",
+      "Bash(powershell -Command \"Get-ChildItem 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\' -Filter '*.kt' | Select-Object Name\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\GameScreen.kt' -Pattern 'combo|Combo|COMBO|endPlayer|HandPanel|onEndTurn' | Select-Object LineNumber, Line | Select-Object -First 30\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\Gameviewmodel.kt' -Pattern 'aiChoose|CardEffect\\\\.' | Select-Object LineNumber, Line | Select-Object -First 30\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\Gameviewmodel.kt' -Pattern 'aiChoose|scoreCard|evalCard|fun ai' | Select-Object LineNumber, Line | Select-Object -First 20\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-String -Pattern 'error:|BUILD' | Select-Object -Last 15\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-String -Pattern 'error:' | Select-Object -First 20\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 30\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\ArenaDraftScreen.kt' -Pattern 'AttackCastle|AttackWall|effectIcon|when.*effect' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\GameScreen.kt' -Pattern 'AttackCastle|AttackWall|AttackPlayer' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 15\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 10\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\*.kt' -Pattern '/40|/ 40' | Select-Object Filename, LineNumber, Line\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 6\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\AndroidManifest.xml'\")",
+      "Bash(powershell -Command \"Set-Location 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti'; .\\\\gradlew.bat assembleDebug 2>&1 | Select-Object -Last 20\")",
+      "Bash(powershell -Command \"Select-String -Path 'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\GameScreen.kt' -Pattern 'fun CardBack|fun CardView|fun HandPanel|fun PlayerPanel' | Select-Object LineNumber, Line\")",
+      "Bash(.\\\\gradlew.bat assembleDebug)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(python3 -c \" import sys, json for line in sys.stdin: try: obj = json.loads\\(line\\) content = str\\(obj\\) if 'image' in content.lower\\(\\) and \\('path' in content.lower\\(\\) or 'url' in content.lower\\(\\)\\): print\\(content[:300]\\) except: pass \")",
+      "Bash(python3 -)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

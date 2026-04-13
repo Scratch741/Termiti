@@ -14,3 +14,7 @@ Vytvořit nové karty na stavbu - chybí velké stavební karty pro výhru přes
 Přetvořit většinu útočných karet - chybná myšlenka. Karty by měly z většiny útočit na hráče, ne na hradby/hrad. Pouze specializované karty útočí jen na hradbu/hrad
 Nové mechaniky karet - Karty reagují na to, co jsi zahrál předtím (if last card was ATTACK → +10 damage
 else → +4 damage) /  Silná karta s nevýhodou (chaos karty) / Znič nejvyšší surovinu/důl (cílený) / Deck manipulace - lízni 2, discardni 1. Podívej se na top 3 karty a vyber 1, co dáš navrch. / Swap resources s enemy (chaos) / Doomsday (chaos, -30 poškození, možnost remízy) / Ongoing/status efekty / Swap hand mezi soupeřem a hráčem
+Hezčí UI
+Character progress - level, kupování karet, hrdina, speciální pasivní schopnosti
+Předělat/lepší multiplayer - stabilní server na linuxu, kde se ověřují všechny činnosti - prevence cheatingu
+Simple animace - když zaútočíš, poběží panáček na hrad, atd.

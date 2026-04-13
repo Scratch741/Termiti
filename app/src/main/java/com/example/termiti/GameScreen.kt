@@ -13,8 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
@@ -206,7 +208,7 @@ fun GameScreen(
                                     CardAction.BURNED    -> Color(0xFFE07B39)
                                     CardAction.STOLEN    -> Color(0xFF9B59B6)
                                 }
-                                Box(Modifier.scale(1.3f)) {
+                                Box(Modifier.scale(1.2f)) {
                                     Box(
                                         Modifier
                                             .clip(RoundedCornerShape(8.dp))
@@ -336,7 +338,7 @@ fun GameScreen(
                 showHeader       = false,
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
-                modifier         = Modifier.fillMaxWidth().height(130.dp)
+                modifier         = Modifier.fillMaxWidth().height(150.dp)
                                            .background(BgDeep.copy(alpha = 0.82f))
             )
         }
@@ -620,6 +622,14 @@ fun CardBack(modifier: Modifier = Modifier) {
     }
 }
 
+/** Vrátí název drawable rámu podle typu zdroje karty. */
+private fun cardFrameName(costType: ResourceType) = when (costType) {
+    ResourceType.MAGIC  -> "card_frame_magic"
+    ResourceType.ATTACK -> "card_frame_attack"
+    ResourceType.CHAOS  -> "card_frame_chaos"
+    ResourceType.STONES -> "card_frame_stones"
+}
+
 /** Miniatura líce karty – stejná velikost jako CardBack (22×32 dp). */
 @Composable
 fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
@@ -627,8 +637,8 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
     if (card.artResId != null) {
         // Miniatura textured karty
         val context = LocalContext.current
-        val frameResId = remember {
-            context.resources.getIdentifier("card_frame", "drawable", context.packageName)
+        val frameResId = remember(card.costType) {
+            context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
         }
         Box(
             modifier = modifier
@@ -640,7 +650,8 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
                 painter = painterResource(card.artResId),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                alignment = BiasAlignment(card.artBiasX, card.artBiasY)
             )
             if (frameResId != 0) {
                 Image(
@@ -1101,7 +1112,7 @@ fun CardView(
 
         Box(
             modifier = Modifier
-                .size(width = 100.dp, height = 118.dp)
+                .size(width = 100.dp, height = 140.dp)
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .then(dragModifier)
         ) {
@@ -1208,10 +1219,10 @@ private fun CardViewTextured(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    // Načtení rámu karty dynamicky — soubor res/drawable/card_frame.png
-    // Pokud neexistuje, vrátí 0 a rám se nepřikresluje.
-    val frameResId = remember {
-        context.resources.getIdentifier("card_frame", "drawable", context.packageName)
+    // Načtení rámu karty dynamicky podle costType (card_frame_magic/attack/chaos/stones).
+    // Pokud soubor neexistuje, vrátí 0 a rám se nepřikresluje.
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
     }
 
     val borderColor = when {
@@ -1224,7 +1235,7 @@ private fun CardViewTextured(
 
     Box(
         modifier = Modifier
-            .size(width = 100.dp, height = 118.dp)
+            .size(width = 100.dp, height = 140.dp)
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .then(dragModifier)
             .clip(RoundedCornerShape(6.dp))
@@ -1238,6 +1249,7 @@ private fun CardViewTextured(
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
+            alignment = BiasAlignment(card.artBiasX, card.artBiasY),
             alpha = if (canPlay || discardMode) 1f else 0.6f
         )
 
@@ -1255,25 +1267,26 @@ private fun CardViewTextured(
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = 5.dp, y = 4.dp)
-                .size(20.dp),
+                .offset(x = 2.dp, y = 0.dp)
+                .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 "${card.cost}",
                 color = Color.White,
-                fontSize = 11.sp,
+                fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold
             )
         }
 
-        // Vrstva 4: název karty v červeném obloukovém pásu (~58–73 dp od vrchu)
+        // Vrstva 4: název karty v červeném obloukovém pásu (~70–90 dp od vrchu)
+        // Proporce rámu 816×1194 px → výška karty 140 dp: y = px * (140/1194)
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 58.dp)
+                .offset(y = 70.dp)
                 .fillMaxWidth()
-                .height(15.dp)
+                .height(20.dp)
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -1288,13 +1301,14 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 5: text karty pod názvem (~74–106 dp od vrchu)
+        // Vrstva 5: text karty pod názvem (~94–124 dp od vrchu)
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 74.dp)
+                .offset(y = 94.dp)
                 .fillMaxWidth()
-                .height(32.dp)
+                .height(28.dp)
+                .clipToBounds()
                 .padding(horizontal = 9.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -1327,19 +1341,20 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 6: typ karty v dolním pruhu (~106–118 dp od vrchu)
+        // Vrstva 6: typ karty v dolním pruhu (~123–135 dp od vrchu, nad spodním rámem)
         if (card.type.isNotEmpty()) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.TopStart)
+                    .offset(y = 120.dp)
                     .fillMaxWidth()
-                    .height(12.dp),
+                    .height(14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     card.type.uppercase(),
-                    color = Color(0xFFB8A070),
-                    fontSize = 5.5.sp,
+                    color = Color(0xFFD4B870),
+                    fontSize = 6.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp
                 )
