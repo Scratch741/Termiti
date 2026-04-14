@@ -21,13 +21,7 @@ data class Card(
      * artBiasX: -1.0 = obrázek přitažen doleva, 0.0 = střed, 1.0 = doprava
      * artBiasY: -1.0 = obrázek přitažen nahoru,  0.0 = střed, 1.0 = dolů
      * Příklad: artBiasX = -0.3f, artBiasY = -0.5f  → subjekt vpravo dole zůstane vidět
-     * Hodnoty se přičítají ke globálním konstantám ART_GLOBAL_BIAS_X / ART_GLOBAL_BIAS_Y.
      */
     val artBiasX: Float = 0f,
-    val artBiasY: Float = 0f,
-    /**
-     * Per-karta korekce zoomu ilustrace (multiplikátor na ART_GLOBAL_SCALE).
-     * 1.0f = beze změny, 1.2f = 20 % přiblížit, 0.85f = 15 % oddálit.
-     */
-    val artScale: Float = 1f
+    val artBiasY: Float = 0f
 )

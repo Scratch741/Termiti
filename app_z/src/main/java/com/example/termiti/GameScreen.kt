@@ -62,8 +62,6 @@ private val AttackRed    = Color(0xFFBF2D2D)
 private val ChaosOrange  = Color(0xFFE67E22)
 private val DiscardRed   = Color(0xFFE53935)
 
-// ─── Art helpers jsou v ArtDefaults.kt (artModifier / artAlignment) ──────────
-
 private fun rarityColor(rarity: Rarity) = when (rarity) {
     Rarity.COMMON    -> Color(0xFF9E9E9E)
     Rarity.RARE      -> Color(0xFF4A90D9)
@@ -651,9 +649,9 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(card.artResId),
                 contentDescription = null,
-                modifier = artModifier(card),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
-                alignment = artAlignment(card)
+                alignment = BiasAlignment(card.artBiasX, card.artBiasY)
             )
             if (frameResId != 0) {
                 Image(
@@ -1269,9 +1267,9 @@ private fun CardViewTextured(
         Image(
             painter = painterResource(artResId),
             contentDescription = null,
-            modifier = artModifier(card),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alignment = artAlignment(card),
+            alignment = BiasAlignment(card.artBiasX, card.artBiasY),
             alpha = if (canPlay || discardMode) 1f else 0.6f
         )
 
@@ -1279,17 +1277,6 @@ private fun CardViewTextured(
         if (frameResId != 0) {
             Image(
                 painter = painterResource(frameResId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
-
-        // Vrstva 2.5: Překryv rarity (PNG s průhledností, mění barvu jen určité části)
-        val rarityOverlayId = rarityOverlayResource(card.rarity)
-        if (rarityOverlayId != 0) {
-            Image(
-                painter = painterResource(rarityOverlayId),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds

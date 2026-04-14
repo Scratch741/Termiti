@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
@@ -375,25 +376,14 @@ private fun CardPreview(card: Card) {
         Image(
             painter = painterResource(artResId),
             contentDescription = null,
-            modifier = artModifier(card),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
-            alignment = artAlignment(card)
+            alignment = BiasAlignment(card.artBiasX, card.artBiasY)
         )
         // Rám
         if (frameResId != 0) {
             Image(
                 painter = painterResource(frameResId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
-
-        // Překryv rarity
-        val rarityOverlayId = rarityOverlayResource(card.rarity)
-        if (rarityOverlayId != 0) {
-            Image(
-                painter = painterResource(rarityOverlayId),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
