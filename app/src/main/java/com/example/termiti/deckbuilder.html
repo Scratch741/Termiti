@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Termiti – Deck Builder</title>
+<title>Termiti – Designer & Deck Builder</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -70,11 +70,23 @@
     letter-spacing: 2px;
     white-space: nowrap;
   }
-  header .subtitle { color: var(--text-dim); font-style: italic; font-size: 12px; }
 
   .header-center { display: flex; align-items: center; gap: 8px; flex: 1; }
 
-  /* Source load button */
+  .mode-tabs { display: flex; gap: 4px; background: rgba(0,0,0,.3); padding: 3px; border-radius: 4px; margin-right: 20px; }
+  .mode-tab {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all .2s;
+  }
+  .mode-tab.active { background: var(--gold); color: var(--bg); font-weight: 700; }
+
   .btn-load-src {
     font-family: 'Cinzel', serif;
     font-size: 10px;
@@ -89,6 +101,13 @@
   }
   .btn-load-src:hover { border-color: var(--gold-dim); color: var(--gold); }
 
+  .btn-upload-art {
+    background: var(--gold-dim) !important;
+    color: #fff !important;
+    border: none !important;
+  }
+  .btn-upload-art:hover { background: var(--gold) !important; }
+
   .card-source-info {
     font-size: 11px;
     color: var(--text-muted);
@@ -97,21 +116,6 @@
   }
   .card-source-info.loaded { color: var(--ok); }
 
-  .deck-tabs { display: flex; gap: 6px; margin-left: auto; }
-  .deck-tab {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    letter-spacing: 1px;
-    padding: 5px 14px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-dim);
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .deck-tab:hover { border-color: var(--gold-dim); color: var(--text); }
-  .deck-tab.active { border-color: var(--gold); color: var(--gold); background: rgba(201,150,58,.08); }
-
   /* ── Layout ── */
   .layout {
     display: grid;
@@ -119,6 +123,11 @@
     flex: 1;
     overflow: hidden;
   }
+  .layout.designer-mode {
+    grid-template-columns: 280px 1fr 320px;
+  }
+
+  .layout.designer-mode #deck-panel-view { display: none !important; }
 
   /* ── Left: card browser ── */
   .browser {
@@ -150,7 +159,6 @@
     outline: none;
   }
   .filters input[type=text]::placeholder { color: var(--text-muted); }
-  .filters input[type=text]:focus { border-color: var(--gold-dim); }
 
   .filter-btn {
     padding: 3px 10px;
@@ -161,26 +169,12 @@
     font-family: 'Crimson Pro', serif;
     font-size: 13px;
     transition: all .12s;
-    white-space: nowrap;
   }
-  .filter-btn:hover { color: var(--text); border-color: var(--border-light); }
   .filter-btn.active-all    { border-color: var(--gold-dim); color: var(--gold); }
   .filter-btn.active-attack { border-color: var(--attack); color: var(--attack); background: var(--attack-bg); }
   .filter-btn.active-stones { border-color: var(--stones); color: var(--stones); background: var(--stones-bg); }
   .filter-btn.active-magic  { border-color: var(--magic);  color: var(--magic);  background: var(--magic-bg); }
   .filter-btn.active-chaos  { border-color: var(--chaos);  color: var(--chaos);  background: var(--chaos-bg); }
-
-  .sort-select {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 3px 8px;
-    font-family: 'Crimson Pro', serif;
-    font-size: 13px;
-    cursor: pointer;
-    outline: none;
-    margin-left: auto;
-  }
 
   .card-grid {
     flex: 1;
@@ -191,9 +185,6 @@
     gap: 6px;
     align-content: start;
   }
-  .card-grid::-webkit-scrollbar { width: 6px; }
-  .card-grid::-webkit-scrollbar-track { background: var(--bg); }
-  .card-grid::-webkit-scrollbar-thumb { background: var(--border); }
 
   /* ── Card tile ── */
   .card-tile {
@@ -201,602 +192,396 @@
     background: var(--panel);
     padding: 7px 9px;
     cursor: pointer;
-    transition: all .12s;
     position: relative;
     user-select: none;
   }
   .card-tile:hover { border-color: var(--gold-dim); background: #231d16; }
-  .card-tile.in-deck { border-color: var(--gold-dim); }
-  .card-tile.maxed { opacity: .45; cursor: not-allowed; }
+  .card-tile.selected { border-color: var(--gold); background: rgba(201,150,58,.1); }
 
-  .card-tile-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    margin-bottom: 4px;
-  }
+  .card-tile-header { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
   .cost-badge {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    font-weight: 700;
-    min-width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid;
-    flex-shrink: 0;
+    font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700;
+    min-width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid; flex-shrink: 0;
   }
   .cost-attack { color: var(--attack); border-color: var(--attack-dim); background: var(--attack-bg); }
   .cost-stones { color: var(--stones); border-color: var(--stones-dim); background: var(--stones-bg); }
   .cost-magic  { color: var(--magic);  border-color: var(--magic-dim);  background: var(--magic-bg); }
   .cost-chaos  { color: var(--chaos);  border-color: var(--chaos-dim);  background: var(--chaos-bg); }
 
-  .card-name {
-    font-weight: 600;
-    font-size: 13px;
-    line-height: 1.3;
-    color: var(--text);
-    flex: 1;
-  }
-  .card-desc {
-    font-size: 12px;
-    color: var(--text-dim);
-    font-style: italic;
-    line-height: 1.4;
-    margin-bottom: 5px;
-  }
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .rarity-dot {
-    font-size: 11px;
-    font-family: 'Cinzel', serif;
-    letter-spacing: .5px;
-  }
-  .r-common    { color: var(--common); }
-  .r-rare      { color: var(--rare); }
-  .r-epic      { color: var(--epic); }
-  .r-legendary { color: var(--legendary); }
+  .card-name { font-weight: 600; font-size: 13px; line-height: 1.3; color: var(--text); flex: 1; }
+  .card-desc { font-size: 12px; color: var(--text-dim); font-style: italic; line-height: 1.4; margin-bottom: 5px; }
 
-  .combo-tag {
-    font-size: 10px;
-    color: var(--gold-dim);
-    border: 1px solid var(--gold-dim);
-    padding: 1px 4px;
-    letter-spacing: .5px;
-  }
-
-  .count-indicator {
-    position: absolute;
-    top: 4px; right: 6px;
-    font-family: 'Cinzel', serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--gold);
-    line-height: 1;
-  }
-
-  /* ── Right: deck panel ── */
-  .deck-panel {
+  /* ── Right Panel (Deck or Designer Controls) ── */
+  .side-panel {
     display: flex;
     flex-direction: column;
     overflow: hidden;
     background: var(--surface);
+    border-left: 1px solid var(--border);
   }
 
-  .deck-header {
+  .panel-header {
     padding: 10px 14px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
-  .deck-header-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-  .deck-header h2 {
+  .panel-header h2 {
     font-family: 'Cinzel', serif;
     font-size: 13px;
     letter-spacing: 1.5px;
     color: var(--gold);
   }
-  .deck-name-input {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    letter-spacing: 1.5px;
-    color: var(--gold);
-    background: rgba(201,150,58,.08);
-    border: 1px solid var(--gold-dim);
-    padding: 1px 6px;
-    outline: none;
-    width: 160px;
-  }
-  .deck-name-input:focus { border-color: var(--gold); }
-  .deck-count {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-left: auto;
-    white-space: nowrap;
-  }
-  .deck-count span {
-    font-family: 'Cinzel', serif;
-    font-size: 17px;
-    font-weight: 700;
-  }
-  .deck-count .cnt-num { color: var(--gold); }
-  .deck-count .cnt-max { color: var(--text-muted); }
 
-  .progress-bar {
-    height: 3px;
-    background: var(--border);
-    margin-top: 6px;
-    position: relative;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--gold);
-    transition: width .2s;
-  }
-  .progress-fill.full { background: #c03030; }
-
-  .deck-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px;
-  }
-  .deck-list::-webkit-scrollbar { width: 4px; }
-  .deck-list::-webkit-scrollbar-thumb { background: var(--border); }
-
-  .deck-entry {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #1c1812;
-    transition: background .1s;
-  }
-  .deck-entry:hover { background: #231d16; }
-
-  .de-cost {
-    font-family: 'Cinzel', serif;
-    font-size: 11px;
-    font-weight: 700;
-    width: 16px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .de-name { flex: 1; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .de-count-ctrl {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    flex-shrink: 0;
-  }
-  .de-btn {
-    width: 18px; height: 18px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 14px;
-    line-height: 1;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .1s;
-  }
-  .de-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .de-cnt {
-    font-family: 'Cinzel', serif;
-    font-size: 13px;
-    color: var(--gold);
-    min-width: 14px;
-    text-align: center;
-  }
-
-  /* ── Output ── */
-  .deck-output {
-    border-top: 1px solid var(--border);
-    padding: 10px 12px;
-    flex-shrink: 0;
-  }
-  .output-label {
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    display: block;
-    margin-bottom: 5px;
-  }
-  .output-box {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 6px 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 10.5px;
-    color: var(--gold-light);
-    min-height: 54px;
-    max-height: 90px;
-    overflow-y: auto;
-    margin-bottom: 6px;
-    line-height: 1.55;
-    white-space: pre;
-  }
-
-  .action-row { display: flex; gap: 6px; }
-  .btn-copy, .btn-clear {
-    flex: 1;
-    padding: 7px 8px;
-    border: 1px solid;
-    background: transparent;
-    cursor: pointer;
-    font-family: 'Cinzel', serif;
-    font-size: 10px;
-    letter-spacing: 1px;
-    transition: all .12s;
-  }
-  .btn-copy  { border-color: var(--gold-dim); color: var(--gold); }
-  .btn-copy:hover  { background: rgba(201,150,58,.12); border-color: var(--gold); }
-  .btn-clear { border-color: var(--border); color: var(--text-muted); }
-  .btn-clear:hover { border-color: #c03030; color: #c03030; }
-
-  .copy-toast {
-    font-size: 11px;
-    color: var(--ok);
-    text-align: center;
-    height: 14px;
-    line-height: 14px;
-    margin-top: 3px;
-  }
-
-  /* ── Stats bar ── */
-  .stats-bar {
-    border-top: 1px solid var(--border);
-    padding: 5px 12px;
-    display: flex;
-    gap: 10px;
-    font-size: 11px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-  .stat { display: flex; align-items: center; gap: 4px; }
-  .stat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-
-  /* ── No cards notice ── */
-  .no-cards-notice {
+  /* ── Designer Specific ── */
+  .designer-main {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    gap: 12px;
-    color: var(--text-muted);
-    font-style: italic;
-    text-align: center;
+    background: var(--bg);
     padding: 20px;
+    overflow-y: auto;
   }
-  .no-cards-notice button {
+
+  .canvas-container {
+    position: relative;
+    width: 300px;
+    height: 420px; /* 100x140 dp scaled 3x */
+    background: #000;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.8);
+    border: 2px solid var(--border);
+  }
+
+  .art-box {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 270px; /* 90dp scaled 3x */
+    overflow: hidden;
+    background: #1a1520;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .art-img {
+    position: absolute;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    display: block;
+    transform-origin: center;
+  }
+
+  .card-frame-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .card-info-overlay {
+    position: absolute;
+    top: 245px; left: 0; width: 100%;
+    text-align: center;
+    z-index: 15;
+    padding: 0 20px;
+  }
+  .card-info-overlay .name {
     font-family: 'Cinzel', serif;
-    font-size: 11px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,1);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .card-info-overlay .desc {
+    font-size: 13px;
+    color: #ede0c4;
+    font-style: italic;
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,1);
+    max-width: 80%;
+    margin: 0 auto;
+  }
+
+  .designer-controls {
+    padding: 12px;
+    padding-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .control-group {
+    background: rgba(0,0,0,.25);
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .control-group h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--text-muted);
     letter-spacing: 1px;
-    padding: 8px 20px;
-    border: 1px solid var(--gold-dim);
-    background: transparent;
-    color: var(--gold);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .slider-row { margin-bottom: 12px; }
+  .slider-row:last-child { margin-bottom: 0; }
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .slider-label span:last-child { color: var(--gold); font-family: monospace; }
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    appearance: none;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px; height: 14px;
+    background: var(--gold);
+    border-radius: 50%;
     cursor: pointer;
   }
-  .no-cards-notice button:hover { background: rgba(201,150,58,.1); }
 
-  /* ── Scrollbar global ── */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
-
-  #fileInput { display: none; }
-
-  /* ── Card preview tooltip ── */
-  #card-preview {
-    position: fixed;
-    display: none;
-    z-index: 9999;
-    width: 230px;
-    background: var(--panel);
+  .btn-action {
+    padding: 8px;
+    background: transparent;
     border: 1px solid var(--gold-dim);
-    box-shadow: 0 10px 32px rgba(0,0,0,.7);
-    padding: 12px 14px;
-    pointer-events: none;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all .2s;
+    margin-top: 4px;
   }
-  #card-preview.visible { display: block; }
-  #card-preview .pvw-header {
-    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;
+  .btn-action:hover { background: rgba(201,150,58,.1); border-color: var(--gold); }
+
+  .output-box {
+    background: #000;
+    border: 1px solid var(--border);
+    padding: 10px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--gold-light);
+    height: 120px;
+    overflow-y: auto;
+    white-space: pre;
+    margin-top: 10px;
   }
-  #card-preview .pvw-cost {
-    font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700;
-    min-width: 24px; height: 24px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    border: 1px solid;
-  }
-  #card-preview .pvw-name {
-    font-family: 'Cinzel', serif; font-weight: 600; font-size: 13px;
-    line-height: 1.3; color: var(--text);
-  }
-  #card-preview .pvw-desc {
-    font-style: italic; font-size: 12px; color: var(--text-dim);
-    line-height: 1.5; margin-bottom: 8px; white-space: normal;
-  }
-  #card-preview .pvw-footer {
-    font-size: 11px; color: var(--text-muted);
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  #card-preview .pvw-combo {
-    font-size: 10px; font-weight: 700; letter-spacing: 1px;
-    color: var(--gold); border: 1px solid var(--gold-dim);
-    padding: 1px 5px;
-  }
+
+  /* ── Deck Builder View ── */
+  #deck-view { display: none; height: 100%; flex-direction: column; }
+  #designer-view { display: none; height: 100%; flex-direction: column; }
+  /* removed .view-active !important to allow JS display toggling */
+
 </style>
 </head>
-<body>
+<body onload="init()">
 
-<input type="file" id="fileInput" accept=".kt" onchange="loadKtFile(event)">
-
-<div id="card-preview">
-  <div class="pvw-header">
-    <div class="pvw-cost" id="pvw-cost"></div>
-    <div class="pvw-name" id="pvw-name"></div>
-  </div>
-  <div class="pvw-desc" id="pvw-desc"></div>
-  <div class="pvw-footer">
-    <span id="pvw-rarity"></span>
-    <span class="pvw-combo" id="pvw-combo"></span>
-  </div>
-</div>
+<input type="file" id="fileInput" accept=".kt" onchange="loadKtFile(event)" style="display:none">
+<input type="file" id="artInput" accept="image/*" multiple onchange="loadArtFiles(event)" style="display:none">
+<input type="file" id="frameInput" accept="image/*" onchange="loadFrameFile(event)" style="display:none">
 
 <header>
-  <div>
-    <h1>⚔ TERMITI DECK BUILDER</h1>
-    <div class="subtitle">Max 30 karet · 3 balíčky</div>
+  <h1>⚔ TERMITI DESIGNER</h1>
+
+  <div class="mode-tabs">
+    <button id="tab-builder" class="mode-tab active" onclick="setMode('builder')">DECK BUILDER</button>
+    <button id="tab-designer" class="mode-tab" onclick="setMode('designer')">DESIGNER MODE</button>
   </div>
 
   <div class="header-center">
     <button class="btn-load-src" onclick="document.getElementById('fileInput').click()">
-      📂 Načíst Gameviewmodel.kt
+      📂 Načíst GameViewModel.kt
+    </button>
+    <button class="btn-load-src btn-upload-art" onclick="document.getElementById('artInput').click()">
+      🖼 Nahrát obrázky
     </button>
     <span class="card-source-info" id="sourceInfo">výchozí karty</span>
   </div>
-
-  <div class="deck-tabs" id="deckTabs">
-    <button class="deck-tab active" onclick="switchDeck(0)">BALÍČEK 1</button>
-    <button class="deck-tab" onclick="switchDeck(1)">BALÍČEK 2</button>
-    <button class="deck-tab" onclick="switchDeck(2)">BALÍČEK 3</button>
-  </div>
 </header>
 
-<div class="layout">
-  <!-- LEFT: browser -->
+<div id="main-layout" class="layout">
+
+  <!-- LEFT: Browser / List -->
   <div class="browser">
     <div class="filters">
-      <input type="text" id="searchInput" placeholder="Hledat kartu..." oninput="render()">
-      <button class="filter-btn active-all" id="fbAll"    onclick="setFilter('ALL')">Vše</button>
-      <button class="filter-btn" id="fbATTACK" onclick="setFilter('ATTACK')">⚔ Útok</button>
-      <button class="filter-btn" id="fbSTONES" onclick="setFilter('STONES')">🏰 Stavba</button>
-      <button class="filter-btn" id="fbMAGIC"  onclick="setFilter('MAGIC')">✦ Magie</button>
-      <button class="filter-btn" id="fbCHAOS"  onclick="setFilter('CHAOS')">🌀 Chaos</button>
-      <select class="sort-select" id="sortSelect" onchange="render()">
-        <option value="cost">Řadit: cena ↑</option>
-        <option value="type">Řadit: typ</option>
-        <option value="cost-desc">Řadit: cena ↓</option>
-        <option value="name">Řadit: název</option>
-        <option value="rarity">Řadit: raritu</option>
-      </select>
+      <input type="text" id="searchInput" placeholder="Hledat kartu..." oninput="renderBrowser()">
+      <button class="filter-btn active-all" onclick="setFilter('ALL')">Vše</button>
+      <button class="filter-btn" onclick="setFilter('ATTACK')">⚔</button>
+      <button class="filter-btn" onclick="setFilter('STONES')">🏰</button>
+      <button class="filter-btn" onclick="setFilter('MAGIC')">✦</button>
+      <button class="filter-btn" onclick="setFilter('CHAOS')">🌀</button>
     </div>
     <div class="card-grid" id="cardGrid"></div>
   </div>
 
-  <!-- RIGHT: deck -->
-  <div class="deck-panel">
-    <div class="deck-header">
-      <div class="deck-header-row">
-        <input class="deck-name-input" id="deckNameInput" value="BALÍČEK 1"
-               oninput="renameDeck(this.value)" onblur="renameDeck(this.value)">
-        <div class="deck-count">
-          <span class="cnt-num" id="deckCountNum">0</span><span class="cnt-max">/30</span>
+  <!-- CENTER: Designer Preview (only in designer mode) -->
+  <div id="designer-center" class="designer-main" style="display:none">
+    <div class="canvas-container">
+      <div class="art-box">
+        <img id="preview-art" class="art-img" src="" style="display:none">
+        <div id="art-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-style:italic;font-size:12px;text-align:center;padding:20px;">
+          Nahraj obrázek (art_XXX.jpg) v ovládacím panelu vpravo
         </div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-
-    <div class="deck-list" id="deckList"></div>
-
-    <div class="stats-bar" id="statsBar"></div>
-
-    <div class="deck-output">
-      <span class="output-label">KOTLIN KÓD (vložit do presetTemplates v GameViewModel)</span>
-      <div class="output-box" id="outputBox">—</div>
-      <div class="action-row">
-        <button class="btn-copy" onclick="copyCode()">KOPÍROVAT KÓD</button>
-        <button class="btn-clear" onclick="clearDeck()">VYMAZAT</button>
+      <div class="card-frame-overlay">
+        <img id="card-frame-img" src="" style="width:100%; height:100%; display:none; object-fit: contain;">
       </div>
-      <div class="copy-toast" id="copyToast"></div>
+      <!-- Simplistic card frame mock -->
+      <div style="position:absolute;bottom:0;left:0;width:100%;height:150px;background:linear-gradient(to top, #13101a 0%, #13101a 80%, transparent 100%);z-index:5"></div>
+      <div class="card-info-overlay">
+        <div class="name" id="preview-name">Název karty</div>
+        <div class="desc" id="preview-desc">Popis efektu karty...</div>
+      </div>
     </div>
+    <div style="margin-top:20px;color:var(--text-muted);font-size:12px;">
+      Simulace: Ilustrační box 90dp, Celá karta 140dp.
+    </div>
+  </div>
+
+  <!-- RIGHT: Side Panel -->
+  <div class="side-panel">
+
+    <!-- DECK BUILDER PANEL -->
+    <div id="deck-panel-view" style="display:flex;flex-direction:column;height:100%">
+      <div class="panel-header">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2>MŮJ BALÍČEK</h2>
+          <div style="font-size:12px;color:var(--gold)"><span id="deck-count">0</span>/30</div>
+        </div>
+      </div>
+      <div id="deck-list" style="flex:1;overflow-y:auto;padding:10px"></div>
+      <div style="padding:16px;border-top:1px solid var(--border)">
+        <button class="btn-action" style="width:100%" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
+        <div id="deck-output" class="output-box">—</div>
+      </div>
+    </div>
+
+    <!-- DESIGNER PANEL -->
+    <div id="designer-panel-view" style="display:none;flex-direction:column;height:100%">
+      <div class="panel-header">
+        <h2>DESIGNER OVLÁDÁNÍ</h2>
+      </div>
+      <div class="designer-controls" style="flex:1;overflow-y:auto">
+
+        <div class="control-group">
+          <h3>Globální nastavení (ArtDefaults.kt)</h3>
+          <div class="slider-row">
+            <div class="slider-label"><span>Měřítko (Scale)</span><span id="v-g-scale">1.2</span></div>
+            <input type="range" id="g-scale" min="-3" max="3" step="0.05" value="1.2" oninput="updateArt()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Bias X</span><span id="v-g-bx">0.0</span></div>
+            <input type="range" id="g-bx" min="-1" max="1" step="0.05" value="0" oninput="updateArt()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Bias Y</span><span id="v-g-by">0.25</span></div>
+            <input type="range" id="g-by" min="-1" max="1" step="0.05" value="0.25" oninput="updateArt()">
+          </div>
+        </div>
+
+        <div class="control-group" id="card-controls" style="opacity:0.5;pointer-events:none">
+          <h3>Nastavení karty: <span id="selected-card-id" style="color:var(--gold)">---</span></h3>
+          <div class="slider-row">
+            <div class="slider-label"><span>Měřítko (Scale)</span><span id="v-c-scale">1.0</span></div>
+            <input type="range" id="c-scale" min="-3" max="3" step="0.05" value="1.0" oninput="updateArt()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Bias X</span><span id="v-c-bx">0.0</span></div>
+            <input type="range" id="c-bx" min="-1" max="1" step="0.05" value="0" oninput="updateArt()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Bias Y</span><span id="v-c-by">0.0</span></div>
+            <input type="range" id="c-by" min="-1" max="1" step="0.05" value="0" oninput="updateArt()">
+          </div>
+          <button class="btn-action" style="width:100%;margin-top:10px" onclick="resetCardBias()">RESETOVAT KARTU</button>
+        </div>
+
+        <button class="btn-action" onclick="document.getElementById('artInput').click()">🖼 NAHRÁT OBRÁZKY (art_XXX.jpg)</button>
+        <button class="btn-action" onclick="document.getElementById('frameInput').click()">🖼 NAHRÁT RÁM (card_frame.png)</button>
+        <button class="btn-action" onclick="exportBiasData()">EXPORTOVAT VŠECHNY ZMĚNY</button>
+
+        <div id="designer-output" class="output-box" style="height:180px">—</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════════════════
-// Default cards (fallback when Gameviewmodel.kt not loaded)
-// ══════════════════════════════════════════════════════════════════════════════
-const DEFAULT_CARDS = [
-  {id:"001",name:"Základní útok",  desc:"Zaútočí na nepřítele za 5.",             cost:2,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"008",name:"Šípy",           desc:"Zaútočí na nepřítele za 3.",             cost:1,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"003",name:"Ohnivá koule",   desc:"Zaútočí na nepřítele za 6.",             cost:3,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"007",name:"Katapult",       desc:"Zaútočí na nepřítele za 10.",            cost:5,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"006",name:"Podmíněný útok", desc:"Pokud máš >5 útoku, udeř za 10.",       cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"017",name:"Válečný sekyrník",desc:"Zaútočí na nepřítele za 7.",           cost:4,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"019",name:"Zápalné šípy",   desc:"Poškodí jen hradby o 4.",               cost:1,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"020",name:"Beranidlo",      desc:"Poškodí jen hradby o 8.",               cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"021",name:"Dělostřelectvo", desc:"Zaútočí na nepřítele za 18.",            cost:6,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"022",name:"Přímý zásah",    desc:"Přímý zásah: hrad −8, ignoruje hradby.",cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"023",name:"Dvojitý úder",   desc:"Zaútočí na nepřítele za 12.",            cost:5,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"024",name:"Berserk",        desc:"Pokud máš <5 hradeb, udeř hrad za 15.", cost:4,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"025",name:"Protiútok",      desc:"Pokud máš <10 hradeb, udeř hrad za 10.",cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"026",name:"Ostřelovač",     desc:"Poškodí hrad o 5. Pokud >5 útoku, +5.", cost:3,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"027",name:"Válečný buben",  desc:"Zaútočí za 4 a přidá +2 útoku.",        cost:2,type:"ATTACK",rarity:"COMMON",combo:true},
-  {id:"046",name:"Goblin",         desc:"Zaútočí za 2, ukradni 1 magii, +1 chaosu.",cost:1,type:"ATTACK",rarity:"COMMON",combo:false},
-  {id:"047",name:"Ogr",            desc:"Zaútočí na nepřítele za 9.",             cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"048",name:"Upír",           desc:"Zaútočí za 6, získej +3 magie.",         cost:4,type:"ATTACK",rarity:"RARE",combo:true},
-  {id:"049",name:"Jed",            desc:"Zaútočí za 3, soupeř ztratí 3 magie.",  cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"050",name:"Kobylky",        desc:"Zaútočí za 8, soupeř ztratí 4 kameny.", cost:4,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"051",name:"Drak",           desc:"Zaútočí za 12, hrad −8 přímo, +2 chaosu.",cost:11,type:"ATTACK",rarity:"LEGENDARY",combo:false},
-  {id:"052",name:"Démon",          desc:"Přímý zásah: hrad −16. +2 chaosu.",     cost:15,type:"ATTACK",rarity:"LEGENDARY",combo:false},
-  {id:"053",name:"Plamenomet",     desc:"Poškodí jen hradby o 10, získej +2 útoku.",cost:4,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"054",name:"Válečný pochod", desc:"Zaútočí na nepřítele za 13, +2 útoku.", cost:5,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"055",name:"Mravenci",       desc:"Zaútočí za 3, +2 útoku. Pokud <5 hradeb: hrad −8.",cost:2,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"056",name:"Nájezdník",      desc:"Ukraď 3 útoku, zaútočí za 4.",           cost:3,type:"ATTACK",rarity:"RARE",combo:false},
-  {id:"078",name:"Upíří drak",     desc:"Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku.",cost:8,type:"ATTACK",rarity:"LEGENDARY",combo:false},
-  {id:"079",name:"Obléhání",       desc:"Zaútočí za 12, soupeř ztratí 3 magie.", cost:5,type:"ATTACK",rarity:"EPIC",combo:false},
-  {id:"002",name:"Kamenná zeď",    desc:"Postaví hradby +9.",                    cost:3,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"010",name:"Palisáda",       desc:"Postaví hradby +5.",                    cost:2,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"005",name:"Posila hradu",   desc:"Opraví hrad o 4.",                      cost:2,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"009",name:"Pevné základy",  desc:"Opraví hrad o 8.",                      cost:4,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"018",name:"Mohutná věž",    desc:"Postaví hradby +15.",                   cost:5,type:"STONES",rarity:"RARE",combo:false},
-  {id:"028",name:"Záplata",        desc:"Opraví hrad o 3.",                      cost:1,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"029",name:"Opevnění",       desc:"Postaví hradby +6.",                    cost:2,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"030",name:"Kamenný val",    desc:"Postaví hradby +14.",                   cost:4,type:"STONES",rarity:"RARE",combo:false},
-  {id:"031",name:"Renovace",       desc:"Opraví hrad o 6.",                      cost:3,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"032",name:"Citadela",       desc:"Opraví hrad o 15.",                     cost:6,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"033",name:"Zemní val",      desc:"Pokud máš <8 hradeb, postav +12.",      cost:2,type:"STONES",rarity:"RARE",combo:false},
-  {id:"034",name:"Opravář",        desc:"Pokud máš >15 hradeb, oprav hrad o 8.", cost:3,type:"STONES",rarity:"RARE",combo:false},
-  {id:"035",name:"Základní kámen", desc:"Hradby +5 a hrad +3.",                  cost:3,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"036",name:"Hradní příkop",  desc:"Hradby +7. Pokud hrad >50, hradby +5.", cost:3,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"057",name:"Bašta",          desc:"Hradby +7, +1 kámen.",                  cost:3,type:"STONES",rarity:"RARE",combo:false},
-  {id:"058",name:"Obranný val",    desc:"Hradby +15.",                           cost:5,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"059",name:"Pevnostní hrad", desc:"Hradby +5 a hrad +4.",                  cost:4,type:"STONES",rarity:"RARE",combo:false},
-  {id:"060",name:"Chrám",          desc:"Hrad +12.",                             cost:6,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"061",name:"Tunely",         desc:"Pokud hrad >40, postav hradby +12.",    cost:3,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"062",name:"Obranná aliance",desc:"Hradby +7, hrad +4, +2 kameny.",        cost:5,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"063",name:"Věž strážní",    desc:"Hradby +14.",                           cost:5,type:"STONES",rarity:"RARE",combo:false},
-  {id:"064",name:"Zásobník",       desc:"Pokud hrad >40, oprav hrad o 10.",      cost:4,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"081",name:"Rychlá hradba",  desc:"Postaví hradby +10.",                   cost:3,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"082",name:"Masivní zeď",    desc:"Postaví hradby +18.",                   cost:6,type:"STONES",rarity:"RARE",combo:false},
-  {id:"083",name:"Nouzové opevnění",desc:"Pokud máš <10 hradeb, postav +16.",    cost:3,type:"STONES",rarity:"RARE",combo:false},
-  {id:"084",name:"Velká oprava",   desc:"Oprav hrad o 10.",                      cost:4,type:"STONES",rarity:"COMMON",combo:false},
-  {id:"085",name:"Královská obnova",desc:"Oprav hrad o 18.",                     cost:7,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"086",name:"Zednická rota",  desc:"Hradby +8 a hrad +6.",                  cost:4,type:"STONES",rarity:"RARE",combo:false},
-  {id:"087",name:"Pevnost",        desc:"Hradby +12 a hrad +8.",                 cost:6,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"088",name:"Zesílené hradby",desc:"Hradby +10. Pokud máš >30 hradu, +6.", cost:4,type:"STONES",rarity:"RARE",combo:false},
-  {id:"089",name:"Architekt",      desc:"Hradby +5, trvale +1 důl kamene/kolo.", cost:4,type:"STONES",rarity:"RARE",combo:false},
-  {id:"090",name:"Velkostavba",    desc:"Trvale +2 doly kamene/kolo.",            cost:6,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"091",name:"Barikády",       desc:"Hradby +9. Soupeř ztratí 2 útoku.",     cost:3,type:"STONES",rarity:"RARE",combo:false},
-  {id:"092",name:"Strategická výstavba",desc:"Pokud máš >20 hradeb, postav +15.",cost:4,type:"STONES",rarity:"EPIC",combo:false},
-  {id:"094",name:"Sklad materiálu",desc:"Hradby +6, získej +3 kameny.",          cost:3,type:"STONES",rarity:"COMMON",combo:true},
-  {id:"095",name:"Obchod s kamenem",desc:"Získej +6 kamenů.",                    cost:2,type:"STONES",rarity:"COMMON",combo:true},
-  {id:"096",name:"Nedobytná pevnost",desc:"Hradby +25.",                         cost:8,type:"STONES",rarity:"LEGENDARY",combo:false},
-  {id:"097",name:"Obnova království",desc:"Hrad +25.",                           cost:9,type:"STONES",rarity:"LEGENDARY",combo:false},
-  {id:"004",name:"Magie",          desc:"Okamžitě +2 magie.",                    cost:0,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"011",name:"Zásoby kamene",  desc:"Okamžitě +4 kameny.",                   cost:1,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"012",name:"Mobilizace",     desc:"Okamžitě +3 útoku.",                    cost:1,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"013",name:"Magický pramen", desc:"Trvale +1 důl magie/kolo.",             cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"014",name:"Kamenolom",      desc:"Trvale +1 důl kamene/kolo.",            cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"015",name:"Výcvikový tábor",desc:"Trvale +1 důl útoku/kolo.",             cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"016",name:"Velký pramen",   desc:"Trvale +2 doly magie/kolo.",            cost:5,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"037",name:"Rychlá magie",   desc:"Okamžitě +4 magie.",                    cost:1,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"038",name:"Vojenský rozkaz",desc:"Okamžitě +7 útoku.",                    cost:2,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"039",name:"Stavební boom",  desc:"Okamžitě +7 kamene.",                   cost:2,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"040",name:"Alchymie",       desc:"Pokud máš >4 magie, získej +8 útoku.",  cost:2,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"041",name:"Magické trio",   desc:"+2 magie, +2 útoku, +2 kamene.",        cost:3,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"042",name:"Velký kamenolom",desc:"Trvale +2 doly kamene/kolo.",           cost:3,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"043",name:"Výcvikové centrum",desc:"Trvale +2 doly útoku/kolo.",          cost:4,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"044",name:"Trifekta dolů",  desc:"+1 důl magie, útoku i kamene/kolo.",    cost:6,type:"MAGIC",rarity:"LEGENDARY",combo:false},
-  {id:"045",name:"Zlatý důl",      desc:"Trvale +3 doly magie/kolo.",            cost:7,type:"MAGIC",rarity:"LEGENDARY",combo:false},
-  {id:"065",name:"Lupič",          desc:"Ukraď 3 útoku od soupeře.",             cost:2,type:"MAGIC",rarity:"COMMON",combo:false},
-  {id:"066",name:"Zlatokop",       desc:"Ukraď 4 kameny od soupeře.",            cost:2,type:"MAGIC",rarity:"COMMON",combo:false},
-  {id:"067",name:"Sabotér",        desc:"Soupeř ztratí 5 kamenů.",               cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"068",name:"Demoralizace",   desc:"Soupeř ztratí 5 útoku.",                cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"069",name:"Dvojitý agent",  desc:"Ukraď 3 magie a 3 útoku, +1 chaosu.",  cost:4,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"070",name:"Krize zásobování",desc:"Soupeř ztratí 5 kamenů a 5 útoku.",   cost:5,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"071",name:"Špión",          desc:"Ukraď 2 od každého zdroje, +2 chaosu.",cost:3,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"072",name:"Zbrojnice",      desc:"+2 útoku, trvale +1 důl útoku.",        cost:4,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"073",name:"Škola magie",    desc:"+2 magie, trvale +1 důl magie.",        cost:4,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"074",name:"Tržiště",        desc:"+2 magie, +2 útoku, +2 kameny.",        cost:2,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"075",name:"Zlaté doly",     desc:"Trvale +2 magie a +1 kameny/kolo.",     cost:5,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"076",name:"Vojenská základna",desc:"Trvale +2 útoku a +1 kameny/kolo.",   cost:5,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"077",name:"Přeměna magie",  desc:"Pokud máš >8 magie, získej +10 útoku.", cost:3,type:"MAGIC",rarity:"RARE",combo:false},
-  {id:"080",name:"Velkovýroba",    desc:"+2 každý důl, +3 magie ihned.",          cost:6,type:"MAGIC",rarity:"LEGENDARY",combo:false},
-  {id:"C01",name:"Chaotická jiskra",desc:"+2 chaosu.",                           cost:0,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"C02",name:"Entropie",        desc:"+5 chaosu. Soupeř ztratí 2 magie.",   cost:3,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"C03",name:"Chaotický důl",   desc:"Trvale +1 důl chaosu/kolo.",          cost:4,type:"MAGIC",rarity:"LEGENDARY",combo:false},
-  {id:"C04",name:"Krádež chaosu",   desc:"Ukraď 3 chaos od soupeře.",           cost:2,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"C24",name:"Temný rituál",    desc:"+5 chaosu.",                           cost:2,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"C25",name:"Nestabilní vír",  desc:"+2 chaosu a +2 magie.",               cost:1,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"C26",name:"Krvavá oběť",     desc:"+4 chaosu.",                           cost:1,type:"MAGIC",rarity:"RARE",combo:true},
-  {id:"C27",name:"Odraz magie",     desc:"Pokud máš >5 magie, získej +7 chaosu.",cost:2,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"C28",name:"Chaotická trofej",desc:"Ukraď 2 útoku, +3 chaosu.",           cost:1,type:"MAGIC",rarity:"COMMON",combo:true},
-  {id:"C29",name:"Bouřlivá mysl",   desc:"+3 chaosu a trvale +1 důl chaosu.",   cost:5,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"C30",name:"Chrám chaosu",    desc:"Trvale +2 doly chaosu/kolo.",         cost:7,type:"MAGIC",rarity:"LEGENDARY",combo:false},
-  {id:"C31",name:"Chaotický výměník",desc:"+4 chaosu, soupeř ztratí 2 každého.",cost:4,type:"MAGIC",rarity:"EPIC",combo:false},
-  {id:"C05",name:"Chaotický výbuch",desc:"Přímý zásah: hrad −15, ignoruje hradby.",cost:6,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C06",name:"Bouře chaosu",    desc:"Zaútočí na nepřítele za 20.",         cost:6,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C07",name:"Chaotický štít",  desc:"Hradby +20.",                         cost:4,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C08",name:"Zázrak chaosu",   desc:"Hrad +15.",                           cost:5,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C09",name:"Chaotická krize", desc:"Soupeř ztratí 6 od každého zdroje.", cost:5,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C10",name:"Chaotický drak",  desc:"Zaútočí za 15, hrad −12 přímo.",      cost:7,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C11",name:"Chaos a řád",     desc:"Hrad +8 a hradby +8.",                cost:4,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C12",name:"Anarchie",        desc:"Ukraď 5 od každého zdroje soupeře.", cost:7,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C13",name:"Sabotáž",         desc:"Znič 1 důl magie soupeře.",           cost:5,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C14",name:"Ničení kamenolomu",desc:"Znič 1 důl kamene soupeře.",        cost:5,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C15",name:"Zákeřnost",       desc:"Znič 1 útočný výcvik soupeře.",       cost:5,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C16",name:"Velká sabotáž",   desc:"Znič 1 důl magie a 1 důl kamene.",   cost:7,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C17",name:"Telekineze",      desc:"Ukraď 1 náhodnou kartu ze soupeřovy ruky.",cost:3,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C18",name:"Chaos loupe",     desc:"Ukraď 2 náhodné karty ze soupeřovy ruky.",cost:5,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C19",name:"Spálená knihovna",desc:"Znič 2 náhodné karty ze soupeřovy ruky.",cost:4,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C20",name:"Prázdná mysl",    desc:"Znič 3 náhodné karty ze soupeřovy ruky.",cost:6,type:"CHAOS",rarity:"LEGENDARY",combo:false},
-  {id:"C21",name:"Replikace",       desc:"Přidej 2 kopie 'Šípy' do svého balíčku.",cost:1,type:"CHAOS",rarity:"RARE",combo:false},
-  {id:"C22",name:"Chaos manufaktura",desc:"Přidej 2 'Chaos výbuch' do balíčku.",cost:2,type:"CHAOS",rarity:"EPIC",combo:false},
-  {id:"C23",name:"Klonování",       desc:"Přidej 2 kopie 'Základní útok' do balíčku.",cost:1,type:"CHAOS",rarity:"RARE",combo:false},
-];
+let CARDS = [];
+let CARD_MAP = {};
+let DECK = {}; // id -> count
+let mode = 'builder';
+let filter = 'ALL';
+let selectedCardId = null;
+let artFiles = {}; // id -> dataUrl
+let cardAdjustments = {}; // id -> {scale, bx, by}
 
-const MAX_COPIES = { COMMON: 4, RARE: 3, EPIC: 2, LEGENDARY: 1 };
+// Default Global
+let globalScale = 1.2;
+let globalBX = 0.0;
+let globalBY = 0.25;
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Card source (default or parsed from .kt)
-// ══════════════════════════════════════════════════════════════════════════════
-let CARDS = DEFAULT_CARDS;
-let CARD_MAP = buildMap(CARDS);
-let cardSourceLabel = 'výchozí karty';
-
-function buildMap(cards) {
-  return Object.fromEntries(cards.map(c => [c.id, c]));
+function init() {
+  restoreFromStorage();
+  renderBrowser();
+  renderDeck();
 }
 
-// Try to restore parsed cards from localStorage
-(function restoreFromStorage() {
-  try {
-    const saved = localStorage.getItem('termiti_cards');
-    const label = localStorage.getItem('termiti_cards_label');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.length > 0) {
-        CARDS = parsed;
-        CARD_MAP = buildMap(CARDS);
-        cardSourceLabel = label || 'uložené karty';
-      }
-    }
-  } catch(e) {}
-})();
+function setMode(m) {
+  mode = m;
+  document.getElementById('tab-builder').classList.toggle('active', m === 'builder');
+  document.getElementById('tab-designer').classList.toggle('active', m === 'designer');
+  document.getElementById('main-layout').classList.toggle('designer-mode', m === 'designer');
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Parse Gameviewmodel.kt
-// ══════════════════════════════════════════════════════════════════════════════
+  document.getElementById('designer-center').style.display = m === 'designer' ? 'flex' : 'none';
+
+  // Explicitly hide/show panels
+  const deckPanel = document.getElementById('deck-panel-view');
+  const designerPanel = document.getElementById('designer-panel-view');
+
+  if (m === 'builder') {
+    deckPanel.style.display = 'flex';
+    designerPanel.style.display = 'none';
+  } else {
+    deckPanel.style.display = 'none';
+    designerPanel.style.display = 'flex';
+    // Ensure designer controls are visible
+    document.querySelector('.designer-controls').scrollTop = 0;
+  }
+
+  renderBrowser();
+}
+
+function setFilter(f) {
+  filter = f;
+  renderBrowser();
+}
+
 function parseKotlinCards(src) {
   const cards = [];
-  // Split on Card( to get each card's argument block
   const parts = src.split(/\bCard\s*\(/);
   for (let i = 1; i < parts.length; i++) {
     const chunk = parts[i];
-    // Extract positional string args: id, name, description
     const strArgs = [];
     let pos = 0;
     while (strArgs.length < 3 && pos < chunk.length) {
@@ -809,24 +594,56 @@ function parseKotlinCards(src) {
     }
     if (strArgs.length < 2) continue;
 
+    const id = strArgs[0];
     const costM   = chunk.match(/\bcost\s*=\s*(\d+)/);
     const typeM   = chunk.match(/costType\s*=\s*ResourceType\.(\w+)/);
     const rarityM = chunk.match(/rarity\s*=\s*Rarity\.(\w+)/);
-    const comboM  = chunk.match(/isCombo\s*=\s*(true)/);
+    const artResM = chunk.match(/artResId\s*=\s*R\.drawable\.(\w+)/);
+    const scaleM  = chunk.match(/artScale\s*=\s*([-\d.]+f?)/);
+    const bxM     = chunk.match(/artBiasX\s*=\s*([-\d.]+f?)/);
+    const byM     = chunk.match(/artBiasY\s*=\s*([-\d.]+f?)/);
 
-    if (!costM || !typeM || !rarityM) continue;
-
-    cards.push({
-      id:    strArgs[0],
+    const card = {
+      id:    id,
       name:  strArgs[1],
       desc:  strArgs[2] || '',
-      cost:  parseInt(costM[1]),
-      type:  typeM[1],
-      rarity: rarityM[1],
-      combo: !!comboM
-    });
+      cost:  costM ? parseInt(costM[1]) : 0,
+      type:  typeM ? typeM[1] : 'ATTACK',
+      rarity: rarityM ? rarityM[1] : 'COMMON',
+      artRes: artResM ? artResM[1] : null
+    };
+
+    if (scaleM || bxM || byM) {
+      cardAdjustments[id] = {
+        scale: scaleM ? parseFloat(scaleM[1]) : 1.0,
+        bx: bxM ? parseFloat(bxM[1]) : 0.0,
+        by: byM ? parseFloat(byM[1]) : 0.0
+      };
+    }
+
+    cards.push(card);
   }
+
+  // Parse global defaults too
+  const gScaleM = src.match(/const val SCALE:\s*Float\s*=\s*([-\d.]+f?)/);
+  const gBXM = src.match(/const val BIAS_X:\s*Float\s*=\s*([-\d.]+f?)/);
+  const gBYM = src.match(/const val BIAS_Y:\s*Float\s*=\s*([-\d.]+f?)/);
+
+  if (gScaleM) globalScale = parseFloat(gScaleM[1]);
+  if (gBXM) globalBX = parseFloat(gBXM[1]);
+  if (gBYM) globalBY = parseFloat(gBYM[1]);
+
+  updateGlobalSliders();
   return cards;
+}
+
+function updateGlobalSliders() {
+  document.getElementById('g-scale').value = globalScale;
+  document.getElementById('g-bx').value = globalBX;
+  document.getElementById('g-by').value = globalBY;
+  document.getElementById('v-g-scale').textContent = globalScale.toFixed(2);
+  document.getElementById('v-g-bx').textContent = globalBX.toFixed(2);
+  document.getElementById('v-g-by').textContent = globalBY.toFixed(2);
 }
 
 function loadKtFile(event) {
@@ -834,299 +651,277 @@ function loadKtFile(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    const src = e.target.result;
-    const parsed = parseKotlinCards(src);
-    if (parsed.length === 0) {
-      alert('Nepodařilo se najít žádné karty v souboru.\nUjisti se, že jsi vybral Gameviewmodel.kt.');
-      return;
+    const parsed = parseKotlinCards(e.target.result);
+    if (parsed.length > 0) {
+      CARDS = parsed;
+      CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
+      document.getElementById('sourceInfo').textContent = file.name + ' (' + CARDS.length + ')';
+      document.getElementById('sourceInfo').classList.add('loaded');
+      saveToStorage();
+      renderBrowser();
     }
-    CARDS   = parsed;
-    CARD_MAP = buildMap(CARDS);
-    cardSourceLabel = file.name + ' (' + parsed.length + ' karet)';
-    // Save to localStorage for next session
-    try {
-      localStorage.setItem('termiti_cards', JSON.stringify(CARDS));
-      localStorage.setItem('termiti_cards_label', cardSourceLabel);
-    } catch(e) {}
-    updateSourceInfo();
-    render();
-    renderDeck();
   };
   reader.readAsText(file, 'UTF-8');
-  event.target.value = ''; // allow re-selecting same file
 }
 
-function updateSourceInfo() {
-  const el = document.getElementById('sourceInfo');
-  const isDefault = CARDS === DEFAULT_CARDS || cardSourceLabel === 'výchozí karty';
-  el.textContent  = cardSourceLabel;
-  el.className    = 'card-source-info' + (isDefault ? '' : ' loaded');
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// State
-// ══════════════════════════════════════════════════════════════════════════════
-// Each deck: { cards: {id: count}, name: string }
-const decks = [
-  { cards: {}, name: 'Balíček 1' },
-  { cards: {}, name: 'Balíček 2' },
-  { cards: {}, name: 'Balíček 3' },
-];
-let activeDeck = 0;
-let filterType = 'ALL';
-
-function deckTotal(d) { return Object.values(decks[d].cards).reduce((a,b)=>a+b, 0); }
-
-function switchDeck(i) {
-  activeDeck = i;
-  document.querySelectorAll('.deck-tab').forEach((t,j) => t.classList.toggle('active', j===i));
-  document.getElementById('deckNameInput').value = decks[i].name;
-  renderDeck();
-  render();
-}
-
-function renameDeck(val) {
-  const name = val.trim() || ('Balíček ' + (activeDeck + 1));
-  decks[activeDeck].name = name;
-  const tabs = document.querySelectorAll('.deck-tab');
-  tabs[activeDeck].textContent = name.toUpperCase().slice(0, 18);
-}
-
-function setFilter(t) {
-  filterType = t;
-  ['ALL','ATTACK','STONES','MAGIC','CHAOS'].forEach(f => {
-    const btn = document.getElementById('fb'+f);
-    btn.className = 'filter-btn' + (f===t ? ' active-'+f.toLowerCase() : '');
-  });
-  render();
-}
-
-function addCard(id) {
-  const card = CARD_MAP[id];
-  if (!card) return;
-  const cur = decks[activeDeck].cards[id] || 0;
-  const max = MAX_COPIES[card.rarity];
-  if (cur >= max) return;
-  if (deckTotal(activeDeck) >= 30) return;
-  decks[activeDeck].cards[id] = cur + 1;
-  renderDeck();
-  render();
-}
-
-function setCount(id, delta) {
-  const cur = decks[activeDeck].cards[id] || 0;
-  const next = cur + delta;
-  if (next <= 0) {
-    delete decks[activeDeck].cards[id];
-  } else {
-    const card = CARD_MAP[id];
-    if (!card) return;
-    if (next > MAX_COPIES[card.rarity]) return;
-    if (delta > 0 && deckTotal(activeDeck) >= 30) return;
-    decks[activeDeck].cards[id] = next;
+function loadArtFiles(event) {
+  const files = event.target.files;
+  let loaded = 0;
+  for (let f of files) {
+    const name = f.name.toLowerCase();
+    // Match filenames like art_vize.jpg or art_001.jpg
+    const match = name.match(/(art_\w+)/);
+    if (match) {
+      const artKey = match[1];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        artFiles[artKey] = e.target.result;
+        loaded++;
+        if (loaded === files.length) {
+          alert('Načteno ' + loaded + ' obrázků.');
+          updateArt();
+        }
+      };
+      reader.readAsDataURL(f);
+    }
   }
-  renderDeck();
-  render();
 }
 
-function clearDeck() {
-  decks[activeDeck].cards = {};
-  renderDeck();
-  render();
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Helpers
-// ══════════════════════════════════════════════════════════════════════════════
-function typeColor(t) {
-  return {ATTACK:'var(--attack)',STONES:'var(--stones)',MAGIC:'var(--magic)',CHAOS:'var(--chaos)'}[t]||'var(--text-dim)';
-}
-function typeCostClass(t) {
-  return {ATTACK:'cost-attack',STONES:'cost-stones',MAGIC:'cost-magic',CHAOS:'cost-chaos'}[t]||'';
-}
-function rarityClass(r) {
-  return {COMMON:'r-common',RARE:'r-rare',EPIC:'r-epic',LEGENDARY:'r-legendary'}[r]||'r-common';
-}
-function rarityLabel(r) {
-  return {COMMON:'●',RARE:'◆',EPIC:'★',LEGENDARY:'✦'}[r]||'●';
-}
-
-function sortedCards() {
-  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
-  const sort = document.getElementById('sortSelect').value;
-  let list = CARDS.filter(c => {
-    if (filterType !== 'ALL' && c.type !== filterType) return false;
-    if (q && !c.name.toLowerCase().includes(q) && !c.desc.toLowerCase().includes(q)) return false;
+function renderBrowser() {
+  const grid = document.getElementById('cardGrid');
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = CARDS.filter(c => {
+    if (filter !== 'ALL' && c.type !== filter) return false;
+    if (q && !c.name.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return false;
     return true;
   });
-  const typeOrder = {ATTACK:0,STONES:1,MAGIC:2,CHAOS:3};
-  const rarOrder  = {COMMON:0,RARE:1,EPIC:2,LEGENDARY:3};
-  if      (sort==='cost')      list.sort((a,b)=>a.cost-b.cost||a.name.localeCompare(b.name,'cs'));
-  else if (sort==='cost-desc') list.sort((a,b)=>b.cost-a.cost||a.name.localeCompare(b.name,'cs'));
-  else if (sort==='name')      list.sort((a,b)=>a.name.localeCompare(b.name,'cs'));
-  else if (sort==='rarity')    list.sort((a,b)=>rarOrder[b.rarity]-rarOrder[a.rarity]||a.cost-b.cost);
-  else                         list.sort((a,b)=>typeOrder[a.type]-typeOrder[b.type]||a.cost-b.cost);
-  return list;
-}
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Render catalog
-// ══════════════════════════════════════════════════════════════════════════════
-// ── Card preview tooltip ──────────────────────────────────────────────────────
-function showPreview(id, event) {
-  const c = CARD_MAP[id]; if (!c) return;
-  const typeClass = typeCostClass(c.type);
-  const colMap = { 'cost-attack': 'var(--attack)', 'cost-stones': 'var(--stones)',
-                   'cost-magic': 'var(--magic)', 'cost-chaos': 'var(--chaos)' };
-  const col = colMap[typeClass] || 'var(--text)';
-  const borderMap = { 'cost-attack': 'var(--attack-dim)', 'cost-stones': 'var(--stones-dim)',
-                      'cost-magic': 'var(--magic-dim)', 'cost-chaos': 'var(--chaos-dim)' };
-  const brd = borderMap[typeClass] || 'var(--border)';
-  const bgMap  = { 'cost-attack': 'var(--attack-bg)', 'cost-stones': 'var(--stones-bg)',
-                   'cost-magic': 'var(--magic-bg)', 'cost-chaos': 'var(--chaos-bg)' };
-  const bg = bgMap[typeClass] || 'var(--panel)';
-  document.getElementById('pvw-cost').textContent  = c.cost;
-  document.getElementById('pvw-cost').style.color  = col;
-  document.getElementById('pvw-cost').style.borderColor = brd;
-  document.getElementById('pvw-cost').style.background  = bg;
-  document.getElementById('pvw-name').textContent  = c.name;
-  document.getElementById('pvw-desc').textContent  = c.desc;
-  document.getElementById('pvw-rarity').textContent = rarityLabel(c.rarity) + ' ' + c.rarity;
-  document.getElementById('pvw-rarity').style.color = `var(--${c.rarity.toLowerCase()})`;
-  const comboEl = document.getElementById('pvw-combo');
-  comboEl.textContent = c.combo ? 'COMBO' : '';
-  comboEl.style.display = c.combo ? '' : 'none';
-  positionPreview(event);
-  document.getElementById('card-preview').classList.add('visible');
-}
-function hidePreview() {
-  document.getElementById('card-preview').classList.remove('visible');
-}
-function positionPreview(event) {
-  const el = document.getElementById('card-preview');
-  const W = window.innerWidth, H = window.innerHeight;
-  const pw = 246, ph = 140;
-  let x = event.clientX + 18, y = event.clientY + 18;
-  if (x + pw > W - 8) x = event.clientX - pw - 8;
-  if (y + ph > H - 8) y = event.clientY - ph - 8;
-  el.style.left = Math.max(4, x) + 'px';
-  el.style.top  = Math.max(4, y) + 'px';
-}
-document.addEventListener('mousemove', e => {
-  const el = document.getElementById('card-preview');
-  if (el.classList.contains('visible')) positionPreview(e);
-});
-
-function render() {
-  const grid  = document.getElementById('cardGrid');
-  const d     = decks[activeDeck].cards;
-  const total = deckTotal(activeDeck);
-  grid.innerHTML = sortedCards().map(c => {
-    const cnt  = d[c.id] || 0;
-    const max  = MAX_COPIES[c.rarity];
-    const full = cnt >= max || total >= 30;
-    return `<div class="card-tile${cnt>0?' in-deck':''}${full&&cnt===0?' maxed':''}"
-      onclick="addCard('${c.id}')"
-      onmouseenter="showPreview('${c.id}',event)"
-      onmouseleave="hidePreview()">
-      ${cnt>0?`<div class="count-indicator">×${cnt}</div>`:''}
-      <div class="card-tile-header">
-        <div class="cost-badge ${typeCostClass(c.type)}">${c.cost}</div>
-        <div class="card-name">${c.name}</div>
+    grid.innerHTML = filtered.map(c => {
+    const isAdjusted = cardAdjustments[c.id] && (cardAdjustments[c.id].scale !== 1.0 || cardAdjustments[c.id].bx !== 0.0 || cardAdjustments[c.id].by !== 0.0);
+    return `
+      <div class="card-tile ${selectedCardId === c.id ? 'selected' : ''}" onclick="selectCard('${c.id}')">
+        <div class="card-tile-header">
+          <div class="cost-badge cost-${c.type.toLowerCase()}">${c.cost}</div>
+          <div class="card-name">${c.name}</div>
+        </div>
+        <div class="card-desc">${c.desc}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted)">
+          <span>ID: ${c.id}</span>
+          ${isAdjusted ? '<span style="color:var(--gold);font-weight:bold">MOD</span>' : ''}
+        </div>
       </div>
-      <div class="card-desc">${c.desc}</div>
-      <div class="card-footer">
-        <span class="rarity-dot ${rarityClass(c.rarity)}">${rarityLabel(c.rarity)} ${c.rarity}</span>
-        ${c.combo?'<span class="combo-tag">COMBO</span>':''}
-      </div>
-    </div>`;
+    `;
   }).join('');
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Render deck panel
-// ══════════════════════════════════════════════════════════════════════════════
+function selectCard(id) {
+  if (mode === 'builder') {
+    DECK[id] = (DECK[id] || 0) + 1;
+    if (DECK[id] > 4) DECK[id] = 4; // Simplistic cap
+    renderDeck();
+  } else {
+    selectedCardId = id;
+    const card = CARD_MAP[id];
+    document.getElementById('preview-name').textContent = card.name;
+    document.getElementById('preview-desc').textContent = card.desc;
+    document.getElementById('selected-card-id').textContent = id;
+
+    // Load adjustments
+    const adj = cardAdjustments[id] || {scale: 1.0, bx: 0.0, by: 0.0};
+    document.getElementById('c-scale').value = adj.scale;
+    document.getElementById('c-bx').value = adj.bx;
+    document.getElementById('c-by').value = adj.by;
+
+    document.getElementById('card-controls').style.opacity = '1';
+    document.getElementById('card-controls').style.pointerEvents = 'auto';
+
+    updateArt();
+    renderBrowser();
+  }
+}
+
+function updateArt() {
+  // Update labels
+  globalScale = parseFloat(document.getElementById('g-scale').value);
+  globalBX = parseFloat(document.getElementById('g-bx').value);
+  globalBY = parseFloat(document.getElementById('g-by').value);
+  document.getElementById('v-g-scale').textContent = globalScale.toFixed(2);
+  document.getElementById('v-g-bx').textContent = globalBX.toFixed(2);
+  document.getElementById('v-g-by').textContent = globalBY.toFixed(2);
+
+  if (selectedCardId) {
+    const cs = parseFloat(document.getElementById('c-scale').value);
+    const cbx = parseFloat(document.getElementById('c-bx').value);
+    const cby = parseFloat(document.getElementById('c-by').value);
+    cardAdjustments[selectedCardId] = {scale: cs, bx: cbx, by: cby};
+
+    document.getElementById('v-c-scale').textContent = cs.toFixed(2);
+    document.getElementById('v-c-bx').textContent = cbx.toFixed(2);
+    document.getElementById('v-c-by').textContent = cby.toFixed(2);
+
+    const img = document.getElementById('preview-art');
+    const placeholder = document.getElementById('art-placeholder');
+    const card = CARD_MAP[selectedCardId];
+    const dataUrl = artFiles[card.artRes] || artFiles['art_' + selectedCardId];
+
+    if (dataUrl) {
+      img.src = dataUrl;
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+
+      const s = globalScale * cs;
+      const bx = globalBX + cbx;
+      const by = globalBY + cby;
+
+      // Reset styles to clean state
+      img.style.position = 'absolute';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.left = '0';
+      img.style.top = '0';
+      img.style.margin = '0';
+      img.style.objectFit = 'cover';
+
+      // Simulation of Compose Alignment (Bias -1..1 -> CSS 0..100%)
+      const posX = (bx + 1) * 50;
+      const posY = (by + 1) * 50;
+      img.style.objectPosition = `${posX}% ${posY}%`;
+
+      // Simulation of Compose graphicsLayer scale + transformOrigin
+      const absS = Math.abs(s);
+      let transform = `scale(${absS})`;
+      if (s < 0) transform += ` scaleX(-1)`;
+      img.style.transform = transform;
+      img.style.transformOrigin = `${posX}% ${posY}%`;
+    } else {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+      placeholder.textContent = `Chybí obrázek art_${selectedCardId}.jpg`;
+    }
+  }
+  saveToStorage();
+}
+
+function loadFrameFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('card-frame-img').src = e.target.result;
+    document.getElementById('card-frame-img').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetCardBias() {
+  if (!selectedCardId) return;
+  document.getElementById('c-scale').value = 1.0;
+  document.getElementById('c-bx').value = 0.0;
+  document.getElementById('c-by').value = 0.0;
+  updateArt();
+}
+
 function renderDeck() {
-  const d     = decks[activeDeck].cards;
-  const total = deckTotal(activeDeck);
-
-  document.getElementById('deckCountNum').textContent = total;
-  const fill = document.getElementById('progressFill');
-  fill.style.width = (total/30*100)+'%';
-  fill.className   = 'progress-fill' + (total>=30?' full':'');
-
-  const typeOrder = {ATTACK:0,STONES:1,MAGIC:2,CHAOS:3};
-  const entries = Object.entries(d)
-    .map(([id,cnt])=>({card:CARD_MAP[id],cnt}))
-    .filter(x=>x.card)
-    .sort((a,b)=>typeOrder[a.card.type]-typeOrder[b.card.type]||a.card.cost-b.card.cost);
-
-  document.getElementById('deckList').innerHTML = entries.length===0
-    ? `<div style="padding:20px;color:var(--text-muted);font-style:italic;font-size:13px;text-align:center;">Klikněte na karty vlevo pro přidání</div>`
-    : entries.map(({card,cnt})=>`
-      <div class="deck-entry" onmouseenter="showPreview('${card.id}',event)" onmouseleave="hidePreview()">
-        <div class="de-cost" style="color:${typeColor(card.type)}">${card.cost}</div>
-        <div class="de-name">${card.name}</div>
-        <div class="de-count-ctrl">
-          <button class="de-btn" onclick="event.stopPropagation();setCount('${card.id}',-1)">−</button>
-          <div class="de-cnt">${cnt}</div>
-          <button class="de-btn" onclick="event.stopPropagation();setCount('${card.id}',1)">+</button>
-        </div>
-      </div>`).join('');
-
-  // Stats
-  const tc = {ATTACK:0,STONES:0,MAGIC:0,CHAOS:0};
-  entries.forEach(({card,cnt})=>{ tc[card.type]=(tc[card.type]||0)+cnt; });
-  document.getElementById('statsBar').innerHTML = [
-    ['#c03030','⚔',tc.ATTACK],
-    ['#5d8a3c','🏰',tc.STONES],
-    ['#6a4fa8','✦',tc.MAGIC],
-    ['#c06030','🌀',tc.CHAOS],
-  ].map(([col,icon,n])=>`<span class="stat"><span class="stat-dot" style="background:${col}"></span>${icon} ${n}</span>`).join('');
-
-  // Kotlin export
-  renderKotlinCode(entries);
+  const list = document.getElementById('deck-list');
+  const entries = Object.entries(DECK).filter(e => e[1] > 0);
+  let total = 0;
+  list.innerHTML = entries.map(([id, count]) => {
+    const c = CARD_MAP[id];
+    total += count;
+    return `
+      <div style="display:flex;align-items:center;margin-bottom:4px;font-size:13px">
+        <div style="width:20px;color:var(--gold)">${c ? c.cost : '?'}</div>
+        <div style="flex:1">${c ? c.name : id}</div>
+        <button onclick="changeDeckCount('${id}', -1)" style="padding:0 5px">-</button>
+        <div style="width:20px;text-align:center">${count}</div>
+        <button onclick="changeDeckCount('${id}', 1)" style="padding:0 5px">+</button>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('deck-count').textContent = total;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Kotlin code export
-// ══════════════════════════════════════════════════════════════════════════════
-function renderKotlinCode(entries) {
-  const box = document.getElementById('outputBox');
-  if (entries.length === 0) { box.textContent = '—'; return; }
+function changeDeckCount(id, delta) {
+  DECK[id] = (DECK[id] || 0) + delta;
+  if (DECK[id] < 0) DECK[id] = 0;
+  renderDeck();
+}
 
-  const name = decks[activeDeck].name;
-  // Format: ready to paste into presetTemplates list in GameViewModel
-  const lines = entries.map(({card,cnt}) => {
-    const padding = ' '.repeat(Math.max(0, 5 - card.id.length));
-    return `        "${card.id}"${padding} to ${cnt},   // ${card.name}`;
+function exportBiasData() {
+  const changed = Object.entries(cardAdjustments).filter(([id, adj]) => {
+    return adj.scale !== 1.0 || adj.bx !== 0.0 || adj.by !== 0.0;
   });
 
-  const total = entries.reduce((s,e)=>s+e.cnt, 0);
-  const code =
-`    "${name}" to mapOf(\n` +
-lines.join('\n') + '\n' +
-`    ),  // ${total} karet`;
+  let output = "// ArtDefaults.kt\n";
+  output += `const val SCALE: Float = ${globalScale.toFixed(2)}f\n`;
+  output += `const val BIAS_X: Float = ${globalBX.toFixed(2)}f\n`;
+  output += `const val BIAS_Y: Float = ${globalBY.toFixed(2)}f\n\n`;
+  output += "// Card modifications (Copy into GameViewModel.kt)\n";
 
-  box.textContent = code;
-}
-
-function copyCode() {
-  const code = document.getElementById('outputBox').textContent;
-  if (!code || code==='—') return;
-  navigator.clipboard.writeText(code).then(()=>{
-    const t = document.getElementById('copyToast');
-    t.textContent = '✓ Zkopírováno!';
-    setTimeout(()=>t.textContent='', 2200);
+  changed.forEach(([id, adj]) => {
+    const name = CARD_MAP[id] ? CARD_MAP[id].name : '???';
+    let parts = [];
+    if (adj.scale !== 1.0) parts.push(`artScale=${adj.scale.toFixed(2)}f`);
+    if (adj.bx !== 0.0) parts.push(`artBiasX=${adj.bx.toFixed(2)}f`);
+    if (adj.by !== 0.0) parts.push(`artBiasY=${adj.by.toFixed(2)}f`);
+    output += `/* ${id} ${name} */  ${parts.join(', ')}\n`;
   });
+
+  document.getElementById('designer-output').textContent = output;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Init
-// ══════════════════════════════════════════════════════════════════════════════
-updateSourceInfo();
-render();
-renderDeck();
+function copyDeckCode() {
+  const entries = Object.entries(DECK).filter(e => e[1] > 0);
+  if (entries.length === 0) {
+    alert("Balíček je prázdný! Přidejte karty v Builder módu.");
+    return;
+  }
+  let code = '    "Nový Balíček" to mapOf(\n';
+  entries.forEach(([id, count]) => {
+    code += `        "${id}" to ${count},\n`;
+  });
+  code += '    ),';
+
+  const outputEl = document.getElementById('deck-output');
+  outputEl.textContent = code;
+
+  // Copy to clipboard
+  const textArea = document.createElement("textarea");
+  textArea.value = code;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert("Kód balíčku zkopírován do schránky.");
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+  }
+  document.body.removeChild(textArea);
+}
+
+function saveToStorage() {
+  localStorage.setItem('termiti_cards', JSON.stringify(CARDS));
+  localStorage.setItem('termiti_adjustments', JSON.stringify(cardAdjustments));
+  localStorage.setItem('termiti_globals', JSON.stringify({s: globalScale, x: globalBX, y: globalBY}));
+}
+
+function restoreFromStorage() {
+  const c = localStorage.getItem('termiti_cards');
+  if (c) {
+    CARDS = JSON.parse(c);
+    CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
+  }
+  const a = localStorage.getItem('termiti_adjustments');
+  if (a) cardAdjustments = JSON.parse(a);
+  const g = localStorage.getItem('termiti_globals');
+  if (g) {
+    const parsedG = JSON.parse(g);
+    globalScale = parsedG.s;
+    globalBX = parsedG.x;
+    globalBY = parsedG.y;
+    updateGlobalSliders();
+  }
+}
 </script>
 </body>
 </html>

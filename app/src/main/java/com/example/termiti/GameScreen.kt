@@ -648,13 +648,21 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
                 .clip(RoundedCornerShape(3.dp))
                 .border(1.dp, borderColor.copy(alpha = 0.8f), RoundedCornerShape(3.dp))
         ) {
-            Image(
-                painter = painterResource(card.artResId),
-                contentDescription = null,
-                modifier = artModifier(card),
-                contentScale = ContentScale.Crop,
-                alignment = artAlignment(card)
-            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .clipToBounds()
+            ) {
+                Image(
+                    painter = painterResource(card.artResId),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    alignment = artAlignment(card)
+                )
+            }
             if (frameResId != 0) {
                 Image(
                     painter = painterResource(frameResId),
@@ -1265,15 +1273,26 @@ private fun CardViewTextured(
                 Modifier.border(1.5.dp, borderColor, RoundedCornerShape(6.dp)) else Modifier)
             .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
     ) {
-        // Vrstva 1: ilustrace karty (vyplní celou plochu, ořízne se rámem)
-        Image(
-            painter = painterResource(artResId),
-            contentDescription = null,
-            modifier = artModifier(card),
-            contentScale = ContentScale.Crop,
-            alignment = artAlignment(card),
-            alpha = if (canPlay || discardMode) 1f else 0.6f
-        )
+        // Vrstva 1: ilustrace karty
+        // Oblast ilustrace je horních ~70 dp (pod tím začíná pás s názvem karty).
+        // Image musí být ořezán pouze v této oblasti – jinak ContentScale.Crop + alignment
+        // počítají s celou výškou karty (140 dp) a hlava postavy zmizí dolů.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .height(70.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter = painterResource(artResId),
+                contentDescription = null,
+                modifier = artModifier(card),
+                contentScale = ContentScale.Crop,
+                alignment = artAlignment(card),
+                alpha = if (canPlay || discardMode) 1f else 0.6f
+            )
+        }
 
         // Vrstva 2: rám karty (průhlednost v oblasti ilustrace zajistí soubor card_frame.png)
         if (frameResId != 0) {

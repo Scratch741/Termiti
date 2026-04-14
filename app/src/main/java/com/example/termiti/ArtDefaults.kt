@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -20,29 +21,20 @@ object ArtDefaults {
 
     /**
      * Základní zoom ilustrace platný pro všechny karty.
-     *   1.0f = bez změny (Crop vyplní oblast karty)
-     *   1.2f = 20 % přiblížit (zobrazí se menší výřez)
-     *   0.85f = 15 % oddálit (vidět více z obrázku, ale mohou vzniknout prázdné okraje)
+     *   1.2f = Ideální kompromis, aby se do 70dp výšky vešla hlava i stůl.
      */
-    const val SCALE: Float = 1.0f
+    const val SCALE: Float = 1.1f
 
     /**
      * Globální posun ilustrace vodorovně.
-     *   -1.0f = přitáhnout k levému okraji
-     *    0.0f = vycentrovat
-     *   +1.0f = přitáhnout k pravému okraji
      */
     const val BIAS_X: Float = 0.0f
 
     /**
      * Globální posun ilustrace svisle.
-     *   -1.0f = přitáhnout k hornímu okraji  ← doporučeno, oblast obrázku je top ~50 % karty
-     *    0.0f = vycentrovat (střed obrázku = střed celé karty → zobrazuje se "moc dole")
-     *   +1.0f = přitáhnout k dolnímu okraji
-     *
-     *  Výchozí hodnota -1.0f: střed ilustrace se zobrazí u horního okraje oblasti karty.
+     *   0.25f: Posune obraz nahoru (schová strop), hlava bude u vršku a stůl u spodku.
      */
-    const val BIAS_Y: Float = -1.0f
+    const val BIAS_Y: Float = 0.25f
 }
 
 /**
@@ -78,6 +70,16 @@ fun artModifier(card: Card): Modifier =
             val s = ArtDefaults.SCALE * card.artScale
             scaleX = s
             scaleY = s
+
+            // Sladění středu transformace s biasem zarovnání.
+            // Zajišťuje, že při zvětšování (zoomu) "neutíká" vycentrovaný bod (drift).
+            // Pokud je karta zarovnaná k vršku, zoom probíhá směrem od vršku.
+            val bx = ArtDefaults.BIAS_X + card.artBiasX
+            val by = ArtDefaults.BIAS_Y + card.artBiasY
+            transformOrigin = TransformOrigin(
+                pivotFractionX = ((bx + 1f) / 2f).coerceIn(0f, 1f),
+                pivotFractionY = ((by + 1f) / 2f).coerceIn(0f, 1f)
+            )
         }
 
 /**

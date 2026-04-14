@@ -120,6 +120,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     var editingIdx     by remember { mutableIntStateOf(activeDeckIdx) }
     val editingDeck    = decks[editingIdx]
 
+    var previewCard    by remember { mutableStateOf<Card?>(null) }
+
     // Filter state
     var filterRes      by remember { mutableStateOf<ResourceType?>(null) }
     var filterCat      by remember { mutableStateOf<String?>(null) }
@@ -166,7 +168,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                             onDecrement = {
                                 if (count > 0)
                                     viewModel.setCardCount(editingIdx, card.id, count - 1)
-                            }
+                            },
+                            onPreview = { previewCard = card }
                         )
                     }
                 }
@@ -199,6 +202,30 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     },
                     modifier        = Modifier.weight(1f).fillMaxWidth()
                 )
+            }
+        }
+
+        // ── Full Card Preview Overlay ─────────────────────────────────────────
+        if (previewCard != null) {
+            Box(
+                Modifier.fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.85f))
+                    .clickable { previewCard = null },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    FullCardPreview(previewCard!!)
+                    Button(
+                        onClick = { previewCard = null },
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold.copy(alpha = 0.2f)),
+                        border = BorderStroke(1.dp, Gold.copy(alpha = 0.5f))
+                    ) {
+                        Text("ZAVŘÍT", color = Gold, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -372,13 +399,21 @@ private fun CardPreview(card: Card) {
             .clip(RoundedCornerShape(6.dp))
     ) {
         // Ilustrace
-        Image(
-            painter = painterResource(artResId),
-            contentDescription = null,
-            modifier = artModifier(card),
-            contentScale = ContentScale.Crop,
-            alignment = artAlignment(card)
-        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .height(70.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter = painterResource(artResId),
+                contentDescription = null,
+                modifier = artModifier(card),
+                contentScale = ContentScale.Crop,
+                alignment = artAlignment(card)
+            )
+        }
         // Rám
         if (frameResId != 0) {
             Image(
@@ -453,25 +488,151 @@ private fun CardPreview(card: Card) {
     }
 }
 
+// ─── Full Card Preview (zvětšený náhled) ──────────────────────────────────
+@Composable
+private fun FullCardPreview(card: Card) {
+    val context = LocalContext.current
+    val artResId = card.artResId ?: return
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+    val rarityOverlayId = rarityOverlayResource(card.rarity)
+
+    Box(
+        modifier = Modifier
+            .size(width = 280.dp, height = 392.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(BgCard)
+            .border(2.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+    ) {
+        // Ilustrace (přesně horní polovina 196dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(196.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter = painterResource(artResId),
+                contentDescription = null,
+                modifier = artModifier(card),
+                contentScale = ContentScale.Crop,
+                alignment = artAlignment(card)
+            )
+        }
+
+        // Rám
+        if (frameResId != 0) {
+            Image(
+                painter = painterResource(frameResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Překryv rarity
+        if (rarityOverlayId != 0) {
+            Image(
+                painter = painterResource(rarityOverlayId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Cena
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 6.dp, y = 8.dp)
+                .size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("${card.cost}", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+        }
+
+        // Název (pod ilustrací)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 196.dp)
+                .height(56.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                card.name,
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // Popis
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 264.dp, start = 24.dp, end = 24.dp)
+                .height(80.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Text(
+                card.description,
+                color = Color(0xFFDDD0B0),
+                fontSize = 17.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
+            )
+        }
+
+        // Typ
+        if (card.type.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    card.type.uppercase(),
+                    color = Color(0xFFD4B870),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+            }
+        }
+    }
+}
+
 // ─── Catalog Card Item ────────────────────────────────────────────────────────
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CatalogCardItem(
     card: Card,
     count: Int,
     deckFull: Boolean,
     onIncrement: () -> Unit,
-    onDecrement: () -> Unit
+    onDecrement: () -> Unit,
+    onPreview: () -> Unit
 ) {
     val hasAny    = count > 0
     val costColor = resColor(card.costType)
     val border    = if (hasAny) costColor.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.07f)
     val rc        = rarityColor(card.rarity)
 
+    val itemModifier = Modifier.fillMaxWidth()
+        .clip(RoundedCornerShape(7.dp))
+        .combinedClickable(
+            onClick = onIncrement,
+            onLongClick = onPreview
+        )
+
     if (card.artResId != null) {
         // ── Texturovaná karta ─────────────────────────────────────────────────
         Column(
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(7.dp))
+            itemModifier
                 .background(Color(0xFF0F0C14))
                 .border(1.5.dp, border, RoundedCornerShape(7.dp))
                 .padding(4.dp),
@@ -518,8 +679,7 @@ private fun CatalogCardItem(
         // ── Klasická karta (bez textury) ──────────────────────────────────────
         val bg = if (hasAny) BgCard else Color(0xFF0F0C14)
         Column(
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(7.dp))
+            itemModifier
                 .background(bg)
                 .border(1.dp, border, RoundedCornerShape(7.dp))
                 .padding(6.dp),
@@ -651,6 +811,9 @@ private fun DeckPanel(
     var nameInput     by remember(deck.name) { mutableStateOf(deck.name) }
     val focusRequester = remember { FocusRequester() }
 
+    // Group by resource type (calculate outside LazyColumn scope)
+    val groups = remember(deckCards) { deckCards.groupBy { it.costType } }
+
     Column(
         modifier.background(
             Brush.verticalGradient(listOf(BgPanel, BgDeep))
@@ -772,8 +935,6 @@ private fun DeckPanel(
             Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            // Group by resource type
-            val groups = deckCards.groupBy { it.costType }
             ResourceType.entries.forEach { type ->
                 val cards = groups[type] ?: return@forEach
                 item(key = "header_$type") {
@@ -810,7 +971,7 @@ private fun DeckPanel(
                 HorizontalDivider(color = Gold.copy(alpha = 0.1f), modifier = Modifier.padding(top = 4.dp))
             }
             item(key = "stats") {
-                DeckStats(deck, allCards)
+                DeckStats(deck, deckCards)
             }
 
             // Action buttons footer
@@ -904,11 +1065,9 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
 }
 
 @Composable
-private fun DeckStats(deck: Deck, allCards: List<Card>) {
+private fun DeckStats(deck: Deck, deckCards: List<Card>) {
     val byType = ResourceType.entries.associateWith { type ->
-        allCards.sumOf { card ->
-            if (card.costType == type) (deck.cardCounts[card.id] ?: 0) else 0
-        }
+        deckCards.filter { it.costType == type }.sumOf { deck.cardCounts[it.id] ?: 0 }
     }
     val total = deck.totalCards.coerceAtLeast(1).toFloat()
 
