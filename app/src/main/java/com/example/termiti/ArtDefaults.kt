@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  ArtDefaults.kt
@@ -40,8 +40,7 @@ object ArtDefaults {
      *    0.0f = vycentrovat (střed obrázku = střed celé karty → zobrazuje se "moc dole")
      *   +1.0f = přitáhnout k dolnímu okraji
      *
-     *  Výchozí hodnota -0.5f: střed ilustrace se zobrazí přibližně 35 dp od vrchu karty
-     *  (oblast nad proužkem s názvem karty, který začíná na ~70 dp).
+     *  Výchozí hodnota -1.0f: střed ilustrace se zobrazí u horního okraje oblasti karty.
      */
     const val BIAS_Y: Float = -1.0f
 }
@@ -66,13 +65,20 @@ fun rarityOverlayResource(rarity: Rarity): Int {
 // ─── Pomocné funkce (dostupné z GameScreen i DeckBuilderScreen) ────────────────
 
 /**
- * Modifier pro ilustraci karty: aplikuje globální scale * per-karta artScale.
- * Používej místo Modifier.fillMaxSize() u Image s artResId.
+ * Modifier pro ilustraci karty: aplikuje globální scale * per-karta artScale přes graphicsLayer.
+ *
+ * POZOR: Nepoužívej Modifier.scale() — ten škáluje composable až po layoutu,
+ * takže BiasAlignment v parametru alignment u Image nepočítá se správnou velikostí.
+ * graphicsLayer škáluje obsah uvnitř bounds, takže ContentScale.Crop + alignment fungují správně.
  */
 fun artModifier(card: Card): Modifier =
     Modifier
         .fillMaxSize()
-        .scale(ArtDefaults.SCALE * card.artScale)
+        .graphicsLayer {
+            val s = ArtDefaults.SCALE * card.artScale
+            scaleX = s
+            scaleY = s
+        }
 
 /**
  * BiasAlignment pro ilustraci karty.
