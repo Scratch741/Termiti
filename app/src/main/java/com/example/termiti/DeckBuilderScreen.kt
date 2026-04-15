@@ -398,12 +398,12 @@ private fun CardPreview(card: Card) {
             .size(width = 100.dp, height = 140.dp)
             .clip(RoundedCornerShape(6.dp))
     ) {
-        // Ilustrace
+        // Ilustrace – 90 dp pokryje průhlednou zónu frame včetně gradient přechodu
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(90.dp)
                 .clipToBounds()
         ) {
             Image(

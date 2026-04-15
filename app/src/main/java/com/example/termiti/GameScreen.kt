@@ -1273,14 +1273,13 @@ private fun CardViewTextured(
             .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
     ) {
         // Vrstva 1: ilustrace karty
-        // Oblast ilustrace je horních ~70 dp (pod tím začíná pás s názvem karty).
-        // Image musí být ořezán pouze v této oblasti – jinak ContentScale.Crop + alignment
-        // počítají s celou výškou karty (140 dp) a hlava postavy zmizí dolů.
+        // Oblast ilustrace je horních ~90 dp — pokrývá průhlednou zónu frame i gradient přechod.
+        // 70 dp by způsobilo tvrdou hranu uprostřed semi-transparentní části rámu.
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(90.dp)
                 .clipToBounds()
         ) {
             Image(
