@@ -515,21 +515,21 @@ private fun FullCardPreview(card: Card) {
     }
     val rarityOverlayId = rarityOverlayResource(card.rarity)
 
-    // Karta 280×392 dp = 2.8× reálné karty (100×140 dp)
+    // Karta 252×353 dp = 2.52× reálné karty (100×140 dp) — o 10 % menší než 2.8×
     Box(
         modifier = Modifier
-            .size(width = 280.dp, height = 392.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .size(width = 252.dp, height = 353.dp)
+            .clip(RoundedCornerShape(14.dp))
             .background(BgCard)
-            .border(2.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+            .border(2.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
     ) {
         if (artResId != null) {
             // ── Texturovaná karta ────────────────────────────────────────────
-            // Artwork box: 90dp × 2.8 = 252dp — pokryje průhlednou zónu i gradient přechod rámu
+            // Artwork box: 90dp × 2.52 = 227dp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(252.dp)
+                    .height(227.dp)
                     .clipToBounds()
             ) {
                 Image(
@@ -561,54 +561,54 @@ private fun FullCardPreview(card: Card) {
                 )
             }
 
-            // Cena — y = 3dp × 2.8 = 8dp, x = 2dp × 2.8 = 6dp
+            // Cena — x = 2dp × 2.52 = 5dp, y = 3dp × 2.52 = 7dp
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(x = 6.dp, y = 8.dp)
-                    .size(50.dp),
+                    .offset(x = 5.dp, y = 7.dp)
+                    .size(45.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("${card.cost}", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                Text("${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
             }
 
-            // Název — ribbon y = 70dp × 2.8 = 196dp
+            // Název — ribbon y = 70dp × 2.52 = 176dp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 196.dp)
-                    .height(56.dp)
-                    .padding(horizontal = 34.dp),
+                    .padding(top = 176.dp)
+                    .height(50.dp)
+                    .padding(horizontal = 30.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(card.name, color = Color.White, fontSize = 20.sp,
+                Text(card.name, color = Color.White, fontSize = 18.sp,
                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2)
             }
 
-            // Popis — y = 94dp × 2.8 = 263dp
+            // Popis — y = 94dp × 2.52 = 237dp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 263.dp, start = 24.dp, end = 24.dp)
-                    .height(84.dp),
+                    .padding(top = 237.dp, start = 22.dp, end = 22.dp)
+                    .height(76.dp),
                 contentAlignment = Alignment.TopCenter
             ) {
                 Text(card.description, color = Color(0xFFDDD0B0),
-                    fontSize = 15.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
+                    fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
             }
 
-            // Typ — y = 118dp × 2.8 = 330dp
+            // Typ — y = 118dp × 2.52 = 297dp
             if (card.type.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .offset(y = 330.dp)
+                        .offset(y = 297.dp)
                         .fillMaxWidth()
-                        .height(38.dp),
+                        .height(34.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(card.type.uppercase(), color = Color(0xFFD4B870),
-                        fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                        fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 }
             }
 
