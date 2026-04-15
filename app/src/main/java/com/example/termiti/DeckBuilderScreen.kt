@@ -13,11 +13,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -208,23 +211,33 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
         // ── Full Card Preview Overlay ─────────────────────────────────────────
         if (previewCard != null) {
             Box(
-                Modifier.fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.85f))
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            0.0f to Color(0xCC000000),
+                            0.6f to Color(0xDD000000),
+                            1.0f to Color(0xF0000000)
+                        )
+                    )
                     .clickable { previewCard = null },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { /* pohlcení kliků – nezavírá overlay */ },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     FullCardPreview(previewCard!!)
-                    Button(
-                        onClick = { previewCard = null },
-                        colors = ButtonDefaults.buttonColors(containerColor = Gold.copy(alpha = 0.2f)),
-                        border = BorderStroke(1.dp, Gold.copy(alpha = 0.5f))
-                    ) {
-                        Text("ZAVŘÍT", color = Gold, fontWeight = FontWeight.Bold)
-                    }
+                    Text(
+                        "Klepni mimo kartu pro zavření",
+                        color = Color.White.copy(alpha = 0.35f),
+                        fontSize = 11.sp,
+                        fontStyle = FontStyle.Italic
+                    )
                 }
             }
         }
@@ -491,123 +504,178 @@ private fun CardPreview(card: Card) {
 // ─── Full Card Preview (zvětšený náhled) ──────────────────────────────────
 @Composable
 private fun FullCardPreview(card: Card) {
-    val context = LocalContext.current
-    val artResId = card.artResId ?: return
-    val frameResId = remember(card.costType) {
-        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    val costColor    = resColor(card.costType)
+    val rarityCol    = rarityColor(card.rarity)
+    val artResId     = card.artResId
+    val context      = LocalContext.current
+    val frameResId   = remember(card.costType) {
+        if (artResId != null)
+            context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+        else 0
     }
     val rarityOverlayId = rarityOverlayResource(card.rarity)
 
+    // Karta 280×392 dp = 2.8× reálné karty (100×140 dp)
     Box(
         modifier = Modifier
             .size(width = 280.dp, height = 392.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(BgCard)
-            .border(2.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+            .border(2.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
     ) {
-        // Ilustrace (přesně horní polovina 196dp)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(196.dp)
-                .clipToBounds()
-        ) {
-            Image(
-                painter = painterResource(artResId),
-                contentDescription = null,
-                modifier = artModifier(card),
-                contentScale = ContentScale.Crop,
-                alignment = artAlignment(card)
-            )
-        }
-
-        // Rám
-        if (frameResId != 0) {
-            Image(
-                painter = painterResource(frameResId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
-
-        // Překryv rarity
-        if (rarityOverlayId != 0) {
-            Image(
-                painter = painterResource(rarityOverlayId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
-
-        // Cena
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(x = 6.dp, y = 8.dp)
-                .size(48.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("${card.cost}", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-        }
-
-        // Název (pod ilustrací)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 196.dp)
-                .height(56.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                card.name,
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        // Popis
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 264.dp, start = 24.dp, end = 24.dp)
-                .height(80.dp),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Text(
-                card.description,
-                color = Color(0xFFDDD0B0),
-                fontSize = 17.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 22.sp
-            )
-        }
-
-        // Typ
-        if (card.type.isNotEmpty()) {
+        if (artResId != null) {
+            // ── Texturovaná karta ────────────────────────────────────────────
+            // Artwork box: 90dp × 2.8 = 252dp — pokryje průhlednou zónu i gradient přechod rámu
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),
+                    .fillMaxWidth()
+                    .height(252.dp)
+                    .clipToBounds()
+            ) {
+                Image(
+                    painter = painterResource(artResId),
+                    contentDescription = null,
+                    modifier = artModifier(card),
+                    contentScale = ContentScale.Crop,
+                    alignment = artAlignment(card)
+                )
+            }
+
+            // Rám
+            if (frameResId != 0) {
+                Image(
+                    painter = painterResource(frameResId),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+
+            // Překryv rarity
+            if (rarityOverlayId != 0) {
+                Image(
+                    painter = painterResource(rarityOverlayId),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+
+            // Cena — y = 3dp × 2.8 = 8dp, x = 2dp × 2.8 = 6dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = 6.dp, y = 8.dp)
+                    .size(50.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    card.type.uppercase(),
-                    color = Color(0xFFD4B870),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
+                Text("${card.cost}", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+            }
+
+            // Název — ribbon y = 70dp × 2.8 = 196dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 196.dp)
+                    .height(56.dp)
+                    .padding(horizontal = 34.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(card.name, color = Color.White, fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2)
+            }
+
+            // Popis — y = 94dp × 2.8 = 263dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 263.dp, start = 24.dp, end = 24.dp)
+                    .height(84.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(card.description, color = Color(0xFFDDD0B0),
+                    fontSize = 15.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
+            }
+
+            // Typ — y = 118dp × 2.8 = 330dp
+            if (card.type.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(y = 330.dp)
+                        .fillMaxWidth()
+                        .height(38.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(card.type.uppercase(), color = Color(0xFFD4B870),
+                        fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                }
+            }
+
+        } else {
+            // ── Klasická karta bez artworku ──────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(listOf(
+                            costColor.copy(alpha = 0.08f),
+                            BgCard
+                        ))
+                    )
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Cena + typ zdroje
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        Modifier.size(48.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(costColor.copy(alpha = 0.15f))
+                            .border(2.dp, costColor.copy(alpha = 0.6f), RoundedCornerShape(24.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("${card.cost}", color = costColor,
+                            fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    Text(resIcon(card.costType), fontSize = 28.sp)
+                }
+
+                HorizontalDivider(color = costColor.copy(alpha = 0.2f))
+
+                // Název
+                Text(card.name, color = TextPrimary,
+                    fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+                // Popis
+                Text(card.description, color = Color(0xFFDDD0B0),
+                    fontSize = 16.sp, lineHeight = 22.sp)
+
+                if (card.type.isNotEmpty()) {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+                    Text(card.type.uppercase(), color = Color(0xFFD4B870),
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                }
+
+                // Rarita
+                Box(
+                    Modifier.clip(RoundedCornerShape(6.dp))
+                        .background(rarityCol.copy(alpha = 0.15f))
+                        .border(1.dp, rarityCol.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                ) {
+                    Text(card.rarity.label, color = rarityCol,
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
 }
 
 // ─── Catalog Card Item ────────────────────────────────────────────────────────
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CatalogCardItem(
     card: Card,
@@ -622,12 +690,10 @@ private fun CatalogCardItem(
     val border    = if (hasAny) costColor.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.07f)
     val rc        = rarityColor(card.rarity)
 
+    // Klik → náhled karty; přidání do decku přes tlačítko [+] uvnitř dlaždice
     val itemModifier = Modifier.fillMaxWidth()
         .clip(RoundedCornerShape(7.dp))
-        .combinedClickable(
-            onClick = onIncrement,
-            onLongClick = onPreview
-        )
+        .clickable { onPreview() }
 
     if (card.artResId != null) {
         // ── Texturovaná karta ─────────────────────────────────────────────────
