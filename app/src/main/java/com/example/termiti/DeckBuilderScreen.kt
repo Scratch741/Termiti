@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -451,11 +453,15 @@ private fun CardPreview(card: Card) {
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = 2.dp, y = 3.dp)
+                .offset(x = 2.dp, y = 2.dp)
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("${card.cost}", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                "${card.cost}", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            )
         }
         // Název
         Box(
@@ -489,13 +495,17 @@ private fun CardPreview(card: Card) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(y = 118.dp)
+                    .offset(y = 120.dp)
                     .fillMaxWidth()
                     .height(14.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(card.type.uppercase(), color = Color(0xFFD4B870),
-                    fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                Text(
+                    card.type.uppercase(), color = Color(0xFFD4B870),
+                    fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                )
             }
         }
     }
@@ -561,15 +571,19 @@ private fun FullCardPreview(card: Card) {
                 )
             }
 
-            // Cena — x = 2dp × 2.52 = 5dp, y = 3dp × 2.52 = 7dp
+            // Cena — x = 2dp × 2.52 = 5dp, y = 2dp × 2.52 = 5dp
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(x = 5.dp, y = 7.dp)
+                    .offset(x = 5.dp, y = 5.dp)
                     .size(45.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    "${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                )
             }
 
             // Název — ribbon y = 70dp × 2.52 = 176dp
@@ -597,18 +611,22 @@ private fun FullCardPreview(card: Card) {
                     fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
             }
 
-            // Typ — y = 118dp × 2.52 = 297dp
+            // Typ — y = 120dp × 2.52 = 302dp
             if (card.type.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .offset(y = 297.dp)
+                        .offset(y = 302.dp)
                         .fillMaxWidth()
                         .height(34.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(card.type.uppercase(), color = Color(0xFFD4B870),
-                        fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                    Text(
+                        card.type.uppercase(), color = Color(0xFFD4B870),
+                        fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp,
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                    )
                 }
             }
 

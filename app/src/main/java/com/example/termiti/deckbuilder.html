@@ -846,8 +846,9 @@ function changeDeckCount(id, delta) {
 }
 
 function exportBiasData() {
+  const eps = 0.001;
   const changed = Object.entries(cardAdjustments).filter(([id, adj]) => {
-    return adj.scale !== 1.0 || adj.bx !== 0.0 || adj.by !== 0.0;
+    return Math.abs(adj.scale - 1.0) > eps || Math.abs(adj.bx) > eps || Math.abs(adj.by) > eps;
   });
 
   let output = "// ArtDefaults.kt\n";
@@ -859,13 +860,27 @@ function exportBiasData() {
   changed.forEach(([id, adj]) => {
     const name = CARD_MAP[id] ? CARD_MAP[id].name : '???';
     let parts = [];
-    if (adj.scale !== 1.0) parts.push(`artScale=${adj.scale.toFixed(2)}f`);
-    if (adj.bx !== 0.0) parts.push(`artBiasX=${adj.bx.toFixed(2)}f`);
-    if (adj.by !== 0.0) parts.push(`artBiasY=${adj.by.toFixed(2)}f`);
+    if (Math.abs(adj.scale - 1.0) > eps) parts.push(`artScale=${adj.scale.toFixed(2)}f`);
+    if (Math.abs(adj.bx) > eps) parts.push(`artBiasX=${adj.bx.toFixed(2)}f`);
+    if (Math.abs(adj.by) > eps) parts.push(`artBiasY=${adj.by.toFixed(2)}f`);
     output += `/* ${id} ${name} */  ${parts.join(', ')}\n`;
   });
 
   document.getElementById('designer-output').textContent = output;
+
+  // Copy to clipboard
+  const textArea = document.createElement("textarea");
+  textArea.value = output;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert("Artwork data zkopírována do schránky.");
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+    alert("Kopírování selhalo — viz výstupní pole níže.");
+  }
+  document.body.removeChild(textArea);
 }
 
 function copyDeckCode() {

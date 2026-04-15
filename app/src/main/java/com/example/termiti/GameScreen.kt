@@ -28,6 +28,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -1317,7 +1319,7 @@ private fun CardViewTextured(
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = 2.dp, y = 0.dp)
+                .offset(x = 2.dp, y = 2.dp)
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -1325,7 +1327,9 @@ private fun CardViewTextured(
                 "${card.cost}",
                 color = Color.White,
                 fontSize = 9.sp,
-                fontWeight = FontWeight.ExtraBold
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
         }
 
@@ -1437,7 +1441,9 @@ private fun CardViewTextured(
                     color = Color(0xFFD4B870),
                     fontSize = 6.sp,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.8.sp
+                    letterSpacing = 0.8.sp,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                 )
             }
         }
