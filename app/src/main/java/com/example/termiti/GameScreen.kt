@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
@@ -658,7 +657,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
                 Image(
                     painter = painterResource(card.artResId),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = artModifier(card),
                     contentScale = ContentScale.Crop,
                     alignment = artAlignment(card)
                 )
