@@ -657,10 +657,13 @@ private fun NewBattlefield(
                 .padding(end = 14.dp, bottom = 4.dp)
         )
 
-        // ── Poslední zahraná karta – střed volné plochy pod AI stripem ──────────
-        // offset(y=17dp) = 34dp/2: posune ze středu celého boxu do středu volné zóny pod AI stripem
+        // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
+        // TopCenter = horizontální střed; y-offset = střed volné výšky pod AI stripem (34dp)
+        val cardTopY = 34.dp + (maxHeight - 34.dp - scaledH) / 2
         Box(
-            modifier         = Modifier.align(Alignment.Center).offset(y = 17.dp),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = cardTopY),
             contentAlignment = Alignment.Center
         ) {
             if (lastCard != null) {
@@ -671,21 +674,22 @@ private fun NewBattlefield(
                     CardAction.STOLEN    -> Color(0xFF9B59B6)
                     null                 -> Gold.copy(alpha = 0.40f)
                 }
-                // Vnější Box určuje fyzické místo (scaled) a clipuje kartu
+                // Outer box určuje fyzické místo (scaled) — karta se škáluje ze středu
                 Box(
                     Modifier
                         .size(scaledW, scaledH)
                         .clip(RoundedCornerShape(7.dp))
                         .border(2.dp, ringColor, RoundedCornerShape(7.dp))
                 ) {
-                    // Vnitřní Box je přirozené velikosti; graphicsLayer ji zmenší z levého rohu
+                    // requiredSize = přirozená velikost; graphicsLayer škáluje ze středu
                     Box(
                         Modifier
                             .requiredSize(cardNatW, cardNatH)
+                            .align(Alignment.Center)
                             .graphicsLayer {
                                 scaleX = cardScale
                                 scaleY = cardScale
-                                transformOrigin = TransformOrigin(0f, 0f)
+                                transformOrigin = TransformOrigin(0.5f, 0.5f)
                             }
                     ) {
                         CardView(card = lastCard, canPlay = false, discardMode = false, onClick = {})
