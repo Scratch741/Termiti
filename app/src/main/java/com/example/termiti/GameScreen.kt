@@ -171,7 +171,7 @@ fun GameScreen(
             NewTopBar(
                 playerDeckSize = state.playerState.deck.size,
                 aiDeckSize     = state.aiState.deck.size,
-                activePlayer   = state.activePlayer,
+                isPlayerTurn   = state.activePlayer == ActivePlayer.PLAYER,
                 isComboTurn    = isComboTurn,
                 currentTurn    = state.currentTurn,
                 arenaWins      = if (isArena) arenaWins else -1,
@@ -328,21 +328,22 @@ fun GameScreen(
 // ─── New Top Bar ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun NewTopBar(
+fun NewTopBar(
     playerDeckSize: Int,
     aiDeckSize: Int,
-    activePlayer: ActivePlayer,
+    isPlayerTurn: Boolean,
     isComboTurn: Boolean,
     currentTurn: Int,
     arenaWins: Int = -1,
+    opponentLabel: String = "Nepřítel",
     onMenu: () -> Unit
 ) {
-    val isPlayerTurn = activePlayer == ActivePlayer.PLAYER || isComboTurn
-    val dotColor = if (isPlayerTurn) TealLight else Crimson
+    val activeTurn = isPlayerTurn || isComboTurn
+    val dotColor = if (activeTurn) TealLight else Crimson
     val turnText = when {
-        isComboTurn  -> "⚡ COMBO"
-        isPlayerTurn -> "TVŮJ TAH"
-        else         -> "AI HRAJE"
+        isComboTurn   -> "⚡ COMBO"
+        isPlayerTurn  -> "TVŮJ TAH"
+        else          -> "$opponentLabel HRAJE"
     }
 
     Row(
@@ -445,7 +446,7 @@ private fun NewTopBar(
                 Text("🂠", fontSize = 11.sp)
             }
 
-            Text("Nepřítel", color = TextPrimary, fontSize = 13.sp,
+            Text(opponentLabel, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
 
             Box(
@@ -463,7 +464,7 @@ private fun NewTopBar(
 // ─── New Resource Panel ───────────────────────────────────────────────────────
 
 @Composable
-private fun NewResourcePanel(
+fun NewResourcePanel(
     playerState: PlayerState,
     isAi: Boolean,
     modifier: Modifier = Modifier,
@@ -502,7 +503,7 @@ private fun NewResourcePanel(
 }
 
 @Composable
-private fun NewResourceSection(
+fun NewResourceSection(
     icon: String,
     name: String,
     mine: Int,
@@ -562,7 +563,7 @@ private fun NewResourceSection(
 }
 
 @Composable
-private fun NewPanelButton(
+fun NewPanelButton(
     label: String,
     color: Color,
     active: Boolean,
@@ -592,7 +593,7 @@ private fun NewPanelButton(
 // ─── New Battlefield ──────────────────────────────────────────────────────────
 
 @Composable
-private fun NewBattlefield(
+fun NewBattlefield(
     playerState: PlayerState,
     aiState: PlayerState,
     lastCard: Card?,
@@ -854,7 +855,7 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color) {
 // ─── Log Overlay ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun LogOverlay(log: List<String>, onDismiss: () -> Unit) {
+fun LogOverlay(log: List<String>, onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()

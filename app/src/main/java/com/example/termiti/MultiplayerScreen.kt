@@ -1,6 +1,7 @@
 package com.example.termiti
 
 import androidx.compose.animation.AnimatedContent
+import com.example.termiti.R
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -424,207 +425,114 @@ private fun MpMulliganScreen(vm: MultiplayerViewModel) {
 
 @Composable
 private fun MpGameScreen(vm: MultiplayerViewModel) {
-    val myS         by remember { derivedStateOf { vm.myState.value } }
-    val oppS        by remember { derivedStateOf { vm.oppState.value } }
-    val isMyTurn    by vm.isMyTurn
-    val isCombo     by vm.isComboTurn
-    val log         by vm.gameLog
-    val lastCard    by vm.lastCard
-    val turn        by vm.currentTurn
+    val myS              by remember { derivedStateOf { vm.myState.value } }
+    val oppS             by remember { derivedStateOf { vm.oppState.value } }
+    val isMyTurn         by vm.isMyTurn
+    val isCombo          by vm.isComboTurn
+    val log              by vm.gameLog
+    val lastCard         by vm.lastCard
+    val lastCardAction   by vm.lastCardAction
+    val lastCardIsPlayer by vm.lastCardIsPlayer
+    val turn             by vm.currentTurn
     val oppName          by vm.oppName
-    val oppRevealed      by vm.oppRevealedCardIds
-    val lastCardAction by vm.lastCardAction
-    val cardHistory    by vm.cardHistory
-    val lostToOpponent by vm.lostToOpponent
+    val lostToOpponent   by vm.lostToOpponent
 
     var showLeaveConfirm by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
+    var showLog          by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
 
+        // ── Pozadí (stejné jako offline) ──────────────────────────────────
+        Image(
+            painter = painterResource(R.drawable.bg_game),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Box(Modifier.fillMaxSize().background(Color(0x88000000)))
+
         Column(Modifier.fillMaxSize()) {
 
-            // ── Hlavní řada: postranní panely + střed ─────────────────────
-            Row(Modifier.fillMaxWidth().weight(1f)) {
+            // ── Top bar – identický s offline ────────────────────────────
+            NewTopBar(
+                playerDeckSize = myS.deck.size,
+                aiDeckSize     = oppS.deck.size,
+                isPlayerTurn   = isMyTurn && !isCombo,
+                isComboTurn    = isCombo,
+                currentTurn    = turn,
+                opponentLabel  = oppName,
+                onMenu         = { showLeaveConfirm = true }
+            )
 
-                // Soupeřův panel vlevo
-                PlayerPanel(
-                    playerState = oppS,
-                    isEnemy     = true,
-                    label       = oppName,
-                    modifier    = Modifier.fillMaxHeight().weight(1f)
-                )
+            // ── Hlavní řada ───────────────────────────────────────────────
+            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
 
-                VerticalDivider(color = MpMuted.copy(alpha = 0.2f))
-
-                // Střed
-                Column(Modifier.fillMaxHeight().weight(2f)) {
-
-                    MpStatusBar(
-                        turn     = turn,
-                        isMyTurn = isMyTurn,
-                        isCombo  = isCombo,
-                        oppName  = oppName,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    MpOpponentHand(
-                        hand        = oppS.hand.toList(),
-                        revealedIds = oppRevealed,
-                        modifier    = Modifier.fillMaxWidth().padding(4.dp)
-                    )
-
-                    HorizontalDivider(color = MpMuted.copy(alpha = 0.15f))
-
-                    Row(Modifier.fillMaxWidth().weight(1f)) {
-
-                        // ── Vlevo: poslední zahraná/zahozená karta + historie ───────
-                        Column(
-                            Modifier
-                                .fillMaxHeight()
-                                .weight(1f)
-                                .background(MpBgDeep.copy(alpha = 0.60f))
-                        ) {
-                            // Hlavní oblast – velká karta uprostřed
-                            Box(
-                                Modifier.weight(1f).fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (lastCard != null) {
-                                    val ringColor = when (lastCardAction) {
-                                        CardAction.PLAYED    -> MpTeal
-                                        CardAction.DISCARDED -> MpRed
-                                        CardAction.BURNED    -> Color(0xFFE07B39)
-                                        CardAction.STOLEN    -> Color(0xFF9B59B6)
-                                    }
-                                    Box(Modifier.scale(1.3f)) {
-                                        Box(
-                                            Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .border(2.5.dp, ringColor, RoundedCornerShape(8.dp))
-                                        ) {
-                                            CardView(
-                                                card        = lastCard!!,
-                                                canPlay     = false,
-                                                discardMode = false,
-                                                onClick     = {}
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    Text("—", color = MpMuted.copy(alpha = 0.3f), fontSize = 16.sp)
-                                }
-                            }
-
-                        }
-
-                        VerticalDivider(color = MpMuted.copy(alpha = 0.12f))
-
-                        // ── Vpravo: log (horní polovina) + tlačítko Konec tahu ─────
-                        Column(
-                            Modifier
-                                .fillMaxHeight()
-                                .weight(1f)
-                                .background(MpBgDeep.copy(alpha = 0.60f))
-                        ) {
-                            LogPanel(
-                                log        = log,
-                                modifier   = Modifier.fillMaxWidth().weight(1f),
-                                scrollable = true
+                // Levý panel: moje zdroje
+                NewResourcePanel(
+                    playerState = myS,
+                    isAi        = false,
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    bottomSlot  = {
+                        NewPanelButton(
+                            label   = "📜 Log",
+                            color   = MpGold,
+                            active  = true,
+                            onClick = { showLog = true }
+                        )
+                        if (lostToOpponent.isNotEmpty()) {
+                            Spacer(Modifier.height(3.dp))
+                            NewPanelButton(
+                                label   = "🃏 ${lostToOpponent.size}",
+                                color   = MpPurple,
+                                active  = true,
+                                onClick = { showLostCards = true }
                             )
-
-                            // ── Historie zahraných karet ─────────────────────
-                            if (cardHistory.isNotEmpty()) {
-                                HorizontalDivider(color = MpMuted.copy(alpha = 0.15f))
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .background(MpBgDeep.copy(alpha = 0.35f))
-                                        .padding(horizontal = 4.dp, vertical = 3.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(end = 4.dp)
-                                            .clickable(enabled = lostToOpponent.isNotEmpty()) {
-                                                showLostCards = true
-                                            }
-                                    ) {
-                                        Text("📜", fontSize = 9.sp)
-                                        if (lostToOpponent.isNotEmpty()) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .offset(x = 4.dp, y = (-2).dp)
-                                                    .size(9.dp)
-                                                    .clip(RoundedCornerShape(50))
-                                                    .background(Color(0xFFBF2D2D)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    "${lostToOpponent.size}",
-                                                    color = Color.White,
-                                                    fontSize = 5.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    }
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                        contentPadding = PaddingValues(horizontal = 2.dp)
-                                    ) {
-                                        itemsIndexed(cardHistory) { _, entry ->
-                                            MiniHistoryCard(
-                                                card    = entry.card,
-                                                action  = entry.action,
-                                                isMine  = entry.isMine,
-                                                onClick = { showLostCards = true }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Tlačítko je vždy viditelné – zšedivělo když není na tahu
-                            val active = isMyTurn || isCombo
-                            val btnLabel = if (isCombo) "⚡ Konec combo" else "⏩ Konec tahu"
-                            val btnColor = when {
-                                isCombo  -> MpGold
-                                active   -> MpTeal
-                                else     -> MpMuted.copy(alpha = 0.35f)
-                            }
-                            HorizontalDivider(color = MpMuted.copy(alpha = 0.2f))
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .then(if (active) Modifier.clickable {
-                                        if (isCombo) vm.endComboTurn() else vm.waitTurn()
-                                    } else Modifier)
-                                    .background(btnColor.copy(alpha = 0.08f))
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(btnLabel, color = btnColor, fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                            }
                         }
                     }
-                }
+                )
 
-                VerticalDivider(color = MpMuted.copy(alpha = 0.2f))
+                // Střed: bojiště – identické s offline (oppS hraje roli aiState)
+                NewBattlefield(
+                    playerState      = myS,
+                    aiState          = oppS,
+                    lastCard         = lastCard,
+                    lastCardAction   = lastCardAction,
+                    lastCardIsPlayer = lastCardIsPlayer,
+                    modifier         = Modifier.fillMaxHeight().weight(1f)
+                )
 
-                // Můj panel vpravo
-                PlayerPanel(
-                    playerState = myS,
-                    isEnemy     = false,
-                    label       = "Ty",
-                    modifier    = Modifier.fillMaxHeight().weight(1f)
+                // Pravý panel: soupeřovy zdroje (zrcadlové)
+                NewResourcePanel(
+                    playerState = oppS,
+                    isAi        = true,
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    bottomSlot  = {
+                        val active   = isMyTurn || isCombo
+                        val btnLabel = when {
+                            isCombo  -> "⚡ Konec combo"
+                            isMyTurn -> "⏩ Konec tahu"
+                            else     -> "⏳ Čekám…"
+                        }
+                        val btnColor = when {
+                            isCombo  -> MpGold
+                            isMyTurn -> MpTeal
+                            else     -> MpMuted.copy(alpha = 0.35f)
+                        }
+                        NewPanelButton(
+                            label   = btnLabel,
+                            color   = btnColor,
+                            active  = active,
+                            onClick = {
+                                if (isCombo) vm.endComboTurn()
+                                else if (isMyTurn) vm.waitTurn()
+                            }
+                        )
+                    }
                 )
             }
 
-            // ── Ruka hráče – pod hlavní řadou, stejně jako v offline verzi ─
-            HorizontalDivider(color = MpMuted.copy(alpha = 0.2f))
+            // ── Ruka hráče – identická s offline ─────────────────────────
             HandPanel(
                 hand            = myS.hand.toList(),
                 isPlayerTurn    = isMyTurn,
@@ -637,29 +545,16 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 showHeader      = false,
                 playerWallHp    = myS.wallHP,
                 playerCastleHp  = myS.castleHP,
-                modifier        = Modifier.fillMaxWidth().height(150.dp)
+                modifier        = Modifier.fillMaxWidth().height(152.dp)
+                                          .background(Color(0xD8120A03))
             )
-        }
-
-        // ── Tlačítko menu v rohu ───────────────────────────────────────────
-        Box(
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 6.dp, top = 38.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, MpMuted.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
-                .clickable { showLeaveConfirm = true }
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text("☰", color = MpMuted, fontSize = 12.sp)
         }
 
         // ── Potvrzení odchodu ─────────────────────────────────────────────
         if (showLeaveConfirm) {
             AlertDialog(
-                onDismissRequest = { showLeaveConfirm = false },
-                containerColor   = Color(0xFF1A1320),
+                onDismissRequest  = { showLeaveConfirm = false },
+                containerColor    = Color(0xFF1A1320),
                 titleContentColor = MpText,
                 textContentColor  = MpMuted,
                 title   = { Text("Opustit hru?", fontWeight = FontWeight.Bold) },
@@ -678,10 +573,11 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
         }
 
         if (showLostCards) {
-            LostCardsOverlay(
-                lostCards = lostToOpponent,
-                onDismiss = { showLostCards = false }
-            )
+            LostCardsOverlay(lostCards = lostToOpponent, onDismiss = { showLostCards = false })
+        }
+
+        if (showLog) {
+            LogOverlay(log = log, onDismiss = { showLog = false })
         }
     }
 }

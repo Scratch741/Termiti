@@ -83,9 +83,11 @@ class MultiplayerViewModel(
     var isMyTurn     = mutableStateOf(false);           private set
     var isComboTurn  = mutableStateOf(false);           private set
     var currentTurn  = mutableStateOf(1);               private set
-    var lastCard       = mutableStateOf<Card?>(null);              private set
+    var lastCard         = mutableStateOf<Card?>(null);            private set
     /** Akce poslední zaznamenané karty. */
-    var lastCardAction = mutableStateOf(CardAction.PLAYED);        private set
+    var lastCardAction   = mutableStateOf(CardAction.PLAYED);      private set
+    /** True = karta zahrána mnou (hráčem), false = soupeřem. */
+    var lastCardIsPlayer = mutableStateOf(true);                   private set
     /** Chronologická historie karet (nejnovější první). */
     var cardHistory    = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard soupeře (celá hra). */
@@ -109,8 +111,9 @@ class MultiplayerViewModel(
 
     /** Zaznamená zahranou/zahozenou kartu jako poslední i do historie (viditelné v centru). */
     private fun recordCard(card: Card, action: CardAction, isMine: Boolean) {
-        lastCard.value       = card
-        lastCardAction.value = action
+        lastCard.value         = card
+        lastCardAction.value   = action
+        lastCardIsPlayer.value = isMine
         addToHistory(card, action, isMine)
     }
 
