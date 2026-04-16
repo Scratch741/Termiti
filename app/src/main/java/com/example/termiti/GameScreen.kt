@@ -23,7 +23,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -143,7 +145,6 @@ fun GameScreen(
     val lastCard         by viewModel.lastCard
     val lastCardAction   by viewModel.lastCardAction
     val lastCardIsPlayer by viewModel.lastCardIsPlayer
-    val cardHistory      by viewModel.cardHistory
     val lostToOpponent   by viewModel.lostToOpponent
     val isMulligan       by viewModel.isMulligan
     val mulliganSelected by viewModel.mulliganSelected
@@ -151,6 +152,7 @@ fun GameScreen(
 
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
+    var showLog          by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -161,174 +163,87 @@ fun GameScreen(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        // Tmavý overlay – zachová čitelnost UI (0x77 = ~47% černá)
-        Box(Modifier.fillMaxSize().background(Color(0x77000000)))
+        Box(Modifier.fillMaxSize().background(Color(0x88000000)))
 
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // ── Hlavní řada – boční panely od vrchu + střed ───────────
+            // ── Top bar ───────────────────────────────────────────────────────
+            NewTopBar(
+                playerDeckSize = state.playerState.deck.size,
+                aiDeckSize     = state.aiState.deck.size,
+                activePlayer   = state.activePlayer,
+                isComboTurn    = isComboTurn,
+                currentTurn    = state.currentTurn,
+                arenaWins      = if (isArena) arenaWins else -1,
+                onMenu         = { showMenuConfirm = true }
+            )
+
+            // ── Hlavní řada ───────────────────────────────────────────────────
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
 
-                PlayerPanel(
-                    label = "Nepřítel", playerState = state.aiState, isEnemy = true,
-                    modifier = Modifier.fillMaxHeight().weight(1f)
-                )
+                val isPlayerActive = state.activePlayer == ActivePlayer.PLAYER && gameOver == null
+                val active         = isPlayerActive || isComboTurn
 
-                VerticalDivider(color = Gold.copy(alpha = 0.25f))
-
-                // Střed
-                Column(modifier = Modifier.fillMaxHeight().weight(2f)) {
-
-                    OfflineStatusBar(
-                        activePlayer = state.activePlayer,
-                        isComboTurn  = isComboTurn,
-                        currentTurn  = state.currentTurn,
-                        arenaWins    = if (isArena) arenaWins else -1,
-                        modifier     = Modifier.fillMaxWidth()
-                    )
-
-                    OfflineAiHandRow(
-                        handSize = state.aiState.hand.size,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    HorizontalDivider(color = Gold.copy(alpha = 0.2f))
-
-                    Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-
-                        // ── Vlevo: poslední zahraná karta ──────────────────────
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(1f)
-                                .background(BgDeep.copy(alpha = 0.60f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (lastCard != null) {
-                                val ringColor = when (lastCardAction) {
-                                    CardAction.PLAYED    -> if (lastCardIsPlayer) Teal else Crimson
-                                    CardAction.DISCARDED -> if (lastCardIsPlayer) Teal.copy(alpha = 0.6f) else Crimson.copy(alpha = 0.6f)
-                                    CardAction.BURNED    -> Color(0xFFE07B39)
-                                    CardAction.STOLEN    -> Color(0xFF9B59B6)
-                                }
-                                Box(Modifier.scale(1.2f)) {
-                                    Box(
-                                        Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .border(2.5.dp, ringColor, RoundedCornerShape(8.dp))
-                                    ) {
-                                        CardView(card = lastCard!!, canPlay = false, discardMode = false, onClick = {})
-                                    }
-                                }
-                            } else {
-                                Text("—", color = TextMuted.copy(alpha = 0.2f), fontSize = 16.sp)
-                            }
-                        }
-
-                        VerticalDivider(color = Gold.copy(alpha = 0.12f))
-
-                        // ── Vpravo: log + historie + konec tahu ────────────────
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(1f)
-                                .background(BgDeep.copy(alpha = 0.60f))
-                        ) {
-                            LogPanel(
-                                log        = log,
-                                modifier   = Modifier.fillMaxWidth().weight(1f),
-                                scrollable = true
+                // ── Levý panel: zdroje hráče ──────────────────────────────────
+                NewResourcePanel(
+                    playerState = state.playerState,
+                    isAi        = false,
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    bottomSlot  = {
+                        NewPanelButton(
+                            label   = "📜 Log",
+                            color   = Gold,
+                            active  = true,
+                            onClick = { showLog = true }
+                        )
+                        if (lostToOpponent.isNotEmpty()) {
+                            Spacer(Modifier.height(3.dp))
+                            NewPanelButton(
+                                label   = "🃏 ${lostToOpponent.size}",
+                                color   = Color(0xFF9B59B6),
+                                active  = true,
+                                onClick = { showLostCards = true }
                             )
-
-                            if (cardHistory.isNotEmpty()) {
-                                HorizontalDivider(color = Gold.copy(alpha = 0.1f))
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .background(BgDeep.copy(alpha = 0.35f))
-                                        .padding(horizontal = 4.dp, vertical = 3.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // 📜 ikona s badge ztracených karet – kliknutí otevře popup
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(end = 4.dp)
-                                            .clickable(enabled = lostToOpponent.isNotEmpty()) {
-                                                showLostCards = true
-                                            }
-                                    ) {
-                                        Text("📜", fontSize = 9.sp)
-                                        if (lostToOpponent.isNotEmpty()) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .offset(x = 4.dp, y = (-2).dp)
-                                                    .size(9.dp)
-                                                    .clip(RoundedCornerShape(50))
-                                                    .background(Color(0xFFBF2D2D)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(
-                                                    "${lostToOpponent.size}",
-                                                    color = Color.White,
-                                                    fontSize = 5.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    }
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                        contentPadding        = PaddingValues(horizontal = 2.dp)
-                                    ) {
-                                        itemsIndexed(cardHistory) { _, entry ->
-                                            OfflineMiniHistoryCard(
-                                                card     = entry.card,
-                                                action   = entry.action,
-                                                isMine   = entry.isMine,
-                                                onClick  = { showLostCards = true }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            val isPlayerActive = state.activePlayer == ActivePlayer.PLAYER && gameOver == null
-                            val active         = isPlayerActive || isComboTurn
-                            val btnLabel       = if (isComboTurn) "⚡ Konec combo" else "⏩ Konec tahu"
-                            val btnColor       = when {
-                                isComboTurn -> Gold
-                                active      -> TealLight
-                                else        -> TextMuted.copy(alpha = 0.35f)
-                            }
-                            HorizontalDivider(color = Gold.copy(alpha = 0.12f))
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .then(if (active) Modifier.clickable {
-                                        if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn()
-                                    } else Modifier)
-                                    .background(btnColor.copy(alpha = 0.08f))
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(btnLabel, color = btnColor, fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                            }
                         }
                     }
-                }
+                )
 
-                VerticalDivider(color = Gold.copy(alpha = 0.25f))
+                // ── Střed: bojiště ────────────────────────────────────────────
+                NewBattlefield(
+                    playerState      = state.playerState,
+                    aiState          = state.aiState,
+                    lastCard         = lastCard,
+                    lastCardAction   = lastCardAction,
+                    lastCardIsPlayer = lastCardIsPlayer,
+                    modifier         = Modifier.fillMaxHeight().weight(1f)
+                )
 
-                PlayerPanel(
-                    label = "Ty", playerState = state.playerState, isEnemy = false,
-                    modifier = Modifier.fillMaxHeight().weight(1f)
+                // ── Pravý panel: zdroje AI ────────────────────────────────────
+                NewResourcePanel(
+                    playerState = state.aiState,
+                    isAi        = true,
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    bottomSlot  = {
+                        val btnLabel = if (isComboTurn) "⚡ Konec combo" else "⏩ Konec tahu"
+                        val btnColor = when {
+                            isComboTurn -> Gold
+                            active      -> TealLight
+                            else        -> TextMuted.copy(alpha = 0.35f)
+                        }
+                        NewPanelButton(
+                            label   = btnLabel,
+                            color   = btnColor,
+                            active  = active,
+                            onClick = if (active) {
+                                { if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn() }
+                            } else null
+                        )
+                    }
                 )
             }
 
             // ── Ruka hráče – přes celou šířku dole ───────────────────
-            HorizontalDivider(color = Gold.copy(alpha = 0.2f))
+            Box(Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF6B3D12)))
             HandPanel(
                 hand             = state.playerState.hand,
                 isPlayerTurn     = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
@@ -341,25 +256,12 @@ fun GameScreen(
                 showHeader       = false,
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
-                modifier         = Modifier.fillMaxWidth().height(150.dp)
-                                           .background(BgDeep.copy(alpha = 0.82f))
+                modifier         = Modifier.fillMaxWidth().height(152.dp)
+                                           .background(Color(0xD8120A03))
             )
         }
 
-        // ── Menu tlačítko overlay ─────────────────────────────────────────────
-        Box(
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 6.dp, top = 38.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, Gold.copy(alpha = 0.2f), RoundedCornerShape(5.dp))
-                .clickable { showMenuConfirm = true }
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text("☰", color = TextMuted, fontSize = 12.sp)
-        }
-
+        // ── Dialogy a overlay ─────────────────────────────────────────────────
         gameOver?.let { result ->
             if (isArena) {
                 val isPlayerWin = result.isPlayerWin()
@@ -416,71 +318,572 @@ fun GameScreen(
                 onDismiss = { showLostCards = false }
             )
         }
-    }
-}
 
-// ─── Offline status bar ───────────────────────────────────────────────────────
-
-@Composable
-private fun OfflineStatusBar(
-    activePlayer: ActivePlayer,
-    isComboTurn: Boolean,
-    currentTurn: Int,
-    arenaWins: Int = -1,
-    modifier: Modifier = Modifier
-) {
-    val isPlayerTurn = activePlayer == ActivePlayer.PLAYER
-    val color = if (isPlayerTurn || isComboTurn) Teal else Crimson
-    val text = when {
-        isComboTurn  -> "⚡  COMBO"
-        isPlayerTurn -> "⚔️  TVŮJ TAH"
-        else         -> "⏳  AI HRAJE"
-    }
-    Row(
-        modifier
-            .background(color.copy(alpha = 0.08f))
-            .drawBehind {
-                val stroke = 1.dp.toPx()
-                drawLine(color.copy(alpha = 0.2f),
-                    Offset(0f, size.height - stroke), Offset(size.width, size.height - stroke), stroke)
-            }
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically
-    ) {
-        Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (arenaWins >= 0) {
-                Box(
-                    Modifier.clip(RoundedCornerShape(5.dp))
-                        .background(Gold.copy(alpha = 0.1f))
-                        .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(5.dp))
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text("⚔️ $arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            Text("Kolo $currentTurn", color = TextMuted, fontSize = 9.sp)
+        if (showLog) {
+            LogOverlay(log = log, onDismiss = { showLog = false })
         }
     }
 }
 
-// ─── Offline AI hand row ──────────────────────────────────────────────────────
+// ─── New Top Bar ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun OfflineAiHandRow(handSize: Int, modifier: Modifier = Modifier) {
+private fun NewTopBar(
+    playerDeckSize: Int,
+    aiDeckSize: Int,
+    activePlayer: ActivePlayer,
+    isComboTurn: Boolean,
+    currentTurn: Int,
+    arenaWins: Int = -1,
+    onMenu: () -> Unit
+) {
+    val isPlayerTurn = activePlayer == ActivePlayer.PLAYER || isComboTurn
+    val dotColor = if (isPlayerTurn) TealLight else Crimson
+    val turnText = when {
+        isComboTurn  -> "⚡ COMBO"
+        isPlayerTurn -> "TVŮJ TAH"
+        else         -> "AI HRAJE"
+    }
+
     Row(
-        modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment     = Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(Brush.verticalGradient(listOf(Color(0xFF3D200A), Color(0xFF2A1505))))
+            .drawBehind {
+                drawRect(
+                    Color(0xFF6B3D12),
+                    topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                    size    = Size(size.width, 2.dp.toPx())
+                )
+            }
+            .padding(horizontal = 8.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("Nepřítel: ", color = TextMuted, fontSize = 9.sp)
-        LazyRow(
-            modifier              = Modifier.weight(1f, fill = false),
-            horizontalArrangement = Arrangement.Center,
-            contentPadding        = PaddingValues(horizontal = 2.dp)
+        // ── Hráč vlevo ────────────────────────────────────────────────────
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, Gold.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .clickable { onMenu() }
+                    .padding(horizontal = 7.dp, vertical = 3.dp)
+            ) { Text("☰", color = TextMuted, fontSize = 11.sp) }
+
+            Box(
+                Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.linearGradient(listOf(Color(0xFF3A2010), Color(0xFF5C3010))))
+                    .border(1.5.dp, Gold.copy(alpha = 0.65f), RoundedCornerShape(50)),
+                contentAlignment = Alignment.Center
+            ) { Text("🧙", fontSize = 13.sp) }
+
+            Text("Hráč", color = TextPrimary, fontSize = 13.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text("🂠", fontSize = 11.sp)
+                Text("$playerDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // ── Střed ─────────────────────────────────────────────────────────
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Gold.copy(alpha = 0.10f))
+                    .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(5.dp))
+                    .padding(horizontal = 9.dp, vertical = 2.dp)
+            ) {
+                Text("Kolo $currentTurn", color = Gold, fontSize = 10.sp, letterSpacing = 1.sp)
+            }
+
+            if (arenaWins >= 0) {
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Gold.copy(alpha = 0.07f))
+                        .border(1.dp, Gold.copy(alpha = 0.28f), RoundedCornerShape(5.dp))
+                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                ) { Text("⚔️ $arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Canvas(Modifier.size(7.dp)) {
+                    drawCircle(dotColor.copy(alpha = 0.30f), radius = size.width)
+                    drawCircle(dotColor, radius = size.width * 0.55f)
+                }
+                Text(turnText, color = dotColor, fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            }
+        }
+
+        // ── AI vpravo ────────────────────────────────────────────────────
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text("$aiDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("🂠", fontSize = 11.sp)
+            }
+
+            Text("Nepřítel", color = TextPrimary, fontSize = 13.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+
+            Box(
+                Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.linearGradient(listOf(Color(0xFF3A0A0A), Color(0xFF5C1010))))
+                    .border(1.5.dp, Crimson.copy(alpha = 0.65f), RoundedCornerShape(50)),
+                contentAlignment = Alignment.Center
+            ) { Text("👺", fontSize = 13.sp) }
+        }
+    }
+}
+
+// ─── New Resource Panel ───────────────────────────────────────────────────────
+
+@Composable
+private fun NewResourcePanel(
+    playerState: PlayerState,
+    isAi: Boolean,
+    modifier: Modifier = Modifier,
+    bottomSlot: @Composable ColumnScope.() -> Unit = {}
+) {
+    val magic     = playerState.resources[ResourceType.MAGIC]  ?: 0
+    val attack    = playerState.resources[ResourceType.ATTACK] ?: 0
+    val stones    = playerState.resources[ResourceType.STONES] ?: 0
+    val chaos     = playerState.resources[ResourceType.CHAOS]  ?: 0
+    val mineMagic = playerState.mines[ResourceType.MAGIC]  ?: 0
+    val mineAtk   = playerState.mines[ResourceType.ATTACK] ?: 0
+    val mineSto   = playerState.mines[ResourceType.STONES] ?: 0
+    val mineChaos = playerState.mines[ResourceType.CHAOS]  ?: 0
+
+    Column(
+        modifier = modifier
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF2E1A08), Color(0xFF231408), Color(0xFF2E1A08))
+                )
+            )
+            .drawBehind {
+                val w = 3.dp.toPx()
+                val x = if (isAi) w / 2f else size.width - w / 2f
+                drawLine(Color(0xFF6B3D12), Offset(x, 0f), Offset(x, size.height), w)
+            }
+            .padding(horizontal = 5.dp, vertical = 5.dp)
+    ) {
+        NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple,  isAi = isAi)
+        NewResourceSection("⚔️", "Útok",   mineAtk,   attack, AttackRed,    isAi = isAi)
+        NewResourceSection("🪨", "Kameny", mineSto,   stones, StoneColor,   isAi = isAi)
+        NewResourceSection("🌀", "Chaos",  mineChaos, chaos,  ChaosOrange,  isAi = isAi, isLast = true)
+        Spacer(Modifier.weight(1f))
+        bottomSlot()
+    }
+}
+
+@Composable
+private fun NewResourceSection(
+    icon: String,
+    name: String,
+    mine: Int,
+    amount: Int,
+    color: Color,
+    isAi: Boolean = false,
+    isLast: Boolean = false
+) {
+    // ── Jedna kompaktní řádka: [mine#] [icon] [name] ... [amount] ──────────
+    // Pro AI zrcadlově: [amount] ... [name] [icon] [mine#]
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .then(
+                if (!isLast) Modifier.drawBehind {
+                    val y = size.height - 0.5f
+                    drawLine(Gold.copy(alpha = 0.12f), Offset(0f, y), Offset(size.width, y), 0.5f)
+                } else Modifier
+            )
+            .padding(horizontal = 5.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (!isAi) {
+            // Hráč: mine# | ikona | název (roztažený) | zásoba
+            Text(
+                if (mine > 0) "$mine" else "—",
+                color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.widthIn(min = 13.dp)
+            )
+            Spacer(Modifier.width(2.dp))
+            Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
+            Spacer(Modifier.width(3.dp))
+            Text(
+                name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        } else {
+            // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
+            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(
+                name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(3.dp))
+            Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
+            Spacer(Modifier.width(2.dp))
+            Text(
+                if (mine > 0) "$mine" else "—",
+                color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.widthIn(min = 13.dp),
+                textAlign = TextAlign.End
+            )
+        }
+    }
+}
+
+@Composable
+private fun NewPanelButton(
+    label: String,
+    color: Color,
+    active: Boolean,
+    onClick: (() -> Unit)?
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(5.dp))
+            .background(color.copy(alpha = if (active) 0.12f else 0.05f))
+            .border(1.dp, color.copy(alpha = if (active) 0.50f else 0.18f), RoundedCornerShape(5.dp))
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color         = color.copy(alpha = if (active) 1f else 0.38f),
+            fontSize      = 9.sp,
+            fontWeight    = FontWeight.Bold,
+            letterSpacing = 0.8.sp,
+            textAlign     = TextAlign.Center
+        )
+    }
+}
+
+// ─── New Battlefield ──────────────────────────────────────────────────────────
+
+@Composable
+private fun NewBattlefield(
+    playerState: PlayerState,
+    aiState: PlayerState,
+    lastCard: Card?,
+    lastCardAction: CardAction?,
+    lastCardIsPlayer: Boolean,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(
+        modifier = modifier.background(
+            Brush.verticalGradient(listOf(Color(0xFF0A1A0A), Color(0xFF151A08), Color(0xFF1A1008)))
+        )
+    ) {
+        // Přirozená velikost karty
+        val cardNatH = 140.dp
+        val cardNatW = 100.dp
+        // Dostupný prostor: pod AI stripem (34dp), malý dolní dech (8dp).
+        // Hrady jsou v rozích → blokují jen strany, ne střed bojiště.
+        val cardAvailH = maxHeight - 34.dp - 8.dp
+        val cardAvailW = maxWidth  - 24.dp      // 12dp margin na každé straně
+        val cardScaleH = (cardAvailH / cardNatH).coerceIn(0.4f, 1.35f)
+        val cardScaleW = (cardAvailW / cardNatW).coerceIn(0.4f, 1.35f)
+        val cardScale  = minOf(cardScaleH, cardScaleW)
+        val scaledH    = cardNatH * cardScale
+        val scaledW    = cardNatW * cardScale
+
+        // ── AI ruka (nahoře) ──────────────────────────────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .height(34.dp)
+                .background(
+                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.50f), Color.Transparent))
+                )
+                .padding(horizontal = 8.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            items(handSize) { CardBack() }
+            repeat(aiState.hand.size) { i ->
+                if (i > 0) Spacer(Modifier.width(3.dp))
+                CardBack()
+            }
+        }
+
+        // ── Hrad hráče – vlevo dole (věž vlevo, hradba vpravo → blíže středu) ──
+        NewCastleStructure(
+            castleHp = playerState.castleHP,
+            wallHp   = playerState.wallHP,
+            isPlayer = true,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 14.dp, bottom = 4.dp)
+        )
+
+        // ── Hrad AI – vpravo dole (hradba vlevo → blíže středu, věž vpravo) ────
+        NewCastleStructure(
+            castleHp = aiState.castleHP,
+            wallHp   = aiState.wallHP,
+            isPlayer = false,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 14.dp, bottom = 4.dp)
+        )
+
+        // ── Poslední zahraná karta – střed volné plochy pod AI stripem ──────────
+        // offset(y=17dp) = 34dp/2: posune ze středu celého boxu do středu volné zóny pod AI stripem
+        Box(
+            modifier         = Modifier.align(Alignment.Center).offset(y = 17.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (lastCard != null) {
+                val ringColor = when (lastCardAction) {
+                    CardAction.PLAYED    -> if (lastCardIsPlayer) TealLight else Crimson
+                    CardAction.DISCARDED -> if (lastCardIsPlayer) Teal.copy(alpha = 0.55f) else Crimson.copy(alpha = 0.55f)
+                    CardAction.BURNED    -> Color(0xFFE07B39)
+                    CardAction.STOLEN    -> Color(0xFF9B59B6)
+                    null                 -> Gold.copy(alpha = 0.40f)
+                }
+                // Vnější Box určuje fyzické místo (scaled) a clipuje kartu
+                Box(
+                    Modifier
+                        .size(scaledW, scaledH)
+                        .clip(RoundedCornerShape(7.dp))
+                        .border(2.dp, ringColor, RoundedCornerShape(7.dp))
+                ) {
+                    // Vnitřní Box je přirozené velikosti; graphicsLayer ji zmenší z levého rohu
+                    Box(
+                        Modifier
+                            .requiredSize(cardNatW, cardNatH)
+                            .graphicsLayer {
+                                scaleX = cardScale
+                                scaleY = cardScale
+                                transformOrigin = TransformOrigin(0f, 0f)
+                            }
+                    ) {
+                        CardView(card = lastCard, canPlay = false, discardMode = false, onClick = {})
+                    }
+                }
+            } else {
+                Box(
+                    Modifier
+                        .size(scaledW, scaledH)
+                        .clip(RoundedCornerShape(7.dp))
+                        .background(Gold.copy(alpha = 0.03f))
+                        .border(1.dp, Gold.copy(alpha = 0.10f), RoundedCornerShape(7.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("—", color = TextMuted.copy(alpha = 0.18f), fontSize = (16f * cardScale).sp)
+                }
+            }
+        }
+    }
+}
+
+// ─── Castle Structure ─────────────────────────────────────────────────────────
+
+@Composable
+private fun NewCastleStructure(
+    castleHp: Int,
+    wallHp: Int,
+    isPlayer: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val accentColor = if (isPlayer) Teal    else Crimson
+    val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
+
+    val castleFrac by animateFloatAsState(
+        targetValue   = (castleHp / 60f).coerceIn(0f, 1f),
+        animationSpec = tween(600, easing = EaseOutCubic),
+        label         = "castle_frac"
+    )
+    val wallFrac by animateFloatAsState(
+        targetValue   = (wallHp / 50f).coerceIn(0f, 1f),
+        animationSpec = tween(400),
+        label         = "wall_frac"
+    )
+
+    val towerH     = (20f + 80f * castleFrac).dp
+    val wallBlocks = (10f * wallFrac).roundToInt().coerceIn(0, 10)
+
+    Row(
+        modifier              = modifier,
+        verticalAlignment     = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        if (isPlayer) {
+            CastleTowerBlock(castleHp, towerH, accentColor, accentLight, isPlayer = true)
+            WallBlock(wallHp, wallBlocks, accentColor)
+        } else {
+            WallBlock(wallHp, wallBlocks, accentColor)
+            CastleTowerBlock(castleHp, towerH, accentColor, accentLight, isPlayer = false)
+        }
+    }
+}
+
+@Composable
+private fun CastleTowerBlock(
+    castleHp: Int,
+    towerH: androidx.compose.ui.unit.Dp,
+    accentColor: Color,
+    accentLight: Color,
+    isPlayer: Boolean
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            Modifier
+                .width(50.dp)
+                .height(towerH)
+                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                .background(
+                    Brush.verticalGradient(
+                        if (isPlayer)
+                            listOf(Color(0xFF0A2A4A), Color(0xFF0D3560), Color(0xFF0F4070), Color(0xFF082040))
+                        else
+                            listOf(Color(0xFF3A0A0A), Color(0xFF5C1010), Color(0xFF701818), Color(0xFF380A0A))
+                    )
+                )
+                .border(
+                    1.5.dp, accentColor.copy(alpha = 0.55f),
+                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                )
+        ) {
+            // Cimbuří
+            Canvas(Modifier.fillMaxWidth().height(10.dp)) {
+                val mW = size.width / 5f
+                for (i in listOf(0, 2, 4)) {
+                    drawRect(
+                        accentColor.copy(alpha = 0.60f),
+                        topLeft = Offset(mW * i, 0f),
+                        size    = Size(mW * 0.85f, size.height)
+                    )
+                }
+            }
+            // Okna
+            Column(
+                Modifier.fillMaxSize().padding(top = 14.dp, bottom = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.Top),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                repeat(2) {
+                    Box(
+                        Modifier
+                            .size(width = 10.dp, height = 13.dp)
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                            .background(accentColor.copy(alpha = 0.07f))
+                            .border(
+                                0.5.dp, accentColor.copy(alpha = 0.25f),
+                                RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+                            )
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(2.dp))
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color.Black.copy(alpha = 0.72f))
+                .border(0.5.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(3.dp))
+                .padding(horizontal = 4.dp, vertical = 1.dp)
+        ) {
+            Text("🏰 $castleHp", color = accentLight, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        val visibleBlocks = if (wallHp > 0) blockCount.coerceAtLeast(1) else 0
+        Column(
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            repeat(visibleBlocks) {
+                Box(
+                    Modifier
+                        .size(width = 22.dp, height = 7.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(accentColor.copy(alpha = 0.50f), accentColor.copy(alpha = 0.72f))
+                            )
+                        )
+                        .border(0.5.dp, Color.Black.copy(alpha = 0.40f), RoundedCornerShape(2.dp))
+                )
+            }
+        }
+        Spacer(Modifier.height(2.dp))
+        Text("🧱 $wallHp", color = accentColor.copy(alpha = 0.70f),
+            fontSize = 8.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ─── Log Overlay ──────────────────────────────────────────────────────────────
+
+@Composable
+private fun LogOverlay(log: List<String>, onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xCC000000))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable(enabled = false, onClick = {})
+                .clip(RoundedCornerShape(12.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), BgPanel)))
+                .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
+                .padding(18.dp)
+                .widthIn(max = 340.dp)
+                .heightIn(max = 320.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("LOG", color = Gold, fontSize = 13.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+            HorizontalDivider(color = Gold.copy(alpha = 0.20f))
+            LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
+                    .clickable(onClick = onDismiss)
+                    .padding(horizontal = 28.dp, vertical = 8.dp)
+            ) {
+                Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
