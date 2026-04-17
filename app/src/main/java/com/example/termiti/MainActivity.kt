@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.termiti.ui.theme.TermitiTheme
 
-private enum class Screen { MENU, GAME, DECK_BUILDER, ARENA, MULTIPLAYER }
+private enum class Screen { MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP }
 
 class MainActivity : ComponentActivity() {
 
@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
             activeDeckIndex  = viewModel.activeDeckIndex.value
         )
     }
+    private val onlineLobbyVm: OnlineLobbyViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +46,7 @@ class MainActivity : ComponentActivity() {
                             onStart       = { viewModel.restartGame(); screen = Screen.GAME },
                             onBuildDeck   = { screen = Screen.DECK_BUILDER },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
-                            onMultiplayer = { screen = Screen.MULTIPLAYER },
+                            onMultiplayer = { screen = Screen.MP_SELECT },
                             onExit        = { finish() }
                         )
                         Screen.GAME -> GameScreen(
@@ -56,9 +57,21 @@ class MainActivity : ComponentActivity() {
                             viewModel = viewModel,
                             onBack    = { screen = Screen.MENU }
                         )
-                        Screen.MULTIPLAYER -> MultiplayerScreen(
+                        // ── Výběr módu multiplayer ────────────────────────
+                        Screen.MP_SELECT -> MpSelectScreen(
+                            onOnline = { screen = Screen.ONLINE_MP },
+                            onLocal  = { screen = Screen.LOCAL_MP },
+                            onBack   = { screen = Screen.MENU }
+                        )
+                        // ── Lokální WiFi multiplayer (původní) ────────────
+                        Screen.LOCAL_MP -> MultiplayerScreen(
                             vm     = multiVm,
-                            onBack = { screen = Screen.MENU }
+                            onBack = { screen = Screen.MP_SELECT }
+                        )
+                        // ── Online multiplayer (lobby server) ─────────────
+                        Screen.ONLINE_MP -> OnlineMpScreen(
+                            vm     = onlineLobbyVm,
+                            onBack = { screen = Screen.MP_SELECT }
                         )
                         Screen.ARENA -> when (arenaPhase) {
                             ArenaPhase.DRAFT -> ArenaDraftScreen(
