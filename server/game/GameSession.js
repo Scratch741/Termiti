@@ -135,8 +135,8 @@ class GameSession {
     generateResources(this.state[this.activeSide]);
 
     this._log(`Hra začala. Na tahu: ${this.name[this.activeSide]}`);
+    this._startTurnTimer();  // nejdřív nastav turnStartedAt, pak pošli stav
     this._sendStateBoth();
-    this._startTurnTimer();
   }
 
   // ── Turn timer ─────────────────────────────────────────────────────────────
@@ -389,8 +389,8 @@ class GameSession {
       return;
     }
 
+    this._startTurnTimer();  // nejdřív nastav turnStartedAt, pak pošli stav
     this._sendStateBoth();
-    this._startTurnTimer();
   }
 
   // ── Game over ──────────────────────────────────────────────────────────────
