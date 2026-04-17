@@ -623,9 +623,9 @@ fun NewBattlefield(
         // Přirozená velikost karty
         val cardNatH = 140.dp
         val cardNatW = 100.dp
-        // Dostupný prostor: pod AI stripem (34dp), malý dolní dech (8dp).
+        // Dostupný prostor: pod AI stripem (52dp fixní), malý dolní dech (8dp).
         // Hrady jsou v rozích → blokují jen strany, ne střed bojiště.
-        val cardAvailH = maxHeight - 34.dp - 8.dp
+        val cardAvailH = maxHeight - 52.dp - 8.dp
         val cardAvailW = maxWidth  - 24.dp      // 12dp margin na každé straně
         val cardScaleH = (cardAvailH / cardNatH).coerceIn(0.4f, 1.35f)
         val cardScaleW = (cardAvailW / cardNatW).coerceIn(0.4f, 1.35f)
@@ -633,8 +633,8 @@ fun NewBattlefield(
         val scaledH    = cardNatH * cardScale
         val scaledW    = cardNatW * cardScale
 
-        // ── AI ruka (nahoře) ──────────────────────────────────────────────
-        val aiStripH = if (revealedAiCard != null) 52.dp else 34.dp
+        // ── AI ruka (nahoře) – fixní výška 52dp, layout se nikdy neposouvá ──
+        val aiStripH = 52.dp
         Row(
             modifier = Modifier
                 .fillMaxWidth()
