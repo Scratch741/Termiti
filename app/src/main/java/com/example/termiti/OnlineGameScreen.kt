@@ -1,6 +1,5 @@
 package com.example.termiti
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,8 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -136,6 +133,51 @@ private fun OnlineGameplay(
 
     val opponentName = matchInfo?.opponentName ?: "Soupeř"
 
+    // ── Timer výpočet ─────────────────────────────────────────────────────────
+    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(gs.turnStartedAt) {
+        while (true) { delay(500L); nowMs = System.currentTimeMillis() }
+    }
+
+    val elapsedSec   = ((nowMs - gs.turnStartedAt) / 1000f).coerceAtLeast(0f)
+    val turnSec      = gs.turnSeconds.toFloat()
+    val myBankSec    = gs.timebankMe.toFloat()
+    val oppBankSec   = gs.timebankOpp.toFloat()
+
+    // Pro aktivního hráče: zobrazit zbývající čas tahu nebo timebanku
+    fun timerText(isMe: Boolean): String {
+        return if (gs.isMyTurn == isMe) {
+            // Tento hráč je na tahu – počítej odpočet
+            val turnLeft = (turnSec - elapsedSec).coerceIn(0f, turnSec)
+            if (turnLeft > 0f) "${turnLeft.toInt()}s"
+            else {
+                val bank = if (isMe) myBankSec else oppBankSec
+                val bankLeft = (bank - (elapsedSec - turnSec)).coerceIn(0f, bank)
+                "⏳${bankLeft.toInt()}s"
+            }
+        } else {
+            // Mimo tah – zobraz zbývající timebank staticky
+            val bank = if (isMe) myBankSec else oppBankSec
+            "📦${bank.toInt()}s"
+        }
+    }
+
+    fun timerColor(isMe: Boolean): Color {
+        if (gs.isMyTurn != isMe) return OgTextMuted
+        val turnLeft = (turnSec - elapsedSec).coerceAtLeast(0f)
+        val frac = if (turnLeft > 0f) turnLeft / turnSec
+                   else {
+                       val bank = if (isMe) myBankSec else oppBankSec
+                       val bankLeft = (bank - (elapsedSec - turnSec)).coerceIn(0f, bank)
+                       bankLeft / bank.coerceAtLeast(1f)
+                   }
+        return when {
+            frac > 0.5f -> Color(0xFF4CAF50)
+            frac > 0.2f -> Color(0xFFFFB300)
+            else        -> Color(0xFFE53935)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
         // ── Pozadí – stejné jako offline hra ─────────────────────────────────
@@ -151,17 +193,18 @@ private fun OnlineGameplay(
 
             // ── Top bar ───────────────────────────────────────────────────────
             NewTopBar(
-                playerDeckSize = myPs.deck.size,
-                aiDeckSize     = oppPs.deck.size,
-                isPlayerTurn   = gs.isMyTurn,
-                isComboTurn    = false,
-                currentTurn    = gs.turnNumber,
-                opponentLabel  = opponentName,
-                onMenu         = { showLog = !showLog }
+                playerDeckSize   = myPs.deck.size,
+                aiDeckSize       = oppPs.deck.size,
+                isPlayerTurn     = gs.isMyTurn,
+                isComboTurn      = false,
+                currentTurn      = gs.turnNumber,
+                opponentLabel    = opponentName,
+                onMenu           = { showLog = !showLog },
+                playerTimerText  = timerText(isMe = true),
+                playerTimerColor = timerColor(isMe = true),
+                oppTimerText     = timerText(isMe = false),
+                oppTimerColor    = timerColor(isMe = false)
             )
-
-            // ── Timer bar ─────────────────────────────────────────────────────
-            TurnTimerBar(gs)
 
             // ── Hlavní řada: zdroje + bojiště ────────────────────────────────
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -270,80 +313,6 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
         onConfirm   = { vm.confirmMulligan() },
         onSkip      = { vm.skipMulligan() }
     )
-}
-
-// ─── Turn timer bar ───────────────────────────────────────────────────────────
-
-@Composable
-private fun TurnTimerBar(gs: OnlineGameState) {
-    // Lokální tickující čas (každou sekundu)
-    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(gs.turnStartedAt) {
-        while (true) {
-            delay(500)
-            nowMs = System.currentTimeMillis()
-        }
-    }
-
-    val elapsedSec  = ((nowMs - gs.turnStartedAt) / 1000f).coerceAtLeast(0f)
-    val turnSec     = gs.turnSeconds.toFloat()
-    val timebankSec = (if (gs.isMyTurn) gs.timebankMe else gs.timebankOpp).toFloat()
-
-    // Kolik zbývá z tahu a timebanku
-    val turnRemain = (turnSec - elapsedSec).coerceIn(0f, turnSec)
-    val bankUsed   = (elapsedSec - turnSec).coerceIn(0f, timebankSec)
-    val bankRemain = (timebankSec - bankUsed).coerceIn(0f, timebankSec)
-
-    val usingBank  = elapsedSec > turnSec
-    val totalSec   = turnSec + timebankSec
-
-    // Barva: zelená → žlutá → červená
-    val frac = if (usingBank) bankRemain / timebankSec else turnRemain / turnSec
-    val barColor = when {
-        frac > 0.5f -> Color(0xFF4CAF50)
-        frac > 0.2f -> Color(0xFFFFB300)
-        else        -> Color(0xFFE53935)
-    }
-
-    val displaySec = if (usingBank) bankRemain.toInt() else turnRemain.toInt()
-    val label      = if (usingBank) "⏳ banka: ${displaySec}s" else "${displaySec}s"
-    val barFrac    = ((turnRemain + bankRemain) / totalSec).coerceIn(0f, 1f)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(18.dp)
-            .background(Color(0xFF0A0A0A)),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Progress bar
-        Canvas(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            // Pozadí
-            drawRect(Color(0xFF1A1A1A))
-            // Vyplněná část
-            drawRect(
-                color   = barColor.copy(alpha = 0.85f),
-                topLeft = Offset.Zero,
-                size    = Size(size.width * barFrac, size.height)
-            )
-        }
-        // Čas
-        Text(
-            text     = label,
-            color    = barColor,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 6.dp)
-        )
-        // Timebank soupeře (malý)
-        val oppBank = if (gs.isMyTurn) gs.timebankOpp else gs.timebankMe
-        Text(
-            text     = "opp: ${oppBank}s",
-            color    = OgTextMuted,
-            fontSize = 8.sp,
-            modifier = Modifier.padding(end = 6.dp)
-        )
-    }
 }
 
 // ─── Game Over overlay ────────────────────────────────────────────────────────

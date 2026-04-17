@@ -39,6 +39,17 @@ private val OnPanel  = Color(0xFF111520)
 fun OnlineMpScreen(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
     val phase by vm.phase
 
+    // Herní fáze: plná obrazovka bez lobby pozadí
+    if (phase == OnlinePhase.GAME_MULLIGAN ||
+        phase == OnlinePhase.GAME_PLAYING  ||
+        phase == OnlinePhase.GAME_OVER) {
+        OnlineGameScreen(vm = vm, onBack = {
+            vm.disconnect()
+            onBack()
+        })
+        return
+    }
+
     Box(Modifier.fillMaxSize()) {
         Image(
             painter            = painterResource(R.drawable.bg_game),
@@ -55,6 +66,7 @@ fun OnlineMpScreen(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
             OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
             OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
             OnlinePhase.ERROR       -> ErrorPanel(vm, onBack)
+            else                    -> { /* herní fáze ošetřeny výše */ }
         }
     }
 }
@@ -255,12 +267,16 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
         )
         Spacer(Modifier.height(16.dp))
 
-        // TODO Etapa 3: přejít do herní obrazovky
+        CircularProgressIndicator(
+            color       = OnTeal,
+            modifier    = Modifier.size(28.dp),
+            strokeWidth = 2.5.dp
+        )
+        Spacer(Modifier.height(6.dp))
         Text(
-            "Herní obrazovka (Etapa 3)",
+            "Připravuji hru…",
             color    = OnMuted,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center
+            fontSize = 10.sp
         )
     }
 }

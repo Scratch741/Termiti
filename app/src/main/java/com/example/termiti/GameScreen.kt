@@ -337,7 +337,11 @@ fun NewTopBar(
     currentTurn: Int,
     arenaWins: Int = -1,
     opponentLabel: String = "Nepřítel",
-    onMenu: () -> Unit
+    onMenu: () -> Unit,
+    playerTimerText: String? = null,
+    playerTimerColor: Color = Color(0xFF4CAF50),
+    oppTimerText: String? = null,
+    oppTimerColor: Color = Color(0xFF4CAF50)
 ) {
     val activeTurn = isPlayerTurn || isComboTurn
     val dotColor = if (activeTurn) TealLight else Crimson
@@ -398,6 +402,10 @@ fun NewTopBar(
                 Text("🂠", fontSize = 11.sp)
                 Text("$playerDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
+            if (playerTimerText != null) {
+                Text(playerTimerText, color = playerTimerColor,
+                    fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         // ── Střed ─────────────────────────────────────────────────────────
@@ -434,6 +442,10 @@ fun NewTopBar(
 
         // ── AI vpravo ────────────────────────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            if (oppTimerText != null) {
+                Text(oppTimerText, color = oppTimerColor,
+                    fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
             Row(
                 Modifier
                     .clip(RoundedCornerShape(4.dp))

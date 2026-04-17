@@ -22,9 +22,12 @@ fi
 
 # ── Adresář aplikace ──────────────────────────────────────────────────────────
 echo "[2/5] Kopíruji soubory do $APP_DIR..."
-mkdir -p "$APP_DIR"
-cp "$(dirname "$0")/server.js"     "$APP_DIR/server.js"
-cp "$(dirname "$0")/package.json"  "$APP_DIR/package.json"
+mkdir -p "$APP_DIR/game"
+cp "$(dirname "$0")/server.js"          "$APP_DIR/server.js"
+cp "$(dirname "$0")/package.json"       "$APP_DIR/package.json"
+cp "$(dirname "$0")/game/cards.js"      "$APP_DIR/game/cards.js"
+cp "$(dirname "$0")/game/engine.js"     "$APP_DIR/game/engine.js"
+cp "$(dirname "$0")/game/GameSession.js" "$APP_DIR/game/GameSession.js"
 
 cd "$APP_DIR"
 echo "[3/5] Instaluji npm závislosti..."
