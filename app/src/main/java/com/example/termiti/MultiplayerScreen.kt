@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -325,100 +324,15 @@ private fun MpMulliganScreen(vm: MultiplayerViewModel) {
     val submitted by vm.mulliganSubmitted
     val goesFirst by vm.goesFirst
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color(0xE5000000)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), MpBgPanel)))
-                .border(1.dp, MpGold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 20.dp, vertical = 14.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Title
-            Text(
-                "MULLIGAN",
-                color = MpGold,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 5.sp
-            )
-
-            // Who goes first badge
-            if (goesFirst) {
-                Text("⚔️ Ty začínáš první",  color = MpTeal,  fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            } else {
-                Text("⏳ Soupeř začíná první", color = MpMuted, fontSize = 10.sp)
-            }
-
-            // Subtitle / waiting indicator
-            if (submitted) {
-                Text("Čekám na soupeře…", color = MpTeal, fontSize = 10.sp, textAlign = TextAlign.Center)
-            } else {
-                val subtitle = if (selected.isEmpty()) "Vyber karty k výměně, nebo hraj bez výměny"
-                               else "Vyměníš ${selected.size} ${if (selected.size == 1) "kartu" else if (selected.size < 5) "karty" else "karet"}"
-                Text(subtitle, color = MpMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
-            }
-
-            // Cards row — locked (no clicks) after submit
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                hand.forEach { card ->
-                    val isSel = card.id in selected
-                    Box(
-                        Modifier.let { if (!submitted) it.clickable { vm.toggleMulligan(card.id) } else it }
-                    ) {
-                        CardView(
-                            card        = card,
-                            canPlay     = !isSel && !submitted,
-                            discardMode = isSel,
-                            onClick     = { if (!submitted) vm.toggleMulligan(card.id) }
-                        )
-                        if (isSel) {
-                            Box(
-                                Modifier
-                                    .matchParentSize()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MpRed.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("↩", fontSize = 26.sp, color = Color.White)
-                            }
-                        }
-                        // Dim all cards after submit
-                        if (submitted) {
-                            Box(
-                                Modifier
-                                    .matchParentSize()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Black.copy(alpha = 0.45f))
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Buttons — hidden after submit
-            if (!submitted) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MpButton("Hrát bez výměny", MpMuted, Modifier.weight(1f)) {
-                        vm.skipMulligan()
-                    }
-                    MpButton(
-                        "Vyměnit (${selected.size})",
-                        if (selected.isNotEmpty()) MpTeal else MpMuted,
-                        Modifier.weight(1f),
-                        enabled = selected.isNotEmpty()
-                    ) { vm.confirmMulligan() }
-                }
-            }
-        }
-    }
+    MulliganOverlay(
+        hand        = hand,
+        selectedIds = selected,
+        submitted   = submitted,
+        goesFirst   = goesFirst,   // vždy znám před mulliganem
+        onToggle    = { if (!submitted) vm.toggleMulligan(it) },
+        onConfirm   = { vm.confirmMulligan() },
+        onSkip      = { vm.skipMulligan() }
+    )
 }
 
 // ─── Game screen ──────────────────────────────────────────────────────────────
@@ -728,14 +642,15 @@ private fun MpReconnectingScreen(vm: MultiplayerViewModel) {
 
 @Composable
 private fun MpGameOverScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
-    val won     by vm.gameOver
-    val log     by vm.gameLog
-    val isHost  by vm.isHost
+    val won              by vm.gameOver
+    val log              by vm.gameLog
+    val isHost           by vm.isHost
+    val rematchRequested by vm.rematchRequested
 
-    val isWin   = won == true
-    val title   = if (isWin) "VÍTĚZSTVÍ!" else "PORÁŽKA"
-    val color   = if (isWin) MpGreen else MpRed
-    val emoji   = if (isWin) "🏆" else "💀"
+    val isWin  = won == true
+    val title  = if (isWin) "VÍTĚZSTVÍ!" else "PORÁŽKA"
+    val color  = if (isWin) MpGreen else MpRed
+    val emoji  = if (isWin) "🏆" else "💀"
 
     Column(
         Modifier
@@ -750,7 +665,6 @@ private fun MpGameOverScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
         Text(title, color = color, fontSize = 28.sp,
             fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
 
-        // Last log message as sub-text
         val lastMsg = log.lastOrNull()
         if (lastMsg != null) {
             Spacer(Modifier.height(8.dp))
@@ -759,24 +673,45 @@ private fun MpGameOverScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
 
         Spacer(Modifier.height(32.dp))
 
-        // Rematch only host initiates
         if (isHost) {
+            // Host: tlačítko Rematch + příp. dialog žádosti od guesta
             MpButton("🔄  Rematch", MpTeal, Modifier.width(260.dp)) { vm.requestRematch() }
-            Spacer(Modifier.height(8.dp))
         } else {
+            // Guest: tlačítko žádosti nebo stav čekání
             val status by vm.statusMsg
-            if (status.contains("Čekám") || status.contains("Žádost")) {
+            if (status.contains("Žádost")) {
                 Text(status, color = MpMuted, fontSize = 10.sp)
-                Spacer(Modifier.height(8.dp))
             } else {
                 MpButton("🔄  Žádat rematch", MpTeal, Modifier.width(260.dp)) { vm.requestRematch() }
-                Spacer(Modifier.height(8.dp))
             }
         }
 
+        Spacer(Modifier.height(8.dp))
         MpButton("← Zpět do menu", MpMuted, Modifier.width(260.dp)) {
             vm.returnToLobby(); onBack()
         }
+    }
+
+    // Dialog pro hosta: guest žádá o rematch
+    if (isHost && rematchRequested) {
+        AlertDialog(
+            onDismissRequest  = { vm.declineRematch() },
+            containerColor    = Color(0xFF1A1320),
+            titleContentColor = MpText,
+            textContentColor  = MpMuted,
+            title   = { Text("Soupeř žádá rematch", fontWeight = FontWeight.Bold) },
+            text    = { Text("Chceš zahrát znovu?") },
+            confirmButton = {
+                TextButton(onClick = { vm.acceptRematch() }) {
+                    Text("✓ Přijmout", color = MpTeal, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { vm.declineRematch() }) {
+                    Text("✕ Odmítnout", color = MpRed, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 }
 

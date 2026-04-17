@@ -757,7 +757,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
-        // 1. Efekty (vč. podmínek) se vyhodnotí PŘED odečtením zdrojů
+        // 1. Zaplatit a přesunout kartu z ruky PŘED aplikací efektů
+        // (aby karta "lízni kartu" nejdřív zmizela z ruky, pak se líže nová)
+        player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.cost
+        player.hand.remove(card)
+        player.discardPile.add(card)
+        recordCard(card, CardAction.PLAYED, isPlayer = true)
+        addLog("Hráč zahrál: ${card.name}")
+        playSoundForCard(card)
+
+        // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
             if (!checkCondition(ce.condition, player)) {
@@ -765,14 +774,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         applyEffects(card.effects, player, ai, allCards)
-
-        // 2. Zaplatit a přesunout kartu
-        player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.cost
-        player.hand.remove(card)
-        player.discardPile.add(card)
-        recordCard(card, CardAction.PLAYED, isPlayer = true)
-        addLog("Hráč zahrál: ${card.name}")
-        playSoundForCard(card)
 
         val s1 = old.copy(playerState = player, aiState = ai)
         s1.checkWinCondition()?.let { result ->
@@ -892,7 +893,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             val result = finalState.resolveByHp()
                             addLog("Oba přeskočili s prázdnými balíčky – konec hry!")
                             if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                            gameOver.value = result; gameState.value = finalState; return@launch
+                            gameState.value = finalState  // nejdřív aktualizuj stav (deck AI = 0)
+                            gameOver.value  = result      // pak zobraz dialog
+                            return@launch
                         }
                     }
                     is AiAction.Discard -> {
@@ -992,46 +995,62 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /**
      * Vybere akci AI podle situace na hracím poli.
-     * Priority:
-     *  1. Zahraj kartu, pokud na ni má zdroje a je „chytrá" volba
-     *  2. Čekej, pokud v ruce není nic hratelného ale balíček není prázdný
-     *  3. Zahoď nejlevnější kartu
+     *
+     * Priority a logika:
+     *  1. ENDGAME (oba balíčky prázdné):
+     *     – AI NIKDY neodhazuje karty (zahazování blokuje game-over podmínku).
+     *     – Zahraj kartu pokud je výhodná, jinak ČEKEJ.
+     *  2. Nemohu si dovolit žádnou kartu:
+     *     – Plná ruka + balíček má karty → zahoď nejhorší kartu (jinak příští líznutí spálí kartu).
+     *     – Volné místo v ruce + balíček má karty → ČEKEJ (příští tah lízneš potenciálně lepší kartu).
+     *     – Balíček prázdný → zahoď nejméně hodnotnou kartu.
+     *  3. Normální hra → vyber kartu s nejvyšším skóre.
+     *     – Nejlepší karta má ≤0 skóre + plná ruka → zahoď nejhorší kartu.
+     *     – Nejlepší karta má ≤0 skóre + ruka není plná → ČEKEJ.
      *
      * Skórování:
-     *  - Každý efekt karty se ohodnotí samostatně (včetně rekurzivního vnitřního efektu podmínky).
-     *  - Podmínkový efekt přidá skóre vnitřního efektu JEN tehdy, když podmínka platí; jinak 0.
-     *  - Skóre = součet efektů − cena karty (vyšší cena = větší riziko).
-     *  - Pokud má nejlepší dostupná karta záporné nebo nulové skóre (vše podmíněné a nesplněné),
-     *    AI raději počká (aby příště lízla lepší kartu).
+     *  – Efekty se hodnotí situačně (nízké HP, blízkost výhry, atd.) + škálují dle amount.
+     *  – Podmínkový efekt přidá skóre vnitřního efektu JEN tehdy, když podmínka platí.
+     *  – Skóre = součet efektů − cena karty + náhoda ±2.
+     *
+     * Chytrý výběr karty k zahození (bestDiscard):
+     *  – Preferuje zahazovat karty s největším „shortfallem" (daleko od dovolení)
+     *    v poměru k rychlosti přírůstku daného zdroje (důl).
      */
     private fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
-        val affordable = ai.hand.filter { (ai.resources[it.costType] ?: 0) >= it.cost }
-
-        if (affordable.isEmpty()) {
-            return if (ai.deck.isNotEmpty()) AiAction.Wait
-            else ai.hand.minByOrNull { it.cost }?.let { AiAction.Discard(it) } ?: AiAction.Wait
-        }
+        val affordable     = ai.hand.filter { (ai.resources[it.costType] ?: 0) >= it.cost }
 
         // Situační příznaky
-        val aiLowHp   = ai.castleHP   < 15
-        val aiLowWall = ai.wallHP     < 5
-        val oppLowHp  = opponent.castleHP < 20
-        val chaos     = ai.resources[ResourceType.CHAOS] ?: 0
+        val aiLowHp        = ai.castleHP < 15
+        val aiLowWall      = ai.wallHP   < 5
+        val oppLowHp       = opponent.castleHP < 20
+        val oppCloseToWin  = opponent.castleHP >= 50   // soupeř je blízko výhry hradem
+        val aiCloseToWin   = ai.castleHP >= 50         // AI je blízko výhry hradem
+        val chaos          = ai.resources[ResourceType.CHAOS] ?: 0
+        val bothDecksEmpty = ai.deck.isEmpty() && opponent.deck.isEmpty()
+        val handFull       = ai.hand.size >= 7
 
         // Rekurzivní ohodnocení jednoho efektu v kontextu stavu AI
         fun scoreEffect(fx: CardEffect): Int = when (fx) {
-            is CardEffect.AttackPlayer   -> if (oppLowHp) 18 else 8
-            is CardEffect.AttackCastle   -> if (oppLowHp) 20 else 6
+            is CardEffect.AttackPlayer -> {
+                val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
+                urgency + fx.amount / 4
+            }
+            is CardEffect.AttackCastle -> {
+                val urgency = if (oppLowHp) 22 else if (oppCloseToWin) 8 else 6
+                urgency + fx.amount / 5
+            }
             is CardEffect.AttackWall     -> 4
             // Záporný amount = poškození vlastního hradu (penalta)
             is CardEffect.BuildCastle    -> if (fx.amount >= 0) {
-                if (aiLowHp) 18 else 4
+                val urgency = if (aiLowHp) 20 else if (aiCloseToWin) 12 else 5
+                urgency + fx.amount / 5
             } else {
-                fx.amount * 2  // záporné skóre za ztrátu HP hradu (závažnější než ztráta hradeb)
+                fx.amount * 2  // záporné skóre za ztrátu HP hradu
             }
             // Záporný amount = obětování vlastních hradeb (penalta)
             is CardEffect.BuildWall      -> if (fx.amount >= 0) {
-                if (aiLowWall) 15 else 5
+                if (aiLowWall) 16 else 5
             } else {
                 fx.amount  // záporné skóre za ztrátu hradeb
             }
@@ -1051,7 +1070,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 if (checkCondition(fx.condition, ai)) scoreEffect(fx.effect) else 0
         }
 
-        // Celkové skóre karty = suma efektů − cena (vyšší cena = penalta)
+        // Celkové skóre karty = suma efektů − cena + šum ±2
         fun score(card: Card): Int {
             val effectScore = card.effects.sumOf { scoreEffect(it) }
             val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0
@@ -1059,13 +1078,76 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             return effectScore - card.cost - chaosBlock + noise
         }
 
+        // Chytrý výběr karty k zahození:
+        // Preferuje zahazovat karty s největším shortfallem / rychlostí dolu
+        // (= karty, na které bychom čekali nejdéle)
+        fun bestDiscard(): Card? = ai.hand.maxByOrNull { card ->
+            val shortfall = (card.cost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
+            val mineRate  = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
+            shortfall * 10 / mineRate
+        }
+
+        // =====================================================================
+        // ENDGAME: oba balíčky prázdné
+        // =====================================================================
+        // AI NESMÍ odhazovat – ztratila by tah a podmínka „oba čekají s prázdnými balíčky"
+        // (= resolveByHp) by se nikdy nevyvolala. Vždy zahraj nebo ČEKEJ.
+        if (bothDecksEmpty) {
+            val aiIsLosing = ai.castleHP < opponent.castleHP
+            if (affordable.isNotEmpty()) {
+                val scored = affordable.map { it to score(it) }
+                val (best, bestScore) = scored.maxByOrNull { it.second } ?: return AiAction.Wait
+                if (bestScore > 0) return AiAction.Play(best)
+
+                // AI prohrává a nemá výhodnou kartu → poslední pokus:
+                // zahraj cokoli, co útočí nebo staví hrad (čekání = jistá prohra)
+                if (aiIsLosing) {
+                    val lastChance = affordable.firstOrNull { card ->
+                        card.effects.any { fx ->
+                            fx is CardEffect.AttackPlayer ||
+                            fx is CardEffect.AttackCastle ||
+                            fx is CardEffect.BuildCastle  ||
+                            fx is CardEffect.StealCastle
+                        }
+                    }
+                    if (lastChance != null) return AiAction.Play(lastChance)
+                }
+            }
+            return AiAction.Wait
+        }
+
+        // =====================================================================
+        // NEMOHU SI DOVOLIT ŽÁDNOU KARTU
+        // =====================================================================
+        if (affordable.isEmpty()) {
+            // Plná ruka + balíček má karty → zahoď nejhorší kartu
+            // (čekání by způsobilo spálení líznuté karty, protože ruka je plná)
+            if (handFull && ai.deck.isNotEmpty()) {
+                return bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
+            }
+            // Volné místo v ruce + balíček má karty → čekej, příště lízneš novou kartu
+            if (ai.deck.isNotEmpty()) return AiAction.Wait
+            // Balíček prázdný → zahoď nejméně hodnotnou kartu
+            return bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
+        }
+
+        // =====================================================================
+        // NORMÁLNÍ HRA – vyber nejlepší kartu
+        // =====================================================================
         // Předpočítej skóre jednou (score() obsahuje náhodu, nevolej dvakrát)
         val scored = affordable.map { it to score(it) }
         val (best, bestScore) = scored.maxByOrNull { it.second } ?: return AiAction.Wait
 
-        // Pokud je i nejlepší karta nevýhodná (podmínka nesplněna, čisté náklady),
-        // AI raději počká a lízne lepší kartu – neplýtvá tahem na bezcennou kartu
-        if (bestScore <= 0 && ai.deck.isNotEmpty()) return AiAction.Wait
+        // Pokud je i nejlepší karta nevýhodná (podmínka nesplněna, čisté náklady):
+        // – plná ruka → zahoď nejhorší kartu (uvolni místo pro lepší líz)
+        // – jinak → čekej
+        if (bestScore <= 0) {
+            return if (handFull && ai.deck.isNotEmpty()) {
+                bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
+            } else {
+                AiAction.Wait
+            }
+        }
 
         return AiAction.Play(best)
     }

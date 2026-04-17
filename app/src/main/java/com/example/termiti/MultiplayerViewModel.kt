@@ -88,6 +88,8 @@ class MultiplayerViewModel(
     var lastCardAction   = mutableStateOf(CardAction.PLAYED);      private set
     /** True = karta zahrána mnou (hráčem), false = soupeřem. */
     var lastCardIsPlayer = mutableStateOf(true);                   private set
+    /** True = soupeř (guest) žádá o rematch a host ještě nerozhodl. */
+    var rematchRequested = mutableStateOf(false);                  private set
     /** Chronologická historie karet (nejnovější první). */
     var cardHistory    = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard soupeře (celá hra). */
@@ -293,7 +295,7 @@ class MultiplayerViewModel(
             "DISCARD"   -> onOpponentDiscard(msg.getString("uid"))
             "BURN"      -> onOpponentBurn(msg.getString("uid"))
             "COMBO_END" -> onOpponentComboEnd()
-            "REMATCH"      -> if (isHost.value) viewModelScope.launch { beginGame() }
+            "REMATCH"      -> onRematchReceived()
             "DISCONNECT"   -> onPeerDisconnected()
             "REJOIN"       -> onRejoin(msg)
             "PING"         -> sendMsg("t" to "PONG")
@@ -434,9 +436,11 @@ class MultiplayerViewModel(
         mulliganSelected.value  = emptySet()
         mulliganSubmitted.value = false
         cardByUid.clear()
-        lastCard.value       = null
-        lastCardAction.value = CardAction.PLAYED
-        cardHistory.value    = emptyList()
+        lastCard.value         = null
+        lastCardAction.value   = CardAction.PLAYED
+        lastCardIsPlayer.value = true
+        rematchRequested.value = false
+        cardHistory.value      = emptyList()
 
         val myCards  = myUids.map  { buildCard(it) }
         val oppCards = oppUids.map { buildCard(it) }
@@ -709,9 +713,37 @@ class MultiplayerViewModel(
     // Rematch & lobby
     // ═════════════════════════════════════════════════════════════════════════
 
+    // ─── Rematch ─────────────────────────────────────────────────────────────────
+
+    /** Host nebo guest žádá o rematch. */
     fun requestRematch() {
         sendMsg("t" to "REMATCH")
-        statusMsg.value = if (isHost.value) "Čekám na potvrzení…" else "Žádost odeslána…"
+        if (isHost.value) {
+            // Host zahájí hru přímo — guest dostane START zprávu přes beginGame()
+            viewModelScope.launch { beginGame() }
+        } else {
+            statusMsg.value = "Žádost odeslána…"
+        }
+    }
+
+    /** Host přijímá rematch žádost od guesta. */
+    fun acceptRematch() {
+        rematchRequested.value = false
+        viewModelScope.launch { beginGame() }
+    }
+
+    /** Host odmítá rematch žádost od guesta. */
+    fun declineRematch() {
+        rematchRequested.value = false
+    }
+
+    /** Zpracování příchozí REMATCH zprávy od soupeře. */
+    private fun onRematchReceived() {
+        if (isHost.value) {
+            // Guest žádá o rematch → host musí rozhodnout (zobrazí dialog v UI)
+            rematchRequested.value = true
+        }
+        // Guest: nic — host spustí beginGame() a guest obdrží START zprávu
     }
 
     fun returnToLobby() {

@@ -1887,7 +1887,9 @@ fun MulliganOverlay(
     selectedIds: Set<String>,
     onToggle: (String) -> Unit,
     onConfirm: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    submitted: Boolean = false,
+    goesFirst: Boolean? = null
 ) {
     Box(
         modifier = Modifier
@@ -1910,26 +1912,46 @@ fun MulliganOverlay(
                 color = Gold, fontSize = 20.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 5.sp
             )
-            Text(
-                if (selectedIds.isEmpty())
-                    "Klikni na karty, které chceš vyměnit za náhodné z balíku"
-                else
-                    "Vyměníš ${selectedIds.size} ${if (selectedIds.size == 1) "kartu" else "karty"} — klikni znovu pro zrušení výběru",
-                color = TextMuted, fontSize = 10.sp, textAlign = TextAlign.Center
-            )
+
+            // Badge: kdo jde první (jen pokud je znám)
+            if (goesFirst != null) {
+                Text(
+                    if (goesFirst) "⚔️ Ty začínáš první" else "⏳ Soupeř začíná první",
+                    color = if (goesFirst) Teal else TextMuted,
+                    fontSize = 10.sp, fontWeight = FontWeight.Bold
+                )
+            }
+
+            // Podtitulek / čekání po odeslání
+            if (submitted) {
+                Text(
+                    "Čekám na soupeře…",
+                    color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
+                )
+            } else {
+                Text(
+                    if (selectedIds.isEmpty())
+                        "Klikni na karty, které chceš vyměnit za náhodné z balíku"
+                    else
+                        "Vyměníš ${selectedIds.size} ${if (selectedIds.size == 1) "kartu" else "karty"} — klikni znovu pro zrušení výběru",
+                    color = TextMuted, fontSize = 10.sp, textAlign = TextAlign.Center
+                )
+            }
 
             // Karty
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 hand.forEach { card ->
                     val isSelected = card.id in selectedIds
                     Box(
-                        modifier = Modifier.clickable { onToggle(card.id) }
+                        modifier = Modifier.let {
+                            if (!submitted) it.clickable { onToggle(card.id) } else it
+                        }
                     ) {
                         CardView(
                             card        = card,
-                            canPlay     = !isSelected,
+                            canPlay     = !isSelected && !submitted,
                             discardMode = isSelected,
-                            onClick     = { onToggle(card.id) }
+                            onClick     = { if (!submitted) onToggle(card.id) }
                         )
                         // Overlay na vybrané kartě
                         if (isSelected) {
@@ -1943,52 +1965,63 @@ fun MulliganOverlay(
                                 Text("↩", fontSize = 26.sp, color = Color.White)
                             }
                         }
+                        // Ztmavení karet po odeslání
+                        if (submitted) {
+                            Box(
+                                Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.Black.copy(alpha = 0.45f))
+                            )
+                        }
                     }
                 }
             }
 
-            // Tlačítka
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Přeskočit
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.05f))
-                        .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
-                        .clickable { onSkip() }
-                        .padding(horizontal = 22.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Hrát bez výměny",
-                        color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                    )
-                }
+            // Tlačítka — skrytá po odeslání
+            if (!submitted) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Přeskočit
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.05f))
+                            .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                            .clickable { onSkip() }
+                            .padding(horizontal = 22.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Hrát bez výměny",
+                            color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                        )
+                    }
 
-                // Vyměnit
-                val canConfirm = selectedIds.isNotEmpty()
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (canConfirm) Teal.copy(alpha = 0.2f)
-                            else Color.White.copy(alpha = 0.03f)
+                    // Vyměnit
+                    val canConfirm = selectedIds.isNotEmpty()
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (canConfirm) Teal.copy(alpha = 0.2f)
+                                else Color.White.copy(alpha = 0.03f)
+                            )
+                            .border(
+                                1.dp,
+                                if (canConfirm) TealLight.copy(alpha = 0.55f)
+                                else TextMuted.copy(alpha = 0.1f),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .then(if (canConfirm) Modifier.clickable { onConfirm() } else Modifier)
+                            .padding(horizontal = 22.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (canConfirm) "Vyměnit (${selectedIds.size})" else "Vyměnit",
+                            color = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
+                            fontSize = 11.sp, fontWeight = FontWeight.Bold
                         )
-                        .border(
-                            1.dp,
-                            if (canConfirm) TealLight.copy(alpha = 0.55f)
-                            else TextMuted.copy(alpha = 0.1f),
-                            RoundedCornerShape(8.dp)
-                        )
-                        .then(if (canConfirm) Modifier.clickable { onConfirm() } else Modifier)
-                        .padding(horizontal = 22.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        if (canConfirm) "Vyměnit (${selectedIds.size})" else "Vyměnit",
-                        color = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
-                        fontSize = 11.sp, fontWeight = FontWeight.Bold
-                    )
+                    }
                 }
             }
         }
