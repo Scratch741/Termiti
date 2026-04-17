@@ -44,6 +44,20 @@ fun MpSelectScreen(
         )
         Box(Modifier.fillMaxSize().background(Color(0xCC000000)))
 
+        // ── Tlačítko Zpět – vždy viditelné v levém horním rohu ───────────────
+        Box(
+            Modifier
+                .padding(start = 16.dp, top = 16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White.copy(alpha = 0.05f))
+                .border(1.dp, SelMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .clickable { onBack() }
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text("← Zpět", color = SelMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        }
+
+        // ── Střed: nadpis + tlačítka ─────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,16 +69,16 @@ fun MpSelectScreen(
             // Nadpis
             Text(
                 "MULTIPLAYER",
-                color        = SelGold,
-                fontSize     = 28.sp,
-                fontWeight   = FontWeight.Bold,
+                color         = SelGold,
+                fontSize      = 28.sp,
+                fontWeight    = FontWeight.Bold,
                 letterSpacing = 5.sp
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 "Vyber způsob připojení",
-                color    = SelMuted,
-                fontSize = 11.sp,
+                color         = SelMuted,
+                fontSize      = 11.sp,
                 letterSpacing = 1.5.sp
             )
 
@@ -72,39 +86,23 @@ fun MpSelectScreen(
 
             // Online tlačítko
             MpSelectButton(
-                emoji   = "🌐",
-                title   = "Online",
+                emoji    = "🌐",
+                title    = "Online",
                 subtitle = "Přes internet – lobby server",
-                accent  = SelTeal,
-                onClick = onOnline
+                accent   = SelTeal,
+                onClick  = onOnline
             )
 
             Spacer(Modifier.height(16.dp))
 
             // Lokálně tlačítko
             MpSelectButton(
-                emoji   = "📡",
-                title   = "Lokálně",
+                emoji    = "📡",
+                title    = "Lokálně",
                 subtitle = "Přes WiFi – přímé připojení",
-                accent  = SelGold,
-                onClick = onLocal
+                accent   = SelGold,
+                onClick  = onLocal
             )
-
-            Spacer(Modifier.height(40.dp))
-
-            // Zpět
-            Box(
-                Modifier
-                    .width(200.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .border(1.dp, SelMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                    .clickable { onBack() }
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("← Zpět", color = SelMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
