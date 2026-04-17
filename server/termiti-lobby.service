@@ -1,0 +1,18 @@
+[Unit]
+Description=Termiti Online Lobby Server
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+WorkingDirectory=/opt/termiti-server
+ExecStart=/usr/bin/node /opt/termiti-server/server.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=termiti-lobby
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

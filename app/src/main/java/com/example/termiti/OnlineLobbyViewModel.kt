@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 // ─── Adresa lobby serveru ─────────────────────────────────────────────────────
 // TODO: Změň na skutečnou IP/doménu Ubuntu serveru
-private const val LOBBY_WS_URL = "ws://192.168.1.100:8765/lobby"
+private const val LOBBY_WS_URL = "ws://77.237.158.10:8765/lobby"
 
 // ─── Fáze lobby ───────────────────────────────────────────────────────────────
 enum class OnlinePhase {

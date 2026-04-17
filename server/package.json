@@ -1,0 +1,14 @@
+{
+  "name": "termiti-lobby-server",
+  "version": "1.0.0",
+  "description": "Termiti online multiplayer lobby server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0",
+    "ws":   "^8.17.0"
+  }
+}
