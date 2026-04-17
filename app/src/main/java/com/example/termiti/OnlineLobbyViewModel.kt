@@ -272,6 +272,8 @@ class OnlineLobbyViewModel(
                     mulliganSelected.value  = emptySet()
                     mulliganSubmitted.value = false
                     opponentMulliganDone.value = false
+                    lastPlayedCard.value    = null   // čistý stav pro novou hru
+                    lastPlayedByMe.value    = false
                     phase.value = OnlinePhase.GAME_MULLIGAN
                 }
 
@@ -289,18 +291,19 @@ class OnlineLobbyViewModel(
                     gameState.value = parseGameState(json)
                     phase.value = OnlinePhase.GAME_PLAYING
                     gameLog.value = gameLog.value + gameState.value.log
-                    // Zahraná karta pro animaci
+                    // Zahraná karta pro animaci – přepíše se jen pokud server pošle novou
                     val lpc = json.optJSONObject("lastPlayedCard")
                     if (lpc != null) {
                         val baseId = lpc.optString("baseId", "")
                         val template = allCards.find { it.id == baseId }
-                        lastPlayedCard.value = template?.copy(
-                            id = lpc.optString("id", baseId)
-                        )
-                        lastPlayedByMe.value = json.optBoolean("lastPlayedByMe", false)
-                    } else {
-                        lastPlayedCard.value = null
+                        if (template != null) {
+                            lastPlayedCard.value = template.copy(
+                                id = lpc.optString("id", baseId)
+                            )
+                            lastPlayedByMe.value = json.optBoolean("lastPlayedByMe", false)
+                        }
                     }
+                    // lpc == null → necháme předchozí kartu (mizí až po nahrazení novou)
                 }
 
                 "CARD_LOST" -> {

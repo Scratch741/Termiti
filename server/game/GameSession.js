@@ -379,9 +379,8 @@ class GameSession {
   _sendStateBoth() {
     this._send('A', this._buildStateFor('A'));
     this._send('B', this._buildStateFor('B'));
-    this.lastLog        = [];
-    this.lastPlayedCard = null;   // reset po broadcastu – zobrazí se jen jednou
-    this.lastPlayedBySide = null;
+    this.lastLog = [];
+    // lastPlayedCard se NEresetuje – zůstane viditelný, dokud ho nenahradí nová karta
   }
 
   _log(msg) {
