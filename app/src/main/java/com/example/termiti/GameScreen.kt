@@ -1894,7 +1894,16 @@ fun MulliganOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xE5000000)),
+            .background(Color(0xE5000000))
+            // Zablokuje všechny dotyky pod overlayem (menu, log, tlačítka tahu)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            .changes.forEach { it.consume() }
+                    }
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(
