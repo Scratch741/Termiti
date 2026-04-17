@@ -64,7 +64,8 @@ data class OnlineGameResult(
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
 class OnlineLobbyViewModel(
-    private val allCards: List<Card>
+    private val allCards: List<Card>,
+    private val deviceId: String
 ) : ViewModel() {
 
     // ── Lobby stav ────────────────────────────────────────────────────────────
@@ -208,6 +209,7 @@ class OnlineLobbyViewModel(
             webSocket.send(JSONObject().apply {
                 put("type", "JOIN")
                 put("name", playerName.value.trim())
+                put("deviceId", deviceId)
             }.toString())
         }
 
@@ -438,9 +440,19 @@ class OnlineLobbyViewModel(
 
     // ── Factory ───────────────────────────────────────────────────────────────
 
-    class Factory(private val allCards: List<Card>) : ViewModelProvider.Factory {
+    class Factory(
+        private val allCards: List<Card>,
+        private val context: android.content.Context
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            OnlineLobbyViewModel(allCards) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val prefs    = context.getSharedPreferences("termiti_prefs", android.content.Context.MODE_PRIVATE)
+            val deviceId = prefs.getString("device_id", null) ?: run {
+                val newId = java.util.UUID.randomUUID().toString()
+                prefs.edit().putString("device_id", newId).apply()
+                newId
+            }
+            return OnlineLobbyViewModel(allCards, deviceId) as T
+        }
     }
 }

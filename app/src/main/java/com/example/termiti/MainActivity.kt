@@ -27,7 +27,9 @@ class MainActivity : ComponentActivity() {
             activeDeckIndex  = viewModel.activeDeckIndex.value
         )
     }
-    private val onlineLobbyVm: OnlineLobbyViewModel by viewModels()
+    private val onlineLobbyVm: OnlineLobbyViewModel by viewModels {
+        OnlineLobbyViewModel.Factory(allCards = viewModel.allCards, context = applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

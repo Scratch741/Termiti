@@ -168,29 +168,44 @@ wss.on('connection', (ws, req) => {
           send(ws, { type: 'ERROR', msg: 'Už jsi přihlášen' });
           return;
         }
-        const name = String(msg.name ?? '').trim().slice(0, 20);
+        const name     = String(msg.name     ?? '').trim().slice(0, 20);
+        const deviceId = String(msg.deviceId ?? '').trim().slice(0, 64);
         if (!name) {
           send(ws, { type: 'ERROR', msg: 'Přezdívka nesmí být prázdná' });
           return;
         }
-        // Unikátnost jména – přeskoč mrtvá spojení (reconnect po výpadku)
-        for (const [deadWs, p] of players.entries()) {
-          if (p.name === name && deadWs.readyState !== WebSocket.OPEN) {
-            removeFromQueue(deadWs);
-            if (p.gameId) games.delete(p.gameId);
-            players.delete(deadWs);
-            log('RECONNECT', `Uklizen mrtvý slot pro "${name}"`);
+
+        // Zkontroluj, zda nick není obsazený
+        for (const [existingWs, p] of players.entries()) {
+          if (p.name !== name) continue;
+
+          const isAlive = existingWs.readyState === WebSocket.OPEN;
+          const sameDevice = deviceId && p.deviceId && deviceId === p.deviceId;
+
+          if (!isAlive || sameDevice) {
+            // Mrtvé spojení NEBO stejné zařízení → uklid a povol reconnect
+            removeFromQueue(existingWs);
+            if (p.gameId) {
+              const oldSession = games.get(p.gameId);
+              if (oldSession && oldSession.phase !== 'ended') {
+                // Informuj soupeře o odpojení (hra skončila)
+                const oppSide = p.side === 'A' ? 'B' : 'A';
+                oldSession._endGame(oppSide);
+                oldSession._send(oppSide, { type: 'OPPONENT_LEFT' });
+              }
+              games.delete(p.gameId);
+            }
+            existingWs.terminate();
+            players.delete(existingWs);
+            log('RECONNECT', `"${name}" se vrátil (sameDevice=${sameDevice})`);
+          } else {
+            // Jiné zařízení, živé spojení → blokuj
+            send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });
+            return;
           }
         }
-        const taken = [...players.entries()].some(
-          ([existingWs, p]) => p.name === name && existingWs.readyState === WebSocket.OPEN
-        );
-        if (taken) {
-          send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });
-          return;
-        }
 
-        players.set(ws, { id: uuidv4(), name, inQueue: false, gameId: null, side: null });
+        players.set(ws, { id: uuidv4(), name, deviceId, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
