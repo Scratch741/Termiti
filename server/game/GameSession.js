@@ -13,6 +13,8 @@ const {
 
 const MULLIGAN_HAND_SIZE = 5;
 const TURN_HAND_DRAW    = 1;
+const TURN_SECONDS      = 15;
+const TIMEBANK_SECONDS  = 120;
 
 class GameSession {
 
@@ -39,8 +41,13 @@ class GameSession {
     this.mulliganDone = { A: false, B: false };
 
     // Last played card (sent to both clients so they can animate it)
-    this.lastPlayedCard = null;  // { id, baseId, name, cost, costType, rarity }
-    this.lastPlayedBySide = null; // 'A' | 'B'
+    this.lastPlayedCard   = null;
+    this.lastPlayedBySide = null;
+
+    // Timer
+    this.timebank      = { A: TIMEBANK_SECONDS, B: TIMEBANK_SECONDS };
+    this.turnStartedAt = 0;
+    this._turnTimer    = null;
 
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
@@ -120,7 +127,7 @@ class GameSession {
   // ── Game start ─────────────────────────────────────────────────────────────
 
   _startGame() {
-    this.phase     = 'playing';
+    this.phase      = 'playing';
     this.turnNumber = 1;
 
     // First player gets resources but NO extra draw
@@ -128,6 +135,37 @@ class GameSession {
 
     this._log(`Hra začala. Na tahu: ${this.name[this.activeSide]}`);
     this._sendStateBoth();
+    this._startTurnTimer();
+  }
+
+  // ── Turn timer ─────────────────────────────────────────────────────────────
+
+  _startTurnTimer() {
+    this._clearTurnTimer();
+    const side        = this.activeSide;
+    const totalMs     = (TURN_SECONDS + this.timebank[side]) * 1000;
+    this.turnStartedAt = Date.now();
+    this._turnTimer   = setTimeout(() => {
+      if (this.activeSide !== side || this.phase !== 'playing') return;
+      this.timebank[side] = 0;
+      this._log(`${this.name[side]} vypršel čas – tah přeskočen.`);
+      this._advanceTurn();
+    }, totalMs);
+  }
+
+  _clearTurnTimer() {
+    if (this._turnTimer) { clearTimeout(this._turnTimer); this._turnTimer = null; }
+  }
+
+  // ── Public: reconnect – pošli aktuální stav znovu ─────────────────────────
+
+  resendStateTo(side, newWs) {
+    this.ws[side] = newWs;
+    if (this.phase === 'mulligan') {
+      this._send(side, { type: 'GAME_MULLIGAN', hand: this._serializeHand(side) });
+    } else if (this.phase === 'playing') {
+      this._send(side, this._buildStateFor(side));
+    }
   }
 
   // ── Action dispatcher ──────────────────────────────────────────────────────
@@ -147,6 +185,8 @@ class GameSession {
       this._sendError(side, 'Nejsi na tahu.');
       return;
     }
+
+    this._clearTurnTimer();   // hráč reagoval – zastav odpočet
 
     switch (action) {
       case 'PLAY_CARD':    this._handlePlayCard(side, data); break;
@@ -310,12 +350,14 @@ class GameSession {
     }
 
     this._sendStateBoth();
+    this._startTurnTimer();
   }
 
   // ── Game over ──────────────────────────────────────────────────────────────
 
   _endGame(winner) {
     this.phase = 'ended';
+    this._clearTurnTimer();
 
     let winnerName = null;
     if (winner === 'A') winnerName = this.name.A;
@@ -380,8 +422,12 @@ class GameSession {
         discardSize: opp.discardPile.length
       },
       log:              [...this.lastLog],
-      lastPlayedCard:   this.lastPlayedCard,   // null nebo { id, baseId, name, ... }
-      lastPlayedByMe:   this.lastPlayedBySide === side
+      lastPlayedCard:   this.lastPlayedCard,
+      lastPlayedByMe:   this.lastPlayedBySide === side,
+      turnStartedAt:    this.turnStartedAt,
+      turnSeconds:      TURN_SECONDS,
+      timebankMe:       this.timebank[side],
+      timebankOpp:      this.timebank[side === 'A' ? 'B' : 'A']
     };
   }
 

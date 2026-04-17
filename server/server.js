@@ -183,21 +183,27 @@ wss.on('connection', (ws, req) => {
           const sameDevice = deviceId && p.deviceId && deviceId === p.deviceId;
 
           if (!isAlive || sameDevice) {
-            // Mrtvé spojení NEBO stejné zařízení → uklid a povol reconnect
+            // Mrtvé spojení NEBO stejné zařízení → povol reconnect
             removeFromQueue(existingWs);
-            if (p.gameId) {
-              const oldSession = games.get(p.gameId);
-              if (oldSession && oldSession.phase !== 'ended') {
-                // Informuj soupeře o odpojení (hra skončila)
-                const oppSide = p.side === 'A' ? 'B' : 'A';
-                oldSession._endGame(oppSide);
-                oldSession._send(oppSide, { type: 'OPPONENT_LEFT' });
+            existingWs.terminate();
+            players.delete(existingWs);
+
+            // Pokud běží hra a jde o stejné zařízení → NEZASTAVUJ hru, jen updatuj WS
+            if (sameDevice && p.gameId) {
+              const session = games.get(p.gameId);
+              if (session && session.phase !== 'ended') {
+                // Přepoj hráče do existující hry
+                players.set(ws, { id: p.id, name, deviceId, inQueue: false,
+                                  gameId: p.gameId, side: p.side });
+                send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
+                session.resendStateTo(p.side, ws);
+                log('RECONNECT', `"${name}" se vrátil do hry ${p.gameId}`);
+                broadcastCount();
+                return;
               }
               games.delete(p.gameId);
             }
-            existingWs.terminate();
-            players.delete(existingWs);
-            log('RECONNECT', `"${name}" se vrátil (sameDevice=${sameDevice})`);
+            log('RECONNECT', `"${name}" se vrátil do lobby`);
           } else {
             // Jiné zařízení, živé spojení → blokuj
             send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });

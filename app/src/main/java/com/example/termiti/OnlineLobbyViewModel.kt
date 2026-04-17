@@ -47,12 +47,16 @@ data class OnlinePlayerState(
 
 // ─── Herní stav (pro GAME_STATE zprávy) ──────────────────────────────────────
 data class OnlineGameState(
-    val activeSide : String              = "A",
-    val isMyTurn   : Boolean             = false,
-    val turnNumber : Int                 = 1,
-    val myState    : OnlinePlayerState   = OnlinePlayerState(),
-    val oppState   : OnlinePlayerState   = OnlinePlayerState(),
-    val log        : List<String>        = emptyList()
+    val activeSide    : String            = "A",
+    val isMyTurn      : Boolean           = false,
+    val turnNumber    : Int               = 1,
+    val myState       : OnlinePlayerState = OnlinePlayerState(),
+    val oppState      : OnlinePlayerState = OnlinePlayerState(),
+    val log           : List<String>      = emptyList(),
+    val turnStartedAt : Long              = 0L,   // epoch ms
+    val turnSeconds   : Int               = 15,
+    val timebankMe    : Int               = 120,
+    val timebankOpp   : Int               = 120
 )
 
 // ─── Výsledek hry ─────────────────────────────────────────────────────────────
@@ -402,12 +406,16 @@ class OnlineLobbyViewModel(
             for (i in 0 until logArr.length()) logList.add(logArr.optString(i, ""))
         }
         return OnlineGameState(
-            activeSide = json.optString("activeSide", "A"),
-            isMyTurn   = json.optBoolean("isMyTurn", false),
-            turnNumber = json.optInt("turnNumber", 1),
-            myState    = parsePlayerState(json.optJSONObject("myState"),  true),
-            oppState   = parsePlayerState(json.optJSONObject("oppState"), false),
-            log        = logList
+            activeSide    = json.optString("activeSide", "A"),
+            isMyTurn      = json.optBoolean("isMyTurn", false),
+            turnNumber    = json.optInt("turnNumber", 1),
+            myState       = parsePlayerState(json.optJSONObject("myState"),  true),
+            oppState      = parsePlayerState(json.optJSONObject("oppState"), false),
+            log           = logList,
+            turnStartedAt = json.optLong("turnStartedAt", 0L),
+            turnSeconds   = json.optInt("turnSeconds", 15),
+            timebankMe    = json.optInt("timebankMe",  120),
+            timebankOpp   = json.optInt("timebankOpp", 120)
         )
     }
 
