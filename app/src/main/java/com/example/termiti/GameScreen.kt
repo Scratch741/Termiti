@@ -600,7 +600,8 @@ fun NewBattlefield(
     lastCard: Card?,
     lastCardAction: CardAction?,
     lastCardIsPlayer: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    revealedAiCard: Card? = null   // karta zahrána soupeřem – zobrazí se v pruhu ruky
 ) {
     BoxWithConstraints(
         modifier = modifier.background(
@@ -621,11 +622,12 @@ fun NewBattlefield(
         val scaledW    = cardNatW * cardScale
 
         // ── AI ruka (nahoře) ──────────────────────────────────────────────
+        val aiStripH = if (revealedAiCard != null) 52.dp else 34.dp
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .height(34.dp)
+                .height(aiStripH)
                 .background(
                     Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.50f), Color.Transparent))
                 )
@@ -633,6 +635,11 @@ fun NewBattlefield(
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            // Odhalená karta soupeře (zahrána právě teď)
+            if (revealedAiCard != null) {
+                CardBackPlayed(revealedAiCard)
+                if (aiState.hand.size > 0) Spacer(Modifier.width(5.dp))
+            }
             repeat(aiState.hand.size) { i ->
                 if (i > 0) Spacer(Modifier.width(3.dp))
                 CardBack()
@@ -660,8 +667,7 @@ fun NewBattlefield(
         )
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
-        // TopCenter = horizontální střed; y-offset = střed volné výšky pod AI stripem (34dp)
-        val cardTopY = 34.dp + (maxHeight - 34.dp - scaledH) / 2
+        val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)

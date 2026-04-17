@@ -233,7 +233,13 @@ class GameSession {
       return;
     }
 
-    this._sendStateBoth();
+    // Non-combo karta → automaticky ukončí tah (jako offline hra)
+    if (!card.isCombo) {
+      this._advanceTurn();
+    } else {
+      // Combo karta → hráč pokračuje v tahu, jen pošleme nový stav
+      this._sendStateBoth();
+    }
   }
 
   // ── Discard card ───────────────────────────────────────────────────────────
