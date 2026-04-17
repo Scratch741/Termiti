@@ -4,9 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -129,6 +132,7 @@ private fun OnlineGameplay(
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
     var showLog  by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
     val gameLog  by vm.gameLog
 
     val opponentName = matchInfo?.opponentName ?: "Soupeř"
@@ -202,7 +206,7 @@ private fun OnlineGameplay(
                 isComboTurn      = false,
                 currentTurn      = gs.turnNumber,
                 opponentLabel    = opponentName,
-                onMenu           = { showLog = !showLog },
+                onMenu           = { showMenu = true },
                 playerTimerText  = timerText(isMe = true),
                 playerTimerColor = timerColor(isMe = true),
                 oppTimerText     = timerText(isMe = false),
@@ -279,6 +283,43 @@ private fun OnlineGameplay(
                 playerCastleHp   = myPs.castleHP
             )
         }
+    }
+
+    // ── Menu dialog ───────────────────────────────────────────────────────────
+    if (showMenu) {
+        AlertDialog(
+            onDismissRequest  = { showMenu = false },
+            containerColor    = Color(0xFF1A1320),
+            titleContentColor = OgTextPrimary,
+            textContentColor  = OgTextMuted,
+            title = { Text("Menu", fontWeight = FontWeight.Bold) },
+            text  = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick  = { showMenu = false; showLog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("📜 Zobrazit log", color = OgGold)
+                    }
+                    Divider(color = OgTextMuted.copy(alpha = 0.3f))
+                    Text(
+                        "Opustit hru? Soupeř bude prohlášen vítězem.",
+                        color    = OgTextMuted,
+                        fontSize = 13.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showMenu = false; onBack() }) {
+                    Text("Odejít", color = OgCrimson, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMenu = false }) {
+                    Text("Zůstat", color = OgTealLight, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 
     // ── Log overlay ───────────────────────────────────────────────────────────
