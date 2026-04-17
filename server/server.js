@@ -1,30 +1,46 @@
 /**
- * Termiti – Lobby server (Etapa 2)
- * WebSocket server: registrace hráčů, online count, matchmaking fronta
+ * Termiti – Lobby + Game server (Etapa 3)
+ * WebSocket server: registrace hráčů, matchmaking, server-authoritative hra
  *
  * Port: 8765
  * Path: /lobby
  *
- * Protokol (JSON přes WebSocket):
- *   Klient → Server:
- *     { type:"JOIN",        name:"..." }
- *     { type:"QUEUE_JOIN" }
- *     { type:"QUEUE_LEAVE" }
- *     { type:"PING" }
+ * ── Lobby protokol ──────────────────────────────────────────────────────────
+ * Klient → Server:
+ *   { type:"JOIN",              name:"..." }
+ *   { type:"QUEUE_JOIN" }
+ *   { type:"QUEUE_LEAVE" }
+ *   { type:"PING" }
  *
- *   Server → Klient:
- *     { type:"WELCOME",     online:N, queue:N }
- *     { type:"COUNT",       online:N, queue:N }
- *     { type:"QUEUE_OK" }
- *     { type:"MATCH_FOUND", gameId:"...", opponentName:"...", side:"A"|"B" }
- *     { type:"ERROR",       msg:"..." }
- *     { type:"PONG" }
+ * Server → Klient:
+ *   { type:"WELCOME",           online:N, queue:N }
+ *   { type:"COUNT",             online:N, queue:N }
+ *   { type:"QUEUE_OK" }
+ *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", side:"A"|"B" }
+ *   { type:"ERROR",             msg:"..." }
+ *   { type:"PONG" }
+ *
+ * ── Game protokol ────────────────────────────────────────────────────────────
+ * Klient → Server:
+ *   { type:"MULLIGAN_DONE",     gameId:"...", returnIds:["001_1",...] }
+ *   { type:"GAME_ACTION",       gameId:"...", action:"PLAY_CARD"|"DISCARD_CARD"|"END_TURN"|"SKIP_TURN", data:{...} }
+ *
+ * Server → Klient:
+ *   { type:"GAME_MULLIGAN",     hand:[...] }
+ *   { type:"MULLIGAN_OK",       hand:[...] }
+ *   { type:"OPPONENT_MULLIGAN_DONE" }
+ *   { type:"GAME_STATE",        activeSide, isMyTurn, turnNumber, myState, oppState, log }
+ *   { type:"CARD_LOST",         cardId, action:"STOLEN"|"BURNED" }
+ *   { type:"GAME_OVER",         winner:"A"|"B"|"DRAW", winnerName, youWin }
+ *   { type:"GAME_ERROR",        msg:"..." }
+ *   { type:"OPPONENT_LEFT" }
  */
 
 'use strict';
 
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
+const { GameSession } = require('./game/GameSession');
 
 const PORT = 8765;
 const PATH = '/lobby';
@@ -33,11 +49,14 @@ const PATH = '/lobby';
 
 const wss = new WebSocket.Server({ port: PORT });
 
-// Hráči: Map<WebSocket, { id, name, inQueue }>
+// Hráči v lobby: Map<WebSocket, { id, name, inQueue, gameId|null }>
 const players = new Map();
 
-// Matchmaking fronta (seřazená podle příchodu)
+// Matchmaking fronta
 const queue = [];
+
+// Aktivní hry: Map<gameId, GameSession>
+const games = new Map();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -80,7 +99,6 @@ function tryMatch() {
     const pA = players.get(wsA);
     const pB = players.get(wsB);
 
-    // Jeden z hráčů se mezitím odpojil → vrátíme platného zpět
     const aOk = pA && wsA.readyState === WebSocket.OPEN;
     const bOk = pB && wsB.readyState === WebSocket.OPEN;
 
@@ -94,8 +112,30 @@ function tryMatch() {
     const gameId = uuidv4();
     log('MATCH', `${pA.name} vs ${pB.name} | game ${gameId}`);
 
+    // Ulož odkaz na hru do záznamu hráče
+    pA.gameId = gameId;
+    pB.gameId = gameId;
+    pA.side   = 'A';
+    pB.side   = 'B';
+
+    // Informuj klienty (lobby zpráva – stejná jako Etapa 2)
     send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, side: 'A' });
     send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, side: 'B' });
+
+    // Vytvoř herní session a spusť ji
+    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name);
+    games.set(gameId, session);
+    try {
+      session.start();
+    } catch (err) {
+      log('ERR', `session.start() selhalo pro game ${gameId}: ${err.message}`);
+      log('ERR', err.stack);
+      send(wsA, { type: 'GAME_ERROR', msg: 'Chyba při spouštění hry. Zkus to znovu.' });
+      send(wsB, { type: 'GAME_ERROR', msg: 'Chyba při spouštění hry. Zkus to znovu.' });
+      games.delete(gameId);
+      pA.gameId = null; pA.side = null;
+      pB.gameId = null; pB.side = null;
+    }
 
     broadcastCount();
   }
@@ -104,7 +144,6 @@ function tryMatch() {
 // ── Příchozí spojení ──────────────────────────────────────────────────────────
 
 wss.on('connection', (ws, req) => {
-  // Zkontroluj cestu
   const url = req.url || '';
   if (!url.startsWith(PATH)) {
     ws.close(1008, 'wrong path');
@@ -123,7 +162,7 @@ wss.on('connection', (ws, req) => {
 
     switch (msg.type) {
 
-      // ── Registrace hráče ───────────────────────────────────────────────────
+      // ── Registrace hráče ─────────────────────────────────────────────────────
       case 'JOIN': {
         if (player) {
           send(ws, { type: 'ERROR', msg: 'Už jsi přihlášen' });
@@ -134,33 +173,28 @@ wss.on('connection', (ws, req) => {
           send(ws, { type: 'ERROR', msg: 'Přezdívka nesmí být prázdná' });
           return;
         }
-        // Unikátnost jména
         const taken = [...players.values()].some(p => p.name === name);
         if (taken) {
           send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });
           return;
         }
 
-        players.set(ws, { id: uuidv4(), name, inQueue: false });
-        log('JOIN', `${name} (celkem online: ${players.size})`);
+        players.set(ws, { id: uuidv4(), name, inQueue: false, gameId: null, side: null });
+        log('JOIN', `${name} (online: ${players.size})`);
 
-        send(ws, {
-          type:   'WELCOME',
-          online: players.size,
-          queue:  queue.length
-        });
+        send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
         broadcastCount();
         break;
       }
 
-      // ── Vstup do matchmaking fronty ────────────────────────────────────────
+      // ── Matchmaking ───────────────────────────────────────────────────────────
       case 'QUEUE_JOIN': {
         if (!player) { send(ws, { type: 'ERROR', msg: 'Nejsi přihlášen' }); return; }
-        if (player.inQueue) return;
+        if (player.inQueue || player.gameId) return;
 
         player.inQueue = true;
         queue.push(ws);
-        log('QUEUE', `${player.name} vstoupil do fronty (${queue.length} čeká)`);
+        log('QUEUE', `${player.name} čeká (${queue.length} ve frontě)`);
 
         send(ws, { type: 'QUEUE_OK' });
         broadcastCount();
@@ -168,7 +202,6 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
-      // ── Odchod z fronty ────────────────────────────────────────────────────
       case 'QUEUE_LEAVE': {
         if (!player) return;
         removeFromQueue(ws);
@@ -177,9 +210,30 @@ wss.on('connection', (ws, req) => {
         break;
       }
 
-      // ── Keepalive ──────────────────────────────────────────────────────────
+      // ── Keepalive ─────────────────────────────────────────────────────────────
       case 'PING': {
         send(ws, { type: 'PONG' });
+        break;
+      }
+
+      // ── Mulligan potvrzení ────────────────────────────────────────────────────
+      case 'MULLIGAN_DONE': {
+        if (!player) return;
+        const session = games.get(msg.gameId || player.gameId);
+        if (!session) { send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return; }
+
+        const returnIds = Array.isArray(msg.returnIds) ? msg.returnIds : [];
+        session.handleMulligan(player.side, returnIds);
+        break;
+      }
+
+      // ── Herní akce ────────────────────────────────────────────────────────────
+      case 'GAME_ACTION': {
+        if (!player) return;
+        const session = games.get(msg.gameId || player.gameId);
+        if (!session) { send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return; }
+
+        session.handleAction(player.side, msg.action, msg.data || {});
         break;
       }
 
@@ -188,10 +242,24 @@ wss.on('connection', (ws, req) => {
     }
   });
 
-  ws.on('close', (code, reason) => {
+  ws.on('close', (code) => {
     const player = players.get(ws);
     if (player) {
       removeFromQueue(ws);
+
+      // Informuj soupeře, pokud probíhá hra
+      if (player.gameId) {
+        const session = games.get(player.gameId);
+        if (session && session.phase !== 'ended') {
+          // Rozhodnutí: soupeř vyhrál
+          const opponent = player.side === 'A' ? 'B' : 'A';
+          session._endGame(opponent);
+          // Pošli speciální zprávu soupeři
+          session._send(opponent, { type: 'OPPONENT_LEFT' });
+        }
+        games.delete(player.gameId);
+      }
+
       players.delete(ws);
       log('-', `${player.name} odpojen (kód ${code}) | online: ${players.size}`);
       broadcastCount();
@@ -203,5 +271,4 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-log('START', `Lobby server běží na ws://0.0.0.0:${PORT}${PATH}`);
-log('START', `Online: 0 hráčů`);
+log('START', `Server běží na ws://0.0.0.0:${PORT}${PATH}`);
