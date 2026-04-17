@@ -2,6 +2,7 @@ package com.example.termiti
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -1895,17 +1896,12 @@ fun MulliganOverlay(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xE5000000))
-            // Blokuje dotyky pod overlayem — Main pass: děti (karty, tlačítka)
-            // dostávají eventy první (listí→kořen), teprve pak outer Box pohltí
-            // zbytek, takže game UI pod ním nic nedostane.
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Main)
-                            .changes.forEach { it.consume() }
-                    }
-                }
-            },
+            // Blokuje dotyky pod overlayem na pozadí (ne na kartách/tlačítkách).
+            // detectTapGestures čeká jen na NEkonsumovaný DOWN — pokud karta DOWN
+            // pohltí dřív (child = Main pass dříve), outer Box čeká dál a gesto
+            // karty neruší. Pokud DOWN nespolykl nikdo (pozadí), outer Box ho
+            // pohltí a game UI pod ním nic nedostane.
+            .pointerInput(Unit) { detectTapGestures {} },
         contentAlignment = Alignment.Center
     ) {
         Column(
