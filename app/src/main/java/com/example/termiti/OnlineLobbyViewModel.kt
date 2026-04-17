@@ -2,53 +2,100 @@ package com.example.termiti
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import okhttp3.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 // ─── Adresa lobby serveru ─────────────────────────────────────────────────────
-// TODO: Změň na skutečnou IP/doménu Ubuntu serveru
-private const val LOBBY_WS_URL = "ws://77.237.158.10:8765/lobby"
+private const val LOBBY_WS_URL = "ws://192.168.125.139:8765/lobby"
 
-// ─── Fáze lobby ───────────────────────────────────────────────────────────────
+// ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
-    NAME_INPUT,   // zadání přezdívky
-    CONNECTING,   // připojování k serveru
-    LOBBY,        // připojeno – čekám na akci
-    QUEUING,      // v matchmakingové frontě
-    MATCH_FOUND,  // nalezen soupeř (přechod do hry)
-    ERROR         // chyba připojení
+    NAME_INPUT,       // zadání přezdívky
+    CONNECTING,       // připojování k serveru
+    LOBBY,            // připojeno – čekám na akci
+    QUEUING,          // v matchmakingové frontě
+    MATCH_FOUND,      // nalezen soupeř (přechod do hry) – mezikrok
+    GAME_MULLIGAN,    // mulligan fáze
+    GAME_PLAYING,     // hra probíhá
+    GAME_OVER,        // hra skončila
+    ERROR             // chyba připojení
 }
 
 // ─── Info o nalezeném zápase ──────────────────────────────────────────────────
 data class OnlineMatchInfo(
     val gameId       : String,
     val opponentName : String,
-    val side         : String   // "A" nebo "B" – kdo je first player
+    val side         : String   // "A" nebo "B"
+)
+
+// ─── Stav hráče přijatý ze serveru ───────────────────────────────────────────
+data class OnlinePlayerState(
+    val castleHP  : Int                  = 30,
+    val wallHP    : Int                  = 10,
+    val resources : Map<String, Int>     = emptyMap(),
+    val mines     : Map<String, Int>     = emptyMap(),
+    val hand      : List<Card>           = emptyList(),  // jen myState
+    val handSize  : Int                  = 0,            // jen oppState
+    val deckSize  : Int                  = 0,
+    val discardSize: Int                 = 0
+)
+
+// ─── Herní stav (pro GAME_STATE zprávy) ──────────────────────────────────────
+data class OnlineGameState(
+    val activeSide : String              = "A",
+    val isMyTurn   : Boolean             = false,
+    val turnNumber : Int                 = 1,
+    val myState    : OnlinePlayerState   = OnlinePlayerState(),
+    val oppState   : OnlinePlayerState   = OnlinePlayerState(),
+    val log        : List<String>        = emptyList()
+)
+
+// ─── Výsledek hry ─────────────────────────────────────────────────────────────
+data class OnlineGameResult(
+    val winner    : String,   // "A" | "B" | "DRAW"
+    val winnerName: String?,
+    val youWin    : Boolean
 )
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
-class OnlineLobbyViewModel : ViewModel() {
+class OnlineLobbyViewModel(
+    private val allCards: List<Card>
+) : ViewModel() {
 
-    // Stav
+    // ── Lobby stav ────────────────────────────────────────────────────────────
     var phase        = mutableStateOf(OnlinePhase.NAME_INPUT); private set
     var playerName   = mutableStateOf(""); private set
     var onlineCount  = mutableStateOf(0);  private set
-    var queueSize    = mutableStateOf(0);  private set  // kolik lidí hledá zápas
+    var queueSize    = mutableStateOf(0);  private set
     var statusMsg    = mutableStateOf(""); private set
     var errorMsg     = mutableStateOf(""); private set
     var matchInfo    = mutableStateOf<OnlineMatchInfo?>(null); private set
 
-    // WebSocket
+    // ── Herní stav ────────────────────────────────────────────────────────────
+    var mulliganHand      = mutableStateOf<List<Card>>(emptyList()); private set
+    var mulliganSelected  = mutableStateOf<Set<String>>(emptySet()); private set
+    var mulliganSubmitted = mutableStateOf(false); private set
+    var opponentMulliganDone = mutableStateOf(false); private set
+
+    var gameState        = mutableStateOf(OnlineGameState()); private set
+    var gameResult       = mutableStateOf<OnlineGameResult?>(null); private set
+    var gameLog          = mutableStateOf<List<String>>(emptyList()); private set
+    var lastPlayedCard   = mutableStateOf<Card?>(null); private set
+    var lastPlayedByMe   = mutableStateOf(false); private set
+
+    // ── WebSocket ─────────────────────────────────────────────────────────────
     private var ws: WebSocket? = null
     private val httpClient = OkHttpClient.Builder()
         .pingInterval(25, TimeUnit.SECONDS)
         .connectTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    // ── Veřejné akce ─────────────────────────────────────────────────────────
+    // ── Lobby akce ────────────────────────────────────────────────────────────
 
     fun setName(name: String) { playerName.value = name.take(20) }
 
@@ -56,12 +103,12 @@ class OnlineLobbyViewModel : ViewModel() {
         val name = playerName.value.trim()
         if (name.isBlank()) { errorMsg.value = "Zadej přezdívku"; return }
 
-        phase.value    = OnlinePhase.CONNECTING
+        phase.value     = OnlinePhase.CONNECTING
         statusMsg.value = "Připojuji k serveru…"
         errorMsg.value  = ""
 
         val request = Request.Builder().url(LOBBY_WS_URL).build()
-        ws = httpClient.newWebSocket(request, LobbyListener())
+        ws = httpClient.newWebSocket(request, GameListener())
     }
 
     fun joinQueue() {
@@ -79,6 +126,7 @@ class OnlineLobbyViewModel : ViewModel() {
     fun disconnect() {
         ws?.close(1000, "bye")
         ws = null
+        resetGameState()
         phase.value     = OnlinePhase.NAME_INPUT
         statusMsg.value = ""
         errorMsg.value  = ""
@@ -91,12 +139,72 @@ class OnlineLobbyViewModel : ViewModel() {
         phase.value    = OnlinePhase.NAME_INPUT
     }
 
+    // ── Mulligan akce ─────────────────────────────────────────────────────────
+
+    fun toggleMulligan(cardId: String) {
+        if (mulliganSubmitted.value) return
+        val cur = mulliganSelected.value
+        mulliganSelected.value =
+            if (cardId in cur) cur - cardId else cur + cardId
+    }
+
+    fun confirmMulligan() {
+        if (mulliganSubmitted.value) return
+        mulliganSubmitted.value = true
+        val returnIds = mulliganSelected.value.toList()
+        sendMulliganDone(returnIds)
+    }
+
+    fun skipMulligan() {
+        if (mulliganSubmitted.value) return
+        mulliganSubmitted.value = true
+        sendMulliganDone(emptyList())
+    }
+
+    private fun sendMulliganDone(returnIds: List<String>) {
+        val gameId = matchInfo.value?.gameId ?: return
+        val json = JSONObject().apply {
+            put("type", "MULLIGAN_DONE")
+            put("gameId", gameId)
+            put("returnIds", JSONArray(returnIds))
+        }
+        ws?.send(json.toString())
+    }
+
+    // ── Herní akce ────────────────────────────────────────────────────────────
+
+    fun playCard(cardId: String) {
+        sendAction("PLAY_CARD", JSONObject().apply { put("cardId", cardId) })
+    }
+
+    fun discardCard(cardId: String) {
+        sendAction("DISCARD_CARD", JSONObject().apply { put("cardId", cardId) })
+    }
+
+    fun endTurn() {
+        sendAction("END_TURN", JSONObject())
+    }
+
+    fun skipTurn() {
+        sendAction("SKIP_TURN", JSONObject())
+    }
+
+    private fun sendAction(action: String, data: JSONObject) {
+        val gameId = matchInfo.value?.gameId ?: return
+        val json = JSONObject().apply {
+            put("type", "GAME_ACTION")
+            put("gameId", gameId)
+            put("action", action)
+            put("data", data)
+        }
+        ws?.send(json.toString())
+    }
+
     // ── WebSocket listener ────────────────────────────────────────────────────
 
-    private inner class LobbyListener : WebSocketListener() {
+    private inner class GameListener : WebSocketListener() {
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            // Ihned po připojení se představíme serveru
             webSocket.send(JSONObject().apply {
                 put("type", "JOIN")
                 put("name", playerName.value.trim())
@@ -124,14 +232,13 @@ class OnlineLobbyViewModel : ViewModel() {
         }
     }
 
-    // ── Zpracování zpráv ze serveru ───────────────────────────────────────────
+    // ── Zpracování zpráv ──────────────────────────────────────────────────────
 
     private fun handleMessage(raw: String) {
         val json = try { JSONObject(raw) } catch (e: Exception) { return }
         viewModelScope.launch {
             when (json.optString("type")) {
 
-                // Server potvrdil přihlášení
                 "WELCOME" -> {
                     onlineCount.value  = json.optInt("online", 0)
                     queueSize.value    = json.optInt("queue",  0)
@@ -139,30 +246,92 @@ class OnlineLobbyViewModel : ViewModel() {
                     statusMsg.value    = "Připojeno ✓"
                 }
 
-                // Aktualizace počtu hráčů
                 "COUNT" -> {
                     onlineCount.value = json.optInt("online", 0)
                     queueSize.value   = json.optInt("queue",  0)
                 }
 
-                // Server potvrdil zařazení do fronty
                 "QUEUE_OK" -> {
                     phase.value     = OnlinePhase.QUEUING
                     statusMsg.value = "Ve frontě…"
                 }
 
-                // Nalezen soupeř → přechod do hry
                 "MATCH_FOUND" -> {
                     matchInfo.value = OnlineMatchInfo(
                         gameId       = json.optString("gameId", ""),
                         opponentName = json.optString("opponentName", "Soupeř"),
                         side         = json.optString("side", "A")
                     )
-                    phase.value     = OnlinePhase.MATCH_FOUND
-                    statusMsg.value = "Soupeř nalezen!"
+                    // Nepřecházíme do GAME_MULLIGAN hned – čekáme na GAME_MULLIGAN ze serveru
+                    statusMsg.value = "Soupeř nalezen! Připravuji hru…"
                 }
 
-                // Chyba serveru (duplicitní jméno, atd.)
+                "GAME_MULLIGAN" -> {
+                    val handJson = json.optJSONArray("hand")
+                    mulliganHand.value      = parseCardArray(handJson)
+                    mulliganSelected.value  = emptySet()
+                    mulliganSubmitted.value = false
+                    opponentMulliganDone.value = false
+                    phase.value = OnlinePhase.GAME_MULLIGAN
+                }
+
+                "MULLIGAN_OK" -> {
+                    // Server potvrdil mulligan, updatuj ruku
+                    val handJson = json.optJSONArray("hand")
+                    mulliganHand.value = parseCardArray(handJson)
+                }
+
+                "OPPONENT_MULLIGAN_DONE" -> {
+                    opponentMulliganDone.value = true
+                }
+
+                "GAME_STATE" -> {
+                    gameState.value = parseGameState(json)
+                    phase.value = OnlinePhase.GAME_PLAYING
+                    gameLog.value = gameLog.value + gameState.value.log
+                    // Zahraná karta pro animaci
+                    val lpc = json.optJSONObject("lastPlayedCard")
+                    if (lpc != null) {
+                        val baseId = lpc.optString("baseId", "")
+                        val template = allCards.find { it.id == baseId }
+                        lastPlayedCard.value = template?.copy(
+                            id = lpc.optString("id", baseId)
+                        )
+                        lastPlayedByMe.value = json.optBoolean("lastPlayedByMe", false)
+                    } else {
+                        lastPlayedCard.value = null
+                    }
+                }
+
+                "CARD_LOST" -> {
+                    // Karta nám byla ukradena nebo spálena – UI si to zobrazí ze GAME_STATE
+                }
+
+                "GAME_OVER" -> {
+                    gameResult.value = OnlineGameResult(
+                        winner     = json.optString("winner", "DRAW"),
+                        winnerName = json.optString("winnerName").takeIf { it.isNotEmpty() },
+                        youWin     = json.optBoolean("youWin", false)
+                    )
+                    phase.value = OnlinePhase.GAME_OVER
+                }
+
+                "OPPONENT_LEFT" -> {
+                    gameResult.value = OnlineGameResult(
+                        winner     = matchInfo.value?.side ?: "A",
+                        winnerName = playerName.value,
+                        youWin     = true
+                    )
+                    errorMsg.value = "Soupeř se odpojil – vyhráváš!"
+                    phase.value    = OnlinePhase.GAME_OVER
+                }
+
+                "GAME_ERROR" -> {
+                    // Dočasná chyba hry (špatná akce) – zobraz jako zprávu, nepřeruš hru
+                    val msg = json.optString("msg", "Chyba")
+                    gameLog.value = gameLog.value + "⚠️ $msg"
+                }
+
                 "ERROR" -> {
                     errorMsg.value = json.optString("msg", "Chyba serveru")
                     if (phase.value == OnlinePhase.CONNECTING ||
@@ -174,7 +343,83 @@ class OnlineLobbyViewModel : ViewModel() {
         }
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    // ── Parsování JSON → datové třídy ─────────────────────────────────────────
+
+    private fun parseCardArray(arr: JSONArray?): List<Card> {
+        if (arr == null) return emptyList()
+        val result = mutableListOf<Card>()
+        for (i in 0 until arr.length()) {
+            val obj    = arr.getJSONObject(i)
+            val instanceId = obj.optString("id", "")
+            val baseId     = obj.optString("baseId", instanceId.substringBefore('_'))
+            // Najdi plný Card objekt v allCards podle baseId
+            val template = allCards.find { it.id == baseId }
+            if (template != null) {
+                // Přetypuj s instančním ID (zachovej originál + přepiš id)
+                result.add(template.copy(id = instanceId))
+            }
+        }
+        return result
+    }
+
+    private fun parsePlayerState(obj: JSONObject?, isMe: Boolean): OnlinePlayerState {
+        if (obj == null) return OnlinePlayerState()
+
+        val resources = mutableMapOf<String, Int>()
+        val mines     = mutableMapOf<String, Int>()
+        obj.optJSONObject("resources")?.let { r ->
+            for (key in r.keys()) resources[key] = r.optInt(key, 0)
+        }
+        obj.optJSONObject("mines")?.let { m ->
+            for (key in m.keys()) mines[key] = m.optInt(key, 0)
+        }
+
+        val hand: List<Card> = if (isMe) {
+            parseCardArray(obj.optJSONArray("hand"))
+        } else emptyList()
+
+        return OnlinePlayerState(
+            castleHP   = obj.optInt("castleHP",   30),
+            wallHP     = obj.optInt("wallHP",      10),
+            resources  = resources,
+            mines      = mines,
+            hand       = hand,
+            handSize   = if (isMe) hand.size else obj.optInt("handSize", 0),
+            deckSize   = obj.optInt("deckSize",    0),
+            discardSize= obj.optInt("discardSize", 0)
+        )
+    }
+
+    private fun parseGameState(json: JSONObject): OnlineGameState {
+        val logArr   = json.optJSONArray("log")
+        val logList  = mutableListOf<String>()
+        if (logArr != null) {
+            for (i in 0 until logArr.length()) logList.add(logArr.optString(i, ""))
+        }
+        return OnlineGameState(
+            activeSide = json.optString("activeSide", "A"),
+            isMyTurn   = json.optBoolean("isMyTurn", false),
+            turnNumber = json.optInt("turnNumber", 1),
+            myState    = parsePlayerState(json.optJSONObject("myState"),  true),
+            oppState   = parsePlayerState(json.optJSONObject("oppState"), false),
+            log        = logList
+        )
+    }
+
+    // ── Pomocné ───────────────────────────────────────────────────────────────
+
+    private fun resetGameState() {
+        mulliganHand.value         = emptyList()
+        mulliganSelected.value     = emptySet()
+        mulliganSubmitted.value    = false
+        opponentMulliganDone.value = false
+        gameState.value            = OnlineGameState()
+        gameResult.value           = null
+        gameLog.value              = emptyList()
+        lastPlayedCard.value       = null
+        lastPlayedByMe.value       = false
+        matchInfo.value            = null
+    }
 
     private fun send(vararg pairs: Pair<String, Any>) {
         val json = JSONObject()
@@ -186,5 +431,13 @@ class OnlineLobbyViewModel : ViewModel() {
         super.onCleared()
         ws?.close(1000, "bye")
         httpClient.dispatcher.executorService.shutdown()
+    }
+
+    // ── Factory ───────────────────────────────────────────────────────────────
+
+    class Factory(private val allCards: List<Card>) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            OnlineLobbyViewModel(allCards) as T
     }
 }

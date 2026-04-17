@@ -120,8 +120,10 @@ private fun OnlineGameplay(
     vm: OnlineLobbyViewModel,
     onBack: () -> Unit
 ) {
-    val gs        by vm.gameState
-    val matchInfo by vm.matchInfo
+    val gs             by vm.gameState
+    val matchInfo      by vm.matchInfo
+    val lastCard       by vm.lastPlayedCard
+    val lastCardByMe   by vm.lastPlayedByMe
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
@@ -157,25 +159,12 @@ private fun OnlineGameplay(
             // ── Hlavní řada: zdroje + bojiště ────────────────────────────────
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
 
-                // ── Levý panel: moje zdroje ───────────────────────────────────
+                // ── Levý panel: moje zdroje ──────────────────────────────────
                 NewResourcePanel(
                     playerState = myPs,
                     isAi        = false,
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
-                        if (gs.isMyTurn) {
-                            NewPanelButton(
-                                label   = "⏩ Konec tahu",
-                                color   = OgTealLight,
-                                active  = true,
-                                onClick = {
-                                    if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)
-                                        vm.skipTurn()
-                                    else
-                                        vm.endTurn()
-                                }
-                            )
-                        }
                         NewPanelButton(
                             label   = "📜 Log",
                             color   = OgGold,
@@ -189,9 +178,9 @@ private fun OnlineGameplay(
                 NewBattlefield(
                     playerState      = myPs,
                     aiState          = oppPs,
-                    lastCard         = null,
-                    lastCardAction   = null,
-                    lastCardIsPlayer = true,
+                    lastCard         = lastCard,
+                    lastCardAction   = if (lastCard != null) CardAction.PLAYED else null,
+                    lastCardIsPlayer = lastCardByMe,
                     modifier         = Modifier.fillMaxHeight().weight(1f)
                 )
 
@@ -199,7 +188,24 @@ private fun OnlineGameplay(
                 NewResourcePanel(
                     playerState = oppPs,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp)
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    bottomSlot  = {
+                        val btnColor = if (gs.isMyTurn) OgTealLight
+                                       else OgTextMuted.copy(alpha = 0.35f)
+                        NewPanelButton(
+                            label   = if (gs.isMyTurn) "⏩ Konec tahu" else "⏳ Čekám…",
+                            color   = btnColor,
+                            active  = gs.isMyTurn,
+                            onClick = if (gs.isMyTurn) {
+                                {
+                                    if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)
+                                        vm.skipTurn()
+                                    else
+                                        vm.endTurn()
+                                }
+                            } else null
+                        )
+                    }
                 )
             }
 

@@ -38,6 +38,10 @@ class GameSession {
     // Mulligan tracking
     this.mulliganDone = { A: false, B: false };
 
+    // Last played card (sent to both clients so they can animate it)
+    this.lastPlayedCard = null;  // { id, baseId, name, cost, costType, rarity }
+    this.lastPlayedBySide = null; // 'A' | 'B'
+
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
   }
@@ -195,6 +199,11 @@ class GameSession {
     // Remove from hand → discard
     self.hand.splice(cardIdx, 1);
     self.discardPile.push(card);
+
+    // Zapamatuj si zahranou kartu pro animaci
+    this.lastPlayedCard   = { id: card.id, baseId: card.baseId, name: card.name,
+                               cost: card.cost, costType: card.costType, rarity: card.rarity };
+    this.lastPlayedBySide = side;
 
     // Handle combo cards: apply effects only if isCombo check passes (always for now)
     const lostCards = [];
@@ -361,14 +370,18 @@ class GameSession {
         deckSize:    opp.deck.length,
         discardSize: opp.discardPile.length
       },
-      log: [...this.lastLog]
+      log:              [...this.lastLog],
+      lastPlayedCard:   this.lastPlayedCard,   // null nebo { id, baseId, name, ... }
+      lastPlayedByMe:   this.lastPlayedBySide === side
     };
   }
 
   _sendStateBoth() {
     this._send('A', this._buildStateFor('A'));
     this._send('B', this._buildStateFor('B'));
-    this.lastLog = [];  // clear after broadcast
+    this.lastLog        = [];
+    this.lastPlayedCard = null;   // reset po broadcastu – zobrazí se jen jednou
+    this.lastPlayedBySide = null;
   }
 
   _log(msg) {
