@@ -4,7 +4,7 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, randomDeck, makeInstance, shuffle
+  CARD_MAP, randomDeck, shuffle
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
@@ -45,9 +45,9 @@ class GameSession {
   // ── Start ──────────────────────────────────────────────────────────────────
 
   start() {
-    // Build decks
-    const deckA = randomDeck().map(tmpl => makeInstance(tmpl));
-    const deckB = randomDeck().map(tmpl => makeInstance(tmpl));
+    // Build decks (randomDeck() already calls makeInstance internally)
+    const deckA = randomDeck();
+    const deckB = randomDeck();
 
     this.state.A = createPlayerState(deckA);
     this.state.B = createPlayerState(deckB);
