@@ -81,19 +81,22 @@ class GameSession {
     const ps = this.state[side];
 
     if (returnIds && returnIds.length > 0) {
-      // Put returned cards at bottom of deck, draw same number
-      const kept    = [];
+      // Odděl vrácené a ponechané karty
+      const kept     = [];
       const returned = [];
       for (const card of ps.hand) {
         if (returnIds.includes(card.id)) returned.push(card);
         else kept.push(card);
       }
       ps.hand = kept;
-      // Shuffle returned cards back into deck
+
+      // Lízni náhrady DŘÍV než vrácené karty dáš zpět do balíčku
+      // → hráč nemůže dostat zpět přesně ty samé instance
+      drawCards(ps, returned.length);
+
+      // Teď vrácené karty zamíchej do balíčku
       for (const c of returned) ps.deck.push(c);
       shuffle(ps.deck);
-      // Draw replacements
-      drawCards(ps, returned.length);
     }
 
     this.mulliganDone[side] = true;

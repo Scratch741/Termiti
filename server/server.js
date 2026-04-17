@@ -173,7 +173,18 @@ wss.on('connection', (ws, req) => {
           send(ws, { type: 'ERROR', msg: 'Přezdívka nesmí být prázdná' });
           return;
         }
-        const taken = [...players.values()].some(p => p.name === name);
+        // Unikátnost jména – přeskoč mrtvá spojení (reconnect po výpadku)
+        for (const [deadWs, p] of players.entries()) {
+          if (p.name === name && deadWs.readyState !== WebSocket.OPEN) {
+            removeFromQueue(deadWs);
+            if (p.gameId) games.delete(p.gameId);
+            players.delete(deadWs);
+            log('RECONNECT', `Uklizen mrtvý slot pro "${name}"`);
+          }
+        }
+        const taken = [...players.entries()].some(
+          ([existingWs, p]) => p.name === name && existingWs.readyState === WebSocket.OPEN
+        );
         if (taken) {
           send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });
           return;
