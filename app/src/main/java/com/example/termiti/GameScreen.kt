@@ -1895,11 +1895,13 @@ fun MulliganOverlay(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xE5000000))
-            // Zablokuje všechny dotyky pod overlayem (menu, log, tlačítka tahu)
+            // Blokuje dotyky pod overlayem — Main pass: děti (karty, tlačítka)
+            // dostávají eventy první (listí→kořen), teprve pak outer Box pohltí
+            // zbytek, takže game UI pod ním nic nedostane.
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
-                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Main)
                             .changes.forEach { it.consume() }
                     }
                 }
