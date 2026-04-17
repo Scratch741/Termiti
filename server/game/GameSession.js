@@ -139,22 +139,57 @@ class GameSession {
   }
 
   // ── Turn timer ─────────────────────────────────────────────────────────────
+  //
+  // Dvoufázové odpočítávání:
+  //   Fáze 1 – kolo (TURN_SECONDS): hráč hraje zadarmo, timebank se nespotřebovává
+  //   Fáze 2 – timebank hráče: pokud nevyprší → tah přeskočen
+  //
+  // Každý hráč má VLASTNÍ timebank (this.timebank[A/B]).
+  // Při normálním zahrání karty / ukončení tahu se odečte jen čas strávený
+  // v timebank fázi (elapsed - TURN_SECONDS).
 
   _startTurnTimer() {
     this._clearTurnTimer();
-    const side        = this.activeSide;
-    const totalMs     = (TURN_SECONDS + this.timebank[side]) * 1000;
+    const side         = this.activeSide;
     this.turnStartedAt = Date.now();
-    this._turnTimer   = setTimeout(() => {
+
+    // Fáze 1: timer kola
+    this._turnTimer = setTimeout(() => {
       if (this.activeSide !== side || this.phase !== 'playing') return;
-      this.timebank[side] = 0;
-      this._log(`${this.name[side]} vypršel čas – tah přeskočen.`);
-      this._advanceTurn();
-    }, totalMs);
+
+      const bank = this.timebank[side];
+      if (bank <= 0) {
+        // Timebank už prázdný → přeskoč okamžitě
+        this._log(`${this.name[side]} vypršel čas – tah přeskočen.`);
+        this._advanceTurn();
+        return;
+      }
+
+      // Fáze 2: timebank odpočet
+      this._turnTimer = setTimeout(() => {
+        if (this.activeSide !== side || this.phase !== 'playing') return;
+        this.timebank[side] = 0;
+        this._log(`${this.name[side]} vypršel čas i timebank – tah přeskočen.`);
+        this._advanceTurn();
+      }, bank * 1000);
+
+    }, TURN_SECONDS * 1000);
   }
 
   _clearTurnTimer() {
     if (this._turnTimer) { clearTimeout(this._turnTimer); this._turnTimer = null; }
+  }
+
+  /**
+   * Odečte spotřebovaný timebank aktivního hráče.
+   * Voláno vždy PŘED _clearTurnTimer() při jakékoli akci hráče.
+   */
+  _consumeTimebank(side) {
+    const elapsedSec = (Date.now() - this.turnStartedAt) / 1000;
+    const bankUsed   = Math.max(0, elapsedSec - TURN_SECONDS);
+    if (bankUsed > 0) {
+      this.timebank[side] = Math.max(0, this.timebank[side] - Math.ceil(bankUsed));
+    }
   }
 
   // ── Public: reconnect – pošli aktuální stav znovu ─────────────────────────
@@ -186,7 +221,8 @@ class GameSession {
       return;
     }
 
-    this._clearTurnTimer();   // hráč reagoval – zastav odpočet
+    this._consumeTimebank(side);  // odečti spotřebovaný timebank (pokud byl použit)
+    this._clearTurnTimer();       // hráč reagoval – zastav odpočet
 
     switch (action) {
       case 'PLAY_CARD':    this._handlePlayCard(side, data); break;
