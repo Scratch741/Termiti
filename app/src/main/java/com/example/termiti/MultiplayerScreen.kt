@@ -65,7 +65,12 @@ fun MultiplayerScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
         when (phase) {
             MpPhase.LOBBY        -> MpLobbyScreen(vm, onBack)
             MpPhase.CONNECTING   -> MpConnectingScreen(vm)
-            MpPhase.MULLIGAN     -> MpMulliganScreen(vm)
+            MpPhase.MULLIGAN     -> {
+                // Herní UI jako vizuální podklad (stejně jako v offline)
+                MpGameScreen(vm)
+                // Mulligan overlay navrch — blokuje všechny dotyky přes pointerInput
+                MpMulliganScreen(vm)
+            }
             MpPhase.PLAYING      -> MpGameScreen(vm)
             MpPhase.GAME_OVER    -> MpGameOverScreen(vm, onBack)
             MpPhase.RECONNECTING -> MpReconnectingScreen(vm)
