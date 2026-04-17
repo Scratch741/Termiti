@@ -134,43 +134,46 @@ private fun OnlineGameplay(
     val opponentName = matchInfo?.opponentName ?: "Soupeř"
 
     // ── Timer výpočet ─────────────────────────────────────────────────────────
+    // Server posílá relativní časy (zbývající ms v čase odeslání).
+    // Klient ukládá receivedAt a odpočítává od přijetí – bez závislosti
+    // na synchronizaci hodin mezi zařízeními.
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(gs.turnStartedAt) {
+    LaunchedEffect(gs.receivedAt) {
         while (true) { delay(500L); nowMs = System.currentTimeMillis() }
     }
 
-    val elapsedSec   = ((nowMs - gs.turnStartedAt) / 1000f).coerceAtLeast(0f)
-    val turnSec      = gs.turnSeconds.toFloat()
-    val myBankSec    = gs.timebankMe.toFloat()
-    val oppBankSec   = gs.timebankOpp.toFloat()
+    // Kolik ms uplynulo od přijetí zprávy
+    val elapsedAfterReceiveMs = (nowMs - gs.receivedAt).coerceAtLeast(0L)
 
-    // Pro aktivního hráče: zobrazit zbývající čas tahu nebo timebanku
+    // Zbývající čas tahu a timebanku pro aktivního hráče
+    val turnLeftMs  = (gs.turnRemainingMs  - elapsedAfterReceiveMs).coerceAtLeast(0L)
+    val myBankLeftMs  = (gs.timebankMeMs  - (if (gs.isMyTurn  && turnLeftMs == 0L) elapsedAfterReceiveMs - gs.turnRemainingMs else 0L)).coerceAtLeast(0L)
+    val oppBankLeftMs = (gs.timebankOppMs - (if (!gs.isMyTurn && turnLeftMs == 0L) elapsedAfterReceiveMs - gs.turnRemainingMs else 0L)).coerceAtLeast(0L)
+
     fun timerText(isMe: Boolean): String {
         return if (gs.isMyTurn == isMe) {
-            // Tento hráč je na tahu – počítej odpočet
-            val turnLeft = (turnSec - elapsedSec).coerceIn(0f, turnSec)
-            if (turnLeft > 0f) "${turnLeft.toInt()}s"
+            // Aktivní hráč – odpočítávej
+            if (turnLeftMs > 0L) "${(turnLeftMs / 1000L)}s"
             else {
-                val bank = if (isMe) myBankSec else oppBankSec
-                val bankLeft = (bank - (elapsedSec - turnSec)).coerceIn(0f, bank)
-                "⏳${bankLeft.toInt()}s"
+                val bankLeft = if (isMe) myBankLeftMs else oppBankLeftMs
+                "⏳${(bankLeft / 1000L)}s"
             }
         } else {
             // Mimo tah – zobraz zbývající timebank staticky
-            val bank = if (isMe) myBankSec else oppBankSec
-            "📦${bank.toInt()}s"
+            val bankMs = if (isMe) gs.timebankMeMs else gs.timebankOppMs
+            "📦${(bankMs / 1000L)}s"
         }
     }
 
     fun timerColor(isMe: Boolean): Color {
         if (gs.isMyTurn != isMe) return OgTextMuted
-        val turnLeft = (turnSec - elapsedSec).coerceAtLeast(0f)
-        val frac = if (turnLeft > 0f) turnLeft / turnSec
-                   else {
-                       val bank = if (isMe) myBankSec else oppBankSec
-                       val bankLeft = (bank - (elapsedSec - turnSec)).coerceIn(0f, bank)
-                       bankLeft / bank.coerceAtLeast(1f)
-                   }
+        val frac = if (turnLeftMs > 0L) {
+            turnLeftMs.toFloat() / gs.turnRemainingMs.coerceAtLeast(1L)
+        } else {
+            val bankLeft = if (isMe) myBankLeftMs else oppBankLeftMs
+            val bankTotal = if (isMe) gs.timebankMeMs else gs.timebankOppMs
+            bankLeft.toFloat() / bankTotal.coerceAtLeast(1L)
+        }
         return when {
             frac > 0.5f -> Color(0xFF4CAF50)
             frac > 0.2f -> Color(0xFFFFB300)

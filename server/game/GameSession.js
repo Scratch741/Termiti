@@ -45,9 +45,10 @@ class GameSession {
     this.lastPlayedBySide = null;
 
     // Timer
-    this.timebank      = { A: TIMEBANK_SECONDS, B: TIMEBANK_SECONDS };
-    this.turnStartedAt = 0;
-    this._turnTimer    = null;
+    this.timebank          = { A: TIMEBANK_SECONDS, B: TIMEBANK_SECONDS };
+    this.turnStartedAt     = 0;   // kdy začal aktuální tah (fáze 1)
+    this.timebankStartedAt = null; // null = ve fázi tahu; timestamp = ve fázi timebanku
+    this._turnTimer        = null;
 
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
@@ -150,25 +151,29 @@ class GameSession {
 
   _startTurnTimer() {
     this._clearTurnTimer();
-    const side         = this.activeSide;
-    this.turnStartedAt = Date.now();
+    const side             = this.activeSide;
+    this.turnStartedAt     = Date.now();
+    this.timebankStartedAt = null;   // začínáme ve fázi tahu
 
-    // Fáze 1: timer kola
+    // Fáze 1: timer kola (TURN_SECONDS)
     this._turnTimer = setTimeout(() => {
       if (this.activeSide !== side || this.phase !== 'playing') return;
 
       const bank = this.timebank[side];
       if (bank <= 0) {
-        // Timebank už prázdný → přeskoč okamžitě
+        // Timebank prázdný → přeskoč okamžitě
         this._log(`${this.name[side]} vypršel čas – tah přeskočen.`);
         this._advanceTurn();
         return;
       }
 
-      // Fáze 2: timebank odpočet
+      // Fáze 2: začíná timebank tohoto hráče
+      this.timebankStartedAt = Date.now();
+
       this._turnTimer = setTimeout(() => {
         if (this.activeSide !== side || this.phase !== 'playing') return;
-        this.timebank[side] = 0;
+        this.timebank[side]    = 0;
+        this.timebankStartedAt = null;
         this._log(`${this.name[side]} vypršel čas i timebank – tah přeskočen.`);
         this._advanceTurn();
       }, bank * 1000);
@@ -178,18 +183,17 @@ class GameSession {
 
   _clearTurnTimer() {
     if (this._turnTimer) { clearTimeout(this._turnTimer); this._turnTimer = null; }
+    this.timebankStartedAt = null;
   }
 
   /**
-   * Odečte spotřebovaný timebank aktivního hráče.
-   * Voláno vždy PŘED _clearTurnTimer() při jakékoli akci hráče.
+   * Odečte spotřebovaný timebank aktivního hráče při jeho akci.
+   * Voláno PŘED _clearTurnTimer().
    */
   _consumeTimebank(side) {
-    const elapsedSec = (Date.now() - this.turnStartedAt) / 1000;
-    const bankUsed   = Math.max(0, elapsedSec - TURN_SECONDS);
-    if (bankUsed > 0) {
-      this.timebank[side] = Math.max(0, this.timebank[side] - Math.ceil(bankUsed));
-    }
+    if (this.timebankStartedAt === null) return;  // fáze tahu – timebank se nespotřebovává
+    const bankUsed = Math.ceil((Date.now() - this.timebankStartedAt) / 1000);
+    this.timebank[side] = Math.max(0, this.timebank[side] - bankUsed);
   }
 
   // ── Public: reconnect – pošli aktuální stav znovu ─────────────────────────
@@ -460,10 +464,50 @@ class GameSession {
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,
       lastPlayedByMe:   this.lastPlayedBySide === side,
-      turnStartedAt:    this.turnStartedAt,
-      turnSeconds:      TURN_SECONDS,
-      timebankMe:       this.timebank[side],
-      timebankOpp:      this.timebank[side === 'A' ? 'B' : 'A']
+
+      // ── Timer (relativní – eliminuje desynchronizaci hodin mezi zařízeními) ──
+      // turnRemainingMs  = zbývající ms ve fázi tahu (0 pokud jsme ve fázi timebanku)
+      // timebankMeMs     = zbývající ms v mém timebanku  (klesá jen ve fázi timebanku)
+      // timebankOppMs    = zbývající ms v timebankuoponenta (statické, dokud není jeho tah)
+      ...this._buildTimerFor(side)
+    };
+  }
+
+  /**
+   * Vrátí časové údaje relativní k okamžiku odeslání zprávy.
+   * Klient si uloží čas přijetí a odpočítává od toho – bez závislosti
+   * na synchronizaci hodin mezi zařízeními.
+   *
+   * turnRemainingMs  – zbývající ms ve fázi tahu (0 pokud jsme ve fázi timebanku)
+   * timebankMeMs     – zbývající ms v mém timebanku
+   * timebankOppMs    – zbývající ms v timebankuoponenta
+   */
+  _buildTimerFor(side) {
+    const now      = Date.now();
+    const actSide  = this.activeSide;
+    const oppSide  = actSide === 'A' ? 'B' : 'A';
+
+    let turnRemainingMs;
+    let activeBankMs;
+
+    if (this.timebankStartedAt !== null) {
+      // Jsme ve fázi timebanku aktivního hráče
+      turnRemainingMs = 0;
+      activeBankMs    = Math.max(0, this.timebank[actSide] * 1000 - (now - this.timebankStartedAt));
+    } else {
+      // Jsme ve fázi tahu
+      turnRemainingMs = Math.max(0, TURN_SECONDS * 1000 - (now - this.turnStartedAt));
+      activeBankMs    = this.timebank[actSide] * 1000;
+    }
+
+    const oppBankMs = this.timebank[oppSide] * 1000;
+
+    // Přeložit do perspektivy "side" (Me = já, Opp = soupeř)
+    const isActivePlayer = side === actSide;
+    return {
+      turnRemainingMs,
+      timebankMeMs:  isActivePlayer ? activeBankMs : oppBankMs,
+      timebankOppMs: isActivePlayer ? oppBankMs    : activeBankMs
     };
   }
 
