@@ -784,56 +784,30 @@ private fun CastleTowerBlock(
     accentLight: Color,
     isPlayer: Boolean
 ) {
+    // Průhlednost dle HP: plné HP = plně viditelný, 0 HP = 30% viditelný
+    val hpFrac = (castleHp / 60f).coerceIn(0f, 1f)
+    val imgAlpha by animateFloatAsState(
+        targetValue   = 0.30f + 0.70f * hpFrac,
+        animationSpec = tween(600),
+        label         = "castle_alpha"
+    )
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier
-                .width(50.dp)
-                .height(towerH)
-                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                .background(
-                    Brush.verticalGradient(
-                        if (isPlayer)
-                            listOf(Color(0xFF0A2A4A), Color(0xFF0D3560), Color(0xFF0F4070), Color(0xFF082040))
-                        else
-                            listOf(Color(0xFF3A0A0A), Color(0xFF5C1010), Color(0xFF701818), Color(0xFF380A0A))
-                    )
-                )
-                .border(
-                    1.5.dp, accentColor.copy(alpha = 0.55f),
-                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                )
-        ) {
-            // Cimbuří
-            Canvas(Modifier.fillMaxWidth().height(10.dp)) {
-                val mW = size.width / 5f
-                for (i in listOf(0, 2, 4)) {
-                    drawRect(
-                        accentColor.copy(alpha = 0.60f),
-                        topLeft = Offset(mW * i, 0f),
-                        size    = Size(mW * 0.85f, size.height)
-                    )
-                }
-            }
-            // Okna
-            Column(
-                Modifier.fillMaxSize().padding(top = 14.dp, bottom = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.Top),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                repeat(2) {
-                    Box(
-                        Modifier
-                            .size(width = 10.dp, height = 13.dp)
-                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .background(accentColor.copy(alpha = 0.07f))
-                            .border(
-                                0.5.dp, accentColor.copy(alpha = 0.25f),
-                                RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
-                            )
-                    )
-                }
-            }
-        }
+        Image(
+            painter            = painterResource(R.drawable.castle_player),
+            contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
+            modifier           = Modifier
+                .width(80.dp)
+                .height(120.dp)
+                .graphicsLayer {
+                    alpha   = imgAlpha
+                    // Soupeřův hrad zrcadlíme horizontálně
+                    scaleX  = if (isPlayer) 1f else -1f
+                    // Lehký červený tint při nízkém HP přes ColorFilter není v graphicsLayer,
+                    // ale vizuálně stačí alpha efekt
+                },
+            contentScale       = ContentScale.Fit
+        )
         Spacer(Modifier.height(2.dp))
         Box(
             Modifier
