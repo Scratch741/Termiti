@@ -16,6 +16,7 @@ const sr = (t,n)    => ({ type:'StealResource',    resType:t, amount:n });
 const dr = (t,n)    => ({ type:'DrainResource',    resType:t, amount:n });
 const cd = (c,e)    => ({ type:'ConditionalEffect',condition:c, effect:e });
 const dm = (t,n=1)  => ({ type:'DestroyMine',     resType:t, amount:n });
+const bm = (t,turns)=> ({ type:'BlockMine',        resType:t, turns });
 const sc = (n=1)    => ({ type:'StealCard',        count:n });
 const bn = (n=1)    => ({ type:'BurnCard',         count:n });
 const ad = (id,n)   => ({ type:'AddCardsToDeck',   cardId:id, count:n });
@@ -179,10 +180,10 @@ const RAW = [
   ['C32','Vzájemná zkáza',  3,'CHAOS',0,[ac(10), bc(-10)],     'EPIC'],
 
   // ── Chaos ničení dolů ─────────────────────────────────────────────────────
-  ['C13','Sabotáž',         5,'CHAOS',0,[dm('MAGIC',1)],       'EPIC'],
-  ['C14','Ničení kamenolomu',5,'CHAOS',0,[dm('STONES',1)],     'EPIC'],
-  ['C15','Zákeřnost',       5,'CHAOS',0,[dm('ATTACK',1)],      'EPIC'],
-  ['C16','Velká sabotáž',   7,'CHAOS',0,[dm('MAGIC',1), dm('STONES',1)], 'LEGENDARY'],
+  ['C13','Sabotáž',         5,'CHAOS',0,[dm('MAGIC',1),  bm('MAGIC',2)],                           'EPIC'],
+  ['C14','Ničení kamenolomu',5,'CHAOS',0,[dm('STONES',1), bm('STONES',2)],                          'EPIC'],
+  ['C15','Zákeřnost',       5,'CHAOS',0,[dm('ATTACK',1), bm('ATTACK',2)],                           'EPIC'],
+  ['C16','Velká sabotáž',   7,'CHAOS',0,[dm('MAGIC',1),  bm('MAGIC',3), dm('STONES',1), bm('STONES',3)], 'LEGENDARY'],
 
   // ── Chaos krádež/ničení karet ─────────────────────────────────────────────
   ['C17','Telekineze',      3,'CHAOS',0,[sc(1)],               'EPIC'],
