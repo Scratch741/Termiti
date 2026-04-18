@@ -747,18 +747,11 @@ private fun NewCastleStructure(
     val accentColor = if (isPlayer) Teal    else Crimson
     val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
 
-    val castleFrac by animateFloatAsState(
-        targetValue   = (castleHp / 60f).coerceIn(0f, 1f),
-        animationSpec = tween(600, easing = EaseOutCubic),
-        label         = "castle_frac"
-    )
     val wallFrac by animateFloatAsState(
         targetValue   = (wallHp / 50f).coerceIn(0f, 1f),
         animationSpec = tween(400),
         label         = "wall_frac"
     )
-
-    val towerH     = (20f + 80f * castleFrac).dp
     val wallBlocks = (10f * wallFrac).roundToInt().coerceIn(0, 10)
 
     Row(
@@ -767,11 +760,11 @@ private fun NewCastleStructure(
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         if (isPlayer) {
-            CastleTowerBlock(castleHp, towerH, accentColor, accentLight, isPlayer = true)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true)
             WallBlock(wallHp, wallBlocks, accentColor)
         } else {
             WallBlock(wallHp, wallBlocks, accentColor)
-            CastleTowerBlock(castleHp, towerH, accentColor, accentLight, isPlayer = false)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false)
         }
     }
 }
@@ -779,49 +772,51 @@ private fun NewCastleStructure(
 @Composable
 private fun CastleTowerBlock(
     castleHp: Int,
-    towerH: androidx.compose.ui.unit.Dp,
     accentColor: Color,
     accentLight: Color,
     isPlayer: Boolean
 ) {
-    val castleFullH = 120.dp
-    val castleFullW = 80.dp
+    val castleFullH = 165.dp
+    val castleFullW = 110.dp
     val hpFrac = (castleHp / 60f).coerceIn(0f, 1f)
 
-    // Hrad se posouvá dolů o (1 - hpFrac) * výška → vypadá, že se noří do země
-    // 100% HP = offset 0 (plně vylezlý), 0% HP = offset fullH (plně pod zemí)
     val offsetY by animateDpAsState(
         targetValue   = castleFullH * (1f - hpFrac),
         animationSpec = tween(600, easing = EaseOutCubic),
         label         = "castle_emerge"
     )
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Clip box = pevné okno (viewport) přes které hrad vylézá
+    // Clip box = pevné okno, HP badge přes hrad
+    Box(
+        modifier = Modifier
+            .size(castleFullW, castleFullH)
+            .clip(androidx.compose.ui.graphics.RectangleShape)
+    ) {
+        Image(
+            painter            = painterResource(R.drawable.castle_player),
+            contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
+            modifier           = Modifier
+                .size(castleFullW, castleFullH)
+                .offset(y = offsetY)
+                .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
+            contentScale       = ContentScale.Fit
+        )
+        // HP badge přes hrad – vlevo dole (hráč) nebo vpravo dole (soupeř)
         Box(
             modifier = Modifier
-                .size(castleFullW, castleFullH)
-                .clip(androidx.compose.ui.graphics.RectangleShape)
+                .align(if (isPlayer) Alignment.BottomStart else Alignment.BottomEnd)
+                .padding(4.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.Black.copy(alpha = 0.78f))
+                .border(0.5.dp, accentLight.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                .padding(horizontal = 5.dp, vertical = 2.dp)
         ) {
-            Image(
-                painter            = painterResource(R.drawable.castle_player),
-                contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
-                modifier           = Modifier
-                    .size(castleFullW, castleFullH)
-                    .offset(y = offsetY)                          // posun dolů dle HP
-                    .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
-                contentScale       = ContentScale.Fit
+            Text(
+                "🏰 $castleHp",
+                color      = accentLight,
+                fontSize   = 10.sp,
+                fontWeight = FontWeight.Bold
             )
-        }
-        Spacer(Modifier.height(2.dp))
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color.Black.copy(alpha = 0.72f))
-                .border(0.5.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(3.dp))
-                .padding(horizontal = 4.dp, vertical = 1.dp)
-        ) {
-            Text("🏰 $castleHp", color = accentLight, fontSize = 9.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
