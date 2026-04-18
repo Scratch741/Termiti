@@ -1837,7 +1837,7 @@ private fun CardViewTextured(
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = 3.dp, y = 5.dp)
+                .offset(x = 0.dp, y = 5.dp)
                 .size(20.dp),
             contentAlignment = Alignment.Center
         ) {
