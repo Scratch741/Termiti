@@ -784,30 +784,41 @@ private fun CastleTowerBlock(
     accentLight: Color,
     isPlayer: Boolean
 ) {
-    // Průhlednost dle HP: plné HP = plně viditelný, 0 HP = 30% viditelný
+    val castleFullH = 120.dp
+    val castleFullW = 80.dp
     val hpFrac = (castleHp / 60f).coerceIn(0f, 1f)
-    val imgAlpha by animateFloatAsState(
-        targetValue   = 0.30f + 0.70f * hpFrac,
-        animationSpec = tween(600),
-        label         = "castle_alpha"
+
+    // Výška viditelné části: při 100 % HP = celý hrad, při 0 % = 0dp (pod zemí)
+    val visibleH by animateDpAsState(
+        targetValue   = castleFullH * hpFrac,
+        animationSpec = tween(600, easing = EaseOutCubic),
+        label         = "castle_emerge"
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter            = painterResource(R.drawable.castle_player),
-            contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
-            modifier           = Modifier
-                .width(80.dp)
-                .height(120.dp)
-                .graphicsLayer {
-                    alpha   = imgAlpha
-                    // Soupeřův hrad zrcadlíme horizontálně
-                    scaleX  = if (isPlayer) 1f else -1f
-                    // Lehký červený tint při nízkém HP přes ColorFilter není v graphicsLayer,
-                    // ale vizuálně stačí alpha efekt
-                },
-            contentScale       = ContentScale.Fit
-        )
+        // Vnější box vždy zabírá plnou výšku → layout se nikdy neposouvá
+        Box(
+            modifier        = Modifier.size(castleFullW, castleFullH),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            // Vnitřní clip box – odhaluje obrázek shora dolů podle HP
+            Box(
+                modifier = Modifier
+                    .width(castleFullW)
+                    .height(visibleH)
+                    .align(Alignment.TopCenter)
+                    .clip(androidx.compose.ui.graphics.RectangleShape)
+            ) {
+                Image(
+                    painter            = painterResource(R.drawable.castle_player),
+                    contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
+                    modifier           = Modifier
+                        .size(castleFullW, castleFullH)
+                        .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
+                    contentScale       = ContentScale.Fit
+                )
+            }
+        }
         Spacer(Modifier.height(2.dp))
         Box(
             Modifier
