@@ -1796,26 +1796,26 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 5: text karty pod názvem (~94–124 dp od vrchu)
+        // Vrstva 5: text karty pod názvem (94–120 dp od vrchu, max 3 řádky)
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 94.dp)
                 .fillMaxWidth()
-                .height(28.dp)
+                .height(24.dp)
                 .clipToBounds()
                 .padding(horizontal = 9.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 card.description,
                 color = Color(0xFFDDD0B0),
-                fontSize = 7.sp,
+                fontSize = 6.5.sp,
                 textAlign = TextAlign.Center,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 9.sp
+                lineHeight = 8.5.sp
             )
         }
 
@@ -1867,12 +1867,12 @@ private fun CardViewTextured(
             }
         }
 
-        // Vrstva 6: typ karty v dolním pruhu (~123–135 dp od vrchu, nad spodním rámem)
+        // Vrstva 6: typ karty v dolním pruhu (122–136 dp od vrchu, pod textem)
         if (card.type.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(y = 120.dp)
+                    .offset(y = 122.dp)
                     .fillMaxWidth()
                     .height(14.dp),
                 contentAlignment = Alignment.Center
