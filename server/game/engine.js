@@ -152,9 +152,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
         break;
 
       case 'DestroyMine': {
-        // Minimum 1 – nelze zničit poslední důl daného typu
+        // Minimum 1 pro MAGIC/ATTACK/STONES, pro CHAOS minimum 0
         const cur = opponent.mines[fx.resType] || 0;
-        if (cur > 1) opponent.mines[fx.resType] = Math.max(1, cur - fx.amount);
+        const min = fx.resType === 'CHAOS' ? 0 : 1;
+        if (cur > min) opponent.mines[fx.resType] = Math.max(min, cur - fx.amount);
         break;
       }
 

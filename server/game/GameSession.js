@@ -253,31 +253,15 @@ class GameSession {
     }
     const card = self.hand[cardIdx];
 
-    // Check resources
+    // Check resources – všechny typy (MAGIC, ATTACK, STONES, CHAOS) fungují stejně
     const cost = card.cost || 0;
     const res  = card.costType;
-    if (res && res !== 'CHAOS') {
+    if (res && cost > 0) {
       if ((self.resources[res] || 0) < cost) {
         this._sendError(side, 'Nedostatek zdrojů.');
         return;
       }
       self.resources[res] -= cost;
-    } else if (res === 'CHAOS') {
-      // Chaos: atomicky over, pak odečti z MAGIC+ATTACK+STONES
-      const total = (self.resources.MAGIC  || 0)
-                  + (self.resources.ATTACK || 0)
-                  + (self.resources.STONES || 0);
-      if (total < cost) {
-        this._sendError(side, 'Nedostatek zdrojů pro Chaos kartu.');
-        return;
-      }
-      let remaining = cost;
-      for (const rType of ['MAGIC', 'ATTACK', 'STONES']) {
-        if (remaining <= 0) break;
-        const pay = Math.min(remaining, self.resources[rType] || 0);
-        self.resources[rType] = (self.resources[rType] || 0) - pay;
-        remaining -= pay;
-      }
     }
 
     // Remove from hand → discard

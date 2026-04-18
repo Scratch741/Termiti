@@ -62,8 +62,8 @@ fun applyEffects(
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
-            // Minimum 1 – nelze zničit poslední důl daného typu
-            if (cur > 1) opponent.mines[effect.type] = (cur - effect.amount).coerceAtLeast(1)
+            val min = if (effect.type == ResourceType.CHAOS) 0 else 1
+            if (cur > min) opponent.mines[effect.type] = (cur - effect.amount).coerceAtLeast(min)
         }
 
         is CardEffect.BlockMine     -> {

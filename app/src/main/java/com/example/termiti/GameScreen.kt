@@ -1483,15 +1483,7 @@ fun HandPanel(
                     .padding(horizontal = 10.dp)
             ) {
                 hand.forEach { card ->
-                    val affordable = if (card.costType == ResourceType.CHAOS) {
-                        // Chaos platí z MAGIC + ATTACK + STONES dohromady
-                        val total = (playerResources[ResourceType.MAGIC]  ?: 0) +
-                                    (playerResources[ResourceType.ATTACK] ?: 0) +
-                                    (playerResources[ResourceType.STONES] ?: 0)
-                        total >= card.cost
-                    } else {
-                        (playerResources[card.costType] ?: 0) >= card.cost
-                    }
+                    val affordable = (playerResources[card.costType] ?: 0) >= card.cost
                     CardView(
                         card          = card,
                         canPlay       = isPlayerTurn && affordable,
