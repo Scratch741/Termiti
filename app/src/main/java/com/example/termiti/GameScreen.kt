@@ -36,6 +36,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -1840,29 +1841,26 @@ private fun CardViewTextured(
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             val costLabel = if (card.isXCost) "X" else "${card.cost}"
-            // Černý obrys – 4 posunuté kopie
-            for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
-                Text(
-                    costLabel,
-                    color = Color.Black,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.offset(x = off.x.dp, y = off.y.dp),
-                    style = costStyle
-                )
-            }
-            // Bílá výplň
-            Text(
-                costLabel,
-                color = Color.White,
+            // TextStyle s LineHeightStyle.Trim.Both = glyf přesně uprostřed boxu
+            val costStyle = TextStyle(
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
-                style = costStyle
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
             )
+            // Černý obrys – 4 posunuté kopie
+            for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
+                Text(costLabel, color = Color.Black,
+                    modifier = Modifier.offset(x = off.x.dp, y = off.y.dp),
+                    style = costStyle)
+            }
+            // Bílá výplň
+            Text(costLabel, color = Color.White, style = costStyle)
         }
 
         // Vrstva 4: název karty v červeném obloukovém pásu (~70–90 dp od vrchu)
