@@ -623,9 +623,9 @@ fun NewBattlefield(
         // Přirozená velikost karty
         val cardNatH = 140.dp
         val cardNatW = 100.dp
-        // Dostupný prostor: pod AI stripem (52dp fixní), malý dolní dech (8dp).
+        // Dostupný prostor: pod AI stripem (34dp), malý dolní dech (8dp).
         // Hrady jsou v rozích → blokují jen strany, ne střed bojiště.
-        val cardAvailH = maxHeight - 52.dp - 8.dp
+        val cardAvailH = maxHeight - 34.dp - 8.dp
         val cardAvailW = maxWidth  - 24.dp      // 12dp margin na každé straně
         val cardScaleH = (cardAvailH / cardNatH).coerceIn(0.4f, 1.35f)
         val cardScaleW = (cardAvailW / cardNatW).coerceIn(0.4f, 1.35f)
@@ -633,9 +633,9 @@ fun NewBattlefield(
         val scaledH    = cardNatH * cardScale
         val scaledW    = cardNatW * cardScale
 
-        // ── AI ruka (nahoře) – fixní výška 52dp, layout se nikdy neposouvá ──
-        val aiStripH = 52.dp
-        Column(
+        // ── AI ruka (nahoře) – fixní výška 34dp ─────────────────────────────
+        val aiStripH = 34.dp
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
@@ -643,47 +643,13 @@ fun NewBattlefield(
                 .background(
                     Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.50f), Color.Transparent))
                 )
-                .padding(horizontal = 8.dp, vertical = 3.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .padding(horizontal = 8.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            // Štítek zahrané karty soupeře
-            if (revealedAiCard != null) {
-                val costIcon = resourceIcon(revealedAiCard.costType)
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Crimson.copy(alpha = 0.22f))
-                        .border(1.dp, Crimson.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 7.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text("🎴", fontSize = 10.sp)
-                    Text(
-                        revealedAiCard.name,
-                        color      = TextPrimary,
-                        fontSize   = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        "$costIcon${revealedAiCard.cost}",
-                        color    = resourceColor(revealedAiCard.costType),
-                        fontSize = 10.sp
-                    )
-                }
-            }
-            // Karty v ruce soupeře (ruby)
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(aiState.hand.size) { i ->
-                    if (i > 0) Spacer(Modifier.width(3.dp))
-                    CardBack()
-                }
+            repeat(aiState.hand.size) { i ->
+                if (i > 0) Spacer(Modifier.width(3.dp))
+                CardBack()
             }
         }
 

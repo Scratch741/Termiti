@@ -238,8 +238,7 @@ private fun OnlineGameplay(
                     lastCard         = lastCard,
                     lastCardAction   = if (lastCard != null) CardAction.PLAYED else null,
                     lastCardIsPlayer = lastCardByMe,
-                    modifier         = Modifier.fillMaxHeight().weight(1f),
-                    revealedAiCard   = if (!lastCardByMe) lastCard else null
+                    modifier         = Modifier.fillMaxHeight().weight(1f)
                 )
 
                 // ── Pravý panel: zdroje soupeře ───────────────────────────────
