@@ -192,7 +192,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.AddResource(ResourceType.ATTACK, 2),
                 CardEffect.ConditionalEffect(Condition.WallBelow(5), CardEffect.AttackCastle(8))
             ), type = "Útok"),
-        Card("056", "Nájezdník",      "Ukraď 3 útoku, zaútočí za 4.",            cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+        Card("056", "Nájezdník",      "Ukradni 3 útoku, zaútočí za 4.",            cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.StealResource(ResourceType.ATTACK, 3), CardEffect.AttackPlayer(4)),artResId = R.drawable.art_najezdnik, type = "Útok"),
 
         // ── Stavba – Arcomage/Mravenci inspirace ──────────────────────
@@ -215,22 +215,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.ConditionalEffect(Condition.CastleAbove(40), CardEffect.BuildCastle(10))),artResId = R.drawable.art_zasobnik, type = "Stavba"),
 
         // ── Sabotáž a krádež (platí MAGIC) ───────────────────────────
-        Card("065", "Lupič",          "Ukraď 3 útoku od soupeře.",               cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
+        Card("065", "Lupič",          "Ukradni 3 útoku od soupeře.",               cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.StealResource(ResourceType.ATTACK, 3)),artResId = R.drawable.art_lupic, type = "Magie"),
-        Card("066", "Zlatokop",       "Ukraď 4 kameny od soupeře.",              cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
+        Card("066", "Zlatokop",       "Ukradni 4 kameny od soupeře.",              cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.StealResource(ResourceType.STONES, 4)), type = "Magie"),
         Card("067", "Sabotér",        "Soupeř ztratí 5 kamenů.",                 cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(CardEffect.DrainResource(ResourceType.STONES, 5)),artResId = R.drawable.art_saboter, type = "Magie"),
         Card("068", "Demoralizace",   "Soupeř ztratí 5 útoku.",                  cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(CardEffect.DrainResource(ResourceType.ATTACK, 5)),artResId = R.drawable.art_demoralizace, type = "Magie"),
-        Card("069", "Dvojitý agent",  "Ukraď 3 magie a 3 útoku, +1 chaosu.",   cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+        Card("069", "Dvojitý agent",  "Ukradni 3 magie a 3 útoku, +1 chaosu.",   cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.StealResource(ResourceType.MAGIC, 3),
                 CardEffect.StealResource(ResourceType.ATTACK, 3),
                 CardEffect.AddResource(ResourceType.CHAOS, 1)),artResId = R.drawable.art_dvojity_agent, type = "Magie"),
         Card("070", "Krize zásobování","Soupeř ztratí 5 kamenů a 5 útoku.",     cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.DrainResource(ResourceType.STONES, 5),
                 CardEffect.DrainResource(ResourceType.ATTACK, 5)),artResId = R.drawable.art_krize_zasobovani, type = "Magie"),
-        Card("071", "Špión",          "Ukraď 2 od každého zdroje, +2 chaosu.",  cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+        Card("071", "Špión",          "Ukradni 2 od každého zdroje, +2 chaosu.",  cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.StealResource(ResourceType.MAGIC, 2),
                 CardEffect.StealResource(ResourceType.ATTACK, 2),
                 CardEffect.StealResource(ResourceType.STONES, 2),
@@ -365,7 +365,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.DrainResource(ResourceType.MAGIC, 2)),artResId = R.drawable.art_entropie, type = "Kouzlo"),
         Card("C03", "Chaotický důl",     "Trvale +1 důl chaosu/kolo.",            cost = 4, costType = ResourceType.MAGIC,  rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.AddMine(ResourceType.CHAOS, 1)),artResId = R.drawable.art_chaoticky_dul, type = "Magie"),
-        Card("C04", "Krádež chaosu",     "Ukraď 3 chaos od soupeře. [Combo]",     cost = 2, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
+        Card("C04", "Krádež chaosu",     "Ukradni 3 chaos od soupeře. [Combo]",     cost = 2, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
             effects = listOf(CardEffect.StealResource(ResourceType.CHAOS, 3)), isCombo = true,artResId = R.drawable.art_kradez_chaosu, type = "Magie"),
 
         // Karty platící Chaosem – silné efekty
@@ -385,7 +385,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackPlayer(15), CardEffect.AttackCastle(12)),artResId = R.drawable.art_chaoticky_drak, type = "Útok"),
         Card("C11", "Chaos a řád",       "Hrad +8 a hradby +8.",                  cost = 4, costType = ResourceType.CHAOS,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.BuildCastle(8), CardEffect.BuildWall(8)), type = "Stavba"),
-        Card("C12", "Anarchie",          "Ukraď 5 od každého zdroje soupeře.",    cost = 8, costType = ResourceType.CHAOS,  rarity = Rarity.LEGENDARY,
+        Card("C12", "Anarchie",          "Ukradni 5 od každého zdroje soupeře.",    cost = 8, costType = ResourceType.CHAOS,  rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.StealResource(ResourceType.MAGIC, 5),
                 CardEffect.StealResource(ResourceType.ATTACK, 5),
                 CardEffect.StealResource(ResourceType.STONES, 5)),artResId = R.drawable.art_anarchie, type = "Chaos"),
@@ -407,9 +407,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.BlockMine(ResourceType.STONES, 3)),artResId = R.drawable.art_velka_sabotaz, type = "Útok"),
 
         // ── Chaos – krádež karet ──────────────────────────────────────
-        Card("C17", "Telekineze",        "Ukraď 1 náhodnou kartu ze soupeřovy ruky.", cost = 3, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
+        Card("C17", "Telekineze",        "Ukradni 1 náhodnou kartu ze soupeřovy ruky.", cost = 3, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.StealCard(1)),artResId = R.drawable.art_telekineze, type = "Chaos"),
-        Card("C18", "Chaos loupe",       "Ukraď 2 náhodné karty ze soupeřovy ruky.", cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
+        Card("C18", "Chaos loupe",       "Ukradni 2 náhodné karty ze soupeřovy ruky.", cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.StealCard(2)), type = "Chaos"),
 
         // ── Chaos – ničení karet ──────────────────────────────────────
