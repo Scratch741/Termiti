@@ -635,7 +635,7 @@ fun NewBattlefield(
 
         // ── AI ruka (nahoře) – fixní výška 52dp, layout se nikdy neposouvá ──
         val aiStripH = 52.dp
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
@@ -643,18 +643,47 @@ fun NewBattlefield(
                 .background(
                     Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.50f), Color.Transparent))
                 )
-                .padding(horizontal = 8.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Odhalená karta soupeře (zahrána právě teď)
+            // Štítek zahrané karty soupeře
             if (revealedAiCard != null) {
-                CardBackPlayed(revealedAiCard)
-                if (aiState.hand.size > 0) Spacer(Modifier.width(5.dp))
+                val costIcon = resourceIcon(revealedAiCard.costType)
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Crimson.copy(alpha = 0.22f))
+                        .border(1.dp, Crimson.copy(alpha = 0.55f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 7.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text("🎴", fontSize = 10.sp)
+                    Text(
+                        revealedAiCard.name,
+                        color      = TextPrimary,
+                        fontSize   = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        "$costIcon${revealedAiCard.cost}",
+                        color    = resourceColor(revealedAiCard.costType),
+                        fontSize = 10.sp
+                    )
+                }
             }
-            repeat(aiState.hand.size) { i ->
-                if (i > 0) Spacer(Modifier.width(3.dp))
-                CardBack()
+            // Karty v ruce soupeře (ruby)
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(aiState.hand.size) { i ->
+                    if (i > 0) Spacer(Modifier.width(3.dp))
+                    CardBack()
+                }
             }
         }
 
