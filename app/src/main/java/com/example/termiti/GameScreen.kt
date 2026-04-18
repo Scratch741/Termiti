@@ -493,6 +493,10 @@ fun NewResourcePanel(
     val mineAtk   = playerState.mines[ResourceType.ATTACK] ?: 0
     val mineSto   = playerState.mines[ResourceType.STONES] ?: 0
     val mineChaos = playerState.mines[ResourceType.CHAOS]  ?: 0
+    val blkMagic  = playerState.mineBlockedTurns[ResourceType.MAGIC]  ?: 0
+    val blkAtk    = playerState.mineBlockedTurns[ResourceType.ATTACK] ?: 0
+    val blkSto    = playerState.mineBlockedTurns[ResourceType.STONES] ?: 0
+    val blkChaos  = playerState.mineBlockedTurns[ResourceType.CHAOS]  ?: 0
 
     Column(
         modifier = modifier
@@ -508,10 +512,10 @@ fun NewResourcePanel(
             }
             .padding(horizontal = 5.dp, vertical = 5.dp)
     ) {
-        NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple,  isAi = isAi)
-        NewResourceSection("⚔️", "Útok",   mineAtk,   attack, AttackRed,    isAi = isAi)
-        NewResourceSection("🪨", "Kameny", mineSto,   stones, StoneColor,   isAi = isAi)
-        NewResourceSection("🌀", "Chaos",  mineChaos, chaos,  ChaosOrange,  isAi = isAi, isLast = true)
+        NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
+        NewResourceSection("⚔️", "Útok",   mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
+        NewResourceSection("🪨", "Kameny", mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
+        NewResourceSection("🌀", "Chaos",  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
         Spacer(Modifier.weight(1f))
         bottomSlot()
     }
@@ -525,8 +529,36 @@ fun NewResourceSection(
     amount: Int,
     color: Color,
     isAi: Boolean = false,
-    isLast: Boolean = false
+    isLast: Boolean = false,
+    blockedTurns: Int = 0
 ) {
+    val blocked = blockedTurns > 0
+    val mineColor = if (blocked) Color(0xFFE53935) else Gold
+
+    // Pomocný slot pro počet dolů + indikátor blokace
+    @Composable
+    fun MineSlot(align: Alignment.Horizontal) {
+        Column(
+            modifier = Modifier.widthIn(min = 14.dp),
+            horizontalAlignment = align
+        ) {
+            Text(
+                if (mine > 0) "$mine" else "—",
+                color = mineColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (blocked) {
+                Text(
+                    "⛔$blockedTurns",
+                    color = Color(0xFFE53935).copy(alpha = 0.85f),
+                    fontSize = 7.sp,
+                    lineHeight = 7.sp
+                )
+            }
+        }
+    }
+
     // ── Jedna kompaktní řádka: [mine#] [icon] [name] ... [amount] ──────────
     // Pro AI zrcadlově: [amount] ... [name] [icon] [mine#]
     Row(
@@ -543,11 +575,7 @@ fun NewResourceSection(
     ) {
         if (!isAi) {
             // Hráč: mine# | ikona | název (roztažený) | zásoba
-            Text(
-                if (mine > 0) "$mine" else "—",
-                color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.widthIn(min = 13.dp)
-            )
+            MineSlot(Alignment.Start)
             Spacer(Modifier.width(2.dp))
             Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
             Spacer(Modifier.width(3.dp))
@@ -567,12 +595,7 @@ fun NewResourceSection(
             Spacer(Modifier.width(3.dp))
             Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
             Spacer(Modifier.width(2.dp))
-            Text(
-                if (mine > 0) "$mine" else "—",
-                color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.widthIn(min = 13.dp),
-                textAlign = TextAlign.End
-            )
+            MineSlot(Alignment.End)
         }
     }
 }
@@ -719,6 +742,25 @@ fun NewBattlefield(
                             }
                     ) {
                         CardView(card = lastCard, canPlay = false, discardMode = false, onClick = {})
+                        // Overlay: ikona akce přesně uprostřed karty
+                        val overlayIcon = when (lastCardAction) {
+                            CardAction.DISCARDED -> "✕"
+                            CardAction.BURNED    -> "🔥"
+                            else                 -> null
+                        }
+                        if (overlayIcon != null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text      = overlayIcon,
+                                    fontSize  = 38.sp,
+                                    color     = if (lastCardAction == CardAction.DISCARDED) Color(0xFFE53935) else Color.Unspecified,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
                 }
             } else {
