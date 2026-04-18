@@ -41,8 +41,9 @@ class GameSession {
     this.mulliganDone = { A: false, B: false };
 
     // Last played card (sent to both clients so they can animate it)
-    this.lastPlayedCard   = null;
-    this.lastPlayedBySide = null;
+    this.lastPlayedCard    = null;
+    this.lastPlayedBySide  = null;
+    this.lastPlayedCardIdx = null;  // index v ruce před zahráním
 
     // Timer
     this.timebank          = { A: TIMEBANK_SECONDS, B: TIMEBANK_SECONDS };
@@ -283,10 +284,11 @@ class GameSession {
     self.hand.splice(cardIdx, 1);
     self.discardPile.push(card);
 
-    // Zapamatuj si zahranou kartu pro animaci
-    this.lastPlayedCard   = { id: card.id, baseId: card.baseId, name: card.name,
-                               cost: card.cost, costType: card.costType, rarity: card.rarity };
-    this.lastPlayedBySide = side;
+    // Zapamatuj si zahranou kartu + index v ruce (před splice) pro zobrazení soupeři
+    this.lastPlayedCard    = { id: card.id, baseId: card.baseId, name: card.name,
+                                cost: card.cost, costType: card.costType, rarity: card.rarity };
+    this.lastPlayedBySide  = side;
+    this.lastPlayedCardIdx = cardIdx;
 
     // Handle combo cards: apply effects only if isCombo check passes (always for now)
     const lostCards = [];
@@ -453,13 +455,15 @@ class GameSession {
         discardSize: my.discardPile.length
       },
       oppState: {
-        castleHP:    opp.castleHP,
-        wallHP:      opp.wallHP,
-        resources:   { ...opp.resources },
-        mines:       { ...opp.mines },
-        handSize:    opp.hand.length,       // opponent hand is hidden
-        deckSize:    opp.deck.length,
-        discardSize: opp.discardPile.length
+        castleHP:      opp.castleHP,
+        wallHP:        opp.wallHP,
+        resources:     { ...opp.resources },
+        mines:         { ...opp.mines },
+        handSize:      opp.hand.length,       // opponent hand is hidden
+        deckSize:      opp.deck.length,
+        discardSize:   opp.discardPile.length,
+        // Index zahrané karty v ruce (před zahráním) – null pokud soupeř nezahrál
+        lastPlayedIdx: this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
       },
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,

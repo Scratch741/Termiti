@@ -233,12 +233,14 @@ private fun OnlineGameplay(
 
                 // ── Bojiště ───────────────────────────────────────────────────
                 NewBattlefield(
-                    playerState      = myPs,
-                    aiState          = oppPs,
-                    lastCard         = lastCard,
-                    lastCardAction   = if (lastCard != null) CardAction.PLAYED else null,
-                    lastCardIsPlayer = lastCardByMe,
-                    modifier         = Modifier.fillMaxHeight().weight(1f)
+                    playerState       = myPs,
+                    aiState           = oppPs,
+                    lastCard          = lastCard,
+                    lastCardAction    = if (lastCard != null) CardAction.PLAYED else null,
+                    lastCardIsPlayer  = lastCardByMe,
+                    modifier          = Modifier.fillMaxHeight().weight(1f),
+                    revealedAiCard    = if (!lastCardByMe) lastCard else null,
+                    revealedAiCardIdx = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null
                 )
 
                 // ── Pravý panel: zdroje soupeře ───────────────────────────────

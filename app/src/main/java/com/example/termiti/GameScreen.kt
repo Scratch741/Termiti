@@ -613,7 +613,8 @@ fun NewBattlefield(
     lastCardAction: CardAction?,
     lastCardIsPlayer: Boolean,
     modifier: Modifier = Modifier,
-    revealedAiCard: Card? = null   // karta zahrána soupeřem – zobrazí se v pruhu ruky
+    revealedAiCard: Card? = null,     // karta zahrána soupeřem
+    revealedAiCardIdx: Int? = null    // původní index v ruce (před zahráním)
 ) {
     BoxWithConstraints(
         modifier = modifier.background(
@@ -623,9 +624,9 @@ fun NewBattlefield(
         // Přirozená velikost karty
         val cardNatH = 140.dp
         val cardNatW = 100.dp
-        // Dostupný prostor: pod AI stripem (34dp), malý dolní dech (8dp).
+        // Dostupný prostor: pod AI stripem (46dp fixní), malý dolní dech (8dp).
         // Hrady jsou v rozích → blokují jen strany, ne střed bojiště.
-        val cardAvailH = maxHeight - 34.dp - 8.dp
+        val cardAvailH = maxHeight - 46.dp - 8.dp
         val cardAvailW = maxWidth  - 24.dp      // 12dp margin na každé straně
         val cardScaleH = (cardAvailH / cardNatH).coerceIn(0.4f, 1.35f)
         val cardScaleW = (cardAvailW / cardNatW).coerceIn(0.4f, 1.35f)
@@ -633,23 +634,31 @@ fun NewBattlefield(
         val scaledH    = cardNatH * cardScale
         val scaledW    = cardNatW * cardScale
 
-        // ── AI ruka (nahoře) – fixní výška 34dp ─────────────────────────────
-        val aiStripH = 34.dp
+        // ── AI ruka (nahoře) – fixní výška, zahraná karta na správné pozici ──
+        val aiStripH = 46.dp
+        // Celkový počet slotů: zbývající ruka + 1 zahraná karta (pokud víme index)
+        val showReveal = revealedAiCard != null && revealedAiCardIdx != null
+        val totalSlots = if (showReveal) aiState.hand.size + 1 else aiState.hand.size
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .height(aiStripH)
                 .background(
-                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.50f), Color.Transparent))
+                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))
                 )
                 .padding(horizontal = 8.dp),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(aiState.hand.size) { i ->
-                if (i > 0) Spacer(Modifier.width(3.dp))
-                CardBack()
+            for (slot in 0 until totalSlots) {
+                if (slot > 0) Spacer(Modifier.width(4.dp))
+                if (showReveal && slot == revealedAiCardIdx) {
+                    // Odhalená zahraná karta – na své původní pozici v ruce
+                    PlayedCardSlot(revealedAiCard!!)
+                } else {
+                    CardBack()
+                }
             }
         }
 
@@ -1147,6 +1156,42 @@ private fun CardBackPlayed(card: Card) {
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
         Text("${resourceIcon(card.costType)}${card.cost}", color = costColor, fontSize = 5.5.sp)
+    }
+}
+
+/** Slot zahrané karty soupeře v pruhu ruky – čitelný název + cena, červený rámeček. */
+@Composable
+private fun PlayedCardSlot(card: Card) {
+    val costColor = resourceColor(card.costType)
+    Column(
+        modifier = Modifier
+            .size(width = 38.dp, height = 38.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color(0xFF2A0A0A))
+            .border(1.5.dp, Crimson, RoundedCornerShape(5.dp))
+            .padding(3.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            effectIcon(card),
+            fontSize = 12.sp
+        )
+        Text(
+            card.name,
+            color      = TextPrimary,
+            fontSize   = 6.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign  = TextAlign.Center,
+            maxLines   = 2,
+            overflow   = TextOverflow.Ellipsis,
+            lineHeight = 7.sp
+        )
+        Text(
+            "${resourceIcon(card.costType)}${card.cost}",
+            color    = costColor,
+            fontSize = 6.sp
+        )
     }
 }
 

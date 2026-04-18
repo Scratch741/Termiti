@@ -35,14 +35,15 @@ data class OnlineMatchInfo(
 
 // ─── Stav hráče přijatý ze serveru ───────────────────────────────────────────
 data class OnlinePlayerState(
-    val castleHP  : Int                  = 30,
-    val wallHP    : Int                  = 10,
-    val resources : Map<String, Int>     = emptyMap(),
-    val mines     : Map<String, Int>     = emptyMap(),
-    val hand      : List<Card>           = emptyList(),  // jen myState
-    val handSize  : Int                  = 0,            // jen oppState
-    val deckSize  : Int                  = 0,
-    val discardSize: Int                 = 0
+    val castleHP     : Int                  = 30,
+    val wallHP       : Int                  = 10,
+    val resources    : Map<String, Int>     = emptyMap(),
+    val mines        : Map<String, Int>     = emptyMap(),
+    val hand         : List<Card>           = emptyList(),  // jen myState
+    val handSize     : Int                  = 0,            // jen oppState
+    val deckSize     : Int                  = 0,
+    val discardSize  : Int                  = 0,
+    val lastPlayedIdx: Int?                 = null          // jen oppState: index zahrané karty
 )
 
 // ─── Herní stav (pro GAME_STATE zprávy) ──────────────────────────────────────
@@ -388,15 +389,20 @@ class OnlineLobbyViewModel(
             parseCardArray(obj.optJSONArray("hand"))
         } else emptyList()
 
+        val lastPlayedIdx = if (!isMe && !obj.isNull("lastPlayedIdx"))
+            obj.optInt("lastPlayedIdx", -1).takeIf { it >= 0 }
+        else null
+
         return OnlinePlayerState(
-            castleHP   = obj.optInt("castleHP",   30),
-            wallHP     = obj.optInt("wallHP",      10),
-            resources  = resources,
-            mines      = mines,
-            hand       = hand,
-            handSize   = if (isMe) hand.size else obj.optInt("handSize", 0),
-            deckSize   = obj.optInt("deckSize",    0),
-            discardSize= obj.optInt("discardSize", 0)
+            castleHP     = obj.optInt("castleHP",   30),
+            wallHP       = obj.optInt("wallHP",      10),
+            resources    = resources,
+            mines        = mines,
+            hand         = hand,
+            handSize     = if (isMe) hand.size else obj.optInt("handSize", 0),
+            deckSize     = obj.optInt("deckSize",    0),
+            discardSize  = obj.optInt("discardSize", 0),
+            lastPlayedIdx= lastPlayedIdx
         )
     }
 
