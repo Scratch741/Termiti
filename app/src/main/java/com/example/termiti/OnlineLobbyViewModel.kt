@@ -103,6 +103,7 @@ class OnlineLobbyViewModel(
     var gameLog          = mutableStateOf<List<String>>(emptyList()); private set
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
+    var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
 
     // ── WebSocket ─────────────────────────────────────────────────────────────
     private var ws: WebSocket? = null
@@ -317,14 +318,35 @@ class OnlineLobbyViewModel(
                             lastPlayedCard.value = template.copy(
                                 id = lpc.optString("id", baseId)
                             )
-                            lastPlayedByMe.value = json.optBoolean("lastPlayedByMe", false)
+                            lastPlayedByMe.value   = json.optBoolean("lastPlayedByMe", false)
+                            lastPlayedAction.value = when (json.optString("lastPlayedAction", "PLAYED")) {
+                                "DISCARDED" -> CardAction.DISCARDED
+                                "BURNED"    -> CardAction.BURNED
+                                "STOLEN"    -> CardAction.STOLEN
+                                else        -> CardAction.PLAYED
+                            }
                         }
                     }
                     // lpc == null → necháme předchozí kartu (mizí až po nahrazení novou)
                 }
 
                 "CARD_LOST" -> {
-                    // Karta nám byla ukradena nebo spálena – UI si to zobrazí ze GAME_STATE
+                    // Karta nám byla odebrána – zobrazíme ji v centru bojiště s ikonou akce
+                    val action = when (json.optString("action", "")) {
+                        "BURNED" -> CardAction.BURNED
+                        "STOLEN" -> CardAction.STOLEN
+                        else     -> null
+                    }
+                    if (action != null) {
+                        val cardId   = json.optString("cardId", "")
+                        val baseId   = cardId.substringBefore('_')
+                        val template = allCards.find { it.id == baseId }
+                        if (template != null) {
+                            lastPlayedCard.value   = template.copy(id = cardId)
+                            lastPlayedAction.value = action
+                            lastPlayedByMe.value   = true  // naše karta = zobrazit jako "naše"
+                        }
+                    }
                 }
 
                 "GAME_OVER" -> {
@@ -469,6 +491,7 @@ class OnlineLobbyViewModel(
         gameLog.value              = emptyList()
         lastPlayedCard.value       = null
         lastPlayedByMe.value       = false
+        lastPlayedAction.value     = null
         matchInfo.value            = null
     }
 

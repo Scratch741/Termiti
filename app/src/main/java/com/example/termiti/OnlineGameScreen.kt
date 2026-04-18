@@ -139,6 +139,7 @@ private fun OnlineGameplay(
     val matchInfo      by vm.matchInfo
     val lastCard       by vm.lastPlayedCard
     val lastCardByMe   by vm.lastPlayedByMe
+    val lastCardAction by vm.lastPlayedAction
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
@@ -247,7 +248,7 @@ private fun OnlineGameplay(
                     playerState       = myPs,
                     aiState           = oppPs,
                     lastCard          = lastCard,
-                    lastCardAction    = if (lastCard != null) CardAction.PLAYED else null,
+                    lastCardAction    = lastCardAction,
                     lastCardIsPlayer  = lastCardByMe,
                     modifier          = Modifier.fillMaxHeight().weight(1f),
                     revealedAiCard    = if (!lastCardByMe) lastCard else null,

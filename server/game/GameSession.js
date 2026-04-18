@@ -40,8 +40,9 @@ class GameSession {
     // Mulligan tracking
     this.mulliganDone = { A: false, B: false };
 
-    // Last played card (sent to both clients so they can animate it)
+    // Last played/discarded card (sent to both clients so they can animate it)
     this.lastPlayedCard    = null;
+    this.lastPlayedAction  = null;  // 'PLAYED' | 'DISCARDED' | 'BURNED' | 'STOLEN'
     this.lastPlayedBySide  = null;
     this.lastPlayedCardIdx = null;  // index v ruce před zahráním
 
@@ -271,6 +272,7 @@ class GameSession {
     // Zapamatuj si zahranou kartu + index v ruce (před splice) pro zobrazení soupeři
     this.lastPlayedCard    = { id: card.id, baseId: card.baseId, name: card.name,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity };
+    this.lastPlayedAction  = 'PLAYED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
 
@@ -324,6 +326,12 @@ class GameSession {
 
     const card = self.hand.splice(cardIdx, 1)[0];
     self.discardPile.push(card);
+
+    this.lastPlayedCard   = { id: card.id, baseId: card.baseId, name: card.name,
+                               cost: card.cost, costType: card.costType, rarity: card.rarity };
+    this.lastPlayedAction  = 'DISCARDED';
+    this.lastPlayedBySide  = side;
+    this.lastPlayedCardIdx = cardIdx;
 
     this._log(`${this.name[side]} odhodil ${card.name}`);
     this._advanceTurn();
@@ -454,6 +462,7 @@ class GameSession {
       },
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,
+      lastPlayedAction: this.lastPlayedAction,
       lastPlayedByMe:   this.lastPlayedBySide === side,
 
       // ── Timer (relativní – eliminuje desynchronizaci hodin mezi zařízeními) ──
