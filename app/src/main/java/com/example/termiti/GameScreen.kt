@@ -1854,13 +1854,16 @@ private fun CardViewTextured(
                 )
             )
             // Černý obrys – 4 posunuté kopie
+            // fillMaxWidth + textAlign.Center = glyf centrován v celé šíři boxu (ne jen v šíři glyfu)
             for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
                 Text(costLabel, color = Color.Black,
-                    modifier = Modifier.offset(x = off.x.dp, y = off.y.dp),
+                    modifier = Modifier.fillMaxWidth().offset(x = off.x.dp, y = off.y.dp),
                     style = costStyle)
             }
             // Bílá výplň
-            Text(costLabel, color = Color.White, style = costStyle)
+            Text(costLabel, color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                style = costStyle)
         }
 
         // Vrstva 4: název karty v červeném obloukovém pásu (~70–90 dp od vrchu)

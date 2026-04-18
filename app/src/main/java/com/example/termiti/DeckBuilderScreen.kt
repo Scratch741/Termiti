@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -463,20 +464,24 @@ private fun CardPreview(card: Card) {
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             val costLabel = if (card.isXCost) "X" else "${card.cost}"
-            // Černý obrys – 4 posunuté kopie
-            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center, modifier = Modifier.offset(x = (-1).dp), style = costStyle)
-            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center, modifier = Modifier.offset(x = 1.dp), style = costStyle)
-            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center, modifier = Modifier.offset(y = (-1).dp), style = costStyle)
-            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center, modifier = Modifier.offset(y = 1.dp), style = costStyle)
+            val costStyle = TextStyle(
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
+            )
+            // Černý obrys – 4 posunuté kopie (fillMaxWidth = glyf centrován v šíři boxu)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = (-1).dp), style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = 1.dp),  style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = (-1).dp), style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = 1.dp),  style = costStyle)
             // Bílá výplň
-            Text(costLabel, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center, style = costStyle)
+            Text(costLabel, color = Color.White, modifier = Modifier.fillMaxWidth(), style = costStyle)
         }
         // Název
         Box(
