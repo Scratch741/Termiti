@@ -168,10 +168,16 @@ wss.on('connection', (ws, req) => {
           send(ws, { type: 'ERROR', msg: 'Už jsi přihlášen' });
           return;
         }
-        const name     = String(msg.name     ?? '').trim().slice(0, 20);
-        const deviceId = String(msg.deviceId ?? '').trim().slice(0, 64);
+        // Sanitizace jména: odstraň řídicí znaky, ponech jen tisknutelné znaky + mezery
+        const rawName  = String(msg.name ?? '').replace(/[\x00-\x1F\x7F]/g, '').trim();
+        const name     = [...rawName].slice(0, 20).join(''); // slice po znacích (bezpečné pro emoji)
+        const deviceId = String(msg.deviceId ?? '').replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, 64);
         if (!name) {
           send(ws, { type: 'ERROR', msg: 'Přezdívka nesmí být prázdná' });
+          return;
+        }
+        if (name.length < 2) {
+          send(ws, { type: 'ERROR', msg: 'Přezdívka musí mít alespoň 2 znaky' });
           return;
         }
 

@@ -114,7 +114,10 @@ class OnlineLobbyViewModel(
 
     // ── Lobby akce ────────────────────────────────────────────────────────────
 
-    fun setName(name: String) { playerName.value = name.take(20) }
+    fun setName(name: String) {
+        // Odstraň řídicí znaky, ponech jen tisknutelné; max 20 znaků
+        playerName.value = name.filter { it >= ' ' && it != '\u007F' }.take(20)
+    }
 
     fun connect() {
         val name = playerName.value.trim()
