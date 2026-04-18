@@ -29,5 +29,11 @@ data class Card(
      * Per-karta korekce zoomu ilustrace (multiplikátor na ART_GLOBAL_SCALE).
      * 1.0f = beze změny, 1.2f = 20 % přiblížit, 0.85f = 15 % oddálit.
      */
-    val artScale: Float = 1f
+    val artScale: Float = 1f,
+    /**
+     * Pokud true, karta stojí VŠECHEN dostupný zdroj daného costType (X-kost mechnika).
+     * card.cost je v tomto případě 0 a slouží jen jako fallback; skutečná cena = veškeré
+     * zásoby. Efekty třídy XScaled* dostanou hodnotu X = odebrané zásoby.
+     */
+    val isXCost: Boolean = false
 )

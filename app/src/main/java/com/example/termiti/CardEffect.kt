@@ -35,4 +35,12 @@ sealed class CardEffect {
     data class DrawCard(val count: Int = 1) : CardEffect()
     /** Ukradne amount životů hradu soupeři a přidá je vlastnímu hradu. */
     data class StealCastle(val amount: Int) : CardEffect()
+
+    // ── X-kost efekty ─────────────────────────────────────────────────────────
+    /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */
+    data class XScaledAttackPlayer(val divisor: Int = 2) : CardEffect()
+    /** Opraví hrad o (X / divisor) kde X = veškerý spotřebovaný zdroj. */
+    data class XScaledBuildCastle(val divisor: Int = 2) : CardEffect()
+    /** Přidá (X / divisor) k oběma zadaným zdrojům kde X = veškerý spotřebovaný zdroj. */
+    data class XScaledDualResource(val typeA: ResourceType, val typeB: ResourceType, val divisor: Int = 2) : CardEffect()
 }

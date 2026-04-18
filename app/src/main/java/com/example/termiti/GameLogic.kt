@@ -14,6 +14,7 @@ fun applyEffects(
     self:     PlayerState,
     opponent: PlayerState,
     allCards: List<Card>,
+    xValue:   Int = 0,
     onOpponentCardLost: ((Card, CardAction) -> Unit)? = null
 ) {
     for (effect in effects) when (effect) {
@@ -58,7 +59,7 @@ fun applyEffects(
 
         is CardEffect.ConditionalEffect ->
             if (checkCondition(effect.condition, self))
-                applyEffects(listOf(effect.effect), self, opponent, allCards, onOpponentCardLost)
+                applyEffects(listOf(effect.effect), self, opponent, allCards, xValue, onOpponentCardLost)
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
@@ -107,6 +108,24 @@ fun applyEffects(
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))
             opponent.castleHP -= stolen
             self.castleHP = (self.castleHP + stolen).coerceAtMost(100)
+        }
+
+        // ── X-kost efekty ─────────────────────────────────────────────────────
+        is CardEffect.XScaledAttackPlayer -> {
+            val dmg     = xValue / effect.divisor
+            val wallDmg = dmg.coerceAtMost(opponent.wallHP)
+            opponent.wallHP -= wallDmg
+            val overflow = dmg - wallDmg
+            if (overflow > 0) opponent.castleHP -= overflow
+        }
+
+        is CardEffect.XScaledBuildCastle ->
+            self.castleHP = (self.castleHP + xValue / effect.divisor).coerceAtMost(100)
+
+        is CardEffect.XScaledDualResource -> {
+            val amount = xValue / effect.divisor
+            self.resources[effect.typeA] = (self.resources[effect.typeA] ?: 0) + amount
+            self.resources[effect.typeB] = (self.resources[effect.typeB] ?: 0) + amount
         }
     }
 }

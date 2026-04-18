@@ -501,6 +501,27 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 5)),
             artResId = R.drawable.art_goblin_saman, type = "Kouzlo", artScale = 0.80f, artBiasY = -1.00f  // → nahraď: R.drawable.art_goblin
         ),
+
+        // ── X-kost karty ──────────────────────────────────────────────────────
+        // Spotřebují VŠECHEN dostupný zdroj daného typu; efekt = zásoby / 2.
+        Card("101", "Příval útoku",
+            description = "Spotřebuje veškerý útok. Poškodí nepřítele za X/2.",
+            cost = 0, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
+            isXCost = true,
+            effects = listOf(CardEffect.XScaledAttackPlayer(divisor = 2)),
+            type = "Útok"),
+        Card("102", "Kamenný příval",
+            description = "Spotřebuje veškerý kámen. Opraví hrad o X/2.",
+            cost = 0, costType = ResourceType.STONES, rarity = Rarity.EPIC,
+            isXCost = true,
+            effects = listOf(CardEffect.XScaledBuildCastle(divisor = 2)),
+            type = "Stavba"),
+        Card("103", "Magické rozdělení",
+            description = "Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene.",
+            cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+            isXCost = true,
+            effects = listOf(CardEffect.XScaledDualResource(ResourceType.ATTACK, ResourceType.STONES, divisor = 2)),
+            type = "Kouzlo"),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
@@ -756,15 +777,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
-        // Affordability check
-        if ((player.resources[card.costType] ?: 0) < card.cost) {
+        // Affordability check (X-kost karty jsou vždy zahratelné)
+        if (!card.isXCost && (player.resources[card.costType] ?: 0) < card.cost) {
             addLog("Nedostatek ${card.costType.label} pro: ${card.name}")
             return
         }
 
         // 1. Zaplatit a přesunout kartu z ruky PŘED aplikací efektů
         // (aby karta "lízni kartu" nejdřív zmizela z ruky, pak se líže nová)
-        player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.cost
+        val xValue: Int
+        if (card.isXCost) {
+            xValue = player.resources[card.costType] ?: 0
+            player.resources[card.costType] = 0
+        } else {
+            xValue = 0
+            player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.cost
+        }
         player.hand.remove(card)
         player.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isPlayer = true)
@@ -778,7 +806,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 addLog("${card.name}: podmínka nesplněna!")
             }
         }
-        applyEffects(card.effects, player, ai, allCards)
+        applyEffects(card.effects, player, ai, allCards, xValue = xValue)
 
         val s1 = old.copy(playerState = player, aiState = ai)
         s1.checkWinCondition()?.let { result ->
@@ -865,10 +893,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 when (aiChoice) {
                     is AiAction.Play -> {
                         val aiCard = aiChoice.card
-                        applyEffects(aiCard.effects, ai, player, allCards) { card, action ->
+                        val aiXValue: Int
+                        if (aiCard.isXCost) {
+                            aiXValue = ai.resources[aiCard.costType] ?: 0
+                            ai.resources[aiCard.costType] = 0
+                        } else {
+                            aiXValue = 0
+                            ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
+                        }
+                        applyEffects(aiCard.effects, ai, player, allCards, xValue = aiXValue) { card, action ->
                             recordOpponentLoss(card, action)
                         }
-                        ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
@@ -1023,7 +1058,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      *    v poměru k rychlosti přírůstku daného zdroje (důl).
      */
     private fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
-        val affordable     = ai.hand.filter { (ai.resources[it.costType] ?: 0) >= it.cost }
+        // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
+        val affordable     = ai.hand.filter { card ->
+            if (card.isXCost) true
+            else (ai.resources[card.costType] ?: 0) >= card.cost
+        }
 
         // Situační příznaky
         val aiLowHp        = ai.castleHP < 15
@@ -1036,7 +1075,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val handFull       = ai.hand.size >= 7
 
         // Rekurzivní ohodnocení jednoho efektu v kontextu stavu AI
-        fun scoreEffect(fx: CardEffect): Int = when (fx) {
+        // xVal = hodnota X pro X-kost efekty (aktuální zásoby daného zdroje)
+        fun scoreEffect(fx: CardEffect, xVal: Int = 0): Int = when (fx) {
             is CardEffect.AttackPlayer -> {
                 val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
                 urgency + fx.amount / 4
@@ -1074,15 +1114,34 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.StealCastle    -> fx.amount + (if (oppLowHp) 8 else 0) + (if (aiLowHp) 8 else 0)
             // Podmínkový efekt: skóruj vnitřní efekt pouze pokud podmínka platí; jinak 0
             is CardEffect.ConditionalEffect ->
-                if (checkCondition(fx.condition, ai)) scoreEffect(fx.effect) else 0
+                if (checkCondition(fx.condition, ai)) scoreEffect(fx.effect, xVal) else 0
+
+            // X-kost efekty: skóruj podle aktuálního množství zdroje (odhad skutečného efektu)
+            is CardEffect.XScaledAttackPlayer -> {
+                val amt = xVal / fx.divisor
+                val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
+                urgency + amt / 4
+            }
+            is CardEffect.XScaledBuildCastle -> {
+                val amt = xVal / fx.divisor
+                val urgency = if (aiLowHp) 12 else if (aiCloseToWin) 6 else 4
+                urgency + amt / 4
+            }
+            is CardEffect.XScaledDualResource -> {
+                val amt = xVal / fx.divisor
+                4 + amt / 3   // přidává dva zdroje najednou
+            }
         }
 
         // Celkové skóre karty = suma efektů − cena + šum ±2
+        // Pro X-kost karty: cena = aktuální zásoby daného zdroje (to se spotřebuje)
         fun score(card: Card): Int {
-            val effectScore = card.effects.sumOf { scoreEffect(it) }
+            val xVal = if (card.isXCost) (ai.resources[card.costType] ?: 0) else 0
+            val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
+            val costForScore = if (card.isXCost) xVal else card.cost
             val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0
             val noise       = (-2..2).random()
-            return effectScore - card.cost - chaosBlock + noise
+            return effectScore - costForScore - chaosBlock + noise
         }
 
         // Chytrý výběr karty k zahození:

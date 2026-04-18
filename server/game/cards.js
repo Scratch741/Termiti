@@ -5,23 +5,27 @@
  */
 
 // ── Effect helpers ────────────────────────────────────────────────────────────
-const ar = (t,n)    => ({ type:'AddResource',     resType:t, amount:n });
-const am = (t,n=1)  => ({ type:'AddMine',         resType:t, amount:n });
-const bw = (n)      => ({ type:'BuildWall',        amount:n });
-const bc = (n)      => ({ type:'BuildCastle',      amount:n });
-const ap = (n)      => ({ type:'AttackPlayer',     amount:n });
-const aw = (n)      => ({ type:'AttackWall',       amount:n });
-const ac = (n)      => ({ type:'AttackCastle',     amount:n });
-const sr = (t,n)    => ({ type:'StealResource',    resType:t, amount:n });
-const dr = (t,n)    => ({ type:'DrainResource',    resType:t, amount:n });
-const cd = (c,e)    => ({ type:'ConditionalEffect',condition:c, effect:e });
-const dm = (t,n=1)  => ({ type:'DestroyMine',     resType:t, amount:n });
-const bm = (t,turns)=> ({ type:'BlockMine',        resType:t, turns });
-const sc = (n=1)    => ({ type:'StealCard',        count:n });
-const bn = (n=1)    => ({ type:'BurnCard',         count:n });
-const ad = (id,n)   => ({ type:'AddCardsToDeck',   cardId:id, count:n });
-const dc = (n=1)    => ({ type:'DrawCard',         count:n });
-const sca= (n)      => ({ type:'StealCastle',      amount:n });
+const ar = (t,n)    => ({ type:'AddResource',       resType:t, amount:n });
+const am = (t,n=1)  => ({ type:'AddMine',           resType:t, amount:n });
+const bw = (n)      => ({ type:'BuildWall',          amount:n });
+const bc = (n)      => ({ type:'BuildCastle',        amount:n });
+const ap = (n)      => ({ type:'AttackPlayer',       amount:n });
+const aw = (n)      => ({ type:'AttackWall',         amount:n });
+const ac = (n)      => ({ type:'AttackCastle',       amount:n });
+const sr = (t,n)    => ({ type:'StealResource',      resType:t, amount:n });
+const dr = (t,n)    => ({ type:'DrainResource',      resType:t, amount:n });
+const cd = (c,e)    => ({ type:'ConditionalEffect',  condition:c, effect:e });
+const dm = (t,n=1)  => ({ type:'DestroyMine',        resType:t, amount:n });
+const bm = (t,turns)=> ({ type:'BlockMine',          resType:t, turns });
+const sc = (n=1)    => ({ type:'StealCard',          count:n });
+const bn = (n=1)    => ({ type:'BurnCard',           count:n });
+const ad = (id,n)   => ({ type:'AddCardsToDeck',     cardId:id, count:n });
+const dc = (n=1)    => ({ type:'DrawCard',           count:n });
+const sca= (n)      => ({ type:'StealCastle',        amount:n });
+// X-kost efekty
+const xap= (d=2)    => ({ type:'XScaledAttackPlayer', divisor:d });
+const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
+const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 
 // Conditions
 const rA = (t,v) => ({ type:'ResourceAbove', resType:t, threshold:v });
@@ -198,13 +202,20 @@ const RAW = [
 
   // ── Testovací ─────────────────────────────────────────────────────────────
   ['T01','Goblin šaman',    3,'MAGIC', 0,[ar('MAGIC',5)],      'RARE'],
+
+  // ── X-kost karty ─────────────────────────────────────────────────────────
+  // Formát: [id, name, cost, costType, isCombo, effects, rarity, isXCost]
+  ['101','Příval útoku',    0,'ATTACK',0,[xap(2)],             'EPIC', true],
+  ['102','Kamenný příval',  0,'STONES',0,[xbc(2)],             'EPIC', true],
+  ['103','Magické rozdělení',0,'MAGIC',0,[xdr('ATTACK','STONES',2)], 'EPIC', true],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────
-const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity]) => ({
+const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost]) => ({
   id, name, cost, costType, isCombo: !!isCombo, effects,
   rarity: rarity || 'COMMON',
   maxCopies: MAX_COPIES[rarity || 'COMMON'] || 4,
+  isXCost: !!isXCost,
   baseId: id    // pro instance je baseId = id šablony
 }));
 

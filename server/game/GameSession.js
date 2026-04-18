@@ -255,14 +255,21 @@ class GameSession {
     const card = self.hand[cardIdx];
 
     // Check resources – všechny typy (MAGIC, ATTACK, STONES, CHAOS) fungují stejně
-    const cost = card.cost || 0;
-    const res  = card.costType;
-    if (res && cost > 0) {
-      if ((self.resources[res] || 0) < cost) {
-        this._sendError(side, 'Nedostatek zdrojů.');
-        return;
+    // X-kost karty spotřebují veškerý dostupný zdroj
+    const res = card.costType;
+    let xValue = 0;
+    if (card.isXCost) {
+      xValue = self.resources[res] || 0;
+      self.resources[res] = 0;
+    } else {
+      const cost = card.cost || 0;
+      if (res && cost > 0) {
+        if ((self.resources[res] || 0) < cost) {
+          this._sendError(side, 'Nedostatek zdrojů.');
+          return;
+        }
+        self.resources[res] -= cost;
       }
-      self.resources[res] -= cost;
     }
 
     // Remove from hand → discard
@@ -283,7 +290,8 @@ class GameSession {
       self,
       opp,
       CARD_MAP,
-      (c, action) => lostCards.push({ card: c, action })
+      (c, action) => lostCards.push({ card: c, action }),
+      xValue
     );
 
     this._log(`${this.name[side]} zahrál ${card.name}`);

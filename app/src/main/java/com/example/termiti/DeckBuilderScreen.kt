@@ -460,17 +460,18 @@ private fun CardPreview(card: Card) {
             contentAlignment = Alignment.Center
         ) {
             val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            val costLabel = if (card.isXCost) "X" else "${card.cost}"
             // Černý obrys – 4 posunuté kopie
-            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center, modifier = Modifier.offset(x = (-1).dp), style = costStyle)
-            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center, modifier = Modifier.offset(x = 1.dp), style = costStyle)
-            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center, modifier = Modifier.offset(y = (-1).dp), style = costStyle)
-            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+            Text(costLabel, color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center, modifier = Modifier.offset(y = 1.dp), style = costStyle)
             // Bílá výplň
-            Text("${card.cost}", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+            Text(costLabel, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center, style = costStyle)
         }
         // Název
@@ -590,17 +591,18 @@ private fun FullCardPreview(card: Card) {
                 contentAlignment = Alignment.Center
             ) {
                 val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                val costLabel = if (card.isXCost) "X" else "${card.cost}"
                 // Černý obrys – 4 posunuté kopie
-                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                Text(costLabel, color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center, modifier = Modifier.offset(x = (-2).dp), style = costStyle)
-                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                Text(costLabel, color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center, modifier = Modifier.offset(x = 2.dp), style = costStyle)
-                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                Text(costLabel, color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center, modifier = Modifier.offset(y = (-2).dp), style = costStyle)
-                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                Text(costLabel, color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center, modifier = Modifier.offset(y = 2.dp), style = costStyle)
                 // Bílá výplň
-                Text("${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                Text(costLabel, color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center, style = costStyle)
             }
 
@@ -674,7 +676,7 @@ private fun FullCardPreview(card: Card) {
                             .border(2.dp, costColor.copy(alpha = 0.6f), RoundedCornerShape(24.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("${card.cost}", color = costColor,
+                        Text(if (card.isXCost) "X" else "${card.cost}", color = costColor,
                             fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
                     }
                     Text(resIcon(card.costType), fontSize = 28.sp)
@@ -783,7 +785,7 @@ private fun CatalogCardItem(
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(resIcon(card.costType), fontSize = 8.sp)
-                    Text("${card.cost}", color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text(if (card.isXCost) "X" else "${card.cost}", color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
 

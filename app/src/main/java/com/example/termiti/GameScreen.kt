@@ -1159,7 +1159,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
                 Modifier.align(Alignment.TopStart).padding(1.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+                Text(if (card.isXCost) "X" else "${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
             }
         }
     } else {
@@ -1181,7 +1181,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
                 textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "${resourceIcon(card.costType)}${card.cost}", color = costColor,
+                text = "${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}", color = costColor,
                 fontSize = 4.5.sp, lineHeight = 5.sp, fontWeight = FontWeight.Bold
             )
         }
@@ -1206,7 +1206,7 @@ private fun CardBackPlayed(card: Card) {
         Text(card.name, color = TextPrimary, fontSize = 5.sp,
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
-        Text("${resourceIcon(card.costType)}${card.cost}", color = costColor, fontSize = 5.5.sp)
+        Text("${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}", color = costColor, fontSize = 5.5.sp)
     }
 }
 
@@ -1239,7 +1239,7 @@ private fun PlayedCardSlot(card: Card) {
             lineHeight = 7.sp
         )
         Text(
-            "${resourceIcon(card.costType)}${card.cost}",
+            "${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}",
             color    = costColor,
             fontSize = 6.sp
         )
@@ -1553,7 +1553,7 @@ fun HandPanel(
                     .padding(horizontal = 10.dp)
             ) {
                 hand.forEach { card ->
-                    val affordable = (playerResources[card.costType] ?: 0) >= card.cost
+                    val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.cost
                     CardView(
                         card          = card,
                         canPlay       = isPlayerTurn && affordable,
@@ -1837,10 +1837,11 @@ private fun CardViewTextured(
             contentAlignment = Alignment.Center
         ) {
             val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            val costLabel = if (card.isXCost) "X" else "${card.cost}"
             // Černý obrys – 4 posunuté kopie
             for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
                 Text(
-                    "${card.cost}",
+                    costLabel,
                     color = Color.Black,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -1851,7 +1852,7 @@ private fun CardViewTextured(
             }
             // Bílá výplň
             Text(
-                "${card.cost}",
+                costLabel,
                 color = Color.White,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,

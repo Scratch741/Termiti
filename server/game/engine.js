@@ -86,12 +86,13 @@ function checkCondition(cond, player) {
 
 /**
  * @param {Array}    effects
- * @param {object}   self       – hráč, který hrál kartu
- * @param {object}   opponent   – soupeř
- * @param {Map}      cardMap    – CARD_MAP pro AddCardsToDeck
- * @param {Function} onOpponentLoss  – (card, action) => void, volá se, když soupeř přijde o kartu
+ * @param {object}   self           – hráč, který hrál kartu
+ * @param {object}   opponent       – soupeř
+ * @param {Map}      cardMap        – CARD_MAP pro AddCardsToDeck
+ * @param {Function} onOpponentLoss – (card, action) => void, volá se, když soupeř přijde o kartu
+ * @param {number}   xValue         – hodnota X pro X-kost efekty (spotřebovaný zdroj)
  */
-function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
+function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue = 0) {
   for (const fx of effects) {
     switch (fx.type) {
 
@@ -148,7 +149,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
 
       case 'ConditionalEffect':
         if (checkCondition(fx.condition, self))
-          applyEffects([fx.effect], self, opponent, cardMap, onOpponentLoss);
+          applyEffects([fx.effect], self, opponent, cardMap, onOpponentLoss, xValue);
         break;
 
       case 'DestroyMine': {
@@ -208,6 +209,29 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
         const stolen = Math.min(fx.amount, Math.max(0, opponent.castleHP));
         opponent.castleHP -= stolen;
         self.castleHP = Math.min(100, self.castleHP + stolen);
+        break;
+      }
+
+      // ── X-kost efekty ────────────────────────────────────────────────────────
+      case 'XScaledAttackPlayer': {
+        const dmg     = Math.floor(xValue / (fx.divisor || 2));
+        const wallDmg = Math.min(dmg, opponent.wallHP);
+        opponent.wallHP -= wallDmg;
+        const overflow = dmg - wallDmg;
+        if (overflow > 0) opponent.castleHP -= overflow;
+        break;
+      }
+
+      case 'XScaledBuildCastle': {
+        const amount = Math.floor(xValue / (fx.divisor || 2));
+        self.castleHP = Math.min(100, self.castleHP + amount);
+        break;
+      }
+
+      case 'XScaledDualResource': {
+        const amount = Math.floor(xValue / (fx.divisor || 2));
+        self.resources[fx.typeA] = (self.resources[fx.typeA] || 0) + amount;
+        self.resources[fx.typeB] = (self.resources[fx.typeB] || 0) + amount;
         break;
       }
     }
