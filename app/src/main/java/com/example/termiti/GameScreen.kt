@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -35,8 +36,6 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.text.style.DrawStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -680,24 +679,44 @@ fun NewBattlefield(
             }
         }
 
-        // ── Hrad hráče – vlevo dole (věž vlevo, hradba vpravo → blíže středu) ──
+        // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
+        CastleHpBadge(
+            castleHp    = playerState.castleHP,
+            wallHp      = playerState.wallHP,
+            isPlayer    = true,
+            modifier    = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 4.dp)
+        )
+
+        // ── HP badge AI – vpravo nahoře ──────────────────────────────────────────
+        CastleHpBadge(
+            castleHp    = aiState.castleHP,
+            wallHp      = aiState.wallHP,
+            isPlayer    = false,
+            modifier    = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 8.dp, top = 4.dp)
+        )
+
+        // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
         NewCastleStructure(
             castleHp = playerState.castleHP,
             wallHp   = playerState.wallHP,
             isPlayer = true,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 14.dp, bottom = 4.dp)
+                .padding(start = 8.dp, bottom = 4.dp)
         )
 
-        // ── Hrad AI – vpravo dole (hradba vlevo → blíže středu, věž vpravo) ────
+        // ── Hrad AI – vpravo dole ────────────────────────────────────────────────
         NewCastleStructure(
             castleHp = aiState.castleHP,
             wallHp   = aiState.wallHP,
             isPlayer = false,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 14.dp, bottom = 4.dp)
+                .padding(end = 8.dp, bottom = 4.dp)
         )
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
@@ -798,9 +817,9 @@ private fun NewCastleStructure(
     ) {
         if (isPlayer) {
             CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true)
-            WallBlock(wallHp, wallBlocks, accentColor)
+            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true)
         } else {
-            WallBlock(wallHp, wallBlocks, accentColor)
+            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false)
             CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false)
         }
     }
@@ -823,7 +842,7 @@ private fun CastleTowerBlock(
         label         = "castle_emerge"
     )
 
-    // Clip box = pevné okno, HP badge přes hrad
+    // Clip box – pouze obrázek hradu bez badge (badge je nahoře v rohu)
     Box(
         modifier = Modifier
             .size(castleFullW, castleFullH)
@@ -838,51 +857,72 @@ private fun CastleTowerBlock(
                 .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
             contentScale       = ContentScale.Fit
         )
-        // HP badge přes hrad – vlevo dole (hráč) nebo vpravo dole (soupeř)
-        Box(
-            modifier = Modifier
-                .align(if (isPlayer) Alignment.BottomStart else Alignment.BottomEnd)
-                .padding(4.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Black.copy(alpha = 0.78f))
-                .border(0.5.dp, accentLight.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
-                .padding(horizontal = 5.dp, vertical = 2.dp)
-        ) {
-            Text(
-                "🏰 $castleHp",
-                color      = accentLight,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
     }
 }
 
 @Composable
-private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        val visibleBlocks = if (wallHp > 0) blockCount.coerceAtLeast(1) else 0
-        Column(
-            verticalArrangement = Arrangement.spacedBy(1.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            repeat(visibleBlocks) {
-                Box(
-                    Modifier
-                        .size(width = 22.dp, height = 7.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(accentColor.copy(alpha = 0.50f), accentColor.copy(alpha = 0.72f))
-                            )
-                        )
-                        .border(0.5.dp, Color.Black.copy(alpha = 0.40f), RoundedCornerShape(2.dp))
-                )
-            }
-        }
-        Spacer(Modifier.height(2.dp))
-        Text("🧱 $wallHp", color = accentColor.copy(alpha = 0.70f),
-            fontSize = 8.sp, fontWeight = FontWeight.Bold)
+private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true) {
+    val wallFullW = 42.dp
+    val wallFullH = 58.dp
+    val wallFrac  = (wallHp / 50f).coerceIn(0f, 1f)
+
+    val offsetY by animateDpAsState(
+        targetValue   = wallFullH * (1f - wallFrac),
+        animationSpec = tween(600, easing = EaseOutCubic),
+        label         = "wall_emerge"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(wallFullW, wallFullH)
+            .clip(androidx.compose.ui.graphics.RectangleShape)
+    ) {
+        Image(
+            painter            = painterResource(R.drawable.wall_player),
+            contentDescription = "Zeď",
+            modifier           = Modifier
+                .size(wallFullW, wallFullH)
+                .offset(y = offsetY)
+                .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
+            contentScale       = ContentScale.FillBounds
+        )
+        // Bez badge – badge je nahoře v rohu
+    }
+}
+
+// ─── Castle HP Badge (nahoře v rohu) ─────────────────────────────────────────
+
+@Composable
+private fun CastleHpBadge(
+    castleHp: Int,
+    wallHp: Int,
+    isPlayer: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
+    val accentColor = if (isPlayer) Teal else Crimson
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color.Black.copy(alpha = 0.72f))
+            .border(0.5.dp, accentColor.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 7.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "🏰 $castleHp",
+            color      = accentLight,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            "🧱 $wallHp",
+            color      = accentColor,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -1282,30 +1322,25 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
     ) {
         // ── Hradby (wall) ────────────────────────────────────────
         Column(
-            modifier = Modifier.width(26.dp).fillMaxHeight(),
+            modifier = Modifier.width(32.dp).fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val wallPainter = painterResource(R.drawable.wall_player)
             Canvas(Modifier.fillMaxWidth().weight(1f)) {
                 val w = size.width; val h = size.height
-                val fillH = h * wallFrac
-                val r = CornerRadius(3.dp.toPx())
-
-                drawRoundRect(Color.White.copy(alpha = 0.07f), cornerRadius = r)
-                if (fillH > 0f)
-                    drawRect(WallBlue.copy(alpha = 0.65f),
-                        topLeft = Offset(0f, h - fillH), size = Size(w, fillH))
-
-                val rows = 5
-                for (i in 1 until rows) {
-                    val y = h / rows * i
-                    drawLine(Color.Black.copy(alpha = 0.28f), Offset(0f, y), Offset(w, y), 1f)
+                // Tmavé pozadí (prázdná zeď)
+                drawRect(Color.White.copy(alpha = 0.07f))
+                if (wallFrac > 0f) {
+                    // Ořež na spodních wallFrac a vykresli plný obrázek
+                    clipRect(
+                        left   = 0f,
+                        top    = h * (1f - wallFrac),
+                        right  = w,
+                        bottom = h
+                    ) {
+                        with(wallPainter) { draw(Size(w, h)) }
+                    }
                 }
-                for (row in 0 until rows) {
-                    val xOff = if (row % 2 == 0) 0f else w / 2f
-                    val y1 = h / rows * row; val y2 = h / rows * (row + 1)
-                    drawLine(Color.Black.copy(alpha = 0.2f), Offset(xOff, y1), Offset(xOff, y2), 1f)
-                }
-                drawRoundRect(WallBlue.copy(alpha = 0.55f), cornerRadius = r, style = Stroke(1f))
             }
             Spacer(Modifier.height(3.dp))
             Text("🧱 $wallHp", color = WallBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
@@ -1801,18 +1836,19 @@ private fun CardViewTextured(
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Černý obrys
-            Text(
-                "${card.cost}",
-                color = Color.Black,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                style = TextStyle(
-                    drawStyle = DrawStyle.Stroke(width = 3f, join = StrokeJoin.Round),
-                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+            val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            // Černý obrys – 4 posunuté kopie
+            for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
+                Text(
+                    "${card.cost}",
+                    color = Color.Black,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.offset(x = off.x.dp, y = off.y.dp),
+                    style = costStyle
                 )
-            )
+            }
             // Bílá výplň
             Text(
                 "${card.cost}",
@@ -1820,7 +1856,7 @@ private fun CardViewTextured(
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
-                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                style = costStyle
             )
         }
 

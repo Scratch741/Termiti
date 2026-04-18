@@ -459,11 +459,19 @@ private fun CardPreview(card: Card) {
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                "${card.cost}", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
-            )
+            val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            // Černý obrys – 4 posunuté kopie
+            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center, modifier = Modifier.offset(x = (-1).dp), style = costStyle)
+            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center, modifier = Modifier.offset(x = 1.dp), style = costStyle)
+            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center, modifier = Modifier.offset(y = (-1).dp), style = costStyle)
+            Text("${card.cost}", color = Color.Black, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center, modifier = Modifier.offset(y = 1.dp), style = costStyle)
+            // Bílá výplň
+            Text("${card.cost}", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center, style = costStyle)
         }
         // Název
         Box(
@@ -581,11 +589,19 @@ private fun FullCardPreview(card: Card) {
                     .size(45.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
-                )
+                val costStyle = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                // Černý obrys – 4 posunuté kopie
+                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center, modifier = Modifier.offset(x = (-2).dp), style = costStyle)
+                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center, modifier = Modifier.offset(x = 2.dp), style = costStyle)
+                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center, modifier = Modifier.offset(y = (-2).dp), style = costStyle)
+                Text("${card.cost}", color = Color.Black, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center, modifier = Modifier.offset(y = 2.dp), style = costStyle)
+                // Bílá výplň
+                Text("${card.cost}", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center, style = costStyle)
             }
 
             // Název — ribbon y = 70dp × 2.52 = 176dp
