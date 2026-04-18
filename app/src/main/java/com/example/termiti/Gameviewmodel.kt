@@ -505,23 +505,23 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // ── X-kost karty ──────────────────────────────────────────────────────
         // Spotřebují VŠECHEN dostupný zdroj daného typu; efekt = zásoby / 2.
         Card("101", "Náhlá smrt",
-            description = "Spotřebuje veškerý útok. Přímý zásah hradu za X/2 (ignoruje hradby).",
+            description = "Spotřebuje veškerý útok. Přímý zásah hradu za X/2.",
             cost = 0, costType = ResourceType.ATTACK, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledAttackCastle(divisor = 2)),
-            type = "Útok",artResId = R.drawable.art_nahla_smrt),
+            type = "Útok", artResId = R.drawable.art_nahla_smrt, artScale = 0.80f, artBiasX = 0.25f, artBiasY = -0.30f),
         Card("102", "Kamenný příval",
             description = "Spotřebuje veškerý kámen. Opraví hrad o X/2.",
             cost = 0, costType = ResourceType.STONES, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledBuildCastle(divisor = 2)),
-            type = "Stavba",artResId = R.drawable.art_kamenny_prival),
+            type = "Stavba", artResId = R.drawable.art_kamenny_prival, artScale = 0.80f, artBiasY = -1.00f),
         Card("103", "Magické rozdělení",
             description = "Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene.",
             cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledDualResource(ResourceType.ATTACK, ResourceType.STONES, divisor = 2)),
-            type = "Kouzlo", artResId = R.drawable.art_magicke_rozdeleni),
+            type = "Kouzlo", artResId = R.drawable.art_magicke_rozdeleni, artScale = 0.80f, artBiasY = -0.40f),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
