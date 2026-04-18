@@ -1837,8 +1837,8 @@ private fun CardViewTextured(
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(x = 2.dp, y = 2.dp)
-                .size(18.dp),
+                .offset(x = 3.dp, y = 5.dp)
+                .size(20.dp),
             contentAlignment = Alignment.Center
         ) {
             val costLabel = if (card.isXCost) "X" else "${card.cost}"
