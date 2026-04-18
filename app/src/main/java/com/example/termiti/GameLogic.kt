@@ -20,6 +20,9 @@ fun applyEffects(
         is CardEffect.AddResource   ->
             self.resources[effect.type] = (self.resources[effect.type] ?: 0) + effect.amount
 
+        is CardEffect.AddResourceDelayed ->
+            self.pendingResources.add(PendingResource(effect.type, effect.amount, effect.turns))
+
         is CardEffect.AddMine       ->
             self.mines[effect.type] = (self.mines[effect.type] ?: 0) + effect.amount
 
@@ -59,7 +62,14 @@ fun applyEffects(
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
-            if (cur > 0) opponent.mines[effect.type] = (cur - effect.amount).coerceAtLeast(0)
+            // Minimum 1 – nelze zničit poslední důl daného typu
+            if (cur > 1) opponent.mines[effect.type] = (cur - effect.amount).coerceAtLeast(1)
+        }
+
+        is CardEffect.BlockMine     -> {
+            // Přičti blokovací kola (stackuje se, ale max 5 kol)
+            val current = opponent.mineBlockedTurns[effect.type] ?: 0
+            opponent.mineBlockedTurns[effect.type] = (current + effect.turns).coerceAtMost(5)
         }
 
         is CardEffect.StealCard     -> repeat(effect.count) {

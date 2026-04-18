@@ -33,17 +33,26 @@ data class OnlineMatchInfo(
     val side         : String   // "A" nebo "B"
 )
 
+// ─── Odložená surovina přijatá ze serveru ────────────────────────────────────
+data class OnlinePendingResource(
+    val type     : String = "",
+    val amount   : Int    = 0,
+    val turnsLeft: Int    = 0
+)
+
 // ─── Stav hráče přijatý ze serveru ───────────────────────────────────────────
 data class OnlinePlayerState(
-    val castleHP     : Int                  = 30,
-    val wallHP       : Int                  = 10,
-    val resources    : Map<String, Int>     = emptyMap(),
-    val mines        : Map<String, Int>     = emptyMap(),
-    val hand         : List<Card>           = emptyList(),  // jen myState
-    val handSize     : Int                  = 0,            // jen oppState
-    val deckSize     : Int                  = 0,
-    val discardSize  : Int                  = 0,
-    val lastPlayedIdx: Int?                 = null          // jen oppState: index zahrané karty
+    val castleHP         : Int                       = 30,
+    val wallHP           : Int                       = 10,
+    val resources        : Map<String, Int>          = emptyMap(),
+    val mines            : Map<String, Int>          = emptyMap(),
+    val mineBlockedTurns : Map<String, Int>          = emptyMap(),
+    val pendingResources : List<OnlinePendingResource> = emptyList(), // jen myState
+    val hand             : List<Card>                = emptyList(),   // jen myState
+    val handSize         : Int                       = 0,             // jen oppState
+    val deckSize         : Int                       = 0,
+    val discardSize      : Int                       = 0,
+    val lastPlayedIdx    : Int?                      = null           // jen oppState: index zahrané karty
 )
 
 // ─── Herní stav (pro GAME_STATE zprávy) ──────────────────────────────────────
@@ -376,14 +385,34 @@ class OnlineLobbyViewModel(
     private fun parsePlayerState(obj: JSONObject?, isMe: Boolean): OnlinePlayerState {
         if (obj == null) return OnlinePlayerState()
 
-        val resources = mutableMapOf<String, Int>()
-        val mines     = mutableMapOf<String, Int>()
+        val resources        = mutableMapOf<String, Int>()
+        val mines            = mutableMapOf<String, Int>()
+        val mineBlockedTurns = mutableMapOf<String, Int>()
         obj.optJSONObject("resources")?.let { r ->
             for (key in r.keys()) resources[key] = r.optInt(key, 0)
         }
         obj.optJSONObject("mines")?.let { m ->
             for (key in m.keys()) mines[key] = m.optInt(key, 0)
         }
+        obj.optJSONObject("mineBlockedTurns")?.let { b ->
+            for (key in b.keys()) mineBlockedTurns[key] = b.optInt(key, 0)
+        }
+
+        val pendingResources: List<OnlinePendingResource> = if (isMe) {
+            val arr = obj.optJSONArray("pendingResources")
+            buildList {
+                if (arr != null) {
+                    for (i in 0 until arr.length()) {
+                        val p = arr.optJSONObject(i) ?: continue
+                        add(OnlinePendingResource(
+                            type      = p.optString("type", ""),
+                            amount    = p.optInt("amount", 0),
+                            turnsLeft = p.optInt("turnsLeft", 0)
+                        ))
+                    }
+                }
+            }
+        } else emptyList()
 
         val hand: List<Card> = if (isMe) {
             parseCardArray(obj.optJSONArray("hand"))
@@ -394,15 +423,17 @@ class OnlineLobbyViewModel(
         else null
 
         return OnlinePlayerState(
-            castleHP     = obj.optInt("castleHP",   30),
-            wallHP       = obj.optInt("wallHP",      10),
-            resources    = resources,
-            mines        = mines,
-            hand         = hand,
-            handSize     = if (isMe) hand.size else obj.optInt("handSize", 0),
-            deckSize     = obj.optInt("deckSize",    0),
-            discardSize  = obj.optInt("discardSize", 0),
-            lastPlayedIdx= lastPlayedIdx
+            castleHP         = obj.optInt("castleHP",   30),
+            wallHP           = obj.optInt("wallHP",      10),
+            resources        = resources,
+            mines            = mines,
+            mineBlockedTurns = mineBlockedTurns,
+            pendingResources = pendingResources,
+            hand             = hand,
+            handSize         = if (isMe) hand.size else obj.optInt("handSize", 0),
+            deckSize         = obj.optInt("deckSize",    0),
+            discardSize      = obj.optInt("discardSize", 0),
+            lastPlayedIdx    = lastPlayedIdx
         )
     }
 

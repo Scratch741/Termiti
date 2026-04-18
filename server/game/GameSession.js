@@ -263,20 +263,20 @@ class GameSession {
       }
       self.resources[res] -= cost;
     } else if (res === 'CHAOS') {
-      // Chaos: pay 1 from each resource type available
+      // Chaos: atomicky over, pak odečti z MAGIC+ATTACK+STONES
+      const total = (self.resources.MAGIC  || 0)
+                  + (self.resources.ATTACK || 0)
+                  + (self.resources.STONES || 0);
+      if (total < cost) {
+        this._sendError(side, 'Nedostatek zdrojů pro Chaos kartu.');
+        return;
+      }
       let remaining = cost;
       for (const rType of ['MAGIC', 'ATTACK', 'STONES']) {
         if (remaining <= 0) break;
         const pay = Math.min(remaining, self.resources[rType] || 0);
         self.resources[rType] = (self.resources[rType] || 0) - pay;
         remaining -= pay;
-      }
-      if (remaining > 0) {
-        this._sendError(side, 'Nedostatek zdrojů pro Chaos kartu.');
-        // Refund (undo the deductions by restarting — simplest: re-check)
-        // Already partially deducted — restart is complex; send error before deducting next time.
-        // TODO: validate CHAOS cost atomically before deducting
-        return;
       }
     }
 
@@ -342,7 +342,7 @@ class GameSession {
     self.discardPile.push(card);
 
     this._log(`${this.name[side]} odhodil ${card.name}`);
-    this._sendStateBoth();
+    this._advanceTurn();
   }
 
   // ── End turn ───────────────────────────────────────────────────────────────
@@ -446,24 +446,27 @@ class GameSession {
       isMyTurn:   this.activeSide === side,
       turnNumber: this.turnNumber,
       myState: {
-        castleHP:    my.castleHP,
-        wallHP:      my.wallHP,
-        resources:   { ...my.resources },
-        mines:       { ...my.mines },
-        hand:        this._serializeHand(mySide),
-        deckSize:    my.deck.length,
-        discardSize: my.discardPile.length
+        castleHP:        my.castleHP,
+        wallHP:          my.wallHP,
+        resources:       { ...my.resources },
+        mines:           { ...my.mines },
+        mineBlockedTurns:{ ...my.mineBlockedTurns },
+        pendingResources: (my.pendingResources || []).map(p => ({ ...p })),
+        hand:            this._serializeHand(mySide),
+        deckSize:        my.deck.length,
+        discardSize:     my.discardPile.length
       },
       oppState: {
-        castleHP:      opp.castleHP,
-        wallHP:        opp.wallHP,
-        resources:     { ...opp.resources },
-        mines:         { ...opp.mines },
-        handSize:      opp.hand.length,       // opponent hand is hidden
-        deckSize:      opp.deck.length,
-        discardSize:   opp.discardPile.length,
+        castleHP:        opp.castleHP,
+        wallHP:          opp.wallHP,
+        resources:       { ...opp.resources },
+        mines:           { ...opp.mines },
+        mineBlockedTurns:{ ...opp.mineBlockedTurns },
+        handSize:        opp.hand.length,       // opponent hand is hidden
+        deckSize:        opp.deck.length,
+        discardSize:     opp.discardPile.length,
         // Index zahrané karty v ruce (před zahráním) – null pokud soupeř nezahrál
-        lastPlayedIdx: this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
+        lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
       },
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,

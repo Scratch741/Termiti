@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -51,6 +51,15 @@ private fun OnlinePlayerState.toPlayerState(oppHandSize: Int = -1): PlayerState 
         ResourceType.ATTACK to (mines["ATTACK"] ?: 0),
         ResourceType.STONES to (mines["STONES"] ?: 0)
     )
+    val blockedMap = mutableMapOf<ResourceType, Int>()
+    for ((key, value) in mineBlockedTurns) {
+        val rt = runCatching { ResourceType.valueOf(key) }.getOrNull()
+        if (rt != null && value > 0) blockedMap[rt] = value
+    }
+    val pendingList = pendingResources.mapNotNull { p ->
+        val rt = runCatching { ResourceType.valueOf(p.type) }.getOrNull() ?: return@mapNotNull null
+        PendingResource(rt, p.amount, p.turnsLeft)
+    }.toMutableList()
 
     val handList: MutableList<Card> = if (oppHandSize >= 0) {
         // Soupeřova ruka – skrytá: použijeme dummy karty (jen počet → zobrazí se jako ruby)
@@ -60,13 +69,15 @@ private fun OnlinePlayerState.toPlayerState(oppHandSize: Int = -1): PlayerState 
     }
 
     return PlayerState(
-        castleHP    = castleHP,
-        wallHP      = wallHP,
-        resources   = resMap,
-        mines       = mineMap,
-        deck        = MutableList(deckSize) { dummyCard },
-        hand        = handList,
-        discardPile = MutableList(discardSize) { dummyCard }
+        castleHP         = castleHP,
+        wallHP           = wallHP,
+        resources        = resMap,
+        mines            = mineMap,
+        mineBlockedTurns = blockedMap,
+        pendingResources = pendingList,
+        deck             = MutableList(deckSize) { dummyCard },
+        hand             = handList,
+        discardPile      = MutableList(discardSize) { dummyCard }
     )
 }
 
@@ -302,7 +313,7 @@ private fun OnlineGameplay(
                     ) {
                         Text("📜 Zobrazit log", color = OgGold)
                     }
-                    Divider(color = OgTextMuted.copy(alpha = 0.3f))
+                    HorizontalDivider(color = OgTextMuted.copy(alpha = 0.3f))
                     Text(
                         "Opustit hru? Soupeř bude prohlášen vítězem.",
                         color    = OgTextMuted,

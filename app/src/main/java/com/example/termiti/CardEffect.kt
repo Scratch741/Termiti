@@ -5,6 +5,8 @@ package com.example.termiti
 
 sealed class CardEffect {
     data class AddResource(val type: ResourceType, val amount: Int) : CardEffect()
+    /** Přidá suroviny až příští kolo (turns = 1 → příští tah, 2 → přespříští…). */
+    data class AddResourceDelayed(val type: ResourceType, val amount: Int, val turns: Int = 1) : CardEffect()
     data class AddMine(val type: ResourceType, val amount: Int = 1) : CardEffect()
     data class BuildWall(val amount: Int) : CardEffect()
     data class BuildCastle(val amount: Int) : CardEffect()
@@ -19,8 +21,10 @@ sealed class CardEffect {
     /** Zničí zdroj protivníka (bez zisku pro hráče). */
     data class DrainResource(val type: ResourceType, val amount: Int) : CardEffect()
     data class ConditionalEffect(val condition: Condition, val effect: CardEffect) : CardEffect()
-    /** Sníží těžbu soupeře daného typu o amount (min 0). */
+    /** Sníží těžbu soupeře daného typu o amount (min 1 – nelze zničit poslední důl). */
     data class DestroyMine(val type: ResourceType, val amount: Int = 1) : CardEffect()
+    /** Zablokuje produkci soupeřova dolu daného typu na [turns] kol. */
+    data class BlockMine(val type: ResourceType, val turns: Int) : CardEffect()
     /** Ukradne count náhodných karet ze soupeřovy ruky do vlastní ruky. */
     data class StealCard(val count: Int = 1) : CardEffect()
     /** Zničí count náhodných karet ze soupeřovy ruky (odejdou do jeho odpadního balíčku). */

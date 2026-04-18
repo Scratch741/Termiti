@@ -5,6 +5,13 @@ package com.example.termiti
 
 import java.util.UUID
 
+/** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */
+data class PendingResource(
+    val type     : ResourceType,
+    val amount   : Int,
+    var turnsLeft: Int
+)
+
 class PlayerState(
     var castleHP: Int = 30,
     var wallHP: Int = 10,
@@ -20,23 +27,51 @@ class PlayerState(
         ResourceType.STONES to 1
         // CHAOS záměrně chybí – žádný výchozí důl
     ),
+    /** Zbývající kola zablokování produkce pro každý typ dolu. */
+    var mineBlockedTurns: MutableMap<ResourceType, Int> = mutableMapOf(),
+    /** Suroviny, které dojdou příští kola (hrané karty s AddResourceDelayed). */
+    var pendingResources: MutableList<PendingResource> = mutableListOf(),
     val deck: MutableList<Card> = mutableListOf(),
     val hand: MutableList<Card> = mutableListOf(),
     val discardPile: MutableList<Card> = mutableListOf()
 ) {
     fun deepCopy(): PlayerState = PlayerState(
-        castleHP    = castleHP,
-        wallHP      = wallHP,
-        resources   = resources.toMutableMap(),
-        mines       = mines.toMutableMap(),
-        deck        = deck.toMutableList(),
-        hand        = hand.toMutableList(),
-        discardPile = discardPile.toMutableList()
+        castleHP         = castleHP,
+        wallHP           = wallHP,
+        resources        = resources.toMutableMap(),
+        mines            = mines.toMutableMap(),
+        mineBlockedTurns = mineBlockedTurns.toMutableMap(),
+        pendingResources = pendingResources.map { it.copy() }.toMutableList(),
+        deck             = deck.toMutableList(),
+        hand             = hand.toMutableList(),
+        discardPile      = discardPile.toMutableList()
     )
 
+    /**
+     * Volá se na začátku každého tahu hráče:
+     * 1. Aplikuje odložené suroviny, které dozrály (turnsLeft → 0).
+     * 2. Generuje produkci dolů (přeskočí zablokované a sníží čítač).
+     */
     fun generateResources() {
+        // 1. Odložené suroviny
+        val iter = pendingResources.iterator()
+        while (iter.hasNext()) {
+            val p = iter.next()
+            p.turnsLeft--
+            if (p.turnsLeft <= 0) {
+                resources[p.type] = (resources[p.type] ?: 0) + p.amount
+                iter.remove()
+            }
+        }
+
+        // 2. Produkce dolů (s kontrolou blokády)
         for ((type, amount) in mines) {
-            resources[type] = (resources[type] ?: 0) + amount
+            val blocked = mineBlockedTurns[type] ?: 0
+            if (blocked > 0) {
+                mineBlockedTurns[type] = blocked - 1
+            } else {
+                resources[type] = (resources[type] ?: 0) + amount
+            }
         }
     }
 

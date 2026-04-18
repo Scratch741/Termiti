@@ -391,15 +391,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.StealResource(ResourceType.STONES, 5)),artResId = R.drawable.art_anarchie, type = "Chaos"),
 
         // ── Chaos – ničení dolů ───────────────────────────────────────
-        Card("C13", "Sabotáž",           "Znič 1 důl magie soupeře.",             cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.DestroyMine(ResourceType.MAGIC, 1)), type = "Chaos"),
-        Card("C14", "Ničení kamenolomu", "Znič 1 důl kamene soupeře.",            cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.DestroyMine(ResourceType.STONES, 1)), type = "Chaos"),
-        Card("C15", "Zákeřnost",         "Znič 1 útočný výcvik soupeře.",         cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.DestroyMine(ResourceType.ATTACK, 1)),artResId = R.drawable.art_zakernost, type = "Chaos"),
-        Card("C16", "Velká sabotáž",     "Znič 1 důl magie a 1 důl kamene.",     cost = 7, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
+        Card("C13", "Sabotáž",           "Znič 1 důl magie (min. 1). Zablokuj produkci na 2 kola.", cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.DestroyMine(ResourceType.MAGIC, 1),
-                CardEffect.DestroyMine(ResourceType.STONES, 1)),artResId = R.drawable.art_velka_sabotaz, type = "Útok"),
+                CardEffect.BlockMine(ResourceType.MAGIC, 2)), type = "Chaos"),
+        Card("C14", "Ničení kamenolomu", "Znič 1 důl kamene (min. 1). Zablokuj produkci na 2 kola.", cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
+            effects = listOf(CardEffect.DestroyMine(ResourceType.STONES, 1),
+                CardEffect.BlockMine(ResourceType.STONES, 2)), type = "Chaos"),
+        Card("C15", "Zákeřnost",         "Znič 1 útočný výcvik (min. 1). Zablokuj produkci na 2 kola.", cost = 5, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
+            effects = listOf(CardEffect.DestroyMine(ResourceType.ATTACK, 1),
+                CardEffect.BlockMine(ResourceType.ATTACK, 2)),artResId = R.drawable.art_zakernost, type = "Chaos"),
+        Card("C16", "Velká sabotáž",     "Znič důl magie a kamene (min. 1). Zablokuj produkci na 3 kola.", cost = 7, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
+            effects = listOf(CardEffect.DestroyMine(ResourceType.MAGIC, 1),
+                CardEffect.BlockMine(ResourceType.MAGIC, 3),
+                CardEffect.DestroyMine(ResourceType.STONES, 1),
+                CardEffect.BlockMine(ResourceType.STONES, 3)),artResId = R.drawable.art_velka_sabotaz, type = "Útok"),
 
         // ── Chaos – krádež karet ──────────────────────────────────────
         Card("C17", "Telekineze",        "Ukraď 1 náhodnou kartu ze soupeřovy ruky.", cost = 3, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
@@ -1054,15 +1059,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             } else {
                 fx.amount  // záporné skóre za ztrátu hradeb
             }
-            is CardEffect.AddMine        -> 9   // long-term value
-            is CardEffect.StealResource  -> 7
-            is CardEffect.DrainResource  -> 6
-            is CardEffect.AddResource    -> 3
-            is CardEffect.DestroyMine    -> 11  // very strong disruption
-            is CardEffect.StealCard      -> 8
-            is CardEffect.BurnCard       -> 6
-            is CardEffect.AddCardsToDeck -> 4
-            is CardEffect.DrawCard       -> fx.count * 5   // líz = více možností
+            is CardEffect.AddMine             -> 9   // long-term value
+            is CardEffect.StealResource       -> 7
+            is CardEffect.DrainResource       -> 6
+            is CardEffect.AddResource         -> 3
+            is CardEffect.AddResourceDelayed  -> fx.amount * 2  // méně než ihned (3), ale hodnotné
+            is CardEffect.DestroyMine         -> 8   // sníženo – min 1 důl omezuje dopad
+            is CardEffect.BlockMine           -> fx.turns * 7   // 2 kola = 14, 3 kola = 21
+            is CardEffect.StealCard           -> 8
+            is CardEffect.BurnCard            -> 6
+            is CardEffect.AddCardsToDeck      -> 4
+            is CardEffect.DrawCard            -> fx.count * 5   // líz = více možností
             // Krádež hradu: poškodí soupeře A léčí vlastní hrad
             is CardEffect.StealCastle    -> fx.amount + (if (oppLowHp) 8 else 0) + (if (aiLowHp) 8 else 0)
             // Podmínkový efekt: skóruj vnitřní efekt pouze pokud podmínka platí; jinak 0
@@ -1222,11 +1229,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.StealResource,
             is CardEffect.DrainResource,
             is CardEffect.DestroyMine,
+            is CardEffect.BlockMine,
             is CardEffect.BurnCard       -> SoundManager.playAttack()
             is CardEffect.BuildCastle,
             is CardEffect.BuildWall      -> SoundManager.playBuild()
             is CardEffect.AddMine        -> SoundManager.playBuild()
             is CardEffect.AddResource,
+            is CardEffect.AddResourceDelayed,
             is CardEffect.AddCardsToDeck -> SoundManager.playResource()
             is CardEffect.StealCard      -> SoundManager.playAttack()
             else                         -> SoundManager.playCardPlay()

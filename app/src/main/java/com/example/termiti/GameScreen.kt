@@ -127,6 +127,8 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.AddCardsToDeck    -> "📦"
     is CardEffect.DrawCard          -> "🎴"
     is CardEffect.StealCastle       -> "🧛"
+    is CardEffect.AddResourceDelayed -> "⏳"
+    is CardEffect.BlockMine         -> "🚫"
     null                            -> "❓"
 }
 
@@ -1481,7 +1483,15 @@ fun HandPanel(
                     .padding(horizontal = 10.dp)
             ) {
                 hand.forEach { card ->
-                    val affordable = (playerResources[card.costType] ?: 0) >= card.cost
+                    val affordable = if (card.costType == ResourceType.CHAOS) {
+                        // Chaos platí z MAGIC + ATTACK + STONES dohromady
+                        val total = (playerResources[ResourceType.MAGIC]  ?: 0) +
+                                    (playerResources[ResourceType.ATTACK] ?: 0) +
+                                    (playerResources[ResourceType.STONES] ?: 0)
+                        total >= card.cost
+                    } else {
+                        (playerResources[card.costType] ?: 0) >= card.cost
+                    }
                     CardView(
                         card          = card,
                         canPlay       = isPlayerTurn && affordable,
@@ -1796,13 +1806,13 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 5: text karty pod názvem (94–120 dp od vrchu, max 3 řádky)
+        // Vrstva 5: text karty pod názvem (90–112 dp od vrchu, max 3 řádky)
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 94.dp)
+                .offset(y = 90.dp)
                 .fillMaxWidth()
-                .height(24.dp)
+                .height(22.dp)
                 .clipToBounds()
                 .padding(horizontal = 9.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -1867,14 +1877,14 @@ private fun CardViewTextured(
             }
         }
 
-        // Vrstva 6: typ karty v dolním pruhu (122–136 dp od vrchu, pod textem)
+        // Vrstva 6: typ karty v úplně dolním pruhu (127–139 dp od vrchu)
         if (card.type.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(y = 122.dp)
+                    .offset(y = 129.dp)
                     .fillMaxWidth()
-                    .height(14.dp),
+                    .height(12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

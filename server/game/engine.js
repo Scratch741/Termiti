@@ -13,15 +13,40 @@ function createPlayerState(deckCards) {
     wallHP:   10,
     resources: { MAGIC: 0, ATTACK: 0, STONES: 0, CHAOS: 0 },
     mines:     { MAGIC: 1, ATTACK: 1, STONES: 1 },
+    /** Zbývající kola blokády produkce pro každý typ dolu. */
+    mineBlockedTurns: { MAGIC: 0, ATTACK: 0, STONES: 0 },
+    /** Odložené suroviny – aplikují se po N kolech. */
+    pendingResources: [],
     deck:  [...deckCards],
     hand:  [],
     discardPile: []
   };
 }
 
+/**
+ * Volá se na začátku každého tahu hráče:
+ * 1. Aplikuje odložené suroviny, které dozrály (turnsLeft → 0).
+ * 2. Generuje produkci dolů (přeskočí zablokované a sníží čítač).
+ */
 function generateResources(state) {
+  // 1. Odložené suroviny
+  state.pendingResources = (state.pendingResources || []).filter(p => {
+    p.turnsLeft--;
+    if (p.turnsLeft <= 0) {
+      state.resources[p.type] = (state.resources[p.type] || 0) + p.amount;
+      return false; // odeber ze seznamu
+    }
+    return true; // nechej v seznamu
+  });
+
+  // 2. Produkce dolů (s kontrolou blokády)
   for (const [type, amount] of Object.entries(state.mines)) {
-    state.resources[type] = (state.resources[type] || 0) + amount;
+    const blocked = state.mineBlockedTurns[type] || 0;
+    if (blocked > 0) {
+      state.mineBlockedTurns[type] = blocked - 1;
+    } else {
+      state.resources[type] = (state.resources[type] || 0) + amount;
+    }
   }
 }
 
@@ -74,6 +99,12 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
         self.resources[fx.resType] = Math.max(0, (self.resources[fx.resType] || 0) + fx.amount);
         break;
 
+      case 'AddResourceDelayed':
+        // Přidá do fronty odložených surovin
+        self.pendingResources = self.pendingResources || [];
+        self.pendingResources.push({ type: fx.resType, amount: fx.amount, turnsLeft: fx.turns || 1 });
+        break;
+
       case 'AddMine':
         self.mines[fx.resType] = Math.max(0, (self.mines[fx.resType] || 0) + fx.amount);
         break;
@@ -121,8 +152,17 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss) {
         break;
 
       case 'DestroyMine': {
+        // Minimum 1 – nelze zničit poslední důl daného typu
         const cur = opponent.mines[fx.resType] || 0;
-        if (cur > 0) opponent.mines[fx.resType] = Math.max(0, cur - fx.amount);
+        if (cur > 1) opponent.mines[fx.resType] = Math.max(1, cur - fx.amount);
+        break;
+      }
+
+      case 'BlockMine': {
+        // Zablokuj produkci dolu na N kol (stackuje se, max 5)
+        opponent.mineBlockedTurns = opponent.mineBlockedTurns || {};
+        const current = opponent.mineBlockedTurns[fx.resType] || 0;
+        opponent.mineBlockedTurns[fx.resType] = Math.min(5, current + fx.turns);
         break;
       }
 

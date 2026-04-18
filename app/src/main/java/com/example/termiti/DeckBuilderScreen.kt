@@ -98,8 +98,10 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.BurnCard          -> "🔥"
     is CardEffect.AddCardsToDeck    -> "📦"
     is CardEffect.DrawCard          -> "🎴"
-    is CardEffect.StealCastle       -> "🧛"
-    null                            -> "❓"
+    is CardEffect.StealCastle        -> "🧛"
+    is CardEffect.AddResourceDelayed -> "⏳"
+    is CardEffect.BlockMine          -> "🚫"
+    null                             -> "❓"
 }
 
 private fun Card.category() = when (effects.firstOrNull()) {
@@ -495,9 +497,9 @@ private fun CardPreview(card: Card) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(y = 120.dp)
+                    .offset(y = 129.dp)
                     .fillMaxWidth()
-                    .height(14.dp),
+                    .height(12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -611,14 +613,14 @@ private fun FullCardPreview(card: Card) {
                     fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
             }
 
-            // Typ — y = 120dp × 2.52 = 302dp
+            // Typ — y = 129dp × 2.521 = 325dp
             if (card.type.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .offset(y = 302.dp)
+                        .offset(y = 325.dp)
                         .fillMaxWidth()
-                        .height(34.dp),
+                        .height(30.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -678,16 +680,6 @@ private fun FullCardPreview(card: Card) {
                         fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 }
 
-                // Rarita
-                Box(
-                    Modifier.clip(RoundedCornerShape(6.dp))
-                        .background(rarityCol.copy(alpha = 0.15f))
-                        .border(1.dp, rarityCol.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 12.dp, vertical = 5.dp)
-                ) {
-                    Text(card.rarity.label, color = rarityCol,
-                        fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
             }
         }
     }
@@ -725,16 +717,6 @@ private fun CatalogCardItem(
         ) {
             // Náhled karty s texturou
             CardPreview(card = card)
-
-            // Rarita
-            Box(
-                Modifier.clip(RoundedCornerShape(3.dp))
-                    .background(rc.copy(alpha = 0.15f))
-                    .border(0.5.dp, rc.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
-                    .padding(horizontal = 5.dp, vertical = 1.dp)
-            ) {
-                Text(card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-            }
 
             // Počítadlo: [−] puntíky [+]
             Row(
@@ -789,7 +771,7 @@ private fun CatalogCardItem(
                 }
             }
 
-            // Name + rarity badge
+            // Name
             Text(
                 card.name,
                 color = if (hasAny) TextPrimary else TextMuted,
@@ -797,14 +779,6 @@ private fun CatalogCardItem(
                 textAlign = TextAlign.Center,
                 maxLines = 1, overflow = TextOverflow.Ellipsis
             )
-            Box(
-                Modifier.clip(RoundedCornerShape(3.dp))
-                    .background(rc.copy(alpha = 0.15f))
-                    .border(0.5.dp, rc.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
-                    .padding(horizontal = 5.dp, vertical = 1.dp)
-            ) {
-                Text(card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-            }
 
             // Description (1 line)
             Text(
