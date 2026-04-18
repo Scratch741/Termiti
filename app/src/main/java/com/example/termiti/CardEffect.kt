@@ -39,6 +39,8 @@ sealed class CardEffect {
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */
     data class XScaledAttackPlayer(val divisor: Int = 2) : CardEffect()
+    /** Přímý zásah hradu za (X / divisor) – ignoruje hradby. X = veškerý spotřebovaný zdroj. */
+    data class XScaledAttackCastle(val divisor: Int = 2) : CardEffect()
     /** Opraví hrad o (X / divisor) kde X = veškerý spotřebovaný zdroj. */
     data class XScaledBuildCastle(val divisor: Int = 2) : CardEffect()
     /** Přidá (X / divisor) k oběma zadaným zdrojům kde X = veškerý spotřebovaný zdroj. */

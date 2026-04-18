@@ -222,6 +222,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'XScaledAttackCastle':
+        opponent.castleHP -= Math.floor(xValue / (fx.divisor || 2));
+        break;
+
       case 'XScaledBuildCastle': {
         const amount = Math.floor(xValue / (fx.divisor || 2));
         self.castleHP = Math.min(100, self.castleHP + amount);

@@ -504,24 +504,24 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── X-kost karty ──────────────────────────────────────────────────────
         // Spotřebují VŠECHEN dostupný zdroj daného typu; efekt = zásoby / 2.
-        Card("101", "Příval útoku",
-            description = "Spotřebuje veškerý útok. Poškodí nepřítele za X/2.",
-            cost = 0, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
+        Card("101", "Náhlá smrt",
+            description = "Spotřebuje veškerý útok. Přímý zásah hradu za X/2 (ignoruje hradby).",
+            cost = 0, costType = ResourceType.ATTACK, rarity = Rarity.LEGENDARY,
             isXCost = true,
-            effects = listOf(CardEffect.XScaledAttackPlayer(divisor = 2)),
-            type = "Útok"),
+            effects = listOf(CardEffect.XScaledAttackCastle(divisor = 2)),
+            type = "Útok",artResId = R.drawable.art_nahla_smrt),
         Card("102", "Kamenný příval",
             description = "Spotřebuje veškerý kámen. Opraví hrad o X/2.",
-            cost = 0, costType = ResourceType.STONES, rarity = Rarity.EPIC,
+            cost = 0, costType = ResourceType.STONES, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledBuildCastle(divisor = 2)),
-            type = "Stavba"),
+            type = "Stavba",artResId = R.drawable.art_kamenny_prival),
         Card("103", "Magické rozdělení",
             description = "Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene.",
-            cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+            cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledDualResource(ResourceType.ATTACK, ResourceType.STONES, divisor = 2)),
-            type = "Kouzlo"),
+            type = "Kouzlo", artResId = R.drawable.art_magicke_rozdeleni),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
@@ -1120,6 +1120,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.XScaledAttackPlayer -> {
                 val amt = xVal / fx.divisor
                 val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
+                urgency + amt / 4
+            }
+            is CardEffect.XScaledAttackCastle -> {
+                val amt = xVal / fx.divisor
+                val urgency = if (oppLowHp) 22 else if (oppCloseToWin) 8 else 7
                 urgency + amt / 4
             }
             is CardEffect.XScaledBuildCastle -> {

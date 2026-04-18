@@ -74,6 +74,7 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.AddResourceDelayed  -> "⏳"
     is CardEffect.BlockMine           -> "🚫"
     is CardEffect.XScaledAttackPlayer -> "⚔️"
+    is CardEffect.XScaledAttackCastle -> "🎯"
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
     null                              -> "❓"

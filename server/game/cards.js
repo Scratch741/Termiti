@@ -24,6 +24,7 @@ const dc = (n=1)    => ({ type:'DrawCard',           count:n });
 const sca= (n)      => ({ type:'StealCastle',        amount:n });
 // X-kost efekty
 const xap= (d=2)    => ({ type:'XScaledAttackPlayer', divisor:d });
+const xac= (d=2)    => ({ type:'XScaledAttackCastle', divisor:d });
 const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 
@@ -205,7 +206,7 @@ const RAW = [
 
   // ── X-kost karty ─────────────────────────────────────────────────────────
   // Formát: [id, name, cost, costType, isCombo, effects, rarity, isXCost]
-  ['101','Příval útoku',    0,'ATTACK',0,[xap(2)],             'EPIC', true],
+  ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
   ['102','Kamenný příval',  0,'STONES',0,[xbc(2)],             'EPIC', true],
   ['103','Magické rozdělení',0,'MAGIC',0,[xdr('ATTACK','STONES',2)], 'EPIC', true],
 ];

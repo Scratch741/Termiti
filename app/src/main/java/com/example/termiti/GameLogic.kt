@@ -119,6 +119,9 @@ fun applyEffects(
             if (overflow > 0) opponent.castleHP -= overflow
         }
 
+        is CardEffect.XScaledAttackCastle ->
+            opponent.castleHP -= xValue / effect.divisor
+
         is CardEffect.XScaledBuildCastle ->
             self.castleHP = (self.castleHP + xValue / effect.divisor).coerceAtMost(100)
 
