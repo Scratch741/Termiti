@@ -535,28 +535,19 @@ fun NewResourceSection(
     val blocked = blockedTurns > 0
     val mineColor = if (blocked) Color(0xFFE53935) else Gold
 
-    // Pomocný slot pro počet dolů + indikátor blokace
+    // Pomocný slot pro počet dolů + indikátor blokace (vždy jeden řádek)
     @Composable
     fun MineSlot(align: Alignment.Horizontal) {
-        Column(
-            modifier = Modifier.widthIn(min = 14.dp),
-            horizontalAlignment = align
-        ) {
-            Text(
-                if (mine > 0) "$mine" else "—",
-                color = mineColor,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
-            if (blocked) {
-                Text(
-                    "⛔$blockedTurns",
-                    color = Color(0xFFE53935).copy(alpha = 0.85f),
-                    fontSize = 7.sp,
-                    lineHeight = 7.sp
-                )
-            }
-        }
+        val text  = if (blocked) "⛔$blockedTurns" else if (mine > 0) "$mine" else "—"
+        val size  = if (blocked) 9.sp else 11.sp
+        Text(
+            text,
+            color      = mineColor,
+            fontSize   = size,
+            fontWeight = FontWeight.Bold,
+            modifier   = Modifier.widthIn(min = 14.dp),
+            textAlign  = if (align == Alignment.End) TextAlign.End else TextAlign.Start
+        )
     }
 
     // ── Jedna kompaktní řádka: [mine#] [icon] [name] ... [amount] ──────────
