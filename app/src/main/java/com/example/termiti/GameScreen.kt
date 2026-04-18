@@ -35,6 +35,8 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.text.style.DrawStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -1799,6 +1801,19 @@ private fun CardViewTextured(
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
+            // Černý obrys
+            Text(
+                "${card.cost}",
+                color = Color.Black,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    drawStyle = DrawStyle.Stroke(width = 3f, join = StrokeJoin.Round),
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+            // Bílá výplň
             Text(
                 "${card.cost}",
                 color = Color.White,
