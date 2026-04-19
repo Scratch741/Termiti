@@ -94,7 +94,7 @@ class MultiplayerViewModel(
     var cardHistory    = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard soupeře (celá hra). */
     var lostToOpponent = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
-    var gameLog           = mutableStateOf<List<String>>(emptyList()); private set
+    var gameLog           = mutableStateOf<List<LogEntry>>(emptyList()); private set
     var gameOver          = mutableStateOf<Boolean?>(null);  private set   // true=win false=lose
     /** UIDs soupeřových karet, které se právě odhalují (lícem nahoru) */
     var oppRevealedCardIds = mutableStateOf<Set<String>>(emptySet()); private set
@@ -137,6 +137,7 @@ class MultiplayerViewModel(
         val list = lostToOpponent.value.toMutableList()
         list.add(0, CardHistoryEntry(card, action, isMine = true))
         lostToOpponent.value = list
+        addCardLog(oppName.value, card, action, isMe = false)
     }
     private var turnIndex            = 0   // total turns elapsed (for first-turn no-draw rule)
     private var closingIntentionally = false
@@ -537,7 +538,7 @@ class MultiplayerViewModel(
             val burned = me.drawCards(1)
             burned.forEach { b ->
                 recordCard(b, CardAction.BURNED, isMine = true)
-                addLog("🔥 Spálena: ${b.name}")
+                addCardLog(myName.value, b, CardAction.BURNED, isMe = true)
                 sendMsg("t" to "BURN", "uid" to b.id)
             }
         }
@@ -592,7 +593,7 @@ class MultiplayerViewModel(
         me.hand.remove(card)
         me.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isMine = true)
-        addLog("Ty: ${card.name}")
+        addCardLog(myName.value, card, CardAction.PLAYED, isMe = true)
         myState.value  = me
         oppState.value = opp
         sendMsg("t" to "PLAY", "uid" to card.id)
@@ -613,7 +614,7 @@ class MultiplayerViewModel(
         me.hand.remove(card); me.discardPile.add(card)
         myState.value = me
         recordCard(card, CardAction.DISCARDED, isMine = true)
-        addLog("Ty: zahodil ${card.name}")
+        addCardLog(myName.value, card, CardAction.DISCARDED, isMe = true)
         sendMsg("t" to "DISCARD", "uid" to card.id)
         endMyTurn()
     }
@@ -646,7 +647,7 @@ class MultiplayerViewModel(
         }
         // Karta záměrně zůstává v ruce – odstraníme ji až po vizuálním odhalení
         recordCard(card, CardAction.PLAYED, isMine = false)
-        addLog("${oppName.value}: ${card.name}")
+        addCardLog(oppName.value, card, CardAction.PLAYED, isMe = false)
         myState.value  = me
         oppState.value = opp
         checkWin()
@@ -678,7 +679,7 @@ class MultiplayerViewModel(
         opp.hand.remove(card); opp.discardPile.add(card)
         oppState.value = opp
         recordCard(card, CardAction.DISCARDED, isMine = false)
-        addLog("${oppName.value}: zahodil ${card.name}")
+        addCardLog(oppName.value, card, CardAction.DISCARDED, isMe = false)
         endOppTurn()
     }
 
@@ -686,7 +687,7 @@ class MultiplayerViewModel(
         val card = cardByUid[uid] ?: return
         // Stav je již synchronizován přes startOppTurn – jen zobrazíme vizuálně
         recordCard(card, CardAction.BURNED, isMine = false)
-        addLog("🔥 ${oppName.value}: spálena ${card.name}")
+        addCardLog(oppName.value, card, CardAction.BURNED, isMe = false)
     }
 
     private fun onOpponentComboEnd() {
@@ -829,7 +830,11 @@ class MultiplayerViewModel(
         (0 until arr.length()).map { arr.getString(it) }
 
     private fun addLog(msg: String) {
-        gameLog.value = (gameLog.value + msg).takeLast(20)
+        gameLog.value = (gameLog.value + LogEntry.SystemEvent(msg)).takeLast(50)
+    }
+
+    private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
+        gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, currentTurn.value)).takeLast(50)
     }
 
 }

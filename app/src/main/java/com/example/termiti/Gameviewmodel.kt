@@ -158,12 +158,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.AddMine(ResourceType.MAGIC,  1),
                 CardEffect.AddMine(ResourceType.ATTACK, 1),
                 CardEffect.AddMine(ResourceType.STONES, 1)
-            ), type = "Důl"),
+            ), type = "Důl",artResId = R.drawable.art_trifekta_dolu),
         Card("045", "Očarované doly",      "Trvale +3 doly magie/kolo.",              cost = 7, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
-            effects = listOf(CardEffect.AddMine(ResourceType.MAGIC, 3)), type = "Důl"),
+            effects = listOf(CardEffect.AddMine(ResourceType.MAGIC, 3)), type = "Důl",artResId = R.drawable.art_ocarovane_doly),
 
         // ── Útok – Arcomage/Mravenci inspirace ───────────────────────
-        Card("046", "Goblin",         "Zaútočí za 2, ukradni 1 magii, +1 chaosu.", cost = 1, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
+        Card("046", "Goblin",         "Zaútočí za 2, ukradni 1 magii, +1 chaosu.", cost = 1, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(2), CardEffect.StealResource(ResourceType.MAGIC, 1),
                 CardEffect.AddResource(ResourceType.CHAOS, 1)), artResId = R.drawable.art_goblin, type = "Útok", artScale = 0.80f),
         Card("047", "Ogr",            "Zaútočí na nepřítele za 9.",              cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
@@ -217,8 +217,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // ── Sabotáž a krádež (platí MAGIC) ───────────────────────────
         Card("065", "Lupič",          "Ukradni 3 útoku od soupeře.",               cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.StealResource(ResourceType.ATTACK, 3)),artResId = R.drawable.art_lupic, type = "Magie", artScale = 0.90f, artBiasY = -0.25f),
-        Card("066", "Zlatokop",       "Ukradni 4 kameny od soupeře.",              cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.StealResource(ResourceType.STONES, 4)), type = "Magie"),
+        Card("066", "Kamenná daň",       "Ukradni 4 kameny od soupeře.",              cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
+            effects = listOf(CardEffect.StealResource(ResourceType.STONES, 4)), type = "Magie",artResId = R.drawable.art_kamenna_dan),
         Card("067", "Sabotér",        "Soupeř ztratí 5 kamenů.",                 cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(CardEffect.DrainResource(ResourceType.STONES, 5)),artResId = R.drawable.art_saboter, type = "Magie", artScale = 0.80f, artBiasX = -1.00f, artBiasY = 0.40f),
         Card("068", "Demoralizace",   "Soupeř ztratí 5 útoku.",                  cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
@@ -247,12 +247,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 3),
                 CardEffect.AddResource(ResourceType.ATTACK, 3),
                 CardEffect.AddResource(ResourceType.STONES, 3)), isCombo = true,artResId = R.drawable.art_trziste, type = "Magie", artScale = 0.80f, artBiasY = 0.30f),
-        Card("075", "Zlaté doly",     "Trvale +2 magie a +1 kameny/kolo.",       cost = 6, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+        Card("075", "Rozmach těžby",     "Trvale +2 magie a +1 kameny/kolo.",       cost = 6, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddMine(ResourceType.MAGIC, 2),
-                CardEffect.AddMine(ResourceType.STONES, 1)), type = "Důl"),
+                CardEffect.AddMine(ResourceType.STONES, 1)), type = "Důl",artResId = R.drawable.art_rozmach_tezby),
         Card("076", "Vojenská základna","Trvale +2 útoku a +1 kameny/kolo.",     cost = 6, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddMine(ResourceType.ATTACK, 2),
-                CardEffect.AddMine(ResourceType.STONES, 1)), type = "Důl"),
+                CardEffect.AddMine(ResourceType.STONES, 1)), type = "Důl",artResId = R.drawable.art_vojenska_zakladna),
         Card("077", "Přeměna magie",  "Pokud máš >8 magie, získej +10 útoku.",  cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(CardEffect.ConditionalEffect(
                 Condition.ResourceAbove(ResourceType.MAGIC, 8),
@@ -267,11 +267,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackPlayer(12),
                 CardEffect.DrainResource(ResourceType.MAGIC, 3),
                 CardEffect.AddResource(ResourceType.CHAOS, 2)),artResId = R.drawable.art_oblehani, type = "Útok", artScale = 0.75f, artBiasY = -0.45f),
-        Card("080", "Velkovýroba",    "+2 každý důl, +3 magie ihned.",           cost = 9, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
+        Card("080", "Velkovýroba",    "+2 každý důl.",           cost = 9, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.AddMine(ResourceType.MAGIC, 2),
                 CardEffect.AddMine(ResourceType.ATTACK, 2),
                 CardEffect.AddMine(ResourceType.STONES, 2),
-                CardEffect.AddResource(ResourceType.MAGIC, 3)), type = "Důl"),
+                ), type = "Důl",artResId = R.drawable.art_velkovyroba),
 
         // ── Stavba – nové posily (STONES buff) ─────────────────────────────
 
@@ -446,7 +446,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 3),
                 CardEffect.AddMine(ResourceType.CHAOS, 1)),artResId = R.drawable.art_bourliva_mysl, type = "Důl", artScale = 0.80f, artBiasY = -0.75f),
         Card("C30", "Chrám chaosu",      "Trvale +2 doly chaosu/kolo.",           cost = 7, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
-            effects = listOf(CardEffect.AddMine(ResourceType.CHAOS, 2)), type = "Důl"),
+            effects = listOf(CardEffect.AddMine(ResourceType.CHAOS, 2)), type = "Důl",artResId = R.drawable.art_chram_chaosu),
         Card("C31", "Chaotický výměník", "+4 chaosu, soupeř ztratí 2 každého zdroje.", cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 4),
                 CardEffect.DrainResource(ResourceType.MAGIC, 2),
@@ -464,7 +464,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         Card("D02", "Věštba",          "Lízni 2 karty.",                              cost = 3, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
             effects = listOf(CardEffect.DrawCard(2)),artResId = R.drawable.art_vestba, type = "Magie", artScale = 0.80f, artBiasY = -1.00f),
         Card("D03", "Kronika",         "Lízni 3 karty.",                              cost = 5, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.DrawCard(3)), type = "Magie"),
+            effects = listOf(CardEffect.DrawCard(3)), type = "Magie",artResId = R.drawable.art_kronika),
         Card("D04", "Bojová taktika",  "Zaútočí za 4. Lízni 1 kartu.",               cost = 2, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AttackPlayer(4), CardEffect.DrawCard(1)),artResId = R.drawable.art_bojova_taktika, type = "Útok", artScale = 0.80f),
         Card("D05", "Stavební plány",  "Hradby +4. Lízni 1 kartu. [Combo]",                  cost = 3, costType = ResourceType.STONES, rarity = Rarity.COMMON,
@@ -486,8 +486,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Vampirismus hradu: vysaje životy přímo z nepřátelského hradu do vlastního.
         // Na rozdíl od běžného útoku zároveň léčí – ideální při nízkém HP hradu.
-        Card("099", "Vampirismus hradu","Ukradni 10 životů hradu soupeři.",          cost = 8, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.StealCastle(10)), type = "Magie"),
+        Card("099", "Temný přenos","Ukradni 10 životů hradu soupeři.",          cost = 8, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
+            effects = listOf(CardEffect.StealCastle(10)), type = "Magie",artResId = R.drawable.art_temny_prenos),
         // Obléhací sání: útočný variant krádeže hradu – kombinuje přímý útok se sáním životů.
         Card("100", "Obléhací sání",    "Zaútočí za 5, ukradni 6 životů hradu.",     cost = 6, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(5), CardEffect.StealCastle(6)), type = "Útok"),
@@ -671,7 +671,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     var gameState = androidx.compose.runtime.mutableStateOf(createInitialState())
         private set
-    var log = androidx.compose.runtime.mutableStateOf<List<String>>(emptyList())
+    var log = androidx.compose.runtime.mutableStateOf<List<LogEntry>>(emptyList())
         private set
     var gameOver = androidx.compose.runtime.mutableStateOf<GameResult?>(null)
         private set
@@ -796,7 +796,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.hand.remove(card)
         player.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isPlayer = true)
-        addLog("Hráč zahrál: ${card.name}")
+        addCardLog("Hráč", card, CardAction.PLAYED, isMe = true)
         playSoundForCard(card)
 
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
@@ -858,7 +858,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.hand.remove(card)
         player.discardPile.add(card)
         recordCard(card, CardAction.DISCARDED, isPlayer = true)
-        addLog("Hráč zahodil: ${card.name}")
+        addCardLog("Hráč", card, CardAction.DISCARDED, isMe = true)
         SoundManager.playDiscard()
 
         isPlayerComboTurn.value = false
@@ -907,7 +907,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
-                        addLog("AI zahrála: ${aiCard.name}")
+                        addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
 
                         if (aiCard.isCombo) {
@@ -943,7 +943,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         ai.hand.remove(toDiscard)
                         ai.discardPile.add(toDiscard)
                         recordCard(toDiscard, CardAction.DISCARDED, isPlayer = false)
-                        addLog("AI zahodila: ${toDiscard.name}")
+                        addCardLog("AI", toDiscard, CardAction.DISCARDED, isMe = false)
                         aiContinues = false
                     }
                 }
@@ -964,7 +964,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.generateResources()
             if (playerDrawsAtEnd) {
                 val burned = player.drawCards(1)
-                burned.forEach { b -> addToHistory(b, CardAction.BURNED, isMine = true) }
+                burned.forEach { b ->
+                    addToHistory(b, CardAction.BURNED, isMine = true)
+                    addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                }
             }
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
@@ -989,12 +992,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val list = lostToOpponent.value.toMutableList()
         list.add(0, CardHistoryEntry(card, action, isMine = true))
         lostToOpponent.value = list
-        val verb = if (action == CardAction.STOLEN) "ukradla" else "spálila"
-        addLog("AI $verb: ${card.name}")
+        addCardLog("AI", card, action, isMe = false)
     }
 
     private fun addLog(message: String) {
-        log.value = (log.value + message).takeLast(6)
+        log.value = (log.value + LogEntry.SystemEvent(message)).takeLast(50)
+    }
+
+    private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
+        val turn = gameState.value.currentTurn
+        log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
     }
 
     private fun recordCard(card: Card, action: CardAction, isPlayer: Boolean) {

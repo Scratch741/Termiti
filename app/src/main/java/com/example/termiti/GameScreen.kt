@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
@@ -934,7 +935,7 @@ private fun CastleHpBadge(
 // ─── Log Overlay ──────────────────────────────────────────────────────────────
 
 @Composable
-fun LogOverlay(log: List<String>, onDismiss: () -> Unit) {
+fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -949,12 +950,12 @@ fun LogOverlay(log: List<String>, onDismiss: () -> Unit) {
                 .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), BgPanel)))
                 .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
                 .padding(18.dp)
-                .widthIn(max = 340.dp)
-                .heightIn(max = 320.dp),
+                .widthIn(max = 360.dp)
+                .heightIn(max = 400.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("LOG", color = Gold, fontSize = 13.sp,
+            Text("HERNÍ LOG", color = Gold, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
@@ -1442,55 +1443,134 @@ fun DeckChip(icon: String, count: Int, label: String) {
     }
 }
 
+// ─── Log Entry Row ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
+    when (entry) {
+        is LogEntry.SystemEvent -> {
+            Text(
+                text       = entry.message,
+                color      = TextMuted.copy(alpha = 0.8f * rowAlpha),
+                fontSize   = 9.sp,
+                lineHeight = 12.sp,
+                fontStyle  = FontStyle.Italic,
+                modifier   = Modifier
+                    .fillMaxWidth()
+                    .alpha(rowAlpha)
+                    .padding(vertical = 2.dp, horizontal = 4.dp)
+            )
+        }
+        is LogEntry.CardEvent -> {
+            val actionColor = when (entry.action) {
+                CardAction.PLAYED    -> if (entry.isMe) TealLight else Crimson
+                CardAction.DISCARDED -> TextMuted
+                CardAction.BURNED    -> ChaosOrange
+                CardAction.STOLEN    -> MagicPurple
+            }
+            val actionLabel = when (entry.action) {
+                CardAction.PLAYED    -> "zahrál"
+                CardAction.DISCARDED -> "zahodil"
+                CardAction.BURNED    -> "🔥 spálil"
+                CardAction.STOLEN    -> "🃏 ukradl"
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(rowAlpha)
+                    .drawBehind {
+                        drawRect(color = actionColor.copy(alpha = 0.06f * rowAlpha))
+                    }
+                    .padding(vertical = 4.dp, horizontal = 4.dp)
+            ) {
+                // ── Aktor + sloveso ───────────────────────────────────────────
+                Column(modifier = Modifier.width(68.dp)) {
+                    Text(
+                        text       = entry.actorName,
+                        color      = if (entry.isMe) TealLight else Crimson,
+                        fontSize   = 8.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text       = actionLabel,
+                        color      = actionColor.copy(alpha = 0.85f),
+                        fontSize   = 7.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
+                // ── Název karty ───────────────────────────────────────────────
+                Text(
+                    text       = entry.card.name,
+                    color      = Gold.copy(alpha = 0.92f),
+                    fontSize   = 9.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
+                    modifier   = Modifier.weight(1f)
+                )
+                // ── Kolo ──────────────────────────────────────────────────────
+                if (entry.turn > 0) {
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text  = "T${entry.turn}",
+                        color = TextMuted.copy(alpha = 0.5f * rowAlpha),
+                        fontSize = 7.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
 // ─── Log ──────────────────────────────────────────────────────────────────────
 @Composable
 fun LogPanel(
-    log: List<String>,
+    log: List<LogEntry>,
     modifier: Modifier = Modifier,
-    scrollable: Boolean = false   // true = multiplayer styl (nejnovější nahoře, scrollovatelný)
+    scrollable: Boolean = false   // true = scrollovatelný overlay (nejnovější nahoře)
 ) {
     if (!scrollable) {
-        // ── Původní offline styl ──────────────────────────────────────────────
-        Column(modifier = modifier.background(BgDeep).padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Text("LOG", color = TextMuted, fontSize = 9.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+        // ── Kompaktní styl (poslední záznamy) ─────────────────────────────────
+        Column(modifier = modifier.background(BgDeep).padding(horizontal = 8.dp, vertical = 6.dp)) {
+            Text("LOG", color = TextMuted, fontSize = 9.sp, letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
             if (log.isEmpty()) {
-                Text("— Hra začíná —", color = TextMuted, fontSize = 11.sp, fontStyle = FontStyle.Italic)
+                Text("— Hra začíná —", color = TextMuted, fontSize = 10.sp,
+                    fontStyle = FontStyle.Italic)
             } else {
-                log.takeLast(5).forEachIndexed { i, line ->
-                    val alpha = 0.3f + (i.toFloat() / log.size.coerceAtLeast(1)) * 0.7f
-                    Text(line, color = Gold.copy(alpha = alpha), fontSize = 11.sp,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val recent = log.takeLast(5)
+                recent.forEachIndexed { i, entry ->
+                    val a = 0.35f + (i.toFloat() / recent.size) * 0.65f
+                    LogEntryRow(entry, a)
                 }
             }
         }
     } else {
-        // ── Multiplayer styl: nejnovější nahoře, scrollovatelný ───────────────
-        val reversed   = remember(log) { log.reversed() }
-        val listState  = rememberLazyListState()
+        // ── Scrollovatelný styl: nejnovější nahoře ────────────────────────────
+        val reversed  = remember(log) { log.reversed() }
+        val listState = rememberLazyListState()
 
-        // Při každé nové zprávě skroluj na začátek (= nejnovější)
         LaunchedEffect(log.size) {
             if (reversed.isNotEmpty()) listState.animateScrollToItem(0)
         }
 
         LazyColumn(
-            state             = listState,
-            modifier          = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-            reverseLayout     = false
+            state               = listState,
+            modifier            = modifier.padding(horizontal = 2.dp, vertical = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+            reverseLayout       = false
         ) {
-            itemsIndexed(reversed) { index, line ->
-                // Nejnovější (index 0) plná barva, starší postupně vybledají
-                val alpha = (1f - index * 0.22f).coerceAtLeast(0.25f)
-                Text(
-                    text     = line,
-                    color    = Gold.copy(alpha = alpha),
-                    fontSize = 10.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 13.sp
-                )
+            itemsIndexed(reversed) { index, entry ->
+                val a = (1f - index * 0.08f).coerceAtLeast(0.30f)
+                LogEntryRow(entry, a)
+                if (index < reversed.lastIndex) {
+                    HorizontalDivider(color = TextMuted.copy(alpha = 0.08f), thickness = 0.5.dp)
+                }
             }
         }
     }

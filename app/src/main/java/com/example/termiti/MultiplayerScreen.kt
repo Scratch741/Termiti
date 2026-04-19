@@ -672,8 +672,12 @@ private fun MpGameOverScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
 
         val lastMsg = log.lastOrNull()
         if (lastMsg != null) {
+            val lastText = when (lastMsg) {
+                is LogEntry.SystemEvent -> lastMsg.message
+                is LogEntry.CardEvent   -> "${lastMsg.actorName}: ${lastMsg.card.name}"
+            }
             Spacer(Modifier.height(8.dp))
-            Text(lastMsg, color = MpText, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text(lastText, color = MpText, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
 
         Spacer(Modifier.height(32.dp))

@@ -100,7 +100,7 @@ class OnlineLobbyViewModel(
 
     var gameState        = mutableStateOf(OnlineGameState()); private set
     var gameResult       = mutableStateOf<OnlineGameResult?>(null); private set
-    var gameLog          = mutableStateOf<List<String>>(emptyList()); private set
+    var gameLog          = mutableStateOf<List<LogEntry>>(emptyList()); private set
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
@@ -311,23 +311,28 @@ class OnlineLobbyViewModel(
                 "GAME_STATE" -> {
                     gameState.value = parseGameState(json)
                     phase.value = OnlinePhase.GAME_PLAYING
-                    gameLog.value = gameLog.value + gameState.value.log
-                    // Zahraná karta pro animaci – přepíše se jen pokud server pošle novou
+                    // Zahraná karta pro animaci + log záznam
                     val lpc = json.optJSONObject("lastPlayedCard")
                     if (lpc != null) {
                         val baseId = lpc.optString("baseId", "")
                         val template = allCards.find { it.id == baseId }
                         if (template != null) {
-                            lastPlayedCard.value = template.copy(
-                                id = lpc.optString("id", baseId)
-                            )
-                            lastPlayedByMe.value   = json.optBoolean("lastPlayedByMe", false)
-                            lastPlayedAction.value = when (json.optString("lastPlayedAction", "PLAYED")) {
+                            val card = template.copy(id = lpc.optString("id", baseId))
+                            lastPlayedCard.value   = card
+                            val isMe = json.optBoolean("lastPlayedByMe", false)
+                            lastPlayedByMe.value   = isMe
+                            val action = when (json.optString("lastPlayedAction", "PLAYED")) {
                                 "DISCARDED" -> CardAction.DISCARDED
                                 "BURNED"    -> CardAction.BURNED
                                 "STOLEN"    -> CardAction.STOLEN
                                 else        -> CardAction.PLAYED
                             }
+                            lastPlayedAction.value = action
+                            val actorName = if (isMe) playerName.value
+                                            else (matchInfo.value?.opponentName ?: "Soupeř")
+                            val turn = gameState.value.turnNumber
+                            gameLog.value = (gameLog.value +
+                                LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
                         }
                     }
                     // lpc == null → necháme předchozí kartu (mizí až po nahrazení novou)
@@ -348,6 +353,10 @@ class OnlineLobbyViewModel(
                             lastPlayedCard.value   = template.copy(id = cardId)
                             lastPlayedAction.value = action
                             lastPlayedByMe.value   = true  // naše karta = zobrazit jako "naše"
+                            val oppName = matchInfo.value?.opponentName ?: "Soupeř"
+                            val turn = gameState.value.turnNumber
+                            gameLog.value = (gameLog.value +
+                                LogEntry.CardEvent(oppName, template, action, isMe = false, turn)).takeLast(50)
                         }
                     }
                 }
@@ -374,7 +383,7 @@ class OnlineLobbyViewModel(
                 "GAME_ERROR" -> {
                     // Dočasná chyba hry (špatná akce) – zobraz jako zprávu, nepřeruš hru
                     val msg = json.optString("msg", "Chyba")
-                    gameLog.value = gameLog.value + "⚠️ $msg"
+                    gameLog.value = (gameLog.value + LogEntry.SystemEvent("⚠️ $msg")).takeLast(50)
                 }
 
                 "ERROR" -> {
