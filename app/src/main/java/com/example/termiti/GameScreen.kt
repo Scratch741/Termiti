@@ -799,6 +799,17 @@ fun NewBattlefield(
     }
 }
 
+/**
+ * Remapuje HP na vizuální frakci [0, 1].
+ * Při HP = 0  →  0f   (zničeno, nic vidět)
+ * Při HP > 0  →  [minFrac, 1f]  – minimum minFrac zaručuje, že budova je vždy trochu vidět
+ */
+private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float {
+    if (hp <= 0) return 0f
+    val raw = (hp / maxHp).coerceIn(0f, 1f)
+    return minFrac + (1f - minFrac) * raw
+}
+
 // ─── Castle Structure ─────────────────────────────────────────────────────────
 
 @Composable
@@ -842,7 +853,7 @@ private fun CastleTowerBlock(
 ) {
     val castleFullH = 165.dp
     val castleFullW = 110.dp
-    val hpFrac = (castleHp / 60f).coerceIn(0f, 1f)
+    val hpFrac = hpToVisualFrac(castleHp, maxHp = 60f)
 
     val offsetY by animateDpAsState(
         targetValue   = castleFullH * (1f - hpFrac),
@@ -872,7 +883,7 @@ private fun CastleTowerBlock(
 private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true) {
     val wallFullW = 42.dp
     val wallFullH = 58.dp
-    val wallFrac  = (wallHp / 50f).coerceIn(0f, 1f)
+    val wallFrac  = hpToVisualFrac(wallHp, maxHp = 50f)
 
     val offsetY by animateDpAsState(
         targetValue   = wallFullH * (1f - wallFrac),

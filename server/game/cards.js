@@ -235,17 +235,27 @@ function randomDeck(extraPool = []) {
 
 /** Validuj a postav balíček z předaných base ID. Při chybě vrátí náhodný. */
 function buildDeckFromIds(baseIds) {
-  if (!Array.isArray(baseIds) || baseIds.length !== 30) return randomDeck();
+  if (!Array.isArray(baseIds) || baseIds.length !== 30) {
+    console.warn(`[buildDeckFromIds] FAIL: not array or length=${Array.isArray(baseIds) ? baseIds.length : 'N/A'}, fallback na náhodný`);
+    return randomDeck();
+  }
   const counts = {};
   const cards = [];
   for (const id of baseIds) {
     const tmpl = CARD_MAP.get(id);
-    if (!tmpl) return randomDeck();
+    if (!tmpl) {
+      console.warn(`[buildDeckFromIds] FAIL: neznámé ID "${id}", fallback na náhodný`);
+      return randomDeck();
+    }
     counts[id] = (counts[id] || 0) + 1;
-    if (counts[id] > tmpl.maxCopies) return randomDeck();
+    if (counts[id] > tmpl.maxCopies) {
+      console.warn(`[buildDeckFromIds] FAIL: ID "${id}" překročilo maxCopies=${tmpl.maxCopies} (count=${counts[id]}), fallback na náhodný`);
+      return randomDeck();
+    }
     cards.push(makeInstance(tmpl));
   }
   shuffle(cards);
+  console.log(`[buildDeckFromIds] OK: sestaven balíček ${cards.length} karet`);
   return cards;
 }
 

@@ -66,6 +66,8 @@ class GameSession {
 
   start() {
     // Build decks – vlastní balíček pokud poslaný, jinak náhodný
+    console.log(`[GameSession] ${this.name.A} deckIds: ${this.deckIds.A ? `${this.deckIds.A.length} karet` : 'náhodný'}`);
+    console.log(`[GameSession] ${this.name.B} deckIds: ${this.deckIds.B ? `${this.deckIds.B.length} karet` : 'náhodný'}`);
     const deckA = this.deckIds.A ? buildDeckFromIds(this.deckIds.A) : randomDeck();
     const deckB = this.deckIds.B ? buildDeckFromIds(this.deckIds.B) : randomDeck();
 

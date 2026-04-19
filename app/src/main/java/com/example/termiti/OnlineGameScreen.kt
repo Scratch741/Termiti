@@ -427,12 +427,16 @@ private fun OnlineGameOverOverlay(
             Spacer(Modifier.height(8.dp))
 
             Button(
-                onClick = onBack,
+                onClick = { vm.returnToLobby() },
                 colors  = ButtonDefaults.buttonColors(containerColor = OgGold),
                 shape   = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text("Zpět do lobby", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+
+            TextButton(onClick = { vm.disconnect(); onBack() }) {
+                Text("Odejít", color = OgTextMuted, fontSize = 12.sp)
             }
         }
     }

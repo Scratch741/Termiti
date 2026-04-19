@@ -5,11 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +38,7 @@ private val OnPanel  = Color(0xFF111520)
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 @Composable
-fun OnlineMpScreen(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
+fun OnlineMpScreen(vm: OnlineLobbyViewModel, decks: List<Deck> = emptyList(), onBack: () -> Unit) {
     val phase by vm.phase
 
     // Herní fáze: plná obrazovka bez lobby pozadí
@@ -64,7 +64,7 @@ fun OnlineMpScreen(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
         when (phase) {
             OnlinePhase.NAME_INPUT  -> NameInputPanel(vm, onBack)
             OnlinePhase.CONNECTING  -> ConnectingPanel()
-            OnlinePhase.LOBBY       -> LobbyPanel(vm, onBack)
+            OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack)
             OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
             OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
             OnlinePhase.ERROR       -> ErrorPanel(vm, onBack)
@@ -149,87 +149,118 @@ private fun ConnectingPanel() {
 // ─── Lobby ────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun LobbyPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
-    val name             by vm.playerName
-    val onlineCount      by vm.onlineCount
-    val queueSize        by vm.queueSize
-    val selectedDeckIdx  by vm.selectedDeckIndex
-    val errorMsg         by vm.errorMsg
+private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -> Unit) {
+    val name            by vm.playerName
+    val onlineCount     by vm.onlineCount
+    val queueSize       by vm.queueSize
+    val selectedDeckIdx by vm.selectedDeckIndex
+    val errorMsg        by vm.errorMsg
 
-    CenteredCard {
-        // Hlavička
-        Text(
-            "LOBBY",
-            color        = OnTeal,
-            fontSize     = 20.sp,
-            fontWeight   = FontWeight.Bold,
-            letterSpacing = 4.sp
-        )
-        Spacer(Modifier.height(2.dp))
-        Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
-
-        Spacer(Modifier.height(20.dp))
-
-        // Statistiky
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
-            StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
-        }
-
-        Spacer(Modifier.height(20.dp))
-
-        // ── Výběr balíčku ────────────────────────────────────────────────────
-        Text(
-            "Balíček",
-            color        = OnMuted,
-            fontSize     = 9.sp,
-            letterSpacing = 1.sp,
-            modifier     = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(6.dp))
-
-        // Chipy: Náhodný + uložené balíčky
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.fillMaxWidth()
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Row(
+            modifier              = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), OnPanel)))
+                .border(1.dp, OnGold.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 28.dp, vertical = 24.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Náhodný balíček (index = -1)
-            item {
-                DeckChip(
-                    label    = "🎲 Náhodný",
-                    selected = selectedDeckIdx == -1,
-                    valid    = true,
-                    onClick  = { vm.setDeckChoice(-1) }
+
+            // ── Levý sloupec: hlavička + statistiky + tlačítka ────────────────
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                Text(
+                    "LOBBY",
+                    color         = OnTeal,
+                    fontSize      = 20.sp,
+                    fontWeight    = FontWeight.Bold,
+                    letterSpacing = 4.sp
                 )
+                Spacer(Modifier.height(2.dp))
+                Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
+
+                Spacer(Modifier.height(16.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
+                    StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
+                }
+
+                if (errorMsg.isNotBlank()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        errorMsg,
+                        color     = OnRed,
+                        fontSize  = 9.sp,
+                        textAlign = TextAlign.Center,
+                        modifier  = Modifier.widthIn(max = 200.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(200.dp)) {
+                    // Sestav IDs přímo z živého odkazu na decks – žádný snapshot
+                    val chosen = decks.getOrNull(selectedDeckIdx)
+                    if (selectedDeckIdx >= 0 && (chosen == null || !chosen.isValid)) {
+                        vm.joinQueue(invalidDeck = true)
+                    } else {
+                        val ids = chosen?.cardCounts
+                            ?.flatMap { (id, count) -> List(count) { id } }
+                        vm.joinQueue(deckIds = ids)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                OnBtn("← Odpojit", OnMuted, Modifier.width(200.dp)) { vm.disconnect(); onBack() }
             }
-            // Uložené balíčky
-            itemsIndexed(vm.decks) { idx, deck ->
-                DeckChip(
-                    label    = deck.name,
-                    selected = selectedDeckIdx == idx,
-                    valid    = deck.isValid,
-                    onClick  = { vm.setDeckChoice(idx) },
-                    cardCount = deck.totalCards
+
+            // ── Oddělovač ─────────────────────────────────────────────────────
+            Box(
+                Modifier
+                    .width(1.dp)
+                    .height(140.dp)
+                    .background(OnGold.copy(alpha = 0.15f))
+            )
+
+            // ── Pravý sloupec: výběr balíčku ──────────────────────────────────
+            Column(
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.width(160.dp)
+            ) {
+                Text(
+                    "BALÍČEK",
+                    color         = OnMuted,
+                    fontSize      = 8.sp,
+                    letterSpacing = 1.5.sp,
+                    fontWeight    = FontWeight.Bold
                 )
+                Spacer(Modifier.height(8.dp))
+
+                // Chipy vertikálně: Náhodný + uložené balíčky
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    DeckChip(
+                        label    = "🎲 Náhodný",
+                        selected = selectedDeckIdx == -1,
+                        valid    = true,
+                        onClick  = { vm.setDeckChoice(-1) }
+                    )
+                    decks.forEachIndexed { idx, deck ->
+                        DeckChip(
+                            label     = deck.name,
+                            selected  = selectedDeckIdx == idx,
+                            valid     = deck.isValid,
+                            cardCount = deck.totalCards,
+                            onClick   = { vm.setDeckChoice(idx) }
+                        )
+                    }
+                }
             }
-        }
-
-        if (errorMsg.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            Text(errorMsg, color = OnRed, fontSize = 9.sp, textAlign = TextAlign.Center)
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Rychlý zápas
-        OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(260.dp)) {
-            vm.joinQueue()
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        OnBtn("← Odpojit", OnMuted, Modifier.width(260.dp)) {
-            vm.disconnect(); onBack()
         }
     }
 }
@@ -248,29 +279,29 @@ private fun DeckChip(
         valid              -> OnMuted
         else               -> OnRed.copy(alpha = 0.6f)
     }
-    Box(
-        Modifier
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(accent.copy(alpha = if (selected) 0.18f else 0.07f))
             .border(1.dp, accent.copy(alpha = if (selected) 0.8f else 0.3f), RoundedCornerShape(8.dp))
             .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            label,
+            color      = if (selected) OnText else OnMuted,
+            fontSize   = 10.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+        if (cardCount != 30) {
             Text(
-                label,
-                color      = if (selected) OnText else OnMuted,
-                fontSize   = 10.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                "$cardCount/30",
+                color    = OnRed.copy(alpha = 0.8f),
+                fontSize = 8.sp
             )
-            if (cardCount != 30) {
-                Text(
-                    "$cardCount/30",
-                    color    = OnRed.copy(alpha = 0.8f),
-                    fontSize = 8.sp
-                )
-            }
         }
     }
 }

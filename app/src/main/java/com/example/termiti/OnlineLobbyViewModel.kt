@@ -80,8 +80,7 @@ data class OnlineGameResult(
 // ─── ViewModel ────────────────────────────────────────────────────────────────
 class OnlineLobbyViewModel(
     private val allCards: List<Card>,
-    private val deviceId: String,
-    val decks: List<Deck> = emptyList()
+    private val deviceId: String
 ) : ViewModel() {
 
     // ── Lobby stav ────────────────────────────────────────────────────────────
@@ -139,22 +138,21 @@ class OnlineLobbyViewModel(
         ws = httpClient.newWebSocket(request, GameListener())
     }
 
-    fun joinQueue() {
-        val idx = selectedDeckIndex.value
-        val chosenDeck = decks.getOrNull(idx)
-
-        if (idx >= 0 && (chosenDeck == null || !chosenDeck.isValid)) {
+    /**
+     * @param deckIds      Předem sestavený seznam 30 base ID z vybraného balíčku,
+     *                     nebo null pro náhodný balíček.
+     * @param invalidDeck  true = vybraný balíček nemá 30 karet → zobraz chybu, nepřipoj se
+     */
+    fun joinQueue(deckIds: List<String>? = null, invalidDeck: Boolean = false) {
+        if (invalidDeck) {
             errorMsg.value = "Vybraný balíček nemá 30 karet"
             return
         }
-
+        errorMsg.value = ""
         val json = JSONObject().apply {
             put("type", "QUEUE_JOIN")
-            if (chosenDeck != null) {
-                // Rozviň cardCounts na seznam 30 base ID
-                val ids = chosenDeck.cardCounts
-                    .flatMap { (id, count) -> List(count) { id } }
-                put("deckIds", JSONArray(ids))
+            if (deckIds != null) {
+                put("deckIds", JSONArray(deckIds))
             }
         }
         ws?.send(json.toString())
@@ -164,6 +162,13 @@ class OnlineLobbyViewModel(
 
     fun leaveQueue() {
         send("type" to "QUEUE_LEAVE")
+        phase.value     = OnlinePhase.LOBBY
+        statusMsg.value = ""
+    }
+
+    /** Konec hry → zůstat připojený, vrátit se do lobby (připraven na nový zápas). */
+    fun returnToLobby() {
+        resetGameState()
         phase.value     = OnlinePhase.LOBBY
         statusMsg.value = ""
     }
@@ -548,8 +553,7 @@ class OnlineLobbyViewModel(
 
     class Factory(
         private val allCards: List<Card>,
-        private val context: android.content.Context,
-        private val decks: List<Deck> = emptyList()
+        private val context: android.content.Context
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -559,7 +563,7 @@ class OnlineLobbyViewModel(
                 prefs.edit().putString("device_id", newId).apply()
                 newId
             }
-            return OnlineLobbyViewModel(allCards, deviceId, decks) as T
+            return OnlineLobbyViewModel(allCards, deviceId) as T
         }
     }
 }

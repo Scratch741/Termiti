@@ -28,11 +28,7 @@ class MainActivity : ComponentActivity() {
         )
     }
     private val onlineLobbyVm: OnlineLobbyViewModel by viewModels {
-        OnlineLobbyViewModel.Factory(
-            allCards = viewModel.allCards,
-            context  = applicationContext,
-            decks    = viewModel.decks.toList()
-        )
+        OnlineLobbyViewModel.Factory(allCards = viewModel.allCards, context = applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +73,7 @@ class MainActivity : ComponentActivity() {
                         // ── Online multiplayer (lobby server) ─────────────
                         Screen.ONLINE_MP -> OnlineMpScreen(
                             vm     = onlineLobbyVm,
+                            decks  = viewModel.decks,
                             onBack = { screen = Screen.MP_SELECT }
                         )
                         Screen.ARENA -> when (arenaPhase) {
