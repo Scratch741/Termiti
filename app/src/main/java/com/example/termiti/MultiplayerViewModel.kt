@@ -704,6 +704,11 @@ class MultiplayerViewModel(
         val bothExhausted = me.deck.isEmpty() && me.hand.isEmpty() &&
                             opp.deck.isEmpty() && opp.hand.isEmpty()
         when {
+            // Simultánní smrt / oba dostaví → remíza (prohra pro oba)
+            opp.castleHP <= 0 && me.castleHP <= 0 ->
+                finishGame(false, "Vzájemná zkáza! Oba hrady padly současně.")
+            me.castleHP >= 60 && opp.castleHP >= 60 ->
+                finishGame(false, "Remíza! Oba dostavěli hrad současně.")
             opp.castleHP <= 0  -> finishGame(true,  "Zničil jsi soupeřův hrad!")
             me.castleHP  <= 0  -> finishGame(false, "Tvůj hrad byl zničen.")
             me.castleHP  >= 60 -> finishGame(true,  "Dostavěl jsi hrad na 60!")

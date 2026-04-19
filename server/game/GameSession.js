@@ -412,8 +412,9 @@ class GameSession {
       winner,                // 'A' | 'B' | 'DRAW'
       winnerName
     };
-    this._send('A', { ...msg, youWin: winner === 'A' || winner === 'DRAW' });
-    this._send('B', { ...msg, youWin: winner === 'B' || winner === 'DRAW' });
+    // DRAW = prohra pro oba (vzájemná zkáza apod.) – nikdo nevyhrává
+    this._send('A', { ...msg, youWin: winner === 'A' });
+    this._send('B', { ...msg, youWin: winner === 'B' });
 
     this._log(`Konec hry. Vítěz: ${winnerName || 'REMÍZA'}`);
     console.log(`[Game ${this.gameId}] ended – winner: ${winner}`);

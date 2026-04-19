@@ -9,12 +9,19 @@ data class GameState(
     var activePlayer: ActivePlayer = ActivePlayer.PLAYER
 ) {
     fun checkWinCondition(): GameResult? {
+        val playerDead  = playerState.castleHP <= 0
+        val aiDead      = aiState.castleHP     <= 0
+        val playerBuilt = playerState.castleHP >= 60
+        val aiBuilt     = aiState.castleHP     >= 60
         return when {
-            playerState.castleHP <= 0  -> GameResult.PLAYER_CASTLE_DESTROYED
-            aiState.castleHP     <= 0  -> GameResult.AI_CASTLE_DESTROYED
-            playerState.castleHP >= 60 -> GameResult.PLAYER_CASTLE_BUILT
-            aiState.castleHP     >= 60 -> GameResult.AI_CASTLE_BUILT
-            else -> null
+            // Simultánní smrt / simultánní postavení → remíza (prohra pro oba)
+            playerDead  && aiDead   -> GameResult.DRAW
+            playerBuilt && aiBuilt  -> GameResult.DRAW
+            playerDead              -> GameResult.PLAYER_CASTLE_DESTROYED
+            aiDead                  -> GameResult.AI_CASTLE_DESTROYED
+            playerBuilt             -> GameResult.PLAYER_CASTLE_BUILT
+            aiBuilt                 -> GameResult.AI_CASTLE_BUILT
+            else                    -> null
         }
     }
 
