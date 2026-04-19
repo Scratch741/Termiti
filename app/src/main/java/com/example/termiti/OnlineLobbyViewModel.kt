@@ -107,6 +107,9 @@ class OnlineLobbyViewModel(
     fun setDeckChoice(index: Int, deckIds: List<String>? = null) {
         selectedDeckIndex.value = index
         _pendingDeckIds = deckIds
+        android.util.Log.d("DECK", "setDeckChoice: index=$index, deckIds=${deckIds?.size ?: "null"}")
+        // Ukáže v lobby UI kolik karet bude posláno
+        statusMsg.value = if (deckIds != null) "Balíček: ${deckIds.size} karet připraveno" else "Balíček: náhodný"
     }
 
     // ── Herní stav ────────────────────────────────────────────────────────────
@@ -150,6 +153,7 @@ class OnlineLobbyViewModel(
 
     fun joinQueue() {
         val deckIds = _pendingDeckIds
+        android.util.Log.d("DECK", "joinQueue: selectedDeckIndex=${selectedDeckIndex.value}, deckIds=${deckIds?.size ?: "null"}")
         // Pokud je vybrán konkrétní balíček ale nemá platná IDs, zablokuj
         if (selectedDeckIndex.value >= 0 && deckIds == null) {
             errorMsg.value = "Vybraný balíček nemá 30 karet"
@@ -159,13 +163,14 @@ class OnlineLobbyViewModel(
         val json = JSONObject().apply {
             put("type", "QUEUE_JOIN")
             if (deckIds != null) {
-                // Sestav JSONArray explicitně pro jistotu kompatibility
                 val arr = JSONArray()
                 deckIds.forEach { arr.put(it) }
                 put("deckIds", arr)
             }
         }
-        ws?.send(json.toString())
+        val jsonStr = json.toString()
+        android.util.Log.d("DECK", "QUEUE_JOIN payload length=${jsonStr.length}, hasDeckIds=${jsonStr.contains("deckIds")}")
+        ws?.send(jsonStr)
         phase.value     = OnlinePhase.QUEUING
         statusMsg.value = "Hledám soupeře…"
     }

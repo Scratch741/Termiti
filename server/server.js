@@ -239,6 +239,9 @@ wss.on('connection', (ws, req) => {
         if (!player) { send(ws, { type: 'ERROR', msg: 'Nejsi přihlášen' }); return; }
         if (player.inQueue || player.gameId) return;
 
+        // DEBUG: loguj co přišlo
+        console.log(`[QUEUE_JOIN] ${player.name}: deckIds type=${typeof msg.deckIds}, isArray=${Array.isArray(msg.deckIds)}, length=${Array.isArray(msg.deckIds) ? msg.deckIds.length : 'N/A'}, raw=${JSON.stringify(msg.deckIds)?.slice(0,80)}`);
+
         // Ulož volitelně přijaté IDs balíčku (30 base ID) pro sestavení balíčku
         player.deckIds = Array.isArray(msg.deckIds) ? msg.deckIds : null;
 

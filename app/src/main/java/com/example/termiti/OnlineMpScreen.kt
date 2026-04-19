@@ -155,6 +155,7 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
     val queueSize       by vm.queueSize
     val selectedDeckIdx by vm.selectedDeckIndex
     val errorMsg        by vm.errorMsg
+    val statusMsg       by vm.statusMsg
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Row(
@@ -187,6 +188,11 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
                     StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
+                }
+
+                if (statusMsg.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(statusMsg, color = OnTeal.copy(alpha = 0.7f), fontSize = 8.sp, textAlign = TextAlign.Center)
                 }
 
                 if (errorMsg.isNotBlank()) {
