@@ -122,8 +122,17 @@ function tryMatch() {
     send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, side: 'A' });
     send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, side: 'B' });
 
+    // Callback volaný při ukončení hry – uvolní hráče do lobby
+    const onGameEnd = (gid) => {
+      if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
+      if (players.get(wsB)) { players.get(wsB).gameId = null; players.get(wsB).side = null; }
+      games.delete(gid);
+      log('GAME', `Session ${gid} ukončena a uvolněna`);
+      broadcastCount();
+    };
+
     // Vytvoř herní session a spusť ji (předej volitelné deck IDs)
-    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds);
+    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd);
     games.set(gameId, session);
     try {
       session.start();

@@ -26,9 +26,11 @@ class GameSession {
    * @param {string}    nameB
    * @param {string[]|null} deckIdsA  – 30 base ID karet pro hráče A (null = náhodný)
    * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
+   * @param {Function|null} onEnd     – callback(gameId) volaný při ukončení hry
    */
-  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null) {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null) {
     this.gameId = gameId;
+    this.onEnd  = onEnd;
 
     this.ws      = { A: wsA,      B: wsB      };
     this.name    = { A: nameA,    B: nameB    };
@@ -443,6 +445,9 @@ class GameSession {
 
     this._log(`Konec hry. Vítěz: ${winnerName || 'REMÍZA'}`);
     console.log(`[Game ${this.gameId}] ended – winner: ${winner}`);
+
+    // Uvolni hráče – aby mohli znovu vstoupit do fronty
+    if (this.onEnd) this.onEnd(this.gameId);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
