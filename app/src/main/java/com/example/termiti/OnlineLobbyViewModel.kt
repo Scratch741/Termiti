@@ -95,8 +95,18 @@ class OnlineLobbyViewModel(
     /** -1 = náhodný balíček, 0..2 = index uloženého balíčku */
     var selectedDeckIndex = mutableStateOf(-1); private set
 
-    fun setDeckChoice(index: Int) {
+    /** Předem sestavené IDs z vybraného balíčku; null = náhodný */
+    private var _pendingDeckIds: List<String>? = null
+
+    /**
+     * Nastav vybraný balíček. Deck IDs se předají hned, aby joinQueue() nemusel
+     * řešit lambda capture ani snapshot timing.
+     * @param index   -1 = náhodný, 0..2 = uložený balíček
+     * @param deckIds 30 base ID karet, nebo null pro náhodný
+     */
+    fun setDeckChoice(index: Int, deckIds: List<String>? = null) {
         selectedDeckIndex.value = index
+        _pendingDeckIds = deckIds
     }
 
     // ── Herní stav ────────────────────────────────────────────────────────────
@@ -138,13 +148,10 @@ class OnlineLobbyViewModel(
         ws = httpClient.newWebSocket(request, GameListener())
     }
 
-    /**
-     * @param deckIds      Předem sestavený seznam 30 base ID z vybraného balíčku,
-     *                     nebo null pro náhodný balíček.
-     * @param invalidDeck  true = vybraný balíček nemá 30 karet → zobraz chybu, nepřipoj se
-     */
-    fun joinQueue(deckIds: List<String>? = null, invalidDeck: Boolean = false) {
-        if (invalidDeck) {
+    fun joinQueue() {
+        val deckIds = _pendingDeckIds
+        // Pokud je vybrán konkrétní balíček ale nemá platná IDs, zablokuj
+        if (selectedDeckIndex.value >= 0 && deckIds == null) {
             errorMsg.value = "Vybraný balíček nemá 30 karet"
             return
         }
@@ -152,7 +159,10 @@ class OnlineLobbyViewModel(
         val json = JSONObject().apply {
             put("type", "QUEUE_JOIN")
             if (deckIds != null) {
-                put("deckIds", JSONArray(deckIds))
+                // Sestav JSONArray explicitně pro jistotu kompatibility
+                val arr = JSONArray()
+                deckIds.forEach { arr.put(it) }
+                put("deckIds", arr)
             }
         }
         ws?.send(json.toString())
@@ -169,6 +179,8 @@ class OnlineLobbyViewModel(
     /** Konec hry → zůstat připojený, vrátit se do lobby (připraven na nový zápas). */
     fun returnToLobby() {
         resetGameState()
+        _pendingDeckIds     = null
+        selectedDeckIndex.value = -1
         phase.value     = OnlinePhase.LOBBY
         statusMsg.value = ""
     }

@@ -203,15 +203,7 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 Spacer(Modifier.height(16.dp))
 
                 OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(200.dp)) {
-                    // Sestav IDs přímo z živého odkazu na decks – žádný snapshot
-                    val chosen = decks.getOrNull(selectedDeckIdx)
-                    if (selectedDeckIdx >= 0 && (chosen == null || !chosen.isValid)) {
-                        vm.joinQueue(invalidDeck = true)
-                    } else {
-                        val ids = chosen?.cardCounts
-                            ?.flatMap { (id, count) -> List(count) { id } }
-                        vm.joinQueue(deckIds = ids)
-                    }
+                    vm.joinQueue()
                 }
                 Spacer(Modifier.height(8.dp))
                 OnBtn("← Odpojit", OnMuted, Modifier.width(200.dp)) { vm.disconnect(); onBack() }
@@ -248,7 +240,7 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                         label    = "🎲 Náhodný",
                         selected = selectedDeckIdx == -1,
                         valid    = true,
-                        onClick  = { vm.setDeckChoice(-1) }
+                        onClick  = { vm.setDeckChoice(-1, null) }
                     )
                     decks.forEachIndexed { idx, deck ->
                         DeckChip(
@@ -256,7 +248,15 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                             selected  = selectedDeckIdx == idx,
                             valid     = deck.isValid,
                             cardCount = deck.totalCards,
-                            onClick   = { vm.setDeckChoice(idx) }
+                            onClick   = {
+                                if (deck.isValid) {
+                                    val ids = deck.cardCounts
+                                        .flatMap { (id, count) -> List(count) { id } }
+                                    vm.setDeckChoice(idx, ids)
+                                } else {
+                                    vm.setDeckChoice(idx, null)
+                                }
+                            }
                         )
                     }
                 }
