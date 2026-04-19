@@ -562,7 +562,7 @@ private fun CardPreview(card: Card) {
             name         = card.name,
             modifier     = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 67.dp)
+                .offset(y = 69.dp)
                 .fillMaxWidth()
                 .height(22.dp),
             fontSizeSp   = 8f,
@@ -693,7 +693,7 @@ private fun FullCardPreview(card: Card) {
                 name         = card.name,
                 modifier     = Modifier
                     .fillMaxWidth()
-                    .padding(top = 169.dp)
+                    .padding(top = 174.dp)
                     .height(55.dp),
                 fontSizeSp   = 18f,
                 arcRadiusDp  = 882f,   // 350 × 2.52
