@@ -27,6 +27,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -107,6 +109,78 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
     null                              -> "❓"
+}
+
+// ─── Arc Card Name ─────────────────────────────────────────────────────────────
+/**
+ * Vykreslí název karty podél kruhového oblouku pomocí nativeCanvas.drawTextOnPath.
+ *
+ * @param arcRadiusDp  Poloměr oblouku v dp. Větší = plošší křivka.
+ *                     Kladný → text se klene nahoru uprostřed (kopec ∩).
+ *                     Záporný → text se prohlubuje dolů uprostřed (valley ∪).
+ * @param baselineFrac Relativní poloha základní linie v plátně (0 = vršek, 1 = dno).
+ */
+@androidx.compose.runtime.Composable
+private fun ArcCardName(
+    name         : String,
+    modifier     : Modifier = Modifier,
+    fontSizeSp   : Float    = 8f,
+    arcRadiusDp  : Float    = 350f,
+    baselineFrac : Float    = 0.75f
+) {
+    val sign      = if (arcRadiusDp >= 0f) 1f else -1f
+    val absRadius = kotlin.math.abs(arcRadiusDp)
+
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val fontPx   = fontSizeSp.sp.toPx()
+        val radiusPx = absRadius.dp.toPx()
+        val w        = size.width
+        val h        = size.height
+
+        // Střed kružnice: sign > 0 → pod plátnem (klene nahoru),
+        //                 sign < 0 → nad plátnem (prohlubuje dolů)
+        val baseY    = h * baselineFrac
+        val cx       = w / 2f
+        val cy       = sign * radiusPx + baseY
+
+        // Poloměrný úhel pokrytý šířkou plátna
+        val halfSpan = (w / 2f / radiusPx).toDouble().coerceIn(-1.0, 1.0)
+        val halfDeg  = Math.toDegrees(Math.asin(halfSpan)).toFloat()
+
+        // Pro kladný sign: střed kružnice dole → oblouk nahoře → startAngle u 270°
+        // Pro záporný sign: střed kružnice nahoře → oblouk dole → traversal odzprava
+        val midAngle   = if (sign > 0f) 270f else 90f
+        val startAngle = if (sign > 0f) midAngle - halfDeg else midAngle + halfDeg
+        val sweepAngle = if (sign > 0f) halfDeg * 2f       else -(halfDeg * 2f)
+
+        val oval = android.graphics.RectF(
+            cx - radiusPx, cy - radiusPx,
+            cx + radiusPx, cy + radiusPx
+        )
+        val path = android.graphics.Path().also { it.addArc(oval, startAngle, sweepAngle) }
+
+        drawIntoCanvas { c ->
+            val paint = android.graphics.Paint().apply {
+                isAntiAlias = true
+                typeface    = android.graphics.Typeface.create(
+                    android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD
+                )
+                textSize  = fontPx
+                textAlign = android.graphics.Paint.Align.CENTER
+            }
+            // Obrys (stroke)
+            paint.style       = android.graphics.Paint.Style.STROKE
+            paint.strokeWidth = fontPx * 0.28f
+            paint.strokeJoin  = android.graphics.Paint.Join.ROUND
+            paint.strokeCap   = android.graphics.Paint.Cap.ROUND
+            paint.color       = android.graphics.Color.BLACK
+            c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
+            // Výplň (fill)
+            paint.style = android.graphics.Paint.Style.FILL
+            paint.color = android.graphics.Color.WHITE
+            c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
+        }
+    }
 }
 
 private fun Card.category() = when (effects.firstOrNull()) {
@@ -483,19 +557,18 @@ private fun CardPreview(card: Card) {
             // Bílá výplň
             Text(costLabel, color = Color.White, modifier = Modifier.fillMaxWidth(), style = costStyle)
         }
-        // Název
-        Box(
-            modifier = Modifier
+        // Název — zakřivený text sledující oblouk ribbonu
+        ArcCardName(
+            name         = card.name,
+            modifier     = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 70.dp)
+                .offset(y = 67.dp)
                 .fillMaxWidth()
-                .height(20.dp)
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(card.name, color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+                .height(22.dp),
+            fontSizeSp   = 8f,
+            arcRadiusDp  = 350f,
+            baselineFrac = 0.78f
+        )
         // Popis
         Box(
             modifier = Modifier
@@ -615,18 +688,17 @@ private fun FullCardPreview(card: Card) {
                     textAlign = TextAlign.Center, style = costStyle)
             }
 
-            // Název — ribbon y = 70dp × 2.52 = 176dp
-            Box(
-                modifier = Modifier
+            // Název — zakřivený text (× 2.52 od malé karty)
+            ArcCardName(
+                name         = card.name,
+                modifier     = Modifier
                     .fillMaxWidth()
-                    .padding(top = 176.dp)
-                    .height(50.dp)
-                    .padding(horizontal = 30.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(card.name, color = Color.White, fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2)
-            }
+                    .padding(top = 169.dp)
+                    .height(55.dp),
+                fontSizeSp   = 18f,
+                arcRadiusDp  = 882f,   // 350 × 2.52
+                baselineFrac = 0.78f
+            )
 
             // Popis — y = 94dp × 2.52 = 237dp
             Box(
