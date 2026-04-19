@@ -122,8 +122,8 @@ function tryMatch() {
     send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, side: 'A' });
     send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, side: 'B' });
 
-    // Vytvoř herní session a spusť ji
-    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name);
+    // Vytvoř herní session a spusť ji (předej volitelné deck IDs)
+    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds);
     games.set(gameId, session);
     try {
       session.start();
@@ -230,9 +230,12 @@ wss.on('connection', (ws, req) => {
         if (!player) { send(ws, { type: 'ERROR', msg: 'Nejsi přihlášen' }); return; }
         if (player.inQueue || player.gameId) return;
 
+        // Ulož volitelně přijaté IDs balíčku (30 base ID) pro sestavení balíčku
+        player.deckIds = Array.isArray(msg.deckIds) ? msg.deckIds : null;
+
         player.inQueue = true;
         queue.push(ws);
-        log('QUEUE', `${player.name} čeká (${queue.length} ve frontě)`);
+        log('QUEUE', `${player.name} čeká (${queue.length} ve frontě)${player.deckIds ? ' [vlastní balíček]' : ''}`);
 
         send(ws, { type: 'QUEUE_OK' });
         broadcastCount();

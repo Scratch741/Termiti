@@ -80,7 +80,8 @@ data class OnlineGameResult(
 // ─── ViewModel ────────────────────────────────────────────────────────────────
 class OnlineLobbyViewModel(
     private val allCards: List<Card>,
-    private val deviceId: String
+    private val deviceId: String,
+    val decks: List<Deck> = emptyList()
 ) : ViewModel() {
 
     // ── Lobby stav ────────────────────────────────────────────────────────────
@@ -91,6 +92,13 @@ class OnlineLobbyViewModel(
     var statusMsg    = mutableStateOf(""); private set
     var errorMsg     = mutableStateOf(""); private set
     var matchInfo    = mutableStateOf<OnlineMatchInfo?>(null); private set
+
+    /** -1 = náhodný balíček, 0..2 = index uloženého balíčku */
+    var selectedDeckIndex = mutableStateOf(-1); private set
+
+    fun setDeckChoice(index: Int) {
+        selectedDeckIndex.value = index
+    }
 
     // ── Herní stav ────────────────────────────────────────────────────────────
     var mulliganHand      = mutableStateOf<List<Card>>(emptyList()); private set
@@ -132,7 +140,24 @@ class OnlineLobbyViewModel(
     }
 
     fun joinQueue() {
-        send("type" to "QUEUE_JOIN")
+        val idx = selectedDeckIndex.value
+        val chosenDeck = decks.getOrNull(idx)
+
+        if (idx >= 0 && (chosenDeck == null || !chosenDeck.isValid)) {
+            errorMsg.value = "Vybraný balíček nemá 30 karet"
+            return
+        }
+
+        val json = JSONObject().apply {
+            put("type", "QUEUE_JOIN")
+            if (chosenDeck != null) {
+                // Rozviň cardCounts na seznam 30 base ID
+                val ids = chosenDeck.cardCounts
+                    .flatMap { (id, count) -> List(count) { id } }
+                put("deckIds", JSONArray(ids))
+            }
+        }
+        ws?.send(json.toString())
         phase.value     = OnlinePhase.QUEUING
         statusMsg.value = "Hledám soupeře…"
     }
@@ -523,7 +548,8 @@ class OnlineLobbyViewModel(
 
     class Factory(
         private val allCards: List<Card>,
-        private val context: android.content.Context
+        private val context: android.content.Context,
+        private val decks: List<Deck> = emptyList()
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -533,7 +559,7 @@ class OnlineLobbyViewModel(
                 prefs.edit().putString("device_id", newId).apply()
                 newId
             }
-            return OnlineLobbyViewModel(allCards, deviceId) as T
+            return OnlineLobbyViewModel(allCards, deviceId, decks) as T
         }
     }
 }

@@ -1476,8 +1476,10 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                 CardAction.BURNED    -> "🔥 spálil"
                 CardAction.STOLEN    -> "🃏 ukradl"
             }
+            val rc = rarityColor(entry.card.rarity)
+
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(rowAlpha)
@@ -1486,42 +1488,81 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                     }
                     .padding(vertical = 4.dp, horizontal = 4.dp)
             ) {
-                // ── Aktor + sloveso ───────────────────────────────────────────
-                Column(modifier = Modifier.width(68.dp)) {
+                // ── Miniatura karty ───────────────────────────────────────────
+                val artId = entry.card.artResId
+                if (artId != null && artId != 0) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 27.dp, height = 36.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .border(1.dp, rc.copy(alpha = 0.65f), RoundedCornerShape(3.dp))
+                    ) {
+                        Image(
+                            painter        = painterResource(artId),
+                            contentDescription = null,
+                            contentScale   = ContentScale.Crop,
+                            modifier       = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    val s = ArtDefaults.SCALE * entry.card.artScale
+                                    scaleX = s; scaleY = s
+                                    transformOrigin = TransformOrigin(
+                                        pivotFractionX = ((ArtDefaults.BIAS_X + entry.card.artBiasX + 1f) / 2f).coerceIn(0f, 1f),
+                                        pivotFractionY = ((ArtDefaults.BIAS_Y + entry.card.artBiasY + 1f) / 2f).coerceIn(0f, 1f)
+                                    )
+                                }
+                        )
+                    }
+                    Spacer(Modifier.width(6.dp))
+                }
+
+                // ── Textová část ─────────────────────────────────────────────
+                Column(modifier = Modifier.weight(1f)) {
+                    // ── řádek 1: aktor · sloveso ... kolo ─────────────────────
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text       = entry.actorName,
+                            color      = if (entry.isMe) TealLight else Crimson,
+                            fontSize   = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines   = 1,
+                            overflow   = TextOverflow.Ellipsis,
+                            modifier   = Modifier.widthIn(max = 60.dp)
+                        )
+                        Text(
+                            text  = " · $actionLabel",
+                            color = actionColor.copy(alpha = 0.85f),
+                            fontSize = 7.sp
+                        )
+                        Spacer(Modifier.weight(1f))
+                        if (entry.turn > 0) {
+                            Text(
+                                text     = "T${entry.turn}",
+                                color    = TextMuted.copy(alpha = 0.50f * rowAlpha),
+                                fontSize = 7.sp
+                            )
+                        }
+                    }
+                    // ── řádek 2: název karty ──────────────────────────────────
                     Text(
-                        text       = entry.actorName,
-                        color      = if (entry.isMe) TealLight else Crimson,
-                        fontSize   = 8.5.sp,
-                        fontWeight = FontWeight.Bold,
+                        text       = entry.card.name,
+                        color      = Gold.copy(alpha = 0.92f),
+                        fontSize   = 9.5.sp,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines   = 1,
                         overflow   = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text       = actionLabel,
-                        color      = actionColor.copy(alpha = 0.85f),
-                        fontSize   = 7.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Spacer(Modifier.width(6.dp))
-                // ── Název karty ───────────────────────────────────────────────
-                Text(
-                    text       = entry.card.name,
-                    color      = Gold.copy(alpha = 0.92f),
-                    fontSize   = 9.5.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines   = 1,
-                    overflow   = TextOverflow.Ellipsis,
-                    modifier   = Modifier.weight(1f)
-                )
-                // ── Kolo ──────────────────────────────────────────────────────
-                if (entry.turn > 0) {
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text  = "T${entry.turn}",
-                        color = TextMuted.copy(alpha = 0.5f * rowAlpha),
-                        fontSize = 7.sp
-                    )
+                    // ── řádek 3: popis karty ──────────────────────────────────
+                    if (entry.card.description.isNotBlank()) {
+                        Text(
+                            text       = entry.card.description,
+                            color      = TextMuted.copy(alpha = 0.72f),
+                            fontSize   = 7.sp,
+                            lineHeight = 9.sp,
+                            maxLines   = 2,
+                            overflow   = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }

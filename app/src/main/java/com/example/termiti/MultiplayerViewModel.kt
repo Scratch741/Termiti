@@ -142,6 +142,8 @@ class MultiplayerViewModel(
     private var turnIndex            = 0   // total turns elapsed (for first-turn no-draw rule)
     private var closingIntentionally = false
     private var heartbeatJob: Job?   = null
+    /** Zvýší se při každém setupGame() – zabrání dožívajícím coroutinám ze staré hry volat endOppTurn(). */
+    private var gameEpoch            = 0
 
     // ═════════════════════════════════════════════════════════════════════════
     // Connection
@@ -425,23 +427,26 @@ class MultiplayerViewModel(
     }
 
     private fun setupGame(myUids: List<String>, oppUids: List<String>, iGoFirst: Boolean) {
+        gameEpoch++                          // zneplatní všechny dožívající coroutiny ze staré hry
         this.iGoFirst    = iGoFirst
         goesFirst.value  = iGoFirst
         turnIndex         = 0
         myMulliganDone    = false
         oppMulliganDone   = false
         gameOver.value    = null
+        isMyTurn.value    = false
         isComboTurn.value = false
         gameLog.value     = emptyList()
         currentTurn.value = 1
         mulliganSelected.value  = emptySet()
         mulliganSubmitted.value = false
         cardByUid.clear()
-        lastCard.value         = null
-        lastCardAction.value   = CardAction.PLAYED
-        lastCardIsPlayer.value = true
-        rematchRequested.value = false
-        cardHistory.value      = emptyList()
+        lastCard.value            = null
+        lastCardAction.value      = CardAction.PLAYED
+        lastCardIsPlayer.value    = true
+        rematchRequested.value    = false
+        cardHistory.value         = emptyList()
+        oppRevealedCardIds.value  = emptySet()
 
         val myCards  = myUids.map  { buildCard(it) }
         val oppCards = oppUids.map { buildCard(it) }
@@ -657,8 +662,10 @@ class MultiplayerViewModel(
         // Označ kartu jako „odkrytou" – UI přepne rub na líc
         oppRevealedCardIds.value = oppRevealedCardIds.value + uid
 
+        val epochAtPlay = gameEpoch   // zachyť epoch – pokud mezitím začne nová hra, coroutine se zastaví
         viewModelScope.launch {
             delay(1200)                      // karta je viditelná 1,2 s
+            if (gameEpoch != epochAtPlay) return@launch   // hra byla resetována (rematch) – ignoruj
             // Odeber kartu z ruky soupeře
             val updOpp = oppState.value.deepCopy()
             updOpp.hand.removeAll { it.id == uid }

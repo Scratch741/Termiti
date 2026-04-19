@@ -4,7 +4,7 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, randomDeck, shuffle
+  CARD_MAP, randomDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
@@ -24,12 +24,15 @@ class GameSession {
    * @param {string}    nameA
    * @param {WebSocket} wsB
    * @param {string}    nameB
+   * @param {string[]|null} deckIdsA  – 30 base ID karet pro hráče A (null = náhodný)
+   * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
    */
-  constructor(gameId, wsA, nameA, wsB, nameB) {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null) {
     this.gameId = gameId;
 
-    this.ws   = { A: wsA,   B: wsB   };
-    this.name = { A: nameA, B: nameB };
+    this.ws      = { A: wsA,      B: wsB      };
+    this.name    = { A: nameA,    B: nameB    };
+    this.deckIds = { A: deckIdsA, B: deckIdsB };
 
     // Game state
     this.state     = { A: null, B: null };
@@ -62,9 +65,9 @@ class GameSession {
   // ── Start ──────────────────────────────────────────────────────────────────
 
   start() {
-    // Build decks (randomDeck() already calls makeInstance internally)
-    const deckA = randomDeck();
-    const deckB = randomDeck();
+    // Build decks – vlastní balíček pokud poslaný, jinak náhodný
+    const deckA = this.deckIds.A ? buildDeckFromIds(this.deckIds.A) : randomDeck();
+    const deckB = this.deckIds.B ? buildDeckFromIds(this.deckIds.B) : randomDeck();
 
     this.state.A = createPlayerState(deckA);
     this.state.B = createPlayerState(deckB);

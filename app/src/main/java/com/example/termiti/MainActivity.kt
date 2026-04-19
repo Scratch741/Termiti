@@ -28,7 +28,11 @@ class MainActivity : ComponentActivity() {
         )
     }
     private val onlineLobbyVm: OnlineLobbyViewModel by viewModels {
-        OnlineLobbyViewModel.Factory(allCards = viewModel.allCards, context = applicationContext)
+        OnlineLobbyViewModel.Factory(
+            allCards = viewModel.allCards,
+            context  = applicationContext,
+            decks    = viewModel.decks.toList()
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
