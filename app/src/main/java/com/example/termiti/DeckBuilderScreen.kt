@@ -27,8 +27,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -109,78 +107,6 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
     null                              -> "❓"
-}
-
-// ─── Arc Card Name ─────────────────────────────────────────────────────────────
-/**
- * Vykreslí název karty podél kruhového oblouku pomocí nativeCanvas.drawTextOnPath.
- *
- * @param arcRadiusDp  Poloměr oblouku v dp. Větší = plošší křivka.
- *                     Kladný → text se klene nahoru uprostřed (kopec ∩).
- *                     Záporný → text se prohlubuje dolů uprostřed (valley ∪).
- * @param baselineFrac Relativní poloha základní linie v plátně (0 = vršek, 1 = dno).
- */
-@androidx.compose.runtime.Composable
-private fun ArcCardName(
-    name         : String,
-    modifier     : Modifier = Modifier,
-    fontSizeSp   : Float    = 8f,
-    arcRadiusDp  : Float    = 350f,
-    baselineFrac : Float    = 0.75f
-) {
-    val sign      = if (arcRadiusDp >= 0f) 1f else -1f
-    val absRadius = kotlin.math.abs(arcRadiusDp)
-
-    androidx.compose.foundation.Canvas(modifier = modifier) {
-        val fontPx   = fontSizeSp.sp.toPx()
-        val radiusPx = absRadius.dp.toPx()
-        val w        = size.width
-        val h        = size.height
-
-        // Střed kružnice: sign > 0 → pod plátnem (klene nahoru),
-        //                 sign < 0 → nad plátnem (prohlubuje dolů)
-        val baseY    = h * baselineFrac
-        val cx       = w / 2f
-        val cy       = sign * radiusPx + baseY
-
-        // Poloměrný úhel pokrytý šířkou plátna
-        val halfSpan = (w / 2f / radiusPx).toDouble().coerceIn(-1.0, 1.0)
-        val halfDeg  = Math.toDegrees(Math.asin(halfSpan)).toFloat()
-
-        // Pro kladný sign: střed kružnice dole → oblouk nahoře → startAngle u 270°
-        // Pro záporný sign: střed kružnice nahoře → oblouk dole → traversal odzprava
-        val midAngle   = if (sign > 0f) 270f else 90f
-        val startAngle = if (sign > 0f) midAngle - halfDeg else midAngle + halfDeg
-        val sweepAngle = if (sign > 0f) halfDeg * 2f       else -(halfDeg * 2f)
-
-        val oval = android.graphics.RectF(
-            cx - radiusPx, cy - radiusPx,
-            cx + radiusPx, cy + radiusPx
-        )
-        val path = android.graphics.Path().also { it.addArc(oval, startAngle, sweepAngle) }
-
-        drawIntoCanvas { c ->
-            val paint = android.graphics.Paint().apply {
-                isAntiAlias = true
-                typeface    = android.graphics.Typeface.create(
-                    android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD
-                )
-                textSize  = fontPx
-                textAlign = android.graphics.Paint.Align.CENTER
-            }
-            // Obrys (stroke)
-            paint.style       = android.graphics.Paint.Style.STROKE
-            paint.strokeWidth = fontPx * 0.28f
-            paint.strokeJoin  = android.graphics.Paint.Join.ROUND
-            paint.strokeCap   = android.graphics.Paint.Cap.ROUND
-            paint.color       = android.graphics.Color.BLACK
-            c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
-            // Výplň (fill)
-            paint.style = android.graphics.Paint.Style.FILL
-            paint.color = android.graphics.Color.WHITE
-            c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
-        }
-    }
 }
 
 private fun Card.category() = when (effects.firstOrNull()) {

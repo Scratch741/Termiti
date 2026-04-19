@@ -1946,27 +1946,18 @@ private fun CardViewTextured(
                 style = costStyle)
         }
 
-        // Vrstva 4: název karty v červeném obloukovém pásu (~70–90 dp od vrchu)
-        // Proporce rámu 816×1194 px → výška karty 140 dp: y = px * (140/1194)
-        Box(
-            modifier = Modifier
+        // Vrstva 4: název karty v obloukovém pásu (~70 dp od vrchu) — zakřivený text
+        ArcCardName(
+            name         = card.name,
+            modifier     = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 70.dp)
+                .offset(y = 69.dp)
                 .fillMaxWidth()
-                .height(20.dp)
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                card.name,
-                color = Color.White,
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+                .height(22.dp),
+            fontSizeSp   = 8f,
+            arcRadiusDp  = 350f,
+            baselineFrac = 0.78f
+        )
 
         // Vrstva 5: text karty pod názvem (90–122 dp od vrchu, max 4 řádky)
         Column(
