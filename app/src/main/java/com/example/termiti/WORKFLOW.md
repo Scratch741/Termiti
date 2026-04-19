@@ -26,6 +26,8 @@ Condition je sealed class:
 - WallAbove(threshold: Int)
 - WallBelow(threshold: Int)
 - CastleAbove(threshold: Int)
+- CastleBelow(threshold: Int)
+- LastPlayedType(cardType: String)  – typ právě hrané karty; porovnává s Card.type ("Útok","Stavba","Důl","Magie","Chaos")
 
 ResourceType: MAGIC, ATTACK, STONES
 

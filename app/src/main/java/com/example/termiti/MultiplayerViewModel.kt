@@ -589,6 +589,7 @@ class MultiplayerViewModel(
             xValue = 0
             me.resources[card.costType] = (me.resources[card.costType] ?: 0) - card.cost
         }
+        me.lastPlayedType = card.type
         applyEffects(card.effects, me, opp, allCards, xValue = xValue)
         me.hand.remove(card)
         me.discardPile.add(card)
@@ -642,6 +643,7 @@ class MultiplayerViewModel(
             oppXValue = 0
             opp.resources[card.costType] = (opp.resources[card.costType] ?: 0) - card.cost
         }
+        opp.lastPlayedType = card.type
         applyEffects(card.effects, opp, me, allCards, xValue = oppXValue) { lostCard, action ->
             recordOpponentLoss(lostCard, action)
         }

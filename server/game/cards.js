@@ -33,6 +33,7 @@ const rA = (t,v) => ({ type:'ResourceAbove', resType:t, threshold:v });
 const wA = (v)   => ({ type:'WallAbove',     threshold:v });
 const wB = (v)   => ({ type:'WallBelow',     threshold:v });
 const cA = (v)   => ({ type:'CastleAbove',   threshold:v });
+const cB = (v)   => ({ type:'CastleBelow',   threshold:v });
 
 // ── Rarity max copies ─────────────────────────────────────────────────────────
 const MAX_COPIES = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };

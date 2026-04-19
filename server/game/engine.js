@@ -19,8 +19,25 @@ function createPlayerState(deckCards) {
     pendingResources: [],
     deck:  [...deckCards],
     hand:  [],
-    discardPile: []
+    discardPile: [],
+    lastPlayedType: null
   };
+}
+
+/**
+ * Odvodí kategoriový typ karty (odpovídá Card.type v Kotlinu).
+ * Karty s efektem AddMine → "Důl"; jinak dle costType.
+ */
+function deriveCardType(card) {
+  const hasMine = card.effects && card.effects.some(e => e.type === 'AddMine');
+  if (hasMine) return 'Důl';
+  switch (card.costType) {
+    case 'ATTACK': return 'Útok';
+    case 'STONES': return 'Stavba';
+    case 'MAGIC':  return 'Magie';
+    case 'CHAOS':  return 'Chaos';
+    default:       return card.costType;
+  }
 }
 
 /**
@@ -77,7 +94,9 @@ function checkCondition(cond, player) {
     case 'ResourceAbove': return (player.resources[cond.resType] || 0) > cond.threshold;
     case 'WallAbove':     return player.wallHP   > cond.threshold;
     case 'WallBelow':     return player.wallHP   < cond.threshold;
-    case 'CastleAbove':   return player.castleHP > cond.threshold;
+    case 'CastleAbove':    return player.castleHP > cond.threshold;
+    case 'CastleBelow':    return player.castleHP < cond.threshold;
+    case 'LastPlayedType': return player.lastPlayedType === cond.cardType;
     default: return false;
   }
 }
@@ -274,5 +293,5 @@ function resolveByHp(stateA, stateB) {
 
 module.exports = {
   createPlayerState, generateResources, drawCards,
-  checkCondition, applyEffects, checkWin, resolveByHp
+  checkCondition, deriveCardType, applyEffects, checkWin, resolveByHp
 };

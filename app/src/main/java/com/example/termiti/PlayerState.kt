@@ -33,7 +33,9 @@ class PlayerState(
     var pendingResources: MutableList<PendingResource> = mutableListOf(),
     val deck: MutableList<Card> = mutableListOf(),
     val hand: MutableList<Card> = mutableListOf(),
-    val discardPile: MutableList<Card> = mutableListOf()
+    val discardPile: MutableList<Card> = mutableListOf(),
+    /** Typ naposledy zahrané karty (např. "Útok", "Stavba"). Nastavuje se těsně před applyEffects. */
+    var lastPlayedType: String? = null
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP         = castleHP,
@@ -44,7 +46,8 @@ class PlayerState(
         pendingResources = pendingResources.map { it.copy() }.toMutableList(),
         deck             = deck.toMutableList(),
         hand             = hand.toMutableList(),
-        discardPile      = discardPile.toMutableList()
+        discardPile      = discardPile.toMutableList(),
+        lastPlayedType   = lastPlayedType
     )
 
     /**

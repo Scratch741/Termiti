@@ -49,9 +49,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Zdroje okamžité (platí MAGIC) ────────────────────────────
         Card("004", "Magie",          "Okamžitě +2 magie. [Combo]",              cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 2)), isCombo = true, artResId = R.drawable.art_magie, type = "Kouzlo", artBiasY = -1.00f),
+            effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 2)), isCombo = true, artResId = R.drawable.art_magie, type = "Magie", artBiasY = -1.00f),
         Card("011", "Zásoby kamene",  "Okamžitě +4 kameny. [Combo]",             cost = 1, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AddResource(ResourceType.STONES, 4)), isCombo = true, artResId = R.drawable.art_zasoby_kamene, type = "Kouzlo", artScale = 0.80f, artBiasY = -0.55f),
+            effects = listOf(CardEffect.AddResource(ResourceType.STONES, 4)), isCombo = true, artResId = R.drawable.art_zasoby_kamene, type = "Magie", artScale = 0.80f, artBiasY = -0.55f),
         Card("012", "Mobilizace",     "Okamžitě +3 útoku. [Combo]",              cost = 1, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AddResource(ResourceType.ATTACK, 3)), isCombo = true,artResId = R.drawable.art_mobilizace, type = "Magie", artScale = 0.80f, artBiasY = -0.30f),
 
@@ -199,7 +199,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         Card("057", "Bašta",          "Hradby +7, +1 kámen.",                    cost = 3, costType = ResourceType.STONES, rarity = Rarity.RARE,
             effects = listOf(CardEffect.BuildWall(7), CardEffect.AddResource(ResourceType.STONES, 1)),artResId = R.drawable.art_basta, type = "Stavba", artScale = 0.80f, artBiasY = -1.00f),
         Card("058", "Obranný val",    "Hradby +4.",                             cost = 0, costType = ResourceType.STONES, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.BuildWall(4)), isCombo = true,artResId = R.drawable.art_obranny_val, type = "Kouzlo", artScale = 0.80f),
+            effects = listOf(CardEffect.BuildWall(4)), isCombo = true,artResId = R.drawable.art_obranny_val, type = "Magie", artScale = 0.80f),
         Card("059", "Pevnostní hrad", "Hradby +4 a hrad +6.",                    cost = 4, costType = ResourceType.STONES, rarity = Rarity.RARE,
             effects = listOf(CardEffect.BuildWall(4), CardEffect.BuildCastle(6)), type = "Stavba", artResId = R.drawable.art_pevnostni_hrad, artScale = 0.80f, artBiasY = -0.50f),
         Card("060", "Chrám",          "Hrad +18.",                               cost = 10, costType = ResourceType.STONES, rarity = Rarity.EPIC,
@@ -359,10 +359,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Karty generující Chaos (platí MAGIC – vstupní bod do Chaos ekonomiky)
         Card("C01", "Chaotická jiskra",  "+2 chaosu. [Combo]",                    cost = 0, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
-            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 2)), isCombo = true,artResId = R.drawable.art_chaoticka_jiskra, type = "Kouzlo", artScale = 0.80f, artBiasY = -1.00f),
+            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 2)), isCombo = true,artResId = R.drawable.art_chaoticka_jiskra, type = "Magie", artScale = 0.80f, artBiasY = -1.00f),
         Card("C02", "Entropie",          "+5 chaosu. Soupeř ztratí 2 magie.",     cost = 3, costType = ResourceType.MAGIC,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 5),
-                CardEffect.DrainResource(ResourceType.MAGIC, 2)),artResId = R.drawable.art_entropie, type = "Kouzlo", artScale = 0.80f),
+                CardEffect.DrainResource(ResourceType.MAGIC, 2)),artResId = R.drawable.art_entropie, type = "Magie", artScale = 0.80f),
         Card("C03", "Chaotický důl",     "Trvale +1 důl chaosu/kolo.",            cost = 4, costType = ResourceType.MAGIC,  rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.AddMine(ResourceType.CHAOS, 1)),artResId = R.drawable.art_chaoticky_dul, type = "Magie", artScale = 0.80f),
         Card("C04", "Krádež chaosu",     "Ukradni 3 chaos od soupeře. [Combo]",     cost = 2, costType = ResourceType.MAGIC,  rarity = Rarity.RARE,
@@ -370,9 +370,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Karty platící Chaosem – silné efekty
         Card("C05", "Chaotický výbuch",  "Přímý zásah: hrad −15, ignoruje hradby.", cost = 7, costType = ResourceType.CHAOS,  rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.AttackCastle(15)),artResId = R.drawable.art_chaoticky_vybuch, type = "Kouzlo", artScale = 0.80f, artBiasY = 0.30f),
+            effects = listOf(CardEffect.AttackCastle(15)),artResId = R.drawable.art_chaoticky_vybuch, type = "Magie", artScale = 0.80f, artBiasY = 0.30f),
         Card("C06", "Bouře chaosu",      "Zaútočí na nepřítele za 20.",           cost = 6, costType = ResourceType.CHAOS,  rarity = Rarity.LEGENDARY,
-            effects = listOf(CardEffect.AttackPlayer(20)),artResId = R.drawable.art_boure_chaosu, type = "Kouzlo", artScale = 0.75f, artBiasY = -0.60f),
+            effects = listOf(CardEffect.AttackPlayer(20)),artResId = R.drawable.art_boure_chaosu, type = "Magie", artScale = 0.75f, artBiasY = -0.60f),
         Card("C07", "Chaotický štít",    "Hradby +20.",                           cost = 4, costType = ResourceType.CHAOS,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.BuildWall(20)), type = "Stavba",artResId = R.drawable.art_chaoticky_stit, artScale = 0.80f, artBiasY = -0.20f),
         Card("C08", "Zázrak chaosu",     "Hrad +15.",                             cost = 5, costType = ResourceType.CHAOS,  rarity = Rarity.LEGENDARY,
@@ -414,7 +414,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Chaos – ničení karet ──────────────────────────────────────
         Card("C19", "Spálená knihovna",  "Znič 2 náhodné karty ze soupeřovy ruky.", cost = 4, costType = ResourceType.CHAOS, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.BurnCard(2)),artResId = R.drawable.art_spalena_knihovna, type = "Kouzlo", artScale = 0.80f, artBiasY = 0.10f),
+            effects = listOf(CardEffect.BurnCard(2)),artResId = R.drawable.art_spalena_knihovna, type = "Magie", artScale = 0.80f, artBiasY = 0.10f),
         Card("C20", "Prázdná mysl",      "Znič 3 náhodné karty ze soupeřovy ruky.", cost = 6, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.BurnCard(3)), type = "Chaos",artResId = R.drawable.art_prazdna_mysl, artScale = 0.80f, artBiasY = -0.45f),
 
@@ -428,12 +428,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Chaos – nové generátory ───────────────────────────────────
         Card("C24", "Temný rituál",      "+5 chaosu. [Combo]",                     cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 5)), isCombo = true,artResId = R.drawable.art_temny_ritual, type = "Kouzlo", artScale = 0.80f, artBiasY = 0.30f),
+            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 5)), isCombo = true,artResId = R.drawable.art_temny_ritual, type = "Magie", artScale = 0.80f, artBiasY = 0.30f),
         Card("C25", "Nestabilní vír",    "+2 chaosu a +2 magie. [Combo]",          cost = 1, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 2),
-                CardEffect.AddResource(ResourceType.MAGIC, 2)), isCombo = true,artResId = R.drawable.art_nestabilni_vir, type = "Kouzlo", artScale = 0.80f, artBiasY = -0.75f),
+                CardEffect.AddResource(ResourceType.MAGIC, 2)), isCombo = true,artResId = R.drawable.art_nestabilni_vir, type = "Magie", artScale = 0.80f, artBiasY = -0.75f),
         Card("C26", "Krvavá oběť",       "+4 chaosu. [Combo]",                     cost = 1, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 4)), isCombo = true,artResId = R.drawable.art_krvava_obet, type = "Kouzlo", artScale = 0.80f),
+            effects = listOf(CardEffect.AddResource(ResourceType.CHAOS, 4)), isCombo = true,artResId = R.drawable.art_krvava_obet, type = "Magie", artScale = 0.80f),
         Card("C27", "Odraz magie",       "Pokud máš >5 magie, získej +7 chaosu.", cost = 2, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.ConditionalEffect(
                 Condition.ResourceAbove(ResourceType.MAGIC, 5),
@@ -499,7 +499,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             description = "+5 Magie.",
             cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AddResource(ResourceType.MAGIC, 5)),
-            artResId = R.drawable.art_goblin_saman, type = "Kouzlo", artScale = 0.80f, artBiasY = -1.00f  // → nahraď: R.drawable.art_goblin
+            artResId = R.drawable.art_goblin_saman, type = "Magie", artScale = 0.80f, artBiasY = -1.00f  // → nahraď: R.drawable.art_goblin
         ),
 
         // ── X-kost karty ──────────────────────────────────────────────────────
@@ -521,7 +521,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             cost = 0, costType = ResourceType.MAGIC, rarity = Rarity.LEGENDARY,
             isXCost = true,
             effects = listOf(CardEffect.XScaledDualResource(ResourceType.ATTACK, ResourceType.STONES, divisor = 2)),
-            type = "Kouzlo", artResId = R.drawable.art_magicke_rozdeleni, artScale = 0.80f, artBiasY = -0.40f),
+            type = "Magie", artResId = R.drawable.art_magicke_rozdeleni, artScale = 0.80f, artBiasY = -0.40f),
     )
 
     // ── Deck sloty ────────────────────────────────────────────────────────────
@@ -800,6 +800,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         playSoundForCard(card)
 
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
+        // Nastav typ právě hrané karty – podmínka LastPlayedType to přečte uvnitř applyEffects
+        player.lastPlayedType = card.type
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
             if (!checkCondition(ce.condition, player)) {
@@ -901,6 +903,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             aiXValue = 0
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
                         }
+                        ai.lastPlayedType = aiCard.type
                         applyEffects(aiCard.effects, ai, player, allCards, xValue = aiXValue) { card, action ->
                             recordOpponentLoss(card, action)
                         }
@@ -1149,6 +1152,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Pro X-kost karty: cena = aktuální zásoby daného zdroje (to se spotřebuje)
         fun score(card: Card): Int {
             val xVal = if (card.isXCost) (ai.resources[card.costType] ?: 0) else 0
+
+            // X-kost karty: nehrát příliš brzy – malé zásoby = mizivý efekt, plýtvání kartou.
+            // Práh závisí na situaci; při prázdných balíčcích zásoby stejně vyprší → hraj vždy.
+            if (card.isXCost && !bothDecksEmpty) {
+                val minX = when {
+                    aiLowHp && oppLowHp -> 2   // oba v nouzi – zahraj i za málo
+                    aiLowHp || oppLowHp -> 4   // jeden v nebezpečí – nižší práh
+                    else                -> 8   // normální hra – čekej na solidní zásoby
+                }
+                if (xVal < minX) return -20 + (-2..2).random()
+            }
+
             val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
             val costForScore = if (card.isXCost) xVal else card.cost
             val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0

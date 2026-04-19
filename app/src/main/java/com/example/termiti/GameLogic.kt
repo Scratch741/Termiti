@@ -137,5 +137,7 @@ fun checkCondition(condition: Condition, player: PlayerState): Boolean = when (c
     is Condition.ResourceAbove -> (player.resources[condition.type] ?: 0) > condition.threshold
     is Condition.WallAbove     -> player.wallHP   > condition.threshold
     is Condition.WallBelow     -> player.wallHP   < condition.threshold
-    is Condition.CastleAbove   -> player.castleHP > condition.threshold
+    is Condition.CastleAbove    -> player.castleHP > condition.threshold
+    is Condition.CastleBelow    -> player.castleHP < condition.threshold
+    is Condition.LastPlayedType -> player.lastPlayedType == condition.cardType
 }

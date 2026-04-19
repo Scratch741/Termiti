@@ -109,7 +109,9 @@ private fun cardConditionMet(
         is Condition.ResourceAbove -> (resources[c.type] ?: 0) > c.threshold
         is Condition.WallAbove     -> wallHp   > c.threshold
         is Condition.WallBelow     -> wallHp   < c.threshold
-        is Condition.CastleAbove   -> castleHp > c.threshold
+        is Condition.CastleAbove    -> castleHp > c.threshold
+        is Condition.CastleBelow    -> castleHp < c.threshold
+        is Condition.LastPlayedType -> false  // nelze předem zobrazit (závisí na právě hrané kartě)
     }
 }
 

@@ -8,7 +8,7 @@ const {
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
-  applyEffects, checkWin, resolveByHp
+  applyEffects, deriveCardType, checkWin, resolveByHp
 } = require('./engine');
 
 const MULLIGAN_HAND_SIZE = 5;
@@ -39,6 +39,9 @@ class GameSession {
 
     // Mulligan tracking
     this.mulliganDone = { A: false, B: false };
+
+    // Empty-deck skip tracking: hra skončí až oba hráči přeskočí tah s prázdnými balíčky
+    this.skippedEmptyDeck = { A: false, B: false };
 
     // Last played/discarded card (sent to both clients so they can animate it)
     this.lastPlayedCard    = null;
@@ -284,6 +287,9 @@ class GameSession {
     this.lastPlayedCardIdx = cardIdx;
 
     // Handle combo cards: apply effects only if isCombo check passes (always for now)
+    // Nastav typ právě hrané karty před applyEffects – podmínka LastPlayedType to přečte
+    self.lastPlayedType = deriveCardType(card);
+
     const lostCards = [];
     applyEffects(
       card.effects,
@@ -357,13 +363,24 @@ class GameSession {
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
 
-    // Both decks empty → resolve by HP
+    // Both decks empty → zaznamenej, že tento hráč přeskočil
+    // Hra skončí teprve až OBA hráči přeskočí tah s prázdnými balíčky
     if (self.deck.length === 0 && opp.deck.length === 0) {
-      const winner = resolveByHp(this.state.A, this.state.B);
-      this._endGame(winner);
+      this.skippedEmptyDeck[side] = true;
+      if (this.skippedEmptyDeck.A && this.skippedEmptyDeck.B) {
+        // Oba přeskočili → rozhodne hrad
+        const winner = resolveByHp(this.state.A, this.state.B);
+        this._log('Oba hráči přeskočili s prázdnými balíčky – konec hry!');
+        this._endGame(winner);
+        return;
+      }
+      // Jeden z hráčů teprve přeskočil – předej tah druhému
+      this._advanceTurn();
       return;
     }
 
+    // Balíčky ještě nejsou oba prázdné – resetuj příznaky a pokračuj normálně
+    this.skippedEmptyDeck = { A: false, B: false };
     this._advanceTurn();
   }
 
@@ -372,7 +389,10 @@ class GameSession {
   _advanceTurn() {
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';
-    this.turnNumber++;
+    // Increment round counter only when A's turn starts (= one full round completed)
+    if (this.activeSide === 'A') {
+      this.turnNumber++;
+    }
 
     const next = this.state[this.activeSide];
     generateResources(next);
