@@ -51,6 +51,9 @@ private fun OnlinePlayerState.toPlayerState(oppHandSize: Int = -1): PlayerState 
         ResourceType.ATTACK to (mines["ATTACK"] ?: 0),
         ResourceType.STONES to (mines["STONES"] ?: 0)
     )
+    // CHAOS důl přidáme jen pokud existuje – výchozí hodnota je 0 (nezobrazovat),
+    // ale jakmile ho hráč postaví, server ho posílá a musíme ho mapovat.
+    mines["CHAOS"]?.let { if (it > 0) mineMap[ResourceType.CHAOS] = it }
     val blockedMap = mutableMapOf<ResourceType, Int>()
     for ((key, value) in mineBlockedTurns) {
         val rt = runCatching { ResourceType.valueOf(key) }.getOrNull()
