@@ -785,6 +785,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // 1. Zaplatit a přesunout kartu z ruky PŘED aplikací efektů
         // (aby karta "lízni kartu" nejdřív zmizela z ruky, pak se líže nová)
+        // Snapshot zdrojů PŘED zaplacením – ConditionalEffect (ResourceAbove) se
+        // vyhodnocuje proti tomuto stavu, aby karta mohla splnit vlastní podmínku.
+        player.preCostResources = player.resources.toMap()
         val xValue: Int
         if (card.isXCost) {
             xValue = player.resources[card.costType] ?: 0
@@ -809,6 +812,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         applyEffects(card.effects, player, ai, allCards, xValue = xValue)
+        // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
+        player.preCostResources = null
 
         val s1 = old.copy(playerState = player, aiState = ai)
         s1.checkWinCondition()?.let { result ->
@@ -895,6 +900,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 when (aiChoice) {
                     is AiAction.Play -> {
                         val aiCard = aiChoice.card
+                        // Snapshot zdrojů PŘED zaplacením – viz hráčův playCard.
+                        ai.preCostResources = ai.resources.toMap()
                         val aiXValue: Int
                         if (aiCard.isXCost) {
                             aiXValue = ai.resources[aiCard.costType] ?: 0
@@ -907,6 +914,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         applyEffects(aiCard.effects, ai, player, allCards, xValue = aiXValue) { card, action ->
                             recordOpponentLoss(card, action)
                         }
+                        ai.preCostResources = null
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)

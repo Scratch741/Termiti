@@ -91,7 +91,13 @@ function drawCards(state, count, maxHand = 7) {
 
 function checkCondition(cond, player) {
   switch (cond.type) {
-    case 'ResourceAbove': return (player.resources[cond.resType] || 0) > cond.threshold;
+    case 'ResourceAbove': {
+      // Podmínka "máš X surovin" se vyhodnocuje proti stavu PŘED zaplacením
+      // ceny karty – jinak by karta, na kterou hráč právě měl, nemohla splnit
+      // svou vlastní podmínku. _preCostResources nastavuje GameSession.playCard.
+      const r = player._preCostResources || player.resources;
+      return (r[cond.resType] || 0) > cond.threshold;
+    }
     case 'WallAbove':     return player.wallHP   > cond.threshold;
     case 'WallBelow':     return player.wallHP   < cond.threshold;
     case 'CastleAbove':    return player.castleHP > cond.threshold;

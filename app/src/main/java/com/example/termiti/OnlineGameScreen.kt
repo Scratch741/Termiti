@@ -293,7 +293,9 @@ private fun OnlineGameplay(
                 onEndTurn        = { vm.endTurn() },
                 showHeader       = false,
                 playerWallHp     = myPs.wallHP,
-                playerCastleHp   = myPs.castleHP
+                playerCastleHp   = myPs.castleHP,
+                // Pevná výška ruky – zabrání posunu lišty, když je ruka prázdná
+                modifier         = Modifier.fillMaxWidth().height(152.dp)
             )
         }
     }

@@ -134,7 +134,12 @@ fun applyEffects(
 }
 
 fun checkCondition(condition: Condition, player: PlayerState): Boolean = when (condition) {
-    is Condition.ResourceAbove -> (player.resources[condition.type] ?: 0) > condition.threshold
+    // "Máš X surovin" se vyhodnocuje proti stavu PŘED zaplacením ceny karty
+    // (jinak by karta nemohla splnit vlastní podmínku – viz preCostResources).
+    is Condition.ResourceAbove -> {
+        val r = player.preCostResources ?: player.resources
+        (r[condition.type] ?: 0) > condition.threshold
+    }
     is Condition.WallAbove     -> player.wallHP   > condition.threshold
     is Condition.WallBelow     -> player.wallHP   < condition.threshold
     is Condition.CastleAbove    -> player.castleHP > condition.threshold

@@ -270,16 +270,22 @@ class GameSession {
     let xValue = 0;
     if (card.isXCost) {
       xValue = self.resources[res] || 0;
+    } else {
+      const cost = card.cost || 0;
+      if (res && cost > 0 && (self.resources[res] || 0) < cost) {
+        this._sendError(side, 'Nedostatek zdrojů.');
+        return;
+      }
+    }
+    // Snapshot zdrojů PŘED zaplacením – ConditionalEffect (ResourceAbove) se
+    // vyhodnocuje proti tomuto stavu, aby karta mohla splnit vlastní podmínku.
+    self._preCostResources = { ...self.resources };
+    // Zaplatit až teď (X-kost = vynuluj, jinak odečti cenu)
+    if (card.isXCost) {
       self.resources[res] = 0;
     } else {
       const cost = card.cost || 0;
-      if (res && cost > 0) {
-        if ((self.resources[res] || 0) < cost) {
-          this._sendError(side, 'Nedostatek zdrojů.');
-          return;
-        }
-        self.resources[res] -= cost;
-      }
+      if (res && cost > 0) self.resources[res] -= cost;
     }
 
     // Remove from hand → discard
@@ -306,6 +312,8 @@ class GameSession {
       (c, action) => lostCards.push({ card: c, action }),
       xValue
     );
+    // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
+    delete self._preCostResources;
 
     this._log(`${this.name[side]} zahrál ${card.name}`);
 

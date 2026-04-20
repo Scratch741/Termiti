@@ -35,7 +35,13 @@ class PlayerState(
     val hand: MutableList<Card> = mutableListOf(),
     val discardPile: MutableList<Card> = mutableListOf(),
     /** Typ naposledy zahrané karty (např. "Útok", "Stavba"). Nastavuje se těsně před applyEffects. */
-    var lastPlayedType: String? = null
+    var lastPlayedType: String? = null,
+    /**
+     * Snapshot zdrojů PŘED zaplacením ceny aktuálně hrané karty. Používá se jen
+     * během applyEffects, aby ConditionalEffect (ResourceAbove) viděl stav před
+     * odečtem ceny. Mimo playCard/aiPlay je vždy null.
+     */
+    var preCostResources: Map<ResourceType, Int>? = null
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP         = castleHP,
@@ -47,7 +53,8 @@ class PlayerState(
         deck             = deck.toMutableList(),
         hand             = hand.toMutableList(),
         discardPile      = discardPile.toMutableList(),
-        lastPlayedType   = lastPlayedType
+        lastPlayedType   = lastPlayedType,
+        preCostResources = preCostResources?.toMap()
     )
 
     /**
