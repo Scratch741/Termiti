@@ -33,6 +33,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Spuštění hudby na pozadí (předpokládá se existence souboru res/raw/bg_music.mp3)
+        SoundManager.startBackgroundMusic(this, R.raw.bg_music)
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
         hideSystemUI()
@@ -99,6 +103,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    // Hudba na pozadí – reaguj na lifecycle, aby při odchodu z appky nehrála
+    // a nezpůsobovala vybití baterie přes noc.
+    override fun onResume() {
+        super.onResume()
+        SoundManager.resumeBackgroundMusic()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SoundManager.pauseBackgroundMusic()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SoundManager.stopBackgroundMusic()
     }
 
     // Znovu skryj lišty, když se aplikace vrátí do popředí

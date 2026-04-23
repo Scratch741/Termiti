@@ -922,8 +922,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         playSoundForCard(aiCard)
 
                         if (aiCard.isCombo) {
-                            // Combo: krátká pauza + mezistate + pokračuj
-                            val mid = old.copy(playerState = player, aiState = ai)
+                            // Combo: krátká pauza + mezistate + pokračuj.
+                            // activePlayer musí zůstat AI, aby hráč nemohl kliknout
+                            // v okně delay a nespustil druhou souběžnou finishTurn coroutinu.
+                            val mid = old.copy(
+                                playerState  = player,
+                                aiState      = ai,
+                                activePlayer = ActivePlayer.AI
+                            )
                             mid.checkWinCondition()?.let { result ->
                                 if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
                                 gameOver.value = result; gameState.value = mid; return@launch
@@ -961,7 +967,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             // ── Kontrola výhry po tahu AI ─────────────────────────────────────
-            val s2 = old.copy(playerState = player, aiState = ai)
+            // activePlayer = AI i v mezistavu, aby hráč nemohl kliknout v okně delay
+            // a nespustil druhou souběžnou finishTurn coroutinu (primární příčina pádu).
+            val s2 = old.copy(
+                playerState  = player,
+                aiState      = ai,
+                activePlayer = ActivePlayer.AI
+            )
             s2.checkWinCondition()?.let { result ->
                 if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
                 gameOver.value = result; gameState.value = s2; return@launch

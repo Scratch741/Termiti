@@ -166,6 +166,23 @@ fun GameScreen(
     var showLostCards    by remember { mutableStateOf(false) }
     var showLog          by remember { mutableStateOf(false) }
 
+    // ── Flight overlay: animace "karta letí z ruky hráče do discard slotu" ───
+    val flight = remember { FlightOverlayState() }
+    // Spusť let, když hráč zahraje kartu (nová lastCard, isPlayer, máme source i target)
+    LaunchedEffect(lastCard?.id, lastCardIsPlayer) {
+        val c = lastCard ?: return@LaunchedEffect
+        if (!lastCardIsPlayer) return@LaunchedEffect
+        val from = flight.sources[c.id]
+        val to   = flight.target
+        if (from == null || to == null) {
+            // Let nelze odstartovat → rovnou "dopadni" (ukaž statiku hned)
+            flight.landedPlayerCardId = c.id
+            return@LaunchedEffect
+        }
+        flight.flying = FlightJob(c, from, to, flight.nextId())
+    }
+
+    CompositionLocalProvider(LocalFlightOverlay provides flight) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         // ── Pozadí ───────────────────────────────────────────────────────────
@@ -334,7 +351,11 @@ fun GameScreen(
         if (showLog) {
             LogOverlay(log = log, onDismiss = { showLog = false })
         }
+
+        // Letící karta – kreslí se jako poslední, aby byla nad vším
+        FlightOverlayBox(flight)
     }
+    } // CompositionLocalProvider
 }
 
 // ─── New Top Bar ──────────────────────────────────────────────────────────────
@@ -729,24 +750,80 @@ fun NewBattlefield(
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
         val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
+        // Statický slot drží STABILNÍ zobrazení – aktualizuje se jen když karta
+        // skutečně "dopadne" (u hráče po letu, u soupeře hned). Bez toho by
+        // vznikala díra v discardu po dobu letu nové karty.
+        val flight = LocalFlightOverlay.current
+        var displayCard         by remember { mutableStateOf(lastCard) }
+        var displayAction       by remember { mutableStateOf(lastCardAction) }
+        var displayIsPlayer     by remember { mutableStateOf(lastCardIsPlayer) }
+        LaunchedEffect(lastCard?.id, lastCardIsPlayer, flight?.landedPlayerCardId) {
+            val c = lastCard
+            if (c == null) { displayCard = null; return@LaunchedEffect }
+            // Soupeřovu kartu zobraz hned; hráčovu až po dokončení letu
+            val landed = !lastCardIsPlayer ||
+                         flight == null ||
+                         flight.landedPlayerCardId == c.id
+            if (landed) {
+                displayCard     = c
+                displayAction   = lastCardAction
+                displayIsPlayer = lastCardIsPlayer
+            }
+        }
+        // Průběh letu hráčovy karty → použijeme k postupnému rozplynutí STARÉ karty
+        // v discard slotu. Stará karta zmizí dříve, než na ni letící karta přilétí
+        // (p ≈ 0.55–0.88), takže přistání probíhá do prázdného slotu bez překrytí.
+        val activePlayerFlight = flight != null &&
+                                  flight.isFlying(lastCard?.id ?: "") &&
+                                  lastCardIsPlayer
+        val fp         = if (activePlayerFlight) flight!!.flightProgress else 0f
+        val slotAlpha  = when {
+            fp <= 0.55f -> 1f
+            fp <= 0.88f -> 1f - (fp - 0.55f) / 0.33f
+            else        -> 0f
+        }
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = cardTopY),
+                .offset(y = cardTopY)
+                .trackFlightTarget(),
             contentAlignment = Alignment.Center
         ) {
-            if (lastCard != null) {
-                val ringColor = when (lastCardAction) {
-                    CardAction.PLAYED    -> if (lastCardIsPlayer) TealLight else Crimson
-                    CardAction.DISCARDED -> if (lastCardIsPlayer) Teal.copy(alpha = 0.55f) else Crimson.copy(alpha = 0.55f)
+            val shown = displayCard
+            if (shown != null) {
+                val ringColor = when (displayAction) {
+                    CardAction.PLAYED    -> if (displayIsPlayer) TealLight else Crimson
+                    CardAction.DISCARDED -> if (displayIsPlayer) Teal.copy(alpha = 0.55f) else Crimson.copy(alpha = 0.55f)
                     CardAction.BURNED    -> Color(0xFFE07B39)
                     CardAction.STOLEN    -> Color(0xFF9B59B6)
                     null                 -> Gold.copy(alpha = 0.40f)
                 }
-                // Outer box určuje fyzické místo (scaled) — karta se škáluje ze středu
+                // Soupeřova karta: klasická fly-in animace (scale + translate shora).
+                // Hráčova karta: statika se mění až po dopadu → není potřeba fade.
+                val flyKey = "${shown.id}|${displayIsPlayer}"
+                val flyProgress = remember(flyKey) { Animatable(if (displayIsPlayer) 1f else 0f) }
+                LaunchedEffect(flyKey) {
+                    if (!displayIsPlayer) flyProgress.animateTo(1f, tween(220))
+                }
+                // Outer box určuje fyzické místo (scaled)
                 Box(
                     Modifier
                         .size(scaledW, scaledH)
+                        .graphicsLayer {
+                            val p = flyProgress.value
+                            val e = 1f - (1f - p) * (1f - p)   // easeOut quadratic
+                            if (displayIsPlayer) {
+                                alpha = slotAlpha
+                                scaleX = 1f
+                                scaleY = 1f
+                            } else {
+                                val s = 0.55f + 0.45f * e
+                                scaleX = s
+                                scaleY = s
+                                alpha = e * slotAlpha
+                                translationY = (1f - e) * 160f * -1f   // AI strana: shora dolů
+                            }
+                        }
                         .clip(RoundedCornerShape(7.dp))
                         .border(2.dp, ringColor, RoundedCornerShape(7.dp))
                 ) {
@@ -761,9 +838,9 @@ fun NewBattlefield(
                                 transformOrigin = TransformOrigin(0.5f, 0.5f)
                             }
                     ) {
-                        CardView(card = lastCard, canPlay = false, discardMode = false, onClick = {})
+                        CardView(card = shown, canPlay = false, discardMode = false, onClick = {})
                         // Overlay: ikona akce přesně uprostřed karty
-                        val overlayIcon = when (lastCardAction) {
+                        val overlayIcon = when (displayAction) {
                             CardAction.DISCARDED -> "✕"
                             CardAction.BURNED    -> "🔥"
                             else                 -> null
@@ -776,7 +853,7 @@ fun NewBattlefield(
                                 Text(
                                     text      = overlayIcon,
                                     fontSize  = 38.sp,
-                                    color     = if (lastCardAction == CardAction.DISCARDED) Color(0xFFE53935) else Color.Unspecified,
+                                    color     = if (displayAction == CardAction.DISCARDED) Color(0xFFE53935) else Color.Unspecified,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -1681,18 +1758,22 @@ fun HandPanel(
             }
         }
 
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+        // LazyRow vyplňuje šířku a centruje obsah přes Arrangement.
+        // Díky tomu se LazyRow nezmenšuje při ubrání karty a animateItem()
+        // animuje pohyb všech karet (vlevo i vpravo) v jednom systému
+        // – žádné "teleportování" levé poloviny.
+        LazyRow(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            contentPadding        = PaddingValues(horizontal = 10.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 10.dp)
-            ) {
-                hand.forEach { card ->
-                    val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.cost
+            items(hand, key = { it.id }) { card ->
+                val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.cost
+                Box(
+                    Modifier
+                        .animateItem()
+                        .trackFlightSource(card.id)
+                ) {
                     CardView(
                         card          = card,
                         canPlay       = isPlayerTurn && affordable,
