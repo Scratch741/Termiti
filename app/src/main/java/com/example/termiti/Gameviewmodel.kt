@@ -588,8 +588,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // 1. ⚔️ Útočník – přímý útok pomocí ATTACK zdrojů (30 karet)
         "⚔️ Útočník" to mapOf(
             // Přímý útok (ATTACK)
-            "027" to 2,   // Válečný buben  – útok −4 + 2 útoku, cena 2
-            "046" to 4,   // Goblin         – útok −2 + krádež, cena 1
+            "027" to 3,   // Válečný buben  – útok −4 + 2 útoku, cena 2
+            "046" to 3,   // Goblin         – útok −2 + krádež, cena 1
             "056" to 3,   // Nájezdník
             "022" to 2,   // Přímý zásah    – hrad −8, cena 3
             "026" to 2,
@@ -623,28 +623,47 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ),  // 30 karet
 
 
-        // 3. 💰 Ekonom – budovat doly pro zdrcující ekonomiku (30 karet)
-        "💰 Ekonom" to mapOf(
-                "046"   to 4,   // Goblin
-                "095"   to 2,   // Obchod s kamenem
-                "057"   to 3,   // Bašta
-                "094"   to 3,   // Sklad materiálu
-                "083"   to 2,   // Nouzové opevnění
-                "062"   to 2,   // Obranná aliance
-                "097"   to 1,   // Obnova království
-                "037"   to 3,   // Rychlá magie
-                "041"   to 2,   // Magické trio
-                "013"   to 2,   // Magický pramen
-                "042"   to 1,   // Velký kamenolom
-                "080"   to 1,   // Velkovýroba
-                "045"   to 1,   // Zlatý důl
-                "C30"   to 1,   // Chrám chaosu
-                "C22"   to 2,   // Chaos manufaktura
+        // 3. ⚔️ Útočník 2 – agresivní útočný balíček (30 karet)
+        "⚔️ Útočník 2" to mapOf(
+                "098"   to 3,
+                "054"   to 2,
+                "052"   to 1,
+                "051"   to 1,
+                "046"   to 3,
+                "026"   to 2,
+                "024"   to 3,
+                "022"   to 3,
+                "038"   to 3,
+                "015"   to 3,
+                "078"   to 1,
+                "056"   to 3,
+                "021"   to 2,
             ),  // 30 karet
 
-        // 4. 🌀 Chaosmancer – Chaos ekonomika + sabotáž soupeře (30 karet)
+        // 4. 💰 Ekonom – budovat doly pro zdrcující ekonomiku (30 karet)
+        "💰 Ekonom" to mapOf(
+                "101"   to 1,
+                "102"   to 1,
+                "013"   to 2,
+                "044"   to 1,
+                "075"   to 1,
+                "045"   to 1,
+                "080"   to 1,
+                "076"   to 1,
+                "091"   to 3,
+                "032"   to 2,
+                "060"   to 2,
+                "089"   to 2,
+                "097"   to 1,
+                "059"   to 3,
+                "046"   to 3,
+                "022"   to 3,
+                "033"   to 2,
+            ),  // 30 karet
+
+        // 5. 🌀 Chaosmancer – Chaos ekonomika + sabotáž soupeře (30 karet)
         "🌀 Chaosmancer" to mapOf(
-                "046"   to 4,   // Goblin
+                "046"   to 3,   // Goblin
                 "C26"   to 3,   // Krvavá oběť
                 "C24"   to 3,   // Temný rituál
                 "C27"   to 2,   // Odraz magie
