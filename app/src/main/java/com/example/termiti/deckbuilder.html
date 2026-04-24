@@ -476,7 +476,21 @@
         </div>
       </div>
       <div id="deck-list" style="flex:1;overflow-y:auto;padding:10px"></div>
-      <div style="padding:16px;border-top:1px solid var(--border)">
+      <!-- MANA CURVE -->
+      <div style="padding:10px 14px 4px;border-top:1px solid var(--border)">
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span>MANA KŘIVKA</span>
+          <span style="font-size:8px;color:var(--text-muted)">
+            <span style="color:var(--magic)">█</span> Magie &nbsp;
+            <span style="color:var(--attack)">█</span> Útok &nbsp;
+            <span style="color:var(--stones)">█</span> Kameny &nbsp;
+            <span style="color:var(--chaos)">█</span> Chaos
+          </span>
+        </div>
+        <div id="mana-curve" style="display:flex;align-items:flex-end;gap:3px;height:54px"></div>
+        <div id="mana-curve-labels" style="display:flex;gap:3px;margin-top:2px"></div>
+      </div>
+      <div style="padding:10px 16px 16px;border-top:1px solid var(--border)">
         <button class="btn-action" style="width:100%" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
@@ -870,6 +884,69 @@ function renderDeck() {
     `;
   }).join('');
   document.getElementById('deck-count').textContent = total;
+  renderManaCurve();
+}
+
+function renderManaCurve() {
+  const curveEl    = document.getElementById('mana-curve');
+  const labelsEl   = document.getElementById('mana-curve-labels');
+  if (!curveEl || !labelsEl) return;
+
+  // Skupiny: 0,1,2,3,4,5,6+ (index 6 = vše >= 6)
+  const MAX_COST = 6;
+  const typeColor = { MAGIC:'var(--magic)', ATTACK:'var(--attack)', STONES:'var(--stones)', CHAOS:'var(--chaos)' };
+  const types = ['MAGIC','ATTACK','STONES','CHAOS'];
+
+  // groups[cost][type] = počet karet
+  const groups = [];
+  for (let i = 0; i <= MAX_COST; i++) groups.push({MAGIC:0,ATTACK:0,STONES:0,CHAOS:0,total:0});
+
+  Object.entries(DECK).forEach(function([id, count]) {
+    if (count <= 0) return;
+    const c = CARD_MAP[id];
+    if (!c) return;
+    const cost  = Math.min(c.cost, MAX_COST);
+    const type  = c.costType || 'MAGIC';
+    groups[cost][type] = (groups[cost][type] || 0) + count;
+    groups[cost].total += count;
+  });
+
+  const maxTotal = Math.max(1, ...groups.map(function(g){return g.total;}));
+  const CHART_H  = 54; // px, musí odpovídat height výše
+
+  // Vykresli sloupce
+  let barsHtml   = '';
+  let labelsHtml = '';
+  const colW = 'calc((100% - ' + (MAX_COST * 3) + 'px) / ' + (MAX_COST + 1) + ')';
+
+  for (let i = 0; i <= MAX_COST; i++) {
+    const g = groups[i];
+    if (g.total === 0) {
+      barsHtml   += '<div style="flex:1;min-width:0"></div>';
+      labelsHtml += '<div style="flex:1;min-width:0;text-align:center;font-size:9px;color:var(--text-muted)">' + (i === MAX_COST ? '6+' : i) + '</div>';
+      continue;
+    }
+    const totalPx = Math.max(4, Math.round(g.total / maxTotal * CHART_H));
+    let segments = '';
+    // Vykresluj typy od spodu (stack)
+    let usedPx = 0;
+    types.forEach(function(t, ti) {
+      if (!g[t]) return;
+      const segPx = ti === types.length - 1
+        ? (totalPx - usedPx)
+        : Math.max(1, Math.round(g[t] / g.total * totalPx));
+      usedPx += segPx;
+      segments = '<div style="height:' + segPx + 'px;background:' + typeColor[t] + ';width:100%"></div>' + segments;
+    });
+    barsHtml += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;position:relative">'
+              + '<div style="position:absolute;top:-13px;width:100%;text-align:center;font-size:9px;color:var(--text-dim)">' + g.total + '</div>'
+              + '<div style="display:flex;flex-direction:column;border-radius:1px 1px 0 0;overflow:hidden">' + segments + '</div>'
+              + '</div>';
+    labelsHtml += '<div style="flex:1;min-width:0;text-align:center;font-size:9px;color:var(--text-muted)">' + (i === MAX_COST ? '6+' : i) + '</div>';
+  }
+
+  curveEl.innerHTML  = barsHtml;
+  labelsEl.innerHTML = labelsHtml;
 }
 
 function changeDeckCount(id, delta) {
