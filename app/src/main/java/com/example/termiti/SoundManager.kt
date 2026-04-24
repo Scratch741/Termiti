@@ -5,7 +5,9 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.media.MediaPlayer
+import android.media.SoundPool
 import kotlin.math.*
+import kotlin.random.Random
 
 /**
  * Procedurálně generované zvuky bez audio assetů + správa hudby na pozadí.
@@ -15,6 +17,33 @@ object SoundManager {
     var enabled = true
     private var bgPlayer: MediaPlayer? = null
     private var currentTrackIndex = 0
+
+    // ── SoundPool pro nízko-latentní SFX ────────────────────────────────────
+
+    private var soundPool: SoundPool? = null
+    private var sndCardDraw1: Int = 0
+    private var sndCardDraw2: Int = 0
+    private var sndCardPlayFile: Int = 0
+
+    fun initSounds(context: Context) {
+        if (soundPool != null) return
+        val attrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(6)
+            .setAudioAttributes(attrs)
+            .build()
+        sndCardDraw1   = soundPool!!.load(context, R.raw.card_draw,   1)
+        sndCardDraw2   = soundPool!!.load(context, R.raw.card_draw_2, 1)
+        sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,   1)
+    }
+
+    fun releaseSounds() {
+        soundPool?.release()
+        soundPool = null
+    }
 
     private val trackIds = listOf(
         R.raw.bg_music,
@@ -80,7 +109,24 @@ object SoundManager {
 
     // ── Veřejné API ──────────────────────────────────────────────────────────
 
-    fun playCardPlay()  = playAsync { toneEnv(freq = 520f,  dur = 0.12f, vol = 0.35f) }
+    /** Líz karty – náhodně vybere card_draw nebo card_draw_2. */
+    fun playCardDraw() {
+        if (!enabled) return
+        val pool = soundPool ?: return
+        val id = if (Random.nextBoolean()) sndCardDraw1 else sndCardDraw2
+        pool.play(id, 0.75f, 0.75f, 1, 0, 1.0f)
+    }
+
+    /** Zahrání karty – file-based (card_play), fallback na procedurální zvuk. */
+    fun playCardPlay() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndCardPlayFile != 0) {
+            pool.play(sndCardPlayFile, 0.65f, 0.65f, 1, 0, 1.0f)
+        } else {
+            playAsync { toneEnv(freq = 520f, dur = 0.12f, vol = 0.35f) }
+        }
+    }
     fun playAttack()    = playAsync { sweep(freqFrom = 280f, freqTo = 90f, dur = 0.14f, vol = 0.40f) +
                                       toneEnv(freq = 95f,   dur = 0.10f, vol = 0.30f) }
     fun playBuild()     = playAsync { toneEnv(freq = 260f,  dur = 0.18f, vol = 0.30f) }

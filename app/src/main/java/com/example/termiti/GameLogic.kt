@@ -15,7 +15,8 @@ fun applyEffects(
     opponent: PlayerState,
     allCards: List<Card>,
     xValue:   Int = 0,
-    onOpponentCardLost: ((Card, CardAction) -> Unit)? = null
+    onOpponentCardLost: ((Card, CardAction) -> Unit)? = null,
+    onDrawCard: ((PlayerState, Int) -> Unit)? = null
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
@@ -59,7 +60,7 @@ fun applyEffects(
 
         is CardEffect.ConditionalEffect ->
             if (checkCondition(effect.condition, self))
-                applyEffects(listOf(effect.effect), self, opponent, allCards, xValue, onOpponentCardLost)
+                applyEffects(listOf(effect.effect), self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
@@ -102,7 +103,8 @@ fun applyEffects(
         }
 
         is CardEffect.DrawCard ->
-            self.drawCards(effect.count)   // přebytečné karty shoří (hand full → discardPile)
+            if (onDrawCard != null) onDrawCard(self, effect.count)
+            else self.drawCards(effect.count)   // přebytečné karty shoří (hand full → discardPile)
 
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))

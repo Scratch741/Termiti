@@ -34,6 +34,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Inicializace SoundPool pro nízko-latentní SFX (card_draw, card_play…)
+        SoundManager.initSounds(this)
         // Spuštění hudby na pozadí (automaticky vybere náhodnou skladbu z playlistu)
         SoundManager.startBackgroundMusic(this)
 
@@ -120,6 +122,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         SoundManager.stopBackgroundMusic()
+        SoundManager.releaseSounds()
     }
 
     // Znovu skryj lišty, když se aplikace vrátí do popředí

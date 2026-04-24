@@ -830,7 +830,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 addLog("${card.name}: podmínka nesplněna!")
             }
         }
-        applyEffects(card.effects, player, ai, allCards, xValue = xValue)
+        // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
+        var pendingDrawCount = 0
+        applyEffects(card.effects, player, ai, allCards, xValue = xValue,
+            onDrawCard = { _, count -> pendingDrawCount += count })
         // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
         player.preCostResources = null
 
@@ -839,6 +842,37 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
             isPlayerComboTurn.value = false
             gameOver.value = result; gameState.value = s1; return
+        }
+
+        if (pendingDrawCount > 0) {
+            // Postupný líz: každá karta dolízne zvlášť se zvukem + animací
+            val isComboCard = card.isCombo
+            viewModelScope.launch {
+                // Zamkni hráče během lízání
+                gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
+                repeat(pendingDrawCount) {
+                    delay(210L)
+                    SoundManager.playCardDraw()
+                    player.drawCards(1)
+                    gameState.value = old.copy(
+                        playerState  = player.deepCopy(),
+                        aiState      = ai,
+                        activePlayer = ActivePlayer.AI
+                    )
+                }
+                if (isComboCard) {
+                    isPlayerComboTurn.value = true
+                    gameState.value = old.copy(
+                        playerState  = player.deepCopy(),
+                        aiState      = ai,
+                        activePlayer = ActivePlayer.PLAYER
+                    )
+                } else {
+                    isPlayerComboTurn.value = false
+                    finishTurn(old, player, ai)
+                }
+            }
+            return
         }
 
         if (card.isCombo) {
@@ -910,7 +944,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Tah AI ────────────────────────────────────────────────────────
             // AI dostane zdroje a líže 1 kartu na ZAČÁTKU svého tahu
             ai.generateResources()
-            if (aiDrawsAtStart) ai.drawCards(1)
+            if (aiDrawsAtStart) {
+                ai.drawCards(1)
+                SoundManager.playCardDraw()
+            }
 
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true
@@ -930,9 +967,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
                         }
                         ai.lastPlayedType = aiCard.type
-                        applyEffects(aiCard.effects, ai, player, allCards, xValue = aiXValue) { card, action ->
-                            recordOpponentLoss(card, action)
-                        }
+                        applyEffects(
+                            aiCard.effects, ai, player, allCards, xValue = aiXValue,
+                            onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
+                            onDrawCard = { state, count ->
+                                repeat(count) { state.drawCards(1); SoundManager.playCardDraw() }
+                            }
+                        )
                         ai.preCostResources = null
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
@@ -1006,6 +1047,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.generateResources()
             if (playerDrawsAtEnd) {
                 val burned = player.drawCards(1)
+                SoundManager.playCardDraw()
                 burned.forEach { b ->
                     addToHistory(b, CardAction.BURNED, isMine = true)
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
