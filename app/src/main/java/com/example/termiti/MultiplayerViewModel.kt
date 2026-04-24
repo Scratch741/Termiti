@@ -649,9 +649,9 @@ class MultiplayerViewModel(
             opp.resources[card.costType] = (opp.resources[card.costType] ?: 0) - card.cost
         }
         opp.lastPlayedType = card.type
-        applyEffects(card.effects, opp, me, allCards, xValue = oppXValue) { lostCard, action ->
-            recordOpponentLoss(lostCard, action)
-        }
+        applyEffects(card.effects, opp, me, allCards, xValue = oppXValue,
+            onOpponentCardLost = { lostCard, action -> recordOpponentLoss(lostCard, action) }
+        )
         // Karta záměrně zůstává v ruce – odstraníme ji až po vizuálním odhalení
         recordCard(card, CardAction.PLAYED, isMine = false)
         addCardLog(oppName.value, card, CardAction.PLAYED, isMe = false)
