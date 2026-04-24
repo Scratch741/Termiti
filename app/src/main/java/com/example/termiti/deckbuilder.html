@@ -1309,11 +1309,14 @@ function simAI(ai, opp) {
 }
 
 // ── Jedna simulovaná hra ─────────────────────────────────────
-function simOneGame(deckA, deckB) {
+function simOneGame(deckA, deckB, trackCards) {
   const pA=createSimState(), pB=createSimState();
   const dA=[...deckA]; simShuffle(dA); pA.deck=dA;
   const dB=[...deckB]; simShuffle(dB); pB.deck=dB;
   simDraw(pA,5); simDraw(pB,5);
+
+  // Sledování zahraných karet (jen pokud trackCards=true – kvůli výkonu)
+  const playedA={}, playedB={};
 
   let isA=Math.random()<0.5;
   let turnA=0, turnB=0;
@@ -1321,6 +1324,7 @@ function simOneGame(deckA, deckB) {
 
   for(let t=0;t<300;t++){
     const me=isA?pA:pB, opp=isA?pB:pA;
+    const played=isA?playedA:playedB;
     const first=isA?(turnA===0):(turnB===0);
     if(isA)turnA++;else turnB++;
 
@@ -1335,6 +1339,7 @@ function simOneGame(deckA, deckB) {
         const idx=me.hand.indexOf(c);
         if(idx!==-1)me.hand.splice(idx,1);
         me.discard.push(c);
+        if(trackCards) played[c.id]=(played[c.id]||0)+1;
         me.preCostRes={...me.res};
         let xv=0;
         if(c.isXCost){xv=me.res[c.costType]||0;me.res[c.costType]=0;}
@@ -1342,7 +1347,7 @@ function simOneGame(deckA, deckB) {
         simApply(c.effects,me,opp,xv);
         me.preCostRes=null;
         const w=simWin(pA,pB);
-        if(w!==null)return{winner:w,turns:t};
+        if(w!==null)return{winner:w,turns:t,playedA,playedB};
         if(!c.isCombo)go=false;
       } else if(act.type==='discard'){
         const idx=me.hand.indexOf(act.card);
@@ -1354,22 +1359,24 @@ function simOneGame(deckA, deckB) {
 
     if(isA)prevWaitA=waited;else prevWaitB=waited;
     if(prevWaitA&&prevWaitB&&pA.deck.length===0&&pB.deck.length===0){
-      if(pA.castleHP>pB.castleHP)return{winner:'A',turns:t};
-      if(pB.castleHP>pA.castleHP)return{winner:'B',turns:t};
-      return{winner:'draw',turns:t};
+      if(pA.castleHP>pB.castleHP)return{winner:'A',turns:t,playedA,playedB};
+      if(pB.castleHP>pA.castleHP)return{winner:'B',turns:t,playedA,playedB};
+      return{winner:'draw',turns:t,playedA,playedB};
     }
 
     const w=simWin(pA,pB);
-    if(w!==null)return{winner:w,turns:t};
+    if(w!==null)return{winner:w,turns:t,playedA,playedB};
     isA=!isA;
   }
-  if(pA.castleHP>pB.castleHP)return{winner:'A',turns:300};
-  if(pB.castleHP>pA.castleHP)return{winner:'B',turns:300};
-  return{winner:'draw',turns:300};
+  if(pA.castleHP>pB.castleHP)return{winner:'A',turns:300,playedA,playedB};
+  if(pB.castleHP>pA.castleHP)return{winner:'B',turns:300,playedA,playedB};
+  return{winner:'draw',turns:300,playedA,playedB};
 }
 
 // ── Simulator UI ─────────────────────────────────────────────
 let simRunning=false;
+// Poslední vygenerované náhodné balíčky (null = nebylo použito Náhodný)
+let lastRandomDeckA=null, lastRandomDeckB=null;
 
 function renderSimPanel(){
   const panel=document.getElementById('sim-panel-view');
@@ -1407,14 +1414,126 @@ function getDeckForSim(selId){
     for(const[id,count]of Object.entries(DECK))for(let i=0;i<count;i++){const c=makeSimCard(id);if(c)deck.push(c);}
     return deck;
   }
-  return buildSimDeck(val);
+  const deck=buildSimDeck(val);
+  // Ulož náhodný balíček pro pozdější zobrazení přehledu
+  if(val===0){ if(selId==='sim-deck-a') lastRandomDeckA=deck; else lastRandomDeckB=deck; }
+  return deck;
 }
+
+// Export dat náhodných balíčků (klíč → JSON string) – globální, aby onclick fungoval
+const _exportCache={};
+function exportRandomDeck(key){
+  const btn=document.getElementById('exp-btn-'+key);
+  navigator.clipboard.writeText(_exportCache[key]||'').then(()=>{
+    if(btn){btn.textContent='✓ Zkopírováno!';btn.style.color='var(--ok)';}
+    setTimeout(()=>{if(btn){btn.textContent='⬇ EXPORT JSON';btn.style.color='';}},2000);
+  });
+}
+
+// Vrátí HTML přehledu složení náhodného balíčku + (volitelně) statistiky karet
+function randomDeckInfoHTML(deck, label, cardStats) {
+  if(!deck) return '';
+  const key='rand'+label;
+  // Spočítej výskyt každé karty v balíčku
+  const counts={};
+  for(const c of deck){ counts[c.id]=(counts[c.id]||0)+1; }
+  // Seskup dle resource typu
+  const groups={MAGIC:[],ATTACK:[],STONES:[],CHAOS:[]};
+  const seen=new Set();
+  for(const c of deck){
+    if(seen.has(c.id)) continue;
+    seen.add(c.id);
+    const grp=groups[c.costType]||groups.MAGIC;
+    grp.push({id:c.id, name:c.name, cost:c.cost, count:counts[c.id]});
+  }
+  const typeLabel={MAGIC:'🔮 Magie',ATTACK:'⚔️ Útok',STONES:'🏗️ Kameny',CHAOS:'🌀 Chaos'};
+  const typeColor={MAGIC:'var(--magic)',ATTACK:'var(--attack)',STONES:'var(--stones)',CHAOS:'var(--chaos)'};
+
+  let rows='';
+  for(const [type,cards] of Object.entries(groups)){
+    if(!cards.length) continue;
+    rows+=`<div style="font-size:10px;color:${typeColor[type]};font-family:'Cinzel',serif;letter-spacing:1px;margin:8px 0 4px">${typeLabel[type]}</div>`;
+    for(const c of cards.sort((a,b)=>a.cost-b.cost)){
+      // Statistika pro tuto kartu (kolik % výher proběhlo s touto zahranou kartou)
+      let statHtml='';
+      if(cardStats && cardStats[c.id]){
+        const s=cardStats[c.id];
+        const wr=(s.wins/s.games*100).toFixed(0);
+        const avg=(s.plays/s.games).toFixed(1);
+        const col=s.wins/s.games>0.55?'var(--ok)':s.wins/s.games<0.45?'var(--attack)':'var(--gold)';
+        statHtml=`<span style="margin-left:10px;font-size:10px;color:${col}" title="Win rate: ${wr}% | Průměrně zahráno: ${avg}×/hru">WR ${wr}% (${avg}×)</span>`;
+      }
+      rows+=`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span style="color:var(--text)">${c.name}${statHtml}</span>
+        <span style="color:var(--text-dim)">cost ${c.cost}&nbsp;&nbsp;<span style="color:var(--gold);font-weight:700">×${c.count}</span></span>
+      </div>`;
+    }
+  }
+
+  // Uložení pro export
+  const exportObj={};
+  for(const[id,cnt] of Object.entries(counts)) exportObj[id]=cnt;
+  _exportCache[key]=JSON.stringify(exportObj);
+
+  // Top 5 nejsilnějších karet (pokud máme cardStats)
+  let topHtml='';
+  if(cardStats){
+    const ranked=Object.entries(cardStats)
+      .filter(([,s])=>s.games>=10)
+      .sort(([,a],[,b])=>b.wins/b.games-a.wins/a.games)
+      .slice(0,5);
+    if(ranked.length){
+      topHtml=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dim);letter-spacing:1px;margin-bottom:6px">🏆 TOP KARTY DLE WIN RATE</div>
+        ${ranked.map(([id,s],i)=>{
+          const base=CARD_MAP[id]||{};
+          const wr=(s.wins/s.games*100).toFixed(1);
+          const medal=['🥇','🥈','🥉','4.','5.'][i];
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+            <span style="color:var(--text)">${medal} ${base.name||id}</span>
+            <span style="color:var(--ok);font-weight:700">${wr}%</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+    // Bottom 3 nejslabší karty
+    const bottom=Object.entries(cardStats)
+      .filter(([,s])=>s.games>=10)
+      .sort(([,a],[,b])=>a.wins/a.games-b.wins/b.games)
+      .slice(0,3);
+    if(bottom.length){
+      topHtml+=`<div style="margin-top:10px">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--attack-dim);letter-spacing:1px;margin-bottom:6px">💀 NEJSLABŠÍ KARTY</div>
+        ${bottom.map(([id,s])=>{
+          const base=CARD_MAP[id]||{};
+          const wr=(s.wins/s.games*100).toFixed(1);
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
+            <span style="color:var(--text-dim)">${base.name||id}</span>
+            <span style="color:var(--attack)">${wr}%</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+  }
+
+  return `
+    <div style="margin-top:18px;background:var(--panel);border:1px solid var(--border);padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px">PŘEHLED BALÍČKU ${label.toUpperCase()} (${deck.length} KARET)</div>
+        <button id="exp-btn-${key}" onclick="exportRandomDeck('${key}')"
+          style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border-light);background:transparent;color:var(--text-dim);cursor:pointer;white-space:nowrap">⬇ EXPORT JSON</button>
+      </div>
+      ${rows}
+      ${topHtml}
+    </div>`;
 
 function runSimulation(){
   if(simRunning)return;
   const n=Math.min(50000,Math.max(10,parseInt(document.getElementById('sim-count').value)||1000));
   const labelA=document.getElementById('sim-deck-a').selectedOptions[0].text;
   const labelB=document.getElementById('sim-deck-b').selectedOptions[0].text;
+  // Vynuluj předchozí náhodné balíčky, aby se přehled zobrazoval jen pro aktuální simulaci
+  lastRandomDeckA=null; lastRandomDeckB=null;
   const deckA=getDeckForSim('sim-deck-a');
   const deckB=getDeckForSim('sim-deck-b');
   if(!deckA.length||!deckB.length){alert('Balíček je prázdný nebo obsahuje neznámé karty.');return;}
@@ -1423,15 +1542,38 @@ function runSimulation(){
   document.getElementById('sim-progress').style.display='block';
   document.getElementById('sim-results-view').innerHTML='<div style="padding:20px;color:var(--text-dim);font-style:italic">Simuluji...</div>';
 
+  const isRandA=parseInt(document.getElementById('sim-deck-a').value)===0;
+  const isRandB=parseInt(document.getElementById('sim-deck-b').value)===0;
+  const trackCards=isRandA||isRandB;
+
+  // cardStats[side][cardId] = { wins, games, plays }
+  const statsA={}, statsB={};
+
   let wA=0,wB=0,dr=0,totT=0,done=0;
   const CHUNK=250;
 
   function chunk(){
     const end=Math.min(done+CHUNK,n);
     for(let i=done;i<end;i++){
-      const r=simOneGame(deckA,deckB);
-      if(r.winner==='A')wA++;else if(r.winner==='B')wB++;else dr++;
+      const r=simOneGame(deckA,deckB,trackCards);
+      const won=r.winner;
+      if(won==='A')wA++;else if(won==='B')wB++;else dr++;
       totT+=r.turns;
+      // Statistika karet: akumuluj hry + výhry per karta
+      if(trackCards){
+        for(const[id,cnt] of Object.entries(r.playedA)){
+          if(!statsA[id]) statsA[id]={wins:0,games:0,plays:0};
+          statsA[id].games++;
+          statsA[id].plays+=cnt;
+          if(won==='A') statsA[id].wins++;
+        }
+        for(const[id,cnt] of Object.entries(r.playedB)){
+          if(!statsB[id]) statsB[id]={wins:0,games:0,plays:0};
+          statsB[id].games++;
+          statsB[id].plays+=cnt;
+          if(won==='B') statsB[id].wins++;
+        }
+      }
     }
     done=end;
     const prog=document.getElementById('sim-progress');
@@ -1440,13 +1582,14 @@ function runSimulation(){
     else{
       simRunning=false;
       if(prog)prog.style.display='none';
-      showSimResults(labelA,labelB,wA,wB,dr,n,totT);
+      showSimResults(labelA,labelB,wA,wB,dr,n,totT,
+        isRandA?statsA:null, isRandB?statsB:null);
     }
   }
   setTimeout(chunk,0);
 }
 
-function showSimResults(lA,lB,wA,wB,dr,tot,totT){
+function showSimResults(lA,lB,wA,wB,dr,tot,totT,cardStatsA,cardStatsB){
   const pA=(wA/tot*100).toFixed(1),pB=(wB/tot*100).toFixed(1),pD=(dr/tot*100).toFixed(1);
   const avg=(totT/tot).toFixed(1);
   const winner=wA>wB?lA:wB>wA?lB:'Remíza';
@@ -1490,6 +1633,8 @@ function showSimResults(lA,lB,wA,wB,dr,tot,totT){
           <div style="color:var(--text-dim)">Celkem her:</div><div style="color:var(--gold)">${tot.toLocaleString()}</div>
         </div>
       </div>
+      ${randomDeckInfoHTML(lastRandomDeckA,'A',cardStatsA)}
+      ${randomDeckInfoHTML(lastRandomDeckB,'B',cardStatsB)}
     </div>`;
 }
 
