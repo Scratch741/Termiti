@@ -845,7 +845,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     fun waitTurn() {
         val old = gameState.value
-        if (old.activePlayer != ActivePlayer.PLAYER) return
+        if (old.activePlayer != ActivePlayer.PLAYER || gameOver.value != null) return
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
@@ -941,17 +941,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         }
                     }
                     is AiAction.Wait -> {
-                        // AI čeká = přeskočí tah (líz byl na začátku tahu, žádný bonus)
+                        // AI čeká = přeskočí tah
                         addLog("AI čekala")
                         aiContinues = false
                         // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad
                         if (playerWaited && player.deck.isEmpty() && ai.deck.isEmpty()) {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()
-                            addLog("Oba přeskočili s prázdnými balíčky – konec hry!")
+                            addLog("Oba hráči pasovali s prázdnými balíčky – konec hry!")
                             if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                            gameState.value = finalState  // nejdřív aktualizuj stav (deck AI = 0)
-                            gameOver.value  = result      // pak zobraz dialog
+                            gameState.value = finalState
+                            gameOver.value  = result
                             return@launch
                         }
                     }

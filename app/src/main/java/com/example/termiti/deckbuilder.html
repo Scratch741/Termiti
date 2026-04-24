@@ -1409,14 +1409,14 @@ function renderSimPanel(){
 
 function getDeckForSim(selId){
   const val=parseInt(document.getElementById(selId).value);
+  let deck = [];
   if(val===-1){
-    const deck=[];
     for(const[id,count]of Object.entries(DECK))for(let i=0;i<count;i++){const c=makeSimCard(id);if(c)deck.push(c);}
-    return deck;
+  } else {
+    deck = buildSimDeck(val);
   }
-  const deck=buildSimDeck(val);
-  // Ulož náhodný balíček pro pozdější zobrazení přehledu
-  if(val===0){ if(selId==='sim-deck-a') lastRandomDeckA=deck; else lastRandomDeckB=deck; }
+  // Ulož balíček pro zobrazení přehledu a statistik
+  if(selId==='sim-deck-a') lastRandomDeckA=deck; else lastRandomDeckB=deck;
   return deck;
 }
 
@@ -1526,6 +1526,7 @@ function randomDeckInfoHTML(deck, label, cardStats) {
       ${rows}
       ${topHtml}
     </div>`;
+}
 
 function runSimulation(){
   if(simRunning)return;
@@ -1542,9 +1543,9 @@ function runSimulation(){
   document.getElementById('sim-progress').style.display='block';
   document.getElementById('sim-results-view').innerHTML='<div style="padding:20px;color:var(--text-dim);font-style:italic">Simuluji...</div>';
 
-  const isRandA=parseInt(document.getElementById('sim-deck-a').value)===0;
-  const isRandB=parseInt(document.getElementById('sim-deck-b').value)===0;
-  const trackCards=isRandA||isRandB;
+  const trackCards=true;
+  const isRandA=true; // Vždy zobrazit statistiky pro A
+  const isRandB=true; // Vždy zobrazit statistiky pro B
 
   // cardStats[side][cardId] = { wins, games, plays }
   const statsA={}, statsB={};

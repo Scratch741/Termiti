@@ -200,6 +200,21 @@ private fun OnlineGameplay(
         }
     }
 
+    // ── Flight overlay state (animace "karta letí z ruky do discardu") ──────
+    val flight = remember { FlightOverlayState() }
+    LaunchedEffect(lastCard?.id, lastCardByMe) {
+        val c = lastCard ?: return@LaunchedEffect
+        if (!lastCardByMe) return@LaunchedEffect
+        val from = flight.sources[c.id]
+        val to   = flight.target
+        if (from == null || to == null) {
+            flight.landedPlayerCardId = c.id
+            return@LaunchedEffect
+        }
+        flight.flying = FlightJob(c, from, to, flight.nextId())
+    }
+
+    CompositionLocalProvider(LocalFlightOverlay provides flight) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         // ── Pozadí – stejné jako offline hra ─────────────────────────────────
@@ -301,6 +316,9 @@ private fun OnlineGameplay(
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
             )
         }
+
+        // Letící karta (hráčova) – nad vším ostatním v Boxu
+        FlightOverlayBox(flight)
     }
 
     // ── Menu dialog ───────────────────────────────────────────────────────────
@@ -347,6 +365,7 @@ private fun OnlineGameplay(
             onDismiss = { showLog = false }
         )
     }
+    } // CompositionLocalProvider
 }
 
 // ─── Mulligan vrstva ──────────────────────────────────────────────────────────

@@ -1,17 +1,82 @@
 package com.example.termiti
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.media.MediaPlayer
 import kotlin.math.*
 
 /**
- * Procedurálně generované zvuky bez audio assetů.
- * Každý zvuk se spustí na vlastním vlákně, aby neblokoval UI.
+ * Procedurálně generované zvuky bez audio assetů + správa hudby na pozadí.
  */
 object SoundManager {
 
     var enabled = true
+    private var bgPlayer: MediaPlayer? = null
+    private var currentTrackIndex = 0
+
+    private val trackIds = listOf(
+        R.raw.bg_music,
+        R.raw.bg_music_2,
+        R.raw.bg_music_3
+    )
+
+    // ── Hudba na pozadí ──────────────────────────────────────────────────────
+
+    fun startBackgroundMusic(context: Context) {
+        if (!enabled) return
+        if (bgPlayer != null) return
+        
+        // Začni náhodnou skladbou
+        currentTrackIndex = trackIds.indices.random()
+        playTrack(context, trackIds[currentTrackIndex])
+    }
+
+    private fun playTrack(context: Context, resId: Int) {
+        try {
+            stopBackgroundMusic()
+            bgPlayer = MediaPlayer.create(context, resId)?.apply {
+                setVolume(0.4f, 0.4f)
+                setOnCompletionListener {
+                    // Po skončení pusť další v pořadí
+                    playNextTrack(context)
+                }
+                start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun playNextTrack(context: Context) {
+        currentTrackIndex = (currentTrackIndex + 1) % trackIds.size
+        playTrack(context, trackIds[currentTrackIndex])
+    }
+
+    fun stopBackgroundMusic() {
+        bgPlayer?.apply {
+            if (isPlaying) stop()
+            release()
+        }
+        bgPlayer = null
+    }
+
+    fun pauseBackgroundMusic() {
+        try {
+            if (bgPlayer?.isPlaying == true) {
+                bgPlayer?.pause()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    fun resumeBackgroundMusic() {
+        try {
+            if (enabled && bgPlayer != null) {
+                bgPlayer?.start()
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
 
     // ── Veřejné API ──────────────────────────────────────────────────────────
 

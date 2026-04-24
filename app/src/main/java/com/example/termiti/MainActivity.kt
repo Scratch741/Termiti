@@ -34,8 +34,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Spuštění hudby na pozadí (předpokládá se existence souboru res/raw/bg_music.mp3)
-        SoundManager.startBackgroundMusic(this, R.raw.bg_music)
+        // Spuštění hudby na pozadí (automaticky vybere náhodnou skladbu z playlistu)
+        SoundManager.startBackgroundMusic(this)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
