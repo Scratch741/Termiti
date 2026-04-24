@@ -391,6 +391,11 @@
   #designer-view { display: none; height: 100%; flex-direction: column; }
   /* removed .view-active !important to allow JS display toggling */
 
+  /* ── Simulator ── */
+  #browser-inner { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+  #sim-results-view { flex: 1; overflow-y: auto; display: none; flex-direction: column; background: var(--bg); }
+  #sim-panel-view { display: none; flex-direction: column; height: 100%; }
+
 </style>
 </head>
 <body onload="init()">
@@ -405,6 +410,7 @@
   <div class="mode-tabs">
     <button id="tab-builder" class="mode-tab active" onclick="setMode('builder')">DECK BUILDER</button>
     <button id="tab-designer" class="mode-tab" onclick="setMode('designer')">DESIGNER MODE</button>
+    <button id="tab-sim" class="mode-tab" onclick="setMode('sim')">SIMULÁTOR</button>
   </div>
 
   <div class="header-center">
@@ -422,15 +428,18 @@
 
   <!-- LEFT: Browser / List -->
   <div class="browser">
-    <div class="filters">
-      <input type="text" id="searchInput" placeholder="Hledat kartu..." oninput="renderBrowser()">
-      <button class="filter-btn active-all" onclick="setFilter('ALL')">Vše</button>
-      <button class="filter-btn" onclick="setFilter('ATTACK')">⚔</button>
-      <button class="filter-btn" onclick="setFilter('STONES')">🏰</button>
-      <button class="filter-btn" onclick="setFilter('MAGIC')">✦</button>
-      <button class="filter-btn" onclick="setFilter('CHAOS')">🌀</button>
+    <div id="browser-inner">
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Hledat kartu..." oninput="renderBrowser()">
+        <button class="filter-btn active-all" onclick="setFilter('ALL')">Vše</button>
+        <button class="filter-btn" onclick="setFilter('ATTACK')">⚔</button>
+        <button class="filter-btn" onclick="setFilter('STONES')">🏰</button>
+        <button class="filter-btn" onclick="setFilter('MAGIC')">✦</button>
+        <button class="filter-btn" onclick="setFilter('CHAOS')">🌀</button>
+      </div>
+      <div class="card-grid" id="cardGrid"></div>
     </div>
-    <div class="card-grid" id="cardGrid"></div>
+    <div id="sim-results-view"></div>
   </div>
 
   <!-- CENTER: Designer Preview (only in designer mode) -->
@@ -472,6 +481,9 @@
         <div id="deck-output" class="output-box">—</div>
       </div>
     </div>
+
+    <!-- SIMULATOR PANEL -->
+    <div id="sim-panel-view"></div>
 
     <!-- DESIGNER PANEL -->
     <div id="designer-panel-view" style="display:none;flex-direction:column;height:100%">
@@ -549,25 +561,32 @@ function setMode(m) {
   mode = m;
   document.getElementById('tab-builder').classList.toggle('active', m === 'builder');
   document.getElementById('tab-designer').classList.toggle('active', m === 'designer');
+  document.getElementById('tab-sim').classList.toggle('active', m === 'sim');
   document.getElementById('main-layout').classList.toggle('designer-mode', m === 'designer');
 
   document.getElementById('designer-center').style.display = m === 'designer' ? 'flex' : 'none';
+  document.getElementById('browser-inner').style.display   = m === 'sim' ? 'none' : 'flex';
+  document.getElementById('sim-results-view').style.display = m === 'sim' ? 'flex' : 'none';
 
-  // Explicitly hide/show panels
-  const deckPanel = document.getElementById('deck-panel-view');
+  const deckPanel     = document.getElementById('deck-panel-view');
   const designerPanel = document.getElementById('designer-panel-view');
+  const simPanel      = document.getElementById('sim-panel-view');
 
-  if (m === 'builder') {
-    deckPanel.style.display = 'flex';
-    designerPanel.style.display = 'none';
-  } else {
-    deckPanel.style.display = 'none';
+  deckPanel.style.display     = m === 'builder'  ? 'flex' : 'none';
+  simPanel.style.display      = m === 'sim'      ? 'flex' : 'none';
+  if (m === 'designer') {
     designerPanel.style.display = 'flex';
-    // Ensure designer controls are visible
     document.querySelector('.designer-controls').scrollTop = 0;
+  } else {
+    designerPanel.style.display = 'none';
   }
 
+  if (m === 'sim') renderSimPanel();
   renderBrowser();
+}
+
+function maxCopies(rarity) {
+  return { COMMON: 4, RARE: 3, EPIC: 2, LEGENDARY: 1 }[rarity] ?? 4;
 }
 
 function setFilter(f) {
@@ -696,15 +715,24 @@ function renderBrowser() {
 
     grid.innerHTML = filtered.map(c => {
     const isAdjusted = cardAdjustments[c.id] && (cardAdjustments[c.id].scale !== 1.0 || cardAdjustments[c.id].bx !== 0.0 || cardAdjustments[c.id].by !== 0.0);
+    const rarityColor = { COMMON: 'var(--common)', RARE: 'var(--rare)', EPIC: 'var(--epic)', LEGENDARY: 'var(--legendary)' };
+    const rarityLabel = { COMMON: 'Běžná', RARE: 'Vzácná', EPIC: 'Epická', LEGENDARY: 'Legendární' };
+    const cap = maxCopies(c.rarity);
+    const inDeck = DECK[c.id] || 0;
+    const atMax = mode === 'builder' && inDeck >= cap;
+    const col = rarityColor[c.rarity] || 'var(--common)';
     return `
-      <div class="card-tile ${selectedCardId === c.id ? 'selected' : ''}" onclick="selectCard('${c.id}')">
+      <div class="card-tile ${selectedCardId === c.id ? 'selected' : ''} ${atMax ? 'at-max' : ''}"
+           onclick="selectCard('${c.id}')"
+           style="border-color:${atMax ? col : ''};opacity:${atMax ? '0.55' : '1'}">
         <div class="card-tile-header">
           <div class="cost-badge cost-${c.type.toLowerCase()}">${c.cost}</div>
           <div class="card-name">${c.name}</div>
         </div>
         <div class="card-desc">${c.desc}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted)">
-          <span>ID: ${c.id}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px">
+          <span style="color:${col}">${rarityLabel[c.rarity] || c.rarity}</span>
+          ${mode === 'builder' ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">${inDeck}/${cap}</span>` : ''}
           ${isAdjusted ? '<span style="color:var(--gold);font-weight:bold">MOD</span>' : ''}
         </div>
       </div>
@@ -714,8 +742,8 @@ function renderBrowser() {
 
 function selectCard(id) {
   if (mode === 'builder') {
-    DECK[id] = (DECK[id] || 0) + 1;
-    if (DECK[id] > 4) DECK[id] = 4; // Simplistic cap
+    const cap = maxCopies(CARD_MAP[id]?.rarity || 'COMMON');
+    DECK[id] = Math.min((DECK[id] || 0) + 1, cap);
     renderDeck();
   } else {
     selectedCardId = id;
@@ -823,16 +851,21 @@ function renderDeck() {
   const list = document.getElementById('deck-list');
   const entries = Object.entries(DECK).filter(e => e[1] > 0);
   let total = 0;
+  const rarityColor = { COMMON: 'var(--common)', RARE: 'var(--rare)', EPIC: 'var(--epic)', LEGENDARY: 'var(--legendary)' };
   list.innerHTML = entries.map(([id, count]) => {
     const c = CARD_MAP[id];
     total += count;
+    const cap = maxCopies(c?.rarity || 'COMMON');
+    const col = rarityColor[c?.rarity] || 'var(--common)';
+    const atMax = count >= cap;
     return `
       <div style="display:flex;align-items:center;margin-bottom:4px;font-size:13px">
+        <div style="width:4px;height:28px;background:${col};margin-right:6px;flex-shrink:0;border-radius:1px"></div>
         <div style="width:20px;color:var(--gold)">${c ? c.cost : '?'}</div>
         <div style="flex:1">${c ? c.name : id}</div>
         <button onclick="changeDeckCount('${id}', -1)" style="padding:0 5px">-</button>
-        <div style="width:20px;text-align:center">${count}</div>
-        <button onclick="changeDeckCount('${id}', 1)" style="padding:0 5px">+</button>
+        <div style="width:30px;text-align:center;color:${atMax ? col : 'var(--text)'}">${count}/${cap}</div>
+        <button onclick="changeDeckCount('${id}', 1)" style="padding:0 5px" ${atMax ? 'disabled' : ''}>+</button>
       </div>
     `;
   }).join('');
@@ -840,8 +873,8 @@ function renderDeck() {
 }
 
 function changeDeckCount(id, delta) {
-  DECK[id] = (DECK[id] || 0) + delta;
-  if (DECK[id] < 0) DECK[id] = 0;
+  const cap = maxCopies(CARD_MAP[id]?.rarity || 'COMMON');
+  DECK[id] = Math.max(0, Math.min((DECK[id] || 0) + delta, cap));
   renderDeck();
 }
 
@@ -910,6 +943,554 @@ function copyDeckCode() {
     console.error('Fallback copy failed', err);
   }
   document.body.removeChild(textArea);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIMULÁTOR – databáze efektů karet (portováno z GameLogic.kt)
+// Formát: { ct:"ATTACK"|"MAGIC"|"STONES"|"CHAOS", fx:[...], combo:bool, xCost:bool }
+// Efekty: AP=AttackPlayer, AC=AttackCastle, AW=AttackWall, BC=BuildCastle, BW=BuildWall,
+//         AR=AddResource, AM=AddMine, SR=StealResource, DR=DrainResource, DC=DrawCard,
+//         SC=StealCastle, DM=DestroyMine, BLK=BlockMine, StealC=StealCard, BurnC=BurnCard,
+//         AddD=AddCardsToDeck, ARD=AddResourceDelayed, CE=ConditionalEffect,
+//         XAP/XAC/XBC/XDR=X-kost efekty
+// Podmínky: RA=ResourceAbove, WA=WallAbove, WB=WallBelow, CA=CastleAbove, CB=CastleBelow
+// ═══════════════════════════════════════════════════════════
+const CARD_EFFECTS_DB = {
+  "001":{ct:"ATTACK",fx:[{t:"AP",a:5}]},
+  "002":{ct:"STONES",fx:[{t:"BW",a:9}]},
+  "003":{ct:"MAGIC", fx:[{t:"AC",a:8}]},
+  "004":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2}],combo:true},
+  "005":{ct:"STONES",fx:[{t:"BC",a:4}]},
+  "006":{ct:"ATTACK",fx:[{t:"CE",c:{t:"RA",r:"ATTACK",v:5},e:{t:"AC",a:10}}]},
+  "007":{ct:"ATTACK",fx:[{t:"AP",a:11}]},
+  "008":{ct:"ATTACK",fx:[{t:"AC",a:3}]},
+  "009":{ct:"STONES",fx:[{t:"BC",a:8}]},
+  "010":{ct:"STONES",fx:[{t:"BW",a:5},{t:"AR",r:"STONES",a:1}]},
+  "011":{ct:"MAGIC", fx:[{t:"AR",r:"STONES",a:4}],combo:true},
+  "012":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:3}],combo:true},
+  "013":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:1}]},
+  "014":{ct:"MAGIC", fx:[{t:"AM",r:"STONES",a:1}]},
+  "015":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:1}]},
+  "016":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2}]},
+  "017":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"SR",r:"ATTACK",a:2}]},
+  "018":{ct:"STONES",fx:[{t:"BW",a:15}]},
+  "019":{ct:"ATTACK",fx:[{t:"AW",a:5}]},
+  "020":{ct:"ATTACK",fx:[{t:"AW",a:11}]},
+  "021":{ct:"ATTACK",fx:[{t:"AP",a:15}]},
+  "022":{ct:"ATTACK",fx:[{t:"AC",a:8}]},
+  "023":{ct:"ATTACK",fx:[{t:"AP",a:12}]},
+  "024":{ct:"ATTACK",fx:[{t:"CE",c:{t:"WB",v:5},e:{t:"AC",a:13}}]},
+  "025":{ct:"ATTACK",fx:[{t:"CE",c:{t:"WB",v:10},e:{t:"AC",a:10}}]},
+  "026":{ct:"ATTACK",fx:[{t:"AC",a:5},{t:"CE",c:{t:"RA",r:"ATTACK",v:5},e:{t:"AC",a:5}}]},
+  "027":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"AR",r:"ATTACK",a:2}],combo:true},
+  "028":{ct:"STONES",fx:[{t:"BC",a:3}]},
+  "029":{ct:"STONES",fx:[{t:"BW",a:6}],combo:true},
+  "030":{ct:"STONES",fx:[{t:"BW",a:14}]},
+  "031":{ct:"STONES",fx:[{t:"BC",a:6}]},
+  "032":{ct:"STONES",fx:[{t:"BC",a:13}]},
+  "033":{ct:"STONES",fx:[{t:"CE",c:{t:"WB",v:8},e:{t:"BW",a:12}}]},
+  "034":{ct:"STONES",fx:[{t:"CE",c:{t:"WA",v:15},e:{t:"BC",a:8}}]},
+  "035":{ct:"STONES",fx:[{t:"BW",a:5},{t:"BC",a:3}]},
+  "036":{ct:"STONES",fx:[{t:"BW",a:7},{t:"CE",c:{t:"CB",v:35},e:{t:"BW",a:5}}]},
+  "037":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:4}],combo:true},
+  "038":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:6}],combo:true},
+  "039":{ct:"MAGIC", fx:[{t:"AR",r:"STONES",a:6}],combo:true},
+  "040":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"AR",r:"ATTACK",a:8}}]},
+  "041":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2},{t:"AR",r:"ATTACK",a:2},{t:"AR",r:"STONES",a:2}],combo:true},
+  "042":{ct:"MAGIC", fx:[{t:"AM",r:"STONES",a:2}]},
+  "043":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:2}]},
+  "044":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:1},{t:"AM",r:"ATTACK",a:1},{t:"AM",r:"STONES",a:1}]},
+  "045":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:3}]},
+  "046":{ct:"ATTACK",fx:[{t:"AP",a:2},{t:"SR",r:"MAGIC",a:1},{t:"AR",r:"CHAOS",a:1}]},
+  "047":{ct:"ATTACK",fx:[{t:"AP",a:9}]},
+  "048":{ct:"ATTACK",fx:[{t:"AP",a:6},{t:"AR",r:"MAGIC",a:3}],combo:true},
+  "049":{ct:"ATTACK",fx:[{t:"AP",a:3},{t:"DR",r:"MAGIC",a:3},{t:"AR",r:"CHAOS",a:1}]},
+  "050":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DR",r:"STONES",a:4}]},
+  "051":{ct:"ATTACK",fx:[{t:"AP",a:14},{t:"AC",a:8},{t:"AR",r:"CHAOS",a:2}]},
+  "052":{ct:"ATTACK",fx:[{t:"AC",a:16},{t:"AR",r:"CHAOS",a:2}]},
+  "053":{ct:"ATTACK",fx:[{t:"AW",a:10},{t:"AR",r:"ATTACK",a:2}]},
+  "054":{ct:"ATTACK",fx:[{t:"AP",a:13},{t:"AR",r:"ATTACK",a:2}]},
+  "055":{ct:"ATTACK",fx:[{t:"AP",a:3},{t:"AR",r:"ATTACK",a:1},{t:"CE",c:{t:"WB",v:5},e:{t:"AC",a:8}}]},
+  "056":{ct:"ATTACK",fx:[{t:"SR",r:"ATTACK",a:3},{t:"AP",a:4}]},
+  "057":{ct:"STONES",fx:[{t:"BW",a:7},{t:"AR",r:"STONES",a:1}]},
+  "058":{ct:"STONES",fx:[{t:"BW",a:4}],combo:true},
+  "059":{ct:"STONES",fx:[{t:"BW",a:4},{t:"BC",a:6}]},
+  "060":{ct:"STONES",fx:[{t:"BC",a:18}]},
+  "061":{ct:"STONES",fx:[{t:"CE",c:{t:"CB",v:40},e:{t:"BW",a:12}}]},
+  "062":{ct:"STONES",fx:[{t:"BW",a:7},{t:"BC",a:4},{t:"AR",r:"STONES",a:2}]},
+  "063":{ct:"STONES",fx:[{t:"BW",a:14},{t:"AM",r:"STONES",a:1}]},
+  "064":{ct:"STONES",fx:[{t:"CE",c:{t:"CB",v:50},e:{t:"BC",a:10}}]},
+  "065":{ct:"MAGIC", fx:[{t:"SR",r:"ATTACK",a:3}]},
+  "066":{ct:"MAGIC", fx:[{t:"SR",r:"STONES",a:4}]},
+  "067":{ct:"MAGIC", fx:[{t:"DR",r:"STONES",a:5}]},
+  "068":{ct:"MAGIC", fx:[{t:"DR",r:"ATTACK",a:5}]},
+  "069":{ct:"MAGIC", fx:[{t:"SR",r:"MAGIC",a:3},{t:"SR",r:"ATTACK",a:3},{t:"AR",r:"CHAOS",a:1}]},
+  "070":{ct:"MAGIC", fx:[{t:"DR",r:"STONES",a:5},{t:"DR",r:"ATTACK",a:5}]},
+  "071":{ct:"MAGIC", fx:[{t:"SR",r:"MAGIC",a:2},{t:"SR",r:"ATTACK",a:2},{t:"SR",r:"STONES",a:2},{t:"AR",r:"CHAOS",a:2}]},
+  "072":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:2},{t:"AM",r:"ATTACK",a:1}]},
+  "073":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2},{t:"AM",r:"MAGIC",a:1}]},
+  "074":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:3},{t:"AR",r:"ATTACK",a:3},{t:"AR",r:"STONES",a:3}],combo:true},
+  "075":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2},{t:"AM",r:"STONES",a:1}]},
+  "076":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:2},{t:"AM",r:"STONES",a:1}]},
+  "077":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:8},e:{t:"AR",r:"ATTACK",a:10}}]},
+  "078":{ct:"ATTACK",fx:[{t:"AC",a:10},{t:"SR",r:"MAGIC",a:4},{t:"SR",r:"ATTACK",a:4},{t:"AR",r:"CHAOS",a:2}]},
+  "079":{ct:"ATTACK",fx:[{t:"AP",a:12},{t:"DR",r:"MAGIC",a:3},{t:"AR",r:"CHAOS",a:2}]},
+  "080":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2},{t:"AM",r:"ATTACK",a:2},{t:"AM",r:"STONES",a:2}]},
+  "081":{ct:"STONES",fx:[{t:"BW",a:7}]},
+  "082":{ct:"STONES",fx:[{t:"BW",a:16}]},
+  "083":{ct:"STONES",fx:[{t:"CE",c:{t:"WB",v:10},e:{t:"BW",a:16}}]},
+  "084":{ct:"STONES",fx:[{t:"BW",a:3},{t:"BC",a:7}]},
+  "085":{ct:"STONES",fx:[{t:"BC",a:15}]},
+  "086":{ct:"STONES",fx:[{t:"BW",a:8},{t:"BC",a:6}]},
+  "087":{ct:"STONES",fx:[{t:"BW",a:10},{t:"BC",a:8}]},
+  "088":{ct:"STONES",fx:[{t:"BW",a:10},{t:"CE",c:{t:"CA",v:30},e:{t:"BW",a:6}}]},
+  "089":{ct:"STONES",fx:[{t:"BW",a:5},{t:"AM",r:"STONES",a:1}]},
+  "090":{ct:"STONES",fx:[{t:"AM",r:"STONES",a:2}]},
+  "091":{ct:"STONES",fx:[{t:"BW",a:9},{t:"DR",r:"ATTACK",a:2}]},
+  "092":{ct:"STONES",fx:[{t:"CE",c:{t:"WA",v:20},e:{t:"BW",a:15}}]},
+  "094":{ct:"STONES",fx:[{t:"BW",a:6},{t:"AR",r:"STONES",a:2}],combo:true},
+  "095":{ct:"STONES",fx:[{t:"AR",r:"STONES",a:5}],combo:true},
+  "096":{ct:"STONES",fx:[{t:"BW",a:25}]},
+  "097":{ct:"STONES",fx:[{t:"BC",a:25}]},
+  "098":{ct:"ATTACK",fx:[{t:"BW",a:-4},{t:"AP",a:11}]},
+  "099":{ct:"MAGIC", fx:[{t:"SC",a:10}]},
+  "100":{ct:"ATTACK",fx:[{t:"AP",a:5},{t:"SC",a:6}]},
+  "101":{ct:"ATTACK",fx:[{t:"XAC",div:2}],xCost:true},
+  "102":{ct:"STONES",fx:[{t:"XBC",div:2}],xCost:true},
+  "103":{ct:"MAGIC", fx:[{t:"XDR",rA:"ATTACK",rB:"STONES",div:2}],xCost:true},
+  "T01":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:5}]},
+  "C01":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2}],combo:true},
+  "C02":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:5},{t:"DR",r:"MAGIC",a:2}]},
+  "C03":{ct:"MAGIC", fx:[{t:"AM",r:"CHAOS",a:1}]},
+  "C04":{ct:"MAGIC", fx:[{t:"SR",r:"CHAOS",a:3}],combo:true},
+  "C05":{ct:"CHAOS", fx:[{t:"AC",a:14}]},
+  "C06":{ct:"CHAOS", fx:[{t:"AP",a:20}]},
+  "C07":{ct:"CHAOS", fx:[{t:"BW",a:20}]},
+  "C08":{ct:"CHAOS", fx:[{t:"BC",a:15}]},
+  "C09":{ct:"CHAOS", fx:[{t:"DR",r:"MAGIC",a:6},{t:"DR",r:"ATTACK",a:6},{t:"DR",r:"STONES",a:6}]},
+  "C10":{ct:"CHAOS", fx:[{t:"AP",a:15},{t:"AC",a:12}]},
+  "C11":{ct:"CHAOS", fx:[{t:"BC",a:8},{t:"BW",a:8}]},
+  "C12":{ct:"CHAOS", fx:[{t:"SR",r:"MAGIC",a:5},{t:"SR",r:"ATTACK",a:5},{t:"SR",r:"STONES",a:5}]},
+  "C13":{ct:"CHAOS", fx:[{t:"DM",r:"MAGIC",a:1},{t:"BLK",r:"MAGIC",turns:2}]},
+  "C14":{ct:"CHAOS", fx:[{t:"DM",r:"STONES",a:1},{t:"BLK",r:"STONES",turns:2}]},
+  "C15":{ct:"CHAOS", fx:[{t:"DM",r:"ATTACK",a:1},{t:"BLK",r:"ATTACK",turns:2}]},
+  "C16":{ct:"CHAOS", fx:[{t:"DM",r:"MAGIC",a:1},{t:"BLK",r:"MAGIC",turns:3},{t:"DM",r:"STONES",a:1},{t:"BLK",r:"STONES",turns:3}]},
+  "C17":{ct:"CHAOS", fx:[{t:"StealC",a:1}]},
+  "C18":{ct:"CHAOS", fx:[{t:"StealC",a:2}]},
+  "C19":{ct:"CHAOS", fx:[{t:"BurnC",a:2}]},
+  "C20":{ct:"CHAOS", fx:[{t:"BurnC",a:3}]},
+  "C21":{ct:"CHAOS", fx:[{t:"AddD",id:"008",count:3}]},
+  "C22":{ct:"CHAOS", fx:[{t:"AddD",id:"C05",count:2}]},
+  "C23":{ct:"CHAOS", fx:[{t:"AddD",id:"001",count:2}]},
+  "C24":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:5}],combo:true},
+  "C25":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2},{t:"AR",r:"MAGIC",a:2}],combo:true},
+  "C26":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4}],combo:true},
+  "C27":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:5},e:{t:"AR",r:"CHAOS",a:7}}]},
+  "C28":{ct:"MAGIC", fx:[{t:"SR",r:"ATTACK",a:2},{t:"AR",r:"CHAOS",a:3}],combo:true},
+  "C29":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:3},{t:"AM",r:"CHAOS",a:1}]},
+  "C30":{ct:"MAGIC", fx:[{t:"AM",r:"CHAOS",a:2}]},
+  "C31":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4},{t:"DR",r:"MAGIC",a:2},{t:"DR",r:"ATTACK",a:2},{t:"DR",r:"STONES",a:2}]},
+  "C32":{ct:"CHAOS", fx:[{t:"AC",a:10},{t:"BC",a:-10}]},
+  "D01":{ct:"MAGIC", fx:[{t:"DC",a:1}],combo:true},
+  "D02":{ct:"MAGIC", fx:[{t:"DC",a:2}]},
+  "D03":{ct:"MAGIC", fx:[{t:"DC",a:3}]},
+  "D04":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"DC",a:1}]},
+  "D05":{ct:"STONES",fx:[{t:"BW",a:4},{t:"DC",a:1}],combo:true},
+  "D06":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DC",a:1}]},
+  "D07":{ct:"MAGIC", fx:[{t:"DC",a:2},{t:"AM",r:"MAGIC",a:1}]},
+  "D08":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"DC",a:2}}]},
+};
+
+// Předpřipravené balíčky (shodné s Kotlin presetTemplates)
+const SIM_PRESETS = [
+  { name:"Náhodný" },
+  { name:"⚔️ Útočník",    counts:{"027":2,"046":4,"056":3,"022":2,"026":2,"024":2,"021":1,"052":1,"051":1,"078":1,"055":2,"054":2,"004":2,"038":3,"043":2}},
+  { name:"🏰 Obránce",    counts:{"095":4,"057":3,"083":2,"094":4,"089":3,"084":4,"062":2,"032":2,"085":2,"096":1,"097":1,"011":2}},
+  { name:"💰 Ekonom",     counts:{"046":4,"095":2,"057":3,"094":3,"083":2,"062":2,"097":1,"037":3,"041":2,"013":2,"042":1,"080":1,"045":1,"C30":1,"C22":2}},
+  { name:"🌀 Chaosmancer",counts:{"046":4,"C26":3,"C24":3,"C27":2,"C02":2,"C03":1,"C31":2,"C29":2,"C19":2,"C14":1,"C13":2,"C15":2,"C05":2,"C06":1,"C10":1}},
+];
+
+function makeSimCard(id) {
+  const db = CARD_EFFECTS_DB[id];
+  if (!db) return null;
+  const base = CARD_MAP[id] || {};
+  return { id, name: base.name || id, cost: base.cost || 0, costType: db.ct, effects: db.fx, isCombo: !!db.combo, isXCost: !!db.xCost };
+}
+
+function buildSimDeck(presetIdx) {
+  if (presetIdx === 0) {
+    // Náhodný: max 2 kopie každé karty, celkem 30
+    const ids = Object.keys(CARD_EFFECTS_DB);
+    const pool = [];
+    ids.forEach(id => { pool.push(id); pool.push(id); });
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 30).map(makeSimCard).filter(Boolean);
+  }
+  const counts = presetIdx === -1 ? DECK : SIM_PRESETS[presetIdx].counts;
+  const deck = [];
+  for (const [id, count] of Object.entries(counts)) {
+    for (let i = 0; i < count; i++) { const c = makeSimCard(id); if (c) deck.push(c); }
+  }
+  return deck;
+}
+
+// ── Herní stav ──────────────────────────────────────────────
+function createSimState() {
+  return {
+    castleHP: 30, wallHP: 10,
+    res: { MAGIC:0, ATTACK:0, STONES:0, CHAOS:0 },
+    mines: { MAGIC:1, ATTACK:1, STONES:1 },
+    mineBlocked: {}, pending: [],
+    deck: [], hand: [], discard: [],
+    lastType: null, preCostRes: null,
+  };
+}
+
+function simShuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function simDraw(s, n) {
+  for (let i = 0; i < n; i++) {
+    if (!s.deck.length) break;
+    const c = s.deck.shift();
+    if (s.hand.length < 7) s.hand.push(c); else s.discard.push(c);
+  }
+}
+
+function simGenRes(s) {
+  const nxt = [];
+  for (const p of s.pending) { p.turns--; if (p.turns <= 0) s.res[p.r] = (s.res[p.r]||0)+p.a; else nxt.push(p); }
+  s.pending = nxt;
+  for (const [type, amt] of Object.entries(s.mines)) {
+    const bl = s.mineBlocked[type] || 0;
+    if (bl > 0) s.mineBlocked[type] = bl - 1;
+    else s.res[type] = (s.res[type]||0) + amt;
+  }
+}
+
+function simCond(cond, s) {
+  const r = s.preCostRes || s.res;
+  switch (cond.t) {
+    case 'RA': return (r[cond.r]||0) > cond.v;
+    case 'WA': return s.wallHP > cond.v;
+    case 'WB': return s.wallHP < cond.v;
+    case 'CA': return s.castleHP > cond.v;
+    case 'CB': return s.castleHP < cond.v;
+    default:   return false;
+  }
+}
+
+function simFx(fx, me, opp, xv) {
+  switch (fx.t) {
+    case 'AP': { const d=Math.min(fx.a,opp.wallHP); opp.wallHP-=d; const ov=fx.a-d; if(ov>0)opp.castleHP-=ov; break; }
+    case 'AC': opp.castleHP -= fx.a; break;
+    case 'AW': opp.wallHP = Math.max(0, opp.wallHP - fx.a); break;
+    case 'BC': me.castleHP = Math.min(100, me.castleHP + fx.a); break;
+    case 'BW': me.wallHP = Math.max(0, Math.min(100, me.wallHP + fx.a)); break;
+    case 'AR': me.res[fx.r] = (me.res[fx.r]||0) + fx.a; break;
+    case 'AM': me.mines[fx.r] = (me.mines[fx.r]||0) + fx.a; break;
+    case 'SR': { const tk=Math.min(fx.a,opp.res[fx.r]||0); opp.res[fx.r]=(opp.res[fx.r]||0)-tk; me.res[fx.r]=(me.res[fx.r]||0)+tk; break; }
+    case 'DR': opp.res[fx.r] = Math.max(0,(opp.res[fx.r]||0)-fx.a); break;
+    case 'DC': simDraw(me, fx.a); break;
+    case 'SC': { const st=Math.min(fx.a,Math.max(0,opp.castleHP)); opp.castleHP-=st; me.castleHP=Math.min(100,me.castleHP+st); break; }
+    case 'DM': { const cur=opp.mines[fx.r]||0,min=fx.r==='CHAOS'?0:1; if(cur>min)opp.mines[fx.r]=Math.max(min,cur-fx.a); break; }
+    case 'BLK': { opp.mineBlocked[fx.r]=Math.min(5,(opp.mineBlocked[fx.r]||0)+fx.turns); break; }
+    case 'StealC': for(let i=0;i<fx.a;i++){if(opp.hand.length){const idx=Math.floor(Math.random()*opp.hand.length);me.hand.push(opp.hand.splice(idx,1)[0]);}} break;
+    case 'BurnC':  for(let i=0;i<fx.a;i++){if(opp.hand.length){const idx=Math.floor(Math.random()*opp.hand.length);opp.discard.push(opp.hand.splice(idx,1)[0]);}} break;
+    case 'AddD': { const db=CARD_EFFECTS_DB[fx.id]; if(db){for(let i=0;i<fx.count;i++)me.deck.push(makeSimCard(fx.id));simShuffle(me.deck);} break; }
+    case 'ARD': me.pending.push({r:fx.r,a:fx.a,turns:fx.turns||1}); break;
+    case 'CE': if(simCond(fx.c,me)) simFx(fx.e,me,opp,xv); break;
+    case 'XAP': { const d=Math.floor(xv/fx.div),wd=Math.min(d,opp.wallHP); opp.wallHP-=wd; const ov=d-wd; if(ov>0)opp.castleHP-=ov; break; }
+    case 'XAC': opp.castleHP -= Math.floor(xv/fx.div); break;
+    case 'XBC': me.castleHP = Math.min(100, me.castleHP + Math.floor(xv/fx.div)); break;
+    case 'XDR': { const a=Math.floor(xv/fx.div); me.res[fx.rA]=(me.res[fx.rA]||0)+a; me.res[fx.rB]=(me.res[fx.rB]||0)+a; break; }
+  }
+}
+
+function simApply(effects, me, opp, xv) {
+  for (const fx of effects) simFx(fx, me, opp, xv);
+}
+
+function simWin(pA, pB) {
+  const aD=pA.castleHP<=0, bD=pB.castleHP<=0, aB=pA.castleHP>=60, bB=pB.castleHP>=60;
+  if(aD&&bD||aB&&bB) return 'draw';
+  if(aD) return 'B'; if(bD) return 'A';
+  if(aB) return 'A'; if(bB) return 'B';
+  return null;
+}
+
+// ── AI heuristika (portováno z GameViewModel.kt) ─────────────
+function simAI(ai, opp) {
+  const aLH=ai.castleHP<15, aLW=ai.wallHP<5, oLH=opp.castleHP<20;
+  const oCW=opp.castleHP>=50, aCW=ai.castleHP>=50;
+  const chaos=ai.res.CHAOS||0;
+  const bothE=ai.deck.length===0&&opp.deck.length===0;
+  const hFull=ai.hand.length>=7;
+
+  const aff=ai.hand.filter(c=>c.isXCost||(ai.res[c.costType]||0)>=c.cost);
+
+  function se(fx,xv){
+    switch(fx.t){
+      case 'AP': return (oLH?20:oCW?6:8)+Math.floor((fx.a||0)/4);
+      case 'AC': return (oLH?22:oCW?8:6)+Math.floor((fx.a||0)/5);
+      case 'AW': return 4;
+      case 'BC': return (fx.a||0)>=0?(aLH?20:aCW?12:5)+Math.floor((fx.a||0)/5):(fx.a||0)*2;
+      case 'BW': return (fx.a||0)>=0?(aLW?16:5):(fx.a||0);
+      case 'AM': return 9;
+      case 'SR': return 7;
+      case 'DR': return 6;
+      case 'AR': return 3;
+      case 'ARD': return (fx.a||0)*2;
+      case 'DM': return 8;
+      case 'BLK': return (fx.turns||0)*7;
+      case 'StealC': return 8;
+      case 'BurnC': return 6;
+      case 'AddD': return 4;
+      case 'DC': return (fx.a||0)*5;
+      case 'SC': return (fx.a||0)+(oLH?8:0)+(aLH?8:0);
+      case 'CE': return simCond(fx.c,ai)?se(fx.e,xv):0;
+      case 'XAP': {const a=Math.floor(xv/(fx.div||1));return(oLH?20:oCW?6:8)+Math.floor(a/4);}
+      case 'XAC': {const a=Math.floor(xv/(fx.div||1));return(oLH?22:oCW?8:7)+Math.floor(a/4);}
+      case 'XBC': {const a=Math.floor(xv/(fx.div||1));return(aLH?12:aCW?6:4)+Math.floor(a/4);}
+      case 'XDR': {const a=Math.floor(xv/(fx.div||1));return 4+Math.floor(a/3);}
+      default: return 0;
+    }
+  }
+
+  function sc(c){
+    const xv=c.isXCost?(ai.res[c.costType]||0):0;
+    if(c.isXCost&&!bothE){const mx=aLH&&oLH?2:aLH||oLH?4:8;if(xv<mx)return -20+((Math.random()*4-2)|0);}
+    const es=c.effects.reduce((s,fx)=>s+se(fx,xv),0);
+    const cs=c.isXCost?xv:c.cost;
+    const cb=c.costType==='CHAOS'&&chaos<c.cost?100:0;
+    return es-cs-cb+((Math.random()*4-2)|0);
+  }
+
+  function bd(){
+    return ai.hand.reduce((best,c)=>{
+      const sf=Math.max(0,c.cost-(ai.res[c.costType]||0));
+      const mr=Math.max(1,ai.mines[c.costType]||0);
+      const s=sf*10/mr;
+      return(!best||s>best.s)?{c,s}:best;
+    },null)?.c||null;
+  }
+
+  if(bothE){
+    if(aff.length){
+      const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
+      if(best&&best.s>0)return{type:'play',card:best.c};
+      if(ai.castleHP<opp.castleHP){
+        const lc=aff.find(c=>c.effects.some(fx=>['AP','AC','BC','SC'].includes(fx.t)));
+        if(lc)return{type:'play',card:lc};
+      }
+    }
+    return{type:'wait'};
+  }
+
+  if(!aff.length){
+    if(hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
+    if(ai.deck.length)return{type:'wait'};
+    const d=bd();return d?{type:'discard',card:d}:{type:'wait'};
+  }
+
+  const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
+  if(!best||best.s<=0){
+    if(hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
+    return{type:'wait'};
+  }
+  return{type:'play',card:best.c};
+}
+
+// ── Jedna simulovaná hra ─────────────────────────────────────
+function simOneGame(deckA, deckB) {
+  const pA=createSimState(), pB=createSimState();
+  const dA=[...deckA]; simShuffle(dA); pA.deck=dA;
+  const dB=[...deckB]; simShuffle(dB); pB.deck=dB;
+  simDraw(pA,5); simDraw(pB,5);
+
+  let isA=Math.random()<0.5;
+  let turnA=0, turnB=0;
+  let prevWaitA=false, prevWaitB=false;
+
+  for(let t=0;t<300;t++){
+    const me=isA?pA:pB, opp=isA?pB:pA;
+    const first=isA?(turnA===0):(turnB===0);
+    if(isA)turnA++;else turnB++;
+
+    simGenRes(me);
+    if(!first) simDraw(me,1);
+
+    let waited=false, go=true;
+    while(go){
+      const act=simAI(me,opp);
+      if(act.type==='play'){
+        const c=act.card;
+        const idx=me.hand.indexOf(c);
+        if(idx!==-1)me.hand.splice(idx,1);
+        me.discard.push(c);
+        me.preCostRes={...me.res};
+        let xv=0;
+        if(c.isXCost){xv=me.res[c.costType]||0;me.res[c.costType]=0;}
+        else me.res[c.costType]=Math.max(0,(me.res[c.costType]||0)-c.cost);
+        simApply(c.effects,me,opp,xv);
+        me.preCostRes=null;
+        const w=simWin(pA,pB);
+        if(w!==null)return{winner:w,turns:t};
+        if(!c.isCombo)go=false;
+      } else if(act.type==='discard'){
+        const idx=me.hand.indexOf(act.card);
+        if(idx!==-1)me.hand.splice(idx,1);
+        me.discard.push(act.card);
+        go=false;
+      } else { waited=true; go=false; }
+    }
+
+    if(isA)prevWaitA=waited;else prevWaitB=waited;
+    if(prevWaitA&&prevWaitB&&pA.deck.length===0&&pB.deck.length===0){
+      if(pA.castleHP>pB.castleHP)return{winner:'A',turns:t};
+      if(pB.castleHP>pA.castleHP)return{winner:'B',turns:t};
+      return{winner:'draw',turns:t};
+    }
+
+    const w=simWin(pA,pB);
+    if(w!==null)return{winner:w,turns:t};
+    isA=!isA;
+  }
+  if(pA.castleHP>pB.castleHP)return{winner:'A',turns:300};
+  if(pB.castleHP>pA.castleHP)return{winner:'B',turns:300};
+  return{winner:'draw',turns:300};
+}
+
+// ── Simulator UI ─────────────────────────────────────────────
+let simRunning=false;
+
+function renderSimPanel(){
+  const panel=document.getElementById('sim-panel-view');
+  if(!panel)return;
+  const hasDeck=Object.values(DECK).reduce((a,b)=>a+b,0)>=1;
+  const aOpts=(hasDeck?`<option value="-1">📋 Aktuální balíček (${Object.values(DECK).reduce((a,b)=>a+b,0)} karet)</option>`:'')
+    +SIM_PRESETS.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('');
+  const bOpts=SIM_PRESETS.map((p,i)=>`<option value="${i}" ${i===2?'selected':''}>${p.name}</option>`).join('');
+
+  panel.innerHTML=`
+    <div class="panel-header"><h2>NASTAVENÍ SIMULACE</h2></div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1">
+      <div class="control-group">
+        <h3>Balíček A</h3>
+        <select id="sim-deck-a" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px;font-family:'Crimson Pro',serif;font-size:13px">${aOpts}</select>
+      </div>
+      <div class="control-group">
+        <h3>Balíček B</h3>
+        <select id="sim-deck-b" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px;font-family:'Crimson Pro',serif;font-size:13px">${bOpts}</select>
+      </div>
+      <div class="control-group">
+        <h3>Počet simulací</h3>
+        <input type="number" id="sim-count" value="1000" min="10" max="50000" step="100"
+          style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px;font-size:14px;font-family:'Crimson Pro',serif">
+      </div>
+      <button class="btn-action" style="width:100%;padding:12px;font-size:12px" onclick="runSimulation()">▶ SPUSTIT SIMULACI</button>
+      <div id="sim-progress" style="display:none;font-size:12px;color:var(--text-dim);text-align:center;padding:8px"></div>
+    </div>`;
+}
+
+function getDeckForSim(selId){
+  const val=parseInt(document.getElementById(selId).value);
+  if(val===-1){
+    const deck=[];
+    for(const[id,count]of Object.entries(DECK))for(let i=0;i<count;i++){const c=makeSimCard(id);if(c)deck.push(c);}
+    return deck;
+  }
+  return buildSimDeck(val);
+}
+
+function runSimulation(){
+  if(simRunning)return;
+  const n=Math.min(50000,Math.max(10,parseInt(document.getElementById('sim-count').value)||1000));
+  const labelA=document.getElementById('sim-deck-a').selectedOptions[0].text;
+  const labelB=document.getElementById('sim-deck-b').selectedOptions[0].text;
+  const deckA=getDeckForSim('sim-deck-a');
+  const deckB=getDeckForSim('sim-deck-b');
+  if(!deckA.length||!deckB.length){alert('Balíček je prázdný nebo obsahuje neznámé karty.');return;}
+
+  simRunning=true;
+  document.getElementById('sim-progress').style.display='block';
+  document.getElementById('sim-results-view').innerHTML='<div style="padding:20px;color:var(--text-dim);font-style:italic">Simuluji...</div>';
+
+  let wA=0,wB=0,dr=0,totT=0,done=0;
+  const CHUNK=250;
+
+  function chunk(){
+    const end=Math.min(done+CHUNK,n);
+    for(let i=done;i<end;i++){
+      const r=simOneGame(deckA,deckB);
+      if(r.winner==='A')wA++;else if(r.winner==='B')wB++;else dr++;
+      totT+=r.turns;
+    }
+    done=end;
+    const prog=document.getElementById('sim-progress');
+    if(prog)prog.textContent=`${done.toLocaleString()} / ${n.toLocaleString()}`;
+    if(done<n){setTimeout(chunk,0);}
+    else{
+      simRunning=false;
+      if(prog)prog.style.display='none';
+      showSimResults(labelA,labelB,wA,wB,dr,n,totT);
+    }
+  }
+  setTimeout(chunk,0);
+}
+
+function showSimResults(lA,lB,wA,wB,dr,tot,totT){
+  const pA=(wA/tot*100).toFixed(1),pB=(wB/tot*100).toFixed(1),pD=(dr/tot*100).toFixed(1);
+  const avg=(totT/tot).toFixed(1);
+  const winner=wA>wB?lA:wB>wA?lB:'Remíza';
+  const winCol=wA>wB?'var(--attack)':wB>wA?'var(--magic)':'var(--text-muted)';
+
+  document.getElementById('sim-results-view').innerHTML=`
+    <div style="padding:20px;overflow-y:auto">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:16px">VÝSLEDKY – ${tot.toLocaleString()} SIMULACÍ</div>
+      <div style="text-align:center;margin-bottom:20px;padding:12px;background:var(--panel);border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;font-family:'Cinzel',serif">LEPŠÍ BALÍČEK</div>
+        <div style="font-size:22px;font-weight:700;color:${winCol};font-family:'Cinzel',serif">${winner}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="text-align:center;padding:14px;background:var(--panel);border:1px solid var(--attack-dim)">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'Cinzel',serif">BALÍČEK A</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lA}</div>
+          <div style="font-size:36px;font-weight:700;color:var(--attack);font-family:'Cinzel',serif">${pA}<span style="font-size:16px">%</span></div>
+          <div style="font-size:11px;color:var(--text-dim)">${wA.toLocaleString()} výher</div>
+        </div>
+        <div style="text-align:center;padding:14px;background:var(--panel);border:1px solid var(--magic-dim)">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'Cinzel',serif">BALÍČEK B</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lB}</div>
+          <div style="font-size:36px;font-weight:700;color:var(--magic);font-family:'Cinzel',serif">${pB}<span style="font-size:16px">%</span></div>
+          <div style="font-size:11px;color:var(--text-dim)">${wB.toLocaleString()} výher</div>
+        </div>
+      </div>
+      <div style="height:20px;display:flex;border-radius:2px;overflow:hidden;margin-bottom:6px">
+        <div style="width:${pA}%;background:var(--attack)"></div>
+        <div style="width:${pD}%;background:var(--text-muted)"></div>
+        <div style="width:${pB}%;background:var(--magic)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-bottom:20px">
+        <span style="color:var(--attack)">A: ${pA}%</span>
+        <span>Remízy: ${pD}% (${dr.toLocaleString()})</span>
+        <span style="color:var(--magic)">B: ${pB}%</span>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--border);padding:12px">
+        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:8px">STATISTIKY</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px">
+          <div style="color:var(--text-dim)">Průměrné tahy:</div><div style="color:var(--gold)">${avg}</div>
+          <div style="color:var(--text-dim)">Celkem her:</div><div style="color:var(--gold)">${tot.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>`;
 }
 
 function saveToStorage() {
