@@ -1430,21 +1430,20 @@ function exportRandomDeck(key){
   });
 }
 
-// Vrátí HTML přehledu složení náhodného balíčku + (volitelně) statistiky karet
+// Vrátí HTML přehledu složení náhodného balíčku + (volitelně) statistiky karet.
+// Záměrně nepoužívá vnořené template literály – ty lámou JS parser celé stránky.
 function randomDeckInfoHTML(deck, label, cardStats) {
   if(!deck) return '';
   const key='rand'+label;
-  // Spočítej výskyt každé karty v balíčku
   const counts={};
   for(const c of deck){ counts[c.id]=(counts[c.id]||0)+1; }
-  // Seskup dle resource typu
+
   const groups={MAGIC:[],ATTACK:[],STONES:[],CHAOS:[]};
   const seen=new Set();
   for(const c of deck){
     if(seen.has(c.id)) continue;
     seen.add(c.id);
-    const grp=groups[c.costType]||groups.MAGIC;
-    grp.push({id:c.id, name:c.name, cost:c.cost, count:counts[c.id]});
+    (groups[c.costType]||groups.MAGIC).push({id:c.id,name:c.name,cost:c.cost,count:counts[c.id]});
   }
   const typeLabel={MAGIC:'🔮 Magie',ATTACK:'⚔️ Útok',STONES:'🏗️ Kameny',CHAOS:'🌀 Chaos'};
   const typeColor={MAGIC:'var(--magic)',ATTACK:'var(--attack)',STONES:'var(--stones)',CHAOS:'var(--chaos)'};
@@ -1452,80 +1451,69 @@ function randomDeckInfoHTML(deck, label, cardStats) {
   let rows='';
   for(const [type,cards] of Object.entries(groups)){
     if(!cards.length) continue;
-    rows+=`<div style="font-size:10px;color:${typeColor[type]};font-family:'Cinzel',serif;letter-spacing:1px;margin:8px 0 4px">${typeLabel[type]}</div>`;
+    rows+='<div style="font-size:10px;color:'+typeColor[type]+';font-family:\'Cinzel\',serif;letter-spacing:1px;margin:8px 0 4px">'+typeLabel[type]+'</div>';
     for(const c of cards.sort((a,b)=>a.cost-b.cost)){
-      // Statistika pro tuto kartu (kolik % výher proběhlo s touto zahranou kartou)
       let statHtml='';
       if(cardStats && cardStats[c.id]){
         const s=cardStats[c.id];
         const wr=(s.wins/s.games*100).toFixed(0);
         const avg=(s.plays/s.games).toFixed(1);
         const col=s.wins/s.games>0.55?'var(--ok)':s.wins/s.games<0.45?'var(--attack)':'var(--gold)';
-        statHtml=`<span style="margin-left:10px;font-size:10px;color:${col}" title="Win rate: ${wr}% | Průměrně zahráno: ${avg}×/hru">WR ${wr}% (${avg}×)</span>`;
+        statHtml='<span style="margin-left:10px;font-size:10px;color:'+col+'">WR '+wr+'% ('+avg+'\u00d7)</span>';
       }
-      rows+=`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <span style="color:var(--text)">${c.name}${statHtml}</span>
-        <span style="color:var(--text-dim)">cost ${c.cost}&nbsp;&nbsp;<span style="color:var(--gold);font-weight:700">×${c.count}</span></span>
-      </div>`;
+      rows+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+           +'<span style="color:var(--text)">'+c.name+statHtml+'</span>'
+           +'<span style="color:var(--text-dim)">cost '+c.cost+'&nbsp;&nbsp;<span style="color:var(--gold);font-weight:700">\u00d7'+c.count+'</span></span>'
+           +'</div>';
     }
   }
 
-  // Uložení pro export
+  // Export cache
   const exportObj={};
   for(const[id,cnt] of Object.entries(counts)) exportObj[id]=cnt;
   _exportCache[key]=JSON.stringify(exportObj);
 
-  // Top 5 nejsilnějších karet (pokud máme cardStats)
+  // Top/bottom karty dle win rate
   let topHtml='';
   if(cardStats){
-    const ranked=Object.entries(cardStats)
-      .filter(([,s])=>s.games>=10)
-      .sort(([,a],[,b])=>b.wins/b.games-a.wins/a.games)
-      .slice(0,5);
+    const ranked=Object.entries(cardStats).filter(function(e){return e[1].games>=10;})
+      .sort(function(a,b){return b[1].wins/b[1].games-a[1].wins/a[1].games;}).slice(0,5);
     if(ranked.length){
-      topHtml=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
-        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dim);letter-spacing:1px;margin-bottom:6px">🏆 TOP KARTY DLE WIN RATE</div>
-        ${ranked.map(([id,s],i)=>{
-          const base=CARD_MAP[id]||{};
-          const wr=(s.wins/s.games*100).toFixed(1);
-          const medal=['🥇','🥈','🥉','4.','5.'][i];
-          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-            <span style="color:var(--text)">${medal} ${base.name||id}</span>
-            <span style="color:var(--ok);font-weight:700">${wr}%</span>
-          </div>`;
-        }).join('')}
-      </div>`;
+      topHtml='<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">'
+              +'<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--gold-dim);letter-spacing:1px;margin-bottom:6px">🏆 TOP KARTY DLE WIN RATE</div>';
+      const medals=['🥇','🥈','🥉','4.','5.'];
+      ranked.forEach(function(e,i){
+        const base=CARD_MAP[e[0]]||{};
+        const wr=(e[1].wins/e[1].games*100).toFixed(1);
+        topHtml+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">'
+                +'<span style="color:var(--text)">'+medals[i]+' '+(base.name||e[0])+'</span>'
+                +'<span style="color:var(--ok);font-weight:700">'+wr+'%</span></div>';
+      });
+      topHtml+='</div>';
     }
-    // Bottom 3 nejslabší karty
-    const bottom=Object.entries(cardStats)
-      .filter(([,s])=>s.games>=10)
-      .sort(([,a],[,b])=>a.wins/a.games-b.wins/b.games)
-      .slice(0,3);
+    const bottom=Object.entries(cardStats).filter(function(e){return e[1].games>=10;})
+      .sort(function(a,b){return a[1].wins/a[1].games-b[1].wins/b[1].games;}).slice(0,3);
     if(bottom.length){
-      topHtml+=`<div style="margin-top:10px">
-        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--attack-dim);letter-spacing:1px;margin-bottom:6px">💀 NEJSLABŠÍ KARTY</div>
-        ${bottom.map(([id,s])=>{
-          const base=CARD_MAP[id]||{};
-          const wr=(s.wins/s.games*100).toFixed(1);
-          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">
-            <span style="color:var(--text-dim)">${base.name||id}</span>
-            <span style="color:var(--attack)">${wr}%</span>
-          </div>`;
-        }).join('')}
-      </div>`;
+      topHtml+='<div style="margin-top:10px">'
+              +'<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--attack-dim);letter-spacing:1px;margin-bottom:6px">💀 NEJSLABŠÍ KARTY</div>';
+      bottom.forEach(function(e){
+        const base=CARD_MAP[e[0]]||{};
+        const wr=(e[1].wins/e[1].games*100).toFixed(1);
+        topHtml+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">'
+                +'<span style="color:var(--text-dim)">'+(base.name||e[0])+'</span>'
+                +'<span style="color:var(--attack)">'+wr+'%</span></div>';
+      });
+      topHtml+='</div>';
     }
   }
 
-  return `
-    <div style="margin-top:18px;background:var(--panel);border:1px solid var(--border);padding:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px">PŘEHLED BALÍČKU ${label.toUpperCase()} (${deck.length} KARET)</div>
-        <button id="exp-btn-${key}" onclick="exportRandomDeck('${key}')"
-          style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border-light);background:transparent;color:var(--text-dim);cursor:pointer;white-space:nowrap">⬇ EXPORT JSON</button>
-      </div>
-      ${rows}
-      ${topHtml}
-    </div>`;
+  return '<div style="margin-top:18px;background:var(--panel);border:1px solid var(--border);padding:12px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+        +'<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px">PŘEHLED BALÍČKU '+label.toUpperCase()+' ('+deck.length+' KARET)</div>'
+        +'<button id="exp-btn-'+key+'" onclick="exportRandomDeck(\''+key+'\')" '
+        +'style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border-light);background:transparent;color:var(--text-dim);cursor:pointer;white-space:nowrap">'
+        +'\u2b07 EXPORT JSON</button></div>'
+        +rows+topHtml+'</div>';
 }
 
 function runSimulation(){
