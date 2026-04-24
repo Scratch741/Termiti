@@ -944,7 +944,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Tah AI ────────────────────────────────────────────────────────
             // AI dostane zdroje a líže 1 kartu na ZAČÁTKU svého tahu
             ai.generateResources()
-            if (aiDrawsAtStart) {
+            if (aiDrawsAtStart && ai.deck.isNotEmpty()) {
                 ai.drawCards(1)
                 SoundManager.playCardDraw()
             }
@@ -1005,7 +1005,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         addLog("AI čekala")
                         aiContinues = false
                         // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad
-                        if (playerWaited && player.deck.isEmpty() && ai.deck.isEmpty()) {
+                        // Podmínka zahrnuje i prázdnou RUKU, aby AI s kartami v ruce hru předčasně neukončila.
+                        if (playerWaited
+                            && player.deck.isEmpty() && player.hand.isEmpty()
+                            && ai.deck.isEmpty()     && ai.hand.isEmpty())
+                        {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()
                             addLog("Oba hráči pasovali s prázdnými balíčky – konec hry!")
@@ -1045,13 +1049,33 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
             // ── Konec kola: příprava hráčova tahu ────────────────────────────
             player.generateResources()
-            if (playerDrawsAtEnd) {
+            if (playerDrawsAtEnd && player.deck.isNotEmpty()) {
                 val burned = player.drawCards(1)
                 SoundManager.playCardDraw()
                 burned.forEach { b ->
                     addToHistory(b, CardAction.BURNED, isMine = true)
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
                 }
+            }
+
+            // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
+            // Stává se, když hráč zahodí poslední kartu a AI nemá nic.
+            // Bez tohoto hlídání dostane hráč tah s prázdnou rukou a hrou nejde hnout.
+            if (player.hand.isEmpty() && player.deck.isEmpty()
+                && ai.hand.isEmpty()  && ai.deck.isEmpty())
+            {
+                val finalState = old.copy(
+                    playerState  = player.deepCopy(),
+                    aiState      = ai.deepCopy(),
+                    currentTurn  = old.currentTurn + 1,
+                    activePlayer = ActivePlayer.PLAYER
+                )
+                val result = finalState.resolveByHp()
+                addLog("Obě strany bez karet – konec hry!")
+                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
+                gameState.value = finalState
+                gameOver.value  = result
+                return@launch
             }
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
