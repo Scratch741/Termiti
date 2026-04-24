@@ -24,6 +24,9 @@ object SoundManager {
     private var sndCardDraw1: Int = 0
     private var sndCardDraw2: Int = 0
     private var sndCardPlayFile: Int = 0
+    private var sndCardAttack1: Int = 0
+    private var sndCardAttack2: Int = 0
+    private var sndCardDiscard: Int = 0
 
     fun initSounds(context: Context) {
         if (soundPool != null) return
@@ -32,12 +35,15 @@ object SoundManager {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         soundPool = SoundPool.Builder()
-            .setMaxStreams(6)
+            .setMaxStreams(8)
             .setAudioAttributes(attrs)
             .build()
-        sndCardDraw1   = soundPool!!.load(context, R.raw.card_draw,   1)
-        sndCardDraw2   = soundPool!!.load(context, R.raw.card_draw_2, 1)
-        sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,   1)
+        sndCardDraw1    = soundPool!!.load(context, R.raw.card_draw,     1)
+        sndCardDraw2    = soundPool!!.load(context, R.raw.card_draw_2,   1)
+        sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,     1)
+        sndCardAttack1  = soundPool!!.load(context, R.raw.card_attack,   1)
+        sndCardAttack2  = soundPool!!.load(context, R.raw.card_attack_2, 1)
+        sndCardDiscard  = soundPool!!.load(context, R.raw.card_discard,  1)
     }
 
     fun releaseSounds() {
@@ -127,11 +133,30 @@ object SoundManager {
             playAsync { toneEnv(freq = 520f, dur = 0.12f, vol = 0.35f) }
         }
     }
-    fun playAttack()    = playAsync { sweep(freqFrom = 280f, freqTo = 90f, dur = 0.14f, vol = 0.40f) +
-                                      toneEnv(freq = 95f,   dur = 0.10f, vol = 0.30f) }
+    /** Útočná karta – náhodně vybere card_attack nebo card_attack_2. */
+    fun playAttack() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndCardAttack1 != 0) {
+            val id = if (Random.nextBoolean()) sndCardAttack1 else sndCardAttack2
+            pool.play(id, 0.70f, 0.70f, 1, 0, 1.0f)
+        } else {
+            playAsync { sweep(freqFrom = 280f, freqTo = 90f, dur = 0.14f, vol = 0.40f) +
+                        toneEnv(freq = 95f, dur = 0.10f, vol = 0.30f) }
+        }
+    }
     fun playBuild()     = playAsync { toneEnv(freq = 260f,  dur = 0.18f, vol = 0.30f) }
     fun playResource()  = playAsync { toneEnv(freq = 660f,  dur = 0.09f, vol = 0.20f) }
-    fun playDiscard()   = playAsync { sweep(freqFrom = 440f, freqTo = 220f, dur = 0.12f, vol = 0.25f) }
+    /** Zahozená karta – file-based (card_discard). */
+    fun playDiscard() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndCardDiscard != 0) {
+            pool.play(sndCardDiscard, 0.65f, 0.65f, 1, 0, 1.0f)
+        } else {
+            playAsync { sweep(freqFrom = 440f, freqTo = 220f, dur = 0.12f, vol = 0.25f) }
+        }
+    }
     fun playWin()       = playAsync { fanfare(ascending = true)  }
     fun playLose()      = playAsync { fanfare(ascending = false) }
     fun playAiTurn()    = playAsync { toneEnv(freq = 330f,  dur = 0.08f, vol = 0.15f) }
