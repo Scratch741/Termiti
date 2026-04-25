@@ -1005,11 +1005,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // AI čeká = přeskočí tah
                         addLog("AI čekala")
                         aiContinues = false
-                        // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad
-                        // Podmínka zahrnuje i prázdnou RUKU, aby AI s kartami v ruce hru předčasně neukončila.
-                        if (playerWaited
-                            && player.deck.isEmpty() && player.hand.isEmpty()
-                            && ai.deck.isEmpty()     && ai.hand.isEmpty())
+                        // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad.
+                        // Stačí prázdné BALÍČKY – hráč mohl projít s kartami v ruce a zvolit čekat.
+                        if (playerWaited && player.deck.isEmpty() && ai.deck.isEmpty())
                         {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()
