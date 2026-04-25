@@ -834,6 +834,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
+            onOpponentCardLost = { lostCard, action ->
+                // Loguj kartu AI, kterou hráč spálil nebo ukradl
+                addToHistory(lostCard, action, isMine = false)
+                addCardLog("Hráč", lostCard, action, isMe = false)
+            },
             onDrawCard = { _, count -> pendingDrawCount += count })
         // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
         player.preCostResources = null
