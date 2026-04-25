@@ -491,6 +491,9 @@
         <div id="mana-curve-labels" style="display:flex;gap:3px;margin-top:2px"></div>
       </div>
       <div style="padding:10px 16px 16px;border-top:1px solid var(--border)">
+        <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(100,80,160,.15);border-color:#7a5cc0"
+                onclick="generateSmartDeck()">🎲 GENERUJ SMART NÁHODNÝ BALÍČEK</button>
+        <div id="smart-deck-info" style="font-size:11px;color:var(--gold);text-align:center;min-height:16px;margin-bottom:6px;transition:opacity .5s;opacity:0"></div>
         <button class="btn-action" style="width:100%" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
@@ -1195,17 +1198,169 @@ function makeSimCard(id) {
   return { id, name: base.name || id, cost: base.cost || 0, costType: db.ct, effects: db.fx, isCombo: !!db.combo, isXCost: !!db.xCost };
 }
 
+// ─── Smart náhodný balíček ──────────────────────────────────────────────────
+// Generuje tematicky konzistentní balíček podle zvoleného archetypu.
+// Pravidla:
+//  • 6 archetypů (Útočník, Obránce, Mágik, Kartář, Chaosager, Sabotér)
+//  • Povinné doly (2–5 karet) vždy jako první
+//  • Sloty pro útok, obranu, zdroje, lízání, kontrolu dle archetypu
+//  • Přednost kartám odpovídajícím primárnímu zdroji
+//  • Respektuje max kopie dle raritiy (COMMON=4, RARE=3, EPIC=2, LEGENDARY=1)
+//  • Levnější karty mají větší šanci (zdravá křivka mana-curve)
+//  • Zbývající místa doplní random filler ze všech karet
+let _lastSmartArchetype = '';
+
+function buildSmartRandomDeck() {
+  // --- Klasifikace karet ---
+  function hasFxT(fx, ...types) {
+    return fx.some(f => types.includes(f.t) || (f.t === 'CE' && types.includes(f.e && f.e.t)));
+  }
+  const allIds = Object.keys(CARD_EFFECTS_DB).filter(id => !id.startsWith('T'));
+  const cards = allIds.map(id => {
+    const db  = CARD_EFFECTS_DB[id];
+    const base = CARD_MAP[id] || {};
+    return {
+      id,
+      costType : db.ct,
+      cost     : base.cost !== undefined ? base.cost : 0,
+      rarity   : base.rarity || 'COMMON',
+      isCombo  : !!db.combo,
+      isXCost  : !!db.xCost,
+      isMine   : hasFxT(db.fx, 'AM'),
+      isAttack : hasFxT(db.fx, 'AP', 'AC', 'AW'),
+      isDef    : hasFxT(db.fx, 'BW', 'BC'),
+      isDraw   : hasFxT(db.fx, 'DC'),
+      isCtrl   : hasFxT(db.fx, 'SR', 'DR', 'StealC', 'BurnC', 'DM', 'BLK'),
+      isRes    : db.fx.some(f => (f.t === 'AR' || f.t === 'ARD') && f.r !== 'CHAOS'),
+      isChaosGen: db.fx.some(f => (f.t === 'AR' || f.t === 'AM') && f.r === 'CHAOS'),
+    };
+  });
+
+  function maxCop(c) { return { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 }[c.rarity] ?? 4; }
+
+  // --- Archetypy ---
+  // slots: [min, max] karet pro každou roli
+  const ARCHETYPES = [
+    { name:'⚔️ Útočník',
+      prefer:'ATTACK',
+      slots:{ mine:[2,4], attack:[13,17], def:[2,5], res:[3,6], draw:[0,2], ctrl:[0,3], chaos:[0,0] } },
+    { name:'🏰 Obránce',
+      prefer:'STONES',
+      slots:{ mine:[2,4], attack:[2,5], def:[13,18], res:[3,6], draw:[0,2], ctrl:[0,2], chaos:[0,0] } },
+    { name:'🔮 Mágik',
+      prefer:'MAGIC',
+      slots:{ mine:[4,6], attack:[4,8], def:[4,8], res:[7,11], draw:[2,4], ctrl:[1,3], chaos:[0,0] } },
+    { name:'📚 Kartář',
+      prefer:'MAGIC',
+      slots:{ mine:[2,4], attack:[4,8], def:[3,6], res:[5,9], draw:[5,9], ctrl:[0,2], chaos:[0,0] } },
+    { name:'🌀 Chaosager',
+      prefer:'CHAOS',
+      slots:{ mine:[2,3], attack:[2,5], def:[2,5], res:[0,0], draw:[0,2], ctrl:[1,3], chaos:[10,15] } },
+    { name:'🕵️ Sabotér',
+      prefer:'MAGIC',
+      slots:{ mine:[3,5], attack:[3,6], def:[3,6], res:[4,8], draw:[0,3], ctrl:[6,10], chaos:[0,0] } },
+  ];
+  const arch = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+  _lastSmartArchetype = arch.name;
+
+  // --- Karty dle rolí ---
+  const mineCands   = cards.filter(c => c.isMine);
+  const attackCands = cards.filter(c => c.isAttack && !c.isMine);
+  const defCands    = cards.filter(c => c.isDef    && !c.isMine && !c.isAttack);
+  const resCands    = cards.filter(c => c.isRes    && !c.isMine && !c.isAttack && !c.isDef && !c.isChaosGen);
+  const drawCands   = cards.filter(c => c.isDraw);
+  const ctrlCands   = cards.filter(c => c.isCtrl   && !c.isMine && !c.isAttack && !c.isDef);
+  const chaosCands  = cards.filter(c => c.isChaosGen || c.costType === 'CHAOS');
+
+  // --- Sestavení balíčku ---
+  const counts = {};
+  const total  = () => Object.values(counts).reduce((s, n) => s + n, 0);
+
+  function tryAdd(id, maxC) {
+    if (total() >= 30) return false;
+    const cur = counts[id] || 0;
+    if (cur >= maxC) return false;
+    counts[id] = cur + 1;
+    return true;
+  }
+
+  // Seřadí pool: preferCostType → nižší cost → náhoda; drahé karty (5+) penalizovány
+  function sortPool(pool, preferCost) {
+    return [...pool].sort((a, b) => {
+      const wa = (a.costType === preferCost ? 0 : a.costType === 'MAGIC' ? 0.4 : 0.8)
+               + (a.cost >= 5 ? 0.5 : 0);
+      const wb = (b.costType === preferCost ? 0 : b.costType === 'MAGIC' ? 0.4 : 0.8)
+               + (b.cost >= 5 ? 0.5 : 0);
+      return wa - wb + (Math.random() - 0.5) * 1.6;
+    });
+  }
+
+  function fillSlot(pool, slotRange, preferCost) {
+    const target = slotRange[0] + Math.floor(Math.random() * (slotRange[1] - slotRange[0] + 1));
+    const sorted = sortPool(pool, preferCost || arch.prefer);
+    let added = 0;
+    for (const c of sorted) {
+      if (added >= target) break;
+      if (tryAdd(c.id, maxCop(c))) added++;
+    }
+  }
+
+  // Doly jako první – základ enginu
+  const minePool = arch.prefer === 'CHAOS'
+    ? mineCands.filter(c => c.isChaosGen || c.costType === 'MAGIC')
+    : mineCands.filter(c => c.costType === 'MAGIC');
+  fillSlot(minePool.length ? minePool : mineCands, arch.slots.mine, 'MAGIC');
+
+  // Chaos generator karty
+  if (arch.slots.chaos[1] > 0) fillSlot(chaosCands, arch.slots.chaos, 'CHAOS');
+
+  // Útok, obrana, zdroje, lízání, kontrola
+  fillSlot(attackCands, arch.slots.attack, arch.prefer);
+  fillSlot(defCands,    arch.slots.def,    arch.prefer === 'STONES' ? 'STONES' : undefined);
+  fillSlot(resCands,    arch.slots.res,    'MAGIC');
+  fillSlot(drawCands,   arch.slots.draw,   'MAGIC');
+  fillSlot(ctrlCands,   arch.slots.ctrl,   'MAGIC');
+
+  // Filler: doplnění do 30
+  const remaining = 30 - total();
+  if (remaining > 0) fillSlot(cards, [remaining, remaining], arch.prefer);
+
+  // Sestavit pole karet
+  const deck = [];
+  for (const [id, count] of Object.entries(counts)) {
+    for (let i = 0; i < count; i++) {
+      const c = makeSimCard(id);
+      if (c) deck.push(c);
+    }
+  }
+  return deck;
+}
+
+// Naplní deck builder smart náhodným balíčkem
+function generateSmartDeck() {
+  if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
+    alert('Nejdříve nahraj zdrojový soubor Kotlin (.kt).');
+    return;
+  }
+  const deck = buildSmartRandomDeck();
+  // Přepiš DECK
+  DECK = {};
+  deck.forEach(c => { DECK[c.id] = (DECK[c.id] || 0) + 1; });
+  renderDeck();
+  renderBrowser();
+  // Krátké hlášení
+  const infoEl = document.getElementById('smart-deck-info');
+  if (infoEl) {
+    infoEl.textContent = 'Vygenerován: ' + _lastSmartArchetype + ' (' + deck.length + ' karet)';
+    infoEl.style.opacity = '1';
+    setTimeout(() => { infoEl.style.opacity = '0'; }, 3000);
+  }
+}
+
 function buildSimDeck(presetIdx) {
   if (presetIdx === 0) {
-    // Náhodný: max 2 kopie každé karty, celkem 30
-    const ids = Object.keys(CARD_EFFECTS_DB);
-    const pool = [];
-    ids.forEach(id => { pool.push(id); pool.push(id); });
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    return pool.slice(0, 30).map(makeSimCard).filter(Boolean);
+    // Smart náhodný balíček
+    return buildSmartRandomDeck();
   }
   const counts = presetIdx === -1 ? DECK : SIM_PRESETS[presetIdx].counts;
   const deck = [];
@@ -1455,6 +1610,7 @@ function simOneGame(deckA, deckB, trackCards) {
 let simRunning=false;
 // Poslední vygenerované náhodné balíčky (null = nebylo použito Náhodný)
 let lastRandomDeckA=null, lastRandomDeckB=null;
+let lastArchetypeA='', lastArchetypeB='';
 
 function renderSimPanel(){
   const panel=document.getElementById('sim-panel-view');
@@ -1494,7 +1650,9 @@ function getDeckForSim(selId){
     deck = buildSimDeck(val);
   }
   // Ulož balíček pro zobrazení přehledu a statistik
-  if(selId==='sim-deck-a') lastRandomDeckA=deck; else lastRandomDeckB=deck;
+  if(selId==='sim-deck-a'){ lastRandomDeckA=deck; lastArchetypeA=_lastSmartArchetype; }
+  else                    { lastRandomDeckB=deck; lastArchetypeB=_lastSmartArchetype; }
+  _lastSmartArchetype='';
   return deck;
 }
 
@@ -1510,7 +1668,7 @@ function exportRandomDeck(key){
 
 // Vrátí HTML přehledu složení náhodného balíčku + (volitelně) statistiky karet.
 // Záměrně nepoužívá vnořené template literály – ty lámou JS parser celé stránky.
-function randomDeckInfoHTML(deck, label, cardStats) {
+function randomDeckInfoHTML(deck, label, cardStats, archetype) {
   if(!deck) return '';
   const key='rand'+label;
   const counts={};
@@ -1585,9 +1743,13 @@ function randomDeckInfoHTML(deck, label, cardStats) {
     }
   }
 
+  const archetypeHtml = archetype
+    ? '<div style="font-size:11px;color:var(--gold);margin-top:2px">'+archetype+'</div>'
+    : '';
   return '<div style="margin-top:18px;background:var(--panel);border:1px solid var(--border);padding:12px">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-        +'<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px">PŘEHLED BALÍČKU '+label.toUpperCase()+' ('+deck.length+' KARET)</div>'
+        +'<div><div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--text-muted);letter-spacing:1px">PŘEHLED BALÍČKU '+label.toUpperCase()+' ('+deck.length+' KARET)</div>'
+        +archetypeHtml+'</div>'
         +'<button id="exp-btn-'+key+'" onclick="exportRandomDeck(\''+key+'\')" '
         +'style="font-family:\'Cinzel\',serif;font-size:9px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--border-light);background:transparent;color:var(--text-dim);cursor:pointer;white-space:nowrap">'
         +'\u2b07 EXPORT JSON</button></div>'
@@ -1700,8 +1862,8 @@ function showSimResults(lA,lB,wA,wB,dr,tot,totT,cardStatsA,cardStatsB){
           <div style="color:var(--text-dim)">Celkem her:</div><div style="color:var(--gold)">${tot.toLocaleString()}</div>
         </div>
       </div>
-      ${randomDeckInfoHTML(lastRandomDeckA,'A',cardStatsA)}
-      ${randomDeckInfoHTML(lastRandomDeckB,'B',cardStatsB)}
+      ${randomDeckInfoHTML(lastRandomDeckA,'A',cardStatsA,lastArchetypeA)}
+      ${randomDeckInfoHTML(lastRandomDeckB,'B',cardStatsB,lastArchetypeB)}
     </div>`;
 }
 
