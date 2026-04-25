@@ -2,13 +2,22 @@ package com.example.termiti
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
+
+    /** Zachytí výjimky z viewModelScope.launch, které by jinak zmizely tiše. */
+    private val crashHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e("TERMITI_CRASH", "Nezachycená výjimka v korutině!", throwable)
+        // Zobrazit v logu celý stack trace – čitelné v Logcat filtrem "TERMITI_CRASH"
+        throwable.printStackTrace()
+    }
 
     private val prefs get() = getApplication<Application>()
         .getSharedPreferences("termiti_decks", Context.MODE_PRIVATE)
@@ -22,9 +31,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         Card("001", "Základní útok",  "Zaútočí na nepřítele za 5.",              cost = 2, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
                 effects = listOf(CardEffect.AttackPlayer(5)),artResId = R.drawable.art_zakladni_utok, type = "Útok"),
         Card("008", "Šípy",           "Zaútočí na hrad za 3.",              cost = 1, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AttackCastle(3)), artResId = R.drawable.art_sipy, type = "Útok"),
+            effects = listOf(CardEffect.AttackCastle(3)), artResId = R.drawable.art_sipy, type = "Útok", soundResId = R.raw.arrow_hit),
         Card("003", "Ohnivá koule",   "Přímý zásah ohněm: hrad −8.", cost = 3, costType = ResourceType.MAGIC, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_ohniva_koule, type = "Útok", artBiasY = -0.60f),
+            effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_ohniva_koule, type = "Útok", artBiasY = -0.60f, soundResId = R.raw.fireball),
         Card("007", "Silný úder",       "Zaútočí na nepřítele za 11.",             cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(11)), type = "Útok",artResId = R.drawable.art_silny_uder, artScale = 0.80f, artBiasY = -1.00f),
         Card("006", "Převaha síly", "Pokud máš >5 útoku, udeř hrad za 10.",        cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
@@ -67,11 +76,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Útok – rozšíření ──────────────────────────────────────────
         Card("019", "Zápalné šípy",   "Poškodí jen hradby o 5.",                 cost = 1, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AttackWall(5)), artResId = R.drawable.art_zapalne_sipy, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+            effects = listOf(CardEffect.AttackWall(5)), artResId = R.drawable.art_zapalne_sipy, type = "Útok", artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit),
         Card("020", "Beranidlo",      "Poškodí jen hradby o 11.",                 cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackWall(11)), artResId = R.drawable.art_beranidlo, type = "Útok", artScale = 0.85f, artBiasY = 0.05f),
         Card("021", "Dělostřelectvo", "Zaútočí na nepřítele za 15.",             cost = 6, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.AttackPlayer(15)), artResId = R.drawable.art_delostrelectvo, type = "Útok", artScale = 0.80f, artBiasY = 0.05f),
+            effects = listOf(CardEffect.AttackPlayer(15)), artResId = R.drawable.art_delostrelectvo, type = "Útok", artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
         Card("022", "Přímý zásah",    "Poškodí hrad −8.",  cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_primy_zasah, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
         Card("023", "Dvojitý úder",   "Zaútočí na nepřítele za 12.",             cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
@@ -95,7 +104,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 )
             ), artResId = R.drawable.art_ostrelovac, type = "Útok", artScale = 0.85f, artBiasY = 0.10f),
         Card("027", "Válečné bubny",  "Zaútočí za 4 a přidá +2 útoku. [Combo]", cost = 2, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AttackPlayer(4), CardEffect.AddResource(ResourceType.ATTACK, 2)), isCombo = true, artResId = R.drawable.art_valecne_bubny, type = "Útok", artScale = 0.80f, artBiasY = -0.60f),
+            effects = listOf(CardEffect.AttackPlayer(4), CardEffect.AddResource(ResourceType.ATTACK, 2)), isCombo = true, artResId = R.drawable.art_valecne_bubny, type = "Útok", artScale = 0.80f, artBiasY = -0.60f, soundResId = R.raw.drums_of_war),
 
         // ── Stavba – rozšíření ────────────────────────────────────────
         Card("028", "Záplata",        "Opraví hrad o 3.",                        cost = 1, costType = ResourceType.STONES, rarity = Rarity.COMMON,
@@ -167,20 +176,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackPlayer(2), CardEffect.StealResource(ResourceType.MAGIC, 1),
                 CardEffect.AddResource(ResourceType.CHAOS, 1)), artResId = R.drawable.art_goblin, type = "Útok", artScale = 0.80f),
         Card("047", "Ogr",            "Zaútočí na nepřítele za 9.",              cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.AttackPlayer(9)), artResId = R.drawable.art_ogr, type = "Útok", artScale = 0.80f),
+            effects = listOf(CardEffect.AttackPlayer(9)), artResId = R.drawable.art_ogr, type = "Útok", artScale = 0.80f, soundResId = R.raw.ogr),
         Card("048", "Upír",           "Zaútočí za 6, získej +3 magie. [Combo]",  cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(6), CardEffect.AddResource(ResourceType.MAGIC, 3)), isCombo = true,artResId = R.drawable.art_upir, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
         Card("049", "Jed",            "Zaútočí za 3, soupeř ztratí 3 magie, +1 chaosu.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(3), CardEffect.DrainResource(ResourceType.MAGIC, 3),
-                CardEffect.AddResource(ResourceType.CHAOS, 1)), artResId = R.drawable.art_jed, type = "Útok", artScale = 0.80f, artBiasY = -0.50f),
+                CardEffect.AddResource(ResourceType.CHAOS, 1)), artResId = R.drawable.art_jed, type = "Útok", artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.jed),
         Card("050", "Podkopání hradeb",        "Zaútočí za 8, soupeř ztratí 4 kameny.",   cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(8), CardEffect.DrainResource(ResourceType.STONES, 4)), type = "Útok", artResId = R.drawable.art_podkopani_hradeb, artScale = 0.80f, artBiasY = 0.35f),
         Card("051", "Drak",           "Zaútočí za 14, hrad −8 přímo, +2 chaosu.", cost = 11, costType = ResourceType.ATTACK, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.AttackPlayer(14), CardEffect.AttackCastle(8),
-                CardEffect.AddResource(ResourceType.CHAOS, 2)),artResId = R.drawable.art_drak, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+                CardEffect.AddResource(ResourceType.CHAOS, 2)),artResId = R.drawable.art_drak, type = "Útok", artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.dragon_breath),
         Card("052", "Démon",          "Přímý zásah: hrad −16, ignoruje hradby. +2 chaosu.", cost = 14, costType = ResourceType.ATTACK, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.AttackCastle(16),
-                CardEffect.AddResource(ResourceType.CHAOS, 2)), artResId = R.drawable.art_demon, type = "Útok", artScale = 0.80f, artBiasY = -0.50f),
+                CardEffect.AddResource(ResourceType.CHAOS, 2)), artResId = R.drawable.art_demon, type = "Útok", artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.demon_laugh),
         Card("053", "Plamenomet",     "Poškodí jen hradby o 10, získej +2 útoku.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackWall(10), CardEffect.AddResource(ResourceType.ATTACK, 2)), artResId = R.drawable.art_plamenomet, type = "Útok", artScale = 0.80f, artBiasX = -1.00f, artBiasY = -0.05f),
         Card("054", "Válečný pochod", "Zaútočí na nepřítele za 13, +2 útoku.",   cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
@@ -262,7 +271,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackCastle(10),
                 CardEffect.StealResource(ResourceType.MAGIC, 4),
                 CardEffect.StealResource(ResourceType.ATTACK, 4),
-                CardEffect.AddResource(ResourceType.CHAOS, 2)), artResId = R.drawable.art_draci_upir, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+                CardEffect.AddResource(ResourceType.CHAOS, 2)), artResId = R.drawable.art_draci_upir, type = "Útok", artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.dragon_breath),
         Card("079", "Obléhání",       "Zaútočí za 12, soupeř ztratí 3 magie, +2 chaosu.", cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AttackPlayer(12),
                 CardEffect.DrainResource(ResourceType.MAGIC, 3),
@@ -344,8 +353,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.AddResource(ResourceType.STONES, 2)
             ), isCombo = true,artResId = R.drawable.art_sklad_materialu, type = "Stavba", artScale = 0.80f),
 
-        Card("095", "Obchod s kamenem", "Získej +5 kamenů. [Combo]", cost = 2, costType = ResourceType.STONES, rarity = Rarity.COMMON,
-            effects = listOf(CardEffect.AddResource(ResourceType.STONES, 5)), isCombo = true,artResId = R.drawable.art_obchod_s_kamenem, type = "Stavba", artScale = 0.80f),
+        Card("095", "Obchod s kamenem", "Získej +5 kamenů.", cost = 2, costType = ResourceType.STONES, rarity = Rarity.COMMON,
+            effects = listOf(CardEffect.AddResource(ResourceType.STONES, 5)),artResId = R.drawable.art_obchod_s_kamenem, type = "Stavba", artScale = 0.80f),
 
         Card("096", "Nedobytná pevnost", "Hradby +25.", cost = 10, costType = ResourceType.STONES, rarity = Rarity.LEGENDARY,
             effects = listOf(CardEffect.BuildWall(25)),artResId = R.drawable.art_nedobytna_pevnost, type = "Stavba", artScale = 0.80f),
@@ -382,7 +391,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 CardEffect.DrainResource(ResourceType.ATTACK, 6),
                 CardEffect.DrainResource(ResourceType.STONES, 6)), artResId = R.drawable.art_chaoticka_krize, type = "Chaos", artScale = 0.80f),
         Card("C10", "Chaotický drak",    "Zaútočí za 15, hrad −12 přímo.",        cost = 11, costType = ResourceType.CHAOS, rarity = Rarity.LEGENDARY,
-            effects = listOf(CardEffect.AttackPlayer(15), CardEffect.AttackCastle(12)),artResId = R.drawable.art_chaoticky_drak, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+            effects = listOf(CardEffect.AttackPlayer(15), CardEffect.AttackCastle(12)),artResId = R.drawable.art_chaoticky_drak, type = "Útok", artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.dragon_breath),
         Card("C11", "Chaos a řád",       "Hrad +8 a hradby +8.",                  cost = 4, costType = ResourceType.CHAOS,  rarity = Rarity.EPIC,
             effects = listOf(CardEffect.BuildCastle(8), CardEffect.BuildWall(8)), type = "Stavba",artResId = R.drawable.art_chaos_a_rad, artScale = 0.80f, artBiasY = -0.35f),
         Card("C12", "Anarchie",          "Ukradni 5 od každého zdroje soupeře.",    cost = 8, costType = ResourceType.CHAOS,  rarity = Rarity.LEGENDARY,
@@ -689,6 +698,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         saveDeck(deckIndex)
     }
 
+    /** Vygeneruje vyvážený náhodný balíček (9/9/9/3) a uloží ho do slotu [deckIndex]. */
+    fun generateBalancedDeck(deckIndex: Int) {
+        val counts = buildBalancedDeck(allCards)
+        decks[deckIndex] = decks[deckIndex].copy(cardCounts = counts)
+        saveDeck(deckIndex)
+    }
+
     var gameState = androidx.compose.runtime.mutableStateOf(createInitialState())
         private set
     var log = androidx.compose.runtime.mutableStateOf<List<LogEntry>>(emptyList())
@@ -853,7 +869,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (pendingDrawCount > 0) {
             // Postupný líz: každá karta dolízne zvlášť se zvukem + animací
             val isComboCard = card.isCombo
-            viewModelScope.launch {
+            viewModelScope.launch(crashHandler) {
                 // Zamkni hráče během lízání
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
@@ -944,7 +960,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             activePlayer = ActivePlayer.AI
         )
 
-        viewModelScope.launch {
+        viewModelScope.launch(crashHandler) {
             delay((500L..1000L).random())
 
             // ── Tah AI ────────────────────────────────────────────────────────
@@ -1195,16 +1211,30 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Rekurzivní ohodnocení jednoho efektu v kontextu stavu AI
         // xVal = hodnota X pro X-kost efekty (aktuální zásoby daného zdroje)
+        // Situační příznaky soupeře – pro chytřejší hodnocení efektů
+        val oppWall       = opponent.wallHP
+        val oppHasWall    = oppWall > 0
+        val oppResources  = opponent.resources
+
         fun scoreEffect(fx: CardEffect, xVal: Int = 0): Int = when (fx) {
             is CardEffect.AttackPlayer -> {
-                val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
-                urgency + fx.amount / 4
+                // Pokud soupeř nemá hradby, útok jde přímo na hrad → vyšší hodnota
+                val wallBonus = if (!oppHasWall) 4 else 0
+                val urgency   = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
+                urgency + fx.amount / 4 + wallBonus
             }
             is CardEffect.AttackCastle -> {
                 val urgency = if (oppLowHp) 22 else if (oppCloseToWin) 8 else 6
                 urgency + fx.amount / 5
             }
-            is CardEffect.AttackWall     -> 4
+            is CardEffect.AttackWall -> when {
+                // Soupeř nemá hradby – karta je k ničemu, silně penalizuj
+                !oppHasWall           -> -15
+                // Málo hradeb – nízká hodnota, ale nenulová (alespoň trochu poškodíme)
+                oppWall < fx.amount   -> 2 + oppWall / 4
+                // Hodně hradeb – standardní nebo vyšší hodnota
+                else                  -> 4 + oppWall / 6
+            }
             // Záporný amount = poškození vlastního hradu (penalta)
             is CardEffect.BuildCastle    -> if (fx.amount >= 0) {
                 val urgency = if (aiLowHp) 20 else if (aiCloseToWin) 12 else 5
@@ -1219,14 +1249,32 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 fx.amount  // záporné skóre za ztrátu hradeb
             }
             is CardEffect.AddMine             -> 9   // long-term value
-            is CardEffect.StealResource       -> 7
-            is CardEffect.DrainResource       -> 6
+            is CardEffect.StealResource       -> {
+                // Krást má smysl jen pokud soupeř daný zdroj má
+                val available = oppResources[fx.type] ?: 0
+                if (available == 0) -5 else 7 + available.coerceAtMost(4)
+            }
+            is CardEffect.DrainResource       -> {
+                // Drainovat má smysl jen pokud soupeř daný zdroj má
+                val available = oppResources[fx.type] ?: 0
+                if (available == 0) -5 else 6 + available.coerceAtMost(3)
+            }
             is CardEffect.AddResource         -> 3
             is CardEffect.AddResourceDelayed  -> fx.amount * 2  // méně než ihned (3), ale hodnotné
-            is CardEffect.DestroyMine         -> 8   // sníženo – min 1 důl omezuje dopad
-            is CardEffect.BlockMine           -> fx.turns * 7   // 2 kola = 14, 3 kola = 21
+            is CardEffect.DestroyMine         -> {
+                // Zničit důl má smysl jen pokud soupeř má více než povinné minimum
+                val oppMines = opponent.mines[fx.type] ?: 0
+                val minMines = if (fx.type == ResourceType.CHAOS) 0 else 1
+                if (oppMines <= minMines) -8   // pod minimem – efekt se nevyvolá, zbytečné
+                else 8 + (oppMines - minMines) * 2   // čím víc dolů, tím hodnotnější zničení
+            }
+            is CardEffect.BlockMine           -> {
+                // Blokovat důl dává smysl jen pokud soupeř ten důl má
+                val oppMines = opponent.mines[fx.type] ?: 0
+                if (oppMines == 0) -6 else fx.turns * 7   // 2 kola = 14, 3 kola = 21
+            }
             is CardEffect.StealCard           -> 8
-            is CardEffect.BurnCard            -> 6
+            is CardEffect.BurnCard            -> if (opponent.hand.isEmpty()) -8 else 6
             is CardEffect.AddCardsToDeck      -> 4
             is CardEffect.DrawCard            -> fx.count * 5   // líz = více možností
             // Krádež hradu: poškodí soupeře A léčí vlastní hrad
@@ -1237,9 +1285,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
             // X-kost efekty: skóruj podle aktuálního množství zdroje (odhad skutečného efektu)
             is CardEffect.XScaledAttackPlayer -> {
-                val amt = xVal / fx.divisor
-                val urgency = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
-                urgency + amt / 4
+                val amt       = xVal / fx.divisor
+                val wallBonus = if (!oppHasWall) 4 else 0
+                val urgency   = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
+                urgency + amt / 4 + wallBonus
             }
             is CardEffect.XScaledAttackCastle -> {
                 val amt = xVal / fx.divisor
@@ -1418,22 +1467,58 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun playSoundForCard(card: Card) {
-        when (card.effects.firstOrNull()) {
-            is CardEffect.AttackCastle,
-            is CardEffect.AttackWall,
-            is CardEffect.StealResource,
-            is CardEffect.DrainResource,
-            is CardEffect.DestroyMine,
-            is CardEffect.BlockMine,
-            is CardEffect.BurnCard       -> SoundManager.playAttack()
-            is CardEffect.BuildCastle,
-            is CardEffect.BuildWall      -> SoundManager.playBuild()
-            is CardEffect.AddMine        -> SoundManager.playBuild()
-            is CardEffect.AddResource,
-            is CardEffect.AddResourceDelayed,
-            is CardEffect.AddCardsToDeck -> SoundManager.playResource()
-            is CardEffect.StealCard      -> SoundManager.playAttack()
-            else                         -> SoundManager.playCardPlay()
+        // 1. Úplně vlastní zvukový soubor – nejvyšší priorita
+        if (card.soundResId != null) {
+            SoundManager.playCustom(card.soundResId)
+            return
+        }
+
+        // 2. Per-karta kategoriový zvuk
+        if (card.sound != null) {
+            when (card.sound) {
+                CardSound.ATTACK       -> SoundManager.playAttack()
+                CardSound.MINE_DESTROY -> SoundManager.playMineDestroy()
+                CardSound.BUILD        -> SoundManager.playBuild()
+                CardSound.RESOURCE     -> SoundManager.playResource()
+                CardSound.DRAW         -> SoundManager.playCardDraw()
+                CardSound.CARD_PLAY    -> SoundManager.playCardPlay()
+            }
+            return
+        }
+
+        // 3. Pomocná funkce: rekurzivně rozbalí ConditionalEffect a vrátí plochý seznam efektů
+        fun CardEffect.flatten(): List<CardEffect> =
+            if (this is CardEffect.ConditionalEffect) listOf(this) + effect.flatten()
+            else listOf(this)
+
+        val allEffects = card.effects.flatMap { it.flatten() }
+
+        // 4. Auto-detekce: mine_destroy > útok > stavba > suroviny > obecné zahrání
+        val hasMineDestroy = allEffects.any { it is CardEffect.DestroyMine }
+        val hasAttack = allEffects.any { e ->
+            e is CardEffect.AttackPlayer        || e is CardEffect.AttackCastle  ||
+            e is CardEffect.AttackWall          || e is CardEffect.StealResource ||
+            e is CardEffect.DrainResource       || e is CardEffect.BlockMine     ||
+            e is CardEffect.BurnCard            || e is CardEffect.StealCard     ||
+            e is CardEffect.StealCastle         ||
+            e is CardEffect.XScaledAttackPlayer || e is CardEffect.XScaledAttackCastle
+        }
+        val hasBuild = allEffects.any { e ->
+            e is CardEffect.BuildCastle || e is CardEffect.BuildWall ||
+            e is CardEffect.AddMine     || e is CardEffect.XScaledBuildCastle
+        }
+        val hasResource = allEffects.any { e ->
+            e is CardEffect.AddResource        || e is CardEffect.AddResourceDelayed ||
+            e is CardEffect.AddCardsToDeck     || e is CardEffect.XScaledDualResource ||
+            e is CardEffect.DrawCard
+        }
+
+        when {
+            hasMineDestroy -> SoundManager.playMineDestroy()
+            hasAttack      -> SoundManager.playAttack()
+            hasBuild       -> SoundManager.playBuild()
+            hasResource    -> SoundManager.playResource()
+            else           -> SoundManager.playCardPlay()
         }
     }
 }

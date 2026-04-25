@@ -87,7 +87,7 @@ private fun MenuButton(
             .clip(RoundedCornerShape(10.dp))
             .background(accent.copy(alpha = if (enabled) 0.12f else 0.05f))
             .border(1.dp, accent.copy(alpha = if (enabled) 0.5f else 0.2f), RoundedCornerShape(10.dp))
-            .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
+            .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(vertical = 11.dp),
         contentAlignment = Alignment.Center
     ) {

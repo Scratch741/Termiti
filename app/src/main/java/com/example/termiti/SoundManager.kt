@@ -17,6 +17,7 @@ object SoundManager {
     var enabled = true
     private var bgPlayer: MediaPlayer? = null
     private var currentTrackIndex = 0
+    private var appContext: Context? = null
 
     // ── SoundPool pro nízko-latentní SFX ────────────────────────────────────
 
@@ -27,8 +28,15 @@ object SoundManager {
     private var sndCardAttack1: Int = 0
     private var sndCardAttack2: Int = 0
     private var sndCardDiscard: Int = 0
+    private var sndMineDestroy: Int = 0
+    private var sndMenuTap: Int = 0
+    private var sndDeckSelect: Int = 0
+    private var sndBuild: Int = 0
+    private var sndWinBattle: Int = 0
+    private var sndLostBattle: Int = 0
 
     fun initSounds(context: Context) {
+        appContext = context.applicationContext
         if (soundPool != null) return
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -38,12 +46,18 @@ object SoundManager {
             .setMaxStreams(8)
             .setAudioAttributes(attrs)
             .build()
-        sndCardDraw1    = soundPool!!.load(context, R.raw.card_draw,     1)
-        sndCardDraw2    = soundPool!!.load(context, R.raw.card_draw_2,   1)
-        sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,     1)
-        sndCardAttack1  = soundPool!!.load(context, R.raw.card_attack,   1)
-        sndCardAttack2  = soundPool!!.load(context, R.raw.card_attack_2, 1)
-        sndCardDiscard  = soundPool!!.load(context, R.raw.card_discard,  1)
+        sndCardDraw1    = soundPool!!.load(context, R.raw.card_draw,            1)
+        sndCardDraw2    = soundPool!!.load(context, R.raw.card_draw_2,          1)
+        sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,            1)
+        sndCardAttack1  = soundPool!!.load(context, R.raw.card_attack,          1)
+        sndCardAttack2  = soundPool!!.load(context, R.raw.card_attack_2,        1)
+        sndCardDiscard  = soundPool!!.load(context, R.raw.card_discard,         1)
+        sndMineDestroy  = soundPool!!.load(context, R.raw.mine_destroy,            1)
+        sndMenuTap      = soundPool!!.load(context, R.raw.menu_tap,               1)
+        sndDeckSelect   = soundPool!!.load(context, R.raw.deckbuilder_card_select, 1)
+        sndBuild        = soundPool!!.load(context, R.raw.build,                   1)
+        sndWinBattle    = soundPool!!.load(context, R.raw.win_battle,              1)
+        sndLostBattle   = soundPool!!.load(context, R.raw.lost_battle,             1)
     }
 
     fun releaseSounds() {
@@ -54,7 +68,9 @@ object SoundManager {
     private val trackIds = listOf(
         R.raw.bg_music,
         R.raw.bg_music_2,
-        R.raw.bg_music_3
+        R.raw.bg_music_3,
+        R.raw.bg_music_4,
+        R.raw.bg_music_5
     )
 
     // ── Hudba na pozadí ──────────────────────────────────────────────────────
@@ -145,8 +161,38 @@ object SoundManager {
                         toneEnv(freq = 95f, dur = 0.10f, vol = 0.30f) }
         }
     }
-    fun playBuild()     = playAsync { toneEnv(freq = 260f,  dur = 0.18f, vol = 0.30f) }
+    /** Stavba hradu/hradeb – file-based (build). */
+    fun playBuild() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndBuild != 0) {
+            pool.play(sndBuild, 0.70f, 0.70f, 1, 0, 1.0f)
+        } else {
+            playAsync { toneEnv(freq = 260f, dur = 0.18f, vol = 0.30f) }
+        }
+    }
     fun playResource()  = playAsync { toneEnv(freq = 660f,  dur = 0.09f, vol = 0.20f) }
+
+    /** Zničení dolu – mine_destroy. */
+    fun playMineDestroy() {
+        if (!enabled) return
+        val pool = soundPool ?: return
+        if (sndMineDestroy != 0) pool.play(sndMineDestroy, 0.80f, 0.80f, 1, 0, 1.0f)
+    }
+
+    /** Klik na tlačítko v menu. */
+    fun playMenuTap() {
+        if (!enabled) return
+        val pool = soundPool ?: return
+        if (sndMenuTap != 0) pool.play(sndMenuTap, 0.65f, 0.65f, 1, 0, 1.0f)
+    }
+
+    /** Přidání/odebrání karty v deck builderu. */
+    fun playDeckSelect() {
+        if (!enabled) return
+        val pool = soundPool ?: return
+        if (sndDeckSelect != 0) pool.play(sndDeckSelect, 0.60f, 0.60f, 1, 0, 1.0f)
+    }
     /** Zahozená karta – file-based (card_discard). */
     fun playDiscard() {
         if (!enabled) return
@@ -157,9 +203,42 @@ object SoundManager {
             playAsync { sweep(freqFrom = 440f, freqTo = 220f, dur = 0.12f, vol = 0.25f) }
         }
     }
-    fun playWin()       = playAsync { fanfare(ascending = true)  }
-    fun playLose()      = playAsync { fanfare(ascending = false) }
+    fun playWin() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndWinBattle != 0) {
+            pool.play(sndWinBattle, 0.90f, 0.90f, 1, 0, 1.0f)
+        } else {
+            playAsync { fanfare(ascending = true) }
+        }
+    }
+    fun playLose() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndLostBattle != 0) {
+            pool.play(sndLostBattle, 0.90f, 0.90f, 1, 0, 1.0f)
+        } else {
+            playAsync { fanfare(ascending = false) }
+        }
+    }
     fun playAiTurn()    = playAsync { toneEnv(freq = 330f,  dur = 0.08f, vol = 0.15f) }
+
+    /**
+     * Přehraje libovolný zvukový soubor z res/raw (R.raw.xxx) jako one-shot.
+     * Používá se pro karty s [Card.soundResId].
+     */
+    fun playCustom(resId: Int) {
+        if (!enabled) return
+        val ctx = appContext ?: return
+        Thread {
+            runCatching {
+                val mp = MediaPlayer.create(ctx, resId) ?: return@runCatching
+                mp.setVolume(0.75f, 0.75f)
+                mp.setOnCompletionListener { it.release() }
+                mp.start()
+            }
+        }.start()
+    }
 
     // ── Interní generátory ───────────────────────────────────────────────────
 

@@ -3,6 +3,19 @@
 // ============================================================
 package com.example.termiti
 
+/**
+ * Zvukový efekt, který karta přehraje při sehrání.
+ * Pokud je [Card.sound] null, zvuk se odvodí automaticky z efektů karty.
+ */
+enum class CardSound {
+    ATTACK,       // útočný zvuk  (card_attack / card_attack_2)
+    MINE_DESTROY, // zničení dolu (mine_destroy)
+    BUILD,        // stavební zvuk (build)
+    RESOURCE,     // surovinový zvuk
+    DRAW,         // zvuk líznutí karty
+    CARD_PLAY     // obecný zvuk zahrání
+}
+
 data class Card(
     val id: String,
     val name: String,
@@ -35,5 +48,17 @@ data class Card(
      * card.cost je v tomto případě 0 a slouží jen jako fallback; skutečná cena = veškeré
      * zásoby. Efekty třídy XScaled* dostanou hodnotu X = odebrané zásoby.
      */
-    val isXCost: Boolean = false
+    val isXCost: Boolean = false,
+    /**
+     * Volitelný vlastní zvuk karty (kategorie). Pokud null, zvuk se odvozuje automaticky
+     * ze seznamu efektů pomocí [playSoundForCard] v GameViewModel.
+     * Ignoruje se, pokud je nastaven [soundResId].
+     */
+    val sound: CardSound? = null,
+    /**
+     * Zcela vlastní zvukový soubor pro tuto kartu (R.raw.xxx).
+     * Má nejvyšší prioritu – přebije jak [sound], tak auto-detekci.
+     * Příklad: soundResId = R.raw.my_special_card
+     */
+    val soundResId: Int? = null
 )

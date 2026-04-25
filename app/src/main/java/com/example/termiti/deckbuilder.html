@@ -494,6 +494,9 @@
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(100,80,160,.15);border-color:#7a5cc0"
                 onclick="generateSmartDeck()">🎲 GENERUJ SMART NÁHODNÝ BALÍČEK</button>
         <div id="smart-deck-info" style="font-size:11px;color:var(--gold);text-align:center;min-height:16px;margin-bottom:6px;transition:opacity .5s;opacity:0"></div>
+        <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(40,100,60,.15);border-color:#3a8a50"
+                onclick="generateBalancedDeck()">⚖️ GENERUJ VYVÁŽENÝ BALÍČEK (9/9/9/3)</button>
+        <div id="balanced-deck-info" style="font-size:11px;color:var(--gold);text-align:center;min-height:16px;margin-bottom:6px;transition:opacity .5s;opacity:0"></div>
         <button class="btn-action" style="width:100%" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
@@ -1297,11 +1300,28 @@ function buildSmartRandomDeck() {
 
   function fillSlot(pool, slotRange, preferCost) {
     const target = slotRange[0] + Math.floor(Math.random() * (slotRange[1] - slotRange[0] + 1));
-    const sorted = sortPool(pool, preferCost || arch.prefer);
+    // Omez unikátní karty (target/3 – target-1), aby COMMON mohly mít 2–4 kopie
+    const uniqueLimit = Math.max(1, Math.min(
+      pool.length,
+      Math.floor(target / 3) + Math.floor(Math.random() * (target - 1 - Math.floor(target / 3) + 1))
+    ));
+    const chosenPool = sortPool(pool, preferCost || arch.prefer).slice(0, uniqueLimit);
     let added = 0;
-    for (const c of sorted) {
-      if (added >= target) break;
-      if (tryAdd(c.id, maxCop(c))) added++;
+    // Až 4 průchody – tryAdd interně omezuje maxCop (4/3/2/1 dle rarity)
+    for (let pass = 0; pass < 4 && added < target; pass++) {
+      const sorted = sortPool(chosenPool, preferCost || arch.prefer);
+      for (const c of sorted) {
+        if (added >= target) break;
+        if (tryAdd(c.id, maxCop(c))) added++;
+      }
+    }
+    // Fallback: pokud chosenPool nestačil, doplň z plného poolu
+    if (added < target) {
+      const fallback = sortPool(pool, preferCost || arch.prefer);
+      for (const c of fallback) {
+        if (added >= target) break;
+        if (tryAdd(c.id, maxCop(c))) added++;
+      }
     }
   }
 
@@ -1354,6 +1374,157 @@ function generateSmartDeck() {
     infoEl.textContent = 'Vygenerován: ' + _lastSmartArchetype + ' (' + deck.length + ' karet)';
     infoEl.style.opacity = '1';
     setTimeout(() => { infoEl.style.opacity = '0'; }, 3000);
+  }
+}
+
+// ─── Vyvážený balíček (9 magie / 9 útoku / 9 stavby / 3 chaos) ─────────────
+// Podmínky:
+//  • Alespoň 1 důl každého ne-chaos zdroje (MAGIC, ATTACK, STONES)
+//  • Alespoň 2 chaos generátory (karta s AR/AM efektem produkující CHAOS)
+//  • Respektuje max kopie dle rarity (COMMON=4, RARE=3, EPIC=2, LEGENDARY=1)
+function buildBalancedDeck() {
+  function hasFxT(fx, ...types) {
+    return fx.some(f => types.includes(f.t) || (f.t === 'CE' && types.includes(f.e && f.e.t)));
+  }
+  const allIds = Object.keys(CARD_EFFECTS_DB).filter(id => !id.startsWith('T'));
+  const cards = allIds.map(id => {
+    const db   = CARD_EFFECTS_DB[id];
+    const base = CARD_MAP[id] || {};
+    return {
+      id,
+      costType   : db.ct || 'MAGIC',
+      cost       : base.cost !== undefined ? base.cost : 0,
+      rarity     : base.rarity || 'COMMON',
+      isMine     : hasFxT(db.fx, 'AM'),
+      isChaosGen : db.fx.some(f => (f.t === 'AR' || f.t === 'AM') && f.r === 'CHAOS'),
+      // Typ zdroje, který důl produkuje (pro povinné doly)
+      mineResType: (db.fx.find(f => f.t === 'AM') || {}).r || null,
+    };
+  });
+
+  function maxCop(c) { return { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 }[c.rarity] ?? 4; }
+
+  const QUOTA = { MAGIC: 9, ATTACK: 9, STONES: 9, CHAOS: 3 };
+  const counts = {};
+  const total      = ()  => Object.values(counts).reduce((s,n) => s+n, 0);
+  const countByCT  = ct  => Object.entries(counts)
+    .filter(([id]) => (CARD_EFFECTS_DB[id]?.ct || 'MAGIC') === ct)
+    .reduce((s,[,n]) => s+n, 0);
+  const cgCount    = ()  => Object.entries(counts)
+    .filter(([id,n]) => n > 0 && cards.find(c => c.id === id)?.isChaosGen)
+    .reduce((s,[,n]) => s+n, 0);
+
+  function tryAdd(id, maxC) {
+    if (total() >= 30) return false;
+    const cur = counts[id] || 0;
+    if (cur >= maxC) return false;
+    counts[id] = cur + 1;
+    return true;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // Vážené náhodné seřazení – preferuje mana-curve 1–4, penalizuje 0-cost a 5+ cost.
+  // Karty za 0 many a drahé karty mají menší šanci být vybrány, ale nejsou vyloučeny.
+  function weightedShuffle(pool) {
+    function w(c) {
+      if (c.cost === 0) return 0.45;   // příliš levné – slabá šance
+      if (c.cost === 1) return 0.85;
+      if (c.cost <= 4)  return 1.00;   // ideální curve
+      return 0.55;                     // 5+ – drahé, ale možné
+    }
+    return [...pool]
+      .map(c => ({ c, score: Math.random() * w(c) }))
+      .sort((a,b) => b.score - a.score)
+      .map(x => x.c);
+  }
+
+  // Naplnit bucket costType `ct` až na `target` karet z daného poolu.
+  // Každý průchod pool znovu přemíchá → jiné pořadí = jiné kopie karet.
+  // Čtyři průchody pokryjí až 4 kopie COMMON karet.
+  function fillBucket(pool, ct, target) {
+    for (let pass = 0; pass < 4; pass++) {
+      const ordered = weightedShuffle(pool);
+      for (const c of ordered) {
+        if (countByCT(ct) >= target || total() >= 30) return;
+        tryAdd(c.id, maxCop(c));
+      }
+    }
+  }
+
+  // ── KROK 1: Povinné doly (1× pro každý zdroj krom chaosu) ─────────────────
+  for (const res of ['MAGIC', 'ATTACK', 'STONES']) {
+    const cands = shuffle(cards.filter(c => c.mineResType === res));
+    for (const c of cands) {
+      if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
+      if (tryAdd(c.id, maxCop(c))) break;
+    }
+  }
+
+  // ── KROK 2: Alespoň 2 chaos generátory ────────────────────────────────────
+  const cgCands = shuffle(cards.filter(c => c.isChaosGen));
+  for (const c of cgCands) {
+    if (cgCount() >= 2) break;
+    if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
+    tryAdd(c.id, maxCop(c));
+  }
+
+  // ── KROK 3: Doplnit každý costType bucket na kvótu ────────────────────────
+  for (const [ct, target] of Object.entries(QUOTA)) {
+    const pool = cards.filter(c => c.costType === ct);
+    fillBucket(pool, ct, target);
+  }
+
+  // ── KROK 4: Filler do 30 (kdyby nestačily karty v některém bucketu) ────────
+  if (total() < 30) {
+    const filler = weightedShuffle(cards);
+    for (const c of filler) {
+      if (total() >= 30) break;
+      tryAdd(c.id, maxCop(c));
+    }
+  }
+
+  const deck = [];
+  for (const [id, count] of Object.entries(counts)) {
+    for (let i = 0; i < count; i++) {
+      const c = makeSimCard(id);
+      if (c) deck.push(c);
+    }
+  }
+  return deck;
+}
+
+// Naplní deck builder vyváženým balíčkem
+function generateBalancedDeck() {
+  if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
+    alert('Nejdříve nahraj zdrojový soubor Kotlin (.kt).');
+    return;
+  }
+  const deck = buildBalancedDeck();
+  DECK = {};
+  deck.forEach(c => { DECK[c.id] = (DECK[c.id] || 0) + 1; });
+  renderDeck();
+  renderBrowser();
+
+  // Spočítej skutečné rozložení pro hlášení
+  const ct = { MAGIC:0, ATTACK:0, STONES:0, CHAOS:0 };
+  for (const [id, n] of Object.entries(DECK)) {
+    const t = CARD_EFFECTS_DB[id]?.ct || 'MAGIC';
+    ct[t] = (ct[t] || 0) + n;
+  }
+  const infoEl = document.getElementById('balanced-deck-info');
+  if (infoEl) {
+    infoEl.textContent =
+      `⚖️ M:${ct.MAGIC} / ⚔️ A:${ct.ATTACK} / 🏰 S:${ct.STONES} / 🌀 C:${ct.CHAOS}  (${deck.length} karet)`;
+    infoEl.style.opacity = '1';
+    setTimeout(() => { infoEl.style.opacity = '0'; }, 4000);
   }
 }
 

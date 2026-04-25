@@ -96,7 +96,7 @@ fun applyEffects(
             val template = allCards.find { it.id == effect.cardId }
             if (template != null) {
                 repeat(effect.count) {
-                    self.deck.add(template.copy(id = "${template.id}_x${System.currentTimeMillis()}"))
+                    self.deck.add(template.copy(id = "${template.id}_${java.util.UUID.randomUUID()}"))
                 }
                 self.deck.shuffle()
             }

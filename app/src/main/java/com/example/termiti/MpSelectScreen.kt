@@ -51,7 +51,7 @@ fun MpSelectScreen(
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color.White.copy(alpha = 0.05f))
                 .border(1.dp, SelMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { onBack() }
+                .clickable { SoundManager.playMenuTap(); onBack() }
                 .padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
             Text("← Zpět", color = SelMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -121,7 +121,7 @@ private fun MpSelectButton(
             .clip(RoundedCornerShape(12.dp))
             .background(accent.copy(alpha = 0.10f))
             .border(1.5.dp, accent.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
-            .clickable { onClick() }
+            .clickable { SoundManager.playMenuTap(); onClick() }
             .padding(horizontal = 28.dp, vertical = 20.dp)
     ) {
         Row(
