@@ -781,16 +781,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         finishTurn(old, player, ai, aiDrawsAtStart = false, playerDrawsAtEnd = true)
     }
 
-    // ── Náhodný balíček 30 karet (max 2 kopie každé karty) ───────────────────
-    private fun randomDeck(): List<Card> =
-        (allCards + allCards).shuffled().take(30)
+    // ── Vyvážený náhodný balíček 30 karet (9/9/9/3, respektuje rarity) ─────────
+    private fun balancedDeck(): List<Card> =
+        buildBalancedDeck(allCards)
+            .flatMap { (id, count) ->
+                val card = allCards.find { it.id == id } ?: return@flatMap emptyList()
+                List(count) { card }
+            }
 
     private fun createInitialState(): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
         val playerCards = if (activeDeck.isValid) {
             activeDeck.toCardList(allCards)
         } else {
-            randomDeck()
+            balancedDeck()
         }.withUniqueIds().shuffled()
 
         val playerState = PlayerState().also {
@@ -798,7 +802,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.drawCards(5)   // 5 karet na mulligan
         }
         val aiState = PlayerState().also {
-            it.deck.addAll(randomDeck().withUniqueIds().shuffled())
+            it.deck.addAll(balancedDeck().withUniqueIds().shuffled())
             it.drawCards(5)   // AI taktéž
         }
 
@@ -1322,6 +1326,27 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 if (xVal < minX) return -20 + (-2..2).random()
             }
 
+            // Ochrana před sebevraždou: pokud karta sníží vlastní hrad na ≤0,
+            // zahraj ji pouze v situaci jisté prohry (šance na remízu).
+            // Sebevraždu detekujeme jako záporné BuildCastle efekty.
+            fun selfCastleDamage(effects: List<CardEffect>): Int = effects.sumOf { fx ->
+                when {
+                    fx is CardEffect.BuildCastle && fx.amount < 0 -> -fx.amount
+                    fx is CardEffect.ConditionalEffect            ->
+                        if (checkCondition(fx.condition, ai)) selfCastleDamage(listOf(fx.effect)) else 0
+                    else                                          -> 0
+                }
+            }
+            val selfDmg = selfCastleDamage(card.effects)
+            if (selfDmg > 0 && selfDmg >= ai.castleHP) {
+                // Karta by zničila vlastní hrad – povolíme pouze pro remízu:
+                // AI je v jisté ztrátě = soupeřův hrad je nízký (mohl by příštím tahem vyhrát)
+                // NEBO AI nemá žádnou šanci na obnovu a soupeř je téměř na výhře
+                val couldTieKill = opponent.castleHP <= selfDmg  // i soupeř by zahynul (remíza)
+                val certainLoss  = ai.castleHP <= 10 && (oppCloseToWin || opponent.castleHP < 15)
+                if (!couldTieKill && !certainLoss) return -100 + (-2..2).random()
+            }
+
             val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
             val costForScore = if (card.isXCost) xVal else card.cost
             val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0
@@ -1435,7 +1460,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.drawCards(5)
         }
         val ai = PlayerState().also {
-            it.deck.addAll(randomDeck().withUniqueIds().shuffled())
+            it.deck.addAll(balancedDeck().withUniqueIds().shuffled())
             it.drawCards(5)
         }
         gameState.value         = GameState(playerState = ps, aiState = ai)

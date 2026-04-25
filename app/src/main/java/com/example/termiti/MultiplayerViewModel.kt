@@ -471,7 +471,9 @@ class MultiplayerViewModel(
     }
 
     private fun randomDeckBaseIds(): List<String> =
-        (allCards + allCards).shuffled().take(30).map { it.id }
+        buildBalancedDeck(allCards)
+            .flatMap { (id, count) -> List(count) { id } }
+            .shuffled()
 
     // ═════════════════════════════════════════════════════════════════════════
     // Mulligan

@@ -1300,10 +1300,11 @@ function buildSmartRandomDeck() {
 
   function fillSlot(pool, slotRange, preferCost) {
     const target = slotRange[0] + Math.floor(Math.random() * (slotRange[1] - slotRange[0] + 1));
-    // Omez unikátní karty (target/3 – target-1), aby COMMON mohly mít 2–4 kopie
+    // Omez unikátní karty (target*2/3 – target), mírnější bias ke kopiím
+    const lo = Math.floor(target * 2 / 3);
     const uniqueLimit = Math.max(1, Math.min(
       pool.length,
-      Math.floor(target / 3) + Math.floor(Math.random() * (target - 1 - Math.floor(target / 3) + 1))
+      lo + Math.floor(Math.random() * (target - lo + 1))
     ));
     const chosenPool = sortPool(pool, preferCost || arch.prefer).slice(0, uniqueLimit);
     let added = 0;

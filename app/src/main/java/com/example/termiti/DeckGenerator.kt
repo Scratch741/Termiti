@@ -95,7 +95,7 @@ fun buildBalancedDeck(allCards: List<Card>): Map<String, Int> {
         val pool = weightedShuffle(cards.filter { it.costType == ct })
         if (pool.isEmpty()) continue
 
-        val uniqueLimit = Random.nextInt(target / 3, target)
+        val uniqueLimit = Random.nextInt(target * 2 / 3, target + 1)
             .coerceIn(1, pool.size)
         val chosenPool  = pool.take(uniqueLimit)
 
