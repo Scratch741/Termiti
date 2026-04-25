@@ -663,21 +663,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // 5. 🌀 Chaosmancer – Chaos ekonomika + sabotáž soupeře (30 karet)
         "🌀 Chaosmancer" to mapOf(
-                "046"   to 3,   // Goblin
-                "C26"   to 3,   // Krvavá oběť
-                "C24"   to 3,   // Temný rituál
-                "C27"   to 2,   // Odraz magie
-                "C02"   to 2,   // Entropie
-                "C03"   to 1,   // Chaotický důl
-                "C31"   to 2,   // Chaotický výměník
-                "C29"   to 2,   // Bouřlivá mysl
-                "C19"   to 2,   // Spálená knihovna
-                "C14"   to 1,   // Ničení kamenolomu
-                "C13"   to 2,   // Sabotáž
-                "C15"   to 2,   // Zákeřnost
-                "C05"   to 2,   // Chaotický výbuch
-                "C06"   to 1,   // Bouře chaosu
-                "C10"   to 1,   // Chaotický drak
+                "022"   to 2,
+                "046"   to 3,
+                "C26"   to 2,
+                "037"   to 2,
+                "C24"   to 2,
+                "C02"   to 2,
+                "C03"   to 1,
+                "C31"   to 2,
+                "C29"   to 2,
+                "091"   to 3,
+                "C22"   to 2,
+                "C32"   to 2,
+                "C11"   to 1,
+                "C06"   to 1,
+                "C05"   to 2,
+                "C10"   to 1,
             ),  // 30 karet
     )
 
