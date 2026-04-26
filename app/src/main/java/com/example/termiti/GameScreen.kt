@@ -150,7 +150,8 @@ fun GameScreen(
     isArena: Boolean = false,
     arenaWins: Int = 0,
     onArenaWin: () -> Unit = {},
-    onArenaLose: () -> Unit = {}
+    onArenaLose: () -> Unit = {},
+    onGameEnd: ((win: Boolean) -> Unit)? = null
 ) {
     val state            by viewModel.gameState
     val log              by viewModel.log
@@ -296,8 +297,9 @@ fun GameScreen(
 
         // ── Dialogy a overlay ─────────────────────────────────────────────────
         gameOver?.let { result ->
+            val isPlayerWin = result.isPlayerWin()
+            LaunchedEffect(result) { onGameEnd?.invoke(isPlayerWin) }
             if (isArena) {
-                val isPlayerWin = result.isPlayerWin()
                 ArenaGameOverDialog(
                     result       = result,
                     wins         = if (isPlayerWin) arenaWins + 1 else arenaWins,

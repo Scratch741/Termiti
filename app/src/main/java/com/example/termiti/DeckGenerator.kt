@@ -130,3 +130,109 @@ fun buildBalancedDeck(allCards: List<Card>): Map<String, Int> {
 
     return counts
 }
+
+/**
+ * Super náhodný balíček – 50 karet s rozdělením 15 / 15 / 15 / 5
+ * (MAGIC / ATTACK / STONES / CHAOS). Jinak stejná logika jako [buildBalancedDeck].
+ *
+ * @return mapa cardId → počet kopií (celkem 50 karet)
+ */
+fun buildSuperRandomDeck(allCards: List<Card>): Map<String, Int> {
+
+    fun mineResType(card: Card): ResourceType? =
+        (card.effects.firstOrNull { it is CardEffect.AddMine } as? CardEffect.AddMine)?.type
+
+    fun isChaosGen(card: Card) = card.effects.any {
+        (it is CardEffect.AddResource && it.type == ResourceType.CHAOS) ||
+        (it is CardEffect.AddMine     && it.type == ResourceType.CHAOS)
+    }
+
+    val cards = allCards.filterNot { it.id.startsWith("T") }
+
+    val QUOTA = mapOf(
+        ResourceType.MAGIC  to 15,
+        ResourceType.ATTACK to 15,
+        ResourceType.STONES to 15,
+        ResourceType.CHAOS  to 5
+    )
+    val TOTAL = 50
+
+    val counts = mutableMapOf<String, Int>()
+    fun total()               = counts.values.sum()
+    fun countByCT(ct: ResourceType) = cards
+        .filter { it.costType == ct }
+        .sumOf { counts[it.id] ?: 0 }
+    fun chaosGenCount()       = cards.filter { isChaosGen(it) }.sumOf { counts[it.id] ?: 0 }
+
+    fun tryAdd(card: Card): Boolean {
+        if (total() >= TOTAL) return false
+        val cur = counts[card.id] ?: 0
+        if (cur >= card.rarity.maxCopies) return false
+        counts[card.id] = cur + 1
+        return true
+    }
+
+    fun weight(card: Card) = when (card.cost) {
+        0       -> 0.45
+        1       -> 0.85
+        in 2..4 -> 1.00
+        else    -> 0.55
+    }
+
+    fun weightedShuffle(pool: List<Card>): List<Card> =
+        pool.map { it to Random.nextDouble() * weight(it) }
+            .sortedByDescending { it.second }
+            .map { it.first }
+
+    // Povinné doly
+    for (res in listOf(ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES)) {
+        val cands = cards.filter { mineResType(it) == res }.shuffled()
+        for (c in cands) {
+            if (countByCT(c.costType) >= (QUOTA[c.costType] ?: 0)) continue
+            if (tryAdd(c)) break
+        }
+    }
+
+    // Alespoň 3 chaos generátory
+    val cgCands = cards.filter { isChaosGen(it) }.shuffled()
+    for (c in cgCands) {
+        if (chaosGenCount() >= 3) break
+        if (countByCT(c.costType) >= (QUOTA[c.costType] ?: 0)) continue
+        tryAdd(c)
+    }
+
+    // Doplnit buckety na kvótu
+    for ((ct, target) in QUOTA) {
+        val pool = weightedShuffle(cards.filter { it.costType == ct })
+        if (pool.isEmpty()) continue
+
+        val uniqueLimit = Random.nextInt(target * 2 / 3, target + 1)
+            .coerceIn(1, pool.size)
+        val chosenPool = pool.take(uniqueLimit)
+
+        for (pass in 0 until Rarity.COMMON.maxCopies) {
+            for (c in weightedShuffle(chosenPool)) {
+                if (countByCT(ct) >= target || total() >= TOTAL) break
+                tryAdd(c)
+            }
+        }
+        if (countByCT(ct) < target) {
+            for (c in weightedShuffle(pool)) {
+                if (countByCT(ct) >= target || total() >= TOTAL) break
+                tryAdd(c)
+            }
+        }
+    }
+
+    // Filler do 50
+    if (total() < TOTAL) {
+        for (pass in 0 until Rarity.COMMON.maxCopies) {
+            for (c in weightedShuffle(cards)) {
+                if (total() >= TOTAL) break
+                tryAdd(c)
+            }
+        }
+    }
+
+    return counts
+}

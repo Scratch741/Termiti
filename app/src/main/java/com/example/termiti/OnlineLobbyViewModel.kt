@@ -85,7 +85,7 @@ class OnlineLobbyViewModel(
 
     // ── Lobby stav ────────────────────────────────────────────────────────────
     var phase        = mutableStateOf(OnlinePhase.NAME_INPUT); private set
-    var playerName   = mutableStateOf(""); private set
+    var playerName   = mutableStateOf(PlayerProfileManager.profile?.name ?: ""); private set
     var onlineCount  = mutableStateOf(0);  private set
     var queueSize    = mutableStateOf(0);  private set
     var statusMsg    = mutableStateOf(""); private set

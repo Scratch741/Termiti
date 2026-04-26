@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -320,104 +321,36 @@ private fun DraftStatsPanel(
 // ─── Draft Card Choice ────────────────────────────────────────────────────────
 @Composable
 private fun DraftCardChoice(card: Card, onClick: () -> Unit) {
-    val costColor  = resColor(card.costType)
-    val rc         = rarityColor(card.rarity)
-
-    var pressed by remember { mutableStateOf(false) }
-
-    Box(
-        Modifier
-            .width(150.dp)
-            .fillMaxHeight(0.85f)
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-                Brush.verticalGradient(listOf(BgCard, BgDeep))
-            )
-            .border(
-                width = if (pressed) 2.dp else 1.dp,
-                color = if (pressed) Gold else costColor.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(14.dp)
-            )
-            .clickable { pressed = true; onClick() }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            Modifier.fillMaxSize().padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+        // Karta v plné podobě – scale 1.25× aby byla dobře vidět
+        Box(modifier = Modifier.scale(1.25f)) {
+            CardView(
+                card        = card,
+                canPlay     = true,
+                discardMode = false,
+                showFade    = false,
+                onClick     = onClick
+            )
+        }
+
+        // Kompenzace vizuálního přesahu ze scale(1.25)
+        Spacer(Modifier.height(36.dp))
+
+        // Tlačítko Vybrat pod kartou
+        Box(
+            Modifier
+                .width(110.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Brush.horizontalGradient(listOf(Teal.copy(alpha = 0.3f), Gold.copy(alpha = 0.2f))))
+                .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                .clickable { SoundManager.playMenuTap(); onClick() }
+                .padding(vertical = 7.dp),
+            contentAlignment = Alignment.Center
         ) {
-            // Cost badge
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(draftEffectIcon(card), fontSize = 22.sp)
-                Box(
-                    Modifier.clip(RoundedCornerShape(6.dp))
-                        .background(costColor.copy(alpha = 0.15f))
-                        .border(1.dp, costColor.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(resIcon(card.costType), fontSize = 9.sp)
-                        Text(
-                            "${card.cost}", color = costColor,
-                            fontSize = 11.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-
-            // Name
-            Text(
-                card.name,
-                color = TextPrimary,
-                fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 2, overflow = TextOverflow.Ellipsis
-            )
-
-            // Description
-            Text(
-                card.description,
-                color = TextMuted,
-                fontSize = 9.5.sp, textAlign = TextAlign.Center,
-                maxLines = 4, overflow = TextOverflow.Ellipsis,
-                lineHeight = 13.sp
-            )
-
-            // Rarity
-            Box(
-                Modifier.clip(RoundedCornerShape(4.dp))
-                    .background(rc.copy(alpha = 0.12f))
-                    .border(0.5.dp, rc.copy(alpha = 0.45f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    card.rarity.label.uppercase(),
-                    color = rc, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
-                )
-            }
-
-            // Pick button
-            Box(
-                Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Brush.horizontalGradient(listOf(Teal.copy(alpha = 0.3f), Gold.copy(alpha = 0.2f))))
-                    .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
-                    .padding(vertical = 7.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "VYBRAT",
-                    color = TextPrimary, fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                )
-            }
+            Text("VYBRAT", color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
         }
     }
 }

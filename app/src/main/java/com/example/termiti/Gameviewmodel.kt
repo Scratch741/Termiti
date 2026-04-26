@@ -789,12 +789,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 List(count) { card }
             }
 
-    private fun createInitialState(): GameState {
+    private fun superRandomDeck(): List<Card> =
+        buildSuperRandomDeck(allCards)
+            .flatMap { (id, count) ->
+                val card = allCards.find { it.id == id } ?: return@flatMap emptyList()
+                List(count) { card }
+            }
+
+    private fun createInitialState(randomDeck: Boolean = false, superRandom: Boolean = false): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
-        val playerCards = if (activeDeck.isValid) {
-            activeDeck.toCardList(allCards)
-        } else {
-            balancedDeck()
+        val playerCards = when {
+            superRandom              -> superRandomDeck()
+            randomDeck               -> balancedDeck()
+            activeDeck.isValid       -> activeDeck.toCardList(allCards)
+            else                     -> balancedDeck()
         }.withUniqueIds().shuffled()
 
         val playerState = PlayerState().also {
@@ -802,7 +810,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.drawCards(5)   // 5 karet na mulligan
         }
         val aiState = PlayerState().also {
-            it.deck.addAll(balancedDeck().withUniqueIds().shuffled())
+            val aiDeck = if (superRandom) superRandomDeck() else balancedDeck()
+            it.deck.addAll(aiDeck.withUniqueIds().shuffled())
             it.drawCards(5)   // AI taktéž
         }
 
@@ -1150,7 +1159,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value = h
     }
 
-    fun restartGame() {
+    fun restartGame(randomDeck: Boolean = false, superRandom: Boolean = false) {
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null
@@ -1159,7 +1168,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
-        gameState.value         = createInitialState()
+        gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
     }
