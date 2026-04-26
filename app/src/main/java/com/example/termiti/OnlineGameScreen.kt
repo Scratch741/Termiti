@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -200,6 +201,25 @@ private fun OnlineGameplay(
         }
     }
 
+    // ── Zvuk: zahraná/zahozená karta ─────────────────────────────────────────
+    LaunchedEffect(lastCard?.id, lastCardByMe, lastCardAction) {
+        val c = lastCard ?: return@LaunchedEffect
+        when (lastCardAction) {
+            CardAction.PLAYED    -> playSoundForCardGlobal(c)
+            CardAction.DISCARDED -> SoundManager.playDiscard()
+            CardAction.BURNED    -> SoundManager.playAttack()   // soupeř spálil naši kartu
+            CardAction.STOLEN    -> SoundManager.playAttack()
+            null                 -> Unit
+        }
+    }
+
+    // ── Zvuk: začátek mého tahu (= soupeř právě skončil) ─────────────────────
+    val prevIsMyTurn = remember { mutableStateOf(gs.isMyTurn) }
+    LaunchedEffect(gs.isMyTurn) {
+        if (gs.isMyTurn && !prevIsMyTurn.value) SoundManager.playCardDraw()
+        prevIsMyTurn.value = gs.isMyTurn
+    }
+
     // ── Flight overlay state (animace "karta letí z ruky do discardu") ──────
     val flight = remember { FlightOverlayState() }
     LaunchedEffect(lastCard?.id, lastCardByMe) {
@@ -256,7 +276,7 @@ private fun OnlineGameplay(
                             label   = "📜 Log",
                             color   = OgGold,
                             active  = true,
-                            onClick = { showLog = !showLog }
+                            onClick = { SoundManager.playMenuTap(); showLog = !showLog }
                         )
                     }
                 )
@@ -287,6 +307,7 @@ private fun OnlineGameplay(
                             active  = gs.isMyTurn,
                             onClick = if (gs.isMyTurn) {
                                 {
+                                    SoundManager.playMenuTap()
                                     if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)
                                         vm.skipTurn()
                                     else
@@ -314,6 +335,10 @@ private fun OnlineGameplay(
                 playerCastleHp   = myPs.castleHP,
                 // Pevná výška ruky – zabrání posunu lišty, když je ruka prázdná
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
+                                           .paint(
+                                               painterResource(R.drawable.hand_background),
+                                               contentScale = ContentScale.Crop
+                                           )
             )
         }
 
@@ -332,7 +357,7 @@ private fun OnlineGameplay(
             text  = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(
-                        onClick  = { showMenu = false; showLog = true },
+                        onClick  = { SoundManager.playMenuTap(); showMenu = false; showLog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("📜 Zobrazit log", color = OgGold)
@@ -346,12 +371,12 @@ private fun OnlineGameplay(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showMenu = false; onBack() }) {
+                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; onBack() }) {
                     Text("Odejít", color = OgCrimson, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showMenu = false }) {
+                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false }) {
                     Text("Zůstat", color = OgTealLight, fontWeight = FontWeight.Bold)
                 }
             }
@@ -390,9 +415,9 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
         selectedIds = selected,
         submitted   = submitted,
         goesFirst   = goesFirst,
-        onToggle    = { if (!submitted) vm.toggleMulligan(it) },
-        onConfirm   = { vm.confirmMulligan() },
-        onSkip      = { vm.skipMulligan() }
+        onToggle    = { if (!submitted) { SoundManager.playDeckSelect(); vm.toggleMulligan(it) } },
+        onConfirm   = { SoundManager.playMenuTap(); vm.confirmMulligan() },
+        onSkip      = { SoundManager.playMenuTap(); vm.skipMulligan() }
     )
 }
 
@@ -404,6 +429,16 @@ private fun OnlineGameOverOverlay(
     onBack: () -> Unit
 ) {
     val result by vm.gameResult
+
+    // Přehraj zvuk výhry/prohry při zobrazení overlay
+    LaunchedEffect(result) {
+        when {
+            result == null            -> Unit
+            result!!.winner == "DRAW" -> Unit
+            result!!.youWin           -> SoundManager.playWin()
+            else                      -> SoundManager.playLose()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -451,7 +486,7 @@ private fun OnlineGameOverOverlay(
             Spacer(Modifier.height(8.dp))
 
             Button(
-                onClick = { vm.returnToLobby() },
+                onClick = { SoundManager.playMenuTap(); vm.returnToLobby() },
                 colors  = ButtonDefaults.buttonColors(containerColor = OgGold),
                 shape   = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(0.6f)
@@ -459,7 +494,7 @@ private fun OnlineGameOverOverlay(
                 Text("Zpět do lobby", color = Color.Black, fontWeight = FontWeight.Bold)
             }
 
-            TextButton(onClick = { vm.disconnect(); onBack() }) {
+            TextButton(onClick = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }) {
                 Text("Odejít", color = OgTextMuted, fontSize = 12.sp)
             }
         }

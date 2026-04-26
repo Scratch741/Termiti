@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -286,7 +287,10 @@ fun GameScreen(
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
-                                           .background(Color(0xD8120A03))
+                                           .paint(
+                                               painterResource(R.drawable.hand_background),
+                                               contentScale = ContentScale.Crop
+                                           )
             )
         }
 
@@ -663,9 +667,12 @@ fun NewBattlefield(
     revealedAiCardIdx: Int? = null    // původní index v ruce (před zahráním)
 ) {
     BoxWithConstraints(
-        modifier = modifier.background(
-            Brush.verticalGradient(listOf(Color(0xFF0A1A0A), Color(0xFF151A08), Color(0xFF1A1008)))
-        )
+        modifier = modifier
+            .clipToBounds()
+            .paint(
+                painterResource(R.drawable.castle_background),
+                contentScale = ContentScale.Crop
+            )
     ) {
         // Přirozená velikost karty
         val cardNatH = 140.dp
@@ -737,7 +744,6 @@ fun NewBattlefield(
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp)
         )
-
         // ── Hrad AI – vpravo dole ────────────────────────────────────────────────
         NewCastleStructure(
             castleHp = aiState.castleHP,
@@ -747,7 +753,6 @@ fun NewBattlefield(
                 .align(Alignment.BottomEnd)
                 .padding(end = 8.dp, bottom = 4.dp)
         )
-
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
         val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
         // Statický slot drží STABILNÍ zobrazení – aktualizuje se jen když karta
@@ -838,7 +843,7 @@ fun NewBattlefield(
                                 transformOrigin = TransformOrigin(0.5f, 0.5f)
                             }
                     ) {
-                        CardView(card = shown, canPlay = false, discardMode = false, onClick = {})
+                        CardView(card = shown, canPlay = false, discardMode = false, showFade = false, onClick = {})
                         // Overlay: ikona akce přesně uprostřed karty
                         val overlayIcon = when (displayAction) {
                             CardAction.DISCARDED -> "✕"
@@ -1190,17 +1195,12 @@ fun AiHandRow(
 
 @Composable
 fun CardBack(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(width = 22.dp, height = 32.dp)
-            .clip(RoundedCornerShape(3.dp))
-            .background(Color(0xFF1E1530))
-            .border(1.dp, CrimsonDark.copy(alpha = 0.5f), RoundedCornerShape(3.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("?", color = CrimsonDark.copy(alpha = 0.6f), fontSize = 10.sp,
-            fontWeight = FontWeight.Bold)
-    }
+    Image(
+        painter            = painterResource(R.drawable.card_back_frame),
+        contentDescription = null,
+        contentScale       = ContentScale.FillBounds,
+        modifier           = modifier.size(width = 22.dp, height = 32.dp)
+    )
 }
 
 /** Vrátí název drawable rámu podle typu zdroje karty. */
@@ -1798,7 +1798,8 @@ fun CardView(
     onClick: () -> Unit,
     onDiscard: (() -> Unit)? = null,
     isComboCard: Boolean = card.isCombo,
-    conditionMet: Boolean? = null   // null = karta nemá podmínku
+    conditionMet: Boolean? = null,  // null = karta nemá podmínku
+    showFade: Boolean = true        // false = vždy plná opacity (např. zahraná karta uprostřed)
 ) {
     val offsetY   = remember { Animatable(0f) }
     val scope     = rememberCoroutineScope()
@@ -1835,6 +1836,7 @@ fun CardView(
             conditionMet = conditionMet,
             isComboCard = isComboCard,
             dragModifier = dragModifier,
+            showFade    = showFade,
             onClick     = onClick
         )
     } else {
@@ -1851,7 +1853,7 @@ fun CardView(
             isDragging || discardMode -> Color(0xFF250A0A)
             canPlay && isComboCard    -> Color(0xFF1E1A10)
             canPlay                   -> BgCard
-            else                      -> BgCard.copy(alpha = 0.45f)
+            else                      -> BgCard
         }
 
         Box(
@@ -1980,6 +1982,7 @@ private fun CardViewTextured(
     conditionMet: Boolean?,
     isComboCard: Boolean,
     dragModifier: Modifier,
+    showFade: Boolean = true,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -2003,6 +2006,7 @@ private fun CardViewTextured(
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .then(dragModifier)
             .clip(RoundedCornerShape(6.dp))
+            .background(BgCard)
             .then(if (borderColor != Color.Transparent)
                 Modifier.border(1.5.dp, borderColor, RoundedCornerShape(6.dp)) else Modifier)
             .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
@@ -2023,7 +2027,7 @@ private fun CardViewTextured(
                 modifier = artModifier(card),
                 contentScale = ContentScale.Crop,
                 alignment = artAlignment(card),
-                alpha = if (canPlay || discardMode) 1f else 0.6f
+                alpha = if (!showFade || canPlay || discardMode) 1f else 0.6f
             )
         }
 
@@ -2236,7 +2240,12 @@ fun MulliganOverlay(
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), BgPanel)))
+                .then(
+                    Modifier.paint(
+                        painterResource(R.drawable.mulligan_background),
+                        contentScale = ContentScale.Crop
+                    )
+                )
                 .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .padding(horizontal = 28.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

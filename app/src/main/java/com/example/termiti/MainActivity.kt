@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.termiti.ui.theme.TermitiTheme
 
-private enum class Screen { MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP }
+private enum class Screen { MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS }
 
 class MainActivity : ComponentActivity() {
 
@@ -55,7 +55,11 @@ class MainActivity : ComponentActivity() {
                             onBuildDeck   = { screen = Screen.DECK_BUILDER },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onMultiplayer = { screen = Screen.MP_SELECT },
+                            onSettings    = { screen = Screen.SETTINGS },
                             onExit        = { finish() }
+                        )
+                        Screen.SETTINGS -> SettingsScreen(
+                            onBack = { screen = Screen.MENU }
                         )
                         Screen.GAME -> GameScreen(
                             viewModel    = viewModel,

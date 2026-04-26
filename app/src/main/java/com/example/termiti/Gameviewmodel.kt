@@ -83,8 +83,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackPlayer(15)), artResId = R.drawable.art_delostrelectvo, type = "Útok", artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
         Card("022", "Přímý zásah",    "Poškodí hrad −8.",  cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_primy_zasah, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
-        Card("023", "Dvojitý úder",   "Zaútočí na nepřítele za 12.",             cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.AttackPlayer(12)),artResId = R.drawable.art_dvojity_utok, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+        Card("023", "Dvojitý úder",   "Zaútočí na hrad za 7 a hradby za 7.",     cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
+            effects = listOf(CardEffect.AttackPlayer(7), CardEffect.AttackWall(7)),artResId = R.drawable.art_dvojity_utok, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
         Card("024", "Berserk",        "Pokud máš <5 hradeb, udeř hrad za 13.",  cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.ConditionalEffect(
                 Condition.WallBelow(5),
@@ -1491,60 +1491,57 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         arenaWins.value  = 0
     }
 
-    private fun playSoundForCard(card: Card) {
-        // 1. Úplně vlastní zvukový soubor – nejvyšší priorita
-        if (card.soundResId != null) {
-            SoundManager.playCustom(card.soundResId)
-            return
-        }
+    private fun playSoundForCard(card: Card) = playSoundForCardGlobal(card)
+}
 
-        // 2. Per-karta kategoriový zvuk
-        if (card.sound != null) {
-            when (card.sound) {
-                CardSound.ATTACK       -> SoundManager.playAttack()
-                CardSound.MINE_DESTROY -> SoundManager.playMineDestroy()
-                CardSound.BUILD        -> SoundManager.playBuild()
-                CardSound.RESOURCE     -> SoundManager.playResource()
-                CardSound.DRAW         -> SoundManager.playCardDraw()
-                CardSound.CARD_PLAY    -> SoundManager.playCardPlay()
-            }
-            return
+/**
+ * Top-level funkce pro přehrání zvuku karty – sdílena mezi offline i online hrou.
+ * Priorita: soundResId > card.sound > auto-detekce z efektů.
+ */
+fun playSoundForCardGlobal(card: Card) {
+    if (card.soundResId != null) {
+        SoundManager.playCustom(card.soundResId)
+        return
+    }
+    if (card.sound != null) {
+        when (card.sound) {
+            CardSound.ATTACK       -> SoundManager.playAttack()
+            CardSound.MINE_DESTROY -> SoundManager.playMineDestroy()
+            CardSound.BUILD        -> SoundManager.playBuild()
+            CardSound.RESOURCE     -> SoundManager.playResource()
+            CardSound.DRAW         -> SoundManager.playCardDraw()
+            CardSound.CARD_PLAY    -> SoundManager.playCardPlay()
         }
-
-        // 3. Pomocná funkce: rekurzivně rozbalí ConditionalEffect a vrátí plochý seznam efektů
-        fun CardEffect.flatten(): List<CardEffect> =
-            if (this is CardEffect.ConditionalEffect) listOf(this) + effect.flatten()
-            else listOf(this)
-
-        val allEffects = card.effects.flatMap { it.flatten() }
-
-        // 4. Auto-detekce: mine_destroy > útok > stavba > suroviny > obecné zahrání
-        val hasMineDestroy = allEffects.any { it is CardEffect.DestroyMine }
-        val hasAttack = allEffects.any { e ->
-            e is CardEffect.AttackPlayer        || e is CardEffect.AttackCastle  ||
-            e is CardEffect.AttackWall          || e is CardEffect.StealResource ||
-            e is CardEffect.DrainResource       || e is CardEffect.BlockMine     ||
-            e is CardEffect.BurnCard            || e is CardEffect.StealCard     ||
-            e is CardEffect.StealCastle         ||
-            e is CardEffect.XScaledAttackPlayer || e is CardEffect.XScaledAttackCastle
-        }
-        val hasBuild = allEffects.any { e ->
-            e is CardEffect.BuildCastle || e is CardEffect.BuildWall ||
-            e is CardEffect.AddMine     || e is CardEffect.XScaledBuildCastle
-        }
-        val hasResource = allEffects.any { e ->
-            e is CardEffect.AddResource        || e is CardEffect.AddResourceDelayed ||
-            e is CardEffect.AddCardsToDeck     || e is CardEffect.XScaledDualResource ||
-            e is CardEffect.DrawCard
-        }
-
-        when {
-            hasMineDestroy -> SoundManager.playMineDestroy()
-            hasAttack      -> SoundManager.playAttack()
-            hasBuild       -> SoundManager.playBuild()
-            hasResource    -> SoundManager.playResource()
-            else           -> SoundManager.playCardPlay()
-        }
+        return
+    }
+    fun CardEffect.flatten(): List<CardEffect> =
+        if (this is CardEffect.ConditionalEffect) listOf(this) + effect.flatten()
+        else listOf(this)
+    val allEffects = card.effects.flatMap { it.flatten() }
+    val hasMineDestroy = allEffects.any { it is CardEffect.DestroyMine }
+    val hasAttack = allEffects.any { e ->
+        e is CardEffect.AttackPlayer        || e is CardEffect.AttackCastle  ||
+        e is CardEffect.AttackWall          || e is CardEffect.StealResource ||
+        e is CardEffect.DrainResource       || e is CardEffect.BlockMine     ||
+        e is CardEffect.BurnCard            || e is CardEffect.StealCard     ||
+        e is CardEffect.StealCastle         ||
+        e is CardEffect.XScaledAttackPlayer || e is CardEffect.XScaledAttackCastle
+    }
+    val hasBuild = allEffects.any { e ->
+        e is CardEffect.BuildCastle || e is CardEffect.BuildWall ||
+        e is CardEffect.AddMine     || e is CardEffect.XScaledBuildCastle
+    }
+    val hasResource = allEffects.any { e ->
+        e is CardEffect.AddResource        || e is CardEffect.AddResourceDelayed ||
+        e is CardEffect.AddCardsToDeck     || e is CardEffect.XScaledDualResource ||
+        e is CardEffect.DrawCard
+    }
+    when {
+        hasMineDestroy -> SoundManager.playMineDestroy()
+        hasAttack      -> SoundManager.playAttack()
+        hasBuild       -> SoundManager.playBuild()
+        hasResource    -> SoundManager.playResource()
+        else           -> SoundManager.playCardPlay()
     }
 }
 

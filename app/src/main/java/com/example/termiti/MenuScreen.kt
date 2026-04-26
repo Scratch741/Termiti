@@ -32,6 +32,7 @@ fun MenuScreen(
     onBuildDeck: () -> Unit,
     onArena: () -> Unit,
     onMultiplayer: () -> Unit,
+    onSettings: () -> Unit,
     onExit: () -> Unit
 ) {
     Box(
@@ -68,6 +69,7 @@ fun MenuScreen(
             MenuButton("🌐  MULTIPLAYER", accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
             MenuButton("🃏  SESTAVIT BALÍK", accent = Gold, onClick = onBuildDeck)
             MenuButton("🏟️  ARÉNA", accent = Color(0xFF9B59B6), onClick = onArena)
+            MenuButton("⚙️  NASTAVENÍ", accent = Color(0xFF607D8B), onClick = onSettings)
             MenuButton("✕  KONEC", accent = Color(0xFF8B4444), onClick = onExit)
         }
     }

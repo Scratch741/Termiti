@@ -588,6 +588,8 @@ class MultiplayerViewModel(
         if (!isMyTurn.value && !isComboTurn.value) return
         val me  = myState.value.deepCopy()
         val opp = oppState.value.deepCopy()
+        // Snapshot PŘED zaplacením – checkCondition (ResourceAbove) ho potřebuje
+        me.preCostResources = me.resources.toMap()
         val xValue: Int
         if (card.isXCost) {
             xValue = me.resources[card.costType] ?: 0
@@ -598,6 +600,7 @@ class MultiplayerViewModel(
         }
         me.lastPlayedType = card.type
         applyEffects(card.effects, me, opp, allCards, xValue = xValue)
+        me.preCostResources = null
         me.hand.remove(card)
         me.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isMine = true)
@@ -642,6 +645,8 @@ class MultiplayerViewModel(
         val card = cardByUid[uid] ?: return
         val me  = myState.value.deepCopy()
         val opp = oppState.value.deepCopy()
+        // Snapshot PŘED zaplacením – checkCondition (ResourceAbove) ho potřebuje
+        opp.preCostResources = opp.resources.toMap()
         val oppXValue: Int
         if (card.isXCost) {
             oppXValue = opp.resources[card.costType] ?: 0
@@ -654,6 +659,7 @@ class MultiplayerViewModel(
         applyEffects(card.effects, opp, me, allCards, xValue = oppXValue,
             onOpponentCardLost = { lostCard, action -> recordOpponentLoss(lostCard, action) }
         )
+        opp.preCostResources = null
         // Karta záměrně zůstává v ruce – odstraníme ji až po vizuálním odhalení
         recordCard(card, CardAction.PLAYED, isMine = false)
         addCardLog(oppName.value, card, CardAction.PLAYED, isMe = false)
