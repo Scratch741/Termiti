@@ -167,6 +167,10 @@ fun GameScreen(
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
     var showLog          by remember { mutableStateOf(false) }
+    var reviewMode       by remember { mutableStateOf(false) }
+    var showOppHand      by remember { mutableStateOf(false) }
+    // Resetuj pohled na soupeřovu ruku při zavření review módu
+    LaunchedEffect(reviewMode) { if (!reviewMode) showOppHand = false }
 
     // ── Flight overlay: animace "karta letí z ruky hráče do discard slotu" ───
     val flight = remember { FlightOverlayState() }
@@ -209,7 +213,7 @@ fun GameScreen(
                 playerLabel    = PlayerProfileManager.profile?.name   ?: "Hráč",
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "⚔️",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
-                onMenu         = { showMenuConfirm = true }
+                onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true }
             )
 
             // ── Hlavní řada ───────────────────────────────────────────────────
@@ -230,6 +234,15 @@ fun GameScreen(
                             active  = true,
                             onClick = { showLog = true }
                         )
+                        if (gameOver != null) {
+                            Spacer(Modifier.height(3.dp))
+                            NewPanelButton(
+                                label   = "🏆 Výsledek",
+                                color   = Gold,
+                                active  = true,
+                                onClick = { reviewMode = false }
+                            )
+                        }
                         if (lostToOpponent.isNotEmpty()) {
                             Spacer(Modifier.height(3.dp))
                             NewPanelButton(
@@ -258,30 +271,42 @@ fun GameScreen(
                     isAi        = true,
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
-                        val btnLabel = if (isComboTurn) "⚡ Konec combo" else "⏩ Konec tahu"
-                        val btnColor = when {
-                            isComboTurn -> Gold
-                            active      -> TealLight
-                            else        -> TextMuted.copy(alpha = 0.35f)
+                        if (gameOver != null) {
+                            // Review mód: toggle soupeřovy ruky
+                            NewPanelButton(
+                                label   = if (showOppHand) "🃏 Moje karty" else "👁 Oponent",
+                                color   = if (showOppHand) TealLight else Gold,
+                                active  = true,
+                                onClick = { showOppHand = !showOppHand }
+                            )
+                        } else {
+                            val btnLabel = if (isComboTurn) "⚡ Konec combo" else "⏩ Konec tahu"
+                            val btnColor = when {
+                                isComboTurn -> Gold
+                                active      -> TealLight
+                                else        -> TextMuted.copy(alpha = 0.35f)
+                            }
+                            NewPanelButton(
+                                label   = btnLabel,
+                                color   = btnColor,
+                                active  = active,
+                                onClick = if (active) {
+                                    { if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn() }
+                                } else null
+                            )
                         }
-                        NewPanelButton(
-                            label   = btnLabel,
-                            color   = btnColor,
-                            active  = active,
-                            onClick = if (active) {
-                                { if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn() }
-                            } else null
-                        )
                     }
                 )
             }
 
             // ── Ruka hráče – přes celou šířku dole ───────────────────
             Box(Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF6B3D12)))
+            val displayHand = if (gameOver != null && showOppHand)
+                state.aiState.hand else state.playerState.hand
             HandPanel(
-                hand             = state.playerState.hand,
+                hand             = displayHand,
                 isPlayerTurn     = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
-                isComboTurn      = isComboTurn,
+                isComboTurn      = if (gameOver != null) false else isComboTurn,
                 playerResources  = state.playerState.resources,
                 onPlayCard       = { viewModel.playCard(it) },
                 onDiscardCard    = { viewModel.discardCard(it) },
@@ -302,20 +327,23 @@ fun GameScreen(
         gameOver?.let { result ->
             val isPlayerWin = result.isPlayerWin()
             LaunchedEffect(result) { onGameEnd?.invoke(isPlayerWin) }
-            if (isArena) {
-                ArenaGameOverDialog(
-                    result       = result,
-                    wins         = if (isPlayerWin) arenaWins + 1 else arenaWins,
-                    isPlayerWin  = isPlayerWin,
-                    onNextBattle = { onArenaWin() },
-                    onEndArena   = { onArenaLose() }
-                )
-            } else {
-                GameOverDialog(
-                    result    = result,
-                    onRestart = { viewModel.restartGame() },
-                    onMenu    = { viewModel.restartGame(); onBackToMenu() }
-                )
+            if (!reviewMode) {
+                if (isArena) {
+                    ArenaGameOverDialog(
+                        result       = result,
+                        wins         = if (isPlayerWin) arenaWins + 1 else arenaWins,
+                        isPlayerWin  = isPlayerWin,
+                        onNextBattle = { onArenaWin() },
+                        onEndArena   = { onArenaLose() }
+                    )
+                } else {
+                    GameOverDialog(
+                        result    = result,
+                        onRestart = { viewModel.restartGame() },
+                        onMenu    = { viewModel.restartGame(); onBackToMenu() },
+                        onReview  = { reviewMode = true }
+                    )
+                }
             }
         }
 
@@ -2497,7 +2525,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
 
 // ─── Game Over ────────────────────────────────────────────────────────────────
 @Composable
-fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit) {
+fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}) {
     val (title, sub) = when (result) {
         GameResult.PLAYER_CASTLE_DESTROYED -> "Prohrál jsi"  to "Tvůj hrad byl zničen."
         GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."
@@ -2538,6 +2566,15 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("HRÁT ZNOVU", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onReview,
+                colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2A35)),
+                shape   = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("📋 PROHLÉDNOUT HRU", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
             Spacer(Modifier.height(8.dp))
             Button(

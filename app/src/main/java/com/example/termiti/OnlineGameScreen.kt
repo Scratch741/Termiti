@@ -107,6 +107,11 @@ fun OnlineGameScreen(
 ) {
     val phase by vm.phase
 
+    // Review mód: hráč si prohlíží zamrzlou hru po jejím skončení
+    var reviewMode by remember { mutableStateOf(false) }
+    // Reset review módu při přechodu z GAME_OVER do jiné fáze
+    LaunchedEffect(phase) { if (phase != OnlinePhase.GAME_OVER) reviewMode = false }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -122,8 +127,19 @@ fun OnlineGameScreen(
                 OnlineGameplay(vm, onBack)
             }
             OnlinePhase.GAME_OVER -> {
-                OnlineGameplay(vm, onBack)
-                OnlineGameOverOverlay(vm, onBack)
+                OnlineGameplay(
+                    vm           = vm,
+                    onBack       = onBack,
+                    reviewMode   = reviewMode,
+                    onShowResult = { reviewMode = false }
+                )
+                if (!reviewMode) {
+                    OnlineGameOverOverlay(
+                        vm       = vm,
+                        onBack   = onBack,
+                        onReview = { reviewMode = true }
+                    )
+                }
             }
             else -> {
                 // Zpět do lobby přes onBack (nemělo by nastat)
@@ -137,7 +153,9 @@ fun OnlineGameScreen(
 @Composable
 private fun OnlineGameplay(
     vm: OnlineLobbyViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    reviewMode: Boolean = false,
+    onShowResult: () -> Unit = {}
 ) {
     val gs             by vm.gameState
     val matchInfo      by vm.matchInfo
@@ -147,9 +165,14 @@ private fun OnlineGameplay(
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
-    var showLog  by remember { mutableStateOf(false) }
-    var showMenu by remember { mutableStateOf(false) }
-    val gameLog  by vm.gameLog
+    var showLog     by remember { mutableStateOf(false) }
+    var showMenu    by remember { mutableStateOf(false) }
+    var showOppHand by remember { mutableStateOf(false) }
+    val gameLog     by vm.gameLog
+    val phase       by vm.phase
+    val isGameOver  = phase == OnlinePhase.GAME_OVER
+    // Resetuj pohled na soupeřovu ruku při zavření review módu
+    LaunchedEffect(reviewMode) { if (!reviewMode) showOppHand = false }
 
     val opponentName = matchInfo?.opponentName ?: "Soupeř"
 
@@ -261,7 +284,7 @@ private fun OnlineGameplay(
                 opponentLabel    = opponentName,
                 opponentAvatar   = matchInfo?.opponentAvatar ?: "👺",
                 opponentLevel    = matchInfo?.opponentLevel  ?: -1,
-                onMenu           = { showMenu = true },
+                onMenu           = { if (reviewMode) onShowResult() else showMenu = true },
                 playerTimerText  = timerText(isMe = true),
                 playerTimerColor = timerColor(isMe = true),
                 oppTimerText     = timerText(isMe = false),
@@ -283,6 +306,15 @@ private fun OnlineGameplay(
                             active  = true,
                             onClick = { SoundManager.playMenuTap(); showLog = !showLog }
                         )
+                        if (reviewMode) {
+                            Spacer(Modifier.height(3.dp))
+                            NewPanelButton(
+                                label   = "🏆 Výsledek",
+                                color   = OgGold,
+                                active  = true,
+                                onClick = { SoundManager.playMenuTap(); onShowResult() }
+                            )
+                        }
                     }
                 )
 
@@ -304,31 +336,43 @@ private fun OnlineGameplay(
                     isAi        = true,
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
-                        val btnColor = if (gs.isMyTurn) OgTealLight
-                                       else OgTextMuted.copy(alpha = 0.35f)
-                        NewPanelButton(
-                            label   = if (gs.isMyTurn) "⏩ Konec tahu" else "⏳ Čekám…",
-                            color   = btnColor,
-                            active  = gs.isMyTurn,
-                            onClick = if (gs.isMyTurn) {
-                                {
-                                    SoundManager.playMenuTap()
-                                    if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)
-                                        vm.skipTurn()
-                                    else
-                                        vm.endTurn()
-                                }
-                            } else null
-                        )
+                        if (isGameOver) {
+                            // Review mód: toggle soupeřovy ruky
+                            NewPanelButton(
+                                label   = if (showOppHand) "🃏 Moje karty" else "👁 Oponent",
+                                color   = if (showOppHand) OgTealLight else OgGold,
+                                active  = true,
+                                onClick = { SoundManager.playMenuTap(); showOppHand = !showOppHand }
+                            )
+                        } else {
+                            val btnColor = if (gs.isMyTurn) OgTealLight
+                                           else OgTextMuted.copy(alpha = 0.35f)
+                            NewPanelButton(
+                                label   = if (gs.isMyTurn) "⏩ Konec tahu" else "⏳ Čekám…",
+                                color   = btnColor,
+                                active  = gs.isMyTurn,
+                                onClick = if (gs.isMyTurn) {
+                                    {
+                                        SoundManager.playMenuTap()
+                                        if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)
+                                            vm.skipTurn()
+                                        else
+                                            vm.endTurn()
+                                    }
+                                } else null
+                            )
+                        }
                     }
                 )
             }
 
             // ── Ruka ──────────────────────────────────────────────────────────
+            // V review módu: zobraz soupeřovu ruku (skryté karty – dummy); jinak moji
+            val displayHand = if (isGameOver && showOppHand) oppPs.hand else myPs.hand
             Box(Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF6B3D12)))
             HandPanel(
-                hand             = myPs.hand,
-                isPlayerTurn     = gs.isMyTurn,
+                hand             = displayHand,
+                isPlayerTurn     = gs.isMyTurn && !isGameOver,
                 isComboTurn      = false,
                 playerResources  = myPs.resources,
                 onPlayCard       = { card -> vm.playCard(card.id) },
@@ -431,7 +475,8 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
 @Composable
 private fun OnlineGameOverOverlay(
     vm: OnlineLobbyViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onReview: () -> Unit = {}
 ) {
     val result by vm.gameResult
 
@@ -499,6 +544,15 @@ private fun OnlineGameOverOverlay(
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
                 Text("Zpět do lobby", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+                onClick  = { SoundManager.playMenuTap(); onReview() },
+                colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2A35)),
+                shape    = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(0.6f)
+            ) {
+                Text("📋 Prohlédnout hru", color = OgTextPrimary, fontWeight = FontWeight.Bold)
             }
 
             TextButton(onClick = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }) {
