@@ -157,15 +157,20 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
     val errorMsg        by vm.errorMsg
     val statusMsg       by vm.statusMsg
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center
+    ) {
         Row(
             modifier              = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), OnPanel)))
                 .border(1.dp, OnGold.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 28.dp, vertical = 24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
             // ── Levý sloupec: hlavička + statistiky + tlačítka ────────────────
@@ -176,16 +181,16 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 Text(
                     "LOBBY",
                     color         = OnTeal,
-                    fontSize      = 20.sp,
+                    fontSize      = 18.sp,
                     fontWeight    = FontWeight.Bold,
                     letterSpacing = 4.sp
                 )
                 Spacer(Modifier.height(2.dp))
                 Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
                     StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
                 }
@@ -196,7 +201,7 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 }
 
                 if (errorMsg.isNotBlank()) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         errorMsg,
                         color     = OnRed,
@@ -206,24 +211,24 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                     )
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
 
-                OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(200.dp)) {
+                OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(190.dp)) {
                     vm.joinQueue(superRandom = false)
                 }
-                Spacer(Modifier.height(6.dp))
-                OnBtn("🌪️  Super Náhodný", Color(0xFFAA44CC), Modifier.width(200.dp)) {
+                Spacer(Modifier.height(5.dp))
+                OnBtn("🌪️  Super Náhodný", Color(0xFFAA44CC), Modifier.width(190.dp)) {
                     vm.joinQueue(superRandom = true)
                 }
-                Spacer(Modifier.height(8.dp))
-                OnBtn("← Odpojit", OnMuted, Modifier.width(200.dp)) { vm.disconnect(); onBack() }
+                Spacer(Modifier.height(5.dp))
+                OnBtn("← Odpojit", OnMuted, Modifier.width(190.dp)) { vm.disconnect(); onBack() }
             }
 
             // ── Oddělovač ─────────────────────────────────────────────────────
             Box(
                 Modifier
                     .width(1.dp)
-                    .height(140.dp)
+                    .height(120.dp)
                     .background(OnGold.copy(alpha = 0.15f))
             )
 
@@ -469,11 +474,11 @@ private fun StatBox(value: String, label: String, accent: Color) {
             .clip(RoundedCornerShape(10.dp))
             .background(accent.copy(alpha = 0.09f))
             .border(1.dp, accent.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, color = accent, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            Text(value, color = accent, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(label, color = OnMuted, fontSize = 9.sp, letterSpacing = 1.sp)
         }
     }
@@ -493,7 +498,7 @@ private fun OnBtn(
             .background(accent.copy(alpha = if (enabled) 0.12f else 0.04f))
             .border(1.dp, accent.copy(alpha = if (enabled) 0.5f else 0.15f), RoundedCornerShape(8.dp))
             .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
