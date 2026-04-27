@@ -167,6 +167,10 @@ fun ProfileScreen(onBack: () -> Unit) {
                             val updated = PlayerProfileManager.addRewards(xp = 0, gold = 0, gems = 50)
                             profile = updated
                         }
+                        DebugBtn("⭐ +100", PrGreen, Modifier.weight(1f)) {
+                            val updated = PlayerProfileManager.addRewards(xp = 100, gold = 0, gems = 0)
+                            profile = updated
+                        }
                     }
                 }
             }
