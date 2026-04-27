@@ -456,7 +456,9 @@ class GameSession {
     if (winner === 'A') winnerName = this.name.A;
     else if (winner === 'B') winnerName = this.name.B;
 
-    this._sendStateBoth();   // final state snapshot
+    // Finální stav – odhal soupeřovu ruku pro review mód
+    this._send('A', this._buildStateFor('A', true));
+    this._send('B', this._buildStateFor('B', true));
 
     const msg = {
       type:       'GAME_OVER',
@@ -488,12 +490,32 @@ class GameSession {
     }));
   }
 
-  /** Build the state payload to send to one player. */
-  _buildStateFor(side) {
+  /**
+   * Build the state payload to send to one player.
+   * @param {boolean} revealOppHand – true = odhal soupeřovu ruku (posílá se jen při konci hry)
+   */
+  _buildStateFor(side, revealOppHand = false) {
     const mySide  = side;
     const oppSide = side === 'A' ? 'B' : 'A';
     const my  = this.state[mySide];
     const opp = this.state[oppSide];
+
+    const oppStatePayload = {
+      castleHP:        opp.castleHP,
+      wallHP:          opp.wallHP,
+      resources:       { ...opp.resources },
+      mines:           { ...opp.mines },
+      mineBlockedTurns:{ ...opp.mineBlockedTurns },
+      handSize:        opp.hand.length,
+      deckSize:        opp.deck.length,
+      discardSize:     opp.discardPile.length,
+      lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
+    };
+
+    // Při konci hry přidej skutečné karty soupeře – klient je zobrazí v review módu
+    if (revealOppHand) {
+      oppStatePayload.hand = this._serializeHand(oppSide);
+    }
 
     return {
       type: 'GAME_STATE',
@@ -511,18 +533,7 @@ class GameSession {
         deckSize:        my.deck.length,
         discardSize:     my.discardPile.length
       },
-      oppState: {
-        castleHP:        opp.castleHP,
-        wallHP:          opp.wallHP,
-        resources:       { ...opp.resources },
-        mines:           { ...opp.mines },
-        mineBlockedTurns:{ ...opp.mineBlockedTurns },
-        handSize:        opp.hand.length,       // opponent hand is hidden
-        deckSize:        opp.deck.length,
-        discardSize:     opp.discardPile.length,
-        // Index zahrané karty v ruce (před zahráním) – null pokud soupeř nezahrál
-        lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
-      },
+      oppState: oppStatePayload,
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,
       lastPlayedAction: this.lastPlayedAction,

@@ -526,7 +526,11 @@ class OnlineLobbyViewModel(
 
         val hand: List<Card> = if (isMe) {
             parseCardArray(obj.optJSONArray("hand"))
-        } else emptyList()
+        } else {
+            // Normálně skrytá; server odhalí skutečné karty v posledním GAME_STATE (game over)
+            val revealedArr = obj.optJSONArray("hand")
+            if (revealedArr != null) parseCardArray(revealedArr) else emptyList()
+        }
 
         val lastPlayedIdx = if (!isMe && !obj.isNull("lastPlayedIdx"))
             obj.optInt("lastPlayedIdx", -1).takeIf { it >= 0 }

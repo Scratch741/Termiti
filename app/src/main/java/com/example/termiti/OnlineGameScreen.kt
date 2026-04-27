@@ -65,11 +65,12 @@ private fun OnlinePlayerState.toPlayerState(oppHandSize: Int = -1): PlayerState 
         PendingResource(rt, p.amount, p.turnsLeft)
     }.toMutableList()
 
-    val handList: MutableList<Card> = if (oppHandSize >= 0) {
+    val handList: MutableList<Card> = when {
+        // Server odhalil skutečné karty soupeře (konec hry – review mód)
+        hand.isNotEmpty()  -> hand.toMutableList()
         // Soupeřova ruka – skrytá: použijeme dummy karty (jen počet → zobrazí se jako ruby)
-        MutableList(oppHandSize) { dummyCard }
-    } else {
-        hand.toMutableList()
+        oppHandSize >= 0   -> MutableList(oppHandSize) { dummyCard }
+        else               -> hand.toMutableList()
     }
 
     return PlayerState(
