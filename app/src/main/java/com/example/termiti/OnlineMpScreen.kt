@@ -209,7 +209,11 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 Spacer(Modifier.height(16.dp))
 
                 OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(200.dp)) {
-                    vm.joinQueue()
+                    vm.joinQueue(superRandom = false)
+                }
+                Spacer(Modifier.height(6.dp))
+                OnBtn("🌪️  Super Náhodný", Color(0xFFAA44CC), Modifier.width(200.dp)) {
+                    vm.joinQueue(superRandom = true)
                 }
                 Spacer(Modifier.height(8.dp))
                 OnBtn("← Odpojit", OnMuted, Modifier.width(200.dp)) { vm.disconnect(); onBack() }
@@ -316,16 +320,29 @@ private fun DeckChip(
 
 @Composable
 private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
-    val queueSize by vm.queueSize
+    val queueSize    by vm.queueSize
+    val isSuperRandom by vm.isSuperRandom
+
+    val accentColor  = if (isSuperRandom) Color(0xFFAA44CC) else OnTeal
+    val modeLabel    = if (isSuperRandom) "🌪️ Super Náhodný" else "⚔️ Rychlý zápas"
 
     CenteredCard {
         // Animovaný spinner
         CircularProgressIndicator(
-            color     = OnTeal,
-            modifier  = Modifier.size(52.dp),
+            color       = accentColor,
+            modifier    = Modifier.size(52.dp),
             strokeWidth = 3.dp
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            modeLabel,
+            color      = accentColor,
+            fontSize   = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+        Spacer(Modifier.height(6.dp))
 
         Text(
             "Hledám soupeře…",

@@ -97,6 +97,9 @@ class OnlineLobbyViewModel(
     /** -1 = náhodný balíček, 0..2 = index uloženého balíčku */
     var selectedDeckIndex = mutableStateOf(-1); private set
 
+    /** True = hráč čeká v super-náhodné frontě */
+    var isSuperRandom = mutableStateOf(false); private set
+
     /** Předem sestavené IDs z vybraného balíčku; null = náhodný */
     private var _pendingDeckIds: List<String>? = null
 
@@ -153,7 +156,21 @@ class OnlineLobbyViewModel(
         ws = httpClient.newWebSocket(request, GameListener())
     }
 
-    fun joinQueue() {
+    fun joinQueue(superRandom: Boolean = false) {
+        errorMsg.value = ""
+        if (superRandom) {
+            // Super náhodný mód: žádný vlastní balíček, speciální fronta
+            val json = JSONObject().apply {
+                put("type", "QUEUE_JOIN")
+                put("mode", "super_random")
+            }
+            ws?.send(json.toString())
+            isSuperRandom.value = true
+            phase.value     = OnlinePhase.QUEUING
+            statusMsg.value = "Hledám super náhodného soupeře…"
+            return
+        }
+
         val deckIds = _pendingDeckIds
         android.util.Log.d("DECK", "joinQueue: selectedDeckIndex=${selectedDeckIndex.value}, deckIds=${deckIds?.size ?: "null"}")
         // Pokud je vybrán konkrétní balíček ale nemá platná IDs, zablokuj
@@ -161,7 +178,6 @@ class OnlineLobbyViewModel(
             errorMsg.value = "Vybraný balíček nemá 30 karet"
             return
         }
-        errorMsg.value = ""
         val json = JSONObject().apply {
             put("type", "QUEUE_JOIN")
             if (deckIds != null) {
@@ -173,12 +189,14 @@ class OnlineLobbyViewModel(
         val jsonStr = json.toString()
         android.util.Log.d("DECK", "QUEUE_JOIN payload length=${jsonStr.length}, hasDeckIds=${jsonStr.contains("deckIds")}")
         ws?.send(jsonStr)
+        isSuperRandom.value = false
         phase.value     = OnlinePhase.QUEUING
         statusMsg.value = "Hledám soupeře…"
     }
 
     fun leaveQueue() {
         send("type" to "QUEUE_LEAVE")
+        isSuperRandom.value = false
         phase.value     = OnlinePhase.LOBBY
         statusMsg.value = ""
     }
@@ -186,8 +204,9 @@ class OnlineLobbyViewModel(
     /** Konec hry → zůstat připojený, vrátit se do lobby (připraven na nový zápas). */
     fun returnToLobby() {
         resetGameState()
-        _pendingDeckIds     = null
+        _pendingDeckIds         = null
         selectedDeckIndex.value = -1
+        isSuperRandom.value     = false
         phase.value     = OnlinePhase.LOBBY
         statusMsg.value = ""
     }

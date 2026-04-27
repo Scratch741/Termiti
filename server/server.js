@@ -52,8 +52,9 @@ const wss = new WebSocket.Server({ port: PORT });
 // Hráči v lobby: Map<WebSocket, { id, name, inQueue, gameId|null }>
 const players = new Map();
 
-// Matchmaking fronta
-const queue = [];
+// Matchmaking fronty
+const queue      = [];        // normální / vlastní balíček
+const superQueue = [];        // super náhodný (50 karet, 15/15/15/5)
 
 // Aktivní hry: Map<gameId, GameSession>
 const games = new Map();
@@ -70,7 +71,7 @@ function broadcastCount() {
   const msg = JSON.stringify({
     type:   'COUNT',
     online: players.size,
-    queue:  queue.length
+    queue:  queue.length + superQueue.length
   });
   for (const ws of players.keys()) {
     if (ws.readyState === WebSocket.OPEN) ws.send(msg);
@@ -80,6 +81,8 @@ function broadcastCount() {
 function removeFromQueue(ws) {
   const idx = queue.indexOf(ws);
   if (idx !== -1) queue.splice(idx, 1);
+  const si = superQueue.indexOf(ws);
+  if (si !== -1) superQueue.splice(si, 1);
   const p = players.get(ws);
   if (p) p.inQueue = false;
 }
@@ -91,10 +94,10 @@ function log(tag, msg) {
 
 // ── Matchmaking ───────────────────────────────────────────────────────────────
 
-function tryMatch() {
-  while (queue.length >= 2) {
-    const wsA = queue.shift();
-    const wsB = queue.shift();
+function tryMatchFromQueue(q, mode) {
+  while (q.length >= 2) {
+    const wsA = q.shift();
+    const wsB = q.shift();
 
     const pA = players.get(wsA);
     const pB = players.get(wsB);
@@ -103,26 +106,21 @@ function tryMatch() {
     const bOk = pB && wsB.readyState === WebSocket.OPEN;
 
     if (!aOk && !bOk) continue;
-    if (!aOk) { queue.unshift(wsB); if (pB) pB.inQueue = true; continue; }
-    if (!bOk) { queue.unshift(wsA); if (pA) pA.inQueue = true; continue; }
+    if (!aOk) { q.unshift(wsB); if (pB) pB.inQueue = true; continue; }
+    if (!bOk) { q.unshift(wsA); if (pA) pA.inQueue = true; continue; }
 
     pA.inQueue = false;
     pB.inQueue = false;
 
     const gameId = uuidv4();
-    log('MATCH', `${pA.name} vs ${pB.name} | game ${gameId}`);
+    log('MATCH', `${pA.name} vs ${pB.name} | game ${gameId} [${mode}]`);
 
-    // Ulož odkaz na hru do záznamu hráče
-    pA.gameId = gameId;
-    pB.gameId = gameId;
-    pA.side   = 'A';
-    pB.side   = 'B';
+    pA.gameId = gameId; pB.gameId = gameId;
+    pA.side   = 'A';    pB.side   = 'B';
 
-    // Informuj klienty (lobby zpráva – stejná jako Etapa 2)
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, side: 'A' });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, side: 'B' });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, side: 'B', mode });
 
-    // Callback volaný při ukončení hry – uvolní hráče do lobby
     const onGameEnd = (gid) => {
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
       if (players.get(wsB)) { players.get(wsB).gameId = null; players.get(wsB).side = null; }
@@ -131,8 +129,7 @@ function tryMatch() {
       broadcastCount();
     };
 
-    // Vytvoř herní session a spusť ji (předej volitelné deck IDs)
-    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd);
+    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd, mode);
     games.set(gameId, session);
     try {
       session.start();
@@ -148,6 +145,11 @@ function tryMatch() {
 
     broadcastCount();
   }
+}
+
+function tryMatch() {
+  tryMatchFromQueue(queue,      'normal');
+  tryMatchFromQueue(superQueue, 'super_random');
 }
 
 // ── Příchozí spojení ──────────────────────────────────────────────────────────
@@ -241,17 +243,24 @@ wss.on('connection', (ws, req) => {
         if (!player) { send(ws, { type: 'ERROR', msg: 'Nejsi přihlášen' }); return; }
         if (player.inQueue || player.gameId) return;
 
-        // DEBUG: loguj co přišlo
-        console.log(`[QUEUE_JOIN] ${player.name}: deckIds type=${typeof msg.deckIds}, isArray=${Array.isArray(msg.deckIds)}, length=${Array.isArray(msg.deckIds) ? msg.deckIds.length : 'N/A'}, raw=${JSON.stringify(msg.deckIds)?.slice(0,80)}`);
+        const mode = msg.mode === 'super_random' ? 'super_random' : 'normal';
 
-        // Ulož volitelně přijaté IDs balíčku (30 base ID) pro sestavení balíčku
-        player.deckIds = Array.isArray(msg.deckIds) ? msg.deckIds : null;
+        if (mode === 'super_random') {
+          // Super náhodný: ignoruj vlastní balíček, speciální fronta
+          player.deckIds = null;
+          player.inQueue = true;
+          superQueue.push(ws);
+          log('QUEUE', `${player.name} čeká v SUPER frontě (${superQueue.length})`);
+        } else {
+          // Normální fronta
+          console.log(`[QUEUE_JOIN] ${player.name}: deckIds type=${typeof msg.deckIds}, isArray=${Array.isArray(msg.deckIds)}, length=${Array.isArray(msg.deckIds) ? msg.deckIds.length : 'N/A'}, raw=${JSON.stringify(msg.deckIds)?.slice(0,80)}`);
+          player.deckIds = Array.isArray(msg.deckIds) ? msg.deckIds : null;
+          player.inQueue = true;
+          queue.push(ws);
+          log('QUEUE', `${player.name} čeká (${queue.length} ve frontě)${player.deckIds ? ' [vlastní balíček]' : ''}`);
+        }
 
-        player.inQueue = true;
-        queue.push(ws);
-        log('QUEUE', `${player.name} čeká (${queue.length} ve frontě)${player.deckIds ? ' [vlastní balíček]' : ''}`);
-
-        send(ws, { type: 'QUEUE_OK' });
+        send(ws, { type: 'QUEUE_OK', mode });
         broadcastCount();
         tryMatch();
         break;

@@ -4,7 +4,7 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, balancedDeck, buildDeckFromIds, shuffle
+  CARD_MAP, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
@@ -28,9 +28,10 @@ class GameSession {
    * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
    * @param {Function|null} onEnd     – callback(gameId) volaný při ukončení hry
    */
-  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null) {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal') {
     this.gameId = gameId;
     this.onEnd  = onEnd;
+    this.mode   = mode;   // 'normal' | 'super_random'
 
     this.ws      = { A: wsA,      B: wsB      };
     this.name    = { A: nameA,    B: nameB    };
@@ -70,8 +71,12 @@ class GameSession {
     // Build decks – vlastní balíček pokud poslaný, jinak náhodný
     console.log(`[GameSession] ${this.name.A} deckIds: ${this.deckIds.A ? `${this.deckIds.A.length} karet` : 'náhodný'}`);
     console.log(`[GameSession] ${this.name.B} deckIds: ${this.deckIds.B ? `${this.deckIds.B.length} karet` : 'náhodný'}`);
-    const deckA = this.deckIds.A ? buildDeckFromIds(this.deckIds.A) : balancedDeck();
-    const deckB = this.deckIds.B ? buildDeckFromIds(this.deckIds.B) : balancedDeck();
+    const buildDeck = (ids) => {
+      if (this.mode === 'super_random') return superBalancedDeck();
+      return ids ? buildDeckFromIds(ids) : balancedDeck();
+    };
+    const deckA = buildDeck(this.deckIds.A);
+    const deckB = buildDeck(this.deckIds.B);
 
     this.state.A = createPlayerState(deckA);
     this.state.B = createPlayerState(deckB);
