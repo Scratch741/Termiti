@@ -7,7 +7,7 @@
  *
  * ── Lobby protokol ──────────────────────────────────────────────────────────
  * Klient → Server:
- *   { type:"JOIN",              name:"..." }
+ *   { type:"JOIN",              name:"...", avatar:"..." }
  *   { type:"QUEUE_JOIN" }
  *   { type:"QUEUE_LEAVE" }
  *   { type:"PING" }
@@ -16,7 +16,7 @@
  *   { type:"WELCOME",           online:N, queue:N }
  *   { type:"COUNT",             online:N, queue:N }
  *   { type:"QUEUE_OK" }
- *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", side:"A"|"B" }
+ *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", opponentAvatar:"...", side:"A"|"B" }
  *   { type:"ERROR",             msg:"..." }
  *   { type:"PONG" }
  *
@@ -119,8 +119,8 @@ function tryMatch() {
     pB.side   = 'B';
 
     // Informuj klienty (lobby zpráva – stejná jako Etapa 2)
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, side: 'A' });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, side: 'B' });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', side: 'A' });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', side: 'B' });
 
     // Callback volaný při ukončení hry – uvolní hráče do lobby
     const onGameEnd = (gid) => {
@@ -208,7 +208,7 @@ wss.on('connection', (ws, req) => {
               const session = games.get(p.gameId);
               if (session && session.phase !== 'ended') {
                 // Přepoj hráče do existující hry
-                players.set(ws, { id: p.id, name, deviceId, inQueue: false,
+                players.set(ws, { id: p.id, name, avatar: p.avatar ?? '⚔️', deviceId, inQueue: false,
                                   gameId: p.gameId, side: p.side });
                 send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
                 session.resendStateTo(p.side, ws);
@@ -226,7 +226,8 @@ wss.on('connection', (ws, req) => {
           }
         }
 
-        players.set(ws, { id: uuidv4(), name, deviceId, inQueue: false, gameId: null, side: null });
+        const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
+        players.set(ws, { id: uuidv4(), name, avatar, deviceId, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });

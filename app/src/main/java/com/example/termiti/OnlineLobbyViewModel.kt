@@ -327,6 +327,7 @@ class OnlineLobbyViewModel(
                 }
 
                 "MATCH_FOUND" -> {
+                    android.util.Log.d("MATCH_FOUND", "raw JSON: $text")
                     matchInfo.value = OnlineMatchInfo(
                         gameId         = json.optString("gameId", ""),
                         opponentName   = json.optString("opponentName", "Soupeř"),
