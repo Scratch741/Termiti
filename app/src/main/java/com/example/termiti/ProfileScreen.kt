@@ -135,6 +135,38 @@ fun ProfileScreen(onBack: () -> Unit) {
                     StatBadge("⚔️", "${profile!!.winsOffline + profile!!.winsOnline}", "Výher",    Modifier.weight(1f))
                     StatBadge("🎮", "${profile!!.totalGames}",                         "Odehráno", Modifier.weight(1f))
                 }
+
+                // ── DEBUG ─────────────────────────────────────────────────────
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF1A0A0A))
+                        .border(1.dp, Color(0xFFCC3333).copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        "🛠 DEBUG",
+                        color      = Color(0xFFCC3333).copy(alpha = 0.7f),
+                        fontSize   = 7.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        DebugBtn("🪙 +500", PrGold, Modifier.weight(1f)) {
+                            val updated = PlayerProfileManager.addRewards(xp = 0, gold = 500, gems = 0)
+                            profile = updated
+                        }
+                        DebugBtn("💎 +50", PrGems, Modifier.weight(1f)) {
+                            val updated = PlayerProfileManager.addRewards(xp = 0, gold = 0, gems = 50)
+                            profile = updated
+                        }
+                    }
+                }
             }
 
             // ── Pravý sloupec ─────────────────────────────────────────────────
@@ -409,6 +441,21 @@ private fun StatBadge(icon: String, value: String, label: String, modifier: Modi
 @Composable
 private fun SectionHeader(title: String) {
     Text(title, color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+}
+
+@Composable
+private fun DebugBtn(label: String, accent: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(accent.copy(alpha = 0.10f))
+            .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+            .clickable { SoundManager.playMenuTap(); onClick() }
+            .padding(vertical = 5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(label, color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
 }
 
 @Composable
