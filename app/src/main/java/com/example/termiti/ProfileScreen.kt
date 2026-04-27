@@ -73,7 +73,9 @@ fun ProfileScreen(onBack: () -> Unit) {
         ) {
             // ── Levý sloupec ─────────────────────────────────────────────────
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
