@@ -496,34 +496,33 @@ private fun OnlineGameOverOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.75f)),
+            .background(Color.Black.copy(alpha = 0.75f))
+            .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .padding(32.dp)
+                .padding(horizontal = 24.dp, vertical = 12.dp)
                 .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF1A1320), Color(0xFF0D0A0E))
-                    ),
+                    Brush.verticalGradient(listOf(Color(0xFF1A1320), Color(0xFF0D0A0E))),
                     shape = RoundedCornerShape(16.dp)
                 )
-                .padding(32.dp),
+                .padding(horizontal = 28.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val (emoji, headline, subline) = when {
-                result == null                     -> Triple("⏳", "Konec hry", "")
-                result!!.winner == "DRAW"          -> Triple("🤝", "Remíza!", "Obě strany mají stejný hrad")
-                result!!.youWin                    -> Triple("🏆", "Vítězství!", "Porazil jsi ${result!!.winnerName ?: "soupeře"}")
-                else                               -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
+                result == null            -> Triple("⏳", "Konec hry", "")
+                result!!.winner == "DRAW" -> Triple("🤝", "Remíza!", "Obě strany mají stejný hrad")
+                result!!.youWin           -> Triple("🏆", "Vítězství!", "Porazil jsi ${result!!.winnerName ?: "soupeře"}")
+                else                      -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
             }
 
-            Text(emoji, fontSize = 56.sp)
+            Text(emoji, fontSize = 40.sp)
             Text(
                 text       = headline,
                 color      = OgGold,
-                fontSize   = 28.sp,
+                fontSize   = 22.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign  = TextAlign.Center
             )
@@ -531,18 +530,18 @@ private fun OnlineGameOverOverlay(
                 Text(
                     text      = subline,
                     color     = OgTextMuted,
-                    fontSize  = 14.sp,
+                    fontSize  = 13.sp,
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
 
             Button(
-                onClick = { SoundManager.playMenuTap(); vm.returnToLobby() },
-                colors  = ButtonDefaults.buttonColors(containerColor = OgGold),
-                shape   = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.6f)
+                onClick  = { SoundManager.playMenuTap(); vm.returnToLobby() },
+                colors   = ButtonDefaults.buttonColors(containerColor = OgGold),
+                shape    = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(0.7f)
             ) {
                 Text("Zpět do lobby", color = Color.Black, fontWeight = FontWeight.Bold)
             }
@@ -551,7 +550,7 @@ private fun OnlineGameOverOverlay(
                 onClick  = { SoundManager.playMenuTap(); onReview() },
                 colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2A35)),
                 shape    = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.6f)
+                modifier = Modifier.fillMaxWidth(0.7f)
             ) {
                 Text("📋 Prohlédnout hru", color = OgTextPrimary, fontWeight = FontWeight.Bold)
             }
