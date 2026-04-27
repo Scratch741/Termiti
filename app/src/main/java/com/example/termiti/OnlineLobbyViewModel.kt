@@ -31,6 +31,7 @@ data class OnlineMatchInfo(
     val gameId         : String,
     val opponentName   : String,
     val opponentAvatar : String = "👺",
+    val opponentLevel  : Int    = -1,
     val side           : String   // "A" nebo "B"
 )
 
@@ -277,6 +278,7 @@ class OnlineLobbyViewModel(
                 put("type",     "JOIN")
                 put("name",     playerName.value.trim())
                 put("avatar",   PlayerProfileManager.profile?.avatar ?: "⚔️")
+                put("level",    PlayerProfileManager.profile?.level  ?: 1)
                 put("deviceId", deviceId)
             }.toString())
         }
@@ -327,11 +329,11 @@ class OnlineLobbyViewModel(
                 }
 
                 "MATCH_FOUND" -> {
-                    android.util.Log.d("MATCH_FOUND", "raw JSON: $text")
                     matchInfo.value = OnlineMatchInfo(
                         gameId         = json.optString("gameId", ""),
                         opponentName   = json.optString("opponentName", "Soupeř"),
                         opponentAvatar = json.optString("opponentAvatar", "👺"),
+                        opponentLevel  = json.optInt("opponentLevel", -1),
                         side           = json.optString("side", "A")
                     )
                     // Nepřecházíme do GAME_MULLIGAN hned – čekáme na GAME_MULLIGAN ze serveru

@@ -119,8 +119,8 @@ function tryMatch() {
     pB.side   = 'B';
 
     // Informuj klienty (lobby zpráva – stejná jako Etapa 2)
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', side: 'A' });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', side: 'B' });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, side: 'A' });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, side: 'B' });
 
     // Callback volaný při ukončení hry – uvolní hráče do lobby
     const onGameEnd = (gid) => {
@@ -208,7 +208,7 @@ wss.on('connection', (ws, req) => {
               const session = games.get(p.gameId);
               if (session && session.phase !== 'ended') {
                 // Přepoj hráče do existující hry
-                players.set(ws, { id: p.id, name, avatar: p.avatar ?? '⚔️', deviceId, inQueue: false,
+                players.set(ws, { id: p.id, name, avatar: p.avatar ?? '⚔️', level: p.level ?? 1, deviceId, inQueue: false,
                                   gameId: p.gameId, side: p.side });
                 send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
                 session.resendStateTo(p.side, ws);
@@ -227,7 +227,8 @@ wss.on('connection', (ws, req) => {
         }
 
         const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
-        players.set(ws, { id: uuidv4(), name, avatar, deviceId, inQueue: false, gameId: null, side: null });
+        const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
+        players.set(ws, { id: uuidv4(), name, avatar, level, deviceId, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });

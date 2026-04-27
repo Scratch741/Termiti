@@ -208,6 +208,7 @@ fun GameScreen(
                 arenaWins      = if (isArena) arenaWins else -1,
                 playerLabel    = PlayerProfileManager.profile?.name   ?: "Hráč",
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "⚔️",
+                playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 onMenu         = { showMenuConfirm = true }
             )
 
@@ -378,8 +379,10 @@ fun NewTopBar(
     arenaWins: Int = -1,
     playerLabel: String = "Hráč",
     playerAvatar: String = "⚔️",
+    playerLevel: Int = -1,
     opponentLabel: String = "Nepřítel",
     opponentAvatar: String = "👺",
+    opponentLevel: Int = -1,
     onMenu: () -> Unit,
     playerTimerText: String? = null,
     playerTimerColor: Color = Color(0xFF4CAF50),
@@ -432,6 +435,16 @@ fun NewTopBar(
 
             Text(playerLabel, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+
+            if (playerLevel >= 0) {
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Gold.copy(alpha = 0.15f))
+                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) { Text("Lv.$playerLevel", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+            }
 
             Row(
                 Modifier
@@ -500,6 +513,16 @@ fun NewTopBar(
             ) {
                 Text("$aiDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Text("🂠", fontSize = 11.sp)
+            }
+
+            if (opponentLevel >= 0) {
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Crimson.copy(alpha = 0.15f))
+                        .border(1.dp, Crimson.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) { Text("Lv.$opponentLevel", color = Crimson, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
             }
 
             Text(opponentLabel, color = TextPrimary, fontSize = 13.sp,

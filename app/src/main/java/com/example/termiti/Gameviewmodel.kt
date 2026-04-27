@@ -84,7 +84,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         Card("022", "Přímý zásah",    "Poškodí hrad −8.",  cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_primy_zasah, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
         Card("023", "Dvojitý úder",   "Zaútočí na hrad za 7 a hradby za 7.",     cost = 5, costType = ResourceType.ATTACK, rarity = Rarity.EPIC,
-            effects = listOf(CardEffect.AttackPlayer(7), CardEffect.AttackWall(7)),artResId = R.drawable.art_dvojity_utok, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
+            effects = listOf(CardEffect.AttackCastle(7), CardEffect.AttackWall(7)),artResId = R.drawable.art_dvojity_utok, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
         Card("024", "Berserk",        "Pokud máš <5 hradeb, udeř hrad za 13.",  cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.ConditionalEffect(
                 Condition.WallBelow(5),
