@@ -129,7 +129,8 @@ function tryMatchFromQueue(q, mode) {
       broadcastCount();
     };
 
-    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd, mode);
+    const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd, mode,
+      pA.activeAbilities || [], pB.activeAbilities || []);
     games.set(gameId, session);
     try {
       session.start();
@@ -230,7 +231,13 @@ wss.on('connection', (ws, req) => {
 
         const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
         const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
-        players.set(ws, { id: uuidv4(), name, avatar, level, deviceId, inQueue: false, gameId: null, side: null });
+        // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
+        const KNOWN_ABILITIES = new Set(['extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos']);
+        const rawAbilities    = Array.isArray(msg.activeAbilities) ? msg.activeAbilities : [];
+        const activeAbilities = rawAbilities
+          .filter(a => typeof a === 'string' && KNOWN_ABILITIES.has(a))
+          .slice(0, 2);
+        players.set(ws, { id: uuidv4(), name, avatar, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });

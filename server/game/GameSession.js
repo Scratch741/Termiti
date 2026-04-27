@@ -8,7 +8,7 @@ const {
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
-  applyEffects, deriveCardType, checkWin, resolveByHp
+  applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp
 } = require('./engine');
 
 const MULLIGAN_HAND_SIZE = 5;
@@ -28,14 +28,15 @@ class GameSession {
    * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
    * @param {Function|null} onEnd     – callback(gameId) volaný při ukončení hry
    */
-  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal') {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal', abilitiesA = [], abilitiesB = []) {
     this.gameId = gameId;
     this.onEnd  = onEnd;
     this.mode   = mode;   // 'normal' | 'super_random'
 
-    this.ws      = { A: wsA,      B: wsB      };
-    this.name    = { A: nameA,    B: nameB    };
-    this.deckIds = { A: deckIdsA, B: deckIdsB };
+    this.ws        = { A: wsA,       B: wsB       };
+    this.name      = { A: nameA,     B: nameB     };
+    this.deckIds   = { A: deckIdsA,  B: deckIdsB  };
+    this.abilities = { A: abilitiesA, B: abilitiesB };
 
     // Game state
     this.state     = { A: null, B: null };
@@ -80,6 +81,16 @@ class GameSession {
 
     this.state.A = createPlayerState(deckA);
     this.state.B = createPlayerState(deckB);
+
+    // Aplikuj pasivní schopnosti na startovní stav (před rozdáním karet)
+    applyPassiveAbilities(this.state.A, this.abilities.A);
+    applyPassiveAbilities(this.state.B, this.abilities.B);
+
+    // Vítězný cíl hradu: extra_castle posunuje z 60 na 65
+    this.winTarget = {
+      A: this.abilities.A.includes('extra_castle') ? 65 : 60,
+      B: this.abilities.B.includes('extra_castle') ? 65 : 60
+    };
 
     // Deal opening hands
     drawCards(this.state.A, MULLIGAN_HAND_SIZE);
@@ -332,7 +343,7 @@ class GameSession {
     }
 
     // Win check
-    const winner = checkWin(this.state.A, this.state.B);
+    const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
     if (winner !== null) {
       this._endGame(winner);
       return;
@@ -425,7 +436,7 @@ class GameSession {
     this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
 
     // Win check (shouldn't happen mid-turn but be safe)
-    const winner = checkWin(this.state.A, this.state.B);
+    const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
     if (winner !== null) {
       this._endGame(winner);
       return;

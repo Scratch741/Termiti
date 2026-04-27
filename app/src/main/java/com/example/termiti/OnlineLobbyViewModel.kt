@@ -293,12 +293,16 @@ class OnlineLobbyViewModel(
     private inner class GameListener : WebSocketListener() {
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
+            val abilitiesArr = JSONArray().apply {
+                PlayerProfileManager.profile?.activeAbilities?.forEach { put(it) }
+            }
             webSocket.send(JSONObject().apply {
-                put("type",     "JOIN")
-                put("name",     playerName.value.trim())
-                put("avatar",   PlayerProfileManager.profile?.avatar ?: "⚔️")
-                put("level",    PlayerProfileManager.profile?.level  ?: 1)
-                put("deviceId", deviceId)
+                put("type",             "JOIN")
+                put("name",             playerName.value.trim())
+                put("avatar",           PlayerProfileManager.profile?.avatar ?: "⚔️")
+                put("level",            PlayerProfileManager.profile?.level  ?: 1)
+                put("activeAbilities",  abilitiesArr)
+                put("deviceId",         deviceId)
             }.toString())
         }
 

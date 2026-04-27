@@ -267,19 +267,41 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
   }
 }
 
+// ── Passive abilities ─────────────────────────────────────────────────────────
+
+/**
+ * Aplikuje pasivní schopnosti na startovní stav hráče.
+ * Voláno jednou hned po createPlayerState(), před rozdáním karet.
+ * @param {object}   state     – výsledek createPlayerState()
+ * @param {string[]} abilities – seznam ID aktivních schopností hráče
+ */
+function applyPassiveAbilities(state, abilities) {
+  for (const id of (abilities || [])) {
+    switch (id) {
+      case 'extra_castle':  state.castleHP          += 5; break; // 30 → 35
+      case 'extra_wall':    state.wallHP             += 5; break; // 10 → 15
+      case 'extra_magic':   state.resources.MAGIC   += 1; break;
+      case 'extra_attack':  state.resources.ATTACK  += 1; break;
+      case 'extra_stones':  state.resources.STONES  += 1; break;
+      case 'extra_chaos':   state.resources.CHAOS   += 1; break;
+    }
+  }
+}
+
 // ── Win condition ─────────────────────────────────────────────────────────────
 
 /**
  * @returns {'A'|'B'|'DRAW'|null}  strana výherce, nebo null = pokračuj
  * @param {object} stateA
  * @param {object} stateB
- * @param {string} activeSide – kdo právě hrál (pro případ že obě podmínky nastanou zároveň)
+ * @param {number} winTargetA – hrad A musí dosáhnout ≥ teto hodnoty (default 60, s extra_castle 65)
+ * @param {number} winTargetB – hrad B musí dosáhnout ≥ teto hodnoty
  */
-function checkWin(stateA, stateB) {
+function checkWin(stateA, stateB, winTargetA = 60, winTargetB = 60) {
   const aDead  = stateA.castleHP <= 0;
   const bDead  = stateB.castleHP <= 0;
-  const aBuilt = stateA.castleHP >= 60;
-  const bBuilt = stateB.castleHP >= 60;
+  const aBuilt = stateA.castleHP >= winTargetA;
+  const bBuilt = stateB.castleHP >= winTargetB;
 
   if (aDead && bDead) return 'DRAW';
   if (aDead)   return 'B';
@@ -299,5 +321,6 @@ function resolveByHp(stateA, stateB) {
 
 module.exports = {
   createPlayerState, generateResources, drawCards,
-  checkCondition, deriveCardType, applyEffects, checkWin, resolveByHp
+  checkCondition, deriveCardType, applyEffects,
+  applyPassiveAbilities, checkWin, resolveByHp
 };
