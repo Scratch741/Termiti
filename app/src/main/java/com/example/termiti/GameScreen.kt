@@ -206,6 +206,8 @@ fun GameScreen(
                 isComboTurn    = isComboTurn,
                 currentTurn    = state.currentTurn,
                 arenaWins      = if (isArena) arenaWins else -1,
+                playerLabel    = PlayerProfileManager.profile?.name   ?: "Hráč",
+                playerAvatar   = PlayerProfileManager.profile?.avatar ?: "⚔️",
                 onMenu         = { showMenuConfirm = true }
             )
 
@@ -374,7 +376,10 @@ fun NewTopBar(
     isComboTurn: Boolean,
     currentTurn: Int,
     arenaWins: Int = -1,
+    playerLabel: String = "Hráč",
+    playerAvatar: String = "⚔️",
     opponentLabel: String = "Nepřítel",
+    opponentAvatar: String = "👺",
     onMenu: () -> Unit,
     playerTimerText: String? = null,
     playerTimerColor: Color = Color(0xFF4CAF50),
@@ -423,9 +428,9 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A2010), Color(0xFF5C3010))))
                     .border(1.5.dp, Gold.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { Text("🧙", fontSize = 13.sp) }
+            ) { Text(playerAvatar, fontSize = 13.sp) }
 
-            Text("Hráč", color = TextPrimary, fontSize = 13.sp,
+            Text(playerLabel, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
 
             Row(
@@ -507,7 +512,7 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A0A0A), Color(0xFF5C1010))))
                     .border(1.5.dp, Crimson.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { Text("👺", fontSize = 13.sp) }
+            ) { Text(opponentAvatar, fontSize = 13.sp) }
         }
     }
 }

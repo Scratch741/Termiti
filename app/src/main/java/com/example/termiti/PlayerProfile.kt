@@ -7,6 +7,9 @@ package com.example.termiti
 data class PlayerProfile(
     val name: String,
 
+    // ── Avatar ────────────────────────────────────────────────────────────────
+    val avatar: String = "⚔️",  // emoji ID z PlayerAvatar
+
     // ── Progress ─────────────────────────────────────────────────────────────
     val level: Int = 1,
     val xp: Int = 0,           // aktuální XP v rámci levelu
@@ -18,7 +21,11 @@ data class PlayerProfile(
     // ── Statistiky ───────────────────────────────────────────────────────────
     val winsOffline: Int = 0,
     val winsOnline: Int = 0,
-    val totalGames: Int = 0
+    val totalGames: Int = 0,
+
+    // ── Pasivní schopnosti ────────────────────────────────────────────────────
+    val unlockedAbilities: Set<String> = emptySet(),   // koupené ability IDs
+    val activeAbilities:   List<String> = emptyList()  // max 2 aktivní (může být méně)
 ) {
     /** Kolik XP je potřeba pro přechod z [level] na [level]+1. */
     fun xpNeeded(): Int = xpForLevel(level)

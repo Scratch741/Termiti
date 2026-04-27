@@ -805,19 +805,44 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             else                     -> balancedDeck()
         }.withUniqueIds().shuffled()
 
-        val playerState = PlayerState().also {
+        // ── Pasivní schopnosti hráče ──────────────────────────────────────────
+        val actives = PlayerProfileManager.profile
+            ?.activeAbilities
+            ?.mapNotNull { PassiveAbility.fromId(it) }
+            ?: emptyList()
+
+        val startCastle   = 30 + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
+        val startWall     = 10 + if (PassiveAbility.EXTRA_WALL   in actives) 5 else 0
+        val extraMagic    =       if (PassiveAbility.EXTRA_MAGIC  in actives) 1 else 0
+        val extraAttack   =       if (PassiveAbility.EXTRA_ATTACK in actives) 1 else 0
+        val extraStones   =       if (PassiveAbility.EXTRA_STONES in actives) 1 else 0
+        val extraChaos    =       if (PassiveAbility.EXTRA_CHAOS  in actives) 1 else 0
+        val playerWinTarget = if (PassiveAbility.EXTRA_CASTLE in actives) 65 else 60
+
+        val playerState = PlayerState(
+            castleHP  = startCastle,
+            wallHP    = startWall
+        ).also {
+            if (extraMagic  > 0) it.resources[ResourceType.MAGIC]  = extraMagic
+            if (extraAttack > 0) it.resources[ResourceType.ATTACK] = extraAttack
+            if (extraStones > 0) it.resources[ResourceType.STONES] = extraStones
+            if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
             it.deck.addAll(playerCards)
-            it.drawCards(5)   // 5 karet na mulligan
+            it.drawCards(5)
         }
         val aiState = PlayerState().also {
             val aiDeck = if (superRandom) superRandomDeck() else balancedDeck()
             it.deck.addAll(aiDeck.withUniqueIds().shuffled())
-            it.drawCards(5)   // AI taktéž
+            it.drawCards(5)
         }
 
-        // Náhodně rozhodne, kdo začíná (zobrazí se po mulliganu)
         val firstPlayer = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI
-        return GameState(playerState = playerState, aiState = aiState, activePlayer = firstPlayer)
+        return GameState(
+            playerState    = playerState,
+            aiState        = aiState,
+            activePlayer   = firstPlayer,
+            playerWinTarget = playerWinTarget
+        )
     }
 
     fun playCard(card: Card) {

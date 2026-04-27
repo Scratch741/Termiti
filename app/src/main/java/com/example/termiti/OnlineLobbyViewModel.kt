@@ -28,9 +28,10 @@ enum class OnlinePhase {
 
 // ─── Info o nalezeném zápase ──────────────────────────────────────────────────
 data class OnlineMatchInfo(
-    val gameId       : String,
-    val opponentName : String,
-    val side         : String   // "A" nebo "B"
+    val gameId         : String,
+    val opponentName   : String,
+    val opponentAvatar : String = "👺",
+    val side           : String   // "A" nebo "B"
 )
 
 // ─── Odložená surovina přijatá ze serveru ────────────────────────────────────
@@ -273,8 +274,9 @@ class OnlineLobbyViewModel(
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
             webSocket.send(JSONObject().apply {
-                put("type", "JOIN")
-                put("name", playerName.value.trim())
+                put("type",     "JOIN")
+                put("name",     playerName.value.trim())
+                put("avatar",   PlayerProfileManager.profile?.avatar ?: "⚔️")
                 put("deviceId", deviceId)
             }.toString())
         }
@@ -326,9 +328,10 @@ class OnlineLobbyViewModel(
 
                 "MATCH_FOUND" -> {
                     matchInfo.value = OnlineMatchInfo(
-                        gameId       = json.optString("gameId", ""),
-                        opponentName = json.optString("opponentName", "Soupeř"),
-                        side         = json.optString("side", "A")
+                        gameId         = json.optString("gameId", ""),
+                        opponentName   = json.optString("opponentName", "Soupeř"),
+                        opponentAvatar = json.optString("opponentAvatar", "👺"),
+                        side           = json.optString("side", "A")
                     )
                     // Nepřecházíme do GAME_MULLIGAN hned – čekáme na GAME_MULLIGAN ze serveru
                     statusMsg.value = "Soupeř nalezen! Připravuji hru…"

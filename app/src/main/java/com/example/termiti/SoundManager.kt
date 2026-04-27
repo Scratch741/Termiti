@@ -94,7 +94,9 @@ object SoundManager {
         R.raw.bg_music_2,
         R.raw.bg_music_3,
         R.raw.bg_music_4,
-        R.raw.bg_music_5
+        R.raw.bg_music_5,
+        R.raw.bg_music_6,
+        R.raw.bg_music_7
     )
 
     // ── Hudba na pozadí ──────────────────────────────────────────────────────

@@ -91,32 +91,84 @@ object PlayerProfileManager {
         return current.copy(xp = remaining)
     }
 
+    // ── Pasivní schopnosti ───────────────────────────────────────────────────
+
+    /**
+     * Koupí schopnost za zlato. Vrátí true při úspěchu, false pokud
+     * nemá dost zlata, nemá level nebo ji již vlastní.
+     */
+    fun buyAbility(abilityId: String): Boolean {
+        val p = _profile ?: return false
+        val ability = PassiveAbility.fromId(abilityId) ?: return false
+        if (ability.id in p.unlockedAbilities) return false
+        if (p.level < ability.unlockLevel) return false
+        if (p.gold < ability.goldCost) return false
+        save(p.copy(
+            gold               = p.gold - ability.goldCost,
+            unlockedAbilities  = p.unlockedAbilities + ability.id
+        ))
+        return true
+    }
+
+    /**
+     * Nastaví seznam aktivních schopností (max [PassiveAbility.MAX_ACTIVE]).
+     * Lze předat prázdný seznam pro deaktivaci všech.
+     */
+    fun setActiveAbilities(ids: List<String>) {
+        val p = _profile ?: return
+        val valid = ids.filter { it in p.unlockedAbilities }
+            .take(PassiveAbility.MAX_ACTIVE)
+        save(p.copy(activeAbilities = valid))
+    }
+
     // ── Serializace ──────────────────────────────────────────────────────────
 
-    private fun toJson(p: PlayerProfile): String = JSONObject().apply {
-        put("name",         p.name)
-        put("level",        p.level)
-        put("xp",           p.xp)
-        put("gold",         p.gold)
-        put("gems",         p.gems)
-        put("winsOffline",  p.winsOffline)
-        put("winsOnline",   p.winsOnline)
-        put("totalGames",   p.totalGames)
-    }.toString()
+    private fun toJson(p: PlayerProfile): String {
+        val unlockedArr = org.json.JSONArray().also { arr ->
+            p.unlockedAbilities.forEach { arr.put(it) }
+        }
+        val activeArr = org.json.JSONArray().also { arr ->
+            p.activeAbilities.forEach { arr.put(it) }
+        }
+        return JSONObject().apply {
+            put("name",              p.name)
+            put("avatar",            p.avatar)
+            put("level",             p.level)
+            put("xp",                p.xp)
+            put("gold",              p.gold)
+            put("gems",              p.gems)
+            put("winsOffline",       p.winsOffline)
+            put("winsOnline",        p.winsOnline)
+            put("totalGames",        p.totalGames)
+            put("unlockedAbilities", unlockedArr)
+            put("activeAbilities",   activeArr)
+        }.toString()
+    }
 
     private fun loadFromPrefs(): PlayerProfile? {
         val json = prefs?.getString(KEY_PROFILE, null) ?: return null
         return runCatching {
             val o = JSONObject(json)
+            fun JSONObject.getStringSet(key: String): Set<String> {
+                val arr = optJSONArray(key) ?: return emptySet()
+                return (0 until arr.length()).map { arr.getString(it) }.toSet()
+            }
+            fun JSONObject.getStringList(key: String): List<String> {
+                val arr = optJSONArray(key) ?: return emptyList()
+                return (0 until arr.length()).map { arr.getString(it) }
+            }
             PlayerProfile(
-                name        = o.optString("name", "Hráč"),
-                level       = o.optInt("level", 1),
-                xp          = o.optInt("xp", 0),
-                gold        = o.optInt("gold", 0),
-                gems        = o.optInt("gems", 0),
-                winsOffline = o.optInt("winsOffline", 0),
-                winsOnline  = o.optInt("winsOnline", 0),
-                totalGames  = o.optInt("totalGames", 0)
+                name               = o.optString("name", "Hráč"),
+                avatar             = o.optString("avatar", "⚔️"),
+                level              = o.optInt("level", 1),
+                xp                 = o.optInt("xp", 0),
+                gold               = o.optInt("gold", 0),
+                gems               = o.optInt("gems", 0),
+                winsOffline        = o.optInt("winsOffline", 0),
+                winsOnline         = o.optInt("winsOnline", 0),
+                totalGames         = o.optInt("totalGames", 0),
+                unlockedAbilities  = o.getStringSet("unlockedAbilities"),
+                activeAbilities    = o.getStringList("activeAbilities")
             )
         }.getOrNull()
     }

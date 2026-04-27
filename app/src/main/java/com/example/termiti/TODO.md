@@ -18,3 +18,14 @@ Hezčí UI
 Character progress - level, kupování karet, hrdina, speciální pasivní schopnosti
 Předělat/lepší multiplayer - stabilní server na linuxu, kde se ověřují všechny činnosti - prevence cheatingu
 Simple animace - když zaútočíš, poběží panáček na hrad, atd.
+Online zápasy - pokud dlouho hráč nenajde soupeře, automaticky dostane proti sobě AI.
+
+Offline část - roguelike hra
+
+Zvuky karet
+Screen shake?
+
+
+Online bug -> podmínka, že musíš mít X surovin se vyhodnocuje až po zahrání
+
+Když dám mulligan, tak stále mohu dostat tu samou kartu, co zahodím

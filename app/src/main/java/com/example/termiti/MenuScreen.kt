@@ -126,7 +126,7 @@ private fun ProfileCard(profile: PlayerProfile) {
                         .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(6.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("⚔️", fontSize = 15.sp)
+                    Text(profile.avatar, fontSize = 15.sp)
                 }
                 Column {
                     Text(profile.name, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
