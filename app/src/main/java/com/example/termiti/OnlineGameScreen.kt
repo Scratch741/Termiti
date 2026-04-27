@@ -435,14 +435,16 @@ private fun OnlineGameOverOverlay(
 ) {
     val result by vm.gameResult
 
-    // Přehraj zvuk výhry/prohry při zobrazení overlay
+    // Přehraj zvuk a zaznamenej výsledek při zobrazení overlay
     LaunchedEffect(result) {
+        if (result == null) return@LaunchedEffect
         when {
-            result == null            -> Unit
             result!!.winner == "DRAW" -> Unit
             result!!.youWin           -> SoundManager.playWin()
             else                      -> SoundManager.playLose()
         }
+        // Statistiky + XP + gold
+        PlayerProfileManager.recordGameResult(win = result!!.youWin, online = true)
     }
 
     Box(
