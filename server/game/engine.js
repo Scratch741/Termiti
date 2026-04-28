@@ -5,6 +5,9 @@
  */
 const { makeInstance, shuffle } = require('./cards');
 
+const MAX_RESOURCE = 999;
+const MAX_MINES    = 99;
+
 // ── PlayerState ───────────────────────────────────────────────────────────────
 
 function createPlayerState(deckCards) {
@@ -50,7 +53,7 @@ function generateResources(state) {
   state.pendingResources = (state.pendingResources || []).filter(p => {
     p.turnsLeft--;
     if (p.turnsLeft <= 0) {
-      state.resources[p.type] = (state.resources[p.type] || 0) + p.amount;
+      state.resources[p.type] = Math.min(MAX_RESOURCE, (state.resources[p.type] || 0) + p.amount);
       return false; // odeber ze seznamu
     }
     return true; // nechej v seznamu
@@ -62,7 +65,7 @@ function generateResources(state) {
     if (blocked > 0) {
       state.mineBlockedTurns[type] = blocked - 1;
     } else {
-      state.resources[type] = (state.resources[type] || 0) + amount;
+      state.resources[type] = Math.min(MAX_RESOURCE, (state.resources[type] || 0) + amount);
     }
   }
 }
@@ -122,7 +125,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
     switch (fx.type) {
 
       case 'AddResource':
-        self.resources[fx.resType] = Math.max(0, (self.resources[fx.resType] || 0) + fx.amount);
+        self.resources[fx.resType] = Math.min(MAX_RESOURCE, Math.max(0, (self.resources[fx.resType] || 0) + fx.amount));
         break;
 
       case 'AddResourceDelayed':
@@ -132,7 +135,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
 
       case 'AddMine':
-        self.mines[fx.resType] = Math.max(0, (self.mines[fx.resType] || 0) + fx.amount);
+        self.mines[fx.resType] = Math.min(MAX_MINES, Math.max(0, (self.mines[fx.resType] || 0) + fx.amount));
         break;
 
       case 'BuildWall':
@@ -162,7 +165,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'StealResource': {
         const taken = Math.min(fx.amount, opponent.resources[fx.resType] || 0);
         opponent.resources[fx.resType] = (opponent.resources[fx.resType] || 0) - taken;
-        self.resources[fx.resType]     = (self.resources[fx.resType]     || 0) + taken;
+        self.resources[fx.resType]     = Math.min(MAX_RESOURCE, (self.resources[fx.resType] || 0) + taken);
         break;
       }
 
@@ -259,8 +262,8 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
 
       case 'XScaledDualResource': {
         const amount = Math.floor(xValue / (fx.divisor || 2));
-        self.resources[fx.typeA] = (self.resources[fx.typeA] || 0) + amount;
-        self.resources[fx.typeB] = (self.resources[fx.typeB] || 0) + amount;
+        self.resources[fx.typeA] = Math.min(MAX_RESOURCE, (self.resources[fx.typeA] || 0) + amount);
+        self.resources[fx.typeB] = Math.min(MAX_RESOURCE, (self.resources[fx.typeB] || 0) + amount);
         break;
       }
     }
