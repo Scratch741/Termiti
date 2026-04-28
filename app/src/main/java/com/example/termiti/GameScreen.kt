@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -152,21 +153,25 @@ private data class DeltaEvt(val id: Long, val delta: Int)
  * červené (-N) při poškození. Animuje se nahoru a postupně mizí.
  */
 @Composable
-private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f) {
+private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f, startOffsetY: Dp = 0.dp) {
     val positive = delta > 0
     val color    = if (positive) Color(0xFF4CAF50) else Color(0xFFE53935)
     val text     = if (positive) "+$delta" else "$delta"
 
-    val offsetY  = remember { Animatable(0f) }
-    val alpha    = remember { Animatable(1f) }
+    val animY  = remember { Animatable(0f) }
+    val alpha  = remember { Animatable(1f) }
 
     LaunchedEffect(Unit) {
-        launch { offsetY.animateTo(-32f, tween(2600, easing = EaseOutCubic)) }
+        launch { animY.animateTo(-32f, tween(2600, easing = EaseOutCubic)) }
         delay(1400)
         alpha.animateTo(0f, tween(1000))
     }
 
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+    // startOffsetY posune číslo na úroveň vrcholu hradu/hradby v rámci outer Boxu
+    Box(
+        modifier         = Modifier.fillMaxWidth().offset(y = startOffsetY),
+        contentAlignment = Alignment.TopCenter
+    ) {
         Text(
             text       = text,
             color      = color,
@@ -180,7 +185,7 @@ private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f) {
                 )
             ),
             modifier = Modifier.graphicsLayer {
-                translationY = offsetY.value
+                translationY = animY.value
                 this.alpha   = alpha.value
             }
         )
@@ -192,7 +197,7 @@ private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f) {
  * Umísti jako overlay do Box nad vizuál hradu nebo hradby.
  */
 @Composable
-private fun HpFloats(hp: Int, sizeSp: Float = 15f) {
+private fun HpFloats(hp: Int, sizeSp: Float = 15f, startOffsetY: Dp = 0.dp) {
     val events = remember { mutableStateListOf<DeltaEvt>() }
     val prev   = remember { mutableIntStateOf(hp) }
 
@@ -207,7 +212,7 @@ private fun HpFloats(hp: Int, sizeSp: Float = 15f) {
     }
 
     events.forEach { evt ->
-        key(evt.id) { FloatingDeltaNumber(evt.delta, sizeSp) }
+        key(evt.id) { FloatingDeltaNumber(evt.delta, sizeSp, startOffsetY) }
     }
 }
 
@@ -1088,8 +1093,8 @@ private fun CastleTowerBlock(
                 contentScale       = ContentScale.Fit
             )
         }
-        // Plovoucí delta HP – těsně nad hradem
-        HpFloats(castleHp, sizeSp = 17f)
+        // Plovoucí delta HP – startOffsetY = animovaný vrchol hradu v rámci tohoto Boxu
+        HpFloats(castleHp, sizeSp = 17f, startOffsetY = offsetY)
     }
 }
 
@@ -1122,8 +1127,8 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
                 contentScale       = ContentScale.FillBounds
             )
         }
-        // Plovoucí delta HP – těsně nad hradbou
-        HpFloats(wallHp, sizeSp = 13f)
+        // Plovoucí delta HP – startOffsetY = animovaný vrchol hradby v rámci tohoto Boxu
+        HpFloats(wallHp, sizeSp = 13f, startOffsetY = offsetY)
     }
 }
 
@@ -1558,7 +1563,9 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val wallPainter = painterResource(R.drawable.wall_player)
-            Box(Modifier.fillMaxWidth().weight(1f)) {
+            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+                // Vrchol viditelné hradby = (1 - wallFrac) * výška boxu
+                val wallTopDp = maxHeight * (1f - wallFrac)
                 Canvas(Modifier.fillMaxSize()) {
                     val w = size.width; val h = size.height
                     // Tmavé pozadí (prázdná zeď)
@@ -1575,8 +1582,8 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
                         }
                     }
                 }
-                // Plovoucí delta – těsně nad vizuálem hradby
-                HpFloats(wallHp, sizeSp = 11f)
+                // Plovoucí delta – startOffsetY = vrchol viditelné hradby
+                HpFloats(wallHp, sizeSp = 11f, startOffsetY = wallTopDp)
             }
             Spacer(Modifier.height(3.dp))
             Text("🧱 $wallHp", color = WallBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
@@ -1587,7 +1594,9 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
             modifier = Modifier.width(34.dp).fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(Modifier.fillMaxWidth().weight(1f)) {
+            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+                // Vrchol viditelného hradu = bodyTop + bodyH*(1-castleFrac) = (0.15 + 0.85*(1-frac)) * výška
+                val castleTopDp = maxHeight * (0.15f + 0.85f * (1f - castleFrac))
                 Canvas(Modifier.fillMaxSize()) {
                     val w = size.width; val h = size.height
                     // Cimbuří = 15 % výšky
@@ -1620,8 +1629,8 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
                         topLeft = Offset((w - slitW) / 2f, bodyTop + bodyH * 0.22f),
                         size = Size(slitW, slitH))
                 }
-                // Plovoucí delta – těsně nad vizuálem hradu
-                HpFloats(castleHp, sizeSp = 11f)
+                // Plovoucí delta – startOffsetY = vrchol viditelného hradu
+                HpFloats(castleHp, sizeSp = 11f, startOffsetY = castleTopDp)
             }
             Spacer(Modifier.height(3.dp))
             Text("🏰 $castleHp", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
