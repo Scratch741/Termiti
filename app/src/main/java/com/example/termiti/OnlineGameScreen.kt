@@ -489,7 +489,7 @@ private fun OnlineGameOverOverlay(
     LaunchedEffect(result) {
         if (result == null) return@LaunchedEffect
         when {
-            result!!.winner == "DRAW" -> Unit
+            result!!.winner == "DRAW" || result!!.winner == "DRAW_BOTH_DEAD" -> Unit
             result!!.youWin           -> SoundManager.playWin()
             else                      -> SoundManager.playLose()
         }
@@ -517,6 +517,7 @@ private fun OnlineGameOverOverlay(
         ) {
             val (emoji, headline, subline) = when {
                 result == null            -> Triple("⏳", "Konec hry", "")
+                result!!.winner == "DRAW_BOTH_DEAD" -> Triple("💥", "Remíza!", "Oba hrady byly zničeny současně")
                 result!!.winner == "DRAW" -> Triple("🤝", "Remíza!", "Obě strany mají stejný hrad")
                 result!!.youWin           -> Triple("🏆", "Vítězství!", "Porazil jsi ${result!!.winnerName ?: "soupeře"}")
                 else                      -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")

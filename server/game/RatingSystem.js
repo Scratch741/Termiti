@@ -146,7 +146,7 @@ class RatingSystem {
 
     let deltaA = 0, deltaB = 0;
 
-    if (winner === 'DRAW') {
+    if (winner === 'DRAW' || winner === 'DRAW_BOTH_DEAD') {
       sA.draws++;
       sB.draws++;
     } else if (winner === 'A') {
@@ -170,7 +170,7 @@ class RatingSystem {
 
     // ── Konzolový log ─────────────────────────────────────────────────────────
     const modeName = modeLabel(mode);
-    const winStr   = winner === 'DRAW' ? 'REMÍZA' : `výhra ${winner === 'A' ? nameA : nameB}`;
+    const winStr   = (winner === 'DRAW' || winner === 'DRAW_BOTH_DEAD') ? 'REMÍZA' : `výhra ${winner === 'A' ? nameA : nameB}`;
     const dA = deltaA >= 0 ? `+${deltaA}` : `${deltaA}`;
     const dB = deltaB >= 0 ? `+${deltaB}` : `${deltaB}`;
 

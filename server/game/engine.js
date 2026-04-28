@@ -306,7 +306,7 @@ function checkWin(stateA, stateB, winTargetA = 60, winTargetB = 60) {
   const aBuilt = stateA.castleHP >= winTargetA;
   const bBuilt = stateB.castleHP >= winTargetB;
 
-  if (aDead && bDead) return 'DRAW';
+  if (aDead && bDead) return 'DRAW_BOTH_DEAD';
   if (aDead)   return 'B';
   if (bDead)   return 'A';
   if (aBuilt && bBuilt) return 'DRAW';

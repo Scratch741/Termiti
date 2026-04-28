@@ -13,6 +13,8 @@ enum class GameResult {
     AI_HP_WINS,
     /** Oba balíčky vyčerpány; hrady jsou stejně vysoké. */
     DRAW,
+    /** Oba hrady zničeny ve stejném tahu. */
+    DRAW_BOTH_DEAD,
 }
 
 fun GameResult.isPlayerWin() = this == GameResult.AI_CASTLE_DESTROYED

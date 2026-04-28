@@ -17,7 +17,7 @@ data class GameState(
         val aiBuilt     = aiState.castleHP     >= aiWinTarget
         return when {
             // Simultánní smrt / simultánní postavení → remíza (prohra pro oba)
-            playerDead  && aiDead   -> GameResult.DRAW
+            playerDead  && aiDead   -> GameResult.DRAW_BOTH_DEAD
             playerBuilt && aiBuilt  -> GameResult.DRAW
             playerDead              -> GameResult.PLAYER_CASTLE_DESTROYED
             aiDead                  -> GameResult.AI_CASTLE_DESTROYED
