@@ -217,6 +217,57 @@ private fun HpFloats(hp: Int, sizeSp: Float = 15f, startOffsetY: Dp = 0.dp) {
     }
 }
 
+// ─── Resource delta badge ────────────────────────────────────────────────────
+// Statický (+N / -N), nevznáší se – jen zobrazí na ~2 s a zmizí.
+
+/** Jedno číslo změny suroviny: zelené pro přírůstek, červené pro úbytek. */
+@Composable
+private fun ResourceDeltaNumber(delta: Int) {
+    val positive = delta > 0
+    val color    = if (positive) Color(0xFF4CAF50) else Color(0xFFE53935)
+    val text     = if (positive) "+$delta" else "$delta"
+    val alpha    = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        delay(1200)
+        alpha.animateTo(0f, tween(900))
+    }
+
+    Text(
+        text       = text,
+        color      = color,
+        fontSize   = 10.sp,
+        fontWeight = FontWeight.ExtraBold,
+        modifier   = Modifier.graphicsLayer { this.alpha = alpha.value }
+    )
+}
+
+/**
+ * Wrapper sledující změny [amount]: pro každou změnu zobrazí [ResourceDeltaNumber].
+ * Vkládej do Row vedle čísla suroviny.
+ */
+@Composable
+private fun ResourceDelta(amount: Int, modifier: Modifier = Modifier) {
+    val events = remember { mutableStateListOf<DeltaEvt>() }
+    val prev   = remember { mutableIntStateOf(amount) }
+
+    LaunchedEffect(amount) {
+        val d = amount - prev.intValue
+        prev.intValue = amount
+        if (d == 0) return@LaunchedEffect
+        val evt = DeltaEvt(System.nanoTime(), d)
+        events += evt
+        delay(2500)
+        events -= evt
+    }
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        events.forEach { evt ->
+            key(evt.id) { ResourceDeltaNumber(evt.delta) }
+        }
+    }
+}
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 @Composable
 fun GameScreen(
@@ -744,8 +795,10 @@ fun NewResourceSection(
                 modifier = Modifier.weight(1f)
             )
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Box(Modifier.width(26.dp)) { ResourceDelta(amount) }
         } else {
             // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
+            Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
