@@ -48,6 +48,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -140,6 +141,74 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
     null                              -> "❓"
+}
+
+// ─── Floating HP-delta animace ───────────────────────────────────────────────
+
+private data class DeltaEvt(val id: Long, val delta: Int)
+
+/**
+ * Jedno plovoucí číslo: zelené (+N) při léčení / stavbě,
+ * červené (-N) při poškození. Animuje se nahoru a postupně mizí.
+ */
+@Composable
+private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f) {
+    val positive = delta > 0
+    val color    = if (positive) Color(0xFF4CAF50) else Color(0xFFE53935)
+    val text     = if (positive) "+$delta" else "$delta"
+
+    val offsetY  = remember { Animatable(0f) }
+    val alpha    = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        launch { offsetY.animateTo(-64f, tween(1300, easing = EaseOutCubic)) }
+        delay(700)
+        alpha.animateTo(0f, tween(500))
+    }
+
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Text(
+            text       = text,
+            color      = color,
+            fontSize   = sizeSp.sp,
+            fontWeight = FontWeight.ExtraBold,
+            style      = androidx.compose.ui.text.TextStyle(
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color      = Color.Black,
+                    offset     = Offset(0f, 1.5f),
+                    blurRadius = 6f
+                )
+            ),
+            modifier = Modifier.graphicsLayer {
+                translationY = offsetY.value
+                this.alpha   = alpha.value
+            }
+        )
+    }
+}
+
+/**
+ * Sleduje změny [hp] a pro každou změnu zobrazí plovoucí delta číslo.
+ * Umísti jako overlay do Box nad vizuál hradu nebo hradby.
+ */
+@Composable
+private fun HpFloats(hp: Int, sizeSp: Float = 15f) {
+    val events = remember { mutableStateListOf<DeltaEvt>() }
+    val prev   = remember { mutableIntStateOf(hp) }
+
+    LaunchedEffect(hp) {
+        val d = hp - prev.intValue
+        prev.intValue = hp
+        if (d == 0) return@LaunchedEffect
+        val evt = DeltaEvt(System.nanoTime(), d)
+        events += evt
+        delay(1500)
+        events -= evt
+    }
+
+    events.forEach { evt ->
+        key(evt.id) { FloatingDeltaNumber(evt.delta, sizeSp) }
+    }
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
@@ -1001,21 +1070,26 @@ private fun CastleTowerBlock(
         label         = "castle_emerge"
     )
 
-    // Clip box – pouze obrázek hradu bez badge (badge je nahoře v rohu)
-    Box(
-        modifier = Modifier
-            .size(castleFullW, castleFullH)
-            .clip(androidx.compose.ui.graphics.RectangleShape)
-    ) {
-        Image(
-            painter            = painterResource(R.drawable.castle_player),
-            contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
-            modifier           = Modifier
+    // Vnější Box: bez clipu → plovoucí čísla mohou přesahovat nahoru
+    Box(modifier = Modifier.size(castleFullW, castleFullH)) {
+        // Clip box – pouze obrázek hradu bez badge (badge je nahoře v rohu)
+        Box(
+            modifier = Modifier
                 .size(castleFullW, castleFullH)
-                .offset(y = offsetY)
-                .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
-            contentScale       = ContentScale.Fit
-        )
+                .clip(androidx.compose.ui.graphics.RectangleShape)
+        ) {
+            Image(
+                painter            = painterResource(R.drawable.castle_player),
+                contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
+                modifier           = Modifier
+                    .size(castleFullW, castleFullH)
+                    .offset(y = offsetY)
+                    .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
+                contentScale       = ContentScale.Fit
+            )
+        }
+        // Plovoucí delta HP – těsně nad hradem
+        HpFloats(castleHp, sizeSp = 17f)
     }
 }
 
@@ -1031,21 +1105,25 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
         label         = "wall_emerge"
     )
 
-    Box(
-        modifier = Modifier
-            .size(wallFullW, wallFullH)
-            .clip(androidx.compose.ui.graphics.RectangleShape)
-    ) {
-        Image(
-            painter            = painterResource(R.drawable.wall_player),
-            contentDescription = "Zeď",
-            modifier           = Modifier
+    // Vnější Box: bez clipu → plovoucí čísla mohou přesahovat nahoru
+    Box(modifier = Modifier.size(wallFullW, wallFullH)) {
+        Box(
+            modifier = Modifier
                 .size(wallFullW, wallFullH)
-                .offset(y = offsetY)
-                .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
-            contentScale       = ContentScale.FillBounds
-        )
-        // Bez badge – badge je nahoře v rohu
+                .clip(androidx.compose.ui.graphics.RectangleShape)
+        ) {
+            Image(
+                painter            = painterResource(R.drawable.wall_player),
+                contentDescription = "Zeď",
+                modifier           = Modifier
+                    .size(wallFullW, wallFullH)
+                    .offset(y = offsetY)
+                    .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
+                contentScale       = ContentScale.FillBounds
+            )
+        }
+        // Plovoucí delta HP – těsně nad hradbou
+        HpFloats(wallHp, sizeSp = 13f)
     }
 }
 
@@ -1480,21 +1558,25 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val wallPainter = painterResource(R.drawable.wall_player)
-            Canvas(Modifier.fillMaxWidth().weight(1f)) {
-                val w = size.width; val h = size.height
-                // Tmavé pozadí (prázdná zeď)
-                drawRect(Color.White.copy(alpha = 0.07f))
-                if (wallFrac > 0f) {
-                    // Ořež na spodních wallFrac a vykresli plný obrázek
-                    clipRect(
-                        left   = 0f,
-                        top    = h * (1f - wallFrac),
-                        right  = w,
-                        bottom = h
-                    ) {
-                        with(wallPainter) { draw(Size(w, h)) }
+            Box(Modifier.fillMaxWidth().weight(1f)) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width; val h = size.height
+                    // Tmavé pozadí (prázdná zeď)
+                    drawRect(Color.White.copy(alpha = 0.07f))
+                    if (wallFrac > 0f) {
+                        // Ořež na spodních wallFrac a vykresli plný obrázek
+                        clipRect(
+                            left   = 0f,
+                            top    = h * (1f - wallFrac),
+                            right  = w,
+                            bottom = h
+                        ) {
+                            with(wallPainter) { draw(Size(w, h)) }
+                        }
                     }
                 }
+                // Plovoucí delta – těsně nad vizuálem hradby
+                HpFloats(wallHp, sizeSp = 11f)
             }
             Spacer(Modifier.height(3.dp))
             Text("🧱 $wallHp", color = WallBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
@@ -1505,37 +1587,41 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
             modifier = Modifier.width(34.dp).fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Canvas(Modifier.fillMaxWidth().weight(1f)) {
-                val w = size.width; val h = size.height
-                // Cimbuří = 15 % výšky
-                val merH = h * 0.15f
-                val merW = w / 5f
-                val bodyTop = merH
-                val bodyH = h - bodyTop
-                val fillH = bodyH * castleFrac
-                val fillTop = bodyTop + bodyH - fillH
+            Box(Modifier.fillMaxWidth().weight(1f)) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = size.width; val h = size.height
+                    // Cimbuří = 15 % výšky
+                    val merH = h * 0.15f
+                    val merW = w / 5f
+                    val bodyTop = merH
+                    val bodyH = h - bodyTop
+                    val fillH = bodyH * castleFrac
+                    val fillTop = bodyTop + bodyH - fillH
 
-                drawRect(Color.White.copy(alpha = 0.07f),
-                    topLeft = Offset(0f, bodyTop), size = Size(w, bodyH))
-                if (fillH > 0f)
-                    drawRect(castleColor.copy(alpha = 0.60f),
-                        topLeft = Offset(0f, fillTop), size = Size(w, fillH))
-
-                for (i in listOf(0, 2, 4)) {
-                    val mx = merW * i
                     drawRect(Color.White.copy(alpha = 0.07f),
-                        topLeft = Offset(mx, 0f), size = Size(merW, merH))
-                    drawRect(castleColor.copy(alpha = 0.42f),
-                        topLeft = Offset(mx, 0f), size = Size(merW, merH), style = Stroke(1f))
-                }
-                drawRect(castleColor.copy(alpha = 0.50f),
-                    topLeft = Offset(0f, bodyTop), size = Size(w, bodyH), style = Stroke(1f))
+                        topLeft = Offset(0f, bodyTop), size = Size(w, bodyH))
+                    if (fillH > 0f)
+                        drawRect(castleColor.copy(alpha = 0.60f),
+                            topLeft = Offset(0f, fillTop), size = Size(w, fillH))
 
-                val slitW = w * 0.13f
-                val slitH = bodyH * 0.28f
-                drawRect(Color.Black.copy(alpha = 0.65f),
-                    topLeft = Offset((w - slitW) / 2f, bodyTop + bodyH * 0.22f),
-                    size = Size(slitW, slitH))
+                    for (i in listOf(0, 2, 4)) {
+                        val mx = merW * i
+                        drawRect(Color.White.copy(alpha = 0.07f),
+                            topLeft = Offset(mx, 0f), size = Size(merW, merH))
+                        drawRect(castleColor.copy(alpha = 0.42f),
+                            topLeft = Offset(mx, 0f), size = Size(merW, merH), style = Stroke(1f))
+                    }
+                    drawRect(castleColor.copy(alpha = 0.50f),
+                        topLeft = Offset(0f, bodyTop), size = Size(w, bodyH), style = Stroke(1f))
+
+                    val slitW = w * 0.13f
+                    val slitH = bodyH * 0.28f
+                    drawRect(Color.Black.copy(alpha = 0.65f),
+                        topLeft = Offset((w - slitW) / 2f, bodyTop + bodyH * 0.22f),
+                        size = Size(slitW, slitH))
+                }
+                // Plovoucí delta – těsně nad vizuálem hradu
+                HpFloats(castleHp, sizeSp = 11f)
             }
             Spacer(Modifier.height(3.dp))
             Text("🏰 $castleHp", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
