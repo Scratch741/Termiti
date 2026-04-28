@@ -337,7 +337,8 @@ fun GameScreen(
                     lastCard         = lastCard,
                     lastCardAction   = lastCardAction,
                     lastCardIsPlayer = lastCardIsPlayer,
-                    modifier         = Modifier.fillMaxHeight().weight(1f)
+                    modifier         = Modifier.fillMaxHeight().weight(1f),
+                    playerWinTarget  = state.playerWinTarget
                 )
 
                 // ── Pravý panel: zdroje AI ────────────────────────────────────
@@ -797,7 +798,8 @@ fun NewBattlefield(
     lastCardIsPlayer: Boolean,
     modifier: Modifier = Modifier,
     revealedAiCard: Card? = null,     // karta zahrána soupeřem
-    revealedAiCardIdx: Int? = null    // původní index v ruce (před zahráním)
+    revealedAiCardIdx: Int? = null,   // původní index v ruce (před zahráním)
+    playerWinTarget: Int = 60         // 60 nebo 65 s extra_castle pasivní schopností
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -853,6 +855,7 @@ fun NewBattlefield(
             castleHp    = playerState.castleHP,
             wallHp      = playerState.wallHP,
             isPlayer    = true,
+            winTarget   = playerWinTarget,
             modifier    = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)
@@ -863,6 +866,7 @@ fun NewBattlefield(
             castleHp    = aiState.castleHP,
             wallHp      = aiState.wallHP,
             isPlayer    = false,
+            winTarget   = 60,
             modifier    = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
@@ -870,19 +874,21 @@ fun NewBattlefield(
 
         // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
         NewCastleStructure(
-            castleHp = playerState.castleHP,
-            wallHp   = playerState.wallHP,
-            isPlayer = true,
-            modifier = Modifier
+            castleHp  = playerState.castleHP,
+            wallHp    = playerState.wallHP,
+            isPlayer  = true,
+            winTarget = playerWinTarget,
+            modifier  = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp)
         )
         // ── Hrad AI – vpravo dole ────────────────────────────────────────────────
         NewCastleStructure(
-            castleHp = aiState.castleHP,
-            wallHp   = aiState.wallHP,
-            isPlayer = false,
-            modifier = Modifier
+            castleHp  = aiState.castleHP,
+            wallHp    = aiState.wallHP,
+            isPlayer  = false,
+            winTarget = 60,
+            modifier  = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 8.dp, bottom = 4.dp)
         )
@@ -1032,6 +1038,7 @@ private fun NewCastleStructure(
     castleHp: Int,
     wallHp: Int,
     isPlayer: Boolean,
+    winTarget: Int = 60,
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isPlayer) Teal    else Crimson
@@ -1050,11 +1057,11 @@ private fun NewCastleStructure(
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         if (isPlayer) {
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget)
             WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true)
         } else {
             WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false)
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget)
         }
     }
 }
@@ -1064,11 +1071,12 @@ private fun CastleTowerBlock(
     castleHp: Int,
     accentColor: Color,
     accentLight: Color,
-    isPlayer: Boolean
+    isPlayer: Boolean,
+    winTarget: Int = 60
 ) {
     val castleFullH = 165.dp
     val castleFullW = 110.dp
-    val hpFrac = hpToVisualFrac(castleHp, maxHp = 60f)
+    val hpFrac = hpToVisualFrac(castleHp, maxHp = winTarget.toFloat())
 
     val offsetY by animateDpAsState(
         targetValue   = castleFullH * (1f - hpFrac),
@@ -1144,6 +1152,7 @@ private fun CastleHpBadge(
     castleHp: Int,
     wallHp: Int,
     isPlayer: Boolean,
+    winTarget: Int = 60,
     modifier: Modifier = Modifier
 ) {
     val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
@@ -1159,7 +1168,7 @@ private fun CastleHpBadge(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "🏰 $castleHp/60",
+            "🏰 $castleHp/$winTarget",
             color      = accentLight,
             fontSize   = 11.sp,
             fontWeight = FontWeight.Bold
@@ -1491,7 +1500,8 @@ private fun PlayedCardSlot(card: Card) {
 // ─── Player Panel ─────────────────────────────────────────────────────────────
 @Composable
 fun PlayerPanel(
-    label: String, playerState: PlayerState, isEnemy: Boolean, modifier: Modifier = Modifier
+    label: String, playerState: PlayerState, isEnemy: Boolean, modifier: Modifier = Modifier,
+    winTarget: Int = 60
 ) {
     val accent     = if (isEnemy) Crimson else Teal
     val castleHp   = playerState.castleHP
@@ -1529,7 +1539,7 @@ fun PlayerPanel(
         Spacer(Modifier.height(6.dp))
 
         // Vizuál hradu/hradeb – vyplní volný prostor
-        CastleWallVisual(castleHp = castleHp, wallHp = wallHp,
+        CastleWallVisual(castleHp = castleHp, wallHp = wallHp, winTarget = winTarget,
             modifier = Modifier.fillMaxWidth().weight(1f))
 
         Spacer(Modifier.height(6.dp))
@@ -1546,10 +1556,10 @@ fun PlayerPanel(
 }
 
 @Composable
-fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) {
+fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, modifier: Modifier = Modifier) {
     val castleColor = if (castleHp > 15) HpGreen else HpRed
     val castleFrac by animateFloatAsState(
-        (castleHp / 100f).coerceIn(0f, 1f),
+        (castleHp / winTarget.toFloat()).coerceIn(0f, 1f),
         tween(600, easing = EaseOutCubic), label = "castle"
     )
     val wallFrac by animateFloatAsState(
@@ -1638,7 +1648,7 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
                 HpFloats(castleHp, sizeSp = 11f, startOffsetY = castleTopDp)
             }
             Spacer(Modifier.height(3.dp))
-            Text("🏰 $castleHp/60", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Text("🏰 $castleHp/$winTarget", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
