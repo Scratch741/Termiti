@@ -515,6 +515,24 @@ fun GameScreen(
             LogOverlay(log = log, onDismiss = { showLog = false })
         }
 
+        // ── Pochodně na okrajích bojového pole ───────────────────────────────
+        // Základna plamene (baseY = 80 % výšky canvasu) sedí na hranici TopBaru.
+        // Plamen šlehá nahoru do tmavé plochy baru, glow osvětluje okolí.
+        TorchFlame(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 94.dp, y = 8.dp),   // centrováno na x=112dp (panel|bojiště)
+            size = 36.dp,
+            seed = 0f
+        )
+        TorchFlame(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-94).dp, y = 8.dp), // symetricky z pravé strany
+            size = 36.dp,
+            seed = 1.1f   // jiná fáze → nesynchronizují se s levou pochodeň
+        )
+
         // Letící karta – kreslí se jako poslední, aby byla nad vším
         FlightOverlayBox(flight)
     }
@@ -938,6 +956,62 @@ fun NewBattlefield(
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
         )
+
+        // ── Plameny na pochodeňových pozicích ────────────────────────────────────
+        //
+        //  x, y = procenta OBRÁZKU castle_background.png (1200×400 px).
+        //  Měř přímo na obrázku: x=0 je levý kraj, x=100 pravý; y=0 vršek, y=100 spodek.
+        //  Kód sám přepočítá ContentScale.Crop crop a zobrazí plamen na správném místě.
+        //
+        //  size = velikost plamene v dp (výchozí 20)
+        //  seed = nemeň (odděluje fáze animací sousedních plamenů)
+        //
+        data class Flame(val x: Float, val y: Float, val seed: Float, val size: Float = 20f)
+        val flames = remember {
+            listOf(
+                Flame(x = 30f, y = 65f, seed = 0.0f),            // ①
+                Flame(x = 34f, y = 57f, seed = 1.7f),            // ②
+                Flame(x = 71f, y = 55.2f, seed = 2.5f),            // ③
+                Flame(x = 78.5f, y = 65f, seed = 3.7f),            // ④
+                Flame(x = 83.3f, y = 55f, seed = 0.9f, size = 25f),            // ⑤
+                Flame(x = 97f, y = 51.5f, seed = 2.1f, size = 42f) // ⑥
+            )
+        }
+
+        // Přepočet image-space → display-space s korekcí ContentScale.Crop.
+        // Obrázek je 1200×400 (poměr 3:1).
+        val imgAR   = 3.0f
+        val dispAR  = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
+        val imgDispW: Dp
+        val imgDispH: Dp
+        val cropX:   Dp
+        val cropY:   Dp
+        if (dispAR >= imgAR) {
+            // Zobrazení je širší než obrázek → škáluje se na šířku, ořez nahoře/dole
+            imgDispW = maxWidth
+            imgDispH = maxWidth / imgAR
+            cropX    = 0.dp
+            cropY    = (imgDispH - maxHeight) / 2f
+        } else {
+            // Zobrazení je užší než obrázek → škáluje se na výšku, ořez vlevo/vpravo
+            imgDispW = maxHeight * imgAR
+            imgDispH = maxHeight
+            cropX    = (imgDispW - maxWidth) / 2f
+            cropY    = 0.dp
+        }
+
+        flames.forEach { f ->
+            val fSz = f.size.dp
+            val xDisplay = imgDispW * (f.x / 100f) - cropX - fSz / 2
+            val yDisplay = imgDispH * (f.y / 100f) - cropY - fSz * 0.80f
+            TorchFlame(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = xDisplay, y = yDisplay),
+                size = fSz,
+                seed = f.seed
+            )
+        }
 
         // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
         NewCastleStructure(
