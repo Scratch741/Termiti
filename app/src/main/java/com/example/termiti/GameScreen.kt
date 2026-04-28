@@ -277,7 +277,9 @@ fun GameScreen(
     arenaWins: Int = 0,
     onArenaWin: () -> Unit = {},
     onArenaLose: () -> Unit = {},
-    onGameEnd: ((win: Boolean) -> Unit)? = null
+    onGameEnd: ((win: Boolean) -> Unit)? = null,
+    randomDeck: Boolean = false,
+    superRandom: Boolean = false
 ) {
     val state            by viewModel.gameState
     val log              by viewModel.log
@@ -467,7 +469,7 @@ fun GameScreen(
                 } else {
                     GameOverDialog(
                         result    = result,
-                        onRestart = { viewModel.restartGame() },
+                        onRestart = { viewModel.restartGame(randomDeck = randomDeck, superRandom = superRandom) },
                         onMenu    = { viewModel.restartGame(); onBackToMenu() },
                         onReview  = { reviewMode = true }
                     )

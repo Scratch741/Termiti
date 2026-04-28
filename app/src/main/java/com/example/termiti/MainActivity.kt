@@ -50,7 +50,9 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val initialScreen = if (PlayerProfileManager.isFirstLaunch())
                         Screen.PROFILE_SETUP else Screen.MENU
-                    var screen by remember { mutableStateOf(initialScreen) }
+                    var screen      by remember { mutableStateOf(initialScreen) }
+                    var gameRandom  by remember { mutableStateOf(false) }
+                    var gameSuperRandom by remember { mutableStateOf(false) }
                     val arenaPhase by viewModel.arenaPhase
                     val arenaWins  by viewModel.arenaWins
 
@@ -77,9 +79,9 @@ class MainActivity : ComponentActivity() {
 
                         // ── Výběr herního módu ────────────────────────────────
                         Screen.PLAY_MENU -> PlayMenuScreen(
-                            onOwnDeck     = { viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
-                            onRandomDeck  = { viewModel.restartGame(randomDeck = true);                     screen = Screen.GAME },
-                            onSuperRandom = { viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
+                            onOwnDeck     = { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
+                            onRandomDeck  = { gameRandom = true;  gameSuperRandom = false; viewModel.restartGame(randomDeck = true);                     screen = Screen.GAME },
+                            onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onBack        = { screen = Screen.MENU }
                         )
@@ -94,7 +96,9 @@ class MainActivity : ComponentActivity() {
                             onBackToMenu = { screen = Screen.MENU },
                             onGameEnd    = { win ->
                                 PlayerProfileManager.recordGameResult(win = win, online = false)
-                            }
+                            },
+                            randomDeck   = gameRandom,
+                            superRandom  = gameSuperRandom
                         )
 
                         // ── Deck builder ──────────────────────────────────────
