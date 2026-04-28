@@ -367,15 +367,6 @@ fun GameScreen(
                             active  = true,
                             onClick = { showLog = true }
                         )
-                        if (gameOver != null) {
-                            Spacer(Modifier.height(3.dp))
-                            NewPanelButton(
-                                label   = "🏆 Výsledek",
-                                color   = Gold,
-                                active  = true,
-                                onClick = { reviewMode = false }
-                            )
-                        }
                         if (lostToOpponent.isNotEmpty()) {
                             Spacer(Modifier.height(3.dp))
                             NewPanelButton(

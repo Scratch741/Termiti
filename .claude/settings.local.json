@@ -37,7 +37,22 @@
       "Bash(python3 -)",
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(gradlew.bat assembleDebug)",
+      "Bash(cmd /c \"gradlew.bat assembleDebug 2>&1 | tail -60\")",
+      "Bash(cmd /c \"gradlew.bat assembleDebug\")",
+      "Bash(git -C C:/Users/Scratch/AndroidStudioProjects/Termiti diff --stat HEAD)",
+      "Bash(git -C C:/Users/Scratch/AndroidStudioProjects/Termiti log --oneline -5)",
+      "Bash(xargs grep *)",
+      "Bash(grep -n \"BuildWall\\\\|AttackWall\\\\|WallAbove\\\\|WallBelow\" /c/Users/Scratch/AndroidStudioProjects/Termiti/app/src/main/java/com/example/termiti/Gameviewmodel.kt)",
+      "Read(//tmp/**)",
+      "Bash(git commit -m ' *)",
+      "Bash(gradlew.bat --version)",
+      "Bash(./gradlew dependencies *)",
+      "Bash(./gradlew :app:dependencies --configuration debugCompileClasspath)",
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(dir \"C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\res\\\\raw\" /b)",
+      "Bash(git pull *)"
     ]
   }
 }

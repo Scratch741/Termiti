@@ -828,12 +828,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (extraStones > 0) it.resources[ResourceType.STONES] = extraStones
             if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
             it.deck.addAll(playerCards)
-            it.drawCards(5)
+            it.drawCards(4)
         }
         val aiState = PlayerState().also {
             val aiDeck = if (superRandom) superRandomDeck() else balancedDeck()
             it.deck.addAll(aiDeck.withUniqueIds().shuffled())
-            it.drawCards(5)
+            it.drawCards(4)
         }
 
         val firstPlayer = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI

@@ -158,9 +158,7 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
     val statusMsg       by vm.statusMsg
 
     Box(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -249,7 +247,9 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 // Chipy vertikálně: Náhodný + uložené balíčky
                 Column(
                     verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier.verticalScroll(rememberScrollState())
+                    modifier = Modifier
+                        .heightIn(max = 200.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     DeckChip(
                         label    = "🎲 Náhodný",

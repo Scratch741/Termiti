@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,15 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val BgDeep      = Color(0xFF0D0A0E)
-private val BgPanel     = Color(0xFF13101A)
 private val BgCard      = Color(0xFF1A1320)
 private val Gold        = Color(0xFFD4A843)
 private val TealLight   = Color(0xFF3DBFAD)
@@ -37,11 +37,14 @@ fun MenuScreen(
 ) {
     val profile = PlayerProfileManager.profile
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(BgDeep, BgPanel, BgDeep)))
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter            = painterResource(R.drawable.bg_game),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.Crop
+        )
+        Box(Modifier.fillMaxSize().background(Color(0xBB000000)))
         Row(
             modifier = Modifier
                 .fillMaxSize()

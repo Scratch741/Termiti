@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Termiti – Game Screen Mockup v2 (Arcomage style)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1a1008;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Georgia', serif;
+  padding: 16px;
+  gap: 12px;
+}
+
+h2 { color: #D4A843; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════
+   PHONE (landscape Android ~900×440)
+═══════════════════════════════════════════════ */
+.phone {
+  width: 940px;
+  height: 440px;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #5C3A10;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0,0,0,0.9);
+  position: relative;
+}
+
+/* ── TOP BAR ───────────────────────────────── */
+.top-bar {
+  height: 38px;
+  background: linear-gradient(180deg, #3D200A 0%, #2A1505 100%);
+  border-bottom: 2px solid #6B3D12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid #D4A843;
+  background: linear-gradient(135deg, #3A2010, #5C3010);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.player-name {
+  color: #EDE0C4;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.top-center {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.turn-badge {
+  background: rgba(212,168,67,0.15);
+  border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 6px;
+  padding: 3px 10px;
+  color: #D4A843;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.active-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot.player { background: #3DBFAD; box-shadow: 0 0 5px rgba(61,191,173,0.8); }
+.dot.ai     { background: #BF2D2D; box-shadow: 0 0 5px rgba(191,45,45,0.8); }
+
+/* ── MAIN ROW (resources + battlefield) ───── */
+.main-row {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── RESOURCE PANEL (wood texture) ──────── */
+.res-panel {
+  width: 112px;
+  min-width: 112px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+      transparent 1px, transparent 18px
+    ),
+    linear-gradient(180deg, #2E1A08 0%, #231408 50%, #2E1A08 100%);
+  border-right: 3px solid #6B3D12;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 5px;
+  gap: 0;
+}
+.res-panel.right {
+  border-right: none;
+  border-left: 3px solid #6B3D12;
+}
+
+.res-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 3px;
+}
+
+/* Mine rate row */
+.mine-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 3px;
+}
+.mine-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #D4A843;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  line-height: 1;
+  min-width: 16px;
+}
+.mine-icon { font-size: 12px; opacity: 0.7; }
+.mine-label {
+  font-size: 8px;
+  color: rgba(212,168,67,0.5);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Resource amount row */
+.amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px 5px;
+  border-bottom: 1px solid rgba(212,168,67,0.1);
+  margin-bottom: 3px;
+}
+.res-name {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.res-val {
+  font-size: 14px;
+  font-weight: bold;
+  color: #EDE0C4;
+  min-width: 22px;
+  text-align: right;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.magic-col  .res-name { color: #C77DFF; }
+.attack-col .res-name { color: #FF7070; }
+.stones-col .res-name { color: #C8B89A; }
+.chaos-col  .res-name { color: #FFA94D; }
+
+.spacer { flex: 1; }
+
+/* Buttons in resource panel */
+.panel-btn {
+  border-radius: 5px;
+  font-size: 9px;
+  text-align: center;
+  padding: 5px 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+.btn-endturn {
+  background: linear-gradient(135deg, #1A4A3A, #2A7A6F);
+  border: 1px solid #3DBFAD;
+  color: #A0EFE0;
+  box-shadow: 0 0 8px rgba(61,191,173,0.25);
+}
+.btn-discard {
+  background: rgba(191,45,45,0.2);
+  border: 1px solid rgba(191,45,45,0.4);
+  color: #FF9090;
+}
+.btn-log {
+  background: rgba(212,168,67,0.1);
+  border: 1px solid rgba(212,168,67,0.25);
+  color: rgba(212,168,67,0.7);
+}
+
+/* ── BATTLEFIELD ─────────────────────────── */
+.battlefield {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background (in real app: bg_game.jpg) */
+.bg-scene {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 60%, rgba(10,40,10,0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(40,10,10,0.4) 0%, transparent 60%),
+    linear-gradient(180deg, #0A1A0A 0%, #151A08 40%, #1A1008 100%);
+}
+/* Simulated distant hills */
+.bg-scene::before {
+  content: '';
+  position: absolute;
+  bottom: 80px;
+  left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, transparent, rgba(30,50,15,0.3));
+  border-radius: 50% 50% 0 0 / 30px 30px 0 0;
+}
+
+/* AI info row (top of battlefield) */
+.ai-row {
+  position: relative;
+  z-index: 5;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+  padding: 0 8px;
+}
+
+.card-back-small {
+  width: 18px; height: 26px;
+  background: linear-gradient(135deg, #1E1428, #2A1E3A);
+  border: 1px solid rgba(155,89,182,0.5);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: rgba(155,89,182,0.5);
+}
+
+.ai-deck-label {
+  font-size: 9px;
+  color: rgba(237,224,196,0.4);
+  letter-spacing: 1px;
+}
+
+/* CASTLE AREA */
+.castle-area {
+  position: absolute;
+  z-index: 4;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+.castle-area.left  { left: 20px; }
+.castle-area.right { right: 20px; }
+
+/* Castle tower (illustrated feel) */
+.tower {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.tower:hover { filter: brightness(1.15); }
+
+.tower-player {
+  width: 52px;
+  background: linear-gradient(180deg,
+    #0A2A4A 0%, #0D3560 20%, #0F4070 50%,
+    #0A2A4A 80%, #082040 100%
+  );
+  border: 2px solid rgba(61,191,173,0.6);
+  box-shadow: 0 0 14px rgba(61,191,173,0.25), inset 1px 0 0 rgba(255,255,255,0.05);
+}
+
+.tower-ai {
+  width: 52px;
+  background: linear-gradient(180deg,
+    #3A0A0A 0%, #5C1010 20%, #701818 50%,
+    #4A0C0C 80%, #380A0A 100%
+  );
+  border: 2px solid rgba(191,45,45,0.6);
+  box-shadow: 0 0 14px rgba(191,45,45,0.25), inset 1px 0 0 rgba(255,255,255,0.05);
+}
+
+/* Battlements */
+.battlements {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  position: absolute;
+  top: -10px;
+  padding: 0 4px;
+}
+.merlon {
+  width: 8px; height: 9px;
+  border-radius: 2px 2px 0 0;
+}
+.merlon-player { background: #1A5A8A; border: 1px solid rgba(61,191,173,0.5); }
+.merlon-ai     { background: #6A1A1A; border: 1px solid rgba(191,45,45,0.5); }
+
+/* Tower windows */
+.tower-windows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 4px;
+  width: 100%;
+}
+.tower-window {
+  width: 10px; height: 14px;
+  border-radius: 3px 3px 0 0;
+  border: 1px solid rgba(255,220,100,0.2);
+  background: rgba(255,200,50,0.06);
+}
+
+/* Flag */
+.tower-flag {
+  position: absolute;
+  top: -18px;
+  font-size: 10px;
+}
+
+/* HP display under structures */
+.hp-box {
+  background: rgba(0,0,0,0.75);
+  border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #EDE0C4;
+  white-space: nowrap;
+  text-align: center;
+}
+.hp-row {
+  display: flex;
+  gap: 3px;
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* WALL (hradba – kamenné bloky) */
+.wall-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 1px;
+}
+.stone-block {
+  width: 22px;
+  height: 7px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.4);
+}
+.stone-player { background: linear-gradient(90deg, #4A7A6A, #5A9A8A); }
+.stone-ai     { background: linear-gradient(90deg, #6A3A3A, #8A4A4A); }
+.wall-hp-label {
+  font-size: 8px;
+  color: rgba(237,224,196,0.5);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* CENTER discard zone */
+.center-zone {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.discard-card {
+  width: 58px;
+  height: 76px;
+  background: linear-gradient(135deg, #1A1320 0%, #221830 100%);
+  border: 2px solid rgba(212,168,67,0.5);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(212,168,67,0.15);
+  position: relative;
+}
+.discard-card:hover {
+  border-color: rgba(212,168,67,0.9);
+  box-shadow: 0 0 18px rgba(212,168,67,0.3);
+}
+.discard-card-art { font-size: 22px; }
+.discard-card-name { font-size: 7px; color: rgba(237,224,196,0.6); text-align: center; padding: 0 3px; }
+.history-hint {
+  position: absolute;
+  bottom: -14px;
+  font-size: 7px;
+  color: rgba(212,168,67,0.4);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* Hovered card detail (center popup) */
+.card-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 130px;
+  background: linear-gradient(180deg, #1E1428 0%, #251835 100%);
+  border: 2px solid rgba(212,168,67,0.6);
+  border-radius: 8px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+}
+.popup-art {
+  height: 65px;
+  background: linear-gradient(135deg, #2A3A5A, #1A2A4A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  border-bottom: 1px solid rgba(212,168,67,0.2);
+}
+.popup-name {
+  font-size: 10px;
+  font-weight: bold;
+  color: #D4A843;
+  text-align: center;
+  padding: 4px 6px 2px;
+  letter-spacing: 0.5px;
+}
+.popup-effect {
+  font-size: 9px;
+  color: #EDE0C4;
+  text-align: center;
+  padding: 2px 6px 4px;
+  line-height: 1.4;
+}
+.popup-cost {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  padding: 3px;
+  background: rgba(0,0,0,0.3);
+  color: #FF7070;
+  border-top: 1px solid rgba(212,168,67,0.15);
+}
+
+/* ── PLAYER HAND ─────────────────────────── */
+.player-hand {
+  position: relative;
+  z-index: 3;
+  height: 115px;
+  background: linear-gradient(180deg, #1A0E05 0%, #120A03 100%);
+  border-top: 2px solid #6B3D12;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.hand-card {
+  width: 94px;
+  height: 100px;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  flex-grow: 1;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  border: 1.5px solid rgba(255,255,255,0.15);
+}
+.hand-card:hover {
+  transform: translateY(-10px);
+  z-index: 10;
+}
+
+/* Card header (type color band) */
+.card-header {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+.card-header-magic  { background: linear-gradient(90deg, #4A1A6A, #6A2A8A); }
+.card-header-attack { background: linear-gradient(90deg, #5A1010, #8A2020); }
+.card-header-stones { background: linear-gradient(90deg, #3A3020, #5A4A30); }
+.card-header-chaos  { background: linear-gradient(90deg, #5A2A00, #8A4A00); }
+
+.card-title-small {
+  font-size: 7px;
+  color: rgba(255,255,255,0.9);
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50px;
+}
+.card-cost-badge {
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  background: rgba(0,0,0,0.4);
+  border-radius: 3px;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+
+/* Card art area */
+.card-art-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: rgba(0,0,0,0.2);
+}
+
+/* Card description */
+.card-desc {
+  height: 26px;
+  background: rgba(0,0,0,0.5);
+  font-size: 7px;
+  color: rgba(237,224,196,0.8);
+  text-align: center;
+  padding: 2px 3px;
+  line-height: 1.3;
+  overflow: hidden;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Full card styles */
+.hc-magic  { background: linear-gradient(180deg, #2A1040, #1A0A28); border-color: rgba(155,89,182,0.5); }
+.hc-attack { background: linear-gradient(180deg, #2A0A0A, #1A0505); border-color: rgba(191,45,45,0.5); }
+.hc-stones { background: linear-gradient(180deg, #1E1A10, #141008); border-color: rgba(184,168,152,0.4); }
+.hc-chaos  { background: linear-gradient(180deg, #2A1500, #1A0C00); border-color: rgba(230,126,34,0.5); }
+
+/* Playable glow */
+.hc-magic.playable  { border-color: rgba(155,89,182,0.9); box-shadow: 0 0 8px rgba(155,89,182,0.3); }
+.hc-attack.playable { border-color: rgba(191,45,45,0.9);  box-shadow: 0 0 8px rgba(191,45,45,0.3); }
+.hc-stones.playable { border-color: rgba(184,168,152,0.8); box-shadow: 0 0 8px rgba(184,168,152,0.2); }
+
+/* Selected (lifted) */
+.hc-attack.selected {
+  transform: translateY(-14px);
+  border-color: #D4A843;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 16px rgba(212,168,67,0.4);
+  z-index: 10;
+}
+
+/* Not affordable */
+.unaffordable { opacity: 0.4; filter: grayscale(0.5); }
+
+/* Hand extras */
+.hand-extra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-left: auto;
+  padding-left: 8px;
+  border-left: 1px solid rgba(212,168,67,0.1);
+}
+.hand-stat {
+  font-size: 10px;
+  color: rgba(237,224,196,0.4);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── NOTES ─────────────────────────────────── */
+.notes {
+  max-width: 940px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.note-card {
+  background: #1c1005;
+  border: 1px solid #4A2A0A;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.note-title { color: #D4A843; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.note-body  { color: rgba(237,224,196,0.55); font-size: 10px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h2>Termiti — Nové UI Mockup v2 (Arcomage styl)</h2>
+
+<!-- ═══════════════════ PHONE ═══════════════════ -->
+<div class="phone">
+
+  <!-- ── TOP BAR ── -->
+  <div class="top-bar">
+    <div class="player-header">
+      <div class="avatar">🧙</div>
+      <div class="player-name">Hráč</div>
+      <div style="display:flex;align-items:center;gap:3px;background:rgba(0,0,0,0.3);border:1px solid rgba(212,168,67,0.25);border-radius:5px;padding:2px 6px;">
+        <span style="font-size:11px;">🂠</span>
+        <span style="font-size:11px;font-weight:bold;color:#EDE0C4;">10</span>
+      </div>
+    </div>
+
+    <div class="top-center">
+      <div class="turn-badge">Kolo 14</div>
+      <div class="active-indicator">
+        <div class="dot player"></div>
+        <span style="color:#3DBFAD;font-weight:bold;font-size:11px;">TVŮJ TAH</span>
+      </div>
+    </div>
+
+    <div class="player-header" style="flex-direction:row-reverse;">
+      <div class="avatar">👺</div>
+      <div class="player-name">Goblin</div>
+      <div style="display:flex;align-items:center;gap:3px;background:rgba(0,0,0,0.3);border:1px solid rgba(212,168,67,0.25);border-radius:5px;padding:2px 6px;">
+        <span style="font-size:11px;">🂠</span>
+        <span style="font-size:11px;font-weight:bold;color:#EDE0C4;">12</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ROW ── -->
+  <div class="main-row">
+
+    <!-- LEFT: Hráčovy zdroje -->
+    <div class="res-panel">
+
+      <!-- MAGIE -->
+      <div class="res-section magic-col">
+        <div class="mine-row">
+          <div class="mine-number">2</div>
+          <div class="mine-icon">⛏️</div>
+          <div class="mine-label">Doly</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Magie</span>
+          <span class="res-val">✨ 3</span>
+        </div>
+      </div>
+
+      <!-- ÚTOK -->
+      <div class="res-section attack-col">
+        <div class="mine-row">
+          <div class="mine-number">1</div>
+          <div class="mine-icon">⚔️</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Útok</span>
+          <span class="res-val">⚔ 5</span>
+        </div>
+      </div>
+
+      <!-- KAMENY -->
+      <div class="res-section stones-col">
+        <div class="mine-row">
+          <div class="mine-number">2</div>
+          <div class="mine-icon">⛏️</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Kameny</span>
+          <span class="res-val">🪨 2</span>
+        </div>
+      </div>
+
+      <!-- CHAOS -->
+      <div class="res-section chaos-col">
+        <div class="mine-row">
+          <div class="mine-number">—</div>
+          <div class="mine-icon">🌀</div>
+        </div>
+        <div class="amount-row" style="border:none">
+          <span class="res-name">Chaos</span>
+          <span class="res-val">🌀 1</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="panel-btn btn-log">📜 Log</div>
+    </div>
+
+    <!-- CENTER: Battlefield -->
+    <div class="battlefield">
+      <div class="bg-scene"></div>
+
+      <!-- AI hand row -->
+      <div class="ai-row">
+        <!-- Karty rubem -->
+        <div class="card-back-small">🂠</div>
+        <div class="card-back-small">🂠</div>
+        <div class="card-back-small">🂠</div>
+        <div class="card-back-small">🂠</div>
+        <div class="card-back-small">🂠</div>
+        <div class="card-back-small">🂠</div>
+      </div>
+
+      <!-- PLAYER CASTLE (levá strana) – věž vlevo, hradba vpravo (blíže středu) -->
+      <div class="castle-area left">
+        <!-- Věž hráče -->
+        <div style="display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:18px;">
+          <div class="tower tower-player" style="height:90px;width:52px;">
+            <div class="battlements">
+              <div class="merlon merlon-player"></div>
+              <div class="merlon merlon-player"></div>
+              <div class="merlon merlon-player"></div>
+            </div>
+            <div class="tower-flag">🏳️</div>
+            <div class="tower-windows">
+              <div class="tower-window" style="border-color:rgba(61,191,173,0.4);background:rgba(61,191,173,0.06);"></div>
+              <div class="tower-window" style="border-color:rgba(61,191,173,0.3);"></div>
+              <div class="tower-window" style="border-color:rgba(61,191,173,0.2);"></div>
+            </div>
+          </div>
+          <div class="hp-row">
+            <div class="hp-box" style="color:#80E0C0;">🏰 30/60</div>
+            <div class="hp-box" style="color:#60D0A0;">🧱 15/100</div>
+          </div>
+        </div>
+        <!-- Zeď hráče: blíže středu -->
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="wall-stack">
+            <div class="stone-block stone-player"></div>
+            <div class="stone-block stone-player"></div>
+            <div class="stone-block stone-player"></div>
+            <div class="stone-block stone-player"></div>
+            <div class="stone-block stone-player"></div>
+          </div>
+          <div class="wall-hp-label">15</div>
+        </div>
+      </div>
+
+      <!-- AI CASTLE (pravá strana) – hradba vlevo (blíže středu), věž vpravo -->
+      <div class="castle-area right">
+        <!-- Zeď AI: blíže středu -->
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="wall-stack">
+            <div class="stone-block stone-ai"></div>
+            <div class="stone-block stone-ai"></div>
+            <div class="stone-block stone-ai"></div>
+          </div>
+          <div class="wall-hp-label">8</div>
+        </div>
+        <!-- Věž AI -->
+        <div style="display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:18px;">
+          <div class="tower tower-ai" style="height:72px;width:52px;">
+            <div class="battlements">
+              <div class="merlon merlon-ai"></div>
+              <div class="merlon merlon-ai"></div>
+              <div class="merlon merlon-ai"></div>
+            </div>
+            <div class="tower-flag" style="right:4px;left:auto;">🚩</div>
+            <div class="tower-windows">
+              <div class="tower-window" style="border-color:rgba(255,100,100,0.3);background:rgba(255,50,50,0.08);"></div>
+              <div class="tower-window" style="border-color:rgba(255,100,100,0.3);"></div>
+            </div>
+          </div>
+          <div class="hp-row">
+            <div class="hp-box" style="color:#FF8080;">🏰 25/60</div>
+            <div class="hp-box" style="color:#FF6060;">🧱 8/100</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: poslední zahraná karta -->
+      <div class="center-zone">
+        <div class="discard-card">
+          <div class="discard-card-art">🔥</div>
+          <div class="discard-card-name">Ohnivá koule</div>
+          <div class="history-hint">▼ historie tahů</div>
+        </div>
+      </div>
+
+      <!-- POPUP při hoveru nad kartou (zobrazí se při hover nad selected kartou) -->
+      <div class="card-popup" style="left:42%;top:12%;transform:translate(-50%,0);">
+        <div class="popup-art">🗡️</div>
+        <div class="popup-name">Válečný sekyrník</div>
+        <div class="popup-effect">Zaútočí za 8.<br>Ukradni 2 útoku soupeři.</div>
+        <div class="popup-cost">⚔ Cena: 4</div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: AI zdroje -->
+    <div class="res-panel right">
+
+      <div class="res-section magic-col">
+        <div class="mine-row">
+          <div class="mine-number">1</div>
+          <div class="mine-icon">⛏️</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Magie</span>
+          <span class="res-val">✨ 1</span>
+        </div>
+      </div>
+
+      <div class="res-section attack-col">
+        <div class="mine-row">
+          <div class="mine-number">2</div>
+          <div class="mine-icon">⚔️</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Útok</span>
+          <span class="res-val">⚔ 3</span>
+        </div>
+      </div>
+
+      <div class="res-section stones-col">
+        <div class="mine-row">
+          <div class="mine-number">1</div>
+          <div class="mine-icon">⛏️</div>
+        </div>
+        <div class="amount-row">
+          <span class="res-name">Kameny</span>
+          <span class="res-val">🪨 4</span>
+        </div>
+      </div>
+
+      <div class="res-section chaos-col">
+        <div class="mine-row">
+          <div class="mine-number">—</div>
+          <div class="mine-icon">🌀</div>
+        </div>
+        <div class="amount-row" style="border:none">
+          <span class="res-name">Chaos</span>
+          <span class="res-val">🌀 0</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <div class="panel-btn btn-endturn">Konec tahu</div>
+    </div>
+
+  </div>
+  <!-- end main-row -->
+
+  <!-- ── PLAYER HAND ── -->
+  <div class="player-hand">
+    <!-- Zahratelné -->
+    <div class="hand-card hc-magic playable">
+      <div class="card-header card-header-magic">
+        <span class="card-title-small">Magie</span>
+        <span class="card-cost-badge" style="background:rgba(155,89,182,0.6);">0</span>
+      </div>
+      <div class="card-art-area">✨</div>
+      <div class="card-desc">+2 magie okamžitě</div>
+    </div>
+    <div class="hand-card hc-attack playable">
+      <div class="card-header card-header-attack">
+        <span class="card-title-small">Základ. útok</span>
+        <span class="card-cost-badge" style="background:rgba(191,45,45,0.6);">2</span>
+      </div>
+      <div class="card-art-area">🗡️</div>
+      <div class="card-desc">Útok na nepřítele za 5</div>
+    </div>
+    <div class="hand-card hc-stones playable">
+      <div class="card-header card-header-stones">
+        <span class="card-title-small">Kamenná zeď</span>
+        <span class="card-cost-badge" style="background:rgba(120,100,60,0.7);">3</span>
+      </div>
+      <div class="card-art-area">🧱</div>
+      <div class="card-desc">Hradby +9</div>
+    </div>
+    <!-- Vybraná (hover popup ukázaný výše) -->
+    <div class="hand-card hc-attack selected">
+      <div class="card-header card-header-attack">
+        <span class="card-title-small">Val. sekyrník</span>
+        <span class="card-cost-badge" style="background:rgba(191,45,45,0.7);">4</span>
+      </div>
+      <div class="card-art-area">⚔️</div>
+      <div class="card-desc">Útok 8, ukraď 2 útoku</div>
+    </div>
+    <!-- Nezahratelné -->
+    <div class="hand-card hc-magic unaffordable">
+      <div class="card-header card-header-magic">
+        <span class="card-title-small">Velký pramen</span>
+        <span class="card-cost-badge">5</span>
+      </div>
+      <div class="card-art-area">💧</div>
+      <div class="card-desc">+2 doly magie</div>
+    </div>
+    <div class="hand-card hc-stones unaffordable">
+      <div class="card-header card-header-stones">
+        <span class="card-title-small">Citadela</span>
+        <span class="card-cost-badge">6</span>
+      </div>
+      <div class="card-art-area">🏰</div>
+      <div class="card-desc">Opraví hrad o 13</div>
+    </div>
+    <div class="hand-card hc-chaos unaffordable">
+      <div class="card-header card-header-chaos">
+        <span class="card-title-small">Chaos. drak</span>
+        <span class="card-cost-badge" style="background:rgba(180,80,0,0.7);">3</span>
+      </div>
+      <div class="card-art-area">🐉</div>
+      <div class="card-desc">Útok 15, hrad -12</div>
+    </div>
+
+  </div>
+
+</div>
+<!-- end .phone -->
+
+<!-- POZNÁMKY -->
+<div class="notes">
+  <div class="note-card">
+    <div class="note-title">🏰 Hrady a hradby</div>
+    <div class="note-body">
+      Věž roste výškou dle castleHP/60. Zeď = bloky dle wallHP/100.
+      HP čísla v rámečcích pod strukturami. Barvy: <span style="color:#3DBFAD">Teal = hráč</span>, <span style="color:#BF2D2D">Crimson = AI</span>.
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">🎴 Karty v ruce</div>
+    <div class="note-body">
+      Barevný header dle typu (magie/útok/kameny/chaos). Art jako velká ikona. Hover → popup detail uprostřed obrazovky.
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">📜 Akce a log</div>
+    <div class="note-body">
+      Tři tlačítka vlevo dole: Log, Zahodit, Konec tahu. Poslední karta uprostřed = klik → full historie tahů.
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-title">⚔ Animační zóna</div>
+    <div class="note-body">
+      Střed bojiště (mezi hrady) = volný prostor pro future stickman animace (šíp, meč, kouzlo).
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

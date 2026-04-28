@@ -184,7 +184,8 @@ private fun OnlineGameplay(
     // Klient ukládá receivedAt a odpočítává od přijetí – bez závislosti
     // na synchronizaci hodin mezi zařízeními.
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(gs.receivedAt) {
+    LaunchedEffect(gs.receivedAt, isGameOver) {
+        if (isGameOver) return@LaunchedEffect   // hra skončila → zastav tikání
         while (true) { delay(500L); nowMs = System.currentTimeMillis() }
     }
 
@@ -309,15 +310,6 @@ private fun OnlineGameplay(
                             active  = true,
                             onClick = { SoundManager.playMenuTap(); showLog = !showLog }
                         )
-                        if (reviewMode) {
-                            Spacer(Modifier.height(3.dp))
-                            NewPanelButton(
-                                label   = "🏆 Výsledek",
-                                color   = OgGold,
-                                active  = true,
-                                onClick = { SoundManager.playMenuTap(); onShowResult() }
-                            )
-                        }
                     }
                 )
 
