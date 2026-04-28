@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -1093,8 +1094,10 @@ private fun CastleTowerBlock(
                 contentScale       = ContentScale.Fit
             )
         }
-        // Plovoucí delta HP – startOffsetY = animovaný vrchol hradu v rámci tohoto Boxu
-        HpFloats(castleHp, sizeSp = 17f, startOffsetY = offsetY)
+        // zIndex(1f) zajistí vykreslení čísla NAVRCH textury hradu
+        Box(Modifier.fillMaxSize().zIndex(1f)) {
+            HpFloats(castleHp, sizeSp = 17f, startOffsetY = offsetY)
+        }
     }
 }
 
@@ -1127,8 +1130,10 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
                 contentScale       = ContentScale.FillBounds
             )
         }
-        // Plovoucí delta HP – startOffsetY = animovaný vrchol hradby v rámci tohoto Boxu
-        HpFloats(wallHp, sizeSp = 13f, startOffsetY = offsetY)
+        // zIndex(1f) zajistí vykreslení čísla NAVRCH textury hradby
+        Box(Modifier.fillMaxSize().zIndex(1f)) {
+            HpFloats(wallHp, sizeSp = 13f, startOffsetY = offsetY)
+        }
     }
 }
 
@@ -1154,7 +1159,7 @@ private fun CastleHpBadge(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "🏰 $castleHp",
+            "🏰 $castleHp/60",
             color      = accentLight,
             fontSize   = 11.sp,
             fontWeight = FontWeight.Bold
@@ -1633,7 +1638,7 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, modifier: Modifier = Modifier) 
                 HpFloats(castleHp, sizeSp = 11f, startOffsetY = castleTopDp)
             }
             Spacer(Modifier.height(3.dp))
-            Text("🏰 $castleHp", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Text("🏰 $castleHp/60", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
