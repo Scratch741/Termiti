@@ -20,13 +20,13 @@ fun applyEffects(
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
-            self.resources[effect.type] = (self.resources[effect.type] ?: 0) + effect.amount
+            self.resources[effect.type] = ((self.resources[effect.type] ?: 0) + effect.amount).coerceAtMost(MAX_RESOURCE)
 
         is CardEffect.AddResourceDelayed ->
             self.pendingResources.add(PendingResource(effect.type, effect.amount, effect.turns))
 
         is CardEffect.AddMine       ->
-            self.mines[effect.type] = (self.mines[effect.type] ?: 0) + effect.amount
+            self.mines[effect.type] = ((self.mines[effect.type] ?: 0) + effect.amount).coerceAtMost(MAX_MINES)
 
         is CardEffect.BuildWall     ->
             self.wallHP = (self.wallHP + effect.amount).coerceIn(0, 100)
@@ -50,7 +50,7 @@ fun applyEffects(
         is CardEffect.StealResource -> {
             val taken = minOf(effect.amount, opponent.resources[effect.type] ?: 0)
             opponent.resources[effect.type] = (opponent.resources[effect.type] ?: 0) - taken
-            self.resources[effect.type]     = (self.resources[effect.type]     ?: 0) + taken
+            self.resources[effect.type]     = ((self.resources[effect.type]     ?: 0) + taken).coerceAtMost(MAX_RESOURCE)
         }
 
         is CardEffect.DrainResource -> {
@@ -129,8 +129,8 @@ fun applyEffects(
 
         is CardEffect.XScaledDualResource -> {
             val amount = xValue / effect.divisor
-            self.resources[effect.typeA] = (self.resources[effect.typeA] ?: 0) + amount
-            self.resources[effect.typeB] = (self.resources[effect.typeB] ?: 0) + amount
+            self.resources[effect.typeA] = ((self.resources[effect.typeA] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
+            self.resources[effect.typeB] = ((self.resources[effect.typeB] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
         }
     }
 }

@@ -5,6 +5,9 @@ package com.example.termiti
 
 import java.util.UUID
 
+const val MAX_RESOURCE = 999
+const val MAX_MINES    = 99
+
 /** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */
 data class PendingResource(
     val type     : ResourceType,
@@ -69,7 +72,7 @@ class PlayerState(
             val p = iter.next()
             p.turnsLeft--
             if (p.turnsLeft <= 0) {
-                resources[p.type] = (resources[p.type] ?: 0) + p.amount
+                resources[p.type] = ((resources[p.type] ?: 0) + p.amount).coerceAtMost(MAX_RESOURCE)
                 iter.remove()
             }
         }
@@ -80,7 +83,7 @@ class PlayerState(
             if (blocked > 0) {
                 mineBlockedTurns[type] = blocked - 1
             } else {
-                resources[type] = (resources[type] ?: 0) + amount
+                resources[type] = ((resources[type] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
             }
         }
     }
