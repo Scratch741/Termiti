@@ -41,6 +41,7 @@
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const { GameSession } = require('./game/GameSession');
+const { ratingSystem } = require('./game/RatingSystem');
 
 const PORT = 8765;
 const PATH = '/lobby';
@@ -118,8 +119,11 @@ function tryMatchFromQueue(q, mode) {
     pA.gameId = gameId; pB.gameId = gameId;
     pA.side   = 'A';    pB.side   = 'B';
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, side: 'B', mode });
+    const ratingA = pA.deviceId ? ratingSystem.getRating(pA.deviceId, mode) : null;
+    const ratingB = pB.deviceId ? ratingSystem.getRating(pB.deviceId, mode) : null;
+
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
 
     const onGameEnd = (gid) => {
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
@@ -130,7 +134,7 @@ function tryMatchFromQueue(q, mode) {
     };
 
     const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd, mode,
-      pA.activeAbilities || [], pB.activeAbilities || []);
+      pA.activeAbilities || [], pB.activeAbilities || [], pA.deviceId || null, pB.deviceId || null);
     games.set(gameId, session);
     try {
       session.start();
@@ -240,7 +244,14 @@ wss.on('connection', (ws, req) => {
         players.set(ws, { id: uuidv4(), name, avatar, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
-        send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
+        // Pošli hráči jeho aktuální rating pro všechny módy
+        const playerStats = deviceId ? ratingSystem.getStats(deviceId) : null;
+        send(ws, {
+          type:   'WELCOME',
+          online: players.size,
+          queue:  queue.length,
+          ratings: playerStats ? playerStats.modes : {},
+        });
         broadcastCount();
         break;
       }

@@ -10,6 +10,7 @@ const {
   createPlayerState, generateResources, drawCards,
   applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp
 } = require('./engine');
+const { ratingSystem } = require('./RatingSystem');
 
 const MULLIGAN_HAND_SIZE = 5;
 const TURN_HAND_DRAW    = 1;
@@ -28,13 +29,14 @@ class GameSession {
    * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
    * @param {Function|null} onEnd     – callback(gameId) volaný při ukončení hry
    */
-  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal', abilitiesA = [], abilitiesB = []) {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal', abilitiesA = [], abilitiesB = [], deviceIdA = null, deviceIdB = null) {
     this.gameId = gameId;
     this.onEnd  = onEnd;
     this.mode   = mode;   // 'normal' | 'super_random'
 
     this.ws        = { A: wsA,       B: wsB       };
     this.name      = { A: nameA,     B: nameB     };
+    this.deviceId  = { A: deviceIdA, B: deviceIdB };
     this.deckIds   = { A: deckIdsA,  B: deckIdsB  };
     this.abilities = { A: abilitiesA, B: abilitiesB };
 
@@ -456,18 +458,40 @@ class GameSession {
     if (winner === 'A') winnerName = this.name.A;
     else if (winner === 'B') winnerName = this.name.B;
 
+    // ── Rating update ────────────────────────────────────────────────────────
+    const ratingResult = ratingSystem.recordResult(
+      this.deviceId.A, this.name.A,
+      this.deviceId.B, this.name.B,
+      winner,
+      this.mode,
+      this.gameId
+    );
+    // ratingResult = { deltaA, deltaB, newRatingA, newRatingB } | null
+
     // Finální stav – odhal soupeřovu ruku pro review mód
     this._send('A', this._buildStateFor('A', true));
     this._send('B', this._buildStateFor('B', true));
 
-    const msg = {
-      type:       'GAME_OVER',
+    const base = {
+      type:      'GAME_OVER',
       winner,                // 'A' | 'B' | 'DRAW'
-      winnerName
+      winnerName,
+      mode:      this.mode,
     };
-    // DRAW = prohra pro oba (vzájemná zkáza apod.) – nikdo nevyhrává
-    this._send('A', { ...msg, youWin: winner === 'A' });
-    this._send('B', { ...msg, youWin: winner === 'B' });
+
+    // Přidej rating info pokud existuje (deviceId byl k dispozici)
+    this._send('A', {
+      ...base,
+      youWin:       winner === 'A',
+      ratingChange: ratingResult ? ratingResult.deltaA       : null,
+      newRating:    ratingResult ? ratingResult.newRatingA   : null,
+    });
+    this._send('B', {
+      ...base,
+      youWin:       winner === 'B',
+      ratingChange: ratingResult ? ratingResult.deltaB       : null,
+      newRating:    ratingResult ? ratingResult.newRatingB   : null,
+    });
 
     this._log(`Konec hry. Vítěz: ${winnerName || 'REMÍZA'}`);
     console.log(`[Game ${this.gameId}] ended – winner: ${winner}`);
