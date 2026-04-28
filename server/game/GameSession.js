@@ -557,7 +557,9 @@ class GameSession {
         deckSize:        my.deck.length,
         discardSize:     my.discardPile.length
       },
-      oppState: oppStatePayload,
+      oppState:     oppStatePayload,
+      myWinTarget:  this.winTarget[mySide],
+      oppWinTarget: this.winTarget[oppSide],
       log:              [...this.lastLog],
       lastPlayedCard:   this.lastPlayedCard,
       lastPlayedAction: this.lastPlayedAction,

@@ -64,6 +64,8 @@ data class OnlineGameState(
     val turnNumber       : Int               = 1,
     val myState          : OnlinePlayerState = OnlinePlayerState(),
     val oppState         : OnlinePlayerState = OnlinePlayerState(),
+    val myWinTarget      : Int               = 60,  // 60 nebo 65 s extra_castle
+    val oppWinTarget     : Int               = 60,  // win target soupeře
     val log              : List<String>      = emptyList(),
     // ── Timer (relativní, bez závislosti na sync hodin) ──────────────────────
     val turnRemainingMs  : Long              = 15_000L, // zbývající ms ve fázi tahu
@@ -563,6 +565,8 @@ class OnlineLobbyViewModel(
             turnNumber      = json.optInt("turnNumber", 1),
             myState         = parsePlayerState(json.optJSONObject("myState"),  true),
             oppState        = parsePlayerState(json.optJSONObject("oppState"), false),
+            myWinTarget     = json.optInt("myWinTarget",  60),
+            oppWinTarget    = json.optInt("oppWinTarget", 60),
             log             = logList,
             turnRemainingMs = json.optLong("turnRemainingMs", 15_000L),
             timebankMeMs    = json.optLong("timebankMeMs",    120_000L),

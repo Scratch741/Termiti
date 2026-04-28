@@ -330,7 +330,9 @@ private fun OnlineGameplay(
                     lastCardIsPlayer  = lastCardByMe,
                     modifier          = Modifier.fillMaxHeight().weight(1f),
                     revealedAiCard    = if (!lastCardByMe) lastCard else null,
-                    revealedAiCardIdx = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null
+                    revealedAiCardIdx = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null,
+                    playerWinTarget   = gs.myWinTarget,
+                    aiWinTarget       = gs.oppWinTarget
                 )
 
                 // ── Pravý panel: zdroje soupeře ───────────────────────────────

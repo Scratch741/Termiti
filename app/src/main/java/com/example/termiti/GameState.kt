@@ -7,13 +7,14 @@ data class GameState(
     val aiState: PlayerState,
     var currentTurn: Int = 0,
     var activePlayer: ActivePlayer = ActivePlayer.PLAYER,
-    val playerWinTarget: Int = 60   // zvýší se na 65 s pasivní schopností extra_castle
+    val playerWinTarget: Int = 60,  // zvýší se na 65 s pasivní schopností extra_castle
+    val aiWinTarget: Int = 60       // rezerva pro budoucí AI pasivní schopnosti
 ) {
     fun checkWinCondition(): GameResult? {
         val playerDead  = playerState.castleHP <= 0
         val aiDead      = aiState.castleHP     <= 0
         val playerBuilt = playerState.castleHP >= playerWinTarget
-        val aiBuilt     = aiState.castleHP     >= 60
+        val aiBuilt     = aiState.castleHP     >= aiWinTarget
         return when {
             // Simultánní smrt / simultánní postavení → remíza (prohra pro oba)
             playerDead  && aiDead   -> GameResult.DRAW
