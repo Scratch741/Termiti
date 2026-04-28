@@ -453,10 +453,10 @@ class MultiplayerViewModel(
         (myCards + oppCards).forEach { cardByUid[it.id] = it }
 
         myState.value = PlayerState().also {
-            it.deck.addAll(myCards); it.drawCards(5)
+            it.deck.addAll(myCards); it.drawCards(4)
         }
         oppState.value = PlayerState().also {
-            it.deck.addAll(oppCards); it.drawCards(5)
+            it.deck.addAll(oppCards); it.drawCards(4)
         }
 
         phase.value = MpPhase.MULLIGAN

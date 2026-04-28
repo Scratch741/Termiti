@@ -12,7 +12,7 @@ const {
 } = require('./engine');
 const { ratingSystem } = require('./RatingSystem');
 
-const MULLIGAN_HAND_SIZE = 5;
+const MULLIGAN_HAND_SIZE = 4;
 const TURN_HAND_DRAW    = 1;
 const TURN_SECONDS      = 15;
 const TIMEBANK_SECONDS  = 120;
