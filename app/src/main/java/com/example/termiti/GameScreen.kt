@@ -161,9 +161,9 @@ private fun FloatingDeltaNumber(delta: Int, sizeSp: Float = 15f) {
     val alpha    = remember { Animatable(1f) }
 
     LaunchedEffect(Unit) {
-        launch { offsetY.animateTo(-64f, tween(1300, easing = EaseOutCubic)) }
-        delay(700)
-        alpha.animateTo(0f, tween(500))
+        launch { offsetY.animateTo(-32f, tween(2600, easing = EaseOutCubic)) }
+        delay(1400)
+        alpha.animateTo(0f, tween(1000))
     }
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -202,7 +202,7 @@ private fun HpFloats(hp: Int, sizeSp: Float = 15f) {
         if (d == 0) return@LaunchedEffect
         val evt = DeltaEvt(System.nanoTime(), d)
         events += evt
-        delay(1500)
+        delay(3000)
         events -= evt
     }
 
