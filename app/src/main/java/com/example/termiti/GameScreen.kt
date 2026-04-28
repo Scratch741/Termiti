@@ -801,12 +801,14 @@ fun NewResourceSection(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
-            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.End, modifier = Modifier.width(30.dp))
             Box(Modifier.width(26.dp)) { ResourceDelta(amount) }
         } else {
             // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
             Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
-            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Start, modifier = Modifier.width(30.dp))
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
