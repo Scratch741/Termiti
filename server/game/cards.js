@@ -238,34 +238,37 @@ function isChaosGen(card) {
 }
 
 /**
- * Vyvážený náhodný balíček – port buildBalancedDeck z Kotlin/DeckGenerator.kt
- * Kvóta: 9 MAGIC / 9 ATTACK / 9 STONES / 3 CHAOS = 30 karet
- * Respektuje maxCopies (COMMON=4, RARE=3, EPIC=2, LEGENDARY=1).
- * Zaručuje ≥1 důl každého zdroje a ≥3 chaos generátory.
+ * Sdílené jádro generátoru balíčků.
+ * Opravy oproti staré verzi:
+ *  • uniqueLimit odstraněn → celý pool se prochází, žádná karta není předem vyřazena
+ *  • váha cost-0 zvýšena 0.45 → 0.80 (bezplatné karty jsou herně silné)
+ *  • rarityCaps: strop celkového počtu karet dané vzácnosti v balíčku
+ *    (zabraňuje 8+ různým Legendary kartám v jednom balíčku)
  */
-function balancedDeck() {
+function buildDeckCore(quota, totalTarget, rarityCaps) {
   const cards  = ALL_CARDS.filter(c => !c.id.startsWith('T'));
-  const QUOTA  = { MAGIC: 9, ATTACK: 9, STONES: 9, CHAOS: 3 };
-  const TOTAL  = 30;
   const counts = {};
 
   const total      = () => Object.values(counts).reduce((s, n) => s + n, 0);
   const countByCT  = ct => cards.filter(c => c.costType === ct)
                                .reduce((s, c) => s + (counts[c.id] || 0), 0);
+  const rarityTotal = r => cards.filter(c => c.rarity === r)
+                               .reduce((s, c) => s + (counts[c.id] || 0), 0);
   const chaosCount = ()  => cards.filter(isChaosGen)
                                .reduce((s, c) => s + (counts[c.id] || 0), 0);
 
   function tryAdd(card) {
-    if (total() >= TOTAL) return false;
+    if (total() >= totalTarget) return false;
     const cur = counts[card.id] || 0;
     if (cur >= card.maxCopies) return false;
+    const cap = rarityCaps[card.rarity];
+    if (cap !== undefined && rarityTotal(card.rarity) >= cap) return false;
     counts[card.id] = cur + 1;
     return true;
   }
 
   function weight(card) {
-    if (card.cost === 0) return 0.45;
-    if (card.cost === 1) return 0.85;
+    if (card.cost <= 1)  return card.cost === 0 ? 0.80 : 0.85;  // dříve 0.45
     if (card.cost <= 4)  return 1.00;
     return 0.55;
   }
@@ -281,7 +284,7 @@ function balancedDeck() {
   for (const res of ['MAGIC', 'ATTACK', 'STONES']) {
     const cands = weightedShuffle(cards.filter(c => mineResType(c) === res));
     for (const c of cands) {
-      if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
+      if (countByCT(c.costType) >= (quota[c.costType] || 0)) continue;
       if (tryAdd(c)) break;
     }
   }
@@ -290,39 +293,32 @@ function balancedDeck() {
   const cgCands = weightedShuffle(cards.filter(isChaosGen));
   for (const c of cgCands) {
     if (chaosCount() >= 3) break;
-    if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
+    if (countByCT(c.costType) >= (quota[c.costType] || 0)) continue;
     tryAdd(c);
   }
 
   // Krok 3: doplnit každý bucket na kvótu
-  for (const [ct, target] of Object.entries(QUOTA)) {
+  // Prochází celý pool opakovaně (max 4 průchody = COMMON.maxCopies).
+  // tryAdd() zastaví přidávání jakmile karta dosáhne maxCopies nebo rarity-cap.
+  for (const [ct, target] of Object.entries(quota)) {
     const pool = weightedShuffle(cards.filter(c => c.costType === ct));
     if (!pool.length) continue;
-
-    const lo          = Math.floor(target * 2 / 3);
-    const uniqueLimit = Math.max(1, Math.min(pool.length, lo + Math.floor(Math.random() * (target - lo + 1))));
-    const chosenPool  = pool.slice(0, uniqueLimit);
-
     for (let pass = 0; pass < 4; pass++) {
-      for (const c of weightedShuffle(chosenPool)) {
-        if (countByCT(ct) >= target || total() >= TOTAL) break;
-        tryAdd(c);
-      }
-    }
-    // Fallback: doplnit z celého poolu
-    if (countByCT(ct) < target) {
-      for (const c of weightedShuffle(pool)) {
-        if (countByCT(ct) >= target || total() >= TOTAL) break;
+      if (countByCT(ct) >= target || total() >= totalTarget) break;
+      for (const c of pool) {
+        if (countByCT(ct) >= target || total() >= totalTarget) break;
         tryAdd(c);
       }
     }
   }
 
-  // Krok 4: filler do 30
-  if (total() < TOTAL) {
+  // Krok 4: filler do cíle
+  if (total() < totalTarget) {
+    const filler = weightedShuffle(cards);
     for (let pass = 0; pass < 4; pass++) {
-      for (const c of weightedShuffle(cards)) {
-        if (total() >= TOTAL) break;
+      if (total() >= totalTarget) break;
+      for (const c of filler) {
+        if (total() >= totalTarget) break;
         tryAdd(c);
       }
     }
@@ -338,97 +334,27 @@ function balancedDeck() {
 }
 
 /**
- * Super náhodný balíček – port buildSuperRandomDeck z Kotlin.
- * Kvóta: 15 MAGIC / 15 ATTACK / 15 STONES / 5 CHAOS = 50 karet.
+ * Vyvážený náhodný balíček – 30 karet (9/9/9/3).
+ * Rarity stropy: LEGENDARY ≤ 2, EPIC ≤ 6, RARE ≤ 12.
+ */
+function balancedDeck() {
+  return buildDeckCore(
+    { MAGIC: 9, ATTACK: 9, STONES: 9, CHAOS: 3 },
+    30,
+    { LEGENDARY: 2, EPIC: 6, RARE: 12 }
+  );
+}
+
+/**
+ * Super náhodný balíček – 50 karet (15/15/15/5).
+ * Rarity stropy: LEGENDARY ≤ 4, EPIC ≤ 10, RARE ≤ 20.
  */
 function superBalancedDeck() {
-  const cards  = ALL_CARDS.filter(c => !c.id.startsWith('T'));
-  const QUOTA  = { MAGIC: 15, ATTACK: 15, STONES: 15, CHAOS: 5 };
-  const TOTAL  = 50;
-  const counts = {};
-
-  const total      = () => Object.values(counts).reduce((s, n) => s + n, 0);
-  const countByCT  = ct => cards.filter(c => c.costType === ct)
-                               .reduce((s, c) => s + (counts[c.id] || 0), 0);
-  const chaosCount = ()  => cards.filter(isChaosGen)
-                               .reduce((s, c) => s + (counts[c.id] || 0), 0);
-
-  function tryAdd(card) {
-    if (total() >= TOTAL) return false;
-    const cur = counts[card.id] || 0;
-    if (cur >= card.maxCopies) return false;
-    counts[card.id] = cur + 1;
-    return true;
-  }
-
-  function weight(card) {
-    if (card.cost === 0) return 0.45;
-    if (card.cost === 1) return 0.85;
-    if (card.cost <= 4)  return 1.00;
-    return 0.55;
-  }
-
-  function weightedShuffle(pool) {
-    return pool
-      .map(c => ({ c, w: Math.random() * weight(c) }))
-      .sort((a, b) => b.w - a.w)
-      .map(x => x.c);
-  }
-
-  // Krok 1: povinné doly
-  for (const res of ['MAGIC', 'ATTACK', 'STONES']) {
-    const cands = weightedShuffle(cards.filter(c => mineResType(c) === res));
-    for (const c of cands) {
-      if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
-      if (tryAdd(c)) break;
-    }
-  }
-
-  // Krok 2: alespoň 3 chaos generátory
-  const cgCands = weightedShuffle(cards.filter(isChaosGen));
-  for (const c of cgCands) {
-    if (chaosCount() >= 3) break;
-    if (countByCT(c.costType) >= (QUOTA[c.costType] || 0)) continue;
-    tryAdd(c);
-  }
-
-  // Krok 3: buckety na kvótu
-  for (const [ct, target] of Object.entries(QUOTA)) {
-    const pool = weightedShuffle(cards.filter(c => c.costType === ct));
-    if (!pool.length) continue;
-    const lo          = Math.floor(target * 2 / 3);
-    const uniqueLimit = Math.max(1, Math.min(pool.length, lo + Math.floor(Math.random() * (target - lo + 1))));
-    const chosenPool  = pool.slice(0, uniqueLimit);
-    for (let pass = 0; pass < 4; pass++) {
-      for (const c of weightedShuffle(chosenPool)) {
-        if (countByCT(ct) >= target || total() >= TOTAL) break;
-        tryAdd(c);
-      }
-    }
-    if (countByCT(ct) < target) {
-      for (const c of weightedShuffle(pool)) {
-        if (countByCT(ct) >= target || total() >= TOTAL) break;
-        tryAdd(c);
-      }
-    }
-  }
-
-  // Krok 4: filler do 50
-  if (total() < TOTAL) {
-    for (let pass = 0; pass < 4; pass++) {
-      for (const c of weightedShuffle(cards)) {
-        if (total() >= TOTAL) break;
-        tryAdd(c);
-      }
-    }
-  }
-
-  const deck = [];
-  for (const [id, n] of Object.entries(counts)) {
-    const tmpl = CARD_MAP.get(id);
-    if (tmpl) for (let i = 0; i < n; i++) deck.push(makeInstance(tmpl));
-  }
-  return shuffle(deck);
+  return buildDeckCore(
+    { MAGIC: 15, ATTACK: 15, STONES: 15, CHAOS: 5 },
+    50,
+    { LEGENDARY: 4, EPIC: 10, RARE: 20 }
+  );
 }
 
 /** Původní čistě náhodný balíček (zachován pro zpětnou kompatibilitu) */
