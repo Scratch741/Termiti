@@ -359,7 +359,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.playerState,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(122.dp),
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -404,7 +404,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.aiState,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(122.dp),
+                    modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
@@ -792,26 +792,36 @@ fun NewResourceSection(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (!isAi) {
-            // Hráč: mine# | ikona | název (roztažený) | zásoba
+            // Hráč: mine# | ikona | název (roztažený) | zásoba  (+delta jako overlay vpravo)
             MineSlot(Alignment.Start)
             Spacer(Modifier.width(2.dp))
             Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
             Spacer(Modifier.width(3.dp))
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
-            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.End, modifier = Modifier.width(30.dp))
-            Box(Modifier.width(26.dp)) { ResourceDelta(amount) }
+            Box(contentAlignment = Alignment.CenterEnd) {
+                Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End, modifier = Modifier.width(30.dp))
+                Box(Modifier.width(0.dp).wrapContentWidth(unbounded = true)) {
+                    ResourceDelta(amount)
+                }
+            }
         } else {
-            // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
-            Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
-            Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start, modifier = Modifier.width(30.dp))
+            // AI – zrcadlo: zásoba (delta jako overlay vlevo) | název (roztažený) | ikona | mine#
+            Box(contentAlignment = Alignment.CenterStart) {
+                Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start, modifier = Modifier.width(30.dp))
+                Box(Modifier.width(0.dp).wrapContentWidth(align = Alignment.End, unbounded = true)) {
+                    ResourceDelta(amount)
+                }
+            }
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
+                maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(3.dp))
