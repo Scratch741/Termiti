@@ -354,7 +354,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.playerState,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(122.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -399,7 +399,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.aiState,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(122.dp),
                     bottomSlot  = {
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
@@ -797,10 +797,10 @@ fun NewResourceSection(
                 modifier = Modifier.weight(1f)
             )
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Box(Modifier.width(26.dp)) { ResourceDelta(amount) }
+            Box(Modifier.width(22.dp)) { ResourceDelta(amount) }
         } else {
             // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
-            Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
+            Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,

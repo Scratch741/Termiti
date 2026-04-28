@@ -391,7 +391,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 NewResourcePanel(
                     playerState = myS,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(122.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -425,7 +425,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 NewResourcePanel(
                     playerState = oppS,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(122.dp),
                     bottomSlot  = {
                         val active   = isMyTurn || isCombo
                         val btnLabel = when {
