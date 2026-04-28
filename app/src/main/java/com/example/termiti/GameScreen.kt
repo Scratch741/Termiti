@@ -236,8 +236,13 @@ private fun ResourceDeltaNumber(delta: Int) {
     Text(
         text       = text,
         color      = color,
-        fontSize   = 10.sp,
+        fontSize   = 13.sp,
         fontWeight = FontWeight.ExtraBold,
+        style      = androidx.compose.ui.text.TextStyle(
+            shadow = androidx.compose.ui.graphics.Shadow(
+                color = Color.Black, offset = Offset(0f, 1f), blurRadius = 4f
+            )
+        ),
         modifier   = Modifier.graphicsLayer { this.alpha = alpha.value }
     )
 }
@@ -797,10 +802,10 @@ fun NewResourceSection(
                 modifier = Modifier.weight(1f)
             )
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Box(Modifier.width(22.dp)) { ResourceDelta(amount) }
+            Box(Modifier.width(26.dp)) { ResourceDelta(amount) }
         } else {
             // AI – zrcadlo: zásoba | název (roztažený) | ikona | mine#
-            Box(Modifier.width(22.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
+            Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterEnd) { ResourceDelta(amount) }
             Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Text(
                 name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
