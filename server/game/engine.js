@@ -92,7 +92,7 @@ function drawCards(state, count, maxHand = 7) {
 
 // ── checkCondition ────────────────────────────────────────────────────────────
 
-function checkCondition(cond, player) {
+function checkCondition(cond, player, opponent) {
   switch (cond.type) {
     case 'ResourceAbove': {
       // Podmínka "máš X surovin" se vyhodnocuje proti stavu PŘED zaplacením
@@ -106,6 +106,12 @@ function checkCondition(cond, player) {
     case 'CastleAbove':    return player.castleHP > cond.threshold;
     case 'CastleBelow':    return player.castleHP < cond.threshold;
     case 'LastPlayedType': return player.lastPlayedType === cond.cardType;
+    case 'ResourceMoreThanOpponent': {
+      const r = player._preCostResources || player.resources;
+      const playerRes   = r[cond.resType] || 0;
+      const opponentRes = (opponent && opponent.resources[cond.resType]) || 0;
+      return playerRes > opponentRes;
+    }
     default: return false;
   }
 }
@@ -176,7 +182,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'ConditionalEffect':
-        if (checkCondition(fx.condition, self))
+        if (checkCondition(fx.condition, self, opponent))
           applyEffects([fx.effect], self, opponent, cardMap, onOpponentLoss, xValue);
         break;
 

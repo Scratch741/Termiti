@@ -105,17 +105,19 @@ private fun cardConditionMet(
     card: Card,
     resources: Map<ResourceType, Int>,
     wallHp: Int,
-    castleHp: Int
+    castleHp: Int,
+    oppResources: Map<ResourceType, Int> = emptyMap()
 ): Boolean? {
     val ce = card.effects.filterIsInstance<CardEffect.ConditionalEffect>().firstOrNull()
         ?: return null
     return when (val c = ce.condition) {
-        is Condition.ResourceAbove -> (resources[c.type] ?: 0) > c.threshold
-        is Condition.WallAbove     -> wallHp   > c.threshold
-        is Condition.WallBelow     -> wallHp   < c.threshold
-        is Condition.CastleAbove    -> castleHp > c.threshold
-        is Condition.CastleBelow    -> castleHp < c.threshold
-        is Condition.LastPlayedType -> false  // nelze předem zobrazit (závisí na právě hrané kartě)
+        is Condition.ResourceAbove            -> (resources[c.type] ?: 0) > c.threshold
+        is Condition.WallAbove                -> wallHp   > c.threshold
+        is Condition.WallBelow                -> wallHp   < c.threshold
+        is Condition.CastleAbove              -> castleHp > c.threshold
+        is Condition.CastleBelow              -> castleHp < c.threshold
+        is Condition.LastPlayedType           -> false  // nelze předem zobrazit
+        is Condition.ResourceMoreThanOpponent -> (resources[c.type] ?: 0) > (oppResources[c.type] ?: 0)
     }
 }
 
@@ -441,6 +443,7 @@ fun GameScreen(
                 showHeader       = false,
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
+                oppResources     = state.aiState.resources,
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
                                                painterResource(R.drawable.hand_background),
@@ -2027,7 +2030,8 @@ fun HandPanel(
     modifier: Modifier = Modifier,
     showHeader: Boolean = true,      // false = skryje "RUKA (n)" a tlačítko čekat
     playerWallHp: Int = 0,
-    playerCastleHp: Int = 0
+    playerCastleHp: Int = 0,
+    oppResources: Map<ResourceType, Int> = emptyMap()
 ) {
     Column(modifier = modifier.padding(vertical = 6.dp)) {
 
@@ -2072,7 +2076,7 @@ fun HandPanel(
                         discardMode   = false,
                         onClick       = { onPlayCard(card) },
                         onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
-                        conditionMet  = cardConditionMet(card, playerResources, playerWallHp, playerCastleHp)
+                        conditionMet  = cardConditionMet(card, playerResources, playerWallHp, playerCastleHp, oppResources)
                     )
                 }
             }

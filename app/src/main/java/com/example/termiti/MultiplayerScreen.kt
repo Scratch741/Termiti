@@ -464,6 +464,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                 showHeader      = false,
                 playerWallHp    = myS.wallHP,
                 playerCastleHp  = myS.castleHP,
+                oppResources    = oppS.resources,
                 modifier        = Modifier.fillMaxWidth().height(152.dp)
                                           .background(Color(0xD8120A03))
             )

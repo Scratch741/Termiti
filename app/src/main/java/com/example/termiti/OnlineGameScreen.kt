@@ -379,6 +379,7 @@ private fun OnlineGameplay(
                 showHeader       = false,
                 playerWallHp     = myPs.wallHP,
                 playerCastleHp   = myPs.castleHP,
+                oppResources     = oppPs.resources,
                 // Pevná výška ruky – zabrání posunu lišty, když je ruka prázdná
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(

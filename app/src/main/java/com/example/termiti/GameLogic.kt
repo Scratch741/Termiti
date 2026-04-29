@@ -59,7 +59,7 @@ fun applyEffects(
         }
 
         is CardEffect.ConditionalEffect ->
-            if (checkCondition(effect.condition, self))
+            if (checkCondition(effect.condition, self, opponent))
                 applyEffects(listOf(effect.effect), self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
 
         is CardEffect.DestroyMine   -> {
@@ -139,7 +139,7 @@ fun applyEffects(
     }
 }
 
-fun checkCondition(condition: Condition, player: PlayerState): Boolean = when (condition) {
+fun checkCondition(condition: Condition, player: PlayerState, opponent: PlayerState? = null): Boolean = when (condition) {
     // "Máš X surovin" se vyhodnocuje proti stavu PŘED zaplacením ceny karty
     // (jinak by karta nemohla splnit vlastní podmínku – viz preCostResources).
     is Condition.ResourceAbove -> {
@@ -151,4 +151,10 @@ fun checkCondition(condition: Condition, player: PlayerState): Boolean = when (c
     is Condition.CastleAbove    -> player.castleHP > condition.threshold
     is Condition.CastleBelow    -> player.castleHP < condition.threshold
     is Condition.LastPlayedType -> player.lastPlayedType == condition.cardType
+    is Condition.ResourceMoreThanOpponent -> {
+        val r = player.preCostResources ?: player.resources
+        val playerRes   = r[condition.type]        ?: 0
+        val opponentRes = opponent?.resources?.get(condition.type) ?: 0
+        playerRes > opponentRes
+    }
 }

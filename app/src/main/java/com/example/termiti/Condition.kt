@@ -10,4 +10,6 @@ sealed class Condition {
     data class CastleBelow(val threshold: Int) : Condition()
     /** Platí, pokud TATO karta (právě hraná) má daný typ (např. "Útok", "Stavba", "Důl", "Magie", "Chaos"). */
     data class LastPlayedType(val cardType: String) : Condition()
+    /** Platí, pokud hráč má více daného zdroje než soupeř. */
+    data class ResourceMoreThanOpponent(val type: ResourceType) : Condition()
 }

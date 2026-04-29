@@ -36,11 +36,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_ohniva_koule, type = "Útok", artBiasY = -0.60f, soundResId = R.raw.fireball),
         Card("007", "Silný úder",       "Zaútočí na nepřítele za 11.",             cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(11)), type = "Útok",artResId = R.drawable.art_silny_uder, artScale = 0.80f, artBiasY = -1.00f),
-        Card("006", "Převaha síly", "Pokud máš >5 útoku, udeř hrad za 10.",        cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
-            effects = listOf(CardEffect.ConditionalEffect(
-                Condition.ResourceAbove(ResourceType.ATTACK, 5),
-                CardEffect.AttackCastle(10)
-            )), artResId = R.drawable.art_prevaha_sily, artScale = 0.80f, artBiasY = -0.10f),
+        Card("006", "Převaha síly", "Pokud máš >5 útoku, udeř hrad za 10. Pokud máš více útoku než soupeř, udeř hrad za 10.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+            effects = listOf(
+                CardEffect.ConditionalEffect(
+                    Condition.ResourceAbove(ResourceType.ATTACK, 5),
+                    CardEffect.AttackCastle(10)
+                ),
+                CardEffect.ConditionalEffect(
+                    Condition.ResourceMoreThanOpponent(ResourceType.ATTACK),
+                    CardEffect.AttackCastle(10)
+                )
+            ), artResId = R.drawable.art_prevaha_sily, artScale = 0.80f, artBiasY = -0.10f),
         Card("017", "Válečný sekyrník","Zaútočí za 8, ukradni 2 útoku soupeři.",   cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.COMMON,
             effects = listOf(CardEffect.AttackPlayer(8), CardEffect.StealResource(ResourceType.ATTACK, 2)),artResId = R.drawable.art_valecny_sekyrnik, type = "Útok", artScale = 0.80f, artBiasY = -1.00f),
 
@@ -881,7 +887,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.lastPlayedType = card.type
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
-            if (!checkCondition(ce.condition, player)) {
+            if (!checkCondition(ce.condition, player, ai)) {
                 addLog("${card.name}: podmínka nesplněna!")
             }
         }
@@ -1330,7 +1336,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.StealCastle    -> fx.amount + (if (oppLowHp) 8 else 0) + (if (aiLowHp) 8 else 0)
             // Podmínkový efekt: skóruj vnitřní efekt pouze pokud podmínka platí; jinak 0
             is CardEffect.ConditionalEffect ->
-                if (checkCondition(fx.condition, ai)) scoreEffect(fx.effect, xVal) else 0
+                if (checkCondition(fx.condition, ai, opponent)) scoreEffect(fx.effect, xVal) else 0
 
             // X-kost efekty: skóruj podle aktuálního množství zdroje (odhad skutečného efektu)
             is CardEffect.XScaledAttackPlayer -> {
