@@ -78,7 +78,11 @@ fun applyEffects(
             if (opponent.hand.isNotEmpty()) {
                 val stolen = opponent.hand.random()
                 opponent.hand.remove(stolen)
-                self.hand.add(stolen)
+                if (self.hand.size < 7) {
+                    self.hand.add(stolen)
+                } else {
+                    self.discardPile.add(stolen)   // ruka plná → ukradená karta shoří
+                }
                 onOpponentCardLost?.invoke(stolen, CardAction.STOLEN)
             }
         }

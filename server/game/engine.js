@@ -201,7 +201,11 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
           if (opponent.hand.length > 0) {
             const idx = Math.floor(Math.random() * opponent.hand.length);
             const stolen = opponent.hand.splice(idx, 1)[0];
-            self.hand.push(stolen);
+            if (self.hand.length < 7) {
+              self.hand.push(stolen);
+            } else {
+              self.discardPile.push(stolen);  // ruka plná → ukradená karta shoří
+            }
             onOpponentLoss && onOpponentLoss(stolen, 'STOLEN');
           }
         }
