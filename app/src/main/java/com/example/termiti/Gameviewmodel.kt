@@ -1311,10 +1311,21 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val oppMines = opponent.mines[fx.type] ?: 0
                 if (oppMines == 0) -6 else fx.turns * 7   // 2 kola = 14, 3 kola = 21
             }
-            is CardEffect.StealCard           -> 8
+            is CardEffect.StealCard           -> {
+                // Krást kartu má smysl jen pokud ji skutečně dostaneme do ruky
+                val slotsLeft = (7 - ai.hand.size).coerceAtLeast(0)
+                if (slotsLeft == 0) -4 else 8   // plná ruka → ukradená karta jen shoří
+            }
             is CardEffect.BurnCard            -> if (opponent.hand.isEmpty()) -8 else 6
             is CardEffect.AddCardsToDeck      -> 4
-            is CardEffect.DrawCard            -> fx.count * 5   // líz = více možností
+            is CardEffect.DrawCard            -> {
+                // Líznout kartu má smysl jen pokud je v ruce místo;
+                // karty navíc se spálí → penalizuj každou spálenou kartu
+                val slotsLeft   = (7 - ai.hand.size).coerceAtLeast(0)
+                val useful      = minOf(fx.count, slotsLeft)
+                val burned      = fx.count - useful
+                useful * 5 - burned * 4
+            }
             // Krádež hradu: poškodí soupeře A léčí vlastní hrad
             is CardEffect.StealCastle    -> fx.amount + (if (oppLowHp) 8 else 0) + (if (aiLowHp) 8 else 0)
             // Podmínkový efekt: skóruj vnitřní efekt pouze pokud podmínka platí; jinak 0
