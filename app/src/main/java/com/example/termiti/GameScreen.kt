@@ -515,24 +515,6 @@ fun GameScreen(
             LogOverlay(log = log, onDismiss = { showLog = false })
         }
 
-        // ── Pochodně na okrajích bojového pole ───────────────────────────────
-        // Základna plamene (baseY = 80 % výšky canvasu) sedí na hranici TopBaru.
-        // Plamen šlehá nahoru do tmavé plochy baru, glow osvětluje okolí.
-        TorchFlame(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(x = 94.dp, y = 8.dp),   // centrováno na x=112dp (panel|bojiště)
-            size = 36.dp,
-            seed = 0f
-        )
-        TorchFlame(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = (-94).dp, y = 8.dp), // symetricky z pravé strany
-            size = 36.dp,
-            seed = 1.1f   // jiná fáze → nesynchronizují se s levou pochodeň
-        )
-
         // Letící karta – kreslí se jako poslední, aby byla nad vším
         FlightOverlayBox(flight)
     }

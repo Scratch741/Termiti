@@ -388,22 +388,6 @@ private fun OnlineGameplay(
             )
         }
 
-        // ── Pochodně ──────────────────────────────────────────────────────────
-        TorchFlame(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(x = 94.dp, y = 8.dp),
-            size = 36.dp,
-            seed = 0f
-        )
-        TorchFlame(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = (-94).dp, y = 8.dp),
-            size = 36.dp,
-            seed = 1.1f
-        )
-
         // Letící karta (hráčova) – nad vším ostatním v Boxu
         FlightOverlayBox(flight)
     }

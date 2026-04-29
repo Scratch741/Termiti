@@ -46,24 +46,6 @@ fun MenuScreen(
         )
         Box(Modifier.fillMaxSize().background(Color(0xBB000000)))
 
-        // ── Dekorativní pochodně v rohích ─────────────────────────────────────
-        TorchFlame(
-            modifier = Modifier.align(Alignment.TopStart).offset(x = 18.dp, y = 12.dp),
-            size = 42.dp, seed = 0f
-        )
-        TorchFlame(
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = (-18).dp, y = 12.dp),
-            size = 42.dp, seed = 2.3f
-        )
-        TorchFlame(
-            modifier = Modifier.align(Alignment.BottomStart).offset(x = 18.dp, y = (-12).dp),
-            size = 42.dp, seed = 1.1f
-        )
-        TorchFlame(
-            modifier = Modifier.align(Alignment.BottomEnd).offset(x = (-18).dp, y = (-12).dp),
-            size = 42.dp, seed = 3.4f
-        )
-
         Row(
             modifier = Modifier
                 .fillMaxSize()
