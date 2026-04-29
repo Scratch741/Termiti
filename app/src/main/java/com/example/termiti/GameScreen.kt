@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -2197,9 +2198,21 @@ fun CardView(
                     color = if (canPlay || discardMode || isDragging) TextPrimary else TextMuted,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
                     maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 13.sp)
-                Text(card.description,
-                    color = TextMuted, fontSize = 8.sp, textAlign = TextAlign.Center,
-                    maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 11.sp)
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(card.description,
+                        color = TextMuted, fontSize = 8.sp, textAlign = TextAlign.Center,
+                        maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 11.sp,
+                        style = LocalTextStyle.current.merge(
+                            TextStyle(
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                lineHeightStyle = LineHeightStyle(
+                                    alignment = LineHeightStyle.Alignment.Center,
+                                    trim = LineHeightStyle.Trim.Both
+                                )
+                            )
+                        )
+                    )
+                }
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     val rc = rarityColor(card.rarity)
                     Box(Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(2.dp))
@@ -2393,25 +2406,33 @@ private fun CardViewTextured(
             baselineFrac = 0.78f
         )
 
-        // Vrstva 5: text karty pod názvem (90–122 dp od vrchu, max 4 řádky)
-        Column(
+        // Vrstva 5: text karty pod názvem (90–122 dp od vrchu)
+        Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 90.dp)
                 .fillMaxWidth()
                 .height(32.dp)
                 .clipToBounds()
-                .padding(horizontal = 9.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 card.description,
                 color = Color(0xFFDDD0B0),
-                fontSize = 6.sp,
+                fontSize = 7.sp,
                 textAlign = TextAlign.Center,
-                overflow = TextOverflow.Clip,
-                lineHeight = 8.sp
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 9.sp,
+                style = LocalTextStyle.current.merge(
+                    TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    )
+                )
             )
         }
 
