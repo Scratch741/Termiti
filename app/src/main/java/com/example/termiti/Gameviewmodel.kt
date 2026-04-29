@@ -164,7 +164,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ), isCombo = true,artResId = R.drawable.art_magicke_trio, type = "Magie", artScale = 0.80f, artBiasY = -1.00f),
 
         // ── Doly – rozšíření ──────────────────────────────────────────
-        Card("042", "Velký kamenolom","Trvale +2 doly kamene/kolo.",             cost = 4, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
+        Card("042", "Velký kamenolom","Trvale +2 doly kamene/kolo.",             cost = 5, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddMine(ResourceType.STONES, 2)),artResId = R.drawable.art_velky_kamenolom, type = "Magie", artScale = 0.80f, artBiasY = 0.25f),
         Card("043", "Výcvikové centrum","Trvale +2 doly útoku/kolo.",            cost = 5, costType = ResourceType.MAGIC, rarity = Rarity.EPIC,
             effects = listOf(CardEffect.AddMine(ResourceType.ATTACK, 2)),artResId = R.drawable.art_vycvikove_centrum, type = "Magie", artScale = 0.85f),
