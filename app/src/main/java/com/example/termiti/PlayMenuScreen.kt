@@ -86,35 +86,31 @@ fun PlayMenuScreen(
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ModeCard(
-                    icon        = "🃏",
-                    title       = "Vlastní balíček",
-                    description = "Hraj se svým sestaveným balíčkem proti AI",
-                    accent      = PmTealLight,
-                    onClick     = onOwnDeck
+                FantasyButton(
+                    text     = "VLASTNÍ BALÍČEK",
+                    subtitle = "Hraj se svým sestaveným balíčkem proti AI",
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    onClick  = onOwnDeck
                 )
-                ModeCard(
-                    icon        = "🎲",
-                    title       = "Náhodný balíček",
-                    description = "Dostaneš náhodně sestavený balíček",
-                    accent      = PmGold,
-                    onClick     = onRandomDeck
+                FantasyButton(
+                    text     = "NÁHODNÝ BALÍČEK",
+                    subtitle = "Dostaneš náhodně sestavený balíček",
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    onClick  = onRandomDeck
                 )
-                ModeCard(
-                    icon        = "🌪️",
-                    title       = "Super Náhodný",
-                    description = "50 karet (15/15/15/5) – větší balíček, větší chaos",
-                    accent      = Color(0xFFE67E22),
-                    onClick     = onSuperRandom
+                FantasyButton(
+                    text     = "SUPER NÁHODNÝ",
+                    subtitle = "50 karet (15/15/15/5) – větší balíček, větší chaos",
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    onClick  = onSuperRandom
                 )
-                ModeCard(
-                    icon        = "🏟️",
-                    title       = "Aréna",
-                    description = "Sestav balíček z nabídky a bojuj o výhry",
-                    accent      = Color(0xFF9B59B6),
-                    onClick     = onArena
+                FantasyButton(
+                    text     = "ARÉNA",
+                    subtitle = "Sestav balíček z nabídky a bojuj o výhry",
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    onClick  = onArena
                 )
             }
         }
