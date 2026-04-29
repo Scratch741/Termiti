@@ -2406,15 +2406,15 @@ private fun CardViewTextured(
             baselineFrac = 0.78f
         )
 
-        // Vrstva 5: text karty pod názvem (90–122 dp od vrchu)
+        // Vrstva 5: text karty pod názvem (92–126 dp od vrchu)
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 90.dp)
+                .offset(y = 92.dp)
                 .fillMaxWidth()
-                .height(32.dp)
+                .height(34.dp)
                 .clipToBounds()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -2422,6 +2422,7 @@ private fun CardViewTextured(
                 color = Color(0xFFDDD0B0),
                 fontSize = 7.sp,
                 textAlign = TextAlign.Center,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(

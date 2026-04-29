@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -500,15 +501,25 @@ private fun CardPreview(card: Card) {
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 94.dp)
+                .offset(y = 92.dp)
                 .fillMaxWidth()
-                .height(28.dp)
+                .height(34.dp)
                 .clipToBounds()
-                .padding(horizontal = 9.dp),
-            contentAlignment = Alignment.TopCenter
+                .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.Center
         ) {
             Text(card.description, color = Color(0xFFDDD0B0), fontSize = 7.sp,
-                textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp)
+                textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp,
+                style = LocalTextStyle.current.merge(
+                    TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    )
+                )
+            )
         }
         // Typ
         if (card.type.isNotEmpty()) {
@@ -627,16 +638,35 @@ private fun FullCardPreview(card: Card) {
                 baselineFrac = 0.78f
             )
 
-            // Popis — y = 94dp × 2.52 = 237dp
+            // Popis — y = 92dp × 2.52 = 232dp, výška = 34dp × 2.52 = 86dp, padding = 10dp × 2.52 = 25dp
             Box(
                 modifier = Modifier
+                    .align(Alignment.TopStart)
                     .fillMaxWidth()
-                    .padding(top = 237.dp, start = 22.dp, end = 22.dp)
-                    .height(76.dp),
-                contentAlignment = Alignment.TopCenter
+                    .padding(top = 232.dp)
+                    .height(86.dp)
+                    .clipToBounds()
+                    .padding(horizontal = 25.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(card.description, color = Color(0xFFDDD0B0),
-                    fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
+                Text(
+                    card.description,
+                    color = Color(0xFFDDD0B0),
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 23.sp,
+                    style = LocalTextStyle.current.merge(
+                        TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim = LineHeightStyle.Trim.Both
+                            )
+                        )
+                    )
+                )
             }
 
             // Typ — y = 129dp × 2.521 = 325dp

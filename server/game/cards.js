@@ -29,11 +29,12 @@ const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 
 // Conditions
-const rA = (t,v) => ({ type:'ResourceAbove', resType:t, threshold:v });
-const wA = (v)   => ({ type:'WallAbove',     threshold:v });
-const wB = (v)   => ({ type:'WallBelow',     threshold:v });
-const cA = (v)   => ({ type:'CastleAbove',   threshold:v });
-const cB = (v)   => ({ type:'CastleBelow',   threshold:v });
+const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
+const rMO = (t)   => ({ type:'ResourceMoreThanOpponent', resType:t });
+const wA  = (v)   => ({ type:'WallAbove',     threshold:v });
+const wB  = (v)   => ({ type:'WallBelow',     threshold:v });
+const cA  = (v)   => ({ type:'CastleAbove',   threshold:v });
+const cB  = (v)   => ({ type:'CastleBelow',   threshold:v });
 
 // ── Rarity max copies ─────────────────────────────────────────────────────────
 const MAX_COPIES = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };
@@ -46,7 +47,7 @@ const RAW = [
   ['008','Šípy',           1,'ATTACK',0,[ac(3)],               'COMMON'],
   ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'COMMON'],
   ['007','Katapult',       4,'ATTACK',0,[ap(11)],              'RARE'],
-  ['006','Podmíněný útok', 3,'ATTACK',0,[cd(rA('ATTACK',5), ac(10))],  'RARE'],
+  ['006','Převaha síly',   3,'ATTACK',0,[cd(rMO('ATTACK'), ac(10))],   'RARE'],
   ['017','Válečný sekyrník',4,'ATTACK',0,[ap(8),sr('ATTACK',2)],       'COMMON'],
   ['019','Zápalné šípy',   1,'ATTACK',0,[aw(5)],               'COMMON'],
   ['020','Beranidlo',      3,'ATTACK',0,[aw(11)],              'RARE'],

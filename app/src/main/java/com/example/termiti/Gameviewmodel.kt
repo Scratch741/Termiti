@@ -36,12 +36,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects = listOf(CardEffect.AttackCastle(8)), artResId = R.drawable.art_ohniva_koule, type = "Útok", artBiasY = -0.60f, soundResId = R.raw.fireball),
         Card("007", "Silný úder",       "Zaútočí na nepřítele za 11.",             cost = 4, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(CardEffect.AttackPlayer(11)), type = "Útok",artResId = R.drawable.art_silny_uder, artScale = 0.80f, artBiasY = -1.00f),
-        Card("006", "Převaha síly", "Pokud máš >5 útoku, udeř hrad za 10. Pokud máš více útoku než soupeř, udeř hrad za 10.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
+        Card("006", "Převaha síly", "Pokud máš více útoku než soupeř, udeř hrad za 10.", cost = 3, costType = ResourceType.ATTACK, rarity = Rarity.RARE,
             effects = listOf(
-                CardEffect.ConditionalEffect(
-                    Condition.ResourceAbove(ResourceType.ATTACK, 5),
-                    CardEffect.AttackCastle(10)
-                ),
                 CardEffect.ConditionalEffect(
                     Condition.ResourceMoreThanOpponent(ResourceType.ATTACK),
                     CardEffect.AttackCastle(10)
