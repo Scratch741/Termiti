@@ -296,9 +296,10 @@ fun GameScreen(
     val lastCardAction   by viewModel.lastCardAction
     val lastCardIsPlayer by viewModel.lastCardIsPlayer
     val lostToOpponent   by viewModel.lostToOpponent
-    val isMulligan       by viewModel.isMulligan
-    val mulliganSelected by viewModel.mulliganSelected
-    val isComboTurn      by viewModel.isPlayerComboTurn
+    val isMulligan           by viewModel.isMulligan
+    val mulliganSelected     by viewModel.mulliganSelected
+    val isComboTurn          by viewModel.isPlayerComboTurn
+    val campaignOpponent     by viewModel.activeCampaignOpponent
 
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
@@ -349,6 +350,8 @@ fun GameScreen(
                 playerLabel    = PlayerProfileManager.profile?.name   ?: "Hráč",
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "⚔️",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
+                opponentLabel  = campaignOpponent?.name   ?: "Nepřítel",
+                opponentAvatar = campaignOpponent?.avatar ?: "👺",
                 onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true }
             )
 

@@ -17,7 +17,8 @@ import com.example.termiti.ui.theme.TermitiTheme
 
 private enum class Screen {
     PROFILE_SETUP,
-    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS, PROFILE
+    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS, PROFILE,
+    CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT
 }
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
         SoundManager.initSounds(this)
         SoundManager.startBackgroundMusic(this)
         PlayerProfileManager.init(this)
+        CampaignManager.init(this)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
@@ -55,6 +57,11 @@ class MainActivity : ComponentActivity() {
                     var gameSuperRandom by remember { mutableStateOf(false) }
                     val arenaPhase by viewModel.arenaPhase
                     val arenaWins  by viewModel.arenaWins
+
+                    // ── Kampaň ────────────────────────────────────────────────
+                    var campaignLocation by remember { mutableStateOf<CampaignLocation?>(null) }
+                    val campaignOpponent by viewModel.activeCampaignOpponent
+                    var campaignPlayerWon by remember { mutableStateOf(false) }
 
                     when (screen) {
 
@@ -83,6 +90,7 @@ class MainActivity : ComponentActivity() {
                             onRandomDeck  = { gameRandom = true;  gameSuperRandom = false; viewModel.restartGame(randomDeck = true);                     screen = Screen.GAME },
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
+                            onCampaign    = { screen = Screen.CAMPAIGN_MAP },
                             onBack        = { screen = Screen.MENU }
                         )
 
@@ -122,6 +130,55 @@ class MainActivity : ComponentActivity() {
                             decks  = viewModel.decks,
                             onBack = { screen = Screen.MP_SELECT }
                         )
+
+                        // ── Kampaň ───────────────────────────────────────────
+                        Screen.CAMPAIGN_MAP -> CampaignMapScreen(
+                            onLocationSelected = { loc ->
+                                campaignLocation = loc
+                                screen = Screen.CAMPAIGN_LOCATION
+                            },
+                            onBack = { screen = Screen.PLAY_MENU }
+                        )
+
+                        Screen.CAMPAIGN_LOCATION -> {
+                            val loc = campaignLocation
+                            if (loc == null) { screen = Screen.CAMPAIGN_MAP } else {
+                                CampaignLocationScreen(
+                                    location = loc,
+                                    onOpponentSelected = { opp ->
+                                        viewModel.startCampaignBattle(opp)
+                                        screen = Screen.CAMPAIGN_GAME
+                                    },
+                                    onBack = { screen = Screen.CAMPAIGN_MAP }
+                                )
+                            }
+                        }
+
+                        Screen.CAMPAIGN_GAME -> GameScreen(
+                            viewModel    = viewModel,
+                            onBackToMenu = { screen = Screen.CAMPAIGN_LOCATION },
+                            onGameEnd    = { win ->
+                                PlayerProfileManager.recordGameResult(win = win, online = false)
+                                campaignPlayerWon = win
+                                screen = Screen.CAMPAIGN_RESULT
+                            }
+                        )
+
+                        Screen.CAMPAIGN_RESULT -> {
+                            val opp = campaignOpponent
+                            if (opp == null) { screen = Screen.CAMPAIGN_MAP } else {
+                                CampaignResultScreen(
+                                    opponent        = opp,
+                                    playerWon       = campaignPlayerWon,
+                                    onRetry         = {
+                                        viewModel.startCampaignBattle(opp)
+                                        screen = Screen.CAMPAIGN_GAME
+                                    },
+                                    onBackToLocation = { screen = Screen.CAMPAIGN_LOCATION },
+                                    onBackToMap      = { screen = Screen.CAMPAIGN_MAP }
+                                )
+                            }
+                        }
 
                         // ── Aréna ─────────────────────────────────────────────
                         Screen.ARENA -> when (arenaPhase) {

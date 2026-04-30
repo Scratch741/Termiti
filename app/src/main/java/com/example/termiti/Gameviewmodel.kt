@@ -723,6 +723,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var isPlayerComboTurn = androidx.compose.runtime.mutableStateOf(false)
         private set
 
+    // ── Kampaň ───────────────────────────────────────────────────────────────
+    /** Aktuálně hraný soupeř v kampani (null = normální hra / aréna). */
+    var activeCampaignOpponent = androidx.compose.runtime.mutableStateOf<CampaignOpponent?>(null)
+        private set
+
     // ── Mulligan ──────────────────────────────────────────────────────────────
     var isMulligan = androidx.compose.runtime.mutableStateOf(true)
         private set
@@ -1187,6 +1192,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun restartGame(randomDeck: Boolean = false, superRandom: Boolean = false) {
+        activeCampaignOpponent.value = null
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null
@@ -1198,6 +1204,99 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
+    }
+
+    /** Spustí bitvu v kampani proti danému soupeři. */
+    fun startCampaignBattle(opponent: CampaignOpponent) {
+        activeCampaignOpponent.value = opponent
+        gameOver.value          = null
+        log.value               = emptyList()
+        lastCard.value          = null
+        lastCardAction.value    = CardAction.PLAYED
+        lastCardIsPlayer.value  = true
+        cardHistory.value       = emptyList()
+        lostToOpponent.value    = emptyList()
+        isPlayerComboTurn.value = false
+        gameState.value         = createCampaignState(opponent)
+        isMulligan.value        = true
+        mulliganSelected.value  = emptySet()
+    }
+
+    /** Sestaví GameState pro kampaňovou bitvu s konkrétním soupeřem. */
+    private fun createCampaignState(opponent: CampaignOpponent): GameState {
+        val activeDeck  = decks[activeDeckIndex.value]
+        val playerCards = if (activeDeck.isValid) activeDeck.toCardList(allCards)
+                          else balancedDeck()
+
+        // ── Pasivní schopnosti hráče ──────────────────────────────────────────
+        val actives = PlayerProfileManager.profile
+            ?.activeAbilities
+            ?.mapNotNull { PassiveAbility.fromId(it) }
+            ?: emptyList()
+
+        val h = opponent.playerHandicap
+
+        // ── Hráčův startovní stav ────────────────────────────────────────────
+        val startCastle = 30 + (if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0) + h.extraCastle
+        val startWall   = 10 + (if (PassiveAbility.EXTRA_WALL   in actives) 5 else 0) + h.extraWall
+        val extraMagic  =      (if (PassiveAbility.EXTRA_MAGIC  in actives) 1 else 0) + h.extraMagic
+        val extraAttack =      (if (PassiveAbility.EXTRA_ATTACK in actives) 1 else 0) + h.extraAttack
+        val extraStones =      (if (PassiveAbility.EXTRA_STONES in actives) 1 else 0) + h.extraStones
+        val extraChaos  =       if (PassiveAbility.EXTRA_CHAOS  in actives) 1 else 0
+
+        // playerWinTarget: extra_castle pasiv přidá +5, pak se aplikuje nastavení ze soupeře
+        val passiveCastleBonus = if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
+        val playerWinTarget    = (opponent.winTarget + passiveCastleBonus).coerceAtMost(999)
+
+        val playerState = PlayerState(
+            castleHP = startCastle.coerceAtLeast(5),
+            wallHP   = startWall.coerceAtLeast(0)
+        ).also {
+            val finalMagic  = extraMagic.coerceAtLeast(0)
+            val finalAttack = extraAttack.coerceAtLeast(0)
+            val finalStones = extraStones.coerceAtLeast(0)
+            if (finalMagic  > 0) it.resources[ResourceType.MAGIC]  = finalMagic
+            if (finalAttack > 0) it.resources[ResourceType.ATTACK] = finalAttack
+            if (finalStones > 0) it.resources[ResourceType.STONES] = finalStones
+            if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
+            // Hráčovy extra/malus doly z handicapu
+            for ((resType, delta) in h.extraMines) {
+                it.mines[resType] = ((it.mines[resType] ?: 1) + delta).coerceAtLeast(0)
+            }
+            it.deck.addAll(playerCards.withUniqueIds().shuffled())
+            it.drawCards(opponent.playerStartHandSize.coerceIn(1, 7))
+        }
+
+        // ── AI stav ───────────────────────────────────────────────────────────
+        val aiCards = opponent.deckCardCounts
+            .flatMap { (id, count) ->
+                val card = allCards.find { it.id == id } ?: return@flatMap emptyList()
+                List(count) { card }
+            }
+            .withUniqueIds()
+            .shuffled()
+
+        val aiState = PlayerState(
+            castleHP = opponent.aiCastle,
+            wallHP   = opponent.aiWall
+        ).also {
+            for ((resType, bonus) in opponent.aiExtraMines) {
+                it.mines[resType] = (it.mines[resType] ?: 1) + bonus
+            }
+            if (opponent.aiStartMagic  > 0) it.resources[ResourceType.MAGIC]  = opponent.aiStartMagic
+            if (opponent.aiStartAttack > 0) it.resources[ResourceType.ATTACK] = opponent.aiStartAttack
+            if (opponent.aiStartStones > 0) it.resources[ResourceType.STONES] = opponent.aiStartStones
+            it.deck.addAll(aiCards)
+            it.drawCards(opponent.aiStartHandSize.coerceIn(1, 10))
+        }
+
+        return GameState(
+            playerState     = playerState,
+            aiState         = aiState,
+            activePlayer    = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI,
+            playerWinTarget = playerWinTarget,
+            aiWinTarget     = opponent.aiWinTarget
+        )
     }
 
     // ── AI heuristika ─────────────────────────────────────────────────────────

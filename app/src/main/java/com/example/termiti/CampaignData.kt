@@ -1,0 +1,545 @@
+package com.example.termiti
+
+// ── Handicap aplikovaný na HRÁČE při daném soupeři ───────────────────────────
+data class PlayerHandicap(
+    val extraCastle : Int = 0,                              // záporné = méně HP hradu
+    val extraWall   : Int = 0,                              // záporné = méně hradeb
+    val extraMagic  : Int = 0,                              // záporné = méně startovní magie
+    val extraAttack : Int = 0,                              // záporné = méně startovního útoku
+    val extraStones : Int = 0,                              // záporné = méně startovních kamenů
+    val extraMines  : Map<ResourceType, Int> = emptyMap()  // záporné = zničený důl
+)
+
+// ── Jeden soupeř v kampani ────────────────────────────────────────────────────
+data class CampaignOpponent(
+    val id         : String,
+    val name       : String,
+    val title      : String,
+    val avatar     : String,
+    val description: String,
+    val isBoss     : Boolean = false,
+
+    // AI startovní stav
+    val aiCastle      : Int = 30,
+    val aiWall        : Int = 10,
+    val aiStartMagic  : Int = 0,
+    val aiStartAttack : Int = 0,
+    val aiStartStones : Int = 0,
+    val aiExtraMines  : Map<ResourceType, Int> = emptyMap(),
+
+    val deckCardCounts: Map<String, Int>,
+
+    // Herní konfigurace souboje
+    val winTarget          : Int = 60,  // výška hradu pro výhru hráče výstavbou (999 = nutno zabít)
+    val aiWinTarget        : Int = 60,  // výška hradu pro výhru AI výstavbou
+    val aiStartHandSize    : Int = 4,   // počet karet AI na začátku
+    val playerStartHandSize: Int = 4,   // počet karet hráče na začátku
+
+    val playerHandicap: PlayerHandicap = PlayerHandicap(),
+
+    val rewardGold: Int = 50,
+    val rewardGems: Int = 0
+)
+
+// ── Lokace = skupina soupeřů zakončená bossem ─────────────────────────────────
+data class CampaignLocation(
+    val id         : String,
+    val name       : String,
+    val emoji      : String,
+    val description: String,
+    val opponents  : List<CampaignOpponent>
+) {
+    val boss: CampaignOpponent get() = opponents.last()
+}
+
+// ── Celá kampaň ───────────────────────────────────────────────────────────────
+//
+//  Filozofie winTarget:
+//  · winTarget nízký (45–55) → výstavba hradu je reálná alternativa k zabití,
+//    zvlášť u malých balíčků, co rychle dojdou.
+//  · winTarget vysoký (70–80) → u obranářů, kde výstavba trvá příliš dlouho.
+//  · winTarget = 999 → u citadelních válečníků pozdní hry; výstavba = prohra.
+//
+//  Filozofie velikosti balíčku:
+//  · Malý (18–24) → AI opakuje stejné karty; dojde rychle → výstavba viabilní.
+//  · Velký (38–48) → AI vydrží věčně; musíš soupeře aktivně zničit.
+//
+object CampaignData {
+
+    val locations: List<CampaignLocation> = listOf(
+
+        // ════════════════════════════════════════════════════════════════════
+        // LOKACE 1 – Goblinský tábor
+        // winTarget: 45 → 48 → 52 → 55 → 57 → 58 → 59 → 60 → 60 → 62
+        // Balíčky:   18 → 20 → 22 → 24 → 25 → 26 → 27 → 28 → 30 → 32
+        // ════════════════════════════════════════════════════════════════════
+        CampaignLocation(
+            id = "loc_goblins", name = "Goblinský tábor", emoji = "🌲",
+            description = "Zanedbaný tábor goblinů. Slabí, ale přemnožení.",
+            opponents = listOf(
+
+                // 1 ── 18 karet, winTarget 45 ───────────────────────────────
+                // Malý balíček + nízký winTarget = výstavba je nejjednodušší cesta.
+                CampaignOpponent(
+                    id = "gob_scout", name = "Goblin Průzkumník", title = "Drzý rváč",
+                    avatar = "👺", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej.",
+                    aiCastle = 20, aiWall = 5,
+                    deckCardCounts = mapOf("001" to 6, "008" to 6, "004" to 6),
+                    winTarget = 45,
+                    rewardGold = 30
+                ),
+
+                // 2 ── 20 karet, winTarget 48 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_archer", name = "Goblin Lučištník", title = "Ostrostřelec z kopce",
+                    avatar = "🏹", description = "Střílí šípy na hradby. Aspoň míří správným směrem.",
+                    aiCastle = 21, aiWall = 6,
+                    deckCardCounts = mapOf("008" to 7, "019" to 6, "001" to 4, "004" to 3),
+                    winTarget = 48,
+                    rewardGold = 35
+                ),
+
+                // 3 ── 22 karet, winTarget 52 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_shaman", name = "Goblin Šaman", title = "Čaroděj bez školy",
+                    avatar = "🧌", description = "Neumí kouzlit, ale dělá, že ano.",
+                    aiCastle = 22, aiWall = 7, aiStartMagic = 1,
+                    deckCardCounts = mapOf("001" to 6, "008" to 6, "012" to 5, "004" to 5),
+                    winTarget = 52,
+                    rewardGold = 40
+                ),
+
+                // 4 ── 24 karet, winTarget 55 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_warrior", name = "Goblin Válečník", title = "Rváč s klackem",
+                    avatar = "🪓", description = "Přišel o zbraň. Teď bojuje klackem.",
+                    aiCastle = 23, aiWall = 8,
+                    deckCardCounts = mapOf(
+                        "001" to 6, "007" to 4, "008" to 5, "012" to 4, "002" to 3, "004" to 2
+                    ),
+                    winTarget = 55,
+                    rewardGold = 45
+                ),
+
+                // 5 ── 25 karet, winTarget 57 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_looter", name = "Goblin Drancovač", title = "Mistr nepořádku",
+                    avatar = "💰", description = "Drancuje vesnice a pak se diví, proč ho nikdo nemá rád.",
+                    aiCastle = 24, aiWall = 8,
+                    deckCardCounts = mapOf(
+                        "007" to 4, "001" to 5, "027" to 4, "008" to 4,
+                        "012" to 4, "002" to 3, "004" to 1
+                    ),
+                    winTarget = 57,
+                    rewardGold = 50
+                ),
+
+                // 6 ── 26 karet, winTarget 58, hráč lízne jen 3 karty ───────
+                // Berserk překvapí menší rukou na startu.
+                CampaignOpponent(
+                    id = "gob_berserker", name = "Goblin Berserk", title = "Zuřivý houf jednoho",
+                    avatar = "😤", description = "Překvapí tě dřív, než si vůbec lízneš. Startovní ruka: 3 karty.",
+                    aiCastle = 25, aiWall = 7,
+                    deckCardCounts = mapOf(
+                        "007" to 5, "001" to 4, "024" to 4, "008" to 4,
+                        "006" to 4, "025" to 3, "004" to 2
+                    ),
+                    winTarget = 58,
+                    playerStartHandSize = 3,
+                    rewardGold = 55
+                ),
+
+                // 7 ── 27 karet, winTarget 59 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_troll", name = "Goblin Troll", title = "Boří hradby, staví drby",
+                    avatar = "🪨", description = "Velký pro goblina. Specialita: boření hradeb.",
+                    aiCastle = 26, aiWall = 10,
+                    deckCardCounts = mapOf(
+                        "007" to 5, "001" to 4, "019" to 5, "020" to 4,
+                        "008" to 4, "002" to 3, "012" to 2
+                    ),
+                    winTarget = 59,
+                    rewardGold = 60
+                ),
+
+                // 8 ── 28 karet, winTarget 60 ───────────────────────────────
+                CampaignOpponent(
+                    id = "gob_commander", name = "Goblin Velitel", title = "Vůdce tlupy",
+                    avatar = "👹", description = "Velí ostatním. Alespoň trochu ví, co dělá.",
+                    aiCastle = 25, aiWall = 10,
+                    deckCardCounts = mapOf(
+                        "001" to 5, "008" to 5, "007" to 5, "012" to 5,
+                        "002" to 4, "004" to 4
+                    ),
+                    winTarget = 60,
+                    rewardGold = 65
+                ),
+
+                // 9 ── 30 karet, winTarget 60, AI má extra mine útoku ────────
+                CampaignOpponent(
+                    id = "gob_warchief", name = "Goblin Válečný náčelník", title = "Téměř nebezpečný",
+                    avatar = "🎖️", description = "Jeden krok od trůnu. Sekyrníci a přímé zásahy.",
+                    aiCastle = 27, aiWall = 11,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 6, "001" to 5, "017" to 4, "022" to 4,
+                        "012" to 4, "006" to 4, "004" to 3
+                    ),
+                    winTarget = 60,
+                    rewardGold = 80
+                ),
+
+                // 10 BOSS ── 32 karet, winTarget 62, AI lízne 5 karet ────────
+                CampaignOpponent(
+                    id = "gob_king", name = "Goblin Král", title = "Pán tábora",
+                    avatar = "👑", description = "Boss goblinů. 32 karet, startuje s 5 kartami v ruce.",
+                    isBoss = true,
+                    aiCastle = 28, aiWall = 12,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 6, "001" to 5, "008" to 5, "006" to 4,
+                        "017" to 4, "012" to 4, "004" to 3, "002" to 1
+                    ),
+                    winTarget = 62, aiStartHandSize = 5,
+                    rewardGold = 150, rewardGems = 2
+                )
+            )
+        ),
+
+        // ════════════════════════════════════════════════════════════════════
+        // LOKACE 2 – Trpasličí hory
+        // winTarget: 58 → 60 → 70 → 62 → 63 → 65 → 65 → 68 → 80 → 75
+        // U obranářů vyšší winTarget – přelstít zeď výstavbou je těžší.
+        // Balíčky: 25 → 26 → 28 → 28 → 30 → 30 → 32 → 33 → 35 → 38
+        // ════════════════════════════════════════════════════════════════════
+        CampaignLocation(
+            id = "loc_dwarves", name = "Trpasličí hory", emoji = "⛰️",
+            description = "Opevněné horské průsmyky. Trpaslíci staví lépe než bojují.",
+            opponents = listOf(
+
+                // 1 ── 25 karet, winTarget 58 ───────────────────────────────
+                CampaignOpponent(
+                    id = "dwf_miner", name = "Horník", title = "Stavitel hradeb",
+                    avatar = "⛏️", description = "Celý den kope a staví. Útok? To nezná.",
+                    aiCastle = 27, aiWall = 15,
+                    aiExtraMines = mapOf(ResourceType.STONES to 1),
+                    deckCardCounts = mapOf(
+                        "002" to 6, "010" to 6, "005" to 5, "011" to 4, "004" to 4
+                    ),
+                    winTarget = 58,
+                    rewardGold = 60
+                ),
+
+                // 2 ── 26 karet, winTarget 60 ───────────────────────────────
+                CampaignOpponent(
+                    id = "dwf_carpenter", name = "Trpasličí Tesař", title = "Palisádový mistr",
+                    avatar = "🪚", description = "Staví palisády tak rychle, že mu nestíháš číst jméno.",
+                    aiCastle = 28, aiWall = 18,
+                    aiExtraMines = mapOf(ResourceType.STONES to 1),
+                    deckCardCounts = mapOf(
+                        "002" to 6, "010" to 5, "029" to 5, "028" to 4,
+                        "005" to 4, "004" to 2
+                    ),
+                    winTarget = 60,
+                    rewardGold = 65
+                ),
+
+                // 3 ── 28 karet, winTarget 70 ───────────────────────────────
+                // Kamenný Strážce má vysoký winTarget – jeho hradby jsou tak silné,
+                // že sám může vyhrát výstavbou rychleji než ty.
+                CampaignOpponent(
+                    id = "dwf_guardian", name = "Kamenný Strážce", title = "Neprůstřelný",
+                    avatar = "🛡️", description = "Chodící zeď. Výstavba nestačí – musíš ho prorazit silou.",
+                    aiCastle = 30, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.STONES to 2),
+                    deckCardCounts = mapOf(
+                        "002" to 6, "018" to 5, "009" to 5, "011" to 4,
+                        "014" to 4, "004" to 4
+                    ),
+                    winTarget = 70, aiWinTarget = 55,
+                    rewardGold = 70
+                ),
+
+                // 4 ── 28 karet, winTarget 62 ───────────────────────────────
+                CampaignOpponent(
+                    id = "dwf_smith", name = "Trpasličí Kovář", title = "Mistr kovadliny",
+                    avatar = "🔨", description = "Vyrábí zbraně i hradby. Útok a obrana najednou.",
+                    aiCastle = 30, aiWall = 18,
+                    deckCardCounts = mapOf(
+                        "007" to 5, "001" to 4, "022" to 4, "002" to 5,
+                        "010" to 4, "012" to 4, "004" to 2
+                    ),
+                    winTarget = 62,
+                    rewardGold = 75
+                ),
+
+                // 5 ── 30 karet, winTarget 63 ───────────────────────────────
+                CampaignOpponent(
+                    id = "dwf_ranger", name = "Horský Ranger", title = "Průsmykový hlídač",
+                    avatar = "🎯", description = "Hlídá průsmyky a bourá hradby. Rád používá beranidla.",
+                    aiCastle = 30, aiWall = 15,
+                    deckCardCounts = mapOf(
+                        "020" to 5, "019" to 5, "007" to 5, "002" to 5,
+                        "008" to 4, "010" to 3, "004" to 3
+                    ),
+                    winTarget = 63,
+                    rewardGold = 80
+                ),
+
+                // 6 ── 30 karet, winTarget 65 ───────────────────────────────
+                CampaignOpponent(
+                    id = "dwf_warrior", name = "Horský Bojovník", title = "Sekyrový veterán",
+                    avatar = "🪓", description = "Na rozdíl od ostatních trpaslíků opravdu bojuje.",
+                    aiCastle = 30, aiWall = 12,
+                    deckCardCounts = mapOf(
+                        "007" to 6, "001" to 6, "022" to 5, "020" to 4,
+                        "012" to 5, "004" to 4
+                    ),
+                    winTarget = 65,
+                    rewardGold = 85
+                ),
+
+                // 7 ── 32 karet, winTarget 65 ───────────────────────────────
+                // Mág sabotuje jeden hráčův důl kamenů jako součást kouzla.
+                CampaignOpponent(
+                    id = "dwf_mage", name = "Trpasličí Mág", title = "Horský čaroděj",
+                    avatar = "🔮", description = "Sabotoval tvůj kamenolom. Startovní důl kamene −1.",
+                    aiCastle = 31, aiWall = 14,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "013" to 4, "015" to 4, "003" to 5, "016" to 3,
+                        "037" to 5, "040" to 4, "004" to 5, "001" to 2
+                    ),
+                    winTarget = 65,
+                    playerHandicap = PlayerHandicap(
+                        extraMines = mapOf(ResourceType.STONES to -1)
+                    ),
+                    rewardGold = 90
+                ),
+
+                // 8 ── 33 karet, winTarget 68, AI lízne 5 karet ─────────────
+                CampaignOpponent(
+                    id = "dwf_general", name = "Trpasličí Generál", title = "Velitel horské armády",
+                    avatar = "⚔️", description = "Zkušený velitel. Startuje s 5 kartami a extra mine útoku.",
+                    aiCastle = 32, aiWall = 18,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 4, "022" to 4, "017" to 4, "002" to 4,
+                        "018" to 4, "013" to 4, "014" to 4, "004" to 5
+                    ),
+                    winTarget = 68, aiStartHandSize = 5,
+                    rewardGold = 100
+                ),
+
+                // 9 ── 35 karet, winTarget 80 ───────────────────────────────
+                // Kolos – výstavba na 80 je extrémně náročná. Musíš ho prolomit.
+                CampaignOpponent(
+                    id = "dwf_colossus", name = "Kamenný Kolos", title = "Neprolomitelná pevnost",
+                    avatar = "🗿", description = "35 karet a winTarget 80. Prolomit nebo zemřít.",
+                    aiCastle = 33, aiWall = 22,
+                    aiExtraMines = mapOf(ResourceType.STONES to 2),
+                    deckCardCounts = mapOf(
+                        "018" to 5, "002" to 5, "030" to 5, "034" to 5,
+                        "036" to 5, "009" to 5, "063" to 4, "004" to 1
+                    ),
+                    winTarget = 80, aiWinTarget = 50,
+                    rewardGold = 120
+                ),
+
+                // 10 BOSS ── 38 karet, winTarget 75, AI lízne 5 karet ────────
+                CampaignOpponent(
+                    id = "dwf_thane", name = "Trpasličí Thane", title = "Pán hor",
+                    avatar = "🔱", description = "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok.",
+                    isBoss = true,
+                    aiCastle = 35, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.STONES to 1, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 5, "022" to 5, "017" to 4, "002" to 5,
+                        "018" to 5, "013" to 4, "014" to 4, "015" to 4, "004" to 2
+                    ),
+                    winTarget = 75, aiStartHandSize = 5,
+                    rewardGold = 220, rewardGems = 3
+                )
+            )
+        ),
+
+        // ════════════════════════════════════════════════════════════════════
+        // LOKACE 3 – Temná citadela
+        // winTarget: 62 → 63 → 65 → 65 → 999 → 70 → 999 → 999 → 999 → 999
+        // Od Temného Válečníka výš: výstavba = okamžitá prohra.
+        // Balíčky: 30 → 30 → 33 → 33 → 35 → 35 → 38 → 38 → 42 → 48
+        // ════════════════════════════════════════════════════════════════════
+        CampaignLocation(
+            id = "loc_citadel", name = "Temná citadela", emoji = "🏰",
+            description = "Sídlo temnoty. Soupeři hrají nefér — a jsou na to pyšní.",
+            opponents = listOf(
+
+                // 1 ── 30 karet, winTarget 62 ───────────────────────────────
+                CampaignOpponent(
+                    id = "cit_knight", name = "Stínový Rytíř", title = "Zloděj zdrojů",
+                    avatar = "🗡️", description = "Krade ti zdroje a ještě se směje. Začínáš s méně magií.",
+                    aiCastle = 33, aiWall = 15,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 6, "001" to 5, "017" to 5, "006" to 4,
+                        "012" to 4, "013" to 3, "004" to 3
+                    ),
+                    winTarget = 62,
+                    playerHandicap = PlayerHandicap(extraMagic = -2),
+                    rewardGold = 100
+                ),
+
+                // 2 ── 30 karet, winTarget 63 ───────────────────────────────
+                CampaignOpponent(
+                    id = "cit_archer", name = "Temný Lučištník", title = "Sniper citadely",
+                    avatar = "🏹", description = "Zápalné šípy na hradby, přímé zásahy na hrad.",
+                    aiCastle = 33, aiWall = 12,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "008" to 6, "019" to 6, "022" to 5, "053" to 4,
+                        "027" to 5, "012" to 4
+                    ),
+                    winTarget = 63,
+                    rewardGold = 110
+                ),
+
+                // 3 ── 33 karet, winTarget 65 ───────────────────────────────
+                CampaignOpponent(
+                    id = "cit_mage", name = "Temný Čaroděj", title = "Mistr ohně",
+                    avatar = "🧙", description = "Ovládá magii temnoty. Začínáš s méně útokem.",
+                    aiCastle = 35, aiWall = 12,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2),
+                    deckCardCounts = mapOf(
+                        "003" to 6, "026" to 5, "013" to 5, "016" to 4,
+                        "037" to 5, "004" to 5, "001" to 3
+                    ),
+                    winTarget = 65,
+                    playerHandicap = PlayerHandicap(extraAttack = -2),
+                    rewardGold = 120
+                ),
+
+                // 4 ── 33 karet, winTarget 65 ───────────────────────────────
+                // Nekromant sabotuje hráčův důl magie.
+                CampaignOpponent(
+                    id = "cit_necromancer", name = "Nekromant", title = "Pán jedů a stínů",
+                    avatar = "🦇", description = "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1.",
+                    aiCastle = 35, aiWall = 12,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "049" to 5, "003" to 5, "013" to 5, "037" to 5,
+                        "069" to 4, "040" to 5, "004" to 4
+                    ),
+                    winTarget = 65,
+                    playerHandicap = PlayerHandicap(
+                        extraCastle = -3,
+                        extraMines  = mapOf(ResourceType.MAGIC to -1)
+                    ),
+                    rewardGold = 130
+                ),
+
+                // 5 ── 35 karet, winTarget 999 ──────────────────────────────
+                // Od teď výstavba = sebevražda. Citadelní válečníci mají tolik
+                // útoku, že postavit 999 HP je fyzicky nemožné.
+                CampaignOpponent(
+                    id = "cit_warrior", name = "Temný Válečník", title = "Sekáč bez milosti",
+                    avatar = "💀", description = "35 karet čistého útoku. Výstavba nestačí — zaútočíš nebo zemřeš.",
+                    aiCastle = 36, aiWall = 14,
+                    deckCardCounts = mapOf(
+                        "021" to 5, "007" to 5, "054" to 5, "022" to 5,
+                        "047" to 4, "017" to 4, "012" to 5, "004" to 2
+                    ),
+                    winTarget = 999,
+                    rewardGold = 140
+                ),
+
+                // 6 ── 35 karet, winTarget 70 ───────────────────────────────
+                // Strážce je obranný – výstavba se vrátí jako možnost, ale target je 70.
+                CampaignOpponent(
+                    id = "cit_guardian", name = "Temný Strážce", title = "Pevná ruka temnoty",
+                    avatar = "🛡️", description = "Útočí i brání. Výstavba na 70 je tvá jediná alternativa.",
+                    aiCastle = 36, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.STONES to 1),
+                    deckCardCounts = mapOf(
+                        "007" to 5, "022" to 5, "002" to 5, "018" to 5,
+                        "036" to 4, "062" to 4, "015" to 4, "004" to 3
+                    ),
+                    winTarget = 70,
+                    rewardGold = 150
+                ),
+
+                // 7 ── 38 karet, winTarget 999, hráč začíná s 3 kartami ──────
+                // Sabotér tě překvapí – méně karet, méně útoku i kamenů.
+                CampaignOpponent(
+                    id = "cit_saboteur", name = "Sabotér", title = "Mistr sabotáže",
+                    avatar = "🕵️", description = "Okrade tě ještě před startem. Ruka 3 karty, bez útoku a kamenů.",
+                    aiCastle = 37, aiWall = 15,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2),
+                    deckCardCounts = mapOf(
+                        "065" to 5, "066" to 5, "067" to 5, "068" to 5,
+                        "070" to 5, "071" to 4, "037" to 5, "004" to 4
+                    ),
+                    winTarget = 999,
+                    playerStartHandSize = 3,
+                    playerHandicap = PlayerHandicap(
+                        extraAttack = -3,
+                        extraStones = -3,
+                        extraMines  = mapOf(ResourceType.ATTACK to -1)
+                    ),
+                    rewardGold = 160
+                ),
+
+                // 8 ── 38 karet, winTarget 999, AI lízne 5 karet ────────────
+                CampaignOpponent(
+                    id = "cit_dragon", name = "Ohnivý Drak", title = "Dech zkázy",
+                    avatar = "🐉", description = "38 karet ohně. Startuje s 5 v ruce. Zabudovat nelze.",
+                    aiCastle = 38, aiWall = 18,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "021" to 6, "007" to 6, "022" to 5, "012" to 5,
+                        "015" to 5, "013" to 5, "004" to 6
+                    ),
+                    winTarget = 999, aiStartHandSize = 5,
+                    rewardGold = 170
+                ),
+
+                // 9 ── 42 karet, winTarget 999, AI lízne 6 karet, hrad −3, hradby −3
+                CampaignOpponent(
+                    id = "cit_general", name = "Temný Generál", title = "Pravá ruka Pána",
+                    avatar = "👿", description = "42 karet, startuje se 6. Začínáš oslaben. Útočíš nebo prohraješ.",
+                    aiCastle = 40, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "021" to 5, "023" to 5, "007" to 4, "017" to 4,
+                        "018" to 4, "032" to 4, "016" to 4, "013" to 4,
+                        "026" to 4, "040" to 4
+                    ),
+                    winTarget = 999, aiStartHandSize = 6,
+                    playerHandicap = PlayerHandicap(extraCastle = -3, extraWall = -3),
+                    rewardGold = 200
+                ),
+
+                // 10 BOSS ── 48 karet, winTarget 999, AI lízne 7 karet ───────
+                // Démon + Drak v balíčku. Absolutní konec výstavbové strategie.
+                CampaignOpponent(
+                    id = "cit_lord", name = "Temný Pán", title = "Vládce temnoty",
+                    avatar = "☠️", description = "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt.",
+                    isBoss = true,
+                    aiCastle = 45, aiWall = 25,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC  to 1,
+                        ResourceType.ATTACK to 1,
+                        ResourceType.STONES to 1
+                    ),
+                    deckCardCounts = mapOf(
+                        "052" to 4, "051" to 3, "021" to 6, "023" to 5,
+                        "016" to 4, "043" to 4, "044" to 3, "040" to 4,
+                        "032" to 5, "004" to 6, "054" to 4
+                    ),
+                    winTarget = 999, aiStartHandSize = 7,
+                    playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -5),
+                    rewardGold = 400, rewardGems = 6
+                )
+            )
+        )
+    )
+}

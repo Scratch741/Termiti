@@ -54,6 +54,7 @@ fun FantasyButton(
     text: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    compact: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -78,7 +79,7 @@ fun FantasyButton(
                 SoundManager.playMenuTap()
                 onClick()
             }
-            .padding(vertical = 14.dp, horizontal = 20.dp),
+            .padding(vertical = if (compact) 7.dp else 14.dp, horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(

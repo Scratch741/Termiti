@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,6 +33,7 @@ fun PlayMenuScreen(
     onRandomDeck: () -> Unit,
     onSuperRandom: () -> Unit,
     onArena:      () -> Unit,
+    onCampaign:   () -> Unit,
     onBack:       () -> Unit
 ) {
     Box(
@@ -84,33 +87,46 @@ fun PlayMenuScreen(
 
             // Pravá strana – módy
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 FantasyButton(
                     text     = "VLASTNÍ BALÍČEK",
                     subtitle = "Hraj se svým sestaveným balíčkem proti AI",
                     modifier = Modifier.fillMaxWidth(0.9f),
+                    compact  = true,
                     onClick  = onOwnDeck
                 )
                 FantasyButton(
                     text     = "NÁHODNÝ BALÍČEK",
                     subtitle = "Dostaneš náhodně sestavený balíček",
                     modifier = Modifier.fillMaxWidth(0.9f),
+                    compact  = true,
                     onClick  = onRandomDeck
                 )
                 FantasyButton(
                     text     = "SUPER NÁHODNÝ",
                     subtitle = "50 karet (15/15/15/5) – větší balíček, větší chaos",
                     modifier = Modifier.fillMaxWidth(0.9f),
+                    compact  = true,
                     onClick  = onSuperRandom
                 )
                 FantasyButton(
                     text     = "ARÉNA",
                     subtitle = "Sestav balíček z nabídky a bojuj o výhry",
                     modifier = Modifier.fillMaxWidth(0.9f),
+                    compact  = true,
                     onClick  = onArena
+                )
+                FantasyButton(
+                    text     = "KAMPAŇ",
+                    subtitle = "Projdi lokacemi a poraž záporáky",
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    compact  = true,
+                    onClick  = onCampaign
                 )
             }
         }
