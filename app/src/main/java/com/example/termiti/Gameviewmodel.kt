@@ -1334,33 +1334,68 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.ConditionalEffect ->
                 if (checkCondition(fx.condition, ai, opponent)) scoreEffect(fx.effect, xVal) else 0
 
-            // X-kost efekty: skóruj podle aktuálního množství zdroje (odhad skutečného efektu)
+            // X-kost efekty: skóruj proporcionálně k reálné hodnotě efektu
+            // amt*2 = lineární bonus (stejná efektivita bez ohledu na výši xVal)
             is CardEffect.XScaledAttackPlayer -> {
                 val amt       = xVal / fx.divisor
                 val wallBonus = if (!oppHasWall) 4 else 0
                 val urgency   = if (oppLowHp) 20 else if (oppCloseToWin) 6 else 8
-                urgency + amt / 4 + wallBonus
+                urgency + amt * 2 + wallBonus
             }
             is CardEffect.XScaledAttackCastle -> {
                 val amt = xVal / fx.divisor
                 val urgency = if (oppLowHp) 22 else if (oppCloseToWin) 8 else 7
-                urgency + amt / 4
+                urgency + amt * 2
             }
             is CardEffect.XScaledBuildCastle -> {
                 val amt = xVal / fx.divisor
-                val urgency = if (aiLowHp) 12 else if (aiCloseToWin) 6 else 4
-                urgency + amt / 4
+                val urgency = if (aiLowHp) 20 else if (aiCloseToWin) 12 else 5
+                urgency + amt * 2
             }
             is CardEffect.XScaledDualResource -> {
                 val amt = xVal / fx.divisor
-                4 + amt / 3   // přidává dva zdroje najednou
+                5 + amt * 2   // přidává dva zdroje najednou
             }
+        }
+
+        // ── Detekce lethal: karta zabije soupeře tento tah ──────────────────────
+        // Simulujeme poškození hradeb + hradu efektů karty (v pořadí zahrání).
+        // Pokud celkové poškození hradu ≥ soupeřův HP → lethal.
+        fun isLethal(card: Card, xVal: Int): Boolean {
+            var wallLeft      = opponent.wallHP
+            var castleDmg     = 0
+            fun processEffect(fx: CardEffect) {
+                when (fx) {
+                    is CardEffect.AttackPlayer -> {
+                        val pierce   = (fx.amount - wallLeft).coerceAtLeast(0)
+                        wallLeft     = (wallLeft - fx.amount).coerceAtLeast(0)
+                        castleDmg   += pierce
+                    }
+                    is CardEffect.AttackCastle      -> castleDmg += fx.amount
+                    is CardEffect.XScaledAttackPlayer -> {
+                        val amt      = xVal / fx.divisor
+                        val pierce   = (amt - wallLeft).coerceAtLeast(0)
+                        wallLeft     = (wallLeft - amt).coerceAtLeast(0)
+                        castleDmg   += pierce
+                    }
+                    is CardEffect.XScaledAttackCastle -> castleDmg += xVal / fx.divisor
+                    is CardEffect.StealCastle         -> castleDmg += fx.amount
+                    is CardEffect.ConditionalEffect   ->
+                        if (checkCondition(fx.condition, ai, opponent)) processEffect(fx.effect)
+                    else -> {}
+                }
+            }
+            card.effects.forEach { processEffect(it) }
+            return castleDmg >= opponent.castleHP
         }
 
         // Celkové skóre karty = suma efektů − cena + šum ±2
         // Pro X-kost karty: cena = aktuální zásoby daného zdroje (to se spotřebuje)
         fun score(card: Card): Int {
             val xVal = if (card.isXCost) (ai.resources[card.costType] ?: 0) else 0
+
+            // ── Lethal override: karta okamžitě vyhrává hru → vždy zahraj ────
+            if (isLethal(card, xVal)) return 1000 + (-2..2).random()
 
             // X-kost karty: nehrát příliš brzy – malé zásoby = mizivý efekt, plýtvání kartou.
             // Práh závisí na situaci; při prázdných balíčcích zásoby stejně vyprší → hraj vždy.
