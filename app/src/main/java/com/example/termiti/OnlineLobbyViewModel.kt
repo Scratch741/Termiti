@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONArray
@@ -131,6 +133,19 @@ class OnlineLobbyViewModel(
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
+
+    // ── Stav odpojení soupeře ─────────────────────────────────────────────────
+    /** Soupeř se odpojil a čeká se na jeho reconnect */
+    var opponentDisconnected      = mutableStateOf(false);  private set
+    /** Zbývající sekundy do ukončení hry při odpojení soupeře */
+    var opponentDisconnectSec     = mutableStateOf(0);      private set
+    private var oppDisconnectJob: Job? = null
+
+    // ── Vlastní auto-reconnect ────────────────────────────────────────────────
+    /** True = probíhá pokus o znovupřipojení po výpadku */
+    var isReconnecting            = mutableStateOf(false);  private set
+    private var reconnectAttempts = 0
+    private val maxReconnectAttempts = 5
 
     // ── WebSocket ─────────────────────────────────────────────────────────────
     private var ws: WebSocket? = null
@@ -314,17 +329,45 @@ class OnlineLobbyViewModel(
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
             viewModelScope.launch {
-                phase.value    = OnlinePhase.ERROR
-                errorMsg.value = "Nepodařilo se připojit: ${t.message ?: "neznámá chyba"}"
+                val inGame = phase.value == OnlinePhase.GAME_PLAYING ||
+                             phase.value == OnlinePhase.GAME_MULLIGAN
+                if (inGame && reconnectAttempts < maxReconnectAttempts) {
+                    scheduleReconnect()
+                } else {
+                    phase.value    = OnlinePhase.ERROR
+                    errorMsg.value = "Nepodařilo se připojit: ${t.message ?: "neznámá chyba"}"
+                    isReconnecting.value = false
+                }
             }
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
             if (code != 1000) {
                 viewModelScope.launch {
-                    phase.value    = OnlinePhase.ERROR
-                    errorMsg.value = "Spojení přerušeno (kód $code)"
+                    val inGame = phase.value == OnlinePhase.GAME_PLAYING ||
+                                 phase.value == OnlinePhase.GAME_MULLIGAN
+                    if (inGame && reconnectAttempts < maxReconnectAttempts) {
+                        scheduleReconnect()
+                    } else {
+                        phase.value    = OnlinePhase.ERROR
+                        errorMsg.value = "Spojení přerušeno (kód $code)"
+                        isReconnecting.value = false
+                    }
                 }
+            }
+        }
+    }
+
+    /** Naplánuje pokus o znovupřipojení s exponenciálním zpožděním. */
+    private fun scheduleReconnect() {
+        isReconnecting.value = true
+        reconnectAttempts++
+        val delayMs = (reconnectAttempts * 2000L).coerceAtMost(10_000L)
+        viewModelScope.launch {
+            delay(delayMs)
+            if (isReconnecting.value) {
+                val request = Request.Builder().url(LOBBY_WS_URL).build()
+                ws = httpClient.newWebSocket(request, GameListener())
             }
         }
     }
@@ -337,10 +380,15 @@ class OnlineLobbyViewModel(
             when (json.optString("type")) {
 
                 "WELCOME" -> {
-                    onlineCount.value  = json.optInt("online", 0)
-                    queueSize.value    = json.optInt("queue",  0)
-                    phase.value        = OnlinePhase.LOBBY
-                    statusMsg.value    = "Připojeno ✓"
+                    onlineCount.value    = json.optInt("online", 0)
+                    queueSize.value      = json.optInt("queue",  0)
+                    // Pokud jsme se vraceli z auto-reconnectu, stav hry zůstane
+                    if (!isReconnecting.value) {
+                        phase.value      = OnlinePhase.LOBBY
+                        statusMsg.value  = "Připojeno ✓"
+                    }
+                    isReconnecting.value = false
+                    reconnectAttempts    = 0
                 }
 
                 "COUNT" -> {
@@ -449,6 +497,10 @@ class OnlineLobbyViewModel(
                 }
 
                 "OPPONENT_LEFT" -> {
+                    // Soupeř se nepřipojil včas — zruš countdown overlay a ukonči hru
+                    oppDisconnectJob?.cancel()
+                    opponentDisconnected.value  = false
+                    opponentDisconnectSec.value = 0
                     gameResult.value = OnlineGameResult(
                         winner     = matchInfo.value?.side ?: "A",
                         winnerName = playerName.value,
@@ -456,6 +508,27 @@ class OnlineLobbyViewModel(
                     )
                     errorMsg.value = "Soupeř se odpojil – vyhráváš!"
                     phase.value    = OnlinePhase.GAME_OVER
+                }
+
+                "OPPONENT_DISCONNECTED" -> {
+                    val sec = json.optInt("timeoutSec", 60)
+                    opponentDisconnected.value  = true
+                    opponentDisconnectSec.value = sec
+                    oppDisconnectJob?.cancel()
+                    oppDisconnectJob = viewModelScope.launch {
+                        var remaining = sec
+                        while (remaining > 0) {
+                            delay(1_000)
+                            remaining--
+                            opponentDisconnectSec.value = remaining
+                        }
+                    }
+                }
+
+                "OPPONENT_RECONNECTED" -> {
+                    oppDisconnectJob?.cancel()
+                    opponentDisconnected.value  = false
+                    opponentDisconnectSec.value = 0
                 }
 
                 "GAME_ERROR" -> {

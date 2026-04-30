@@ -115,6 +115,10 @@ fun OnlineGameScreen(
     // Reset review módu při přechodu z GAME_OVER do jiné fáze
     LaunchedEffect(phase) { if (phase != OnlinePhase.GAME_OVER) reviewMode = false }
 
+    val opponentDisconnected by vm.opponentDisconnected
+    val opponentDisconnectSec by vm.opponentDisconnectSec
+    val isReconnecting by vm.isReconnecting
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -146,6 +150,74 @@ fun OnlineGameScreen(
             }
             else -> {
                 // Zpět do lobby přes onBack (nemělo by nastat)
+            }
+        }
+
+        // ── Overlay: soupeř se odpojil, čekáme na reconnect ──────────────────
+        if (opponentDisconnected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.65f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("📡", fontSize = 48.sp)
+                    Text(
+                        "Soupeř se odpojil",
+                        color = OgTextPrimary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Čekám na reconnect…",
+                        color = OgTextMuted,
+                        fontSize = 14.sp
+                    )
+                    Box(
+                        modifier = Modifier
+                            .background(OgCrimson.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            "${opponentDisconnectSec}s",
+                            color = OgCrimson,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Overlay: vlastní auto-reconnect ──────────────────────────────────
+        if (isReconnecting) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.75f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("🔄", fontSize = 48.sp)
+                    Text(
+                        "Ztraceno připojení",
+                        color = OgTextPrimary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Připojuji se zpět…",
+                        color = OgTextMuted,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }

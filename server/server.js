@@ -31,9 +31,11 @@
  *   { type:"OPPONENT_MULLIGAN_DONE" }
  *   { type:"GAME_STATE",        activeSide, isMyTurn, turnNumber, myState, oppState, log }
  *   { type:"CARD_LOST",         cardId, action:"STOLEN"|"BURNED" }
- *   { type:"GAME_OVER",         winner:"A"|"B"|"DRAW", winnerName, youWin }
- *   { type:"GAME_ERROR",        msg:"..." }
+ *   { type:"GAME_OVER",              winner:"A"|"B"|"DRAW", winnerName, youWin }
+ *   { type:"GAME_ERROR",             msg:"..." }
  *   { type:"OPPONENT_LEFT" }
+ *   { type:"OPPONENT_DISCONNECTED",  timeoutSec:N }
+ *   { type:"OPPONENT_RECONNECTED" }
  */
 
 'use strict';
@@ -59,6 +61,15 @@ const superQueue = [];        // super náhodný (50 karet, 15/15/15/5)
 
 // Aktivní hry: Map<gameId, GameSession>
 const games = new Map();
+
+// ── Reconnect ─────────────────────────────────────────────────────────────────
+// Hráči, kteří se odpojili uprostřed hry a čekají na reconnect
+// Map<name, { id, name, avatar, level, deviceId, gameId, side }>
+const disconnectedPlayers = new Map();
+// Aktivní reconnect timery: Map<name, timeoutHandle>
+const reconnectTimers = new Map();
+// Grace period před ukončením hry po odpojení
+const RECONNECT_TIMEOUT_SEC = 60;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -197,7 +208,39 @@ wss.on('connection', (ws, req) => {
           return;
         }
 
-        // Zkontroluj, zda nick není obsazený
+        // ── Reconnect po odpojení uprostřed hry (grace period) ──────────────────
+        const dp = disconnectedPlayers.get(name);
+        if (dp && deviceId && deviceId === dp.deviceId) {
+          // Zrušit reconnect timer
+          const timer = reconnectTimers.get(name);
+          if (timer) { clearTimeout(timer); reconnectTimers.delete(name); }
+          disconnectedPlayers.delete(name);
+
+          const session = games.get(dp.gameId);
+          if (session && session.phase !== 'ended') {
+            // Přepojit hráče
+            players.set(ws, { id: dp.id, name, avatar: dp.avatar, level: dp.level,
+                              deviceId, activeAbilities: dp.activeAbilities ?? [],
+                              inQueue: false, gameId: dp.gameId, side: dp.side });
+            send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
+            session.resendStateTo(dp.side, ws);
+            // Informovat soupeře
+            const opp = dp.side === 'A' ? 'B' : 'A';
+            session._send(opp, { type: 'OPPONENT_RECONNECTED' });
+            log('RECONNECT', `"${name}" se vrátil do hry ${dp.gameId} (grace period)`);
+            broadcastCount();
+            return;
+          }
+          games.delete(dp.gameId);
+          log('RECONNECT', `"${name}" se vrátil, ale hra ${dp.gameId} již skončila`);
+        } else if (dp) {
+          // Jiné zařízení – zruš čekání (original hráč se ztratil)
+          disconnectedPlayers.delete(name);
+          const timer = reconnectTimers.get(name);
+          if (timer) { clearTimeout(timer); reconnectTimers.delete(name); }
+        }
+
+        // Zkontroluj, zda nick není obsazený aktivním spojením
         for (const [existingWs, p] of players.entries()) {
           if (p.name !== name) continue;
 
@@ -329,17 +372,42 @@ wss.on('connection', (ws, req) => {
     if (player) {
       removeFromQueue(ws);
 
-      // Informuj soupeře, pokud probíhá hra
       if (player.gameId) {
         const session = games.get(player.gameId);
         if (session && session.phase !== 'ended') {
-          // Rozhodnutí: soupeř vyhrál
           const opponent = player.side === 'A' ? 'B' : 'A';
-          session._endGame(opponent);
-          // Pošli speciální zprávu soupeři
-          session._send(opponent, { type: 'OPPONENT_LEFT' });
+
+          // Ulož hráče pro případný reconnect
+          disconnectedPlayers.set(player.name, {
+            id: player.id, name: player.name, avatar: player.avatar,
+            level: player.level, deviceId: player.deviceId,
+            activeAbilities: player.activeAbilities ?? [],
+            gameId: player.gameId, side: player.side
+          });
+
+          // Informuj soupeře – má čas RECONNECT_TIMEOUT_SEC sekund
+          session._send(opponent, {
+            type: 'OPPONENT_DISCONNECTED',
+            timeoutSec: RECONNECT_TIMEOUT_SEC
+          });
+
+          // Spusť odpočet – po vypršení ukončíme hru
+          const timer = setTimeout(() => {
+            disconnectedPlayers.delete(player.name);
+            reconnectTimers.delete(player.name);
+            const s = games.get(player.gameId);
+            if (s && s.phase !== 'ended') {
+              s._endGame(opponent);
+              s._send(opponent, { type: 'OPPONENT_LEFT' });
+              games.delete(player.gameId);
+            }
+            log('RECONNECT', `"${player.name}" se nepřipojil včas – hra ${player.gameId} ukončena`);
+          }, RECONNECT_TIMEOUT_SEC * 1000);
+          reconnectTimers.set(player.name, timer);
+
+        } else {
+          games.delete(player.gameId);
         }
-        games.delete(player.gameId);
       }
 
       players.delete(ws);
