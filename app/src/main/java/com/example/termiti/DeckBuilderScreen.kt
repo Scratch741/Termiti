@@ -172,7 +172,16 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     items(filteredCards, key = { it.id }) { card ->
                         val count  = editingDeck.cardCounts[card.id] ?: 0
                         val isFull = editingDeck.totalCards >= 30
-                        val usable = CardCollectionManager.usableCopies(card)
+                        // Read usable copies from `profile` Compose state so the grid
+                        // recomposes automatically after crafting/dismantling.
+                        val usable = when {
+                            profile?.allCardsUnlocked == true ||
+                            CardCollectionManager.isBasicCard(card) -> card.rarity.maxCopies
+                            else -> minOf(
+                                profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0,
+                                card.rarity.maxCopies
+                            )
+                        }
                         CatalogCardItem(
                             card        = card,
                             count       = count,
@@ -585,13 +594,20 @@ private fun CardActionPanel(
 ) {
     val isBasic     = CardCollectionManager.isBasicCard(card)
     val allUnlocked = profile?.allCardsUnlocked ?: true
-    val realOwned   = CardCollectionManager.ownedCopies(card.id)
+    // Read from the `profile` parameter (Compose state) so the panel reflects
+    // changes immediately after crafting/dismantling without needing navigation.
+    val realOwned   = when {
+        allUnlocked || isBasic -> card.rarity.maxCopies
+        else -> profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0
+    }
     val dust        = profile?.dust ?: 0
     val rc          = rarityColor(card.rarity)
     val costColor   = resColor(card.costType)
 
     val canCraft     = !isBasic && !allUnlocked && realOwned < card.rarity.maxCopies && dust >= card.rarity.craftCost
     val canDismantle = !isBasic && !allUnlocked && realOwned > 0
+
+    var dismantleConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -699,14 +715,54 @@ private fun CardActionPanel(
                     onClick = onCraft
                 )
             }
-            // Rozebrat
+            // Rozebrat — s potvrzením
             if (realOwned > 0) {
-                PanelActionBtn(
-                    label   = "💥  Rozebrat  +${card.rarity.dustValue} ✨",
-                    enabled = canDismantle,
-                    accent  = Color(0xFFE57373),
-                    onClick = onDismantle
-                )
+                if (dismantleConfirm) {
+                    // Potvrzovací box
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFE57373).copy(alpha = 0.10f))
+                            .border(1.dp, Color(0xFFE57373).copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            "Rozebrat \"${card.name}\"?\n+${card.rarity.dustValue} ✨ prachu",
+                            color = TextPrimary, fontSize = 9.sp, lineHeight = 13.sp
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            // Zrušit
+                            Box(
+                                Modifier.weight(1f)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(Color.White.copy(alpha = 0.06f))
+                                    .border(1.dp, TextMuted.copy(alpha = 0.4f), RoundedCornerShape(5.dp))
+                                    .clickable { dismantleConfirm = false }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) { Text("Zrušit", color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                            // Potvrdit
+                            Box(
+                                Modifier.weight(1f)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(Color(0xFFE57373).copy(alpha = 0.18f))
+                                    .border(1.dp, Color(0xFFE57373).copy(alpha = 0.6f), RoundedCornerShape(5.dp))
+                                    .clickable { dismantleConfirm = false; onDismantle() }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) { Text("Rozebrat", color = Color(0xFFE57373), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                        }
+                    }
+                } else {
+                    PanelActionBtn(
+                        label   = "💥  Rozebrat  +${card.rarity.dustValue} ✨",
+                        enabled = canDismantle,
+                        accent  = Color(0xFFE57373),
+                        onClick = { dismantleConfirm = true }
+                    )
+                }
             }
         }
 
