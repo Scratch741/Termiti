@@ -585,14 +585,18 @@ private fun CardActionPanel(
     val rc          = rarityColor(card.rarity)
     val costColor   = resColor(card.costType)
 
-    val canCraft     = !isBasic && !allUnlocked && realOwned < card.rarity.maxCopies && dust >= card.rarity.craftCost
-    val canDismantle = !isBasic && !allUnlocked && realOwned > 0
+    val collectible = !isBasic && !allUnlocked
 
-    // Pending akce – aplikuje se až při kliknutí na Hotovo.
-    // Klik mimo panel (onClose bez Hotovo) ji zahodí.
-    var pendingCraft     by remember { mutableStateOf(false) }
-    var pendingDismantle by remember { mutableStateOf(false) }
-    val hasPending = pendingCraft || pendingDismantle
+    // Pending počty – aplikují se až kliknutím na Hotovo.
+    // Klik mimo panel (onClose bez Hotovo) je zahodí.
+    // Craft a Dismantle jsou vzájemně výlučné: nastavení jednoho nuluje druhý.
+    var pendingCraft     by remember { mutableStateOf(0) }
+    var pendingDismantle by remember { mutableStateOf(0) }
+    val hasPending = pendingCraft > 0 || pendingDismantle > 0
+
+    // Kolik kopií lze ještě vyrobit (omezeno prachem i místem v kolekci)
+    val maxCraft     = if (collectible) minOf(card.rarity.maxCopies - realOwned, if (card.rarity.craftCost > 0) dust / card.rarity.craftCost else 0) else 0
+    val maxDismantle = if (collectible) realOwned else 0
 
     // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape)
     Box(
@@ -673,25 +677,39 @@ private fun CardActionPanel(
                     }
                 }
 
-                // Vyrobit – klik přepne pendingCraft (toggle), zruší pendingDismantle
+                // ── Vyrobit ──────────────────────────────────────────────────
                 val craftAccent = Color(0xFFB39DDB)
-                PanelActionBtn(
-                    label    = if (pendingCraft) "✓  Vyrobit  ✨ ${card.rarity.craftCost}" else "🔨  Vyrobit  ✨ ${card.rarity.craftCost}",
-                    enabled  = canCraft || pendingCraft,
-                    selected = pendingCraft,
-                    accent   = craftAccent,
-                    onClick  = { pendingCraft = !pendingCraft; if (pendingCraft) pendingDismantle = false }
+                ActionCounter(
+                    label       = "🔨  Vyrobit  ✨${card.rarity.craftCost}",
+                    accent      = craftAccent,
+                    count       = pendingCraft,
+                    maxCount    = maxCraft,
+                    onDecrement = { pendingCraft-- },
+                    onIncrement = { pendingCraft++; pendingDismantle = 0 }
                 )
+                if (pendingCraft > 0) {
+                    Text(
+                        "−${pendingCraft * card.rarity.craftCost} ✨ prachu",
+                        color = craftAccent, fontSize = 9.sp
+                    )
+                }
 
-                // Rozebrat – klik přepne pendingDismantle (toggle), zruší pendingCraft
+                // ── Rozebrat ──────────────────────────────────────────────────
                 val dismantleAccent = Color(0xFFE57373)
-                PanelActionBtn(
-                    label    = if (pendingDismantle) "✓  Rozebrat  +${card.rarity.dustValue} ✨" else "💥  Rozebrat  +${card.rarity.dustValue} ✨",
-                    enabled  = canDismantle || pendingDismantle,
-                    selected = pendingDismantle,
-                    accent   = dismantleAccent,
-                    onClick  = { pendingDismantle = !pendingDismantle; if (pendingDismantle) pendingCraft = false }
+                ActionCounter(
+                    label       = "💥  Rozebrat  +${card.rarity.dustValue}✨",
+                    accent      = dismantleAccent,
+                    count       = pendingDismantle,
+                    maxCount    = maxDismantle,
+                    onDecrement = { pendingDismantle-- },
+                    onIncrement = { pendingDismantle++; pendingCraft = 0 }
                 )
+                if (pendingDismantle > 0) {
+                    Text(
+                        "+${pendingDismantle * card.rarity.dustValue} ✨ prachu",
+                        color = dismantleAccent, fontSize = 9.sp
+                    )
+                }
             }
 
             Spacer(Modifier.height(2.dp))
@@ -704,8 +722,8 @@ private fun CardActionPanel(
                     .border(1.dp, if (hasPending) Gold.copy(alpha = 0.9f) else Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                     .clickable {
                         SoundManager.playMenuTap()
-                        if (pendingCraft) onCraft()
-                        if (pendingDismantle) onDismantle()
+                        repeat(pendingCraft) { onCraft() }
+                        repeat(pendingDismantle) { onDismantle() }
                         onClose()
                     }
                     .padding(vertical = 9.dp),
@@ -749,6 +767,47 @@ private fun PanelActionBtn(
             color = if (enabled) accent else TextMuted.copy(alpha = 0.4f),
             fontSize = 9.sp, fontWeight = FontWeight.Bold
         )
+    }
+}
+
+// ─── Action Counter (−  N  + řádek pro craft/dismantle) ──────────────────────
+@Composable
+private fun ActionCounter(
+    label      : String,
+    accent     : Color,
+    count      : Int,
+    maxCount   : Int,
+    onDecrement: () -> Unit,
+    onIncrement: () -> Unit
+) {
+    val active = count > 0
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (active) accent.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.04f))
+            .border(1.dp, if (active) accent.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 8.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            label,
+            color    = if (active || maxCount > 0) accent else TextMuted,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
+        )
+        CountBtn("−", enabled = count > 0, onClick = onDecrement)
+        Text(
+            "$count",
+            color    = if (active) accent else TextMuted,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = 14.dp)
+        )
+        CountBtn("+", enabled = count < maxCount, onClick = onIncrement)
     }
 }
 
