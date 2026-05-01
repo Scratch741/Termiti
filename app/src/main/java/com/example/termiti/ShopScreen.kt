@@ -322,6 +322,7 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
 
     Box(
         Modifier
+            .size(width = 100.dp, height = 140.dp)
             .graphicsLayer {
                 rotationY      = rotation
                 cameraDistance = 8f * density
