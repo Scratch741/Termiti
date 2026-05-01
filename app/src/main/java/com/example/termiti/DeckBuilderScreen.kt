@@ -234,10 +234,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
         // ── Full Card Preview Overlay ─────────────────────────────────────────
         if (previewCard != null) {
-            val card      = previewCard!!
-            val deckCount = editingDeck.cardCounts[card.id] ?: 0
-            val isFull    = editingDeck.totalCards >= 30
-            val usable    = CardCollectionManager.usableCopies(card)
+            val card = previewCard!!
 
             Box(
                 Modifier
@@ -263,18 +260,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     FullCardPreview(card)
                     CardActionPanel(
                         card        = card,
-                        deckCount   = deckCount,
-                        usable      = usable,
-                        isFull      = isFull,
                         profile     = profile,
-                        onIncrement = {
-                            if (deckCount < usable && !isFull)
-                                viewModel.setCardCount(editingIdx, card.id, deckCount + 1)
-                        },
-                        onDecrement = {
-                            if (deckCount > 0)
-                                viewModel.setCardCount(editingIdx, card.id, deckCount - 1)
-                        },
                         onCraft = {
                             CardCollectionManager.craftCard(card.id, viewModel.allCards)
                             profile = PlayerProfileManager.profile
@@ -582,12 +568,7 @@ private fun CardPreview(card: Card) {
 @Composable
 private fun CardActionPanel(
     card       : Card,
-    deckCount  : Int,
-    usable     : Int,
-    isFull     : Boolean,
     profile    : PlayerProfile?,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
     onCraft    : () -> Unit,
     onDismantle: () -> Unit,
     onClose    : () -> Unit
@@ -641,32 +622,6 @@ private fun CardActionPanel(
                     color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
                 )
             }
-
-            HorizontalDivider(color = Gold.copy(alpha = 0.15f))
-
-            // ── V balíčku ────────────────────────────────────────────────────
-            Text("V BALÍČKU", color = TextMuted, fontSize = 8.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                CountBtn("−", enabled = deckCount > 0, onClick = onDecrement)
-                repeat(card.rarity.maxCopies) { i ->
-                    Box(
-                        Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
-                            .background(if (i < deckCount) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
-                    )
-                    if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
-                }
-                CountBtn("+", enabled = deckCount < usable && !isFull, onClick = onIncrement)
-            }
-            val usedText = when {
-                isFull && deckCount < usable -> "Balíček plný (30)"
-                deckCount == usable && usable > 0 -> "Plný počet v balíčku"
-                else -> "$deckCount / $usable v balíčku"
-            }
-            Text(usedText, color = TextMuted, fontSize = 8.sp)
 
             HorizontalDivider(color = Gold.copy(alpha = 0.15f))
 
