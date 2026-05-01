@@ -135,6 +135,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     val editingDeck    = decks[editingIdx]
 
     var previewCard    by remember { mutableStateOf<Card?>(null) }
+    var profile        by remember { mutableStateOf(PlayerProfileManager.profile) }
 
     // Filter state
     var filterRes      by remember { mutableStateOf<ResourceType?>(null) }
@@ -224,6 +225,11 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
         // ── Full Card Preview Overlay ─────────────────────────────────────────
         if (previewCard != null) {
+            val card      = previewCard!!
+            val deckCount = editingDeck.cardCounts[card.id] ?: 0
+            val isFull    = editingDeck.totalCards >= 30
+            val usable    = CardCollectionManager.usableCopies(card)
+
             Box(
                 Modifier
                     .fillMaxSize()
@@ -237,20 +243,38 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     .clickable { previewCard = null },
                 contentAlignment = Alignment.Center
             ) {
-                Column(
+                Row(
                     modifier = Modifier.clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) { /* pohlcení kliků – nezavírá overlay */ },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FullCardPreview(previewCard!!)
-                    Text(
-                        "Klepni mimo kartu pro zavření",
-                        color = Color.White.copy(alpha = 0.35f),
-                        fontSize = 11.sp,
-                        fontStyle = FontStyle.Italic
+                    FullCardPreview(card)
+                    CardActionPanel(
+                        card        = card,
+                        deckCount   = deckCount,
+                        usable      = usable,
+                        isFull      = isFull,
+                        profile     = profile,
+                        onIncrement = {
+                            if (deckCount < usable && !isFull)
+                                viewModel.setCardCount(editingIdx, card.id, deckCount + 1)
+                        },
+                        onDecrement = {
+                            if (deckCount > 0)
+                                viewModel.setCardCount(editingIdx, card.id, deckCount - 1)
+                        },
+                        onCraft = {
+                            CardCollectionManager.craftCard(card.id, viewModel.allCards)
+                            profile = PlayerProfileManager.profile
+                        },
+                        onDismantle = {
+                            CardCollectionManager.dismantleCard(card.id, viewModel.allCards)
+                            profile = PlayerProfileManager.profile
+                        },
+                        onClose = { previewCard = null }
                     )
                 }
             }
@@ -542,6 +566,187 @@ private fun CardPreview(card: Card) {
                 )
             }
         }
+    }
+}
+
+// ─── Card Action Panel (pravá strana overlay) ────────────────────────────────
+@Composable
+private fun CardActionPanel(
+    card       : Card,
+    deckCount  : Int,
+    usable     : Int,
+    isFull     : Boolean,
+    profile    : PlayerProfile?,
+    onIncrement: () -> Unit,
+    onDecrement: () -> Unit,
+    onCraft    : () -> Unit,
+    onDismantle: () -> Unit,
+    onClose    : () -> Unit
+) {
+    val isBasic     = CardCollectionManager.isBasicCard(card)
+    val allUnlocked = profile?.allCardsUnlocked ?: true
+    val realOwned   = CardCollectionManager.ownedCopies(card.id)
+    val dust        = profile?.dust ?: 0
+    val rc          = rarityColor(card.rarity)
+    val costColor   = resColor(card.costType)
+
+    val canCraft     = !isBasic && !allUnlocked && realOwned < card.rarity.maxCopies && dust >= card.rarity.craftCost
+    val canDismantle = !isBasic && !allUnlocked && realOwned > 0
+
+    Column(
+        modifier = Modifier
+            .width(210.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(BgPanel)
+            .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        // ── Jméno + rarita + typ ─────────────────────────────────────────────
+        Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+            lineHeight = 18.sp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
+            Text(card.rarity.label, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(4.dp))
+            Text(resIcon(card.costType), fontSize = 10.sp)
+            Text(
+                if (card.isXCost) "X" else "${card.cost}",
+                color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
+            )
+        }
+
+        HorizontalDivider(color = Gold.copy(alpha = 0.15f))
+
+        // ── V balíčku ────────────────────────────────────────────────────────
+        Text("V BALÍČKU", color = TextMuted, fontSize = 8.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            CountBtn("−", enabled = deckCount > 0, onClick = onDecrement)
+            repeat(card.rarity.maxCopies) { i ->
+                Box(
+                    Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
+                        .background(if (i < deckCount) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
+                )
+                if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+            }
+            CountBtn("+", enabled = deckCount < usable && !isFull, onClick = onIncrement)
+        }
+        val usedText = when {
+            isFull && deckCount < usable -> "Balíček plný (30)"
+            deckCount == usable && usable > 0 -> "Plný počet v balíčku"
+            else -> "$deckCount / $usable v balíčku"
+        }
+        Text(usedText, color = TextMuted, fontSize = 8.sp)
+
+        HorizontalDivider(color = Gold.copy(alpha = 0.15f))
+
+        // ── Kolekce ──────────────────────────────────────────────────────────
+        Text("KOLEKCE", color = TextMuted, fontSize = 8.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+
+        if (isBasic) {
+            Text(
+                "⚪ Základní karta — vždy dostupná",
+                color = TextMuted, fontSize = 9.sp, lineHeight = 12.sp
+            )
+        } else if (allUnlocked) {
+            Text(
+                "🔓 Odemčení vše (debug)",
+                color = TealLight, fontSize = 9.sp
+            )
+        } else {
+            // Vlastněné kopie
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(card.rarity.maxCopies) { i ->
+                    Box(
+                        Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
+                            .background(if (i < realOwned) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
+                    )
+                    if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+                }
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    "$realOwned / ${card.rarity.maxCopies}",
+                    color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
+                    fontSize = 9.sp, fontWeight = FontWeight.Bold
+                )
+            }
+            // Prach
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text("✨", fontSize = 10.sp)
+                Text("Prach: $dust", color = TextMuted, fontSize = 9.sp)
+            }
+
+            // Vyrobit
+            if (realOwned < card.rarity.maxCopies) {
+                PanelActionBtn(
+                    label   = "🔨  Vyrobit  ✨ ${card.rarity.craftCost}",
+                    enabled = canCraft,
+                    accent  = Color(0xFFB39DDB),
+                    onClick = onCraft
+                )
+            }
+            // Rozebrat
+            if (realOwned > 0) {
+                PanelActionBtn(
+                    label   = "💥  Rozebrat  +${card.rarity.dustValue} ✨",
+                    enabled = canDismantle,
+                    accent  = Color(0xFFE57373),
+                    onClick = onDismantle
+                )
+            }
+        }
+
+        Spacer(Modifier.height(2.dp))
+
+        // ── Potvrdit ─────────────────────────────────────────────────────────
+        Box(
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Gold.copy(alpha = 0.12f))
+                .border(1.dp, Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                .clickable { SoundManager.playMenuTap(); onClose() }
+                .padding(vertical = 9.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "✓  Hotovo",
+                color = Gold, fontSize = 11.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun PanelActionBtn(label: String, enabled: Boolean, accent: Color, onClick: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (enabled) accent.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.04f))
+            .border(1.dp, if (enabled) accent.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
+            .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
+            .padding(vertical = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = if (enabled) accent else TextMuted.copy(alpha = 0.4f),
+            fontSize = 9.sp, fontWeight = FontWeight.Bold
+        )
     }
 }
 
