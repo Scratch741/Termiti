@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -119,7 +121,10 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.width(280.dp)
+                    modifier = Modifier
+                        .width(280.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 16.dp)
                 ) {
                     // Info karta
                     Column(
