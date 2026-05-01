@@ -2,6 +2,8 @@ package com.example.termiti
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -332,22 +334,12 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
     ) {
         if (rotation <= 90f) {
             // ── Rubová strana ──────────────────────────────────────────────────
-            Box(
-                Modifier
-                    .size(width = 100.dp, height = 140.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Brush.verticalGradient(listOf(Color(0xFF1A0A2E), Color(0xFF0D0A1A))))
-                    .border(1.5.dp, Color(0xFF4A3070).copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text("🃏", fontSize = 32.sp)
-                    Text("?", color = Color(0xFF6A4A90), fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-            }
+            Image(
+                painter            = painterResource(R.drawable.card_back_frame),
+                contentDescription = null,
+                modifier           = Modifier.size(width = 100.dp, height = 140.dp),
+                contentScale       = ContentScale.FillBounds
+            )
         } else {
             // ── Lícová strana — skutečná karta s grafikou ─────────────────────
             Box(
