@@ -614,9 +614,21 @@ private fun CardActionPanel(
                 .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // ── Jméno + rarita ───────────────────────────────────────────────
-            Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                lineHeight = 18.sp)
+            // ── Jméno + počet kopií ──────────────────────────────────────────
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                    lineHeight = 18.sp, modifier = Modifier.weight(1f))
+                if (!isBasic && !allUnlocked) {
+                    Text(
+                        "$realOwned/${card.rarity.maxCopies}",
+                        color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
+                        fontSize = 10.sp, fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -629,54 +641,15 @@ private fun CardActionPanel(
                     if (card.isXCost) "X" else "${card.cost}",
                     color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
                 )
+                if (!isBasic && !allUnlocked) {
+                    Spacer(Modifier.weight(1f))
+                    Text("✨ $dust", color = TextMuted, fontSize = 9.sp)
+                }
             }
 
             HorizontalDivider(color = Gold.copy(alpha = 0.15f))
 
-            // ── Kolekce ──────────────────────────────────────────────────────
-            Text("KOLEKCE", color = TextMuted, fontSize = 8.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-
-            if (isBasic) {
-                Text(
-                    "⚪ Základní karta — vždy dostupná",
-                    color = TextMuted, fontSize = 9.sp, lineHeight = 12.sp
-                )
-            } else {
-                if (allUnlocked) {
-                    Text("🔓 Odemčení vše (debug)", color = TealLight, fontSize = 9.sp)
-                } else {
-                    // Počet vlastněných kopií
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(card.rarity.maxCopies) { i ->
-                            Box(
-                                Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
-                                    .background(
-                                        if (i < realOwned) rc.copy(alpha = 0.85f)
-                                        else Color.White.copy(alpha = 0.07f)
-                                    )
-                            )
-                            if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
-                        }
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "$realOwned / ${card.rarity.maxCopies}",
-                            color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
-                            fontSize = 9.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text("✨", fontSize = 10.sp)
-                        Text("Prach: $dust", color = TextMuted, fontSize = 9.sp)
-                    }
-                }
-
+            if (!isBasic) {
                 // ── Vyrobit ──────────────────────────────────────────────────
                 val craftAccent = Color(0xFFB39DDB)
                 ActionCounter(
