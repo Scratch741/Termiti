@@ -178,7 +178,7 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.04f)
                 ) {
-                    EmojiIconMenuButton(emoji = "🃏", label = "SBÍRKA",    size = iconSize, onClick = onShop)
+                    EmojiIconMenuButton(emoji = "📦", label = "BALÍČKY",  size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = "NASTAVENÍ", size = iconSize, onClick = onSettings)
                     IconMenuButton(imageRes = R.drawable.button_6, label = "KONEC",     size = iconSize, onClick = onExit)
                 }
