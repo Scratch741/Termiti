@@ -609,116 +609,124 @@ private fun CardActionPanel(
 
     var dismantleConfirm by remember { mutableStateOf(false) }
 
-    Column(
+    // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape)
+    Box(
         modifier = Modifier
             .width(210.dp)
+            .heightIn(max = 340.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(BgPanel)
             .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // ── Jméno + rarita + typ ─────────────────────────────────────────────
-        Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
-            lineHeight = 18.sp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
-            Text(card.rarity.label, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.width(4.dp))
-            Text(resIcon(card.costType), fontSize = 10.sp)
-            Text(
-                if (card.isXCost) "X" else "${card.cost}",
-                color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
-            )
-        }
-
-        HorizontalDivider(color = Gold.copy(alpha = 0.15f))
-
-        // ── V balíčku ────────────────────────────────────────────────────────
-        Text("V BALÍČKU", color = TextMuted, fontSize = 8.sp,
-            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            CountBtn("−", enabled = deckCount > 0, onClick = onDecrement)
-            repeat(card.rarity.maxCopies) { i ->
-                Box(
-                    Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
-                        .background(if (i < deckCount) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
-                )
-                if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
-            }
-            CountBtn("+", enabled = deckCount < usable && !isFull, onClick = onIncrement)
-        }
-        val usedText = when {
-            isFull && deckCount < usable -> "Balíček plný (30)"
-            deckCount == usable && usable > 0 -> "Plný počet v balíčku"
-            else -> "$deckCount / $usable v balíčku"
-        }
-        Text(usedText, color = TextMuted, fontSize = 8.sp)
-
-        HorizontalDivider(color = Gold.copy(alpha = 0.15f))
-
-        // ── Kolekce ──────────────────────────────────────────────────────────
-        Text("KOLEKCE", color = TextMuted, fontSize = 8.sp,
-            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-
-        if (isBasic) {
-            Text(
-                "⚪ Základní karta — vždy dostupná",
-                color = TextMuted, fontSize = 9.sp, lineHeight = 12.sp
-            )
-        } else if (allUnlocked) {
-            Text(
-                "🔓 Odemčení vše (debug)",
-                color = TealLight, fontSize = 9.sp
-            )
-        } else {
-            // Vlastněné kopie
+            // ── Jméno + rarita ───────────────────────────────────────────────
+            Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                lineHeight = 18.sp)
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
+                Text(card.rarity.label, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(4.dp))
+                Text(resIcon(card.costType), fontSize = 10.sp)
+                Text(
+                    if (card.isXCost) "X" else "${card.cost}",
+                    color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
+                )
+            }
+
+            HorizontalDivider(color = Gold.copy(alpha = 0.15f))
+
+            // ── V balíčku ────────────────────────────────────────────────────
+            Text("V BALÍČKU", color = TextMuted, fontSize = 8.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                CountBtn("−", enabled = deckCount > 0, onClick = onDecrement)
                 repeat(card.rarity.maxCopies) { i ->
                     Box(
                         Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
-                            .background(if (i < realOwned) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
+                            .background(if (i < deckCount) rc.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.07f))
                     )
                     if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
                 }
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    "$realOwned / ${card.rarity.maxCopies}",
-                    color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
-                    fontSize = 9.sp, fontWeight = FontWeight.Bold
-                )
+                CountBtn("+", enabled = deckCount < usable && !isFull, onClick = onIncrement)
             }
-            // Prach
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text("✨", fontSize = 10.sp)
-                Text("Prach: $dust", color = TextMuted, fontSize = 9.sp)
+            val usedText = when {
+                isFull && deckCount < usable -> "Balíček plný (30)"
+                deckCount == usable && usable > 0 -> "Plný počet v balíčku"
+                else -> "$deckCount / $usable v balíčku"
             }
+            Text(usedText, color = TextMuted, fontSize = 8.sp)
 
-            // Vyrobit
-            if (realOwned < card.rarity.maxCopies) {
+            HorizontalDivider(color = Gold.copy(alpha = 0.15f))
+
+            // ── Kolekce ──────────────────────────────────────────────────────
+            Text("KOLEKCE", color = TextMuted, fontSize = 8.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+
+            if (isBasic) {
+                // Základní karta – bez craft/dismantle
+                Text(
+                    "⚪ Základní karta — vždy dostupná",
+                    color = TextMuted, fontSize = 9.sp, lineHeight = 12.sp
+                )
+            } else {
+                // Sběratelská karta (RARE+)
+                if (allUnlocked) {
+                    Text("🔓 Odemčení vše (debug)", color = TealLight, fontSize = 9.sp)
+                } else {
+                    // Počet vlastněných kopií
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(card.rarity.maxCopies) { i ->
+                            Box(
+                                Modifier.size(10.dp).clip(RoundedCornerShape(5.dp))
+                                    .background(
+                                        if (i < realOwned) rc.copy(alpha = 0.85f)
+                                        else Color.White.copy(alpha = 0.07f)
+                                    )
+                            )
+                            if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
+                        }
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "$realOwned / ${card.rarity.maxCopies}",
+                            color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
+                            fontSize = 9.sp, fontWeight = FontWeight.Bold
+                        )
+                    }
+                    // Prach
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("✨", fontSize = 10.sp)
+                        Text("Prach: $dust", color = TextMuted, fontSize = 9.sp)
+                    }
+                }
+
+                // Vyrobit — vždy viditelné (disabled = nemáš dost prachu nebo plno kopií)
                 PanelActionBtn(
                     label   = "🔨  Vyrobit  ✨ ${card.rarity.craftCost}",
                     enabled = canCraft,
                     accent  = Color(0xFFB39DDB),
                     onClick = onCraft
                 )
-            }
-            // Rozebrat — s potvrzením
-            if (realOwned > 0) {
+
+                // Rozebrat — vždy viditelné (disabled = nemáš žádnou kopii nebo debug mode)
                 if (dismantleConfirm) {
-                    // Potvrzovací box
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -733,7 +741,6 @@ private fun CardActionPanel(
                             color = TextPrimary, fontSize = 9.sp, lineHeight = 13.sp
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            // Zrušit
                             Box(
                                 Modifier.weight(1f)
                                     .clip(RoundedCornerShape(5.dp))
@@ -743,7 +750,6 @@ private fun CardActionPanel(
                                     .padding(vertical = 6.dp),
                                 contentAlignment = Alignment.Center
                             ) { Text("Zrušit", color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
-                            // Potvrdit
                             Box(
                                 Modifier.weight(1f)
                                     .clip(RoundedCornerShape(5.dp))
@@ -764,25 +770,25 @@ private fun CardActionPanel(
                     )
                 }
             }
-        }
 
-        Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(2.dp))
 
-        // ── Potvrdit ─────────────────────────────────────────────────────────
-        Box(
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Gold.copy(alpha = 0.12f))
-                .border(1.dp, Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onClose() }
-                .padding(vertical = 9.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "✓  Hotovo",
-                color = Gold, fontSize = 11.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 1.sp
-            )
+            // ── Hotovo ───────────────────────────────────────────────────────
+            Box(
+                Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Gold.copy(alpha = 0.12f))
+                    .border(1.dp, Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .clickable { SoundManager.playMenuTap(); onClose() }
+                    .padding(vertical = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "✓  Hotovo",
+                    color = Gold, fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                )
+            }
         }
     }
 }
