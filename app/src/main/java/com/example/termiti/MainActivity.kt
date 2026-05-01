@@ -18,7 +18,8 @@ import com.example.termiti.ui.theme.TermitiTheme
 private enum class Screen {
     PROFILE_SETUP,
     MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS, PROFILE,
-    CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT
+    CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT,
+    SHOP
 }
 
 class MainActivity : ComponentActivity() {
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
                             onBuildDeck   = { screen = Screen.DECK_BUILDER },
                             onMultiplayer = { screen = Screen.MP_SELECT },
                             onProfile     = { screen = Screen.PROFILE },
+                            onShop        = { screen = Screen.SHOP },
                             onSettings    = { screen = Screen.SETTINGS },
                             onExit        = { finish() }
                         )
@@ -92,6 +94,11 @@ class MainActivity : ComponentActivity() {
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onCampaign    = { screen = Screen.CAMPAIGN_MAP },
                             onBack        = { screen = Screen.MENU }
+                        )
+
+                        Screen.SHOP -> ShopScreen(
+                            allCards = viewModel.allCards,
+                            onBack   = { screen = Screen.MENU }
                         )
 
                         Screen.SETTINGS -> SettingsScreen(

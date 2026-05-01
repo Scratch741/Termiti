@@ -47,26 +47,33 @@ object CardCollectionManager {
 
     // ── Dotazy ────────────────────────────────────────────────────────────────
 
+    /**
+     * True = "základní" karta — COMMON rarity.
+     * Vždy dostupná v plném počtu kopií, nelze ji rozebrat na prach.
+     */
+    fun isBasicCard(card: Card): Boolean = card.rarity == Rarity.COMMON
+
     /** Kolik kopií dané karty hráč vlastní (bez ohledu na allCardsUnlocked). */
     fun ownedCopies(cardId: String): Int =
         PlayerProfileManager.profile?.cardCollection?.getOrDefault(cardId, 0) ?: 0
 
     /**
      * True pokud lze kartu vložit do balíčku nebo ji jinak "použít".
-     * Respektuje přepínač [PlayerProfile.allCardsUnlocked].
+     * Respektuje základní karty (vždy odemčeny) + přepínač allCardsUnlocked.
      */
     fun isUnlocked(card: Card): Boolean {
         val p = PlayerProfileManager.profile ?: return false
-        return p.allCardsUnlocked || ownedCopies(card.id) > 0
+        return p.allCardsUnlocked || isBasicCard(card) || ownedCopies(card.id) > 0
     }
 
     /**
      * Kolik kopií dané karty smí hráč skutečně dát do balíčku.
-     * Respektuje [Rarity.maxCopies] i vlastněný počet + přepínač allCardsUnlocked.
+     * Základní (COMMON) karty mají vždy maxCopies.
+     * Sběratelské (RARE+) karty jsou omezeny skutečně vlastněným počtem.
      */
     fun usableCopies(card: Card): Int {
         val p = PlayerProfileManager.profile ?: return 0
-        if (p.allCardsUnlocked) return card.rarity.maxCopies
+        if (p.allCardsUnlocked || isBasicCard(card)) return card.rarity.maxCopies
         return minOf(ownedCopies(card.id), card.rarity.maxCopies)
     }
 
@@ -147,6 +154,7 @@ object CardCollectionManager {
     fun dismantleCard(cardId: String, allCards: List<Card>): Boolean {
         val p    = PlayerProfileManager.profile ?: return false
         val card = allCards.find { it.id == cardId } ?: return false
+        if (isBasicCard(card)) return false   // základní karty nelze rozebrat
         val current = p.cardCollection.getOrDefault(cardId, 0)
         if (current <= 0) return false
         val newCollection = if (current == 1)

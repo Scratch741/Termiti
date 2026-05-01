@@ -38,6 +38,7 @@ fun MenuScreen(
     onBuildDeck: () -> Unit,
     onMultiplayer: () -> Unit,
     onProfile: () -> Unit,
+    onShop: () -> Unit,
     onSettings: () -> Unit,
     onExit: () -> Unit
 ) {
@@ -177,6 +178,7 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.04f)
                 ) {
+                    EmojiIconMenuButton(emoji = "🃏", label = "SBÍRKA",    size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = "NASTAVENÍ", size = iconSize, onClick = onSettings)
                     IconMenuButton(imageRes = R.drawable.button_6, label = "KONEC",     size = iconSize, onClick = onExit)
                 }
@@ -212,6 +214,40 @@ private fun ProfileInfo(profile: PlayerProfile, H: Dp) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(H * 0.015f)) {
         Text("💎", fontSize = fs)
         Text("${profile.gems}", color = Color(0xFF7EC8E3), fontSize = fs, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ── Emoji ikonkové tlačítko (bez image assetu) ────────────────────────────────
+
+@Composable
+private fun EmojiIconMenuButton(
+    emoji: String,
+    label: String,
+    size: Dp,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(size * 0.08f)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(Gold.copy(alpha = 0.14f))
+                .border(1.5.dp, Gold.copy(alpha = 0.55f), CircleShape)
+                .clickable { SoundManager.playMenuTap(); onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(emoji, fontSize = (size.value * 0.42f).sp)
+        }
+        Text(
+            label,
+            color         = TextMuted,
+            fontSize      = (size.value * 0.20f).sp,
+            fontWeight    = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
     }
 }
 
