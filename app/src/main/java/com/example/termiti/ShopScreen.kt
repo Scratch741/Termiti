@@ -1,6 +1,7 @@
 package com.example.termiti
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -272,40 +273,51 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                 }
             }
 
-            if (!allRevealed) {
-                Text("Klepni na kartu pro odkrytí", color = ShMuted, fontSize = 11.sp)
-            } else {
-                if (result.totalDustGained > 0) {
-                    Row(
-                        Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(ShDust.copy(alpha = 0.10f))
-                            .border(1.dp, ShDust.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            // Fixní výška spodní sekce — karty se při zobrazení tlačítka nehýbou
+            Box(
+                Modifier.height(80.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!allRevealed) {
+                    Text("Klepni na kartu pro odkrytí", color = ShMuted, fontSize = 11.sp)
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("💨", fontSize = 16.sp)
-                        Text(
-                            "Duplikáty → +${result.totalDustGained} ✨ prachu",
-                            color = ShDust, fontSize = 12.sp, fontWeight = FontWeight.Bold
-                        )
+                        if (result.totalDustGained > 0) {
+                            Row(
+                                Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(ShDust.copy(alpha = 0.10f))
+                                    .border(1.dp, ShDust.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 12.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("💨", fontSize = 13.sp)
+                                Text(
+                                    "Duplikáty → +${result.totalDustGained} ✨ prachu",
+                                    color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(ShGreen.copy(alpha = 0.12f))
+                                .border(1.dp, ShGreen.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                                .clickable { SoundManager.playMenuTap(); onDismiss() }
+                                .padding(horizontal = 28.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "✓  DOKONČIT",
+                                color = ShGreen, fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+                            )
+                        }
                     }
-                }
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(ShGreen.copy(alpha = 0.12f))
-                        .border(1.dp, ShGreen.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                        .clickable { SoundManager.playMenuTap(); onDismiss() }
-                        .padding(horizontal = 32.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "✓  DOKONČIT",
-                        color = ShGreen, fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                    )
                 }
             }
         }
@@ -322,75 +334,116 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
         label         = "cardFlip"
     )
 
+    val isRarePlus = gain.card.rarity != Rarity.COMMON
+    val glowColor  = shRarityColor(gain.card.rarity)
+    val showGlow   = isRevealed && isRarePlus
+
+    // Pulsující záře pro RARE+ karty po odhalení
+    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue  = 0.30f,
+        targetValue   = 0.80f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+
+    // Vnější Box: 130×170dp → 15dp prostoru pro záři na každé straně kolem karty 100×140
     Box(
-        Modifier
-            .size(width = 100.dp, height = 140.dp)
-            .graphicsLayer {
-                rotationY      = rotation
-                cameraDistance = 8f * density
-            }
-            .clickable(enabled = !isRevealed) { onClick() },
+        Modifier.size(width = 130.dp, height = 170.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (rotation <= 90f) {
-            // ── Rubová strana ──────────────────────────────────────────────────
-            Image(
-                painter            = painterResource(R.drawable.card_back_frame),
-                contentDescription = null,
-                modifier           = Modifier.size(width = 100.dp, height = 140.dp),
-                contentScale       = ContentScale.FillBounds
-            )
-        } else {
-            // ── Lícová strana — skutečná karta s grafikou ─────────────────────
+        // Tři vrstvené záře — každá vrstva je o 8dp větší než ta uvnitř,
+        // outermost nejsvětlejší okraj, innermost nejsytější těsně kolem karty
+        if (showGlow) {
             Box(
-                Modifier.graphicsLayer { rotationY = 180f },
-                contentAlignment = Alignment.TopCenter
-            ) {
-                if (gain.card.artResId != null) {
-                    CardPreview(card = gain.card)
-                } else {
-                    // Fallback pro karty bez artwork
-                    val rc = shRarityColor(gain.card.rarity)
-                    Box(
-                        Modifier
-                            .size(width = 100.dp, height = 140.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(ShBgCard)
-                            .border(2.dp, rc, RoundedCornerShape(8.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            Modifier.padding(6.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                Modifier
+                    .size(width = 124.dp, height = 164.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(glowColor.copy(alpha = glowAlpha * 0.18f))
+            )
+            Box(
+                Modifier
+                    .size(width = 116.dp, height = 156.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(glowColor.copy(alpha = glowAlpha * 0.35f))
+            )
+            Box(
+                Modifier
+                    .size(width = 108.dp, height = 148.dp)
+                    .clip(RoundedCornerShape(11.dp))
+                    .background(glowColor.copy(alpha = glowAlpha * 0.55f))
+            )
+        }
+
+        // Karta s flip animací
+        Box(
+            Modifier
+                .size(width = 100.dp, height = 140.dp)
+                .graphicsLayer {
+                    rotationY      = rotation
+                    cameraDistance = 8f * density
+                }
+                .clickable(enabled = !isRevealed) { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            if (rotation <= 90f) {
+                // ── Rubová strana ──────────────────────────────────────────────
+                Image(
+                    painter            = painterResource(R.drawable.card_back_frame),
+                    contentDescription = null,
+                    modifier           = Modifier.size(width = 100.dp, height = 140.dp),
+                    contentScale       = ContentScale.FillBounds
+                )
+            } else {
+                // ── Lícová strana — skutečná karta s grafikou ──────────────────
+                Box(
+                    Modifier.graphicsLayer { rotationY = 180f },
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    if (gain.card.artResId != null) {
+                        CardPreview(card = gain.card)
+                    } else {
+                        val rc = shRarityColor(gain.card.rarity)
+                        Box(
+                            Modifier
+                                .size(width = 100.dp, height = 140.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(ShBgCard)
+                                .border(2.dp, rc, RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(shEffectIcon(gain.card), fontSize = 24.sp)
-                            Text(
-                                gain.card.name,
-                                color = ShText, fontSize = 8.sp, fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 10.sp
-                            )
-                            Text(gain.card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                            Column(
+                                Modifier.padding(6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(shEffectIcon(gain.card), fontSize = 24.sp)
+                                Text(
+                                    gain.card.name,
+                                    color = ShText, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 10.sp
+                                )
+                                Text(gain.card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
-                }
-
-                // Duplikát badge přes kartu
-                if (gain.isDuplicate) {
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-                            .background(Color.Black.copy(alpha = 0.72f))
-                            .padding(vertical = 3.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "💨 +${gain.dustGained} ✨",
-                            color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold
-                        )
+                    // Duplikát badge
+                    if (gain.isDuplicate) {
+                        Box(
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+                                .background(Color.Black.copy(alpha = 0.72f))
+                                .padding(vertical = 3.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("💨 +${gain.dustGained} ✨", color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

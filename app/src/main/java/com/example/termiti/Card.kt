@@ -44,6 +44,11 @@ data class Card(
      */
     val artScale: Float = 1f,
     /**
+     * Pokud true, je karta "základní" — vždy dostupná v plném počtu, nelze ji rozebrat
+     * ani ji nenajdeš v balíčcích. Ostatní karty (i COMMON) jsou sběratelské.
+     */
+    val isBasic: Boolean = false,
+    /**
      * Pokud true, karta stojí VŠECHEN dostupný zdroj daného costType (X-kost mechnika).
      * card.cost je v tomto případě 0 a slouží jen jako fallback; skutečná cena = veškeré
      * zásoby. Efekty třídy XScaled* dostanou hodnotu X = odebrané zásoby.

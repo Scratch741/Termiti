@@ -40,18 +40,18 @@ object CardCollectionManager {
      * Záměrně jiné váhy než standardní slot — lepší šance na Epic/Legendární.
      */
     private val RARE_PLUS_WEIGHTS = listOf(
-        Rarity.RARE      to 75,
-        Rarity.EPIC      to 20,
+        Rarity.RARE      to 70,
+        Rarity.EPIC      to 25,
         Rarity.LEGENDARY to  5
     )
 
     // ── Dotazy ────────────────────────────────────────────────────────────────
 
     /**
-     * True = "základní" karta — COMMON rarity.
-     * Vždy dostupná v plném počtu kopií, nelze ji rozebrat na prach.
+     * True = "základní" karta — označena příznakem [Card.isBasic].
+     * Vždy dostupná v plném počtu kopií, nelze ji rozebrat ani ji nenajdeš v balíčcích.
      */
-    fun isBasicCard(card: Card): Boolean = card.rarity == Rarity.COMMON
+    fun isBasicCard(card: Card): Boolean = card.isBasic
 
     /** Kolik kopií dané karty hráč vlastní (bez ohledu na allCardsUnlocked). */
     fun ownedCopies(cardId: String): Int =
@@ -96,20 +96,23 @@ object CardCollectionManager {
         val p = PlayerProfileManager.profile ?: return null
         if (p.gold < PACK_COST_GOLD) return null
 
+        // Balíčky obsahují pouze sběratelské karty (ne základní COMMON)
+        val collectible = allCards.filter { !isBasicCard(it) }.ifEmpty { allCards }
+
         val collection = p.cardCollection.toMutableMap()
         val gains      = mutableListOf<CardGain>()
         var dustTotal  = 0
 
         // Sloty 1 až (PACK_SIZE-1): standardní náhodný výběr
         repeat(PACK_SIZE - 1) {
-            val card = randomCard(allCards, guaranteeRare = false)
+            val card = randomCard(collectible, guaranteeRare = false)
             val gain = processCardGain(card, collection)
             dustTotal += gain.dustGained
             gains     += gain
         }
 
         // Poslední slot: garantovaná vzácná nebo lepší
-        val bonusCard = randomCard(allCards, guaranteeRare = true)
+        val bonusCard = randomCard(collectible, guaranteeRare = true)
         val bonusGain = processCardGain(bonusCard, collection)
         dustTotal += bonusGain.dustGained
         gains     += bonusGain
@@ -188,7 +191,7 @@ object CardCollectionManager {
     fun grantStarterCollection(allCards: List<Card>) {
         val p = PlayerProfileManager.profile ?: return
         val starter = allCards
-            .filter { it.rarity == Rarity.COMMON }
+            .filter { it.isBasic }
             .associate { it.id to 2 }
         val merged = (p.cardCollection.keys + starter.keys).distinct().associateWith { id ->
             maxOf(p.cardCollection.getOrDefault(id, 0), starter.getOrDefault(id, 0))
@@ -218,8 +221,13 @@ object CardCollectionManager {
      * [guaranteeRare] = true → pouze vzácná nebo lepší (garantovaný slot).
      */
     private fun randomCard(allCards: List<Card>, guaranteeRare: Boolean): Card {
-        val rarity = if (guaranteeRare) drawRarity(RARE_PLUS_WEIGHTS)
-                     else drawRarity(Rarity.entries.map { it to it.packWeight })
+        // Použij pouze rarity, které mají alespoň jednu kartu v poolu
+        val availableRarities = allCards.map { it.rarity }.toSet()
+        val rarity = if (guaranteeRare) {
+            drawRarity(RARE_PLUS_WEIGHTS.filter { it.first in availableRarities })
+        } else {
+            drawRarity(Rarity.entries.filter { it in availableRarities }.map { it to it.packWeight })
+        }
         // Fallback: pokud žádná karta dané rarity neexistuje, vrátíme náhodnou
         val pool = allCards.filter { it.rarity == rarity }.ifEmpty { allCards }
         return pool.random()

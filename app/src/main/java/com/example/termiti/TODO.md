@@ -20,13 +20,9 @@ Character progress - level, kupování karet, hrdina, speciální pasivní schop
 Předělat/lepší multiplayer - stabilní server na linuxu, kde se ověřují všechny činnosti - prevence cheatingu
 Simple animace - když zaútočíš, poběží panáček na hrad, atd.
 Online zápasy - pokud dlouho hráč nenajde soupeře, automaticky dostane proti sobě AI.
-
-Offline část - roguelike hra
-
 Zvuky karet
 Screen shake?
 
-
-Online bug -> podmínka, že musíš mít X surovin se vyhodnocuje až po zahrání
-
-Když dám mulligan, tak stále mohu dostat tu samou kartu, co zahodím
+Připravit preset karet pro nováčka. Současné presety poté přidat AI, se kterou bojuješ v módu "vlastní balíček" - vybere si náhodný preset balík.
+Extra XP za kampaň. Přidat více do kampaně. Dodat informace, že dostáváš XP a goldy za jiné módy. Lepší gold progress.
+Sestavit balík - filtr na karty, které mám. Celkově rework filtry a sestavení balíku, je to dogshit.
