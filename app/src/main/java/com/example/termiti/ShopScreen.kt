@@ -116,20 +116,17 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
 
             HorizontalDivider(color = ShGold.copy(alpha = 0.12f))
 
-            // ── Centrovaný obsah ──────────────────────────────────────────────
+            // ── Obsah: info vlevo, nákup vpravo ──────────────────────────────
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .width(280.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 16.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 ) {
-                    // Info karta
+                    // ── Levý panel: info o balíčku ────────────────────────────
                     Column(
                         Modifier
-                            .fillMaxWidth()
+                            .width(240.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(ShBgCard)
                             .border(1.5.dp, ShGold.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
@@ -161,75 +158,61 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
-                                    Box(
-                                        Modifier.size(8.dp).clip(RoundedCornerShape(4.dp))
-                                            .background(shRarityColor(r))
-                                    )
-                                    Text(
-                                        "${r.packWeight} %",
-                                        color = shRarityColor(r),
-                                        fontSize = 8.sp, fontWeight = FontWeight.Bold
-                                    )
+                                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
+                                    Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 8.sp, fontWeight = FontWeight.Bold)
                                     Text(r.label, color = ShMuted, fontSize = 7.sp)
                                 }
                             }
                         }
                     }
 
-                    // Tlačítko otevřít
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (canAfford) ShGold.copy(alpha = 0.14f)
-                                else ShMuted.copy(alpha = 0.07f)
-                            )
-                            .border(
-                                2.dp,
-                                if (canAfford) ShGold.copy(alpha = 0.75f)
-                                else ShMuted.copy(alpha = 0.25f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .then(
-                                if (canAfford) Modifier.clickable {
-                                    SoundManager.playMenuTap()
-                                    val result = CardCollectionManager.openPack(allCards)
-                                    if (result != null) {
-                                        pendingPack = result
-                                        profile = PlayerProfileManager.profile
-                                    }
-                                } else Modifier
-                            )
-                            .padding(vertical = 14.dp),
-                        contentAlignment = Alignment.Center
+                    // ── Pravý panel: nákup ────────────────────────────────────
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.width(200.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (canAfford) ShGold.copy(alpha = 0.14f) else ShMuted.copy(alpha = 0.07f))
+                                .border(2.dp, if (canAfford) ShGold.copy(alpha = 0.75f) else ShMuted.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                .then(
+                                    if (canAfford) Modifier.clickable {
+                                        SoundManager.playMenuTap()
+                                        val result = CardCollectionManager.openPack(allCards)
+                                        if (result != null) {
+                                            pendingPack = result
+                                            profile = PlayerProfileManager.profile
+                                        }
+                                    } else Modifier
+                                )
+                                .padding(vertical = 18.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                "🪙 ${CardCollectionManager.PACK_COST_GOLD}",
-                                color = if (canAfford) ShGold else ShMuted,
-                                fontSize = 16.sp, fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                "KOUPIT BALÍČEK",
-                                color = if (canAfford) ShText else ShMuted,
-                                fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    "🪙 ${CardCollectionManager.PACK_COST_GOLD}",
+                                    color = if (canAfford) ShGold else ShMuted,
+                                    fontSize = 18.sp, fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "KOUPIT BALÍČEK",
+                                    color = if (canAfford) ShText else ShMuted,
+                                    fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                            }
                         }
-                    }
-
-                    if (canAfford) {
                         Text(
-                            "Můžeš si koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček",
-                            color = ShMuted, fontSize = 9.sp
-                        )
-                    } else {
-                        Text(
-                            "Zlato získáš vítězstvím v bitvě",
+                            if (canAfford)
+                                "Můžeš si koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
+                            else
+                                "Zlato získáš vítězstvím v bitvě",
                             color = ShMuted, fontSize = 9.sp,
                             textAlign = TextAlign.Center
                         )
