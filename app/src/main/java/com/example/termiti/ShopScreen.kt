@@ -209,7 +209,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                                 fontSize = 16.sp, fontWeight = FontWeight.Bold
                             )
                             Text(
-                                if (canAfford) "OTEVŘÍT BALÍČEK" else "Nedostatek zlata",
+                                "KOUPIT BALÍČEK",
                                 color = if (canAfford) ShText else ShMuted,
                                 fontSize = 11.sp, fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
@@ -219,8 +219,14 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
 
                     if (canAfford) {
                         Text(
-                            "Můžeš si otevřít ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček",
+                            "Můžeš si koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček",
                             color = ShMuted, fontSize = 9.sp
+                        )
+                    } else {
+                        Text(
+                            "Zlato získáš vítězstvím v bitvě",
+                            color = ShMuted, fontSize = 9.sp,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
