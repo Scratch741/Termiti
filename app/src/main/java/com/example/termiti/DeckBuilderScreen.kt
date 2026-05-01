@@ -588,7 +588,11 @@ private fun CardActionPanel(
     val canCraft     = !isBasic && !allUnlocked && realOwned < card.rarity.maxCopies && dust >= card.rarity.craftCost
     val canDismantle = !isBasic && !allUnlocked && realOwned > 0
 
-    var dismantleConfirm by remember { mutableStateOf(false) }
+    // Pending akce – aplikuje se až při kliknutí na Hotovo.
+    // Klik mimo panel (onClose bez Hotovo) ji zahodí.
+    var pendingCraft     by remember { mutableStateOf(false) }
+    var pendingDismantle by remember { mutableStateOf(false) }
+    val hasPending = pendingCraft || pendingDismantle
 
     // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape)
     Box(
@@ -630,13 +634,11 @@ private fun CardActionPanel(
                 fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
 
             if (isBasic) {
-                // Základní karta – bez craft/dismantle
                 Text(
                     "⚪ Základní karta — vždy dostupná",
                     color = TextMuted, fontSize = 9.sp, lineHeight = 12.sp
                 )
             } else {
-                // Sběratelská karta (RARE+)
                 if (allUnlocked) {
                     Text("🔓 Odemčení vše (debug)", color = TealLight, fontSize = 9.sp)
                 } else {
@@ -662,7 +664,6 @@ private fun CardActionPanel(
                             fontSize = 9.sp, fontWeight = FontWeight.Bold
                         )
                     }
-                    // Prach
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -672,74 +673,46 @@ private fun CardActionPanel(
                     }
                 }
 
-                // Vyrobit — vždy viditelné (disabled = nemáš dost prachu nebo plno kopií)
+                // Vyrobit – klik přepne pendingCraft (toggle), zruší pendingDismantle
+                val craftAccent = Color(0xFFB39DDB)
                 PanelActionBtn(
-                    label   = "🔨  Vyrobit  ✨ ${card.rarity.craftCost}",
-                    enabled = canCraft,
-                    accent  = Color(0xFFB39DDB),
-                    onClick = onCraft
+                    label    = if (pendingCraft) "✓  Vyrobit  ✨ ${card.rarity.craftCost}" else "🔨  Vyrobit  ✨ ${card.rarity.craftCost}",
+                    enabled  = canCraft || pendingCraft,
+                    selected = pendingCraft,
+                    accent   = craftAccent,
+                    onClick  = { pendingCraft = !pendingCraft; if (pendingCraft) pendingDismantle = false }
                 )
 
-                // Rozebrat — vždy viditelné (disabled = nemáš žádnou kopii nebo debug mode)
-                if (dismantleConfirm) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFE57373).copy(alpha = 0.10f))
-                            .border(1.dp, Color(0xFFE57373).copy(alpha = 0.45f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            "Rozebrat \"${card.name}\"?\n+${card.rarity.dustValue} ✨ prachu",
-                            color = TextPrimary, fontSize = 9.sp, lineHeight = 13.sp
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(
-                                Modifier.weight(1f)
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color.White.copy(alpha = 0.06f))
-                                    .border(1.dp, TextMuted.copy(alpha = 0.4f), RoundedCornerShape(5.dp))
-                                    .clickable { dismantleConfirm = false }
-                                    .padding(vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) { Text("Zrušit", color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
-                            Box(
-                                Modifier.weight(1f)
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color(0xFFE57373).copy(alpha = 0.18f))
-                                    .border(1.dp, Color(0xFFE57373).copy(alpha = 0.6f), RoundedCornerShape(5.dp))
-                                    .clickable { dismantleConfirm = false; onDismantle() }
-                                    .padding(vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) { Text("Rozebrat", color = Color(0xFFE57373), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
-                        }
-                    }
-                } else {
-                    PanelActionBtn(
-                        label   = "💥  Rozebrat  +${card.rarity.dustValue} ✨",
-                        enabled = canDismantle,
-                        accent  = Color(0xFFE57373),
-                        onClick = { dismantleConfirm = true }
-                    )
-                }
+                // Rozebrat – klik přepne pendingDismantle (toggle), zruší pendingCraft
+                val dismantleAccent = Color(0xFFE57373)
+                PanelActionBtn(
+                    label    = if (pendingDismantle) "✓  Rozebrat  +${card.rarity.dustValue} ✨" else "💥  Rozebrat  +${card.rarity.dustValue} ✨",
+                    enabled  = canDismantle || pendingDismantle,
+                    selected = pendingDismantle,
+                    accent   = dismantleAccent,
+                    onClick  = { pendingDismantle = !pendingDismantle; if (pendingDismantle) pendingCraft = false }
+                )
             }
 
             Spacer(Modifier.height(2.dp))
 
-            // ── Hotovo ───────────────────────────────────────────────────────
+            // ── Hotovo – aplikuje pending akci a zavře panel ─────────────────
             Box(
                 Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Gold.copy(alpha = 0.12f))
-                    .border(1.dp, Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                    .clickable { SoundManager.playMenuTap(); onClose() }
+                    .background(if (hasPending) Gold.copy(alpha = 0.22f) else Gold.copy(alpha = 0.12f))
+                    .border(1.dp, if (hasPending) Gold.copy(alpha = 0.9f) else Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .clickable {
+                        SoundManager.playMenuTap()
+                        if (pendingCraft) onCraft()
+                        if (pendingDismantle) onDismantle()
+                        onClose()
+                    }
                     .padding(vertical = 9.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "✓  Hotovo",
+                    if (hasPending) "✓  Potvrdit" else "✓  Hotovo",
                     color = Gold, fontSize = 11.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
@@ -749,13 +722,25 @@ private fun CardActionPanel(
 }
 
 @Composable
-private fun PanelActionBtn(label: String, enabled: Boolean, accent: Color, onClick: () -> Unit) {
+private fun PanelActionBtn(
+    label: String, enabled: Boolean, accent: Color,
+    selected: Boolean = false,
+    onClick: () -> Unit
+) {
     Box(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(6.dp))
-            .background(if (enabled) accent.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.04f))
-            .border(1.dp, if (enabled) accent.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
-            .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
+            .background(when {
+                selected -> accent.copy(alpha = 0.28f)
+                enabled  -> accent.copy(alpha = 0.12f)
+                else     -> Color.White.copy(alpha = 0.04f)
+            })
+            .border(1.dp, when {
+                selected -> accent.copy(alpha = 0.9f)
+                enabled  -> accent.copy(alpha = 0.5f)
+                else     -> Color.White.copy(alpha = 0.08f)
+            }, RoundedCornerShape(6.dp))
+            .then(if (enabled || selected) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
