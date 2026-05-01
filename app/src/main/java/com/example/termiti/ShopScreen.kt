@@ -1,6 +1,7 @@
 package com.example.termiti
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -318,22 +319,22 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
         animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing),
         label         = "cardFlip"
     )
-    val rc = shRarityColor(gain.card.rarity)
 
     Box(
         Modifier
-            .size(width = 88.dp, height = 123.dp)
             .graphicsLayer {
                 rotationY      = rotation
                 cameraDistance = 8f * density
             }
-            .clip(RoundedCornerShape(8.dp))
             .clickable(enabled = !isRevealed) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         if (rotation <= 90f) {
+            // ── Rubová strana ──────────────────────────────────────────────────
             Box(
-                Modifier.fillMaxSize()
+                Modifier
+                    .size(width = 100.dp, height = 140.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(Brush.verticalGradient(listOf(Color(0xFF1A0A2E), Color(0xFF0D0A1A))))
                     .border(1.5.dp, Color(0xFF4A3070).copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
@@ -342,49 +343,61 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("🃏", fontSize = 28.sp)
-                    Text("?", color = Color(0xFF6A4A90), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("🃏", fontSize = 32.sp)
+                    Text("?", color = Color(0xFF6A4A90), fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
         } else {
+            // ── Lícová strana — skutečná karta s grafikou ─────────────────────
             Box(
-                Modifier
-                    .graphicsLayer { rotationY = 180f }
-                    .fillMaxSize()
-                    .background(Brush.verticalGradient(listOf(ShBgCard, Color(0xFF0F0C18))))
-                    .border(
-                        2.dp,
-                        if (gain.isDuplicate) ShMuted.copy(alpha = 0.5f) else rc,
-                        RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                Modifier.graphicsLayer { rotationY = 180f },
+                contentAlignment = Alignment.TopCenter
             ) {
-                Column(
-                    Modifier.padding(6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
-                    Text(shEffectIcon(gain.card), fontSize = 22.sp)
-                    Text(
-                        gain.card.name,
-                        color = if (gain.isDuplicate) ShMuted else ShText,
-                        fontSize = 8.sp, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2, overflow = TextOverflow.Ellipsis,
-                        lineHeight = 10.sp
-                    )
-                    Text(gain.card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                    if (gain.isDuplicate) {
-                        Box(
-                            Modifier.fillMaxWidth()
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(ShMuted.copy(alpha = 0.15f))
-                                .padding(2.dp),
-                            contentAlignment = Alignment.Center
+                if (gain.card.artResId != null) {
+                    CardPreview(card = gain.card)
+                } else {
+                    // Fallback pro karty bez artwork
+                    val rc = shRarityColor(gain.card.rarity)
+                    Box(
+                        Modifier
+                            .size(width = 100.dp, height = 140.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(ShBgCard)
+                            .border(2.dp, rc, RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            Modifier.padding(6.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text("💨 +${gain.dustGained}✨", color = ShMuted, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                            Text(shEffectIcon(gain.card), fontSize = 24.sp)
+                            Text(
+                                gain.card.name,
+                                color = ShText, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 10.sp
+                            )
+                            Text(gain.card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
                         }
+                    }
+                }
+
+                // Duplikát badge přes kartu
+                if (gain.isDuplicate) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+                            .background(Color.Black.copy(alpha = 0.72f))
+                            .padding(vertical = 3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "💨 +${gain.dustGained} ✨",
+                            color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

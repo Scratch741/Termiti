@@ -433,7 +433,7 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
 
 // ─── Card Preview (texturovaný náhled pro deck builder) ──────────────────────
 @Composable
-private fun CardPreview(card: Card) {
+fun CardPreview(card: Card) {
     val artResId = card.artResId ?: return
     val context = LocalContext.current
     val frameResId = remember(card.costType) {
