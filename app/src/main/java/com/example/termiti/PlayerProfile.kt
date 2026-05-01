@@ -25,7 +25,19 @@ data class PlayerProfile(
 
     // ── Pasivní schopnosti ────────────────────────────────────────────────────
     val unlockedAbilities: Set<String> = emptySet(),   // koupené ability IDs
-    val activeAbilities:   List<String> = emptyList()  // max 2 aktivní (může být méně)
+    val activeAbilities:   List<String> = emptyList(), // max 2 aktivní (může být méně)
+
+    // ── Kolekce karet ─────────────────────────────────────────────────────────
+    /** Počet vlastněných kopií každé karty: cardId → počet. */
+    val cardCollection: Map<String, Int> = emptyMap(),
+    /** Magický prach — měna na výrobu (crafting) karet. */
+    val dust: Int = 0,
+    /**
+     * Přepínač pro testování / debug: true = hráč může použít všechny karty
+     * bez ohledu na skutečnou kolekci. Výchozí true, aby stávající hráči
+     * neměli prázdnou kolekci.
+     */
+    val allCardsUnlocked: Boolean = true
 ) {
     /** Kolik XP je potřeba pro přechod z [level] na [level]+1. */
     fun xpNeeded(): Int = xpForLevel(level)

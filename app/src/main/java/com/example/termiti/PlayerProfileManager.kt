@@ -130,6 +130,9 @@ object PlayerProfileManager {
         val activeArr = org.json.JSONArray().also { arr ->
             p.activeAbilities.forEach { arr.put(it) }
         }
+        val collectionObj = org.json.JSONObject().also { obj ->
+            p.cardCollection.forEach { (id, count) -> obj.put(id, count) }
+        }
         return JSONObject().apply {
             put("name",              p.name)
             put("avatar",            p.avatar)
@@ -142,6 +145,9 @@ object PlayerProfileManager {
             put("totalGames",        p.totalGames)
             put("unlockedAbilities", unlockedArr)
             put("activeAbilities",   activeArr)
+            put("cardCollection",    collectionObj)
+            put("dust",              p.dust)
+            put("allCardsUnlocked",  p.allCardsUnlocked)
         }.toString()
     }
 
@@ -157,6 +163,10 @@ object PlayerProfileManager {
                 val arr = optJSONArray(key) ?: return emptyList()
                 return (0 until arr.length()).map { arr.getString(it) }
             }
+            val collectionMap: Map<String, Int> = run {
+                val obj = o.optJSONObject("cardCollection") ?: return@run emptyMap()
+                buildMap { obj.keys().forEach { key -> put(key, obj.optInt(key, 0)) } }
+            }
             PlayerProfile(
                 name               = o.optString("name", "Hráč"),
                 avatar             = o.optString("avatar", "⚔️"),
@@ -168,7 +178,10 @@ object PlayerProfileManager {
                 winsOnline         = o.optInt("winsOnline", 0),
                 totalGames         = o.optInt("totalGames", 0),
                 unlockedAbilities  = o.getStringSet("unlockedAbilities"),
-                activeAbilities    = o.getStringList("activeAbilities")
+                activeAbilities    = o.getStringList("activeAbilities"),
+                cardCollection     = collectionMap,
+                dust               = o.optInt("dust", 0),
+                allCardsUnlocked   = o.optBoolean("allCardsUnlocked", true)
             )
         }.getOrNull()
     }

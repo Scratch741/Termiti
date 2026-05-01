@@ -125,8 +125,9 @@ fun ProfileScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CurrencyBadge("🪙", profile!!.gold, PrGold, "Zlato",     Modifier.weight(1f))
-                    CurrencyBadge("💎", profile!!.gems, PrGems, "Drahokamy", Modifier.weight(1f))
+                    CurrencyBadge("🪙", profile!!.gold, PrGold,           "Zlato",     Modifier.weight(1f))
+                    CurrencyBadge("💎", profile!!.gems, PrGems,           "Drahokamy", Modifier.weight(1f))
+                    CurrencyBadge("✨", profile!!.dust, Color(0xFFB39DDB), "Prach",     Modifier.weight(1f))
                 }
 
                 // Statistiky
@@ -170,6 +171,56 @@ fun ProfileScreen(onBack: () -> Unit) {
                         DebugBtn("⭐ +100", PrGreen, Modifier.weight(1f)) {
                             val updated = PlayerProfileManager.addRewards(xp = 100, gold = 0, gems = 0)
                             profile = updated
+                        }
+                    }
+
+                    // Přepínač "Všechny karty odemčeny"
+                    val allUnlocked = profile!!.allCardsUnlocked
+                    val dustColor   = Color(0xFFB39DDB)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "🃏 Všechny karty odemčeny",
+                            color    = PrMuted,
+                            fontSize = 9.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(
+                                    if (allUnlocked) PrGreen.copy(alpha = 0.15f)
+                                    else PrMuted.copy(alpha = 0.08f)
+                                )
+                                .border(
+                                    1.dp,
+                                    if (allUnlocked) PrGreen.copy(alpha = 0.5f)
+                                    else PrMuted.copy(alpha = 0.25f),
+                                    RoundedCornerShape(5.dp)
+                                )
+                                .clickable {
+                                    SoundManager.playMenuTap()
+                                    CardCollectionManager.setAllCardsUnlocked(!allUnlocked)
+                                    profile = PlayerProfileManager.profile
+                                }
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                if (allUnlocked) "✓ ZAP" else "VYP",
+                                color      = if (allUnlocked) PrGreen else PrMuted,
+                                fontSize   = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        // Debug: +500 prachu
+                        DebugBtn("✨ +500", dustColor, Modifier) {
+                            val p = PlayerProfileManager.profile!!
+                            PlayerProfileManager.save(p.copy(dust = p.dust + 500))
+                            profile = PlayerProfileManager.profile
                         }
                     }
                 }
