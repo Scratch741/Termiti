@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
                         // ── Profil ────────────────────────────────────────────
                         Screen.PROFILE_SETUP -> ProfileSetupScreen(
-                            onDone = { screen = Screen.MENU }
+                            onDone = { viewModel.grantStarterDeck(); screen = Screen.MENU }
                         )
 
                         // ── Hlavní menu ───────────────────────────────────────

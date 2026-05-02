@@ -33,6 +33,11 @@ data class PlayerProfile(
     /** Magický prach — měna na výrobu (crafting) karet. */
     val dust: Int = 0,
     /**
+     * Karty, které hráč již viděl v deck builderu — použito pro zvýraznění nově
+     * získaných karet značkou "NOVÉ". Karta je přidána při prvním kliknutí na náhled.
+     */
+    val seenCards: Set<String> = emptySet(),
+    /**
      * Přepínač pro testování / debug: true = hráč může použít všechny karty
      * bez ohledu na skutečnou kolekci. Výchozí true, aby stávající hráči
      * neměli prázdnou kolekci.

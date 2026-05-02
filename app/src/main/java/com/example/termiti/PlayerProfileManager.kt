@@ -91,6 +91,18 @@ object PlayerProfileManager {
         return current.copy(xp = remaining)
     }
 
+    // ── Viděné karty (new badge) ─────────────────────────────────────────────
+
+    /**
+     * Označí karty jako viděné (odstraní badge "NOVÉ").
+     * Volá se při prvním kliknutí na kartu v deck builderu.
+     */
+    fun markCardsSeen(ids: Set<String>) {
+        val p = _profile ?: return
+        if (ids.isEmpty()) return
+        save(p.copy(seenCards = p.seenCards + ids))
+    }
+
     // ── Pasivní schopnosti ───────────────────────────────────────────────────
 
     /**
@@ -130,6 +142,9 @@ object PlayerProfileManager {
         val activeArr = org.json.JSONArray().also { arr ->
             p.activeAbilities.forEach { arr.put(it) }
         }
+        val seenArr = org.json.JSONArray().also { arr ->
+            p.seenCards.forEach { arr.put(it) }
+        }
         val collectionObj = org.json.JSONObject().also { obj ->
             p.cardCollection.forEach { (id, count) -> obj.put(id, count) }
         }
@@ -147,6 +162,7 @@ object PlayerProfileManager {
             put("activeAbilities",   activeArr)
             put("cardCollection",    collectionObj)
             put("dust",              p.dust)
+            put("seenCards",         seenArr)
             put("allCardsUnlocked",  p.allCardsUnlocked)
         }.toString()
     }
@@ -181,6 +197,7 @@ object PlayerProfileManager {
                 activeAbilities    = o.getStringList("activeAbilities"),
                 cardCollection     = collectionMap,
                 dust               = o.optInt("dust", 0),
+                seenCards          = o.getStringSet("seenCards"),
                 allCardsUnlocked   = o.optBoolean("allCardsUnlocked", true)
             )
         }.getOrNull()

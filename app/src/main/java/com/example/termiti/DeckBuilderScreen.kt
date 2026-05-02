@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -140,12 +141,18 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     // Filter state
     var filterRes      by remember { mutableStateOf<ResourceType?>(null) }
     var filterCat      by remember { mutableStateOf<String?>(null) }
+    var filterUnlocked by remember { mutableStateOf(false) }
 
-    val filteredCards  = remember(filterRes, filterCat) {
+    val filteredCards = remember(filterRes, filterCat, filterUnlocked, profile) {
         viewModel.allCards
             .filter { card ->
                 (filterRes == null || card.costType == filterRes) &&
-                (filterCat == null || card.category() == filterCat)
+                (filterCat == null || card.category() == filterCat) &&
+                (!filterUnlocked || run {
+                    profile?.allCardsUnlocked == true ||
+                    CardCollectionManager.isBasicCard(card) ||
+                    (profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0) > 0
+                })
             }
             .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.name }))
     }
@@ -156,10 +163,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             // ── Left: catalog starts immediately at top ───────────────
             Column(Modifier.weight(3f).fillMaxHeight()) {
                 FilterBar(
-                    filterRes   = filterRes,
-                    filterCat   = filterCat,
-                    onResFilter = { filterRes = if (filterRes == it) null else it },
-                    onCatFilter = { filterCat = if (filterCat == it) null else it }
+                    filterRes      = filterRes,
+                    filterCat      = filterCat,
+                    filterUnlocked = filterUnlocked,
+                    onResFilter    = { filterRes = if (filterRes == it) null else it },
+                    onCatFilter    = { filterCat = if (filterCat == it) null else it },
+                    onUnlocked     = { filterUnlocked = !filterUnlocked }
                 )
                 HorizontalDivider(color = Gold.copy(alpha = 0.1f))
                 LazyVerticalGrid(
@@ -182,10 +191,17 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                                 card.rarity.maxCopies
                             )
                         }
+                        // Karta je "nová" pokud ji hráč vlastní, není základní a ještě ji
+                        // neviděl v deck builderu.
+                        val isNew = !CardCollectionManager.isBasicCard(card) &&
+                            usable > 0 &&
+                            profile?.allCardsUnlocked != true &&
+                            card.id !in (profile?.seenCards ?: emptySet())
                         CatalogCardItem(
                             card        = card,
                             count       = count,
                             usable      = usable,
+                            isNew       = isNew,
                             deckFull    = isFull,
                             onIncrement = {
                                 if (count < usable && !isFull)
@@ -195,7 +211,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                                 if (count > 0)
                                     viewModel.setCardCount(editingIdx, card.id, count - 1)
                             },
-                            onPreview = { previewCard = card }
+                            onPreview = {
+                                if (isNew) {
+                                    PlayerProfileManager.markCardsSeen(setOf(card.id))
+                                    profile = PlayerProfileManager.profile
+                                }
+                                previewCard = card
+                            }
                         )
                     }
                 }
@@ -380,32 +402,43 @@ private fun DeckSlotChip(
 private fun FilterBar(
     filterRes: ResourceType?,
     filterCat: String?,
+    filterUnlocked: Boolean,
     onResFilter: (ResourceType) -> Unit,
-    onCatFilter: (String) -> Unit
+    onCatFilter: (String) -> Unit,
+    onUnlocked: () -> Unit
 ) {
-    Row(
+    Column(
         Modifier.fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.6f))
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
-        FilterChip("✨", filterRes == ResourceType.MAGIC,  MagicPurple)  { onResFilter(ResourceType.MAGIC)  }
-        FilterChip("⚔️", filterRes == ResourceType.ATTACK, AttackRed)    { onResFilter(ResourceType.ATTACK) }
-        FilterChip("🪨", filterRes == ResourceType.STONES, StoneColor)   { onResFilter(ResourceType.STONES) }
-        FilterChip("🌀", filterRes == ResourceType.CHAOS,  ChaosOrange)  { onResFilter(ResourceType.CHAOS)  }
-
-        Spacer(Modifier.width(6.dp))
-        VerticalDivider(modifier = Modifier.height(16.dp), color = Gold.copy(alpha = 0.2f))
-        Spacer(Modifier.width(6.dp))
-
-        Text("Efekt:", color = TextMuted, fontSize = 9.sp)
-        FilterChip("⚔️ Útok",    filterCat == "Útok",   AttackRed)   { onCatFilter("Útok")   }
-        FilterChip("🧱 Obrana",  filterCat == "Obrana", StoneColor)  { onCatFilter("Obrana") }
-        FilterChip("💰 Zdroje",  filterCat == "Zdroje", MagicPurple) { onCatFilter("Zdroje") }
-        FilterChip("⛏️ Doly",   filterCat == "Doly",   Gold)        { onCatFilter("Doly")   }
+        // ── Řádek 1: zdroj ────────────────────────────────────────────────────
+        Row(
+            Modifier.fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
+            FilterChip("✨ Magie",  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
+            FilterChip("⚔️ Útok",  filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
+            FilterChip("🪨 Kámen", filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
+            FilterChip("🌀 Chaos", filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
+        }
+        // ── Řádek 2: efekt + odemčené ─────────────────────────────────────────
+        Row(
+            Modifier.fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text("Efekt:", color = TextMuted, fontSize = 9.sp)
+            FilterChip("Útok",   filterCat == "Útok",   AttackRed)   { onCatFilter("Útok")   }
+            FilterChip("Obrana", filterCat == "Obrana", StoneColor)  { onCatFilter("Obrana") }
+            FilterChip("Zdroje", filterCat == "Zdroje", MagicPurple) { onCatFilter("Zdroje") }
+            FilterChip("Doly",   filterCat == "Doly",   Gold)        { onCatFilter("Doly")   }
+            Spacer(Modifier.weight(1f))
+            FilterChip("🔓 Odemčené", filterUnlocked, HpGreen) { onUnlocked() }
+        }
     }
 }
 
@@ -989,6 +1022,7 @@ private fun CatalogCardItem(
     card: Card,
     count: Int,
     usable: Int,
+    isNew: Boolean,
     deckFull: Boolean,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
@@ -998,6 +1032,7 @@ private fun CatalogCardItem(
     val isLocked  = usable == 0 && !CardCollectionManager.isBasicCard(card)
     val costColor = resColor(card.costType)
     val border    = when {
+        isNew    -> Gold.copy(alpha = 0.85f)
         isLocked -> Color.White.copy(alpha = 0.05f)
         hasAny   -> costColor.copy(alpha = 0.55f)
         else     -> Color.White.copy(alpha = 0.07f)
@@ -1015,7 +1050,7 @@ private fun CatalogCardItem(
             Column(
                 Modifier
                     .background(Color(0xFF0F0C14))
-                    .border(1.5.dp, border, RoundedCornerShape(7.dp))
+                    .border(if (isNew) 2.dp else 1.5.dp, border, RoundedCornerShape(7.dp))
                     .padding(4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1028,17 +1063,12 @@ private fun CatalogCardItem(
                 ) {
                     CountBtn("−", enabled = count > 0, onClick = onDecrement)
                     Spacer(Modifier.width(4.dp))
-                    repeat(card.rarity.maxCopies) { i ->
-                        Box(
-                            Modifier.size(8.dp, 8.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (i < count) rc.copy(alpha = 0.85f)
-                                    else Color.White.copy(alpha = 0.07f)
-                                )
-                        )
-                        if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
-                    }
+                    CopyDots(
+                        maxCopies  = card.rarity.maxCopies,
+                        inDeck     = count,
+                        usable     = usable,
+                        rarityColor = rc
+                    )
                     Spacer(Modifier.width(4.dp))
                     CountBtn("+", enabled = count < usable && !deckFull, onClick = onIncrement)
                 }
@@ -1052,6 +1082,10 @@ private fun CatalogCardItem(
                     Text("🔒", fontSize = 18.sp)
                 }
             }
+            // Badge "NOVÉ"
+            if (isNew) {
+                NewBadge(Modifier.align(Alignment.TopEnd).offset(x = (-3).dp, y = 3.dp))
+            }
         }
     } else {
         // ── Klasická karta (bez textury) ──────────────────────────────────────
@@ -1060,7 +1094,7 @@ private fun CatalogCardItem(
             Column(
                 Modifier
                     .background(bg)
-                    .border(1.dp, border, RoundedCornerShape(7.dp))
+                    .border(if (isNew) 2.dp else 1.dp, border, RoundedCornerShape(7.dp))
                     .padding(6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1104,17 +1138,12 @@ private fun CatalogCardItem(
                 ) {
                     CountBtn("−", enabled = count > 0, onClick = onDecrement)
                     Spacer(Modifier.width(4.dp))
-                    repeat(card.rarity.maxCopies) { i ->
-                        Box(
-                            Modifier.size(8.dp, 8.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (i < count) rc.copy(alpha = 0.85f)
-                                    else Color.White.copy(alpha = 0.07f)
-                                )
-                        )
-                        if (i < card.rarity.maxCopies - 1) Spacer(Modifier.width(3.dp))
-                    }
+                    CopyDots(
+                        maxCopies  = card.rarity.maxCopies,
+                        inDeck     = count,
+                        usable     = usable,
+                        rarityColor = rc
+                    )
                     Spacer(Modifier.width(4.dp))
                     CountBtn("+", enabled = count < usable && !deckFull, onClick = onIncrement)
                 }
@@ -1126,6 +1155,82 @@ private fun CatalogCardItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Text("🔒", fontSize = 14.sp)
+                }
+            }
+            // Badge "NOVÉ"
+            if (isNew) {
+                NewBadge(Modifier.align(Alignment.TopEnd).offset(x = (-3).dp, y = 3.dp))
+            }
+        }
+    }
+}
+
+// ─── Badge „NOVÉ" ─────────────────────────────────────────────────────────────
+@Composable
+private fun NewBadge(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "new_badge")
+    val alpha by transition.animateFloat(
+        initialValue  = 0.75f,
+        targetValue   = 1.00f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(550, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "badgeAlpha"
+    )
+    Box(
+        modifier
+            .clip(RoundedCornerShape(3.dp))
+            .background(Gold.copy(alpha = alpha))
+            .padding(horizontal = 4.dp, vertical = 1.5.dp)
+    ) {
+        Text(
+            "NOVÉ",
+            color      = Color(0xFF1A1320),
+            fontSize   = 6.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+// ─── Copy Dots ────────────────────────────────────────────────────────────────
+// Zobrazuje stav kopií karty:
+//   ● rarity barva = v balíčku
+//   ○ bílá 20%    = vlastněno, ale není v balíčku
+//   ✕ červená     = chybí (nevlastněno) — jen když usable < maxCopies
+@Composable
+private fun CopyDots(
+    maxCopies : Int,
+    inDeck    : Int,
+    usable    : Int,
+    rarityColor: Color
+) {
+    val incomplete = usable < maxCopies
+    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        repeat(maxCopies) { i ->
+            val color = when {
+                i < inDeck  -> rarityColor.copy(alpha = 0.85f)
+                i < usable  -> Color.White.copy(alpha = 0.20f)
+                incomplete  -> Color(0xFFE57373).copy(alpha = 0.80f)
+                else        -> Color.White.copy(alpha = 0.07f)
+            }
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(color),
+                contentAlignment = Alignment.Center
+            ) {
+                // Křížek pro nevlastněné sloty
+                if (i >= usable && incomplete) {
+                    Text(
+                        "×",
+                        color    = Color.White.copy(alpha = 0.75f),
+                        fontSize = 6.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 6.sp
+                    )
                 }
             }
         }
