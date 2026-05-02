@@ -2107,6 +2107,20 @@ fun CardView(
     val progress  = (-offsetY.value / threshold).coerceIn(0f, 1f)
     val isDragging = offsetY.value < -6f
 
+    // ── Zelený glow: zahratelná karta se splněnou podmínkou ───────────────────
+    val showGreenGlow = canPlay && (conditionMet == null || conditionMet == true)
+    val glowTransition = rememberInfiniteTransition(label = "cardGlow")
+    val glowAlpha by glowTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue  = 0.75f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+    val GlowGreen = Color(0xFF4DB86E)
+
     val dragModifier = if (onDiscard != null) Modifier.pointerInput(card.id) {
         detectVerticalDragGestures(
             onDragEnd = {
@@ -2125,18 +2139,20 @@ fun CardView(
     if (card.artResId != null) {
         // ── Textured card layout ─────────────────────────────────────────────
         CardViewTextured(
-            card        = card,
-            artResId    = card.artResId,
-            canPlay     = canPlay,
-            discardMode = discardMode,
-            isDragging  = isDragging,
-            progress    = progress,
-            offsetY     = offsetY,
-            conditionMet = conditionMet,
-            isComboCard = isComboCard,
-            dragModifier = dragModifier,
-            showFade    = showFade,
-            onClick     = onClick
+            card           = card,
+            artResId       = card.artResId,
+            canPlay        = canPlay,
+            discardMode    = discardMode,
+            isDragging     = isDragging,
+            progress       = progress,
+            offsetY        = offsetY,
+            conditionMet   = conditionMet,
+            isComboCard    = isComboCard,
+            dragModifier   = dragModifier,
+            showFade       = showFade,
+            showGreenGlow  = showGreenGlow,
+            glowAlpha      = glowAlpha,
+            onClick        = onClick
         )
     } else {
         // ── Classic card layout ──────────────────────────────────────────────
@@ -2160,6 +2176,32 @@ fun CardView(
                 .size(width = 100.dp, height = 140.dp)
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .then(dragModifier)
+                .drawBehind {
+                    if (showGreenGlow) {
+                        val glow = glowAlpha
+                        val ext1 = 10.dp.toPx()
+                        val ext2 = 6.dp.toPx()
+                        val ext3 = 3.dp.toPx()
+                        drawRoundRect(
+                            color        = GlowGreen.copy(alpha = glow * 0.18f),
+                            topLeft      = Offset(-ext1, -ext1),
+                            size         = Size(size.width + ext1 * 2, size.height + ext1 * 2),
+                            cornerRadius = CornerRadius(14.dp.toPx())
+                        )
+                        drawRoundRect(
+                            color        = GlowGreen.copy(alpha = glow * 0.32f),
+                            topLeft      = Offset(-ext2, -ext2),
+                            size         = Size(size.width + ext2 * 2, size.height + ext2 * 2),
+                            cornerRadius = CornerRadius(11.dp.toPx())
+                        )
+                        drawRoundRect(
+                            color        = GlowGreen.copy(alpha = glow * 0.50f),
+                            topLeft      = Offset(-ext3, -ext3),
+                            size         = Size(size.width + ext3 * 2, size.height + ext3 * 2),
+                            cornerRadius = CornerRadius(9.dp.toPx())
+                        )
+                    }
+                }
         ) {
             Column(
                 modifier = Modifier
@@ -2294,6 +2336,8 @@ private fun CardViewTextured(
     isComboCard: Boolean,
     dragModifier: Modifier,
     showFade: Boolean = true,
+    showGreenGlow: Boolean = false,
+    glowAlpha: Float = 0f,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -2316,6 +2360,33 @@ private fun CardViewTextured(
             .size(width = 100.dp, height = 140.dp)
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .then(dragModifier)
+            .drawBehind {
+                if (showGreenGlow) {
+                    val glow = glowAlpha
+                    val GlowGreen = Color(0xFF4DB86E)
+                    val ext1 = 10.dp.toPx()
+                    val ext2 = 6.dp.toPx()
+                    val ext3 = 3.dp.toPx()
+                    drawRoundRect(
+                        color        = GlowGreen.copy(alpha = glow * 0.18f),
+                        topLeft      = Offset(-ext1, -ext1),
+                        size         = Size(size.width + ext1 * 2, size.height + ext1 * 2),
+                        cornerRadius = CornerRadius(14.dp.toPx())
+                    )
+                    drawRoundRect(
+                        color        = GlowGreen.copy(alpha = glow * 0.32f),
+                        topLeft      = Offset(-ext2, -ext2),
+                        size         = Size(size.width + ext2 * 2, size.height + ext2 * 2),
+                        cornerRadius = CornerRadius(11.dp.toPx())
+                    )
+                    drawRoundRect(
+                        color        = GlowGreen.copy(alpha = glow * 0.50f),
+                        topLeft      = Offset(-ext3, -ext3),
+                        size         = Size(size.width + ext3 * 2, size.height + ext3 * 2),
+                        cornerRadius = CornerRadius(9.dp.toPx())
+                    )
+                }
+            }
             .clip(RoundedCornerShape(6.dp))
             .background(BgCard)
             .then(if (borderColor != Color.Transparent)
