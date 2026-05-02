@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 // ─── Adresa lobby serveru ─────────────────────────────────────────────────────
-private const val LOBBY_WS_URL = "ws://192.168.125.139:8765/lobby"
+private const val LOBBY_WS_URL = "ws://138.2.136.49:8765/lobby"
 
 // ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
