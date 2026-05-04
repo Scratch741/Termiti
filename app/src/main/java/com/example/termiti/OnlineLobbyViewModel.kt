@@ -294,6 +294,21 @@ class OnlineLobbyViewModel(
         sendAction("SKIP_TURN", JSONObject())
     }
 
+    /** Vzdání hry – okamžitě registruje prohru a přejde do GAME_OVER bez čekání. */
+    fun forfeit() {
+        // Pošli serveru – ten ukončí hru a pošle GAME_OVER oběma hráčům
+        sendAction("FORFEIT", JSONObject())
+        // Nastav výsledek lokálně ihned pro okamžitou odezvu UI;
+        // server přepíše gameResult svou GAME_OVER zprávou (stejná hodnota)
+        gameResult.value = OnlineGameResult(
+            winner     = "OPP",
+            winnerName = matchInfo.value?.opponentName ?: "Soupeř",
+            youWin     = false
+        )
+        phase.value = OnlinePhase.GAME_OVER
+        // WebSocket zůstane otevřený → hráč se normálně vrátí do lobby přes overlay
+    }
+
     private fun sendAction(action: String, data: JSONObject) {
         val gameId = matchInfo.value?.gameId ?: return
         val json = JSONObject().apply {

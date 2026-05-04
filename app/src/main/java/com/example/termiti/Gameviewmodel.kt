@@ -917,8 +917,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 addLog("${card.name}: podmínka nesplněna!")
             }
         }
+        // Quest: zahraná karta
+        QuestManager.onCardPlayed()
+
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
+        val aiCastleHpBefore = ai.castleHP
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
             onOpponentCardLost = { lostCard, action ->
                 // Loguj kartu AI, kterou hráč spálil nebo ukradl
@@ -926,6 +930,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 addCardLog("Hráč", lostCard, action, isMe = false)
             },
             onDrawCard = { _, count -> pendingDrawCount += count })
+        // Quest: poškození hradu
+        val castleDmg = (aiCastleHpBefore - ai.castleHP).coerceAtLeast(0)
+        if (castleDmg > 0) QuestManager.onDamageDealt(castleDmg)
         // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
         player.preCostResources = null
 

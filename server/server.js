@@ -358,6 +358,15 @@ wss.on('connection', (ws, req) => {
         const session = games.get(msg.gameId || player.gameId);
         if (!session) { send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return; }
 
+        // Vzdání – okamžitě ukonči hru, soupeř vítězí
+        if (msg.action === 'FORFEIT') {
+          if (session.phase === 'ended') return; // dvojitý klik
+          const winner = player.side === 'A' ? 'B' : 'A';
+          log('FORFEIT', `${player.name} (${player.side}) se vzdal ve hře ${player.gameId}`);
+          session._endGame(winner); // pošle GAME_OVER oběma + zavolá onEnd → vyčistí games mapu
+          return;
+        }
+
         session.handleAction(player.side, msg.action, msg.data || {});
         break;
       }

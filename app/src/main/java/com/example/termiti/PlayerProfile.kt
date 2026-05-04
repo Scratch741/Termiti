@@ -49,7 +49,12 @@ data class PlayerProfile(
 
     /** Celkový XP potřebný k dosažení daného levelu od nuly. */
     companion object {
-        fun xpForLevel(level: Int): Int = level * 100   // 1→2: 100, 2→3: 200 …
+        fun xpForLevel(level: Int): Int = when {
+            level <= 5  -> 150
+            level <= 15 -> 350
+            level <= 30 -> 550
+            else        -> 750
+        }
 
         /**
          * Odměny za výsledek hry.

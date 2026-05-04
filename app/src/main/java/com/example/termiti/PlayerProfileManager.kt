@@ -70,6 +70,17 @@ object PlayerProfileManager {
         )
         p = applyXp(p, xp)
         save(p)
+        // Notifikace za odměnu z hry (level-up toast se posílá zvlášť z applyXp)
+        if (xp > 0 || gold > 0) {
+            RewardNotifier.emit(RewardNotifier.RewardEvent(
+                xp     = xp,
+                gold   = gold,
+                gems   = gems,
+                source = if (win) (if (online) "🌐 Online výhra" else "⚔️ Výhra") else "💀 Prohra"
+            ))
+        }
+        // Quest tracking
+        if (win) QuestManager.onWin(online)
         return ProfileReward(
             xpGained    = xp,
             goldGained  = gold,
@@ -82,11 +93,30 @@ object PlayerProfileManager {
     // ── Interní ──────────────────────────────────────────────────────────────
 
     private fun applyXp(p: PlayerProfile, xp: Int): PlayerProfile {
-        var current = p
+        var current   = p
         var remaining = current.xp + xp
+        var goldBonus = 0
+        var gemsBonus = 0
+        var lastLevel = current.level
         while (remaining >= current.xpNeeded()) {
             remaining -= current.xpNeeded()
-            current = current.copy(level = current.level + 1)
+            current    = current.copy(level = current.level + 1)
+            lastLevel  = current.level
+            goldBonus += 50 + current.level * 5          // 50+5×level zlatých za level
+            if (current.level % 5 == 0) gemsBonus += 3  // +3 drahokamy každý 5. level
+        }
+        if (goldBonus > 0 || gemsBonus > 0) {
+            current = current.copy(
+                gold = current.gold + goldBonus,
+                gems = current.gems + gemsBonus
+            )
+            RewardNotifier.emit(RewardNotifier.RewardEvent(
+                gold     = goldBonus,
+                gems     = gemsBonus,
+                levelUp  = true,
+                newLevel = lastLevel,
+                source   = "🆙 Level $lastLevel!"
+            ))
         }
         return current.copy(xp = remaining)
     }

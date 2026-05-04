@@ -483,15 +483,15 @@ private fun OnlineGameplay(
                     }
                     HorizontalDivider(color = OgTextMuted.copy(alpha = 0.3f))
                     Text(
-                        "Opustit hru? Soupeř bude prohlášen vítězem.",
+                        "Vzdát se? Prohra bude zaznamenána a soupeř bude prohlášen vítězem.",
                         color    = OgTextMuted,
                         fontSize = 13.sp
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; onBack() }) {
-                    Text("Odejít", color = OgCrimson, fontWeight = FontWeight.Bold)
+                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; vm.forfeit() }) {
+                    Text("Vzdát se", color = OgCrimson, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {

@@ -79,7 +79,7 @@ object CampaignManager {
         _rewarded.add(opponent.id)
         save()
         PlayerProfileManager.addRewards(
-            xp   = 0,
+            xp   = opponent.rewardXp,
             gold = opponent.rewardGold,
             gems = opponent.rewardGems
         )

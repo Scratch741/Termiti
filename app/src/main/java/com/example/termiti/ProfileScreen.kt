@@ -139,6 +139,9 @@ fun ProfileScreen(onBack: () -> Unit) {
                     StatBadge("🎮", "${profile!!.totalGames}",                         "Odehráno", Modifier.weight(1f))
                 }
 
+                // ── Denní questy ─────────────────────────────────────────────
+                QuestSection(onProfileChanged = { profile = PlayerProfileManager.profile })
+
                 // ── DEBUG ─────────────────────────────────────────────────────
                 Column(
                     modifier = Modifier
@@ -512,6 +515,168 @@ private fun DebugBtn(label: String, accent: Color, modifier: Modifier = Modifier
         contentAlignment = Alignment.Center
     ) {
         Text(label, color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ── Denní questy ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun QuestSection(onProfileChanged: () -> Unit) {
+    var quests       by remember { mutableStateOf(QuestManager.quests) }
+    val canReroll    = QuestManager.canReroll()
+    val QuestGold    = Color(0xFFD4A843)
+    val QuestGreen   = Color(0xFF4DB86E)
+    val QuestMuted   = Color(0xFF7A6E5F)
+    val QuestBg      = Color(0xFF13101A)
+    val QuestCard    = Color(0xFF1A1320)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(QuestBg)
+            .border(1.dp, QuestGold.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        // Hlavička
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("📋  Denní questy", color = QuestGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+            Text("Resetují se zítra", color = QuestMuted, fontSize = 8.sp)
+        }
+
+        // Quest karty
+        quests.forEach { quest ->
+            QuestCard(
+                quest      = quest,
+                canReroll  = canReroll && !quest.completed,
+                onClaim    = {
+                    QuestManager.claimQuest(quest.id)
+                    quests = QuestManager.quests
+                    onProfileChanged()
+                },
+                onReroll   = {
+                    QuestManager.reroll(quest.id)
+                    quests = QuestManager.quests
+                },
+                questGold  = QuestGold,
+                questGreen = QuestGreen,
+                questMuted = QuestMuted,
+                questCard  = QuestCard
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuestCard(
+    quest     : DailyQuest,
+    canReroll : Boolean,
+    onClaim   : () -> Unit,
+    onReroll  : () -> Unit,
+    questGold : Color,
+    questGreen: Color,
+    questMuted: Color,
+    questCard : Color
+) {
+    val progress = quest.progress.toFloat() / quest.target.toFloat()
+    val accent = when {
+        quest.claimed   -> questMuted
+        quest.completed -> questGreen
+        else            -> questGold
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(questCard)
+            .border(1.dp, accent.copy(alpha = if (quest.completed) 0.6f else 0.3f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        // Řádek: ikona + popis + reroll
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(quest.icon(), fontSize = 13.sp)
+                Text(
+                    quest.label(),
+                    color = if (quest.claimed) questMuted else PrText,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (canReroll) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(questMuted.copy(alpha = 0.12f))
+                        .border(1.dp, questMuted.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
+                        .clickable { SoundManager.playMenuTap(); onReroll() }
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
+                ) {
+                    Text("🔄", fontSize = 10.sp)
+                }
+            }
+        }
+
+        // Progress bar
+        LinearProgressIndicator(
+            progress   = { progress.coerceIn(0f, 1f) },
+            modifier   = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+            color      = accent,
+            trackColor = questMuted.copy(alpha = 0.15f),
+            strokeCap  = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+
+        // Spodní řádek: progress čísla + odměny + claim tlačítko
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "${quest.progress} / ${quest.target}",
+                color = questMuted, fontSize = 8.sp
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Odměny
+                if (quest.rewardXp   > 0) Text("⭐ ${quest.rewardXp} XP", color = Color(0xFF7EE8A2), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                if (quest.rewardGold > 0) Text("🪙 ${quest.rewardGold}",  color = questGold,         fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                if (quest.rewardGems > 0) Text("💎 ${quest.rewardGems}",  color = Color(0xFF6EE0F0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+
+                // Claim tlačítko
+                if (quest.canClaim) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(questGreen.copy(alpha = 0.15f))
+                            .border(1.dp, questGreen.copy(alpha = 0.6f), RoundedCornerShape(5.dp))
+                            .clickable { SoundManager.playMenuTap(); onClaim() }
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text("Převzít!", color = questGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    }
+                } else if (quest.claimed) {
+                    Text("✓ Splněno", color = questMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }
 

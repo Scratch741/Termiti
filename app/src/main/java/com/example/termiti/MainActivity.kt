@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
         SoundManager.startBackgroundMusic(this)
         PlayerProfileManager.init(this)
         CampaignManager.init(this)
+        QuestManager.init(this)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
@@ -166,6 +167,7 @@ class MainActivity : ComponentActivity() {
                             onBackToMenu = { screen = Screen.CAMPAIGN_LOCATION },
                             onGameEnd    = { win ->
                                 PlayerProfileManager.recordGameResult(win = win, online = false)
+                                if (win) QuestManager.onCampaignWin()
                                 campaignPlayerWon = win
                                 screen = Screen.CAMPAIGN_RESULT
                             }
@@ -211,6 +213,8 @@ class MainActivity : ComponentActivity() {
                             null -> { screen = Screen.PLAY_MENU }
                         }
                     }
+                    // Toast overlay – musí být poslední, aby byl nad vším ostatním
+                    RewardToastOverlay()
                 }
             }
         }

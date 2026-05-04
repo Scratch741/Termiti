@@ -107,18 +107,22 @@ private fun cardConditionMet(
     resources: Map<ResourceType, Int>,
     wallHp: Int,
     castleHp: Int,
-    oppResources: Map<ResourceType, Int> = emptyMap()
+    oppResources: Map<ResourceType, Int> = emptyMap(),
+    lastPlayedType: String? = null
 ): Boolean? {
-    val ce = card.effects.filterIsInstance<CardEffect.ConditionalEffect>().firstOrNull()
-        ?: return null
-    return when (val c = ce.condition) {
-        is Condition.ResourceAbove            -> (resources[c.type] ?: 0) > c.threshold
-        is Condition.WallAbove                -> wallHp   > c.threshold
-        is Condition.WallBelow                -> wallHp   < c.threshold
-        is Condition.CastleAbove              -> castleHp > c.threshold
-        is Condition.CastleBelow              -> castleHp < c.threshold
-        is Condition.LastPlayedType           -> false  // nelze předem zobrazit
-        is Condition.ResourceMoreThanOpponent -> (resources[c.type] ?: 0) > (oppResources[c.type] ?: 0)
+    val conditionalEffects = card.effects.filterIsInstance<CardEffect.ConditionalEffect>()
+    if (conditionalEffects.isEmpty()) return null
+
+    return conditionalEffects.all { ce ->
+        when (val c = ce.condition) {
+            is Condition.ResourceAbove            -> (resources[c.type] ?: 0) > c.threshold
+            is Condition.WallAbove                -> wallHp   > c.threshold
+            is Condition.WallBelow                -> wallHp   < c.threshold
+            is Condition.CastleAbove              -> castleHp > c.threshold
+            is Condition.CastleBelow              -> castleHp < c.threshold
+            is Condition.LastPlayedType           -> lastPlayedType == c.cardType
+            is Condition.ResourceMoreThanOpponent -> (resources[c.type] ?: 0) > (oppResources[c.type] ?: 0)
+        }
     }
 }
 
@@ -448,6 +452,7 @@ fun GameScreen(
                 playerWallHp     = state.playerState.wallHP,
                 playerCastleHp   = state.playerState.castleHP,
                 oppResources     = state.aiState.resources,
+                lastPlayedType   = state.playerState.lastPlayedType,
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
                                                painterResource(R.drawable.hand_background),
@@ -2035,7 +2040,8 @@ fun HandPanel(
     showHeader: Boolean = true,      // false = skryje "RUKA (n)" a tlačítko čekat
     playerWallHp: Int = 0,
     playerCastleHp: Int = 0,
-    oppResources: Map<ResourceType, Int> = emptyMap()
+    oppResources: Map<ResourceType, Int> = emptyMap(),
+    lastPlayedType: String? = null
 ) {
     Column(modifier = modifier.padding(vertical = 6.dp)) {
 
@@ -2080,7 +2086,14 @@ fun HandPanel(
                         discardMode   = false,
                         onClick       = { onPlayCard(card) },
                         onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
-                        conditionMet  = cardConditionMet(card, playerResources, playerWallHp, playerCastleHp, oppResources)
+                        conditionMet  = cardConditionMet(
+                            card,
+                            playerResources,
+                            playerWallHp,
+                            playerCastleHp,
+                            oppResources,
+                            lastPlayedType
+                        )
                     )
                 }
             }
@@ -2098,7 +2111,8 @@ fun CardView(
     onDiscard: (() -> Unit)? = null,
     isComboCard: Boolean = card.isCombo,
     conditionMet: Boolean? = null,  // null = karta nemá podmínku
-    showFade: Boolean = true        // false = vždy plná opacity (např. zahraná karta uprostřed)
+    showFade: Boolean = true,       // false = vždy plná opacity (např. zahraná karta uprostřed)
+    showGlow: Boolean = true
 ) {
     val offsetY   = remember { Animatable(0f) }
     val scope     = rememberCoroutineScope()
@@ -2108,7 +2122,7 @@ fun CardView(
     val isDragging = offsetY.value < -6f
 
     // ── Zelený glow: zahratelná karta se splněnou podmínkou ───────────────────
-    val showGreenGlow = canPlay && (conditionMet == null || conditionMet == true)
+    val showGreenGlow = showGlow && canPlay && conditionMet == true
     val glowTransition = rememberInfiniteTransition(label = "cardGlow")
     val glowAlpha by glowTransition.animateFloat(
         initialValue = 0.35f,
@@ -2161,11 +2175,13 @@ fun CardView(
             isDragging             -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
             discardMode            -> DiscardRed.copy(alpha = 0.7f)
             canPlay && isComboCard -> ComboYellow
+            showGreenGlow          -> GlowGreen.copy(alpha = glowAlpha)
             canPlay                -> Gold
             else                   -> TextMuted.copy(alpha = 0.25f)
         }
         val bgColor = when {
             isDragging || discardMode -> Color(0xFF250A0A)
+            showGreenGlow             -> Color(0xFF0D1E12)
             canPlay && isComboCard    -> Color(0xFF1E1A10)
             canPlay                   -> BgCard
             else                      -> BgCard
@@ -2176,32 +2192,6 @@ fun CardView(
                 .size(width = 100.dp, height = 140.dp)
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .then(dragModifier)
-                .drawBehind {
-                    if (showGreenGlow) {
-                        val glow = glowAlpha
-                        val ext1 = 10.dp.toPx()
-                        val ext2 = 6.dp.toPx()
-                        val ext3 = 3.dp.toPx()
-                        drawRoundRect(
-                            color        = GlowGreen.copy(alpha = glow * 0.18f),
-                            topLeft      = Offset(-ext1, -ext1),
-                            size         = Size(size.width + ext1 * 2, size.height + ext1 * 2),
-                            cornerRadius = CornerRadius(14.dp.toPx())
-                        )
-                        drawRoundRect(
-                            color        = GlowGreen.copy(alpha = glow * 0.32f),
-                            topLeft      = Offset(-ext2, -ext2),
-                            size         = Size(size.width + ext2 * 2, size.height + ext2 * 2),
-                            cornerRadius = CornerRadius(11.dp.toPx())
-                        )
-                        drawRoundRect(
-                            color        = GlowGreen.copy(alpha = glow * 0.50f),
-                            topLeft      = Offset(-ext3, -ext3),
-                            size         = Size(size.width + ext3 * 2, size.height + ext3 * 2),
-                            cornerRadius = CornerRadius(9.dp.toPx())
-                        )
-                    }
-                }
         ) {
             Column(
                 modifier = Modifier
@@ -2311,6 +2301,10 @@ fun CardView(
                     }
                 }
             }
+            if (showGreenGlow) {
+                Box(Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                    .border(3.dp, GlowGreen.copy(alpha = glowAlpha * 0.35f), RoundedCornerShape(8.dp)))
+            }
             if (isDragging) {
                 Box(
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
@@ -2347,10 +2341,12 @@ private fun CardViewTextured(
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
     }
 
+    val GlowGreen = Color(0xFF4DB86E)
     val borderColor = when {
         isDragging             -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
         discardMode            -> DiscardRed.copy(alpha = 0.8f)
         canPlay && isComboCard -> ComboYellow
+        showGreenGlow          -> GlowGreen.copy(alpha = glowAlpha)
         canPlay                -> Gold
         else                   -> Color.Transparent
     }
@@ -2360,35 +2356,8 @@ private fun CardViewTextured(
             .size(width = 100.dp, height = 140.dp)
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .then(dragModifier)
-            .drawBehind {
-                if (showGreenGlow) {
-                    val glow = glowAlpha
-                    val GlowGreen = Color(0xFF4DB86E)
-                    val ext1 = 10.dp.toPx()
-                    val ext2 = 6.dp.toPx()
-                    val ext3 = 3.dp.toPx()
-                    drawRoundRect(
-                        color        = GlowGreen.copy(alpha = glow * 0.18f),
-                        topLeft      = Offset(-ext1, -ext1),
-                        size         = Size(size.width + ext1 * 2, size.height + ext1 * 2),
-                        cornerRadius = CornerRadius(14.dp.toPx())
-                    )
-                    drawRoundRect(
-                        color        = GlowGreen.copy(alpha = glow * 0.32f),
-                        topLeft      = Offset(-ext2, -ext2),
-                        size         = Size(size.width + ext2 * 2, size.height + ext2 * 2),
-                        cornerRadius = CornerRadius(11.dp.toPx())
-                    )
-                    drawRoundRect(
-                        color        = GlowGreen.copy(alpha = glow * 0.50f),
-                        topLeft      = Offset(-ext3, -ext3),
-                        size         = Size(size.width + ext3 * 2, size.height + ext3 * 2),
-                        cornerRadius = CornerRadius(9.dp.toPx())
-                    )
-                }
-            }
             .clip(RoundedCornerShape(6.dp))
-            .background(BgCard)
+            .background(if (showGreenGlow) Color(0xFF0D1E12) else BgCard)
             .then(if (borderColor != Color.Transparent)
                 Modifier.border(1.5.dp, borderColor, RoundedCornerShape(6.dp)) else Modifier)
             .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
@@ -2581,7 +2550,13 @@ private fun CardViewTextured(
             }
         }
 
-        // Vrstva 7: overlay při tažení / discard
+        // Vrstva 7: zelený glow overlay (na vrchu — ale průhledný, nepřekáží čtení)
+        if (showGreenGlow) {
+            Box(Modifier.fillMaxSize()
+                .border(3.dp, GlowGreen.copy(alpha = glowAlpha * 0.35f), RoundedCornerShape(6.dp)))
+        }
+
+        // Vrstva 8: overlay při tažení / discard
         if (isDragging) {
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -2687,7 +2662,8 @@ fun MulliganOverlay(
                             card        = card,
                             canPlay     = !isSelected && !submitted,
                             discardMode = isSelected,
-                            onClick     = { if (!submitted) onToggle(card.id) }
+                            onClick     = { if (!submitted) onToggle(card.id) },
+                            showGlow    = false
                         )
                         // Overlay na vybrané kartě
                         if (isSelected) {

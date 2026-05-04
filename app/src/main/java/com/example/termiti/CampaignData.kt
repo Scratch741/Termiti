@@ -38,7 +38,8 @@ data class CampaignOpponent(
     val playerHandicap: PlayerHandicap = PlayerHandicap(),
 
     val rewardGold: Int = 50,
-    val rewardGems: Int = 0
+    val rewardGems: Int = 0,
+    val rewardXp  : Int = 75
 )
 
 // ── Lokace = skupina soupeřů zakončená bossem ─────────────────────────────────
@@ -192,7 +193,7 @@ object CampaignData {
                 // 10 BOSS ── 32 karet, winTarget 62, AI lízne 5 karet ────────
                 CampaignOpponent(
                     id = "gob_king", name = "Goblin Král", title = "Pán tábora",
-                    avatar = "👑", description = "Boss goblinů. 32 karet, startuje s 5 kartami v ruce.",
+                    avatar = "👑", description = "Boss goblinů. 32 karet, startuje s 5 kartami v ruce. Jednorázová odměna: 200 XP.",
                     isBoss = true,
                     aiCastle = 28, aiWall = 12,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
@@ -201,7 +202,7 @@ object CampaignData {
                         "017" to 4, "012" to 4, "004" to 3, "002" to 1
                     ),
                     winTarget = 62, aiStartHandSize = 5,
-                    rewardGold = 150, rewardGems = 2
+                    rewardGold = 150, rewardGems = 2, rewardXp = 200
                 )
             )
         ),
@@ -349,7 +350,7 @@ object CampaignData {
                 // 10 BOSS ── 38 karet, winTarget 75, AI lízne 5 karet ────────
                 CampaignOpponent(
                     id = "dwf_thane", name = "Trpasličí Thane", title = "Pán hor",
-                    avatar = "🔱", description = "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok.",
+                    avatar = "🔱", description = "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok. Jednorázová odměna: 200 XP.",
                     isBoss = true,
                     aiCastle = 35, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.STONES to 1, ResourceType.ATTACK to 1),
@@ -358,7 +359,7 @@ object CampaignData {
                         "018" to 5, "013" to 4, "014" to 4, "015" to 4, "004" to 2
                     ),
                     winTarget = 75, aiStartHandSize = 5,
-                    rewardGold = 220, rewardGems = 3
+                    rewardGold = 220, rewardGems = 3, rewardXp = 200
                 )
             )
         ),
@@ -522,7 +523,7 @@ object CampaignData {
                 // Démon + Drak v balíčku. Absolutní konec výstavbové strategie.
                 CampaignOpponent(
                     id = "cit_lord", name = "Temný Pán", title = "Vládce temnoty",
-                    avatar = "☠️", description = "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt.",
+                    avatar = "☠️", description = "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt. Jednorázová odměna: 200 XP.",
                     isBoss = true,
                     aiCastle = 45, aiWall = 25,
                     aiExtraMines = mapOf(
@@ -537,7 +538,7 @@ object CampaignData {
                     ),
                     winTarget = 999, aiStartHandSize = 7,
                     playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -5),
-                    rewardGold = 400, rewardGems = 6
+                    rewardGold = 400, rewardGems = 6, rewardXp = 200
                 )
             )
         )

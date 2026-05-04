@@ -117,6 +117,7 @@ fun CampaignResultScreen(
                             horizontalArrangement = Arrangement.spacedBy(20.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            RewardBadge("⭐", "+${opponent.rewardXp} XP", Color(0xFF7EE8A2))
                             RewardBadge("🪙", "${opponent.rewardGold}", CrGold)
                             if (opponent.rewardGems > 0) {
                                 RewardBadge("💎", "${opponent.rewardGems}", CrTeal)
