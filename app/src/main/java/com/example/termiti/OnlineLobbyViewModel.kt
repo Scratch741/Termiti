@@ -267,13 +267,17 @@ class OnlineLobbyViewModel(
     }
 
     private fun sendMulliganDone(returnIds: List<String>) {
-        val gameId = matchInfo.value?.gameId ?: return
+        val gameId = matchInfo.value?.gameId
+        if (gameId == null) {
+            android.util.Log.w("MULLIGAN", "sendMulliganDone: matchInfo.gameId je null – posílám bez gameId (server použije player.gameId)")
+        }
         val json = JSONObject().apply {
             put("type", "MULLIGAN_DONE")
-            put("gameId", gameId)
+            if (gameId != null) put("gameId", gameId)
             put("returnIds", JSONArray(returnIds))
         }
-        ws?.send(json.toString())
+        val sent = ws?.send(json.toString())
+        android.util.Log.d("MULLIGAN", "sendMulliganDone: gameId=$gameId returnIds=$returnIds ws=${ws != null} sent=$sent")
     }
 
     // ── Herní akce ────────────────────────────────────────────────────────────
@@ -397,11 +401,15 @@ class OnlineLobbyViewModel(
                 "WELCOME" -> {
                     onlineCount.value    = json.optInt("online", 0)
                     queueSize.value      = json.optInt("queue",  0)
-                    // Pokud jsme se vraceli z auto-reconnectu, stav hry zůstane
-                    if (!isReconnecting.value) {
+                    // Nepřepisuj fázi hry při reconnectu – buď z auto-reconnectu (isReconnecting)
+                    // nebo jsme aktivní ve hře (mulligan / playing)
+                    val inGame = phase.value == OnlinePhase.GAME_MULLIGAN ||
+                                 phase.value == OnlinePhase.GAME_PLAYING
+                    if (!isReconnecting.value && !inGame) {
                         phase.value      = OnlinePhase.LOBBY
                         statusMsg.value  = "Připojeno ✓"
                     }
+                    android.util.Log.d("WELCOME", "WELCOME: isReconnecting=${isReconnecting.value} inGame=$inGame phase=${phase.value}")
                     isReconnecting.value = false
                     reconnectAttempts    = 0
                 }
@@ -437,6 +445,7 @@ class OnlineLobbyViewModel(
                     lastPlayedCard.value    = null   // čistý stav pro novou hru
                     lastPlayedByMe.value    = false
                     phase.value = OnlinePhase.GAME_MULLIGAN
+                    android.util.Log.d("MULLIGAN", "GAME_MULLIGAN přijato: hand=${mulliganHand.value.size} karet, matchInfo=${matchInfo.value?.gameId}")
                 }
 
                 "MULLIGAN_OK" -> {
