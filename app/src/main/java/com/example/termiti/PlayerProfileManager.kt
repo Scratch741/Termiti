@@ -56,9 +56,16 @@ object PlayerProfileManager {
         return p
     }
 
-    /** Zaregistruje výsledek hry a přidá odpovídající odměny. */
-    fun recordGameResult(win: Boolean, online: Boolean): ProfileReward {
-        val (xp, gold, gems) = PlayerProfile.rewardForResult(win, online)
+    /**
+     * Zaregistruje výsledek hry a přidá odpovídající odměny.
+     * @param campaign true pro kampaňové hry – sledují se statistiky a questy,
+     *                 ale žádná obecná herní odměna (XP/zlato) se nedává;
+     *                 kampaň má vlastní systém odměn přes CampaignManager.claimReward.
+     */
+    fun recordGameResult(win: Boolean, online: Boolean, campaign: Boolean = false): ProfileReward {
+        // Kampaňové hry nemají obecnou herní odměnu – ta je řešena přes claimReward
+        val (xp, gold, gems) = if (campaign) Triple(0, 0, 0)
+                               else PlayerProfile.rewardForResult(win, online)
         val before = _profile ?: PlayerProfile("?")
         val levelBefore = before.level
         var p = before.copy(
@@ -71,7 +78,7 @@ object PlayerProfileManager {
         p = applyXp(p, xp)
         save(p)
         // Notifikace za odměnu z hry (level-up toast se posílá zvlášť z applyXp)
-        if (xp > 0 || gold > 0) {
+        if (!campaign && (xp > 0 || gold > 0)) {
             RewardNotifier.emit(RewardNotifier.RewardEvent(
                 xp     = xp,
                 gold   = gold,

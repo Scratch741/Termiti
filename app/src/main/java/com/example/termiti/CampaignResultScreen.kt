@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.BoxWithConstraints
 
 private val CrBgDeep  = Color(0xFF09070D)
 private val CrBgPanel = Color(0xFF13101A)
@@ -45,14 +46,16 @@ fun CampaignResultScreen(
         } else false
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(CrBgDeep, CrBgPanel, CrBgDeep)))
     ) {
+        val screenHeight = maxHeight
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .heightIn(min = screenHeight)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -166,7 +166,8 @@ class MainActivity : ComponentActivity() {
                             viewModel    = viewModel,
                             onBackToMenu = { screen = Screen.CAMPAIGN_LOCATION },
                             onGameEnd    = { win ->
-                                PlayerProfileManager.recordGameResult(win = win, online = false)
+                                // campaign = true → žádná obecná herní odměna, jen statistiky + questy
+                                PlayerProfileManager.recordGameResult(win = win, online = false, campaign = true)
                                 if (win) QuestManager.onCampaignWin()
                                 campaignPlayerWon = win
                                 screen = Screen.CAMPAIGN_RESULT
