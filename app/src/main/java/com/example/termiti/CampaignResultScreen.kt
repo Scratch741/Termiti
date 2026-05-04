@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
@@ -51,7 +53,8 @@ fun CampaignResultScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 48.dp, vertical = 32.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -145,24 +148,29 @@ fun CampaignResultScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ── Tlačítka ──────────────────────────────────────────────────────
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (!playerWon) {
                     ResultButton(
                         label   = "🔄  Zkusit znovu",
                         accent  = CrTeal,
+                        modifier = Modifier.fillMaxWidth(),
                         onClick = onRetry
                     )
                 }
                 ResultButton(
-                    label   = "📍  Lokace",
+                    label   = "📍  Zpět na lokaci",
                     accent  = CrGold,
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = onBackToLocation
                 )
                 ResultButton(
                     label   = "🗺️  Mapa kampaně",
                     accent  = CrMuted,
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = onBackToMap
                 )
             }
@@ -182,14 +190,19 @@ private fun RewardBadge(icon: String, value: String, color: Color) {
 }
 
 @Composable
-private fun ResultButton(label: String, accent: Color, onClick: () -> Unit) {
+private fun ResultButton(
+    label: String,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(accent.copy(alpha = 0.10f))
             .border(1.dp, accent.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
             .clickable { SoundManager.playMenuTap(); onClick() }
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
