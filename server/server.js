@@ -210,6 +210,7 @@ wss.on('connection', (ws, req) => {
 
         // ── Reconnect po odpojení uprostřed hry (grace period) ──────────────────
         const dp = disconnectedPlayers.get(name);
+        log('JOIN', `"${name}" – disconnectedPlayers=${!!dp} deviceMatch=${dp ? deviceId===dp.deviceId : 'N/A'}`);
         if (dp && deviceId && deviceId === dp.deviceId) {
           // Zrušit reconnect timer
           const timer = reconnectTimers.get(name);
@@ -217,6 +218,7 @@ wss.on('connection', (ws, req) => {
           disconnectedPlayers.delete(name);
 
           const session = games.get(dp.gameId);
+          log('RECONNECT', `Path1 "${name}" – session=${!!session} phase=${session?.phase}`);
           if (session && session.phase !== 'ended') {
             // Přepojit hráče
             players.set(ws, { id: dp.id, name, avatar: dp.avatar, level: dp.level,
@@ -256,6 +258,7 @@ wss.on('connection', (ws, req) => {
             // Pokud běží hra a jde o stejné zařízení → NEZASTAVUJ hru, jen updatuj WS
             if (sameDevice && p.gameId) {
               const session = games.get(p.gameId);
+              log('RECONNECT', `Path2 "${name}" – session=${!!session} phase=${session?.phase}`);
               if (session && session.phase !== 'ended') {
                 // Přepoj hráče do existující hry
                 players.set(ws, { id: p.id, name, avatar: p.avatar ?? '⚔️', level: p.level ?? 1, deviceId, inQueue: false,

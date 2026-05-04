@@ -113,8 +113,9 @@ class GameSession {
    * @param {string[]} returnIds  – instance IDs the player wants to swap back
    */
   handleMulligan(side, returnIds) {
-    if (this.phase !== 'mulligan') return;
-    if (this.mulliganDone[side]) return;
+    console.log(`[Mulligan ${this.gameId}] ${this.name[side]}(${side}) odeslal – phase=${this.phase} doneA=${this.mulliganDone.A} doneB=${this.mulliganDone.B}`);
+    if (this.phase !== 'mulligan') { console.log(`[Mulligan ${this.gameId}] BLOKOVÁNO – phase není mulligan`); return; }
+    if (this.mulliganDone[side])   { console.log(`[Mulligan ${this.gameId}] BLOKOVÁNO – ${side} už odeslal`);  return; }
 
     const ps = this.state[side];
 
@@ -147,10 +148,12 @@ class GameSession {
 
     // If both done → start game
     if (this.mulliganDone.A && this.mulliganDone.B) {
+      console.log(`[Mulligan ${this.gameId}] Oba hráči hotovi → startGame`);
       this._startGame();
     } else {
       // Tell the other side their opponent confirmed
       const other = side === 'A' ? 'B' : 'A';
+      console.log(`[Mulligan ${this.gameId}] Čekám na ${other} → OPPONENT_MULLIGAN_DONE → ${this.name[other]}`);
       this._send(other, { type: 'OPPONENT_MULLIGAN_DONE' });
     }
   }
@@ -230,6 +233,7 @@ class GameSession {
 
   resendStateTo(side, newWs) {
     this.ws[side] = newWs;
+    console.log(`[Reconnect ${this.gameId}] resendStateTo(${side}) phase=${this.phase} doneA=${this.mulliganDone.A} doneB=${this.mulliganDone.B}`);
     if (this.phase === 'mulligan') {
       // Resetuj mulliganDone pro reconnectujícího hráče – klient dostane GAME_MULLIGAN
       // znovu a musí mít možnost znovu odeslat svůj výběr.
@@ -239,6 +243,7 @@ class GameSession {
       // aby věděl, že stačí jen potvrdit svůj vlastní výběr.
       const other = side === 'A' ? 'B' : 'A';
       if (this.mulliganDone[other]) {
+        console.log(`[Reconnect ${this.gameId}] ${other} už dokončil mulligan → posílám OPPONENT_MULLIGAN_DONE → ${side}`);
         this._send(side, { type: 'OPPONENT_MULLIGAN_DONE' });
       }
     } else if (this.phase === 'playing') {
