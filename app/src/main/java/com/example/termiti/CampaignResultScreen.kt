@@ -151,30 +151,20 @@ fun CampaignResultScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ── Tlačítka ──────────────────────────────────────────────────────
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (!playerWon) {
                     ResultButton(
                         label   = "🔄  Zkusit znovu",
                         accent  = CrTeal,
-                        modifier = Modifier.fillMaxWidth(),
                         onClick = onRetry
                     )
                 }
                 ResultButton(
                     label   = "📍  Zpět na lokaci",
                     accent  = CrGold,
-                    modifier = Modifier.fillMaxWidth(),
                     onClick = onBackToLocation
-                )
-                ResultButton(
-                    label   = "🗺️  Mapa kampaně",
-                    accent  = CrMuted,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onBackToMap
                 )
             }
         }

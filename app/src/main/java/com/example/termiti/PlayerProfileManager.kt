@@ -69,9 +69,9 @@ object PlayerProfileManager {
         val before = _profile ?: PlayerProfile("?")
         val levelBefore = before.level
         var p = before.copy(
-            winsOffline = before.winsOffline + if (win && !online) 1 else 0,
-            winsOnline  = before.winsOnline  + if (win && online)  1 else 0,
-            totalGames  = before.totalGames  + 1,
+            winsOffline = before.winsOffline + if (win && !online && !campaign) 1 else 0,
+            winsOnline  = before.winsOnline  + if (win && online)               1 else 0,
+            totalGames  = before.totalGames  + if (!campaign) 1 else 0,
             gold        = before.gold  + gold,
             gems        = before.gems  + gems
         )
