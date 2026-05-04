@@ -231,7 +231,16 @@ class GameSession {
   resendStateTo(side, newWs) {
     this.ws[side] = newWs;
     if (this.phase === 'mulligan') {
+      // Resetuj mulliganDone pro reconnectujícího hráče – klient dostane GAME_MULLIGAN
+      // znovu a musí mít možnost znovu odeslat svůj výběr.
+      this.mulliganDone[side] = false;
       this._send(side, { type: 'GAME_MULLIGAN', hand: this._serializeHand(side) });
+      // Pokud soupeř už svůj mulligan dokončil, informuj reconnectujícího hráče,
+      // aby věděl, že stačí jen potvrdit svůj vlastní výběr.
+      const other = side === 'A' ? 'B' : 'A';
+      if (this.mulliganDone[other]) {
+        this._send(side, { type: 'OPPONENT_MULLIGAN_DONE' });
+      }
     } else if (this.phase === 'playing') {
       this._send(side, this._buildStateFor(side));
     }
