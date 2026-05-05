@@ -59,6 +59,58 @@ enum class PassiveAbility(
         icon        = "🌀",
         unlockLevel = 6,
         goldCost    = 150
+    ),
+
+    // ── Rychlý tah ────────────────────────────────────────────────────────────
+    QUICK_DRAW(
+        id          = "quick_draw",
+        title       = "Rychlý tah",
+        description = "Začínáš s 1 kartou navíc v ruce.",
+        icon        = "🤌",
+        unlockLevel = 7,
+        goldCost    = 130
+    ),
+
+    // ── Posila balíčku ────────────────────────────────────────────────────────
+    BOOST_ATTACK(
+        id          = "boost_attack",
+        title       = "Útočná posila",
+        description = "Do balíčku se přidají 2 náhodné útočné karty.",
+        icon        = "⚔️",
+        unlockLevel = 8,
+        goldCost    = 160
+    ),
+    BOOST_BUILD(
+        id          = "boost_build",
+        title       = "Stavební posila",
+        description = "Do balíčku se přidají 2 náhodné stavební karty.",
+        icon        = "🏗️",
+        unlockLevel = 8,
+        goldCost    = 160
+    ),
+    BOOST_MAGIC(
+        id          = "boost_magic",
+        title       = "Magická posila",
+        description = "Do balíčku se přidají 2 náhodné magické karty.",
+        icon        = "✨",
+        unlockLevel = 8,
+        goldCost    = 160
+    ),
+    BOOST_CHAOS(
+        id          = "boost_chaos",
+        title       = "Chaotická posila",
+        description = "Do balíčku se přidají 2 náhodné chaos karty.",
+        icon        = "🌀",
+        unlockLevel = 9,
+        goldCost    = 180
+    ),
+    BOOST_RANDOM(
+        id          = "boost_random",
+        title       = "Náhodná posila",
+        description = "Do balíčku se přidají 3 náhodné karty libovolného typu.",
+        icon        = "🎲",
+        unlockLevel = 8,
+        goldCost    = 150
     );
 
     companion object {

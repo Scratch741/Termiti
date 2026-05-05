@@ -1295,8 +1295,28 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             for ((resType, delta) in h.extraMines) {
                 it.mines[resType] = ((it.mines[resType] ?: 1) + delta).coerceAtLeast(0)
             }
-            it.deck.addAll(playerCards.withUniqueIds().shuffled())
-            it.drawCards(opponent.playerStartHandSize.coerceIn(1, 7))
+            // Posila balíčku z pasivních schopností
+            fun boostCards(filter: (Card) -> Boolean, count: Int): List<Card> =
+                allCards.filter(filter).shuffled().take(count)
+
+            val deckBoost = buildList {
+                if (PassiveAbility.BOOST_ATTACK in actives)
+                    addAll(boostCards({ it.type == "Útok" }, 2))
+                if (PassiveAbility.BOOST_BUILD  in actives)
+                    addAll(boostCards({ it.type == "Stavba" }, 2))
+                if (PassiveAbility.BOOST_MAGIC  in actives)
+                    addAll(boostCards({ it.type == "Magie" }, 2))
+                if (PassiveAbility.BOOST_CHAOS  in actives)
+                    addAll(boostCards({ it.type == "Chaos" }, 2))
+                if (PassiveAbility.BOOST_RANDOM in actives)
+                    addAll(boostCards({ it.type != "Důl" }, 3))
+            }
+
+            it.deck.addAll((playerCards + deckBoost).withUniqueIds().shuffled())
+
+            val startHandSize = opponent.playerStartHandSize.coerceIn(1, 7) +
+                if (PassiveAbility.QUICK_DRAW in actives) 1 else 0
+            it.drawCards(startHandSize)
         }
 
         // ── AI stav ───────────────────────────────────────────────────────────
