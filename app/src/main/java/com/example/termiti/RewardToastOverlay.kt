@@ -77,11 +77,11 @@ private fun RewardToastCard(ev: RewardNotifier.RewardEvent) {
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        // Zdroj (quest název / level up)
-        if (ev.source.isNotEmpty()) {
+        // Zdroj (quest název apod.) – skryj při level-upu, tam ho nahrazuje banner
+        if (ev.source.isNotEmpty() && !ev.levelUp) {
             Text(
                 ev.source,
-                color      = if (ev.levelUp) LevelColor else Color(0xFFBBAACF),
+                color      = Color(0xFFBBAACF),
                 fontSize   = 10.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines   = 2
