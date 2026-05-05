@@ -49,6 +49,9 @@ class GameSession {
     // Mulligan tracking
     this.mulliganDone = { A: false, B: false };
 
+    // Quick-draw tracking (1 extra card on first turn, not in mulligan)
+    this.quickDrawApplied = { A: false, B: false };
+
     // Empty-deck skip tracking: hra skončí až oba hráči přeskočí tah s prázdnými balíčky
     this.skippedEmptyDeck = { A: false, B: false };
 
@@ -94,11 +97,9 @@ class GameSession {
       B: this.abilities.B.includes('extra_castle') ? 65 : 60
     };
 
-    // Deal opening hands (quick_draw = 1 karta navíc)
-    const handA = MULLIGAN_HAND_SIZE + (this.abilities.A.includes('quick_draw') ? 1 : 0);
-    const handB = MULLIGAN_HAND_SIZE + (this.abilities.B.includes('quick_draw') ? 1 : 0);
-    drawCards(this.state.A, handA);
-    drawCards(this.state.B, handB);
+    // Deal opening hands
+    drawCards(this.state.A, MULLIGAN_HAND_SIZE);
+    drawCards(this.state.B, MULLIGAN_HAND_SIZE);
 
     // Pick who goes first (already decided in matchmaking, side A = first player)
     this.activeSide = 'A';
@@ -168,6 +169,12 @@ class GameSession {
 
     // First player gets resources but NO extra draw
     generateResources(this.state[this.activeSide]);
+
+    // quick_draw: hráč A (jde první) dostane 1 kartu navíc na začátku svého 1. tahu
+    if (this.abilities[this.activeSide].includes('quick_draw') && !this.quickDrawApplied[this.activeSide]) {
+      this.quickDrawApplied[this.activeSide] = true;
+      drawCards(this.state[this.activeSide], 1);
+    }
 
     this._log(`Hra začala. Na tahu: ${this.name[this.activeSide]}`);
     this._startTurnTimer();  // nejdřív nastav turnStartedAt, pak pošli stav
@@ -445,7 +452,14 @@ class GameSession {
 
     const next = this.state[this.activeSide];
     generateResources(next);
-    const burned = drawCards(next, TURN_HAND_DRAW);
+
+    // quick_draw: hráč B (jde druhý) dostane 1 kartu navíc na začátku svého 1. tahu
+    let extraDraw = 0;
+    if (this.abilities[this.activeSide].includes('quick_draw') && !this.quickDrawApplied[this.activeSide]) {
+      this.quickDrawApplied[this.activeSide] = true;
+      extraDraw = 1;
+    }
+    const burned = drawCards(next, TURN_HAND_DRAW + extraDraw);
 
     if (burned.length > 0) {
       this._log(`${this.name[this.activeSide]} spálil kartu (plná ruka).`);

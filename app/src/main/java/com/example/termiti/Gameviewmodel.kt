@@ -734,6 +734,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     var gameState = androidx.compose.runtime.mutableStateOf(createInitialState())
         private set
+
+    /** Quick draw: extra karta dolíznutá jen jednou na prvním tahu hráče. */
+    private var quickDrawUsed = false
     var log = androidx.compose.runtime.mutableStateOf<List<LogEntry>>(emptyList())
         private set
     var gameOver = androidx.compose.runtime.mutableStateOf<GameResult?>(null)
@@ -799,6 +802,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // Hráč začíná jako první → vygeneruj mu zdroje pro první tah
             val player = old.playerState.deepCopy()
             player.generateResources()
+            // Quick draw: extra karta na prvním tahu
+            if (!quickDrawUsed) {
+                val actives = PlayerProfileManager.profile
+                    ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
+                if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
+                    quickDrawUsed = true
+                    player.drawCards(1)
+                }
+            }
             gameState.value = old.copy(playerState = player)
             addLog("Hráč začíná jako první!")
             return
@@ -1154,6 +1166,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
                 }
             }
+            // Quick draw: extra karta na hráčově prvním tahu (pokud AI šla první)
+            if (!quickDrawUsed) {
+                val actives = PlayerProfileManager.profile
+                    ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
+                if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
+                    quickDrawUsed = true
+                    player.drawCards(1)
+                    SoundManager.playCardDraw()
+                }
+            }
 
             // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
             // Stává se, když hráč zahodí poslední kartu a AI nemá nic.
@@ -1249,6 +1271,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        quickDrawUsed           = false
         gameState.value         = createCampaignState(opponent)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
@@ -1313,10 +1336,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             it.deck.addAll((playerCards + deckBoost).withUniqueIds().shuffled())
-
-            val startHandSize = opponent.playerStartHandSize.coerceIn(1, 7) +
-                if (PassiveAbility.QUICK_DRAW in actives) 1 else 0
-            it.drawCards(startHandSize)
+            it.drawCards(opponent.playerStartHandSize.coerceIn(1, 7))
         }
 
         // ── AI stav ───────────────────────────────────────────────────────────
