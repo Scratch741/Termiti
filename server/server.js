@@ -180,7 +180,27 @@ wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
   log('+', `Spojení z ${ip}`);
 
+  // ── Rate limiting ─────────────────────────────────────────────────────────
+  let msgCount   = 0;
+  let windowStart = Date.now();
+  const MSG_LIMIT  = 30;   // max zpráv za okno
+  const MSG_WINDOW = 1000; // ms
+
   ws.on('message', (raw) => {
+    // Zkontroluj velikost zprávy
+    if (raw.length > 8192) {
+      log('RATELIMIT', `Příliš velká zpráva (${raw.length} B) od ${ip}`);
+      return;
+    }
+    // Rate limit: max MSG_LIMIT zpráv za MSG_WINDOW ms
+    const now = Date.now();
+    if (now - windowStart > MSG_WINDOW) { msgCount = 0; windowStart = now; }
+    msgCount++;
+    if (msgCount > MSG_LIMIT) {
+      log('RATELIMIT', `Flood od ${ip} (${msgCount} zpráv/${MSG_WINDOW}ms) – zahazuji`);
+      return;
+    }
+
     let msg;
     try { msg = JSON.parse(raw); }
     catch { return; }
@@ -351,7 +371,10 @@ wss.on('connection', (ws, req) => {
       case 'MULLIGAN_DONE': {
         if (!player) return;
         const session = games.get(msg.gameId || player.gameId);
-        if (!session) { send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return; }
+        // Ownership check: WS musí být účastník té konkrétní hry
+        if (!session || (session.ws.A !== ws && session.ws.B !== ws)) {
+          send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return;
+        }
 
         const returnIds = Array.isArray(msg.returnIds) ? msg.returnIds : [];
         session.handleMulligan(player.side, returnIds);
@@ -362,7 +385,10 @@ wss.on('connection', (ws, req) => {
       case 'GAME_ACTION': {
         if (!player) return;
         const session = games.get(msg.gameId || player.gameId);
-        if (!session) { send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return; }
+        // Ownership check: WS musí být účastník té konkrétní hry
+        if (!session || (session.ws.A !== ws && session.ws.B !== ws)) {
+          send(ws, { type: 'GAME_ERROR', msg: 'Hra nenalezena' }); return;
+        }
 
         // Vzdání – okamžitě ukonči hru, soupeř vítězí
         if (msg.action === 'FORFEIT') {
