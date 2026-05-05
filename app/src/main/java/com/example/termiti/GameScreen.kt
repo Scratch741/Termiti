@@ -935,6 +935,7 @@ fun NewBattlefield(
             wallHp      = playerState.wallHP,
             isPlayer    = true,
             winTarget   = playerWinTarget,
+            handSize    = playerState.hand.size,
             modifier    = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)
@@ -946,6 +947,7 @@ fun NewBattlefield(
             wallHp      = aiState.wallHP,
             isPlayer    = false,
             winTarget   = aiWinTarget,
+            handSize    = aiState.hand.size,
             modifier    = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
@@ -1288,6 +1290,8 @@ private fun CastleHpBadge(
     wallHp: Int,
     isPlayer: Boolean,
     winTarget: Int = 60,
+    handSize: Int = 0,
+    maxHandSize: Int = 7,
     modifier: Modifier = Modifier
 ) {
     val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
@@ -1311,6 +1315,12 @@ private fun CastleHpBadge(
         Text(
             "🧱 $wallHp",
             color      = accentColor,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            "🃏 $handSize/$maxHandSize",
+            color      = Color(0xFFCCBB88),
             fontSize   = 11.sp,
             fontWeight = FontWeight.Bold
         )
