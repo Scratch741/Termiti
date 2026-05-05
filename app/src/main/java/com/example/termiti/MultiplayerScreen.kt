@@ -221,11 +221,7 @@ private fun MpLobbyScreen(vm: MultiplayerViewModel, onBack: () -> Unit) {
                 Text("Hledám hry v síti…", color = MpMuted, fontSize = 11.sp)
             }
         } else {
-            MpButton(
-                "🔍  Hledat hru v síti",
-                MpPurple.copy(alpha = 0.7f),
-                Modifier.width(280.dp)
-            ) { vm.scanNetwork() }
+            MpButton("🔍  Hledat hru v síti", MpPurple.copy(alpha = 0.7f), Modifier.width(280.dp)) { vm.scanNetwork() }
         }
 
         // Nalezení hostitelé

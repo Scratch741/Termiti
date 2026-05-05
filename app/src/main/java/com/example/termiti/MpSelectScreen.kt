@@ -85,64 +85,26 @@ fun MpSelectScreen(
             Spacer(Modifier.height(40.dp))
 
             // Online tlačítko
-            MpSelectButton(
-                emoji    = "🌐",
-                title    = "Online",
-                subtitle = "Přes internet – lobby server",
+            MenuButton(
+                label    = "ONLINE",
                 accent   = SelTeal,
+                imageRes = R.drawable.button_8,
+                modifier = Modifier.width(320.dp),
                 onClick  = onOnline
             )
 
             Spacer(Modifier.height(16.dp))
 
             // Lokálně tlačítko
-            MpSelectButton(
-                emoji    = "📡",
-                title    = "Lokálně",
-                subtitle = "Přes WiFi – přímé připojení",
+            MenuButton(
+                label    = "LOKÁLNĚ",
                 accent   = SelGold,
+                imageRes = R.drawable.button_9,
+                modifier = Modifier.width(320.dp),
                 onClick  = onLocal
             )
         }
     }
 }
 
-@Composable
-private fun MpSelectButton(
-    emoji   : String,
-    title   : String,
-    subtitle: String,
-    accent  : Color,
-    onClick : () -> Unit
-) {
-    Box(
-        Modifier
-            .width(320.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(accent.copy(alpha = 0.10f))
-            .border(1.5.dp, accent.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
-            .clickable { SoundManager.playMenuTap(); onClick() }
-            .padding(horizontal = 28.dp, vertical = 20.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(emoji, fontSize = 32.sp)
-            Column {
-                Text(
-                    title,
-                    color      = SelText,
-                    fontSize   = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Text(
-                    subtitle,
-                    color    = SelMuted,
-                    fontSize = 10.sp
-                )
-            }
-        }
-    }
-}
+

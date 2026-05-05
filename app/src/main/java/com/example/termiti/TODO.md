@@ -4,11 +4,9 @@ Zvuky - přidání zvuků při zahrání karty
 Animace - přidání speciálních animací při zahrání karty
 Hrad/hradby - vizuální reprezentace. Čím víc hradu / hradeb máš, tím větší bude
 Přidání nového zdroje - Chaos - nebude na něj od začátku důl, speciální karty na generaci chaosu (například magie bude generovat chaos, nebo musíš přetvořit důl magie na důl chaosu), zelená barva, unikátní karty (například destrukce dolů, ničení hradu pro soupeře a zároveň pro hráče, atd.)
-Přidání Multiplayeru - začne se local 1v1, poté server online
 
 
 Více karet, nové mechaniky karet (lze se inspirovat z Hearthstone). Karty typu znič doly (chaos), přidej karty do balíku, znič karty (chaos), ukradni karty (chaos)
-Chytřejší AI (aby uměl třeba i čekat, číst podmínky karet, vyhodnocovat situaci)
 Předpřipravené balíky s určitou tématikou na win condition (výhra na hrad, na útok, na krádeže, na počet karet...)
 Balancing karet
 Vytvořit nové karty na stavbu - chybí velké stavební karty pro výhru přes hrad

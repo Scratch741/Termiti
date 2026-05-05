@@ -176,9 +176,9 @@ fun MenuScreen(
                 Column(
                     modifier            = Modifier.offset(x = -rightColShift, y = rightColVertShift),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(H * 0.04f)
+                    verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
-                    EmojiIconMenuButton(emoji = "📦", label = "BALÍČKY",  size = iconSize, onClick = onShop)
+                    IconMenuButton(imageRes = R.drawable.button_7, label = "BALÍČKY",  size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = "NASTAVENÍ", size = iconSize, onClick = onSettings)
                     IconMenuButton(imageRes = R.drawable.button_6, label = "KONEC",     size = iconSize, onClick = onExit)
                 }
@@ -304,6 +304,7 @@ private fun IconMenuButton(
 fun MenuButton(
     label: String,
     accent: Color,
+    modifier: Modifier = Modifier.fillMaxWidth(0.9f),
     enabled: Boolean = true,
     @DrawableRes imageRes: Int? = null,
     onClick: () -> Unit
@@ -313,8 +314,7 @@ fun MenuButton(
     if (imageRes != null) {
         // Varianta s obrázkem – BoxWithConstraints pro proporcionální text offset
         BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
+            modifier = modifier
                 .clip(RoundedCornerShape(10.dp))
                 .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
                 .alpha(alphaVal)
@@ -346,8 +346,7 @@ fun MenuButton(
     } else {
         // Fallback bez obrázku
         Box(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
+            modifier = modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(accent.copy(alpha = if (enabled) 0.12f else 0.05f))
                 .border(1.dp, accent.copy(alpha = if (enabled) 0.5f else 0.2f), RoundedCornerShape(10.dp))
