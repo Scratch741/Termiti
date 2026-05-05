@@ -282,7 +282,10 @@ wss.on('connection', (ws, req) => {
         const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
         const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
         // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
-        const KNOWN_ABILITIES = new Set(['extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos']);
+        const KNOWN_ABILITIES = new Set([
+          'extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos',
+          'quick_draw','boost_attack','boost_build','boost_magic','boost_chaos','boost_random'
+        ]);
         const rawAbilities    = Array.isArray(msg.activeAbilities) ? msg.activeAbilities : [];
         const activeAbilities = rawAbilities
           .filter(a => typeof a === 'string' && KNOWN_ABILITIES.has(a))
