@@ -94,9 +94,11 @@ class GameSession {
       B: this.abilities.B.includes('extra_castle') ? 65 : 60
     };
 
-    // Deal opening hands
-    drawCards(this.state.A, MULLIGAN_HAND_SIZE);
-    drawCards(this.state.B, MULLIGAN_HAND_SIZE);
+    // Deal opening hands (quick_draw = 1 karta navíc)
+    const handA = MULLIGAN_HAND_SIZE + (this.abilities.A.includes('quick_draw') ? 1 : 0);
+    const handB = MULLIGAN_HAND_SIZE + (this.abilities.B.includes('quick_draw') ? 1 : 0);
+    drawCards(this.state.A, handA);
+    drawCards(this.state.B, handB);
 
     // Pick who goes first (already decided in matchmaking, side A = first player)
     this.activeSide = 'A';

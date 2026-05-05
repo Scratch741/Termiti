@@ -3,7 +3,7 @@
  * Herní engine – portováno z GameLogic.kt + PlayerState.kt + GameState.kt
  * Veškerá logika je čistá (bez side-effectů na síťovou vrstvu).
  */
-const { makeInstance, shuffle } = require('./cards');
+const { ALL_CARDS, makeInstance, shuffle } = require('./cards');
 
 const MAX_RESOURCE = 999;
 const MAX_MINES    = 99;
@@ -297,8 +297,26 @@ function applyPassiveAbilities(state, abilities) {
       case 'extra_attack':  state.resources.ATTACK  += 1; break;
       case 'extra_stones':  state.resources.STONES  += 1; break;
       case 'extra_chaos':   state.resources.CHAOS   += 1; break;
+      // ── Posily balíčku ───────────────────────────────────────────────────────
+      case 'boost_attack':  _addBoostCards(state, t => t === 'Útok',  2); break;
+      case 'boost_build':   _addBoostCards(state, t => t === 'Stavba',2); break;
+      case 'boost_magic':   _addBoostCards(state, t => t === 'Magie', 2); break;
+      case 'boost_chaos':   _addBoostCards(state, t => t === 'Chaos', 2); break;
+      case 'boost_random':  _addBoostCards(state, t => t !== 'Důl',   3); break;
+      // quick_draw se řeší v GameSession.start() při rozdávání karet
     }
   }
+}
+
+/** Přidá [count] náhodných karet filtrovaných podle typu do balíčku hráče. */
+function _addBoostCards(state, typeFilter, count) {
+  const pool = ALL_CARDS.filter(c => typeFilter(deriveCardType(c)));
+  if (pool.length === 0) return;
+  const picked = shuffle([...pool]).slice(0, count);
+  for (const tmpl of picked) {
+    state.deck.push(makeInstance(tmpl));
+  }
+  shuffle(state.deck);
 }
 
 // ── Win condition ─────────────────────────────────────────────────────────────
