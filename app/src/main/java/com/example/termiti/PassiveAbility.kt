@@ -65,7 +65,7 @@ enum class PassiveAbility(
     QUICK_DRAW(
         id          = "quick_draw",
         title       = "Rychlý tah",
-        description = "V prvním kole lízneš 1 kartu navíc.",
+        description = "Na začátku prvního kola lízneš 1 kartu navíc.",
         icon        = "🤌",
         unlockLevel = 7,
         goldCost    = 130
