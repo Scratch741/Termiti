@@ -144,7 +144,15 @@ object QuestManager {
         for (i in _quests.indices) {
             val q = _quests[i]
             if (q.type == type && !q.claimed) {
-                _quests[i] = q.copy(progress = (q.progress + amount).coerceAtMost(q.target))
+                val wasCompleted = q.completed
+                val updated = q.copy(progress = (q.progress + amount).coerceAtMost(q.target))
+                _quests[i] = updated
+                // Notifikace: quest právě dokončen → připomínka na vyzvednutí
+                if (!wasCompleted && updated.completed) {
+                    RewardNotifier.emit(RewardNotifier.RewardEvent(
+                        source = "🎯 Quest splněn – převzít odměnu!"
+                    ))
+                }
             }
         }
     }

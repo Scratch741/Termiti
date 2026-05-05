@@ -549,8 +549,8 @@ private fun QuestSection(onProfileChanged: () -> Unit) {
             Text("Resetují se zítra", color = QuestMuted, fontSize = 8.sp)
         }
 
-        // Quest karty
-        quests.forEach { quest ->
+        // Quest karty – claimnuté se skryjí
+        quests.filter { !it.claimed }.forEach { quest ->
             QuestCard(
                 quest      = quest,
                 canReroll  = canReroll && !quest.completed,
@@ -672,8 +672,6 @@ private fun QuestCard(
                     ) {
                         Text("Převzít!", color = questGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     }
-                } else if (quest.claimed) {
-                    Text("✓ Splněno", color = questMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
