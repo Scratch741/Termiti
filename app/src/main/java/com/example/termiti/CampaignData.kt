@@ -541,7 +541,8 @@ object CampaignData {
                     rewardGold = 400, rewardGems = 6, rewardXp = 200
                 )
             )
-        )
+        ),
+
         // ════════════════════════════════════════════════════════════════════
         // LOKACE 4 – Dračí impérium
         // Všichni soupeři mají winTarget = 999 – výstavba je okamžitá sebevražda.
