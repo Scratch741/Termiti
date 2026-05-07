@@ -542,5 +542,206 @@ object CampaignData {
                 )
             )
         )
+        // ════════════════════════════════════════════════════════════════════
+        // LOKACE 4 – Dračí impérium
+        // Všichni soupeři mají winTarget = 999 – výstavba je okamžitá sebevražda.
+        // Důraz na chaos karty, legendární útok a těžké handicapy hráče.
+        // Balíčky: 38 → 40 → 40 → 42 → 42 → 44 → 44 → 48 → 50 → 55
+        // ════════════════════════════════════════════════════════════════════
+        CampaignLocation(
+            id = "loc_dragon", name = "Dračí impérium", emoji = "🐉",
+            description = "Říši vládnou draci a chaos. Výstavba = smrt. Výjimky neexistují.",
+            opponents = listOf(
+
+                // 1 ── 38 karet, winTarget 999, AI má extra mine útoku ─────────
+                CampaignOpponent(
+                    id = "drg_warden", name = "Dračí Strážce", title = "Ochránce bran",
+                    avatar = "🐲", description = "Brána do říše. Útok a Chaos v jednom. Hrad −3.",
+                    aiCastle = 42, aiWall = 18,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "021" to 6, "007" to 5, "054" to 5, "022" to 5,
+                        "017" to 5, "C01" to 4, "C02" to 4, "004" to 4
+                    ),
+                    winTarget = 999,
+                    playerHandicap = PlayerHandicap(extraCastle = -3),
+                    rewardGold = 180
+                ),
+
+                // 2 ── 40 karet, winTarget 999, AI má extra mine magie ─────────
+                CampaignOpponent(
+                    id = "drg_shaman", name = "Dračí Šaman", title = "Mistr chaosu",
+                    avatar = "🔮", description = "Kouzlí chaosem. Sabotoval tvůj útok a magie mine −1.",
+                    aiCastle = 43, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2),
+                    deckCardCounts = mapOf(
+                        "C01" to 5, "C02" to 5, "C05" to 4, "013" to 4,
+                        "016" to 4, "037" to 5, "040" to 5, "077" to 4,
+                        "004" to 4
+                    ),
+                    winTarget = 999,
+                    playerHandicap = PlayerHandicap(
+                        extraAttack = -3,
+                        extraMines  = mapOf(ResourceType.MAGIC to -1)
+                    ),
+                    rewardGold = 200
+                ),
+
+                // 3 ── 40 karet, winTarget 999, AI lízne 5 karet ──────────────
+                CampaignOpponent(
+                    id = "drg_rider", name = "Dračí Jezdec", title = "Sedlo z plamenů",
+                    avatar = "🏇", description = "Startuje s 5 kartami. Hrad −3, hradby −3.",
+                    aiCastle = 44, aiWall = 20,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "021" to 6, "051" to 3, "054" to 5, "079" to 4,
+                        "C01" to 4, "C06" to 3, "017" to 5, "012" to 5,
+                        "004" to 5
+                    ),
+                    winTarget = 999, aiStartHandSize = 5,
+                    playerHandicap = PlayerHandicap(extraCastle = -3, extraWall = -3),
+                    rewardGold = 220
+                ),
+
+                // 4 ── 42 karet, winTarget 999, sabotáž kamenů ────────────────
+                CampaignOpponent(
+                    id = "drg_saboteur", name = "Entropický Sabotér", title = "Rozsévač chaosu",
+                    avatar = "🕵️", description = "Zničil tvůj kamenolom a vyprázdnil zásoby. Mine kamene −1.",
+                    aiCastle = 45, aiWall = 22,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "065" to 5, "068" to 5, "070" to 5, "071" to 5,
+                        "C02" to 4, "C09" to 4, "069" to 4, "040" to 5,
+                        "004" to 5
+                    ),
+                    winTarget = 999,
+                    playerHandicap = PlayerHandicap(
+                        extraCastle = -4,
+                        extraStones = -4,
+                        extraMines  = mapOf(ResourceType.STONES to -1)
+                    ),
+                    rewardGold = 240
+                ),
+
+                // 5 ── 42 karet, winTarget 999, playerStartHand 3 ──────────────
+                CampaignOpponent(
+                    id = "drg_wyrm", name = "Starý Wyrm", title = "Žijící rána",
+                    avatar = "🦎", description = "Přepadne tě dřív, než procitnete. Ruka 3, hrad −5.",
+                    aiCastle = 46, aiWall = 22,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 2),
+                    deckCardCounts = mapOf(
+                        "021" to 7, "054" to 5, "022" to 5, "023" to 5,
+                        "079" to 4, "C06" to 4, "017" to 5, "004" to 7
+                    ),
+                    winTarget = 999,
+                    playerStartHandSize = 3,
+                    playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -3),
+                    rewardGold = 260
+                ),
+
+                // 6 ── 44 karet, winTarget 999, AI lízne 5 karet ──────────────
+                CampaignOpponent(
+                    id = "drg_general", name = "Dračí Generál", title = "Velitel spálené země",
+                    avatar = "👿", description = "5 karet a 3 typy dolů. Útok nebo záhuba. Hrad −5, hradby −5.",
+                    aiCastle = 48, aiWall = 25,
+                    aiExtraMines = mapOf(
+                        ResourceType.ATTACK to 2,
+                        ResourceType.MAGIC  to 1
+                    ),
+                    deckCardCounts = mapOf(
+                        "021" to 6, "051" to 4, "054" to 5, "079" to 4,
+                        "C05" to 4, "C06" to 3, "C09" to 3, "017" to 5,
+                        "043" to 4, "004" to 6
+                    ),
+                    winTarget = 999, aiStartHandSize = 5,
+                    playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -5),
+                    rewardGold = 280
+                ),
+
+                // 7 ── 44 karet, winTarget 999, mine útoku −1 ─────────────────
+                CampaignOpponent(
+                    id = "drg_venom", name = "Jedovatý Drak", title = "Zkáza z dálky",
+                    avatar = "☠️", description = "Otráví tvůj výcvikový tábor. Mine útoku −1, hrad −5.",
+                    aiCastle = 48, aiWall = 25,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "078" to 3, "051" to 4, "052" to 3, "021" to 5,
+                        "C10" to 3, "C02" to 4, "016" to 4, "040" to 5,
+                        "069" to 4, "004" to 5, "077" to 4
+                    ),
+                    winTarget = 999,
+                    playerHandicap = PlayerHandicap(
+                        extraCastle = -5,
+                        extraMines  = mapOf(ResourceType.ATTACK to -1)
+                    ),
+                    rewardGold = 300
+                ),
+
+                // 8 ── 48 karet, winTarget 999, AI lízne 6 karet ──────────────
+                CampaignOpponent(
+                    id = "drg_tyrant", name = "Dračí Tyran", title = "Ohnivý trůn",
+                    avatar = "🔱", description = "6 karet, 3 typy dolů. Legendy v balíčku. Hrad −5, hradby −5.",
+                    aiCastle = 50, aiWall = 28,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC  to 1,
+                        ResourceType.ATTACK to 2,
+                        ResourceType.STONES to 1
+                    ),
+                    deckCardCounts = mapOf(
+                        "052" to 4, "051" to 4, "078" to 3, "021" to 5,
+                        "C10" to 4, "C06" to 4, "C09" to 3, "016" to 4,
+                        "043" to 4, "044" to 3, "040" to 5, "004" to 5
+                    ),
+                    winTarget = 999, aiStartHandSize = 6,
+                    playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -5),
+                    rewardGold = 350
+                ),
+
+                // 9 ── 50 karet, winTarget 999, AI lízne 6 karet ──────────────
+                CampaignOpponent(
+                    id = "drg_archon", name = "Dračí Archon", title = "Pravá ruka Impéria",
+                    avatar = "🌑", description = "6 karet, 3 extra miny. Hrad −7, hradby −5, mine magie −1.",
+                    aiCastle = 52, aiWall = 30,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC  to 2,
+                        ResourceType.ATTACK to 2
+                    ),
+                    deckCardCounts = mapOf(
+                        "052" to 5, "051" to 4, "078" to 4, "C10" to 4,
+                        "C06" to 5, "C09" to 4, "016" to 4, "043" to 4,
+                        "044" to 4, "040" to 5, "077" to 4, "004" to 3
+                    ),
+                    winTarget = 999, aiStartHandSize = 6,
+                    playerHandicap = PlayerHandicap(
+                        extraCastle = -7,
+                        extraWall   = -5,
+                        extraMines  = mapOf(ResourceType.MAGIC to -1)
+                    ),
+                    rewardGold = 420
+                ),
+
+                // 10 BOSS ── 55 karet, winTarget 999, AI lízne 7 karet ─────────
+                CampaignOpponent(
+                    id = "drg_emperor", name = "Dračí Císař", title = "Vládce věčného plamene",
+                    avatar = "🐉", description = "55 karet, 7 startovních. Drak, Démon i Chaos drak. Hrad −8, hradby −8. Jednorázová odměna: 200 XP.",
+                    isBoss = true,
+                    aiCastle = 55, aiWall = 35,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC  to 2,
+                        ResourceType.ATTACK to 2,
+                        ResourceType.STONES to 1
+                    ),
+                    deckCardCounts = mapOf(
+                        "052" to 4, "051" to 4, "078" to 4, "C10" to 4,
+                        "C06" to 4, "C09" to 4, "C05" to 4, "016" to 4,
+                        "043" to 4, "044" to 3, "040" to 4, "077" to 4,
+                        "021" to 4, "004" to 4
+                    ),
+                    winTarget = 999, aiStartHandSize = 7,
+                    playerHandicap = PlayerHandicap(extraCastle = -8, extraWall = -8),
+                    rewardGold = 600, rewardGems = 8, rewardXp = 200
+                )
+            )
+        )
     )
 }
