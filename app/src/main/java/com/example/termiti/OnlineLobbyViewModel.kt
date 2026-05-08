@@ -521,7 +521,7 @@ class OnlineLobbyViewModel(
                     )
                     gameEndPending.value = true
                     viewModelScope.launch {
-                        kotlinx.coroutines.delay(2500L)
+                        kotlinx.coroutines.delay(1750L)
                         gameResult.value = result
                         phase.value = OnlinePhase.GAME_OVER
                         gameEndPending.value = false

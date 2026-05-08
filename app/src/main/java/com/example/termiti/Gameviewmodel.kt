@@ -1219,7 +1219,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
         gameEndJob?.cancel()
         gameEndJob = viewModelScope.launch(crashHandler) {
-            kotlinx.coroutines.delay(2500L)
+            kotlinx.coroutines.delay(1750L)
             gameOver.value = result
             gameEndPending.value = false
         }
