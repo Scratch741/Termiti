@@ -527,6 +527,23 @@ fun GameScreen(
             LogOverlay(log = log, onDismiss = { showLog = false })
         }
 
+        // ── Game-end delay (1s): blokuje veškerý vstup hráče ─────────────────
+        val gameEndPending by viewModel.gameEndPending
+        if (gameEndPending) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                                    .changes.forEach { it.consume() }
+                            }
+                        }
+                    }
+            )
+        }
+
         // Letící karta – kreslí se jako poslední, aby byla nad vším
         FlightOverlayBox(flight)
     }

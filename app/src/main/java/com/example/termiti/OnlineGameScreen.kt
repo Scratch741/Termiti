@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -458,6 +459,23 @@ private fun OnlineGameplay(
                                                painterResource(R.drawable.hand_background),
                                                contentScale = ContentScale.Crop
                                            )
+            )
+        }
+
+        // ── Game-end delay (1s): blokuje veškerý vstup hráče ─────────────────
+        val gameEndPending by vm.gameEndPending
+        if (gameEndPending) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                                    .changes.forEach { it.consume() }
+                            }
+                        }
+                    }
             )
         }
 

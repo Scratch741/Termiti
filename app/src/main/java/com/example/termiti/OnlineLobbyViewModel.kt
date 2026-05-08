@@ -129,6 +129,8 @@ class OnlineLobbyViewModel(
 
     var gameState        = mutableStateOf(OnlineGameState()); private set
     var gameResult       = mutableStateOf<OnlineGameResult?>(null); private set
+    /** true po dobu 1s po rozhodující kartě – blokuje vstup, aby bylo vidět co rozhodlo */
+    var gameEndPending   = mutableStateOf(false); private set
     var gameLog          = mutableStateOf<List<LogEntry>>(emptyList()); private set
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
@@ -512,12 +514,18 @@ class OnlineLobbyViewModel(
                 }
 
                 "GAME_OVER" -> {
-                    gameResult.value = OnlineGameResult(
+                    val result = OnlineGameResult(
                         winner     = json.optString("winner", "DRAW"),
                         winnerName = json.optString("winnerName").takeIf { it.isNotEmpty() },
                         youWin     = json.optBoolean("youWin", false)
                     )
-                    phase.value = OnlinePhase.GAME_OVER
+                    gameEndPending.value = true
+                    viewModelScope.launch {
+                        kotlinx.coroutines.delay(1000L)
+                        gameResult.value = result
+                        phase.value = OnlinePhase.GAME_OVER
+                        gameEndPending.value = false
+                    }
                 }
 
                 "OPPONENT_LEFT" -> {
@@ -675,6 +683,7 @@ class OnlineLobbyViewModel(
     // ── Pomocné ───────────────────────────────────────────────────────────────
 
     private fun resetGameState() {
+        gameEndPending.value       = false
         mulliganHand.value         = emptyList()
         mulliganSelected.value     = emptySet()
         mulliganSubmitted.value    = false

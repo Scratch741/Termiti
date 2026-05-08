@@ -741,6 +741,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var gameOver = androidx.compose.runtime.mutableStateOf<GameResult?>(null)
         private set
+    /** true po dobu 1s po rozhodující kartě – blokuje vstup, aby bylo vidět co rozhodlo */
+    var gameEndPending = androidx.compose.runtime.mutableStateOf(false)
+        private set
+    private var gameEndJob: kotlinx.coroutines.Job? = null
     var lastCard           = androidx.compose.runtime.mutableStateOf<Card?>(null);          private set
     var lastCardAction     = androidx.compose.runtime.mutableStateOf(CardAction.PLAYED);   private set
     var lastCardIsPlayer   = androidx.compose.runtime.mutableStateOf(true);                private set
@@ -950,9 +954,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val s1 = old.copy(playerState = player, aiState = ai)
         s1.checkWinCondition()?.let { result ->
-            if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
             isPlayerComboTurn.value = false
-            gameOver.value = result; gameState.value = s1; return
+            scheduleGameEnd(result, s1); return
         }
 
         if (pendingDrawCount > 0) {
@@ -1102,8 +1105,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 activePlayer = ActivePlayer.AI
                             )
                             mid.checkWinCondition()?.let { result ->
-                                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                                gameOver.value = result; gameState.value = mid; return@launch
+                                scheduleGameEnd(result, mid); return@launch
                             }
                             gameState.value = mid   // vizuální mezistav
                             delay(450L)
@@ -1122,9 +1124,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()
                             addLog("Oba hráči pasovali s prázdnými balíčky – konec hry!")
-                            if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                            gameState.value = finalState
-                            gameOver.value  = result
+                            scheduleGameEnd(result, finalState)
                             return@launch
                         }
                     }
@@ -1148,8 +1148,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 activePlayer = ActivePlayer.AI
             )
             s2.checkWinCondition()?.let { result ->
-                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                gameOver.value = result; gameState.value = s2; return@launch
+                scheduleGameEnd(result, s2); return@launch
             }
 
             // ── Mezistav: hráč chvíli vidí AI s méně kartami (po sehrání, před lízem) ──
@@ -1191,9 +1190,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 val result = finalState.resolveByHp()
                 addLog("Obě strany bez karet – konec hry!")
-                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                gameState.value = finalState
-                gameOver.value  = result
+                scheduleGameEnd(result, finalState)
                 return@launch
             }
 
@@ -1205,11 +1202,26 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 activePlayer = ActivePlayer.PLAYER
             )
             s3.checkWinCondition()?.let { result ->
-                if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
-                gameOver.value = result; gameState.value = s3; return@launch
+                scheduleGameEnd(result, s3); return@launch
             }
 
             gameState.value = s3
+        }
+    }
+
+    /**
+     * Nastaví finální stav hry, přehraje zvuk a po 1s odhalí game-over overlay.
+     * Během prodlevy je [gameEndPending] = true → UI blokuje veškerý vstup.
+     */
+    private fun scheduleGameEnd(result: GameResult, snapshot: GameState) {
+        gameState.value = snapshot
+        gameEndPending.value = true
+        if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
+        gameEndJob?.cancel()
+        gameEndJob = viewModelScope.launch(crashHandler) {
+            kotlinx.coroutines.delay(1000L)
+            gameOver.value = result
+            gameEndPending.value = false
         }
     }
 
@@ -1246,6 +1258,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun restartGame(randomDeck: Boolean = false, superRandom: Boolean = false) {
+        gameEndJob?.cancel()
+        gameEndPending.value    = false
         activeCampaignOpponent.value = null
         gameOver.value          = null
         log.value               = emptyList()
@@ -1262,6 +1276,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Spustí bitvu v kampani proti danému soupeři. */
     fun startCampaignBattle(opponent: CampaignOpponent) {
+        gameEndJob?.cancel()
+        gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
         gameOver.value          = null
         log.value               = emptyList()
