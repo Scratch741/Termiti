@@ -465,7 +465,8 @@ fun GameScreen(
         gameOver?.let { result ->
             val isPlayerWin = result.isPlayerWin()
             LaunchedEffect(result) { onGameEnd?.invoke(isPlayerWin) }
-            if (!reviewMode) {
+            // V kampani dialog nezobrazujeme – onGameEnd naviguje na CampaignResultScreen
+            if (!reviewMode && campaignOpponent == null) {
                 if (isArena) {
                     ArenaGameOverDialog(
                         result       = result,
