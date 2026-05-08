@@ -1231,7 +1231,10 @@ private fun CastleTowerBlock(
 ) {
     val castleFullH = 165.dp
     val castleFullW = 110.dp
-    val hpFrac = hpToVisualFrac(castleHp, maxHp = winTarget.toFloat())
+    // Při winTarget ≥ 999 (výstavba zakázána) použij vizuální strop 60,
+    // jinak by hrad při 30 HP vypadal skoro zahrabaný pod zemí.
+    val visualMaxHp = if (winTarget >= 999) 60f else winTarget.toFloat()
+    val hpFrac = hpToVisualFrac(castleHp, maxHp = visualMaxHp)
 
     val offsetY by animateDpAsState(
         targetValue   = castleFullH * (1f - hpFrac),
@@ -1325,7 +1328,7 @@ private fun CastleHpBadge(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "🏰 $castleHp/$winTarget",
+            if (winTarget >= 999) "🏰 $castleHp" else "🏰 $castleHp/$winTarget",
             color      = accentLight,
             fontSize   = 11.sp,
             fontWeight = FontWeight.Bold
