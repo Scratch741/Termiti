@@ -261,8 +261,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     isActive        = editingIdx == activeDeckIdx,
                     presetTemplates = viewModel.presetTemplates,
                     onLoadPreset    = { viewModel.loadPreset(editingIdx, it) },
-                    onClear             = { viewModel.clearDeck(editingIdx) },
-                    onGenerateBalanced  = { viewModel.generateBalancedDeck(editingIdx) },
+                    onClear         = { viewModel.clearDeck(editingIdx) },
                     onSetActive     = { viewModel.setActiveDeck(editingIdx) },
                     onRename        = { viewModel.renameDeck(editingIdx, it) },
                     onRemove        = { cardId ->
@@ -1411,7 +1410,6 @@ private fun DeckPanel(
     presetTemplates: List<Pair<String, Map<String, Int>>>,
     onLoadPreset: (Int) -> Unit,
     onClear: () -> Unit,
-    onGenerateBalanced: () -> Unit,
     onSetActive: () -> Unit,
     onRename: (String) -> Unit,
     onRemove: (String) -> Unit,
@@ -1549,26 +1547,6 @@ private fun DeckPanel(
                     }
                 }
             }
-        }
-
-        // Smart vyvážený balíček
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(7.dp))
-                .background(Color(0xFF1A3A2A))
-                .border(1.dp, Color(0xFF3A8A50).copy(alpha = 0.6f), RoundedCornerShape(7.dp))
-                .clickable { SoundManager.playMenuTap(); onGenerateBalanced() }
-                .padding(horizontal = 10.dp, vertical = 7.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "⚖️  SMART VYVÁŽENÝ BALÍČEK  (9/9/9/3)",
-                color     = Color(0xFF5DC878),
-                fontSize  = 9.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            )
         }
 
         HorizontalDivider(color = Gold.copy(alpha = 0.1f))
