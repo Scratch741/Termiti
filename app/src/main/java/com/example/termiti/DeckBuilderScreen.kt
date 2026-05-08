@@ -142,47 +142,61 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     var filterRes      by remember { mutableStateOf<ResourceType?>(null) }
     var filterCat      by remember { mutableStateOf<String?>(null) }
     var filterUnlocked by remember { mutableStateOf(false) }
+    var searchQuery    by remember { mutableStateOf("") }
+    var currentPage    by remember { mutableIntStateOf(0) }
 
-    val filteredCards = remember(filterRes, filterCat, filterUnlocked, profile) {
+    // Reset stránky při změně filtrů
+    LaunchedEffect(filterRes, filterCat, filterUnlocked, searchQuery) { currentPage = 0 }
+
+    val filteredCards = remember(filterRes, filterCat, filterUnlocked, searchQuery, profile) {
         viewModel.allCards
             .filter { card ->
                 (filterRes == null || card.costType == filterRes) &&
-                (filterCat == null || card.category() == filterCat) &&
+                (filterCat == null ||
+                    (filterCat == "Kombo" && card.isCombo) ||
+                    (filterCat != "Kombo" && card.category() == filterCat)) &&
                 (!filterUnlocked || run {
                     profile?.allCardsUnlocked == true ||
                     CardCollectionManager.isBasicCard(card) ||
                     (profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0) > 0
-                })
+                }) &&
+                (searchQuery.isBlank() || card.name.contains(searchQuery.trim(), ignoreCase = true) ||
+                    card.description.contains(searchQuery.trim(), ignoreCase = true))
             }
             .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.name }))
     }
 
+    val cardsPerPage = 12   // 4 sloupce × ~3 řady
+    val totalPages   = maxOf(1, (filteredCards.size + cardsPerPage - 1) / cardsPerPage)
+    val safePage     = currentPage.coerceIn(0, totalPages - 1)
+    val pageCards    = filteredCards.drop(safePage * cardsPerPage).take(cardsPerPage)
+
     Box(Modifier.fillMaxSize().background(BgDeep)) {
         Row(Modifier.fillMaxSize()) {
 
-            // ── Left: catalog starts immediately at top ───────────────
+            // ── Left: catalog ─────────────────────────────────────────────────
             Column(Modifier.weight(3f).fillMaxHeight()) {
                 FilterBar(
                     filterRes      = filterRes,
                     filterCat      = filterCat,
                     filterUnlocked = filterUnlocked,
+                    searchQuery    = searchQuery,
                     onResFilter    = { filterRes = if (filterRes == it) null else it },
                     onCatFilter    = { filterCat = if (filterCat == it) null else it },
-                    onUnlocked     = { filterUnlocked = !filterUnlocked }
+                    onUnlocked     = { filterUnlocked = !filterUnlocked },
+                    onSearchChange = { searchQuery = it }
                 )
                 HorizontalDivider(color = Gold.copy(alpha = 0.1f))
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    columns               = GridCells.Fixed(4),
+                    contentPadding        = PaddingValues(8.dp),
+                    verticalArrangement   = Arrangement.spacedBy(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier              = Modifier.weight(1f).fillMaxWidth()
                 ) {
-                    items(filteredCards, key = { it.id }) { card ->
+                    items(pageCards, key = { it.id }) { card ->
                         val count  = editingDeck.cardCounts[card.id] ?: 0
                         val isFull = editingDeck.totalCards >= 30
-                        // Read usable copies from `profile` Compose state so the grid
-                        // recomposes automatically after crafting/dismantling.
                         val usable = when {
                             profile?.allCardsUnlocked == true ||
                             CardCollectionManager.isBasicCard(card) -> card.rarity.maxCopies
@@ -191,8 +205,6 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                                 card.rarity.maxCopies
                             )
                         }
-                        // Karta je "nová" pokud ji hráč vlastní, není základní a ještě ji
-                        // neviděl v deck builderu.
                         val isNew = !CardCollectionManager.isBasicCard(card) &&
                             usable > 0 &&
                             profile?.allCardsUnlocked != true &&
@@ -221,6 +233,14 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                         )
                     }
                 }
+                // ── Spodní lišta: počet + stránkování ────────────────────────
+                CardGridFooter(
+                    showing      = filteredCards.size,
+                    total        = viewModel.allCards.size,
+                    currentPage  = safePage,
+                    totalPages   = totalPages,
+                    onPageChange = { currentPage = it }
+                )
             }
 
             VerticalDivider(color = Gold.copy(alpha = 0.2f))
@@ -403,18 +423,66 @@ private fun FilterBar(
     filterRes: ResourceType?,
     filterCat: String?,
     filterUnlocked: Boolean,
+    searchQuery: String,
     onResFilter: (ResourceType) -> Unit,
     onCatFilter: (String) -> Unit,
-    onUnlocked: () -> Unit
+    onUnlocked: () -> Unit,
+    onSearchChange: (String) -> Unit
 ) {
     Column(
         Modifier.fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.6f))
     ) {
+        // ── Řádek 0: vyhledávání ──────────────────────────────────────────────
+        Row(
+            Modifier.fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text("🔍", fontSize = 11.sp)
+            BasicTextField(
+                value         = searchQuery,
+                onValueChange = onSearchChange,
+                singleLine    = true,
+                textStyle     = TextStyle(color = TextPrimary, fontSize = 10.sp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                modifier      = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .border(
+                        1.dp,
+                        if (searchQuery.isNotBlank()) Gold.copy(alpha = 0.5f)
+                        else Color.White.copy(alpha = 0.10f),
+                        RoundedCornerShape(5.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                decorationBox = { inner ->
+                    Box {
+                        if (searchQuery.isBlank()) {
+                            Text("Hledat kartu…", color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+                        inner()
+                    }
+                }
+            )
+            if (searchQuery.isNotBlank()) {
+                Box(
+                    Modifier.size(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.07f))
+                        .clickable { onSearchChange("") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("×", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
         // ── Řádek 1: zdroj ────────────────────────────────────────────────────
         Row(
             Modifier.fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 2.dp),
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
@@ -424,21 +492,96 @@ private fun FilterBar(
             FilterChip("🪨 Kámen", filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
             FilterChip("🌀 Chaos", filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
         }
-        // ── Řádek 2: efekt + odemčené ─────────────────────────────────────────
+        // ── Řádek 2: efekt + kombo + odemčené ────────────────────────────────
         Row(
             Modifier.fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text("Efekt:", color = TextMuted, fontSize = 9.sp)
-            FilterChip("Útok",   filterCat == "Útok",   AttackRed)   { onCatFilter("Útok")   }
-            FilterChip("Obrana", filterCat == "Obrana", StoneColor)  { onCatFilter("Obrana") }
-            FilterChip("Zdroje", filterCat == "Zdroje", MagicPurple) { onCatFilter("Zdroje") }
-            FilterChip("Doly",   filterCat == "Doly",   Gold)        { onCatFilter("Doly")   }
+            FilterChip("Útok",      filterCat == "Útok",   AttackRed)  { onCatFilter("Útok")   }
+            FilterChip("Obrana",    filterCat == "Obrana", StoneColor) { onCatFilter("Obrana") }
+            FilterChip("Zdroje",    filterCat == "Zdroje", MagicPurple){ onCatFilter("Zdroje") }
+            FilterChip("Doly",      filterCat == "Doly",   Gold)       { onCatFilter("Doly")   }
+            FilterChip("🔗 Kombo",  filterCat == "Kombo",  TealLight)  { onCatFilter("Kombo")  }
             Spacer(Modifier.weight(1f))
             FilterChip("🔓 Odemčené", filterUnlocked, HpGreen) { onUnlocked() }
         }
+    }
+}
+
+// ─── Card Grid Footer (počítadlo + stránkování) ───────────────────────────────
+@Composable
+private fun CardGridFooter(
+    showing: Int,
+    total: Int,
+    currentPage: Int,
+    totalPages: Int,
+    onPageChange: (Int) -> Unit
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(BgPanel.copy(alpha = 0.8f))
+            .padding(horizontal = 8.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            "ZOBRAZUJI: $showing / $total",
+            color = TextMuted,
+            fontSize = 8.sp,
+            letterSpacing = 0.5.sp
+        )
+        Spacer(Modifier.weight(1f))
+        if (totalPages > 1) {
+            PageBtn("‹", enabled = currentPage > 0) { onPageChange(currentPage - 1) }
+            val rangeStart = maxOf(0, currentPage - 1)
+            val rangeEnd   = minOf(totalPages - 1, rangeStart + 2)
+            (rangeStart..rangeEnd).forEach { page ->
+                PageNumBtn(page + 1, isActive = page == currentPage) { onPageChange(page) }
+            }
+            PageBtn("›", enabled = currentPage < totalPages - 1) { onPageChange(currentPage + 1) }
+        }
+    }
+}
+
+@Composable
+private fun PageBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.size(22.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(if (enabled) Color.White.copy(alpha = 0.08f) else Color.Transparent)
+            .border(1.dp, if (enabled) Color.White.copy(alpha = 0.12f) else Color.Transparent, RoundedCornerShape(4.dp))
+            .then(if (enabled) Modifier.clickable { onClick() } else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = if (enabled) TextPrimary else TextMuted.copy(alpha = 0.25f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun PageNumBtn(page: Int, isActive: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.size(22.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(if (isActive) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
+            .border(1.dp, if (isActive) Gold.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.10f), RoundedCornerShape(4.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            "$page",
+            color = if (isActive) Gold else TextMuted,
+            fontSize = 9.sp,
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }
 
