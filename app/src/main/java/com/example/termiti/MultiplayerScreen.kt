@@ -351,6 +351,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
     val turn             by vm.currentTurn
     val oppName          by vm.oppName
     val oppCardBackSkin  by vm.oppCardBackSkin
+    val oppCastleSkin    by vm.oppCastleSkin
     val lostToOpponent   by vm.lostToOpponent
 
     var showLeaveConfirm by remember { mutableStateOf(false) }
@@ -416,7 +417,11 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
                     lastCardAction        = lastCardAction,
                     lastCardIsPlayer      = lastCardIsPlayer,
                     modifier              = Modifier.fillMaxHeight().weight(1f),
-                    opponentCardBackResId = cardBackSkinDrawable(oppCardBackSkin)
+                    opponentCardBackResId = cardBackSkinDrawable(oppCardBackSkin),
+                    playerCastleResId     = castleSkinDrawable(
+                        PlayerProfileManager.profile?.castleSkin ?: "castle_player"
+                    ),
+                    opponentCastleResId   = castleSkinDrawable(oppCastleSkin)
                 )
 
                 // Pravý panel: soupeřovy zdroje (zrcadlové)

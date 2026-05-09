@@ -391,15 +391,19 @@ fun GameScreen(
 
                 // ── Střed: bojiště ────────────────────────────────────────────
                 NewBattlefield(
-                    playerState      = state.playerState,
-                    aiState          = state.aiState,
-                    lastCard         = lastCard,
-                    lastCardAction   = lastCardAction,
-                    lastCardIsPlayer = lastCardIsPlayer,
-                    modifier         = Modifier.fillMaxHeight().weight(1f),
-                    playerWinTarget  = state.playerWinTarget,
-                    aiWinTarget      = state.aiWinTarget,
-                    playerMaxHand    = state.playerMaxHand
+                    playerState       = state.playerState,
+                    aiState           = state.aiState,
+                    lastCard          = lastCard,
+                    lastCardAction    = lastCardAction,
+                    lastCardIsPlayer  = lastCardIsPlayer,
+                    modifier          = Modifier.fillMaxHeight().weight(1f),
+                    playerWinTarget   = state.playerWinTarget,
+                    aiWinTarget       = state.aiWinTarget,
+                    playerMaxHand     = state.playerMaxHand,
+                    playerCastleResId = castleSkinDrawable(
+                        PlayerProfileManager.profile?.castleSkin ?: "castle_player"
+                    )
+                    // opponentCastleResId = default (AI vždy základní hrad)
                 )
 
                 // ── Pravý panel: zdroje AI ────────────────────────────────────
@@ -899,7 +903,9 @@ fun NewBattlefield(
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
     aiWinTarget: Int = 60,            // win target soupeře / AI
     playerMaxHand: Int = 7,           // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
-    opponentCardBackResId: Int = R.drawable.card_back_frame  // skin rubu karet soupeře/AI
+    opponentCardBackResId: Int = R.drawable.card_back_frame,  // skin rubu karet soupeře/AI
+    playerCastleResId: Int = R.drawable.castle_player,        // skin hradu hráče
+    opponentCastleResId: Int = R.drawable.castle_player       // skin hradu soupeře/AI
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -1032,26 +1038,24 @@ fun NewBattlefield(
         }
 
         // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
-        val playerCastleRes = castleSkinDrawable(
-            PlayerProfileManager.profile?.castleSkin ?: "castle_player"
-        )
         NewCastleStructure(
             castleHp    = playerState.castleHP,
             wallHp      = playerState.wallHP,
             isPlayer    = true,
             winTarget   = playerWinTarget,
-            castleResId = playerCastleRes,
+            castleResId = playerCastleResId,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp)
         )
-        // ── Hrad AI – vpravo dole ────────────────────────────────────────────────
+        // ── Hrad AI / soupeře – vpravo dole ─────────────────────────────────────
         NewCastleStructure(
-            castleHp  = aiState.castleHP,
-            wallHp    = aiState.wallHP,
-            isPlayer  = false,
-            winTarget = aiWinTarget,
-            modifier  = Modifier
+            castleHp    = aiState.castleHP,
+            wallHp      = aiState.wallHP,
+            isPlayer    = false,
+            winTarget   = aiWinTarget,
+            castleResId = opponentCastleResId,
+            modifier    = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 8.dp, bottom = 4.dp)
         )

@@ -400,6 +400,12 @@ private fun OnlineGameplay(
                     aiWinTarget           = gs.oppWinTarget,
                     opponentCardBackResId = cardBackSkinDrawable(
                         matchInfo?.opponentCardBackSkin ?: "card_back_frame"
+                    ),
+                    playerCastleResId     = castleSkinDrawable(
+                        PlayerProfileManager.profile?.castleSkin ?: "castle_player"
+                    ),
+                    opponentCastleResId   = castleSkinDrawable(
+                        matchInfo?.opponentCastleSkin ?: "castle_player"
                     )
                 )
 

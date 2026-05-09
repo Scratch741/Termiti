@@ -202,8 +202,8 @@ function tryMatchFromQueue(q, mode) {
     const ratingA = pA.deviceId ? ratingSystem.getRating(pA.deviceId, mode) : null;
     const ratingB = pB.deviceId ? ratingSystem.getRating(pB.deviceId, mode) : null;
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
 
     const onGameEnd = (gid) => {
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
@@ -373,6 +373,9 @@ wss.on('connection', (ws, req) => {
         // Skin rubu karty – přijmi jen povolené hodnoty
         const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
+        // Skin hradu – přijmi jen povolené hodnoty
+        const KNOWN_CASTLE_SKINS = new Set(['castle_player', 'castle_player_2']);
+        const castleSkin = KNOWN_CASTLE_SKINS.has(msg.castleSkin) ? msg.castleSkin : 'castle_player';
         // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
         const KNOWN_ABILITIES = new Set([
           'extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos',
@@ -383,7 +386,7 @@ wss.on('connection', (ws, req) => {
         const activeAbilities = rawAbilities
           .filter(a => typeof a === 'string' && KNOWN_ABILITIES.has(a))
           .slice(0, 2);
-        players.set(ws, { id: uuidv4(), name, avatar, cardBackSkin, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
+        players.set(ws, { id: uuidv4(), name, avatar, cardBackSkin, castleSkin, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         // Pošli hráči jeho aktuální rating pro všechny módy

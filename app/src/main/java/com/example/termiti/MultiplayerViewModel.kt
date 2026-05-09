@@ -63,6 +63,7 @@ class MultiplayerViewModel(
     var myName       = mutableStateOf("Hráč")
     var oppName           = mutableStateOf("Soupeř");            private set
     var oppCardBackSkin   = mutableStateOf("card_back_frame");   private set
+    var oppCastleSkin     = mutableStateOf("castle_player");     private set
     var isHost       = mutableStateOf(false);           private set
     var lastHostIp   = mutableStateOf("");              private set
 
@@ -200,11 +201,12 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Pošle HELLO zprávu včetně ID karet vybraného balíčku a skinu rubu. */
+    /** Pošle HELLO zprávu včetně ID karet vybraného balíčku a skinů. */
     private fun sendHello() =
         sendMsg("t" to "HELLO", "name" to myName.value,
                 "deckIds"      to JSONArray(myDeckBaseIds()),
-                "cardBackSkin" to (PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame"))
+                "cardBackSkin" to (PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame"),
+                "castleSkin"   to (PlayerProfileManager.profile?.castleSkin   ?: "castle_player"))
 
     private fun onConnected() {
         closingIntentionally = false
@@ -311,6 +313,7 @@ class MultiplayerViewModel(
     private fun onHello(msg: JSONObject) {
         oppName.value         = msg.optString("name", "Soupeř")
         oppCardBackSkin.value = msg.optString("cardBackSkin", "card_back_frame")
+        oppCastleSkin.value   = msg.optString("castleSkin",   "castle_player")
         // Uložíme balíček soupeře (host ho použije při startování hry)
         if (msg.has("deckIds")) {
             oppDeckIds = jsonArr(msg.getJSONArray("deckIds"))

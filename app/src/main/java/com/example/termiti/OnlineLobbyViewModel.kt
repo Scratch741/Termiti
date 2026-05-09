@@ -34,6 +34,7 @@ data class OnlineMatchInfo(
     val opponentName          : String,
     val opponentAvatar        : String = "👺",
     val opponentCardBackSkin  : String = "card_back_frame",
+    val opponentCastleSkin    : String = "castle_player",
     val opponentLevel         : Int    = -1,
     val side                  : String   // "A" nebo "B"
 )
@@ -366,6 +367,7 @@ class OnlineLobbyViewModel(
                 put("name",             playerName.value.trim())
                 put("avatar",           PlayerProfileManager.profile?.avatar        ?: "⚔️")
                 put("cardBackSkin",     PlayerProfileManager.profile?.cardBackSkin  ?: "card_back_frame")
+                put("castleSkin",       PlayerProfileManager.profile?.castleSkin    ?: "castle_player")
                 put("level",            PlayerProfileManager.profile?.level  ?: 1)
                 put("activeAbilities",  abilitiesArr)
                 put("deviceId",         deviceId)
@@ -477,6 +479,7 @@ class OnlineLobbyViewModel(
                         opponentName         = json.optString("opponentName", "Soupeř"),
                         opponentAvatar       = json.optString("opponentAvatar", "👺"),
                         opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
+                        opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
                         opponentLevel        = json.optInt("opponentLevel", -1),
                         side                 = json.optString("side", "A")
                     )
