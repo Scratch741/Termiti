@@ -122,6 +122,35 @@ class RatingSystem {
   }
 
   /**
+   * Vrátí žebříček hráčů seřazený podle ratingu pro daný mód.
+   * @param {string} mode   - 'normal' | 'super_random'
+   * @param {number} limit  - max počet hráčů
+   * @returns {{ rank, name, rating, wins, losses, draws, games }[]}
+   */
+  getLeaderboard(mode, limit = 20) {
+    return Object.values(this._data)
+      .filter(d => d.modes && d.modes[mode])
+      .map(d => ({
+        name:   d.name,
+        rating: d.modes[mode].rating,
+        wins:   d.modes[mode].wins,
+        losses: d.modes[mode].losses,
+        draws:  d.modes[mode].draws,
+        games:  d.modes[mode].games,
+      }))
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, limit)
+      .map((p, i) => ({ rank: i + 1, ...p }));
+  }
+
+  /**
+   * Vrátí celkový počet unikátních hráčů ve všech módech.
+   */
+  getTotalPlayers() {
+    return Object.keys(this._data).length;
+  }
+
+  /**
    * Zaloguje a uloží výsledek hry pro oba hráče.
    *
    * @param {string}          deviceIdA

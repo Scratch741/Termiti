@@ -1415,7 +1415,6 @@ private fun DeckPanel(
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val progress   = (deck.totalCards / 30f).coerceIn(0f, 1f)
     val validColor = when {
         deck.isValid         -> HpGreen
         deck.totalCards > 30 -> AttackRed
@@ -1505,26 +1504,6 @@ private fun DeckPanel(
                 "${deck.totalCards} / 30",
                 color = validColor, fontSize = 13.sp, fontWeight = FontWeight.Bold
             )
-        }
-
-        // Progress bar
-        Box(
-            Modifier.fillMaxWidth().height(5.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color.White.copy(alpha = 0.06f))
-        ) {
-            Box(
-                Modifier.fillMaxWidth(progress).fillMaxHeight()
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(validColor.copy(alpha = 0.75f))
-            )
-        }
-
-        // Status text
-        when {
-            deck.isValid         -> Text("✓ Balíček je připraven ke hře", color = HpGreen,   fontSize = 9.sp)
-            deck.totalCards > 30 -> Text("Příliš mnoho karet (${deck.totalCards - 30} navíc)", color = AttackRed, fontSize = 9.sp)
-            else                 -> Text("Ještě ${40 - deck.totalCards} karet", color = TextMuted, fontSize = 9.sp)
         }
 
         // Šablony

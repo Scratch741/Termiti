@@ -98,6 +98,16 @@ class OnlineLobbyViewModel(
     var errorMsg     = mutableStateOf(""); private set
     var matchInfo    = mutableStateOf<OnlineMatchInfo?>(null); private set
 
+    // ── Rating / MMR ──────────────────────────────────────────────────────────
+    /** Aktuální rating hráče (z WELCOME nebo posledního GAME_OVER) */
+    var myRating        = mutableStateOf<Int?>(null); private set
+    /** Rating soupeře v aktuálním zápase (z MATCH_FOUND) */
+    var opponentRating  = mutableStateOf<Int?>(null); private set
+    /** Změna ratingu po posledním zápase (+25 / -15 / 0) */
+    var ratingChange    = mutableStateOf<Int?>(null); private set
+    /** Nový rating po posledním zápase */
+    var newRating       = mutableStateOf<Int?>(null); private set
+
     /** -1 = náhodný balíček, 0..2 = index uloženého balíčku */
     var selectedDeckIndex = mutableStateOf(-1); private set
 
@@ -226,6 +236,9 @@ class OnlineLobbyViewModel(
         _pendingDeckIds         = null
         selectedDeckIndex.value = -1
         isSuperRandom.value     = false
+        opponentRating.value    = null
+        ratingChange.value      = null
+        newRating.value         = null
         phase.value     = OnlinePhase.LOBBY
         statusMsg.value = ""
     }
@@ -403,6 +416,10 @@ class OnlineLobbyViewModel(
                 "WELCOME" -> {
                     onlineCount.value    = json.optInt("online", 0)
                     queueSize.value      = json.optInt("queue",  0)
+                    // Načti rating hráče z ratings.normal.rating (server posílá celý modes objekt)
+                    val ratingsObj = json.optJSONObject("ratings")
+                    val normalMode = ratingsObj?.optJSONObject("normal")
+                    if (normalMode != null) myRating.value = normalMode.optInt("rating", 1000)
                     // Nepřepisuj fázi hry při reconnectu – buď z auto-reconnectu (isReconnecting)
                     // nebo jsme aktivní ve hře (mulligan / playing)
                     val inGame = phase.value == OnlinePhase.GAME_MULLIGAN ||
@@ -434,6 +451,10 @@ class OnlineLobbyViewModel(
                         opponentLevel  = json.optInt("opponentLevel", -1),
                         side           = json.optString("side", "A")
                     )
+                    // Načti rating hráče i soupeře z MATCH_FOUND
+                    if (!json.isNull("myRating"))       myRating.value       = json.optInt("myRating", 1000)
+                    if (!json.isNull("opponentRating")) opponentRating.value = json.optInt("opponentRating", 1000)
+                    ratingChange.value = null  // vyresetuj změnu z předchozího zápasu
                     // Nepřecházíme do GAME_MULLIGAN hned – čekáme na GAME_MULLIGAN ze serveru
                     statusMsg.value = "Soupeř nalezen! Připravuji hru…"
                 }
@@ -519,6 +540,10 @@ class OnlineLobbyViewModel(
                         winnerName = json.optString("winnerName").takeIf { it.isNotEmpty() },
                         youWin     = json.optBoolean("youWin", false)
                     )
+                    // Rating změna: server posílá ratingChange (+25/-15/0) a newRating
+                    if (!json.isNull("ratingChange")) ratingChange.value = json.optInt("ratingChange", 0)
+                    if (!json.isNull("newRating"))    newRating.value    = json.optInt("newRating",    1000)
+                    if (!json.isNull("newRating"))    myRating.value     = json.optInt("newRating",    1000)
                     gameEndPending.value = true
                     viewModelScope.launch {
                         kotlinx.coroutines.delay(1750L)

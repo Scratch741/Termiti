@@ -40,6 +40,7 @@
 
 'use strict';
 
+const http      = require('http');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const { GameSession } = require('./game/GameSession');
@@ -48,9 +49,77 @@ const { ratingSystem } = require('./game/RatingSystem');
 const PORT = 8765;
 const PATH = '/lobby';
 
-// ── Server ────────────────────────────────────────────────────────────────────
+// ── HTTP server (sdílený pro WS + REST + HTML) ────────────────────────────────
 
-const wss = new WebSocket.Server({ port: PORT });
+const httpServer = http.createServer((req, res) => {
+  const url   = new URL(req.url, `http://localhost:${PORT}`);
+  const path  = url.pathname;
+
+  // CORS pro Android klienty
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // ── GET /leaderboard?mode=normal&limit=20 ────────────────────────────────
+  if (path === '/leaderboard') {
+    const mode  = url.searchParams.get('mode')  || 'normal';
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
+    const data  = ratingSystem.getLeaderboard(mode, limit);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ mode, players: data, total: ratingSystem.getTotalPlayers() }));
+    return;
+  }
+
+  // ── GET / → HTML stats stránka ───────────────────────────────────────────
+  if (path === '/' || path === '/stats') {
+    const modes  = ['normal', 'super_random'];
+    const labels = { normal: 'Constructed', super_random: 'Super Náhodný' };
+    let rows = '';
+    for (const mode of modes) {
+      const players = ratingSystem.getLeaderboard(mode, 50);
+      if (players.length === 0) continue;
+      rows += `<h2>${labels[mode] || mode}</h2><table>
+        <tr><th>#</th><th>Hráč</th><th>⭐ Rating</th><th>W</th><th>L</th><th>%</th></tr>`;
+      for (const p of players) {
+        const wr = p.games > 0 ? Math.round((p.wins / p.games) * 100) : 0;
+        rows += `<tr><td>${p.rank}</td><td>${esc(p.name)}</td>
+          <td><b>${p.rating}</b></td><td>${p.wins}</td><td>${p.losses}</td><td>${wr}%</td></tr>`;
+      }
+      rows += '</table>';
+    }
+    const html = `<!DOCTYPE html><html lang="cs"><head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Termiti – Žebříček</title>
+      <style>
+        body{background:#0d0a0e;color:#ede0c4;font-family:sans-serif;padding:24px;max-width:900px;margin:0 auto}
+        h1{color:#d4a843;letter-spacing:3px}h2{color:#3dbfad;margin-top:32px;letter-spacing:1px}
+        table{width:100%;border-collapse:collapse;margin-top:8px}
+        th{background:#1a1320;color:#7a6e5f;font-size:11px;letter-spacing:1px;padding:6px 10px;text-align:left}
+        td{padding:6px 10px;border-bottom:1px solid #1e1a2a}
+        tr:hover td{background:#13101a}
+        td:nth-child(3){color:#d4a843;font-weight:bold}
+        .badge{background:#3dbfad22;border:1px solid #3dbfad55;color:#3dbfad;padding:2px 8px;border-radius:4px;font-size:12px}
+        .ts{color:#7a6e5f;font-size:11px;margin-top:16px}
+      </style></head><body>
+      <h1>🏆 TERMITI – ŽEBŘÍČEK</h1>
+      <p><span class="badge">🟢 ${players ? players.size : 0} online</span></p>
+      ${rows || '<p>Žádná data.</p>'}
+      <p class="ts">Aktualizováno: ${new Date().toLocaleString('cs-CZ')}</p>
+      </body></html>`;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(html);
+    return;
+  }
+
+  res.writeHead(404);
+  res.end('Not found');
+});
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── WebSocket server (sdílí HTTP server) ──────────────────────────────────────
+
+const wss = new WebSocket.Server({ server: httpServer, path: PATH });
 
 // Hráči v lobby: Map<WebSocket, { id, name, inQueue, gameId|null }>
 const players = new Map();
@@ -462,4 +531,8 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-log('START', `Server běží na ws://0.0.0.0:${PORT}${PATH}`);
+httpServer.listen(PORT, () => {
+  log('START', `WebSocket:  ws://0.0.0.0:${PORT}${PATH}`);
+  log('START', `HTTP API:   http://0.0.0.0:${PORT}/leaderboard?mode=normal`);
+  log('START', `HTML stats: http://0.0.0.0:${PORT}/`);
+});

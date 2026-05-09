@@ -19,7 +19,7 @@ private enum class Screen {
     PROFILE_SETUP,
     MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS, PROFILE,
     CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT,
-    SHOP
+    SHOP, LEADERBOARD
 }
 
 class MainActivity : ComponentActivity() {
@@ -134,9 +134,14 @@ class MainActivity : ComponentActivity() {
                             onBack = { screen = Screen.MP_SELECT }
                         )
                         Screen.ONLINE_MP -> OnlineMpScreen(
-                            vm     = onlineLobbyVm,
-                            decks  = viewModel.decks,
-                            onBack = { screen = Screen.MP_SELECT }
+                            vm            = onlineLobbyVm,
+                            decks         = viewModel.decks,
+                            onBack        = { screen = Screen.MP_SELECT },
+                            onLeaderboard = { screen = Screen.LEADERBOARD }
+                        )
+
+                        Screen.LEADERBOARD -> LeaderboardScreen(
+                            onBack = { screen = Screen.ONLINE_MP }
                         )
 
                         // ── Kampaň ───────────────────────────────────────────

@@ -38,7 +38,12 @@ private val OnPanel  = Color(0xFF111520)
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 @Composable
-fun OnlineMpScreen(vm: OnlineLobbyViewModel, decks: List<Deck> = emptyList(), onBack: () -> Unit) {
+fun OnlineMpScreen(
+    vm: OnlineLobbyViewModel,
+    decks: List<Deck> = emptyList(),
+    onBack: () -> Unit,
+    onLeaderboard: () -> Unit = {}
+) {
     val phase by vm.phase
 
     // Herní fáze: plná obrazovka bez lobby pozadí
@@ -64,7 +69,7 @@ fun OnlineMpScreen(vm: OnlineLobbyViewModel, decks: List<Deck> = emptyList(), on
         when (phase) {
             OnlinePhase.NAME_INPUT  -> NameInputPanel(vm, onBack)
             OnlinePhase.CONNECTING  -> ConnectingPanel()
-            OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack)
+            OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack, onLeaderboard)
             OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
             OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
             OnlinePhase.ERROR       -> ErrorPanel(vm, onBack)
@@ -149,13 +154,19 @@ private fun ConnectingPanel() {
 // ─── Lobby ────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -> Unit) {
+private fun LobbyPanel(
+    vm: OnlineLobbyViewModel,
+    decks: List<Deck>,
+    onBack: () -> Unit,
+    onLeaderboard: () -> Unit = {}
+) {
     val name            by vm.playerName
     val onlineCount     by vm.onlineCount
     val queueSize       by vm.queueSize
     val selectedDeckIdx by vm.selectedDeckIndex
     val errorMsg        by vm.errorMsg
     val statusMsg       by vm.statusMsg
+    val myRating        by vm.myRating
 
     Box(
         Modifier.fillMaxSize(),
@@ -184,13 +195,27 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                     letterSpacing = 4.sp
                 )
                 Spacer(Modifier.height(2.dp))
-                Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
+                    if (myRating != null) {
+                        Text(
+                            "⭐ $myRating",
+                            color      = OnGold,
+                            fontSize   = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(10.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
                     StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
+                    if (myRating != null) StatBox(value = myRating.toString()!!, label = "Rating", accent = Color(0xFFD4A843))
                 }
 
                 if (statusMsg.isNotBlank()) {
@@ -218,6 +243,8 @@ private fun LobbyPanel(vm: OnlineLobbyViewModel, decks: List<Deck>, onBack: () -
                 OnBtn("🌪️  Super Náhodný", Color(0xFFAA44CC), Modifier.width(190.dp)) {
                     vm.joinQueue(superRandom = true)
                 }
+                Spacer(Modifier.height(5.dp))
+                OnBtn("🏆  Žebříček", OnGold, Modifier.width(190.dp)) { onLeaderboard() }
                 Spacer(Modifier.height(5.dp))
                 OnBtn("← Odpojit", OnMuted, Modifier.width(190.dp)) { vm.disconnect(); onBack() }
             }
@@ -377,7 +404,10 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 
 @Composable
 private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
-    val match by vm.matchInfo
+    val match          by vm.matchInfo
+    val myRating       by vm.myRating
+    val opponentRating by vm.opponentRating
+    val playerName     by vm.playerName
 
     CenteredCard {
         Text("⚔️", fontSize = 48.sp)
@@ -389,14 +419,37 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
             fontWeight   = FontWeight.Bold,
             letterSpacing = 3.sp
         )
+        Spacer(Modifier.height(12.dp))
+
+        // Rating srovnání
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            // Hráč
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    match?.opponentAvatar?.let { "👤" } ?: "👤",
+                    fontSize = 24.sp
+                )
+                Text(playerName, color = OnTeal, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                if (myRating != null) Text("⭐ $myRating", color = OnGold, fontSize = 10.sp)
+            }
+            Text("VS", color = OnMuted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            // Soupeř
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(match?.opponentAvatar ?: "👺", fontSize = 24.sp)
+                Text(
+                    match?.opponentName ?: "Soupeř",
+                    color      = OnRed,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                if (opponentRating != null) Text("⭐ $opponentRating", color = OnGold, fontSize = 10.sp)
+            }
+        }
+
         Spacer(Modifier.height(8.dp))
-        Text(
-            match?.opponentName ?: "Soupeř",
-            color      = OnText,
-            fontSize   = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(6.dp))
         Text(
             if (match?.side == "A") "⚔️ Ty začínáš první" else "⏳ Soupeř začíná první",
             color    = if (match?.side == "A") OnTeal else OnMuted,

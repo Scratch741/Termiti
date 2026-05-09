@@ -566,7 +566,9 @@ private fun OnlineGameOverOverlay(
     onBack: () -> Unit,
     onReview: () -> Unit = {}
 ) {
-    val result by vm.gameResult
+    val result       by vm.gameResult
+    val ratingChange by vm.ratingChange
+    val newRating    by vm.newRating
 
     // Přehraj zvuk a zaznamenej výsledek při zobrazení overlay
     LaunchedEffect(result) {
@@ -621,6 +623,33 @@ private fun OnlineGameOverOverlay(
                     fontSize  = 13.sp,
                     textAlign = TextAlign.Center
                 )
+            }
+
+            // Rating změna
+            if (ratingChange != null && newRating != null) {
+                val deltaStr = if (ratingChange!! >= 0) "+$ratingChange" else "$ratingChange"
+                val deltaColor = when {
+                    ratingChange!! > 0 -> Color(0xFF4CAF50)
+                    ratingChange!! < 0 -> Color(0xFFCF4A4A)
+                    else               -> Color(0xFF7A6E5F)
+                }
+                androidx.compose.foundation.layout.Row(
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                    verticalAlignment     = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Text(
+                        "⭐ Rating: $newRating",
+                        color    = OgGold,
+                        fontSize = 13.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                    Text(
+                        "($deltaStr)",
+                        color    = deltaColor,
+                        fontSize = 13.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(Modifier.height(4.dp))
