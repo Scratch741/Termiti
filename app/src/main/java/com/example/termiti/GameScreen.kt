@@ -1195,13 +1195,13 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
 
 // ─── Castle Structure ─────────────────────────────────────────────────────────
 
-@Composable
 /** Mapuje ID skinu hradu na drawable resource. */
 fun castleSkinDrawable(skinId: String): Int = when (skinId) {
     "castle_player_2" -> R.drawable.castle_player_2
     else              -> R.drawable.castle_player
 }
 
+@Composable
 private fun NewCastleStructure(
     castleHp: Int,
     wallHp: Int,
