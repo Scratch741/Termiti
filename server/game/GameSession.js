@@ -599,7 +599,8 @@ class GameSession {
         pendingResources: (my.pendingResources || []).map(p => ({ ...p })),
         hand:            this._serializeHand(mySide),
         deckSize:        my.deck.length,
-        discardSize:     my.discardPile.length
+        discardSize:     my.discardPile.length,
+        maxHandSize:     my.maxHandSize || 7
       },
       oppState:     oppStatePayload,
       myWinTarget:  this.winTarget[mySide],

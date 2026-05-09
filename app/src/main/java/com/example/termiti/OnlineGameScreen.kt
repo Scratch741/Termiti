@@ -398,6 +398,7 @@ private fun OnlineGameplay(
                     revealedAiCardIdx     = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null,
                     playerWinTarget       = gs.myWinTarget,
                     aiWinTarget           = gs.oppWinTarget,
+                    playerMaxHand         = gs.myState.maxHandSize,
                     opponentCardBackResId = cardBackSkinDrawable(
                         matchInfo?.opponentCardBackSkin ?: "card_back_frame"
                     ),
