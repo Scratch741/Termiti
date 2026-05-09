@@ -215,22 +215,19 @@ private fun LobbyPanel(
                     letterSpacing = 4.sp
                 )
                 Spacer(Modifier.height(2.dp))
-                Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
-
-                Spacer(Modifier.height(10.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
-                    StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
-                }
-
-                if (statusMsg.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(statusMsg, color = OnTeal.copy(alpha = 0.7f), fontSize = 8.sp, textAlign = TextAlign.Center)
+                // Jméno hráče + stav připojení na jednom řádku
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
+                    if (statusMsg.isNotBlank()) {
+                        Text("• $statusMsg", color = OnTeal.copy(alpha = 0.8f), fontSize = 9.sp)
+                    }
                 }
 
                 if (errorMsg.isNotBlank()) {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(2.dp))
                     Text(
                         errorMsg,
                         color     = OnRed,
@@ -240,18 +237,25 @@ private fun LobbyPanel(
                     )
                 }
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
+                    StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
+                }
+
+                Spacer(Modifier.height(8.dp))
 
                 OnBtn("⚔️  Rychlý zápas", OnTeal, Modifier.width(190.dp)) {
                     vm.joinQueue(superRandom = false)
                 }
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(4.dp))
                 OnBtn("🌪️  Super Náhodný", Color(0xFFAA44CC), Modifier.width(190.dp)) {
                     vm.joinQueue(superRandom = true)
                 }
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(4.dp))
                 OnBtn("🏆  Žebříček", OnGold, Modifier.width(190.dp)) { onLeaderboard() }
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(4.dp))
                 OnBtn("← Odpojit", OnMuted, Modifier.width(190.dp)) { vm.disconnect(); onBack() }
             }
 
