@@ -61,7 +61,8 @@ class MultiplayerViewModel(
     var statusMsg    = mutableStateOf("Vyber režim");   private set
     var localIp      = mutableStateOf("…");             private set
     var myName       = mutableStateOf("Hráč")
-    var oppName      = mutableStateOf("Soupeř");        private set
+    var oppName           = mutableStateOf("Soupeř");            private set
+    var oppCardBackSkin   = mutableStateOf("card_back_frame");   private set
     var isHost       = mutableStateOf(false);           private set
     var lastHostIp   = mutableStateOf("");              private set
 
@@ -199,10 +200,11 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Pošle HELLO zprávu včetně ID karet vybraného balíčku. */
+    /** Pošle HELLO zprávu včetně ID karet vybraného balíčku a skinu rubu. */
     private fun sendHello() =
         sendMsg("t" to "HELLO", "name" to myName.value,
-                "deckIds" to JSONArray(myDeckBaseIds()))
+                "deckIds"      to JSONArray(myDeckBaseIds()),
+                "cardBackSkin" to (PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame"))
 
     private fun onConnected() {
         closingIntentionally = false
@@ -307,7 +309,8 @@ class MultiplayerViewModel(
     }
 
     private fun onHello(msg: JSONObject) {
-        oppName.value = msg.optString("name", "Soupeř")
+        oppName.value         = msg.optString("name", "Soupeř")
+        oppCardBackSkin.value = msg.optString("cardBackSkin", "card_back_frame")
         // Uložíme balíček soupeře (host ho použije při startování hry)
         if (msg.has("deckIds")) {
             oppDeckIds = jsonArr(msg.getJSONArray("deckIds"))

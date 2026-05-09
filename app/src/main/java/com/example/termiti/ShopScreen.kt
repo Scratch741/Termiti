@@ -392,7 +392,7 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
             if (rotation <= 90f) {
                 // ── Rubová strana ──────────────────────────────────────────────
                 Image(
-                    painter            = painterResource(R.drawable.card_back_frame),
+                    painter            = painterResource(playerCardBackResId()),
                     contentDescription = null,
                     modifier           = Modifier.size(width = 100.dp, height = 140.dp),
                     contentScale       = ContentScale.FillBounds

@@ -350,6 +350,7 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
     val lastCardIsPlayer by vm.lastCardIsPlayer
     val turn             by vm.currentTurn
     val oppName          by vm.oppName
+    val oppCardBackSkin  by vm.oppCardBackSkin
     val lostToOpponent   by vm.lostToOpponent
 
     var showLeaveConfirm by remember { mutableStateOf(false) }
@@ -409,12 +410,13 @@ private fun MpGameScreen(vm: MultiplayerViewModel) {
 
                 // Střed: bojiště – identické s offline (oppS hraje roli aiState)
                 NewBattlefield(
-                    playerState      = myS,
-                    aiState          = oppS,
-                    lastCard         = lastCard,
-                    lastCardAction   = lastCardAction,
-                    lastCardIsPlayer = lastCardIsPlayer,
-                    modifier         = Modifier.fillMaxHeight().weight(1f)
+                    playerState           = myS,
+                    aiState               = oppS,
+                    lastCard              = lastCard,
+                    lastCardAction        = lastCardAction,
+                    lastCardIsPlayer      = lastCardIsPlayer,
+                    modifier              = Modifier.fillMaxHeight().weight(1f),
+                    opponentCardBackResId = cardBackSkinDrawable(oppCardBackSkin)
                 )
 
                 // Pravý panel: soupeřovy zdroje (zrcadlové)

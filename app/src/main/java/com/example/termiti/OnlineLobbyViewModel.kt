@@ -30,11 +30,12 @@ enum class OnlinePhase {
 
 // ─── Info o nalezeném zápase ──────────────────────────────────────────────────
 data class OnlineMatchInfo(
-    val gameId         : String,
-    val opponentName   : String,
-    val opponentAvatar : String = "👺",
-    val opponentLevel  : Int    = -1,
-    val side           : String   // "A" nebo "B"
+    val gameId                : String,
+    val opponentName          : String,
+    val opponentAvatar        : String = "👺",
+    val opponentCardBackSkin  : String = "card_back_frame",
+    val opponentLevel         : Int    = -1,
+    val side                  : String   // "A" nebo "B"
 )
 
 // ─── Odložená surovina přijatá ze serveru ────────────────────────────────────
@@ -363,7 +364,8 @@ class OnlineLobbyViewModel(
             webSocket.send(JSONObject().apply {
                 put("type",             "JOIN")
                 put("name",             playerName.value.trim())
-                put("avatar",           PlayerProfileManager.profile?.avatar ?: "⚔️")
+                put("avatar",           PlayerProfileManager.profile?.avatar        ?: "⚔️")
+                put("cardBackSkin",     PlayerProfileManager.profile?.cardBackSkin  ?: "card_back_frame")
                 put("level",            PlayerProfileManager.profile?.level  ?: 1)
                 put("activeAbilities",  abilitiesArr)
                 put("deviceId",         deviceId)
@@ -471,11 +473,12 @@ class OnlineLobbyViewModel(
 
                 "MATCH_FOUND" -> {
                     matchInfo.value = OnlineMatchInfo(
-                        gameId         = json.optString("gameId", ""),
-                        opponentName   = json.optString("opponentName", "Soupeř"),
-                        opponentAvatar = json.optString("opponentAvatar", "👺"),
-                        opponentLevel  = json.optInt("opponentLevel", -1),
-                        side           = json.optString("side", "A")
+                        gameId               = json.optString("gameId", ""),
+                        opponentName         = json.optString("opponentName", "Soupeř"),
+                        opponentAvatar       = json.optString("opponentAvatar", "👺"),
+                        opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
+                        opponentLevel        = json.optInt("opponentLevel", -1),
+                        side                 = json.optString("side", "A")
                     )
                     // Načti rating hráče i soupeře z MATCH_FOUND
                     if (!json.isNull("myRating"))       myRating.value       = json.optInt("myRating", 1000)

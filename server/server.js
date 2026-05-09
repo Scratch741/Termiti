@@ -202,8 +202,8 @@ function tryMatchFromQueue(q, mode) {
     const ratingA = pA.deviceId ? ratingSystem.getRating(pA.deviceId, mode) : null;
     const ratingB = pB.deviceId ? ratingSystem.getRating(pB.deviceId, mode) : null;
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
 
     const onGameEnd = (gid) => {
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
@@ -370,16 +370,20 @@ wss.on('connection', (ws, req) => {
 
         const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
         const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
+        // Skin rubu karty – přijmi jen povolené hodnoty
+        const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);
+        const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
         // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
         const KNOWN_ABILITIES = new Set([
           'extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos',
-          'quick_draw','boost_attack','boost_build','boost_magic','boost_chaos','boost_random'
+          'quick_draw','boost_attack','boost_build','boost_magic','boost_chaos','boost_random',
+          'extra_hand_card','iron_bastion'
         ]);
         const rawAbilities    = Array.isArray(msg.activeAbilities) ? msg.activeAbilities : [];
         const activeAbilities = rawAbilities
           .filter(a => typeof a === 'string' && KNOWN_ABILITIES.has(a))
           .slice(0, 2);
-        players.set(ws, { id: uuidv4(), name, avatar, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
+        players.set(ws, { id: uuidv4(), name, avatar, cardBackSkin, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         // Pošli hráči jeho aktuální rating pro všechny módy

@@ -719,9 +719,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     fun loadPreset(deckIndex: Int, presetIndex: Int) {
-        decks[deckIndex] = decks[deckIndex].copy(
-            cardCounts = presetTemplates[presetIndex].second
-        )
+        val template = presetTemplates[presetIndex].second
+        // Filtruj šablonu podle skutečně vlastněných karet
+        val filtered = template.mapNotNull { (cardId, wantedCount) ->
+            val card    = allCards.find { it.id == cardId } ?: return@mapNotNull null
+            val allowed = CardCollectionManager.usableCopies(card)
+            if (allowed <= 0) null else cardId to minOf(wantedCount, allowed)
+        }.toMap()
+        decks[deckIndex] = decks[deckIndex].copy(cardCounts = filtered)
         saveDeck(deckIndex)
     }
 

@@ -898,7 +898,8 @@ fun NewBattlefield(
     revealedAiCardIdx: Int? = null,   // původní index v ruce (před zahráním)
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
     aiWinTarget: Int = 60,            // win target soupeře / AI
-    playerMaxHand: Int = 7            // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
+    playerMaxHand: Int = 7,           // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
+    opponentCardBackResId: Int = R.drawable.card_back_frame  // skin rubu karet soupeře/AI
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -944,7 +945,7 @@ fun NewBattlefield(
                     // Odhalená zahraná karta – na své původní pozici v ruce
                     PlayedCardSlot(revealedAiCard!!)
                 } else {
-                    CardBack()
+                    CardBack(skinResId = opponentCardBackResId)
                 }
             }
         }
@@ -1529,7 +1530,6 @@ fun AiHandRow(
     }
 }
 
-@Composable
 /** Mapuje ID skinu rubu karty na drawable resource. */
 fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
     "card_back_frame_2" -> R.drawable.card_back_frame_2
@@ -1537,13 +1537,17 @@ fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
     else                -> R.drawable.card_back_frame
 }
 
+/** Vrátí res-ID skinu rubu z profilu přihlášeného hráče. */
+fun playerCardBackResId(): Int =
+    cardBackSkinDrawable(PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame")
+
 @Composable
-fun CardBack(modifier: Modifier = Modifier) {
-    val resId = cardBackSkinDrawable(
-        PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame"
-    )
+fun CardBack(
+    modifier:  Modifier = Modifier,
+    skinResId: Int      = R.drawable.card_back_frame   // výchozí = základní rub (AI / neznámý hráč)
+) {
     Image(
-        painter            = painterResource(resId),
+        painter            = painterResource(skinResId),
         contentDescription = null,
         contentScale       = ContentScale.FillBounds,
         modifier           = modifier.size(width = 22.dp, height = 32.dp)
