@@ -76,6 +76,17 @@ data class OnlineGameState(
     val receivedAt       : Long              = 0L        // System.currentTimeMillis() při přijetí
 )
 
+// ─── Statistiky pro jeden herní mód ──────────────────────────────────────────
+data class OnlineModeStats(
+    val rating : Int = 1000,
+    val wins   : Int = 0,
+    val losses : Int = 0,
+    val draws  : Int = 0,
+    val games  : Int = 0
+) {
+    val winRate: Int get() = if (games > 0) wins * 100 / games else 0
+}
+
 // ─── Výsledek hry ─────────────────────────────────────────────────────────────
 data class OnlineGameResult(
     val winner    : String,   // "A" | "B" | "DRAW"
@@ -99,8 +110,10 @@ class OnlineLobbyViewModel(
     var matchInfo    = mutableStateOf<OnlineMatchInfo?>(null); private set
 
     // ── Rating / MMR ──────────────────────────────────────────────────────────
-    /** Aktuální rating hráče (z WELCOME nebo posledního GAME_OVER) */
+    /** Aktuální rating hráče v módu normal (z WELCOME nebo GAME_OVER) */
     var myRating        = mutableStateOf<Int?>(null); private set
+    /** Statistiky hráče pro všechny herní módy (z WELCOME) */
+    var allModeStats    = mutableStateOf<Map<String, OnlineModeStats>>(emptyMap()); private set
     /** Rating soupeře v aktuálním zápase (z MATCH_FOUND) */
     var opponentRating  = mutableStateOf<Int?>(null); private set
     /** Změna ratingu po posledním zápase (+25 / -15 / 0) */
@@ -416,10 +429,23 @@ class OnlineLobbyViewModel(
                 "WELCOME" -> {
                     onlineCount.value    = json.optInt("online", 0)
                     queueSize.value      = json.optInt("queue",  0)
-                    // Načti rating hráče z ratings.normal.rating (server posílá celý modes objekt)
+                    // Načti statistiky ze všech módů (ratings = { normal: {...}, super_random: {...} })
                     val ratingsObj = json.optJSONObject("ratings")
-                    val normalMode = ratingsObj?.optJSONObject("normal")
-                    if (normalMode != null) myRating.value = normalMode.optInt("rating", 1000)
+                    if (ratingsObj != null) {
+                        val parsed = mutableMapOf<String, OnlineModeStats>()
+                        for (mode in ratingsObj.keys()) {
+                            val m = ratingsObj.optJSONObject(mode) ?: continue
+                            parsed[mode] = OnlineModeStats(
+                                rating = m.optInt("rating", 1000),
+                                wins   = m.optInt("wins",   0),
+                                losses = m.optInt("losses", 0),
+                                draws  = m.optInt("draws",  0),
+                                games  = m.optInt("games",  0)
+                            )
+                        }
+                        allModeStats.value = parsed
+                        myRating.value = parsed["normal"]?.rating
+                    }
                     // Nepřepisuj fázi hry při reconnectu – buď z auto-reconnectu (isReconnecting)
                     // nebo jsme aktivní ve hře (mulligan / playing)
                     val inGame = phase.value == OnlinePhase.GAME_MULLIGAN ||
@@ -542,8 +568,23 @@ class OnlineLobbyViewModel(
                     )
                     // Rating změna: server posílá ratingChange (+25/-15/0) a newRating
                     if (!json.isNull("ratingChange")) ratingChange.value = json.optInt("ratingChange", 0)
-                    if (!json.isNull("newRating"))    newRating.value    = json.optInt("newRating",    1000)
-                    if (!json.isNull("newRating"))    myRating.value     = json.optInt("newRating",    1000)
+                    if (!json.isNull("newRating")) {
+                        val nr = json.optInt("newRating", 1000)
+                        newRating.value = nr
+                        myRating.value  = nr
+                        // Aktualizuj allModeStats pro správný mód
+                        val mode = json.optString("mode", "normal")
+                        val old  = allModeStats.value[mode] ?: OnlineModeStats()
+                        val delta = ratingChange.value ?: 0
+                        val updatedStats = old.copy(
+                            rating = nr,
+                            wins   = if (delta > 0) old.wins + 1   else old.wins,
+                            losses = if (delta < 0) old.losses + 1 else old.losses,
+                            draws  = if (delta == 0) old.draws + 1 else old.draws,
+                            games  = old.games + 1
+                        )
+                        allModeStats.value = allModeStats.value + (mode to updatedStats)
+                    }
                     gameEndPending.value = true
                     viewModelScope.launch {
                         kotlinx.coroutines.delay(1750L)

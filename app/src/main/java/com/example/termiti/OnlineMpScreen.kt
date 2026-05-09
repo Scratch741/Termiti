@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -45,6 +46,17 @@ fun OnlineMpScreen(
     onLeaderboard: () -> Unit = {}
 ) {
     val phase by vm.phase
+
+    // Auto-connect: použij nick z profilu, přeskoč NAME_INPUT obrazovku
+    LaunchedEffect(Unit) {
+        if (phase == OnlinePhase.NAME_INPUT) {
+            val profileName = PlayerProfileManager.profile?.name
+            if (!profileName.isNullOrBlank()) {
+                vm.setName(profileName)
+                vm.connect()
+            }
+        }
+    }
 
     // Herní fáze: plná obrazovka bez lobby pozadí
     if (phase == OnlinePhase.GAME_MULLIGAN ||
@@ -166,7 +178,7 @@ private fun LobbyPanel(
     val selectedDeckIdx by vm.selectedDeckIndex
     val errorMsg        by vm.errorMsg
     val statusMsg       by vm.statusMsg
-    val myRating        by vm.myRating
+    val allModeStats    by vm.allModeStats
 
     Box(
         Modifier.fillMaxSize(),
@@ -182,7 +194,7 @@ private fun LobbyPanel(
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // ── Levý sloupec: hlavička + statistiky + tlačítka ────────────────
+            // ── Levý sloupec: hlavička + server info + tlačítka ──────────────
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -195,27 +207,13 @@ private fun LobbyPanel(
                     letterSpacing = 4.sp
                 )
                 Spacer(Modifier.height(2.dp))
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
-                    if (myRating != null) {
-                        Text(
-                            "⭐ $myRating",
-                            color      = OnGold,
-                            fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                Text("Hráč: $name", color = OnMuted, fontSize = 10.sp)
 
                 Spacer(Modifier.height(10.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatBox(value = onlineCount.toString(), label = "Online",    accent = OnGreen)
                     StatBox(value = queueSize.toString(),   label = "Ve frontě", accent = OnGold)
-                    if (myRating != null) StatBox(value = myRating.toString()!!, label = "Rating", accent = Color(0xFFD4A843))
                 }
 
                 if (statusMsg.isNotBlank()) {
@@ -250,12 +248,38 @@ private fun LobbyPanel(
             }
 
             // ── Oddělovač ─────────────────────────────────────────────────────
-            Box(
-                Modifier
-                    .width(1.dp)
-                    .height(120.dp)
-                    .background(OnGold.copy(alpha = 0.15f))
-            )
+            Box(Modifier.width(1.dp).height(200.dp).background(OnGold.copy(alpha = 0.15f)))
+
+            // ── Střední sloupec: statistiky hráče ────────────────────────────
+            Column(
+                modifier            = Modifier.width(170.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "STATISTIKY",
+                    color         = OnMuted,
+                    fontSize      = 8.sp,
+                    letterSpacing = 1.5.sp,
+                    fontWeight    = FontWeight.Bold
+                )
+                if (allModeStats.isEmpty()) {
+                    Text("Načítám…", color = OnMuted.copy(alpha = 0.5f), fontSize = 9.sp)
+                } else {
+                    ModeStatsBlock(
+                        label = "⚔️ Constructed",
+                        stats = allModeStats["normal"],
+                        accent = OnTeal
+                    )
+                    ModeStatsBlock(
+                        label = "🌪️ Super Náhodný",
+                        stats = allModeStats["super_random"],
+                        accent = Color(0xFFAA44CC)
+                    )
+                }
+            }
+
+            // ── Oddělovač ─────────────────────────────────────────────────────
+            Box(Modifier.width(1.dp).height(200.dp).background(OnGold.copy(alpha = 0.15f)))
 
             // ── Pravý sloupec: výběr balíčku ──────────────────────────────────
             Column(
@@ -533,6 +557,72 @@ private fun StatBox(value: String, label: String, accent: Color) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(value, color = accent, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(label, color = OnMuted, fontSize = 9.sp, letterSpacing = 1.sp)
+        }
+    }
+}
+
+// ─── Blok statistik pro jeden herní mód ──────────────────────────────────────
+@Composable
+private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(accent.copy(alpha = 0.07f))
+            .border(1.dp, accent.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(label, color = accent, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+        if (stats == null) {
+            Text("Žádné hry", color = OnMuted.copy(alpha = 0.5f), fontSize = 9.sp)
+        } else {
+            // Rating řádek
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Text("⭐ Rating", color = OnMuted, fontSize = 9.sp)
+                Text(
+                    "${stats.rating}",
+                    color      = OnGold,
+                    fontSize   = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            // Výhry / prohry / remízy
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("W / L / D", color = OnMuted, fontSize = 9.sp)
+                Text(
+                    "${stats.wins} / ${stats.losses} / ${stats.draws}",
+                    color    = OnText,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            // Win rate + počet her
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Win%", color = OnMuted, fontSize = 9.sp)
+                val wrColor = when {
+                    stats.winRate >= 60 -> OnGreen
+                    stats.winRate >= 45 -> OnGold
+                    stats.games == 0    -> OnMuted
+                    else                -> OnRed
+                }
+                Text(
+                    if (stats.games == 0) "–" else "${stats.winRate}%  (${stats.games} her)",
+                    color      = wrColor,
+                    fontSize   = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
