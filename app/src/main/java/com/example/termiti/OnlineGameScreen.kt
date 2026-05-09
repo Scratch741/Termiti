@@ -604,7 +604,7 @@ private fun OnlineGameOverOverlay(
                 result == null            -> Triple("⏳", "Konec hry", "")
                 result!!.winner == "DRAW_BOTH_DEAD" -> Triple("💥", "Remíza!", "Oba hrady byly zničeny současně")
                 result!!.winner == "DRAW" -> Triple("🤝", "Remíza!", "Obě strany mají stejný hrad")
-                result!!.youWin           -> Triple("🏆", "Vítězství!", "Porazil jsi ${result!!.winnerName ?: "soupeře"}")
+                result!!.youWin           -> Triple("🏆", "Vítězství!", "Porazil jsi ${vm.matchInfo.value?.opponentName ?: "soupeře"}")
                 else                      -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
             }
 
