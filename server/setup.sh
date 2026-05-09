@@ -1,6 +1,7 @@
 #!/bin/bash
 # Termiti lobby server – instalační skript pro Ubuntu 22.04+
-# Spusť jako root nebo s sudo: sudo bash setup.sh
+# Spusť z adresáře s git repem: sudo bash server/setup.sh
+# nebo přímo ze server/ složky:  sudo bash setup.sh
 
 set -e
 
@@ -9,10 +10,16 @@ APP_DIR="/opt/termiti-server"
 SERVICE="termiti-lobby"
 NODE_MIN=18
 
+# Adresář, kde leží tento skript (= zdrojové soubory)
+SRC="$(cd "$(dirname "$0")" && pwd)"
+
 echo "=== Termiti Lobby Server – Instalace ==="
+echo "    Zdroj: $SRC"
+echo "    Cíl:   $APP_DIR"
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
-if ! command -v node &>/dev/null || [ "$(node -e 'process.stdout.write(process.version.slice(1).split(\".\")[0])')" -lt "$NODE_MIN" ]; then
+NODE_VER=$(node --version 2>/dev/null | tr -d 'v' | cut -d. -f1 || echo 0)
+if ! command -v node &>/dev/null || [ "$NODE_VER" -lt "$NODE_MIN" ]; then
   echo "[1/5] Instaluji Node.js $NODE_MIN..."
   curl -fsSL https://deb.nodesource.com/setup_${NODE_MIN}.x | bash -
   apt-get install -y nodejs
@@ -24,14 +31,25 @@ fi
 echo "[2/5] Kopíruji soubory do $APP_DIR..."
 mkdir -p "$APP_DIR/game"
 mkdir -p "$APP_DIR/data"
-cp "$(dirname "$0")/server.js"               "$APP_DIR/server.js"
-cp "$(dirname "$0")/package.json"            "$APP_DIR/package.json"
-cp "$(dirname "$0")/game/cards.js"           "$APP_DIR/game/cards.js"
-cp "$(dirname "$0")/game/engine.js"          "$APP_DIR/game/engine.js"
-cp "$(dirname "$0")/game/GameSession.js"     "$APP_DIR/game/GameSession.js"
-cp "$(dirname "$0")/game/RatingSystem.js"    "$APP_DIR/game/RatingSystem.js"
 
-# Přidej oprávnění pro zápis do data/ – zachová ratings.json při reinstalaci
+# Kopíruj jen pokud zdroj != cíl (ochrana před spuštěním přímo z APP_DIR)
+copy_if_different() {
+  local src="$1" dst="$2"
+  if [ "$(realpath "$src" 2>/dev/null)" != "$(realpath "$dst" 2>/dev/null)" ]; then
+    cp "$src" "$dst"
+  else
+    echo "      (přeskakuji $dst – stejný soubor)"
+  fi
+}
+
+copy_if_different "$SRC/server.js"            "$APP_DIR/server.js"
+copy_if_different "$SRC/package.json"         "$APP_DIR/package.json"
+copy_if_different "$SRC/game/cards.js"        "$APP_DIR/game/cards.js"
+copy_if_different "$SRC/game/engine.js"       "$APP_DIR/game/engine.js"
+copy_if_different "$SRC/game/GameSession.js"  "$APP_DIR/game/GameSession.js"
+copy_if_different "$SRC/game/RatingSystem.js" "$APP_DIR/game/RatingSystem.js"
+
+# Oprávnění pro data/ – nobody musí moci zapisovat ratings.json
 chown -R nobody:nogroup "$APP_DIR/data"
 chmod 755 "$APP_DIR/data"
 
@@ -58,6 +76,8 @@ After=network.target
 [Service]
 Type=simple
 User=nobody
+SupplementaryGroups=nogroup
+ReadWritePaths=$APP_DIR/data
 WorkingDirectory=$APP_DIR
 ExecStart=$(which node) $APP_DIR/server.js
 Restart=always
