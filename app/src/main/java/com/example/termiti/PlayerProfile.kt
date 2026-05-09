@@ -11,7 +11,10 @@ data class PlayerProfile(
     val avatar: String = "⚔️",  // emoji ID z PlayerAvatar
 
     // ── Skin hradu ────────────────────────────────────────────────────────────
-    val castleSkin: String = "castle_player",  // ID drawablu hradu hráče
+    val castleSkin: String = "castle_player",      // ID drawablu hradu hráče
+
+    // ── Skin rubu karty ───────────────────────────────────────────────────────
+    val cardBackSkin: String = "card_back_frame",  // ID drawablu rubu karty
 
     // ── Progress ─────────────────────────────────────────────────────────────
     val level: Int = 1,

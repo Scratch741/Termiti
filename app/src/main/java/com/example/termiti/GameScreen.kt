@@ -1530,9 +1530,20 @@ fun AiHandRow(
 }
 
 @Composable
+/** Mapuje ID skinu rubu karty na drawable resource. */
+fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
+    "card_back_frame_2" -> R.drawable.card_back_frame_2
+    "card_back_frame_3" -> R.drawable.card_back_frame_3
+    else                -> R.drawable.card_back_frame
+}
+
+@Composable
 fun CardBack(modifier: Modifier = Modifier) {
+    val resId = cardBackSkinDrawable(
+        PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame"
+    )
     Image(
-        painter            = painterResource(R.drawable.card_back_frame),
+        painter            = painterResource(resId),
         contentDescription = null,
         contentScale       = ContentScale.FillBounds,
         modifier           = modifier.size(width = 22.dp, height = 32.dp)

@@ -252,6 +252,12 @@ fun ProfileScreen(onBack: () -> Unit) {
                     onChanged = { profile = it }
                 )
 
+                SectionHeader("🃏  Rub karty")
+                CardBackSkinPicker(
+                    current   = profile!!.cardBackSkin,
+                    onChanged = { profile = it }
+                )
+
                 SectionHeader("⚡  Pasivní schopnosti")
                 // slot info
                 val activeCount = profile!!.activeAbilities.size
@@ -535,6 +541,73 @@ private fun CastleSkinPicker(
                         color    = PrGold,
                         fontSize = 8.sp
                     )
+                }
+            }
+        }
+    }
+}
+
+// ── Card back skin picker ─────────────────────────────────────────────────────
+
+private val CARD_BACK_SKINS = listOf(
+    "card_back_frame"   to "Základní",
+    "card_back_frame_2" to "Styl 2",
+    "card_back_frame_3" to "Styl 3"
+)
+
+@Composable
+private fun CardBackSkinPicker(
+    current: String,
+    onChanged: (PlayerProfile) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(PrBgCard)
+            .border(1.dp, PrMuted.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CARD_BACK_SKINS.forEach { (skinId, label) ->
+            val selected = skinId == current
+            val resId = cardBackSkinDrawable(skinId)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (selected) PrGold.copy(alpha = 0.12f) else PrBgPanel)
+                    .border(
+                        width = if (selected) 2.dp else 1.dp,
+                        color = if (selected) PrGold else PrMuted.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clickable(enabled = !selected) {
+                        SoundManager.playMenuTap()
+                        val updated = PlayerProfileManager.profile!!.copy(cardBackSkin = skinId)
+                        PlayerProfileManager.save(updated)
+                        onChanged(updated)
+                    }
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Image(
+                    painter            = painterResource(resId),
+                    contentDescription = label,
+                    modifier           = Modifier
+                        .width(36.dp)
+                        .height(52.dp),
+                    contentScale       = ContentScale.FillBounds
+                )
+                Text(
+                    label,
+                    color      = if (selected) PrGold else PrMuted,
+                    fontSize   = 9.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                )
+                if (selected) {
+                    Text("✓ Aktivní", color = PrGold, fontSize = 8.sp)
                 }
             }
         }
