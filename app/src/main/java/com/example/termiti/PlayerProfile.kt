@@ -10,6 +10,9 @@ data class PlayerProfile(
     // ── Avatar ────────────────────────────────────────────────────────────────
     val avatar: String = "⚔️",  // emoji ID z PlayerAvatar
 
+    // ── Skin hradu ────────────────────────────────────────────────────────────
+    val castleSkin: String = "castle_player",  // ID drawablu hradu hráče
+
     // ── Progress ─────────────────────────────────────────────────────────────
     val level: Int = 1,
     val xp: Int = 0,           // aktuální XP v rámci levelu

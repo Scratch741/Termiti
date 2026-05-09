@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -243,6 +246,12 @@ fun ProfileScreen(onBack: () -> Unit) {
                     onChanged = { profile = it }
                 )
 
+                SectionHeader("🏰  Skin hradu")
+                CastleSkinPicker(
+                    current   = profile!!.castleSkin,
+                    onChanged = { profile = it }
+                )
+
                 SectionHeader("⚡  Pasivní schopnosti")
                 // slot info
                 val activeCount = profile!!.activeAbilities.size
@@ -457,6 +466,76 @@ private fun AvatarPicker(
                 contentAlignment = Alignment.Center
             ) {
                 Text(emoji, fontSize = 20.sp)
+            }
+        }
+    }
+}
+
+// ── Castle skin picker ────────────────────────────────────────────────────────
+
+private val CASTLE_SKINS = listOf(
+    "castle_player"   to "Klasický",
+    "castle_player_2" to "Kamenný"
+)
+
+@Composable
+private fun CastleSkinPicker(
+    current: String,
+    onChanged: (PlayerProfile) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(PrBgCard)
+            .border(1.dp, PrMuted.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CASTLE_SKINS.forEach { (skinId, label) ->
+            val selected = skinId == current
+            val resId = castleSkinDrawable(skinId)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (selected) PrGold.copy(alpha = 0.12f) else PrBgPanel)
+                    .border(
+                        width = if (selected) 2.dp else 1.dp,
+                        color = if (selected) PrGold else PrMuted.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clickable(enabled = !selected) {
+                        SoundManager.playMenuTap()
+                        val updated = PlayerProfileManager.profile!!.copy(castleSkin = skinId)
+                        PlayerProfileManager.save(updated)
+                        onChanged(updated)
+                    }
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Image(
+                    painter            = painterResource(resId),
+                    contentDescription = label,
+                    modifier           = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    contentScale       = ContentScale.Fit
+                )
+                Text(
+                    label,
+                    color      = if (selected) PrGold else PrMuted,
+                    fontSize   = 9.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                )
+                if (selected) {
+                    Text(
+                        "✓ Aktivní",
+                        color    = PrGold,
+                        fontSize = 8.sp
+                    )
+                }
             }
         }
     }

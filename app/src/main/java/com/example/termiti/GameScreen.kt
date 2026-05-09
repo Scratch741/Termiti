@@ -1031,12 +1031,16 @@ fun NewBattlefield(
         }
 
         // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
+        val playerCastleRes = castleSkinDrawable(
+            PlayerProfileManager.profile?.castleSkin ?: "castle_player"
+        )
         NewCastleStructure(
-            castleHp  = playerState.castleHP,
-            wallHp    = playerState.wallHP,
-            isPlayer  = true,
-            winTarget = playerWinTarget,
-            modifier  = Modifier
+            castleHp    = playerState.castleHP,
+            wallHp      = playerState.wallHP,
+            isPlayer    = true,
+            winTarget   = playerWinTarget,
+            castleResId = playerCastleRes,
+            modifier    = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp)
         )
@@ -1192,11 +1196,18 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
 // ─── Castle Structure ─────────────────────────────────────────────────────────
 
 @Composable
+/** Mapuje ID skinu hradu na drawable resource. */
+fun castleSkinDrawable(skinId: String): Int = when (skinId) {
+    "castle_player_2" -> R.drawable.castle_player_2
+    else              -> R.drawable.castle_player
+}
+
 private fun NewCastleStructure(
     castleHp: Int,
     wallHp: Int,
     isPlayer: Boolean,
     winTarget: Int = 60,
+    castleResId: Int = R.drawable.castle_player,
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isPlayer) Teal    else Crimson
@@ -1215,11 +1226,11 @@ private fun NewCastleStructure(
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         if (isPlayer) {
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId)
             WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true)
         } else {
             WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false)
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget)
+            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId)
         }
     }
 }
@@ -1230,7 +1241,8 @@ private fun CastleTowerBlock(
     accentColor: Color,
     accentLight: Color,
     isPlayer: Boolean,
-    winTarget: Int = 60
+    winTarget: Int = 60,
+    castleResId: Int = R.drawable.castle_player
 ) {
     val castleFullH = 165.dp
     val castleFullW = 110.dp
@@ -1254,7 +1266,7 @@ private fun CastleTowerBlock(
                 .clip(androidx.compose.ui.graphics.RectangleShape)
         ) {
             Image(
-                painter            = painterResource(R.drawable.castle_player),
+                painter            = painterResource(castleResId),
                 contentDescription = if (isPlayer) "Hráčův hrad" else "Soupeřův hrad",
                 modifier           = Modifier
                     .size(castleFullW, castleFullH)

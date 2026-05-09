@@ -188,6 +188,7 @@ object PlayerProfileManager {
         return JSONObject().apply {
             put("name",              p.name)
             put("avatar",            p.avatar)
+            put("castleSkin",        p.castleSkin)
             put("level",             p.level)
             put("xp",                p.xp)
             put("gold",              p.gold)
@@ -223,6 +224,7 @@ object PlayerProfileManager {
             PlayerProfile(
                 name               = o.optString("name", "Hráč"),
                 avatar             = o.optString("avatar", "⚔️"),
+                castleSkin         = o.optString("castleSkin", "castle_player"),
                 level              = o.optInt("level", 1),
                 xp                 = o.optInt("xp", 0),
                 gold               = o.optInt("gold", 0),
