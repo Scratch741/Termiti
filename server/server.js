@@ -102,7 +102,7 @@ const httpServer = http.createServer((req, res) => {
       <h1>🏆 TERMITI – ŽEBŘÍČEK</h1>
       <p><span class="badge">🟢 ${players ? players.size : 0} online</span></p>
       ${rows || '<p>Žádná data.</p>'}
-      <p class="ts">Aktualizováno: ${new Date().toLocaleString('cs-CZ')}</p>
+      <p class="ts">Aktualizováno: ${new Date().toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })}</p>
       </body></html>`;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(html);

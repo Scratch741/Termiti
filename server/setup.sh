@@ -23,11 +23,17 @@ fi
 # ── Adresář aplikace ──────────────────────────────────────────────────────────
 echo "[2/5] Kopíruji soubory do $APP_DIR..."
 mkdir -p "$APP_DIR/game"
-cp "$(dirname "$0")/server.js"          "$APP_DIR/server.js"
-cp "$(dirname "$0")/package.json"       "$APP_DIR/package.json"
-cp "$(dirname "$0")/game/cards.js"      "$APP_DIR/game/cards.js"
-cp "$(dirname "$0")/game/engine.js"     "$APP_DIR/game/engine.js"
-cp "$(dirname "$0")/game/GameSession.js" "$APP_DIR/game/GameSession.js"
+mkdir -p "$APP_DIR/data"
+cp "$(dirname "$0")/server.js"               "$APP_DIR/server.js"
+cp "$(dirname "$0")/package.json"            "$APP_DIR/package.json"
+cp "$(dirname "$0")/game/cards.js"           "$APP_DIR/game/cards.js"
+cp "$(dirname "$0")/game/engine.js"          "$APP_DIR/game/engine.js"
+cp "$(dirname "$0")/game/GameSession.js"     "$APP_DIR/game/GameSession.js"
+cp "$(dirname "$0")/game/RatingSystem.js"    "$APP_DIR/game/RatingSystem.js"
+
+# Přidej oprávnění pro zápis do data/ – zachová ratings.json při reinstalaci
+chown -R nobody:nogroup "$APP_DIR/data"
+chmod 755 "$APP_DIR/data"
 
 cd "$APP_DIR"
 echo "[3/5] Instaluji npm závislosti..."

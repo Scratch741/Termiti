@@ -91,10 +91,16 @@ class GameSession {
     applyPassiveAbilities(this.state.A, this.abilities.A);
     applyPassiveAbilities(this.state.B, this.abilities.B);
 
-    // Vítězný cíl hradu: extra_castle posunuje z 60 na 65
+    // Vítězný cíl hradu:
+    //   extra_castle  → vlastní cíl +5 (výměna za 5 HP navíc při startu)
+    //   iron_bastion  → soupeřův cíl +5 (soupeř musí postavit více)
     this.winTarget = {
-      A: this.abilities.A.includes('extra_castle') ? 65 : 60,
-      B: this.abilities.B.includes('extra_castle') ? 65 : 60
+      A: 60
+        + (this.abilities.A.includes('extra_castle') ? 5 : 0)
+        + (this.abilities.B.includes('iron_bastion') ? 5 : 0),
+      B: 60
+        + (this.abilities.B.includes('extra_castle') ? 5 : 0)
+        + (this.abilities.A.includes('iron_bastion') ? 5 : 0)
     };
 
     // Deal opening hands
@@ -294,6 +300,9 @@ class GameSession {
   // ── Play card ──────────────────────────────────────────────────────────────
 
   _handlePlayCard(side, { cardId }) {
+    // Hráč zahrál kartu → resetuj příznak prázdného přeskočení (není to skip)
+    this.skippedEmptyDeck[side] = false;
+
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
 
@@ -386,6 +395,9 @@ class GameSession {
   // ── Discard card ───────────────────────────────────────────────────────────
 
   _handleDiscardCard(side, { cardId }) {
+    // Hráč odhodil kartu → resetuj příznak prázdného přeskočení
+    this.skippedEmptyDeck[side] = false;
+
     const self = this.state[side];
 
     const cardIdx = self.hand.findIndex(c => c.id === cardId);
@@ -410,6 +422,8 @@ class GameSession {
   // ── End turn ───────────────────────────────────────────────────────────────
 
   _handleEndTurn(side) {
+    // Hráč aktivně ukončil tah → resetuj příznak prázdného přeskočení
+    this.skippedEmptyDeck[side] = false;
     this._advanceTurn();
   }
 
@@ -459,7 +473,7 @@ class GameSession {
       this.quickDrawApplied[this.activeSide] = true;
       extraDraw = 1;
     }
-    const burned = drawCards(next, TURN_HAND_DRAW + extraDraw);
+    const burned = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
 
     if (burned.length > 0) {
       this._log(`${this.name[this.activeSide]} spálil kartu (plná ruka).`);

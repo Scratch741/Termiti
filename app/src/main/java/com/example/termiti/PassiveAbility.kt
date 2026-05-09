@@ -61,13 +61,33 @@ enum class PassiveAbility(
         goldCost    = 150
     ),
 
+    // ── Velká ruka ───────────────────────────────────────────────────────────
+    EXTRA_HAND_CARD(
+        id          = "extra_hand_card",
+        title       = "Velká ruka",
+        description = "Maximální velikost ruky vzroste na 8 (místo 7).",
+        icon        = "🃏",
+        unlockLevel = 5,
+        goldCost    = 140
+    ),
+
+    // ── Nedobytná pevnost ────────────────────────────────────────────────────
+    IRON_BASTION(
+        id          = "iron_bastion",
+        title       = "Nedobytná pevnost",
+        description = "Soupeř potřebuje dosáhnout 65 bodů hradu k výhře výstavbou (místo 60).",
+        icon        = "🛡️",
+        unlockLevel = 7,
+        goldCost    = 160
+    ),
+
     // ── Rychlý tah ────────────────────────────────────────────────────────────
     QUICK_DRAW(
         id          = "quick_draw",
         title       = "Rychlý tah",
         description = "Na začátku prvního kola lízneš 1 kartu navíc.",
         icon        = "🤌",
-        unlockLevel = 7,
+        unlockLevel = 8,
         goldCost    = 130
     ),
 

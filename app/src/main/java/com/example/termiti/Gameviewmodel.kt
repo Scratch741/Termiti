@@ -812,7 +812,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
                 if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
-                    player.drawCards(1)
+                    player.drawCards(1, old.playerMaxHand)
                 }
             }
             gameState.value = old.copy(playerState = player)
@@ -859,13 +859,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
 
-        val startCastle   = 30 + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
-        val startWall     = 10 + if (PassiveAbility.EXTRA_WALL   in actives) 5 else 0
-        val extraMagic    =       if (PassiveAbility.EXTRA_MAGIC  in actives) 1 else 0
-        val extraAttack   =       if (PassiveAbility.EXTRA_ATTACK in actives) 1 else 0
-        val extraStones   =       if (PassiveAbility.EXTRA_STONES in actives) 1 else 0
-        val extraChaos    =       if (PassiveAbility.EXTRA_CHAOS  in actives) 1 else 0
-        val playerWinTarget = if (PassiveAbility.EXTRA_CASTLE in actives) 65 else 60
+        val startCastle      = 30 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
+        val startWall        = 10 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
+        val extraMagic       =       if (PassiveAbility.EXTRA_MAGIC      in actives) 1 else 0
+        val extraAttack      =       if (PassiveAbility.EXTRA_ATTACK     in actives) 1 else 0
+        val extraStones      =       if (PassiveAbility.EXTRA_STONES     in actives) 1 else 0
+        val extraChaos       =       if (PassiveAbility.EXTRA_CHAOS      in actives) 1 else 0
+        val playerWinTarget  =  60 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
+        val aiWinTarget      =  60 + if (PassiveAbility.IRON_BASTION     in actives) 5 else 0
+        val playerMaxHand    =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in actives) 1 else 0
 
         val playerState = PlayerState(
             castleHP  = startCastle,
@@ -886,10 +888,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val firstPlayer = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI
         return GameState(
-            playerState    = playerState,
-            aiState        = aiState,
-            activePlayer   = firstPlayer,
-            playerWinTarget = playerWinTarget
+            playerState     = playerState,
+            aiState         = aiState,
+            activePlayer    = firstPlayer,
+            playerWinTarget = playerWinTarget,
+            aiWinTarget     = aiWinTarget,
+            playerMaxHand   = playerMaxHand
         )
     }
 
@@ -967,7 +971,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 repeat(pendingDrawCount) {
                     delay(210L)
                     SoundManager.playCardDraw()
-                    player.drawCards(1)
+                    player.drawCards(1, old.playerMaxHand)
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
                         aiState      = ai,
@@ -1158,7 +1162,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Konec kola: příprava hráčova tahu ────────────────────────────
             player.generateResources()
             if (playerDrawsAtEnd && player.deck.isNotEmpty()) {
-                val burned = player.drawCards(1)
+                val burned = player.drawCards(1, old.playerMaxHand)
                 SoundManager.playCardDraw()
                 burned.forEach { b ->
                     addToHistory(b, CardAction.BURNED, isMine = true)
@@ -1171,7 +1175,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
                 if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
-                    player.drawCards(1)
+                    player.drawCards(1, old.playerMaxHand)
                     SoundManager.playCardDraw()
                 }
             }
@@ -1316,8 +1320,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val extraChaos  =       if (PassiveAbility.EXTRA_CHAOS  in actives) 1 else 0
 
         // playerWinTarget: extra_castle pasiv přidá +5, pak se aplikuje nastavení ze soupeře
-        val passiveCastleBonus = if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
+        val passiveCastleBonus = if (PassiveAbility.EXTRA_CASTLE    in actives) 5 else 0
         val playerWinTarget    = (opponent.winTarget + passiveCastleBonus).coerceAtMost(999)
+        // aiWinTarget: iron_bastion pasiv přidá +5 na soupeřův cíl
+        val aiWinTarget        = (opponent.aiWinTarget + if (PassiveAbility.IRON_BASTION in actives) 5 else 0).coerceAtMost(999)
+        // playerMaxHand: extra_hand_card pasiv zvýší max. ruku na 8
+        val playerMaxHand      = 7 + if (PassiveAbility.EXTRA_HAND_CARD in actives) 1 else 0
 
         val playerState = PlayerState(
             castleHP = startCastle.coerceAtLeast(5),
@@ -1383,7 +1391,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             aiState         = aiState,
             activePlayer    = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI,
             playerWinTarget = playerWinTarget,
-            aiWinTarget     = opponent.aiWinTarget
+            aiWinTarget     = aiWinTarget,
+            playerMaxHand   = playerMaxHand
         )
     }
 

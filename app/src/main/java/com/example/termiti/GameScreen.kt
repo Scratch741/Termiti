@@ -398,7 +398,8 @@ fun GameScreen(
                     lastCardIsPlayer = lastCardIsPlayer,
                     modifier         = Modifier.fillMaxHeight().weight(1f),
                     playerWinTarget  = state.playerWinTarget,
-                    aiWinTarget      = state.aiWinTarget
+                    aiWinTarget      = state.aiWinTarget,
+                    playerMaxHand    = state.playerMaxHand
                 )
 
                 // ── Pravý panel: zdroje AI ────────────────────────────────────
@@ -896,7 +897,8 @@ fun NewBattlefield(
     revealedAiCard: Card? = null,     // karta zahrána soupeřem
     revealedAiCardIdx: Int? = null,   // původní index v ruce (před zahráním)
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
-    aiWinTarget: Int = 60             // win target soupeře / AI
+    aiWinTarget: Int = 60,            // win target soupeře / AI
+    playerMaxHand: Int = 7            // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -954,6 +956,7 @@ fun NewBattlefield(
             isPlayer    = true,
             winTarget   = playerWinTarget,
             handSize    = playerState.hand.size,
+            maxHandSize = playerMaxHand,
             modifier    = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)

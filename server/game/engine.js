@@ -23,7 +23,9 @@ function createPlayerState(deckCards) {
     deck:  [...deckCards],
     hand:  [],
     discardPile: [],
-    lastPlayedType: null
+    lastPlayedType: null,
+    /** Maximální velikost ruky – výchozí 7, extra_hand_card → 8. */
+    maxHandSize: 7
   };
 }
 
@@ -240,7 +242,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'DrawCard':
-        drawCards(self, fx.count);
+        drawCards(self, fx.count, self.maxHandSize || 7);
         break;
 
       case 'StealCastle': {
@@ -296,7 +298,8 @@ function applyPassiveAbilities(state, abilities) {
       case 'extra_magic':   state.resources.MAGIC   += 1; break;
       case 'extra_attack':  state.resources.ATTACK  += 1; break;
       case 'extra_stones':  state.resources.STONES  += 1; break;
-      case 'extra_chaos':   state.resources.CHAOS   += 1; break;
+      case 'extra_chaos':      state.resources.CHAOS += 1; break;
+      case 'extra_hand_card':  state.maxHandSize      = 8; break; // max ruka 7 → 8
       // ── Posily balíčku ───────────────────────────────────────────────────────
       case 'boost_attack':  _addBoostCards(state, t => t === 'Útok',  2); break;
       case 'boost_build':   _addBoostCards(state, t => t === 'Stavba',2); break;

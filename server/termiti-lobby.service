@@ -5,6 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=nobody
+SupplementaryGroups=nogroup
+ReadWritePaths=/opt/termiti-server/data
 WorkingDirectory=/opt/termiti-server
 ExecStart=/usr/bin/node /opt/termiti-server/server.js
 Restart=always

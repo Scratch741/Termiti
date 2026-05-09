@@ -274,20 +274,16 @@ private fun LobbyPanel(
                     letterSpacing = 1.5.sp,
                     fontWeight    = FontWeight.Bold
                 )
-                if (allModeStats.isEmpty()) {
-                    Text("Načítám…", color = OnMuted.copy(alpha = 0.5f), fontSize = 9.sp)
-                } else {
-                    ModeStatsBlock(
-                        label = "⚔️ Constructed",
-                        stats = allModeStats["normal"],
-                        accent = OnTeal
-                    )
-                    ModeStatsBlock(
-                        label = "🌪️ Super Náhodný",
-                        stats = allModeStats["super_random"],
-                        accent = Color(0xFFAA44CC)
-                    )
-                }
+                ModeStatsBlock(
+                    label  = "⚔️ Constructed",
+                    stats  = allModeStats["normal"],
+                    accent = OnTeal
+                )
+                ModeStatsBlock(
+                    label  = "🌪️ Super Náhodný",
+                    stats  = allModeStats["super_random"],
+                    accent = Color(0xFFAA44CC)
+                )
             }
 
             // ── Oddělovač ─────────────────────────────────────────────────────
@@ -586,10 +582,8 @@ private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(label, color = accent, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-        if (stats == null) {
-            Text("Žádné hry", color = OnMuted.copy(alpha = 0.5f), fontSize = 9.sp)
-        } else {
-            // Rating řádek
+        val s = stats ?: OnlineModeStats()   // výchozí: rating 1000, 0 her
+        // Rating řádek
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -597,7 +591,7 @@ private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color
             ) {
                 Text("⭐ Rating", color = OnMuted, fontSize = 9.sp)
                 Text(
-                    "${stats.rating}",
+                    "${s.rating}",
                     color      = OnGold,
                     fontSize   = 13.sp,
                     fontWeight = FontWeight.Bold
@@ -610,7 +604,7 @@ private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color
             ) {
                 Text("W / L / D", color = OnMuted, fontSize = 9.sp)
                 Text(
-                    "${stats.wins} / ${stats.losses} / ${stats.draws}",
+                    "${s.wins} / ${s.losses} / ${s.draws}",
                     color    = OnText,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold
@@ -623,19 +617,18 @@ private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color
             ) {
                 Text("Win%", color = OnMuted, fontSize = 9.sp)
                 val wrColor = when {
-                    stats.winRate >= 60 -> OnGreen
-                    stats.winRate >= 45 -> OnGold
-                    stats.games == 0    -> OnMuted
-                    else                -> OnRed
+                    s.winRate >= 60 -> OnGreen
+                    s.winRate >= 45 -> OnGold
+                    s.games == 0    -> OnMuted
+                    else            -> OnRed
                 }
                 Text(
-                    if (stats.games == 0) "–" else "${stats.winRate}%  (${stats.games} her)",
+                    if (s.games == 0) "–" else "${s.winRate}%  (${s.games} her)",
                     color      = wrColor,
                     fontSize   = 9.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
-        }
     }
 }
 
