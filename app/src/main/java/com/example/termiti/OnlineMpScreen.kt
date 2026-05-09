@@ -79,7 +79,15 @@ fun OnlineMpScreen(
         Box(Modifier.fillMaxSize().background(Color(0xAA000000)))
 
         when (phase) {
-            OnlinePhase.NAME_INPUT  -> NameInputPanel(vm, onBack)
+            OnlinePhase.NAME_INPUT  -> {
+                // Pokud má hráč profilový nick, auto-connect proběhne v LaunchedEffect –
+                // zobraz rovnou ConnectingPanel, aby se NAME_INPUT panel neobjevil ani na okamžik.
+                if (!PlayerProfileManager.profile?.name.isNullOrBlank()) {
+                    ConnectingPanel()
+                } else {
+                    NameInputPanel(vm, onBack)
+                }
+            }
             OnlinePhase.CONNECTING  -> ConnectingPanel()
             OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack, onLeaderboard)
             OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
