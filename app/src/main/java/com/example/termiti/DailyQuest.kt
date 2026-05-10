@@ -1,5 +1,8 @@
 package com.example.termiti
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class QuestType {
     WIN_GAMES,     // Vyhraj X her (jakýkoliv mód)
     WIN_ONLINE,    // Vyhraj X online her
@@ -8,6 +11,7 @@ enum class QuestType {
     WIN_CAMPAIGN   // Poraž X soupeřů v kampani
 }
 
+@Serializable
 data class DailyQuest(
     val id        : String,
     val type      : QuestType,

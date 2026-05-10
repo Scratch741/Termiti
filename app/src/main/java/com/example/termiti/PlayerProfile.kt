@@ -1,9 +1,12 @@
 package com.example.termiti
 
+import kotlinx.serialization.Serializable
+
 /**
  * Hráčský profil – veškerý progress, měna a kosmetika.
  * Serializuje se do JSON a ukládá v SharedPreferences.
  */
+@Serializable
 data class PlayerProfile(
     val name: String,
 

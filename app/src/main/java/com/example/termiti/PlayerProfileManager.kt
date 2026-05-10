@@ -2,7 +2,7 @@ package com.example.termiti
 
 import android.content.Context
 import android.content.SharedPreferences
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
 
 /**
  * Správa hráčského profilu – čtení, ukládání, odměňování.
@@ -170,78 +170,18 @@ object PlayerProfileManager {
         save(p.copy(activeAbilities = valid))
     }
 
-    // ── Serializace ──────────────────────────────────────────────────────────
+    // ── Serializace (kotlinx.serialization) ─────────────────────────────────
 
-    private fun toJson(p: PlayerProfile): String {
-        val unlockedArr = org.json.JSONArray().also { arr ->
-            p.unlockedAbilities.forEach { arr.put(it) }
-        }
-        val activeArr = org.json.JSONArray().also { arr ->
-            p.activeAbilities.forEach { arr.put(it) }
-        }
-        val seenArr = org.json.JSONArray().also { arr ->
-            p.seenCards.forEach { arr.put(it) }
-        }
-        val collectionObj = org.json.JSONObject().also { obj ->
-            p.cardCollection.forEach { (id, count) -> obj.put(id, count) }
-        }
-        return JSONObject().apply {
-            put("name",              p.name)
-            put("avatar",            p.avatar)
-            put("castleSkin",        p.castleSkin)
-            put("cardBackSkin",      p.cardBackSkin)
-            put("level",             p.level)
-            put("xp",                p.xp)
-            put("gold",              p.gold)
-            put("gems",              p.gems)
-            put("winsOffline",       p.winsOffline)
-            put("winsOnline",        p.winsOnline)
-            put("totalGames",        p.totalGames)
-            put("unlockedAbilities", unlockedArr)
-            put("activeAbilities",   activeArr)
-            put("cardCollection",    collectionObj)
-            put("dust",              p.dust)
-            put("seenCards",         seenArr)
-            put("allCardsUnlocked",  p.allCardsUnlocked)
-        }.toString()
+    private val json = Json {
+        ignoreUnknownKeys = true   // stará data bez nových polí → výchozí hodnota z data class
+        coerceInputValues = true   // chybný typ v JSON → výchozí hodnota
     }
 
+    private fun toJson(p: PlayerProfile): String = json.encodeToString(PlayerProfile.serializer(), p)
+
     private fun loadFromPrefs(): PlayerProfile? {
-        val json = prefs?.getString(KEY_PROFILE, null) ?: return null
-        return runCatching {
-            val o = JSONObject(json)
-            fun JSONObject.getStringSet(key: String): Set<String> {
-                val arr = optJSONArray(key) ?: return emptySet()
-                return (0 until arr.length()).map { arr.getString(it) }.toSet()
-            }
-            fun JSONObject.getStringList(key: String): List<String> {
-                val arr = optJSONArray(key) ?: return emptyList()
-                return (0 until arr.length()).map { arr.getString(it) }
-            }
-            val collectionMap: Map<String, Int> = run {
-                val obj = o.optJSONObject("cardCollection") ?: return@run emptyMap()
-                buildMap { obj.keys().forEach { key -> put(key, obj.optInt(key, 0)) } }
-            }
-            PlayerProfile(
-                name               = o.optString("name", "Hráč"),
-                avatar             = o.optString("avatar", "⚔️"),
-                castleSkin         = o.optString("castleSkin",    "castle_player"),
-                cardBackSkin       = o.optString("cardBackSkin",  "card_back_frame"),
-                level              = o.optInt("level", 1),
-                xp                 = o.optInt("xp", 0),
-                gold               = o.optInt("gold", 0),
-                gems               = o.optInt("gems", 0),
-                winsOffline        = o.optInt("winsOffline", 0),
-                winsOnline         = o.optInt("winsOnline", 0),
-                totalGames         = o.optInt("totalGames", 0),
-                unlockedAbilities  = o.getStringSet("unlockedAbilities"),
-                activeAbilities    = o.getStringList("activeAbilities"),
-                cardCollection     = collectionMap,
-                dust               = o.optInt("dust", 0),
-                seenCards          = o.getStringSet("seenCards"),
-                allCardsUnlocked   = o.optBoolean("allCardsUnlocked", false)
-            )
-        }.getOrNull()
+        val raw = prefs?.getString(KEY_PROFILE, null) ?: return null
+        return runCatching { json.decodeFromString(PlayerProfile.serializer(), raw) }.getOrNull()
     }
 }
 

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -92,4 +93,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     // WebSocket pro Online multiplayer
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Serializace profilu a questů (PlayerProfileManager, QuestManager)
+    implementation(libs.kotlinx.serialization.json)
 }

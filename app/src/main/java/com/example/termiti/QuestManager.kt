@@ -2,10 +2,10 @@ package com.example.termiti
 
 import android.content.Context
 import android.content.SharedPreferences
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.Calendar
 import java.util.UUID
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 
 /**
  * Singleton spravující denní questy.
@@ -20,6 +20,7 @@ object QuestManager {
 
     private var prefs: SharedPreferences? = null
     private val _quests = mutableListOf<DailyQuest>()
+    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
     val quests: List<DailyQuest> get() = _quests.toList()
     var rerolledToday: Boolean = false
@@ -157,48 +158,24 @@ object QuestManager {
         }
     }
 
-    // ── Persistence ───────────────────────────────────────────────────────────
+    // ── Persistence (kotlinx.serialization) ─────────────────────────────────
+
+    private val listSerializer = ListSerializer(DailyQuest.serializer())
 
     private fun save() {
-        val arr = JSONArray()
-        _quests.forEach { q ->
-            arr.put(JSONObject().apply {
-                put("id",          q.id)
-                put("type",        q.type.name)
-                put("target",      q.target)
-                put("progress",    q.progress)
-                put("rewardGold",  q.rewardGold)
-                put("rewardXp",    q.rewardXp)
-                put("rewardGems",  q.rewardGems)
-                put("claimed",     q.claimed)
-            })
-        }
         prefs?.edit()
-            ?.putString(KEY_DATE,     today())
-            ?.putString(KEY_QUESTS,   arr.toString())
+            ?.putString(KEY_DATE,      today())
+            ?.putString(KEY_QUESTS,    json.encodeToString(listSerializer, _quests))
             ?.putBoolean(KEY_REROLLED, rerolledToday)
             ?.apply()
     }
 
     private fun load() {
         rerolledToday = prefs?.getBoolean(KEY_REROLLED, false) ?: false
-        val json = prefs?.getString(KEY_QUESTS, null) ?: run { generateQuests(); return }
+        val raw = prefs?.getString(KEY_QUESTS, null) ?: run { generateQuests(); return }
         _quests.clear()
         runCatching {
-            val arr = JSONArray(json)
-            for (i in 0 until arr.length()) {
-                val o = arr.getJSONObject(i)
-                _quests.add(DailyQuest(
-                    id          = o.getString("id"),
-                    type        = QuestType.valueOf(o.getString("type")),
-                    target      = o.getInt("target"),
-                    progress    = o.getInt("progress"),
-                    rewardGold  = o.getInt("rewardGold"),
-                    rewardXp    = o.getInt("rewardXp"),
-                    rewardGems  = o.optInt("rewardGems", 0),
-                    claimed     = o.getBoolean("claimed")
-                ))
-            }
+            _quests.addAll(json.decodeFromString(listSerializer, raw))
         }.onFailure { generateQuests() }
     }
 }
