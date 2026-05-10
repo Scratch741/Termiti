@@ -39,6 +39,38 @@ android {
     }
 }
 
+// ── Synchronizace karet ze serveru ───────────────────────────────────────────
+// Před každým buildem vygeneruje app/src/main/assets/cards.json z server/game/cards.js.
+// Vyžaduje Node.js v PATH. Pokud node není dostupný, build pokračuje s poslední
+// verzí cards.json (committed v repozitáři).
+val syncCards by tasks.registering {
+    group = "build"
+    description = "Generates cards.json from server/game/cards.js"
+    val outFile = file("src/main/assets/cards.json")
+    val scriptFile = rootProject.file("server/game/export_cards_json.js")
+    outputs.file(outFile)
+    inputs.file(scriptFile)
+    inputs.file(rootProject.file("server/game/cards.js"))
+    doLast {
+        outFile.parentFile.mkdirs()
+        try {
+            val result = exec {
+                commandLine("node", scriptFile.absolutePath)
+                standardOutput = outFile.outputStream()
+                isIgnoreExitValue = true
+            }
+            if (result.exitValue != 0) {
+                logger.warn("syncCards: node exited with ${result.exitValue}, using existing cards.json")
+            } else {
+                logger.lifecycle("syncCards: cards.json updated (${outFile.length()} bytes)")
+            }
+        } catch (e: Exception) {
+            logger.warn("syncCards: node not available (${e.message}), using existing cards.json")
+        }
+    }
+}
+tasks.named("preBuild") { dependsOn(syncCards) }
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

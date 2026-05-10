@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
 
         SoundManager.initSounds(this)
         SoundManager.startBackgroundMusic(this)
+        CardRepository.init(this)
         PlayerProfileManager.init(this)
         CampaignManager.init(this)
         QuestManager.init(this)

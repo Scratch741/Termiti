@@ -1,0 +1,3007 @@
+[
+  {
+    "id": "001",
+    "name": "Základní útok",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 5
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "001"
+  },
+  {
+    "id": "008",
+    "name": "Šípy",
+    "cost": 1,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "008"
+  },
+  {
+    "id": "003",
+    "name": "Ohnivá koule",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 8
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "003"
+  },
+  {
+    "id": "007",
+    "name": "Silný úder",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 11
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "007"
+  },
+  {
+    "id": "006",
+    "name": "Převaha síly",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceMoreThanOpponent",
+          "resType": "ATTACK"
+        },
+        "effect": {
+          "type": "AttackCastle",
+          "amount": 10
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "006"
+  },
+  {
+    "id": "017",
+    "name": "Válečný sekyrník",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 8
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "017"
+  },
+  {
+    "id": "002",
+    "name": "Kamenná zeď",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 9
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "002"
+  },
+  {
+    "id": "010",
+    "name": "Palisáda",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 5
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "010"
+  },
+  {
+    "id": "005",
+    "name": "Posila hradu",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "005"
+  },
+  {
+    "id": "009",
+    "name": "Pevné základy",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 8
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "009"
+  },
+  {
+    "id": "018",
+    "name": "Mohutná věž",
+    "cost": 5,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 15
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "018"
+  },
+  {
+    "id": "004",
+    "name": "Magie",
+    "cost": 0,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "004"
+  },
+  {
+    "id": "011",
+    "name": "Zásoby kamene",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "011"
+  },
+  {
+    "id": "012",
+    "name": "Mobilizace",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "012"
+  },
+  {
+    "id": "013",
+    "name": "Magický pramen",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "013"
+  },
+  {
+    "id": "014",
+    "name": "Kamenolom",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "014"
+  },
+  {
+    "id": "015",
+    "name": "Výcvikový tábor",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "015"
+  },
+  {
+    "id": "016",
+    "name": "Velký pramen",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "016"
+  },
+  {
+    "id": "019",
+    "name": "Zápalné šípy",
+    "cost": 1,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackWall",
+        "amount": 5
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "019"
+  },
+  {
+    "id": "020",
+    "name": "Beranidlo",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackWall",
+        "amount": 12
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "020"
+  },
+  {
+    "id": "021",
+    "name": "Dělostřelectvo",
+    "cost": 6,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 15
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "021"
+  },
+  {
+    "id": "022",
+    "name": "Přímý zásah",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 8
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "022"
+  },
+  {
+    "id": "023",
+    "name": "Dvojitý úder",
+    "cost": 5,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 7
+      },
+      {
+        "type": "AttackWall",
+        "amount": 7
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "023"
+  },
+  {
+    "id": "024",
+    "name": "Berserk",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallBelow",
+          "threshold": 5
+        },
+        "effect": {
+          "type": "AttackCastle",
+          "amount": 13
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "024"
+  },
+  {
+    "id": "025",
+    "name": "Protiútok",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallBelow",
+          "threshold": 10
+        },
+        "effect": {
+          "type": "AttackCastle",
+          "amount": 10
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "025"
+  },
+  {
+    "id": "026",
+    "name": "Ostřelovač",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 5
+      },
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceAbove",
+          "resType": "ATTACK",
+          "threshold": 5
+        },
+        "effect": {
+          "type": "AttackCastle",
+          "amount": 5
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "026"
+  },
+  {
+    "id": "027",
+    "name": "Válečné bubny",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 4
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "027"
+  },
+  {
+    "id": "028",
+    "name": "Záplata",
+    "cost": 1,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "028"
+  },
+  {
+    "id": "029",
+    "name": "Opevnění",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 6
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "029"
+  },
+  {
+    "id": "030",
+    "name": "Kamenný val",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 13
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "030"
+  },
+  {
+    "id": "031",
+    "name": "Renovace",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 6
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "031"
+  },
+  {
+    "id": "032",
+    "name": "Citadela",
+    "cost": 6,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 13
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "032"
+  },
+  {
+    "id": "033",
+    "name": "Zemní val",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallBelow",
+          "threshold": 8
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 11
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "033"
+  },
+  {
+    "id": "034",
+    "name": "Opravář",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallAbove",
+          "threshold": 15
+        },
+        "effect": {
+          "type": "BuildCastle",
+          "amount": 8
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "034"
+  },
+  {
+    "id": "035",
+    "name": "Základní kámen",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 5
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "035"
+  },
+  {
+    "id": "036",
+    "name": "Hradní příkop",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 7
+      },
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "CastleBelow",
+          "threshold": 35
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 5
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "036"
+  },
+  {
+    "id": "037",
+    "name": "Rychlá magie",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "037"
+  },
+  {
+    "id": "038",
+    "name": "Vojenský rozkaz",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 6
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "038"
+  },
+  {
+    "id": "039",
+    "name": "Stavební boom",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 6
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "039"
+  },
+  {
+    "id": "040",
+    "name": "Alchymie",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceAbove",
+          "resType": "MAGIC",
+          "threshold": 4
+        },
+        "effect": {
+          "type": "AddResource",
+          "resType": "ATTACK",
+          "amount": 8
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "040"
+  },
+  {
+    "id": "041",
+    "name": "Magické trio",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "041"
+  },
+  {
+    "id": "042",
+    "name": "Velký kamenolom",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "042"
+  },
+  {
+    "id": "043",
+    "name": "Výcvikové centrum",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "043"
+  },
+  {
+    "id": "044",
+    "name": "Trifekta dolů",
+    "cost": 6,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 1
+      },
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 1
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "044"
+  },
+  {
+    "id": "045",
+    "name": "Očarované doly",
+    "cost": 7,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 3
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "045"
+  },
+  {
+    "id": "046",
+    "name": "Goblin",
+    "cost": 1,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 2
+      },
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 1
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "046"
+  },
+  {
+    "id": "047",
+    "name": "Ogr",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 9
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "047"
+  },
+  {
+    "id": "048",
+    "name": "Upír",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 6
+      },
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "048"
+  },
+  {
+    "id": "049",
+    "name": "Jed",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 3
+      },
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "049"
+  },
+  {
+    "id": "050",
+    "name": "Podkopání hradeb",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 8
+      },
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 4
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "050"
+  },
+  {
+    "id": "051",
+    "name": "Drak",
+    "cost": 11,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 14
+      },
+      {
+        "type": "AttackCastle",
+        "amount": 8
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "051"
+  },
+  {
+    "id": "052",
+    "name": "Démon",
+    "cost": 14,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 16
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "052"
+  },
+  {
+    "id": "053",
+    "name": "Plamenomet",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackWall",
+        "amount": 10
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "053"
+  },
+  {
+    "id": "054",
+    "name": "Válečný pochod",
+    "cost": 5,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 13
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "054"
+  },
+  {
+    "id": "055",
+    "name": "Poslední vzdor",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 1
+      },
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallBelow",
+          "threshold": 5
+        },
+        "effect": {
+          "type": "AttackCastle",
+          "amount": 8
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "055"
+  },
+  {
+    "id": "056",
+    "name": "Nájezdník",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 3
+      },
+      {
+        "type": "AttackPlayer",
+        "amount": 4
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "056"
+  },
+  {
+    "id": "057",
+    "name": "Bašta",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 7
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "057"
+  },
+  {
+    "id": "058",
+    "name": "Obranný val",
+    "cost": 0,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 4
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "058"
+  },
+  {
+    "id": "059",
+    "name": "Pevnostní hrad",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 5
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 7
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "059"
+  },
+  {
+    "id": "060",
+    "name": "Chrám",
+    "cost": 10,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 18
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "060"
+  },
+  {
+    "id": "061",
+    "name": "Tunely",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "CastleBelow",
+          "threshold": 40
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 12
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "061"
+  },
+  {
+    "id": "062",
+    "name": "Obranná aliance",
+    "cost": 5,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 7
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 4
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "062"
+  },
+  {
+    "id": "063",
+    "name": "Věž strážní",
+    "cost": 5,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 11
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "063"
+  },
+  {
+    "id": "064",
+    "name": "Zásobník",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "CastleBelow",
+          "threshold": 40
+        },
+        "effect": {
+          "type": "BuildCastle",
+          "amount": 10
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "064"
+  },
+  {
+    "id": "065",
+    "name": "Lupič",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "065"
+  },
+  {
+    "id": "066",
+    "name": "Kamenná daň",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "STONES",
+        "amount": 4
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "066"
+  },
+  {
+    "id": "067",
+    "name": "Sabotér",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 5
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "067"
+  },
+  {
+    "id": "068",
+    "name": "Demoralizace",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 5
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "068"
+  },
+  {
+    "id": "069",
+    "name": "Dvojitý agent",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 3
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "069"
+  },
+  {
+    "id": "070",
+    "name": "Krize zásobování",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 5
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 5
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "070"
+  },
+  {
+    "id": "071",
+    "name": "Špión",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "StealResource",
+        "resType": "STONES",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "071"
+  },
+  {
+    "id": "072",
+    "name": "Zbrojnice",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "072"
+  },
+  {
+    "id": "073",
+    "name": "Škola magie",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "073"
+  },
+  {
+    "id": "074",
+    "name": "Tržiště",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "074"
+  },
+  {
+    "id": "075",
+    "name": "Rozmach těžby",
+    "cost": 6,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "075"
+  },
+  {
+    "id": "076",
+    "name": "Vojenská základna",
+    "cost": 6,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "076"
+  },
+  {
+    "id": "077",
+    "name": "Přeměna magie",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceAbove",
+          "resType": "MAGIC",
+          "threshold": 8
+        },
+        "effect": {
+          "type": "AddResource",
+          "resType": "ATTACK",
+          "amount": 10
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "077"
+  },
+  {
+    "id": "078",
+    "name": "Upíří drak",
+    "cost": 10,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 10
+      },
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 4
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 4
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "078"
+  },
+  {
+    "id": "079",
+    "name": "Obléhání",
+    "cost": 5,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 12
+      },
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 3
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "079"
+  },
+  {
+    "id": "080",
+    "name": "Velkovýroba",
+    "cost": 10,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "080"
+  },
+  {
+    "id": "081",
+    "name": "Rychlá hradba",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 7
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "081"
+  },
+  {
+    "id": "082",
+    "name": "Masivní zeď",
+    "cost": 6,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 18
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "082"
+  },
+  {
+    "id": "083",
+    "name": "Nouzové opevnění",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallBelow",
+          "threshold": 10
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 14
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "083"
+  },
+  {
+    "id": "084",
+    "name": "Velká oprava",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 4
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 7
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "084"
+  },
+  {
+    "id": "085",
+    "name": "Královská obnova",
+    "cost": 7,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 15
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "085"
+  },
+  {
+    "id": "086",
+    "name": "Zednická rota",
+    "cost": 5,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 8
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 6
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "086"
+  },
+  {
+    "id": "087",
+    "name": "Pevnost",
+    "cost": 6,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 10
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 8
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "087"
+  },
+  {
+    "id": "088",
+    "name": "Zesílené hradby",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 10
+      },
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "CastleAbove",
+          "threshold": 30
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 6
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "088"
+  },
+  {
+    "id": "089",
+    "name": "Architekt",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 5
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "089"
+  },
+  {
+    "id": "090",
+    "name": "Rozšíření těžby",
+    "cost": 7,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "090"
+  },
+  {
+    "id": "091",
+    "name": "Barikády",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 9
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "091"
+  },
+  {
+    "id": "092",
+    "name": "Strategická výstavba",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "WallAbove",
+          "threshold": 20
+        },
+        "effect": {
+          "type": "BuildWall",
+          "amount": 14
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "092"
+  },
+  {
+    "id": "094",
+    "name": "Sklad materiálu",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 6
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "094"
+  },
+  {
+    "id": "095",
+    "name": "Obchod s kamenem",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 5
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "095"
+  },
+  {
+    "id": "096",
+    "name": "Nedobytná pevnost",
+    "cost": 10,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 18
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 8
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "096"
+  },
+  {
+    "id": "097",
+    "name": "Obnova království",
+    "cost": 14,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 25
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "097"
+  },
+  {
+    "id": "C01",
+    "name": "Chaotická jiskra",
+    "cost": 0,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C01"
+  },
+  {
+    "id": "C02",
+    "name": "Entropie",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 5
+      },
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C02"
+  },
+  {
+    "id": "C03",
+    "name": "Chaotický důl",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "CHAOS",
+        "amount": 1
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C03"
+  },
+  {
+    "id": "C04",
+    "name": "Krádež chaosu",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "CHAOS",
+        "amount": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C04"
+  },
+  {
+    "id": "C05",
+    "name": "Chaotický výbuch",
+    "cost": 7,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 14
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C05"
+  },
+  {
+    "id": "C06",
+    "name": "Bouře chaosu",
+    "cost": 6,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 20
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C06"
+  },
+  {
+    "id": "C07",
+    "name": "Chaotický štít",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 16
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C07"
+  },
+  {
+    "id": "C08",
+    "name": "Zázrak chaosu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 15
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C08"
+  },
+  {
+    "id": "C09",
+    "name": "Chaotická krize",
+    "cost": 7,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 6
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 6
+      },
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 6
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C09"
+  },
+  {
+    "id": "C10",
+    "name": "Chaotický drak",
+    "cost": 11,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 15
+      },
+      {
+        "type": "AttackCastle",
+        "amount": 12
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C10"
+  },
+  {
+    "id": "C11",
+    "name": "Chaos a řád",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 8
+      },
+      {
+        "type": "BuildWall",
+        "amount": 8
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C11"
+  },
+  {
+    "id": "C12",
+    "name": "Anarchie",
+    "cost": 9,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 5
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 5
+      },
+      {
+        "type": "StealResource",
+        "resType": "STONES",
+        "amount": 5
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C12"
+  },
+  {
+    "id": "C13",
+    "name": "Sabotáž",
+    "cost": 5,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DestroyMine",
+        "resType": "MAGIC",
+        "amount": 1
+      },
+      {
+        "type": "BlockMine",
+        "resType": "MAGIC",
+        "turns": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C13"
+  },
+  {
+    "id": "C14",
+    "name": "Ničení kamenolomu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DestroyMine",
+        "resType": "STONES",
+        "amount": 1
+      },
+      {
+        "type": "BlockMine",
+        "resType": "STONES",
+        "turns": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C14"
+  },
+  {
+    "id": "C15",
+    "name": "Zákeřnost",
+    "cost": 5,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DestroyMine",
+        "resType": "ATTACK",
+        "amount": 1
+      },
+      {
+        "type": "BlockMine",
+        "resType": "ATTACK",
+        "turns": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C15"
+  },
+  {
+    "id": "C16",
+    "name": "Velká sabotáž",
+    "cost": 7,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DestroyMine",
+        "resType": "MAGIC",
+        "amount": 1
+      },
+      {
+        "type": "BlockMine",
+        "resType": "MAGIC",
+        "turns": 3
+      },
+      {
+        "type": "DestroyMine",
+        "resType": "STONES",
+        "amount": 1
+      },
+      {
+        "type": "BlockMine",
+        "resType": "STONES",
+        "turns": 3
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C16"
+  },
+  {
+    "id": "C17",
+    "name": "Telekineze",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealCard",
+        "count": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C17"
+  },
+  {
+    "id": "C18",
+    "name": "Krádež osudu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealCard",
+        "count": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C18"
+  },
+  {
+    "id": "C19",
+    "name": "Spálená knihovna",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BurnCard",
+        "count": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C19"
+  },
+  {
+    "id": "C20",
+    "name": "Prázdná mysl",
+    "cost": 7,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BurnCard",
+        "count": 3
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C20"
+  },
+  {
+    "id": "C21",
+    "name": "Replikace",
+    "cost": 1,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddCardsToDeck",
+        "cardId": "008",
+        "count": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C21"
+  },
+  {
+    "id": "C22",
+    "name": "Chaos manufaktura",
+    "cost": 2,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddCardsToDeck",
+        "cardId": "C05",
+        "count": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C22"
+  },
+  {
+    "id": "C23",
+    "name": "Klonování",
+    "cost": 1,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddCardsToDeck",
+        "cardId": "001",
+        "count": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C23"
+  },
+  {
+    "id": "C24",
+    "name": "Temný rituál",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 5
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C24"
+  },
+  {
+    "id": "C25",
+    "name": "Nestabilní vír",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "C25"
+  },
+  {
+    "id": "C26",
+    "name": "Krvavá oběť",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 4
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "C26"
+  },
+  {
+    "id": "C27",
+    "name": "Odraz magie",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceAbove",
+          "resType": "MAGIC",
+          "threshold": 5
+        },
+        "effect": {
+          "type": "AddResource",
+          "resType": "CHAOS",
+          "amount": 7
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C27"
+  },
+  {
+    "id": "C28",
+    "name": "Chaotická trofej",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "C28"
+  },
+  {
+    "id": "C29",
+    "name": "Bouřlivá mysl",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 3
+      },
+      {
+        "type": "AddMine",
+        "resType": "CHAOS",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C29"
+  },
+  {
+    "id": "C30",
+    "name": "Chrám chaosu",
+    "cost": 7,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C30"
+  },
+  {
+    "id": "C31",
+    "name": "Chaotický výměník",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 4
+      },
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 2
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C31"
+  },
+  {
+    "id": "C32",
+    "name": "Vzájemná zkáza",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 10
+      },
+      {
+        "type": "BuildCastle",
+        "amount": -10
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C32"
+  },
+  {
+    "id": "D01",
+    "name": "Průzkumník",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DrawCard",
+        "count": 1
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "D01"
+  },
+  {
+    "id": "D02",
+    "name": "Věštba",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrawCard",
+        "count": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "D02"
+  },
+  {
+    "id": "D03",
+    "name": "Kronika",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrawCard",
+        "count": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "D03"
+  },
+  {
+    "id": "D04",
+    "name": "Bojová taktika",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 4
+      },
+      {
+        "type": "DrawCard",
+        "count": 1
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "D04"
+  },
+  {
+    "id": "D05",
+    "name": "Stavební plány",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 4
+      },
+      {
+        "type": "DrawCard",
+        "count": 1
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 4,
+    "isXCost": false,
+    "baseId": "D05"
+  },
+  {
+    "id": "D06",
+    "name": "Elitní zvěd",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 8
+      },
+      {
+        "type": "DrawCard",
+        "count": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "D06"
+  },
+  {
+    "id": "D07",
+    "name": "Tajná knihovna",
+    "cost": 5,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrawCard",
+        "count": 2
+      },
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "D07"
+  },
+  {
+    "id": "D08",
+    "name": "Vize",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceAbove",
+          "resType": "MAGIC",
+          "threshold": 4
+        },
+        "effect": {
+          "type": "DrawCard",
+          "count": 2
+        }
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "D08"
+  },
+  {
+    "id": "098",
+    "name": "Hod cihlou",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": -4
+      },
+      {
+        "type": "AttackPlayer",
+        "amount": 11
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "098"
+  },
+  {
+    "id": "099",
+    "name": "Temný přenos",
+    "cost": 8,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealCastle",
+        "amount": 10
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "099"
+  },
+  {
+    "id": "100",
+    "name": "Krvavý úder",
+    "cost": 6,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 5
+      },
+      {
+        "type": "StealCastle",
+        "amount": 6
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "100"
+  },
+  {
+    "id": "T01",
+    "name": "Goblin šaman",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 5
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "T01"
+  },
+  {
+    "id": "101",
+    "name": "Náhlá smrt",
+    "cost": 0,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "XScaledAttackCastle",
+        "divisor": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": true,
+    "baseId": "101"
+  },
+  {
+    "id": "102",
+    "name": "Kamenný příval",
+    "cost": 0,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "XScaledBuildCastle",
+        "divisor": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": true,
+    "baseId": "102"
+  },
+  {
+    "id": "103",
+    "name": "Magické rozdělení",
+    "cost": 0,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "XScaledDualResource",
+        "typeA": "ATTACK",
+        "typeB": "STONES",
+        "divisor": 2
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": true,
+    "baseId": "103"
+  }
+]
