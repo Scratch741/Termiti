@@ -2,7 +2,7 @@ Vytvoř datový model pro Android karetní hru v Kotlinu.
 
 Kontext hry:
 - Dva hráči (člověk vs AI), každý má hrad s HP (0–100) a hradby s HP (0–100)
-- Počáteční hodnoty: hrad=25, hradby=10 (oboje)
+- Počáteční hodnoty: hrad=30, hradby=10 (oboje)
 - 3 zdroje za kolo: útok, kameny, magie (každý začíná na 0, generují se kartami)
 - Hráč táhne 5 karet z balíku na začátku kola
 

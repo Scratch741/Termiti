@@ -400,7 +400,7 @@
 </head>
 <body onload="init()">
 
-<input type="file" id="fileInput" accept=".kt" onchange="loadKtFile(event)" style="display:none">
+<input type="file" id="fileInput" accept=".json" onchange="loadJsonFile(event)" style="display:none">
 <input type="file" id="artInput" accept="image/*" multiple onchange="loadArtFiles(event)" style="display:none">
 <input type="file" id="frameInput" accept="image/*" onchange="loadFrameFile(event)" style="display:none">
 
@@ -415,7 +415,7 @@
 
   <div class="header-center">
     <button class="btn-load-src" onclick="document.getElementById('fileInput').click()">
-      📂 Načíst GameViewModel.kt
+      📂 Načíst cards.json
     </button>
     <button class="btn-load-src btn-upload-art" onclick="document.getElementById('artInput').click()">
       🖼 Nahrát obrázky
@@ -614,64 +614,93 @@ function setFilter(f) {
   renderBrowser();
 }
 
-function parseKotlinCards(src) {
+// ─── Načtení karet z cards.json ──────────────────────────────────────────────
+
+function loadJsonFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = parseJsonCards(e.target.result);
+      if (parsed.length > 0) {
+        CARDS    = parsed;
+        CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
+        document.getElementById('sourceInfo').textContent = file.name + ' (' + CARDS.length + ' karet)';
+        document.getElementById('sourceInfo').classList.add('loaded');
+        saveToStorage();
+        renderBrowser();
+      }
+    } catch (err) {
+      alert('Chyba při parsování cards.json: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseJsonCards(jsonText) {
+  const data = JSON.parse(jsonText);
+  const newEffectsDb = {};
   const cards = [];
-  const parts = src.split(/\bCard\s*\(/);
-  for (let i = 1; i < parts.length; i++) {
-    const chunk = parts[i];
-    const strArgs = [];
-    let pos = 0;
-    while (strArgs.length < 3 && pos < chunk.length) {
-      const q = chunk.indexOf('"', pos);
-      if (q === -1) break;
-      const q2 = chunk.indexOf('"', q + 1);
-      if (q2 === -1) break;
-      strArgs.push(chunk.slice(q + 1, q2));
-      pos = q2 + 1;
-    }
-    if (strArgs.length < 2) continue;
-
-    const id = strArgs[0];
-    const costM   = chunk.match(/\bcost\s*=\s*(\d+)/);
-    const typeM   = chunk.match(/costType\s*=\s*ResourceType\.(\w+)/);
-    const rarityM = chunk.match(/rarity\s*=\s*Rarity\.(\w+)/);
-    const artResM = chunk.match(/artResId\s*=\s*R\.drawable\.(\w+)/);
-    const scaleM  = chunk.match(/artScale\s*=\s*([-\d.]+f?)/);
-    const bxM     = chunk.match(/artBiasX\s*=\s*([-\d.]+f?)/);
-    const byM     = chunk.match(/artBiasY\s*=\s*([-\d.]+f?)/);
-
-    const card = {
-      id:    id,
-      name:  strArgs[1],
-      desc:  strArgs[2] || '',
-      cost:  costM ? parseInt(costM[1]) : 0,
-      type:  typeM ? typeM[1] : 'ATTACK',
-      rarity: rarityM ? rarityM[1] : 'COMMON',
-      artRes: artResM ? artResM[1] : null
-    };
-
-    if (scaleM || bxM || byM) {
-      cardAdjustments[id] = {
-        scale: scaleM ? parseFloat(scaleM[1]) : 1.0,
-        bx: bxM ? parseFloat(bxM[1]) : 0.0,
-        by: byM ? parseFloat(byM[1]) : 0.0
-      };
-    }
-
-    cards.push(card);
+  for (const card of data) {
+    const cvtFx = card.effects.map(convertJsonEffect);
+    cards.push({
+      id:       card.id,
+      name:     card.name,
+      desc:     '',           // popis je v CardPresentation.kt, ne v cards.json
+      cost:     card.cost,
+      type:     card.costType,
+      rarity:   card.rarity,
+      artRes:   null,
+      costType: card.costType,
+    });
+    const entry = { ct: card.costType, fx: cvtFx };
+    if (card.isCombo) entry.combo = true;
+    if (card.isXCost) entry.xCost = true;
+    newEffectsDb[card.id] = entry;
   }
-
-  // Parse global defaults too
-  const gScaleM = src.match(/const val SCALE:\s*Float\s*=\s*([-\d.]+f?)/);
-  const gBXM = src.match(/const val BIAS_X:\s*Float\s*=\s*([-\d.]+f?)/);
-  const gBYM = src.match(/const val BIAS_Y:\s*Float\s*=\s*([-\d.]+f?)/);
-
-  if (gScaleM) globalScale = parseFloat(gScaleM[1]);
-  if (gBXM) globalBX = parseFloat(gBXM[1]);
-  if (gBYM) globalBY = parseFloat(gBYM[1]);
-
-  updateGlobalSliders();
+  CARD_EFFECTS_DB = newEffectsDb;
   return cards;
+}
+
+function convertJsonEffect(fx) {
+  switch (fx.type) {
+    case 'AttackPlayer':        return { t:'AP',     a:fx.amount };
+    case 'AttackCastle':        return { t:'AC',     a:fx.amount };
+    case 'AttackWall':          return { t:'AW',     a:fx.amount };
+    case 'BuildWall':           return { t:'BW',     a:fx.amount };
+    case 'BuildCastle':         return { t:'BC',     a:fx.amount };
+    case 'AddResource':         return { t:'AR',     r:fx.resType, a:fx.amount };
+    case 'AddMine':             return { t:'AM',     r:fx.resType, a:fx.amount };
+    case 'StealResource':       return { t:'SR',     r:fx.resType, a:fx.amount };
+    case 'DrainResource':       return { t:'DR',     r:fx.resType, a:fx.amount };
+    case 'StealCastle':         return { t:'SC',     a:fx.amount };
+    case 'DestroyMine':         return { t:'DM',     r:fx.resType, a:fx.amount };
+    case 'BlockMine':           return { t:'BLK',    r:fx.resType, turns:fx.turns };
+    case 'StealCard':           return { t:'StealC', a:fx.count };
+    case 'BurnCard':            return { t:'BurnC',  a:fx.count };
+    case 'AddCardsToDeck':      return { t:'AddD',   id:fx.cardId, count:fx.count };
+    case 'DrawCard':            return { t:'DC',     a:fx.count };
+    case 'XScaledAttackPlayer': return { t:'XAP',    div:fx.divisor };
+    case 'XScaledAttackCastle': return { t:'XAC',    div:fx.divisor };
+    case 'XScaledBuildCastle':  return { t:'XBC',    div:fx.divisor };
+    case 'XScaledDualResource': return { t:'XDR',    rA:fx.typeA, rB:fx.typeB, div:fx.divisor };
+    case 'ConditionalEffect':   return { t:'CE',     c:convertJsonCondition(fx.condition), e:convertJsonEffect(fx.effect) };
+    default: return { t:'?', raw: fx.type };
+  }
+}
+
+function convertJsonCondition(c) {
+  switch (c.type) {
+    case 'ResourceAbove':            return { t:'RA',  r:c.resType, v:c.threshold };
+    case 'WallAbove':                return { t:'WA',  v:c.threshold };
+    case 'WallBelow':                return { t:'WB',  v:c.threshold };
+    case 'CastleAbove':              return { t:'CA',  v:c.threshold };
+    case 'CastleBelow':              return { t:'CB',  v:c.threshold };
+    case 'ResourceMoreThanOpponent': return { t:'RMO', r:c.resType };
+    case 'LastPlayedType':           return { t:'LPT', cardType:c.cardType };
+    default: return { t:'?', raw: c.type };
+  }
 }
 
 function updateGlobalSliders() {
@@ -681,24 +710,6 @@ function updateGlobalSliders() {
   document.getElementById('v-g-scale').textContent = globalScale.toFixed(2);
   document.getElementById('v-g-bx').textContent = globalBX.toFixed(2);
   document.getElementById('v-g-by').textContent = globalBY.toFixed(2);
-}
-
-function loadKtFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const parsed = parseKotlinCards(e.target.result);
-    if (parsed.length > 0) {
-      CARDS = parsed;
-      CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
-      document.getElementById('sourceInfo').textContent = file.name + ' (' + CARDS.length + ')';
-      document.getElementById('sourceInfo').classList.add('loaded');
-      saveToStorage();
-      renderBrowser();
-    }
-  };
-  reader.readAsText(file, 'UTF-8');
 }
 
 function loadArtFiles(event) {
@@ -971,7 +982,7 @@ function exportBiasData() {
   output += `const val SCALE: Float = ${globalScale.toFixed(2)}f\n`;
   output += `const val BIAS_X: Float = ${globalBX.toFixed(2)}f\n`;
   output += `const val BIAS_Y: Float = ${globalBY.toFixed(2)}f\n\n`;
-  output += "// Card modifications (Copy into GameViewModel.kt)\n";
+  output += "// Card modifications (Copy into CardPresentation.kt)\n";
 
   changed.forEach(([id, adj]) => {
     const name = CARD_MAP[id] ? CARD_MAP[id].name : '???';
@@ -1038,7 +1049,7 @@ function copyDeckCode() {
 //         XAP/XAC/XBC/XDR=X-kost efekty
 // Podmínky: RA=ResourceAbove, WA=WallAbove, WB=WallBelow, CA=CastleAbove, CB=CastleBelow
 // ═══════════════════════════════════════════════════════════
-const CARD_EFFECTS_DB = {
+let CARD_EFFECTS_DB = {
   "001":{ct:"ATTACK",fx:[{t:"AP",a:5}]},
   "002":{ct:"STONES",fx:[{t:"BW",a:9}]},
   "003":{ct:"MAGIC", fx:[{t:"AC",a:8}]},
@@ -1360,7 +1371,7 @@ function buildSmartRandomDeck() {
 // Naplní deck builder smart náhodným balíčkem
 function generateSmartDeck() {
   if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
-    alert('Nejdříve nahraj zdrojový soubor Kotlin (.kt).');
+    alert('Nejdříve nahraj cards.json.');
     return;
   }
   const deck = buildSmartRandomDeck();
@@ -1505,7 +1516,7 @@ function buildBalancedDeck() {
 // Naplní deck builder vyváženým balíčkem
 function generateBalancedDeck() {
   if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
-    alert('Nejdříve nahraj zdrojový soubor Kotlin (.kt).');
+    alert('Nejdříve nahraj cards.json.');
     return;
   }
   const deck = buildBalancedDeck();
