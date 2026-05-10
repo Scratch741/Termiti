@@ -45,10 +45,10 @@ data class PlayerProfile(
     val seenCards: Set<String> = emptySet(),
     /**
      * Přepínač pro testování / debug: true = hráč může použít všechny karty
-     * bez ohledu na skutečnou kolekci. Výchozí true, aby stávající hráči
-     * neměli prázdnou kolekci.
+     * bez ohledu na skutečnou kolekci.
+     * Výchozí false — aktivovat ručně přes ProfileScreen nebo CardCollectionManager.setAllCardsUnlocked(true).
      */
-    val allCardsUnlocked: Boolean = true
+    val allCardsUnlocked: Boolean = false
 ) {
     /** Kolik XP je potřeba pro přechod z [level] na [level]+1. */
     fun xpNeeded(): Int = xpForLevel(level)

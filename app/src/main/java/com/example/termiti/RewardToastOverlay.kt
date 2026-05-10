@@ -19,7 +19,7 @@ import kotlinx.coroutines.delay
 private val ToastBg     = Color(0xFF1A1520)
 private val ToastBorder = Color(0xFF5A4A7A)
 private val XpColor     = Color(0xFF7EE8A2)
-private val GoldColor   = Color(0xFFD4A843)
+private val GoldColor   = Gold  // → GameColors.kt
 private val GemColor    = Color(0xFF6EE0F0)
 private val LevelColor  = Color(0xFFFFD700)
 

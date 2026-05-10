@@ -26,11 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val BgCard      = Color(0xFF1A1320)
-private val Gold        = Color(0xFFD4A843)
-private val TealLight   = Color(0xFF3DBFAD)
-private val TextPrimary = Color(0xFFEDE0C4)
-private val TextMuted   = Color(0xFF7A6E5F)
+// Paleta barev → GameColors.kt
 
 @Composable
 fun MenuScreen(

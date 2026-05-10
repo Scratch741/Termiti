@@ -239,7 +239,7 @@ object PlayerProfileManager {
                 cardCollection     = collectionMap,
                 dust               = o.optInt("dust", 0),
                 seenCards          = o.getStringSet("seenCards"),
-                allCardsUnlocked   = o.optBoolean("allCardsUnlocked", true)
+                allCardsUnlocked   = o.optBoolean("allCardsUnlocked", false)
             )
         }.getOrNull()
     }

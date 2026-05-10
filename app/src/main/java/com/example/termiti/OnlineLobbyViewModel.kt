@@ -537,8 +537,7 @@ class OnlineLobbyViewModel(
                             val actorName = if (isMe) playerName.value
                                             else (matchInfo.value?.opponentName ?: "Soupeř")
                             val turn = gameState.value.turnNumber
-                            gameLog.value = (gameLog.value +
-                                LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
+                            gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
                         }
                     }
                     // lpc == null → necháme předchozí kartu (mizí až po nahrazení novou)
@@ -561,8 +560,7 @@ class OnlineLobbyViewModel(
                             lastPlayedByMe.value   = true  // naše karta = zobrazit jako "naše"
                             val oppName = matchInfo.value?.opponentName ?: "Soupeř"
                             val turn = gameState.value.turnNumber
-                            gameLog.value = (gameLog.value +
-                                LogEntry.CardEvent(oppName, template, action, isMe = false, turn)).takeLast(50)
+                            gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, template, action, isMe = false, turn)).takeLast(50)
                         }
                     }
                 }
@@ -639,7 +637,7 @@ class OnlineLobbyViewModel(
                 "GAME_ERROR" -> {
                     // Dočasná chyba hry (špatná akce) – zobraz jako zprávu, nepřeruš hru
                     val msg = json.optString("msg", "Chyba")
-                    gameLog.value = (gameLog.value + LogEntry.SystemEvent("⚠️ $msg")).takeLast(50)
+                    gameLog.appendLog("⚠️ $msg")
                 }
 
                 "ERROR" -> {

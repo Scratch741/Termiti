@@ -54,25 +54,9 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// ─── Palette ─────────────────────────────────────────────────────────────────
-private val BgDeep      = Color(0xFF0D0A0E)
-private val BgCard      = Color(0xFF1A1320)
-private val BgPanel     = Color(0xFF13101A)
-private val Gold        = Color(0xFFD4A843)
-private val CrimsonDark = Color(0xFF8B1A1A)
-private val Crimson     = Color(0xFFBF2D2D)
-private val Teal        = Color(0xFF2A7A6F)
-private val TealLight   = Color(0xFF3DBFAD)
-private val TextPrimary = Color(0xFFEDE0C4)
-private val TextMuted   = Color(0xFF7A6E5F)
-private val HpGreen     = Color(0xFF4CAF50)
-private val HpRed       = Color(0xFFE53935)
-private val WallBlue    = Color(0xFF5C9BD6)
-private val MagicPurple  = Color(0xFF9B59B6)
-private val StoneColor   = Color(0xFFB8A898)
-private val AttackRed    = Color(0xFFBF2D2D)
-private val ChaosOrange  = Color(0xFFE67E22)
-private val DiscardRed   = Color(0xFFE53935)
+// Paleta barev → GameColors.kt
+// DiscardRed je alias pro HpRed
+private val DiscardRed = HpRed
 
 // ─── Art helpers jsou v ArtDefaults.kt (artModifier / artAlignment) ──────────
 

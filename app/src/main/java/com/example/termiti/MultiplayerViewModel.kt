@@ -1,4 +1,4 @@
-package com.example.termiti
+﻿package com.example.termiti
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -118,24 +118,19 @@ class MultiplayerViewModel(
         lastCard.value         = card
         lastCardAction.value   = action
         lastCardIsPlayer.value = isMine
-        addToHistory(card, action, isMine)
+        cardHistory.appendHistory(card, action, isMine)
     }
 
     /** Zaznamená spálenou kartu pouze do historie – lastCard se NEaktualizuje (soupeř nevidí). */
     private fun recordBurn(card: Card) {
-        addToHistory(card, CardAction.BURNED, isMine = true)
+        cardHistory.appendHistory(card, CardAction.BURNED, isMine = true)
     }
 
-    private fun addToHistory(card: Card, action: CardAction, isMine: Boolean) {
-        val h = cardHistory.value.toMutableList()
-        h.add(0, CardHistoryEntry(card, action, isMine))
-        if (h.size > 20) h.removeAt(h.size - 1)
-        cardHistory.value = h
-    }
+    // addToHistory → cardHistory.appendHistory() z GameLogManager.kt
 
     /** Karta ztracena mnou kvůli efektu soupeře (BurnCard / StealCard). */
     private fun recordOpponentLoss(card: Card, action: CardAction) {
-        addToHistory(card, action, isMine = true)
+        cardHistory.appendHistory(card, action, isMine = true)
         val list = lostToOpponent.value.toMutableList()
         list.add(0, CardHistoryEntry(card, action, isMine = true))
         lostToOpponent.value = list
@@ -231,7 +226,7 @@ class MultiplayerViewModel(
 
     private fun onPeerDisconnected() {
         if (phase.value == MpPhase.LOBBY || phase.value == MpPhase.RECONNECTING) return
-        addLog("⚠️ Soupeř se odpojil.")
+        gameLog.appendLog("⚠️ Soupeř se odpojil.")
         closingIntentionally = true   // zabrání rekurzi přes collect.finally
 
         stopHeartbeat()
@@ -345,7 +340,7 @@ class MultiplayerViewModel(
         withContext(Dispatchers.IO) { net.send(json) }
         phase.value     = MpPhase.PLAYING
         statusMsg.value = ""
-        addLog("↩️ Soupeř se vrátil – hra pokračuje!")
+        gameLog.appendLog("↩️ Soupeř se vrátil – hra pokračuje!")
     }
 
     private fun onRejoin(msg: JSONObject) {
@@ -372,7 +367,7 @@ class MultiplayerViewModel(
         isMyTurn.value    = !isHostTurn
         isComboTurn.value = isCombo && !isHostTurn
         phase.value       = MpPhase.PLAYING
-        addLog("↩️ Reconnect úspěšný – hra pokračuje!")
+        gameLog.appendLog("↩️ Reconnect úspěšný – hra pokračuje!")
     }
 
     // ── Serialization ─────────────────────────────────────────────────────────
@@ -468,7 +463,7 @@ class MultiplayerViewModel(
         phase.value = MpPhase.MULLIGAN
         val who = if (iGoFirst) "Ty začínáš!" else "${oppName.value} začíná."
         statusMsg.value = who
-        addLog(who)
+        gameLog.appendLog(who)
     }
 
     private fun buildCard(uid: String): Card {
@@ -620,7 +615,7 @@ class MultiplayerViewModel(
 
     fun waitTurn() {
         if (!isMyTurn.value && !isComboTurn.value) return
-        addLog("Ty: přeskočil tah")
+        gameLog.appendLog("Ty: přeskočil tah")
         sendMsg("t" to "WAIT")
         endMyTurn()
     }
@@ -638,7 +633,7 @@ class MultiplayerViewModel(
 
     fun endComboTurn() {
         if (!isComboTurn.value) return
-        addLog("Ty: ukončil combo")
+        gameLog.appendLog("Ty: ukončil combo")
         sendMsg("t" to "COMBO_END")
         endMyTurn()
     }
@@ -692,7 +687,7 @@ class MultiplayerViewModel(
     }
 
     private fun onOpponentWait() {
-        addLog("${oppName.value}: přeskočil tah")
+        gameLog.appendLog("${oppName.value}: přeskočil tah")
         endOppTurn()
     }
 
@@ -714,7 +709,7 @@ class MultiplayerViewModel(
     }
 
     private fun onOpponentComboEnd() {
-        addLog("${oppName.value}: ukončil combo")
+        gameLog.appendLog("${oppName.value}: ukončil combo")
         endOppTurn()
     }
 
@@ -747,7 +742,7 @@ class MultiplayerViewModel(
     }
 
     private fun finishGame(won: Boolean, msg: String) {
-        addLog(msg)
+        gameLog.appendLog(msg)
         gameOver.value = won
         phase.value    = MpPhase.GAME_OVER
     }
@@ -852,9 +847,7 @@ class MultiplayerViewModel(
     private fun jsonArr(arr: JSONArray): List<String> =
         (0 until arr.length()).map { arr.getString(it) }
 
-    private fun addLog(msg: String) {
-        gameLog.value = (gameLog.value + LogEntry.SystemEvent(msg)).takeLast(50)
-    }
+    // addLog → gameLog.appendLog() z GameLogManager.kt
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
         gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, currentTurn.value)).takeLast(50)

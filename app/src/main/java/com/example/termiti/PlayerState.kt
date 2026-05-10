@@ -15,6 +15,13 @@ data class PendingResource(
     var turnsLeft: Int
 )
 
+/**
+ * Mutable třída (záměrně NE data class) — obsahuje mutable kolekce (MutableList, MutableMap).
+ * Kotlin `data class copy()` vytvoří pouze plytkou kopii (stejné reference na kolekce),
+ * což by způsobilo sdílení stavu mezi hráčem a AI. Proto existuje [deepCopy].
+ *
+ * Při přidání nového pole: aktualizuj konstruktor + [deepCopy] + případně MultiplayerViewModel.deserializeState.
+ */
 class PlayerState(
     var castleHP: Int = 30,
     var wallHP: Int = 10,
