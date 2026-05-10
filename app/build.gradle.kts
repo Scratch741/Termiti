@@ -54,14 +54,15 @@ val syncCards by tasks.registering {
     doLast {
         outFile.parentFile.mkdirs()
         try {
-            val result = project.exec {
-                commandLine("node", scriptFile.absolutePath)
-                standardOutput = outFile.outputStream()
-                isIgnoreExitValue = true
-            }
-            if (result.exitValue != 0) {
-                logger.warn("syncCards: node exited with ${result.exitValue}, using existing cards.json")
+            val process = ProcessBuilder("node", scriptFile.absolutePath)
+                .redirectErrorStream(false)
+                .start()
+            val output = process.inputStream.readBytes()
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                logger.warn("syncCards: node exited with $exitCode, using existing cards.json")
             } else {
+                outFile.writeBytes(output)
                 logger.lifecycle("syncCards: cards.json updated (${outFile.length()} bytes)")
             }
         } catch (e: Exception) {
