@@ -54,7 +54,7 @@ val syncCards by tasks.registering {
     doLast {
         outFile.parentFile.mkdirs()
         try {
-            val result = exec {
+            val result = project.exec {
                 commandLine("node", scriptFile.absolutePath)
                 standardOutput = outFile.outputStream()
                 isIgnoreExitValue = true
