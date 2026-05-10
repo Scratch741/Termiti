@@ -956,6 +956,28 @@ fun NewBattlefield(
             }
         }
 
+        // ── Hrady – vlevo/vpravo dole (renderovány PŘED badge, aby badge byl vždy navrchu) ──
+        NewCastleStructure(
+            castleHp    = playerState.castleHP,
+            wallHp      = playerState.wallHP,
+            isPlayer    = true,
+            winTarget   = playerWinTarget,
+            castleResId = playerCastleResId,
+            modifier    = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 8.dp, bottom = 4.dp)
+        )
+        NewCastleStructure(
+            castleHp    = aiState.castleHP,
+            wallHp      = aiState.wallHP,
+            isPlayer    = false,
+            winTarget   = aiWinTarget,
+            castleResId = opponentCastleResId,
+            modifier    = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 8.dp, bottom = 4.dp)
+        )
+
         // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
         CastleHpBadge(
             castleHp    = playerState.castleHP,
@@ -1037,28 +1059,6 @@ fun NewBattlefield(
             )
         }
 
-        // ── Hrad hráče – vlevo dole ──────────────────────────────────────────────
-        NewCastleStructure(
-            castleHp    = playerState.castleHP,
-            wallHp      = playerState.wallHP,
-            isPlayer    = true,
-            winTarget   = playerWinTarget,
-            castleResId = playerCastleResId,
-            modifier    = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 8.dp, bottom = 4.dp)
-        )
-        // ── Hrad AI / soupeře – vpravo dole ─────────────────────────────────────
-        NewCastleStructure(
-            castleHp    = aiState.castleHP,
-            wallHp      = aiState.wallHP,
-            isPlayer    = false,
-            winTarget   = aiWinTarget,
-            castleResId = opponentCastleResId,
-            modifier    = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 8.dp, bottom = 4.dp)
-        )
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
         val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
         // Statický slot drží STABILNÍ zobrazení – aktualizuje se jen když karta
