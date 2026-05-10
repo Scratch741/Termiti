@@ -481,7 +481,8 @@ private fun AvatarPicker(
 
 private val CASTLE_SKINS = listOf(
     "castle_player"   to "Klasický",
-    "castle_player_2" to "Kamenný"
+    "castle_player_2" to "Kamenný",
+    "castle_player_3" to "Temný"
 )
 
 @Composable

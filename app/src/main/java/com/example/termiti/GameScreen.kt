@@ -1203,6 +1203,7 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
 /** Mapuje ID skinu hradu na drawable resource. */
 fun castleSkinDrawable(skinId: String): Int = when (skinId) {
     "castle_player_2" -> R.drawable.castle_player_2
+    "castle_player_3" -> R.drawable.castle_player_3
     else              -> R.drawable.castle_player
 }
 

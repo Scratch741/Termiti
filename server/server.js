@@ -374,7 +374,7 @@ wss.on('connection', (ws, req) => {
         const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
         // Skin hradu – přijmi jen povolené hodnoty
-        const KNOWN_CASTLE_SKINS = new Set(['castle_player', 'castle_player_2']);
+        const KNOWN_CASTLE_SKINS = new Set(['castle_player', 'castle_player_2', 'castle_player_3']);
         const castleSkin = KNOWN_CASTLE_SKINS.has(msg.castleSkin) ? msg.castleSkin : 'castle_player';
         // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
         const KNOWN_ABILITIES = new Set([
