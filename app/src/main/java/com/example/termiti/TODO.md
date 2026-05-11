@@ -70,3 +70,13 @@ Nové karty / mechaniky:
 7) Krádež identity (chaos, legendary)
    - Prohoď s oponentem celé ruce karet
    - Nový efekt: SwapHands
+
+8) Anulace tahu (chaos, legendary)
+   - Zruší všechny karty, které soupeř zahrál v předchozím kole
+   - Soupeři se NEVRACÍ suroviny zaplacené za karty
+   - Efekty se anulují takto:
+     · Útok na hrad/hradby/hráče → vrátí se ztracené životy
+     · Stavba hradu/hradeb → odeberou se přidané HP
+     · Generování zdrojů → odeberou se vygenerované suroviny
+     · Stavba dolu → důl se odebere
+   - Potřeba: ukládat snapshot stavu před každým tahem soupeře (efekty karet, ne suroviny)
