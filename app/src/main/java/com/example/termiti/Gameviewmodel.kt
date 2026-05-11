@@ -437,6 +437,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
+        // DrawPerCardPlayed: flag byl nastaven předchozí kartou → tato karta triggeruje líz
+        if (player.drawCardOnPlay) pendingDrawCount += 1
+        // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
+        for (grp in player.gainResourcePerCardPlayed) {
+            if (grp.cardType == null || grp.cardType == card.type) {
+                player.resources[grp.type] = ((player.resources[grp.type] ?: 0) + grp.amount).coerceAtMost(MAX_RESOURCE)
+            }
+        }
+        // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou (s filtrem typu)
+        for (gcpp in player.gainCastlePerCardPlayed) {
+            if (gcpp.cardType == null || gcpp.cardType == card.type) {
+                player.castleHP = (player.castleHP + gcpp.amount).coerceAtMost(100)
+            }
+        }
         val aiCastleHpBefore = ai.castleHP
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
             onOpponentCardLost = { lostCard, action ->
@@ -561,6 +575,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 ai.drawCards(1)
                 SoundManager.playCardDraw()
             }
+            transformShapeShifters(ai.hand, allCards)
 
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true
@@ -580,6 +595,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
                         }
                         ai.lastPlayedType = aiCard.type
+                        // DrawPerCardPlayed: flag nastaven předchozí kartou AI → líz
+                        if (ai.drawCardOnPlay) { ai.drawCards(1); SoundManager.playCardDraw() }
+                        // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou AI (s filtrem typu)
+                        for (grp in ai.gainResourcePerCardPlayed) {
+                            if (grp.cardType == null || grp.cardType == aiCard.type) {
+                                ai.resources[grp.type] = ((ai.resources[grp.type] ?: 0) + grp.amount).coerceAtMost(MAX_RESOURCE)
+                            }
+                        }
+                        // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou AI (s filtrem typu)
+                        for (gcpp in ai.gainCastlePerCardPlayed) {
+                            if (gcpp.cardType == null || gcpp.cardType == aiCard.type) {
+                                ai.castleHP = (ai.castleHP + gcpp.amount).coerceAtMost(100)
+                            }
+                        }
                         applyEffects(
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
                             onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
@@ -675,6 +704,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
 
+            transformShapeShifters(player.hand, allCards)
+
             // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
             // Stává se, když hráč zahodí poslední kartu a AI nemá nic.
             // Bez tohoto hlídání dostane hráč tah s prázdnou rukou a hrou nejde hnout.
@@ -692,6 +723,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 scheduleGameEnd(result, finalState)
                 return@launch
             }
+
+            // Reset per-card-played efektů – platí jen pro toto kolo
+            player.drawCardOnPlay = false;              ai.drawCardOnPlay = false
+            player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
+            player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(

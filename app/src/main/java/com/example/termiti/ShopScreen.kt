@@ -403,34 +403,7 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                     Modifier.graphicsLayer { rotationY = 180f },
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    if (gain.card.artResId != null) {
-                        CardPreview(card = gain.card)
-                    } else {
-                        val rc = shRarityColor(gain.card.rarity)
-                        Box(
-                            Modifier
-                                .size(width = 100.dp, height = 140.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(ShBgCard)
-                                .border(2.dp, rc, RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                Modifier.padding(6.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(shEffectIcon(gain.card), fontSize = 24.sp)
-                                Text(
-                                    gain.card.name,
-                                    color = ShText, fontSize = 8.sp, fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 10.sp
-                                )
-                                Text(gain.card.rarity.label, color = rc, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
+                    CardPreview(card = gain.card)
                     // Duplikát badge
                     if (gain.isDuplicate) {
                         Box(

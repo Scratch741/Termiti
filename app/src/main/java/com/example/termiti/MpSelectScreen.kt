@@ -35,14 +35,14 @@ fun MpSelectScreen(
 ) {
     Box(Modifier.fillMaxSize()) {
 
-        // Pozadí
+        // Pozadí – stejné jako hlavní menu
         Image(
-            painter            = painterResource(R.drawable.bg_game),
+            painter            = painterResource(R.drawable.menu_bg),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
         )
-        Box(Modifier.fillMaxSize().background(Color(0xCC000000)))
+        Box(Modifier.fillMaxSize().background(Color(0x66000000)))
 
         // ── Tlačítko Zpět – vždy viditelné v levém horním rohu ───────────────
         Box(

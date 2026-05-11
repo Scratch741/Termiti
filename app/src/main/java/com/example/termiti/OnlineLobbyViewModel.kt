@@ -148,10 +148,13 @@ class OnlineLobbyViewModel(
     }
 
     // ── Herní stav ────────────────────────────────────────────────────────────
-    var mulliganHand      = mutableStateOf<List<Card>>(emptyList()); private set
-    var mulliganSelected  = mutableStateOf<Set<String>>(emptySet()); private set
-    var mulliganSubmitted = mutableStateOf(false); private set
+    var mulliganHand         = mutableStateOf<List<Card>>(emptyList()); private set
+    var mulliganSelected     = mutableStateOf<Set<String>>(emptySet()); private set
+    var mulliganSubmitted    = mutableStateOf(false); private set
     var opponentMulliganDone = mutableStateOf(false); private set
+    /** Zbývající sekundy mulligan odpočtu; null = timer neběží */
+    var mulliganSecondsLeft  = mutableStateOf<Int?>(null); private set
+    private var mulliganTimerJob: Job? = null
 
     var gameState        = mutableStateOf(OnlineGameState()); private set
     var gameResult       = mutableStateOf<OnlineGameResult?>(null); private set
@@ -286,6 +289,7 @@ class OnlineLobbyViewModel(
 
     fun confirmMulligan() {
         if (mulliganSubmitted.value) return
+        cancelMulliganTimer()
         mulliganSubmitted.value = true
         val returnIds = mulliganSelected.value.toList()
         sendMulliganDone(returnIds)
@@ -293,8 +297,29 @@ class OnlineLobbyViewModel(
 
     fun skipMulligan() {
         if (mulliganSubmitted.value) return
+        cancelMulliganTimer()
         mulliganSubmitted.value = true
         sendMulliganDone(emptyList())
+    }
+
+    /** Spustí odpočet [seconds] sekund; po vypršení auto-skip bez výměn. */
+    private fun startMulliganTimer(seconds: Int) {
+        cancelMulliganTimer()
+        mulliganSecondsLeft.value = seconds
+        mulliganTimerJob = viewModelScope.launch {
+            for (remaining in seconds - 1 downTo 0) {
+                delay(1_000)
+                mulliganSecondsLeft.value = remaining
+            }
+            // Timeout – auto-skip (pokud už neodeslal hráč sám)
+            skipMulligan()
+        }
+    }
+
+    private fun cancelMulliganTimer() {
+        mulliganTimerJob?.cancel()
+        mulliganTimerJob = null
+        mulliganSecondsLeft.value = null
     }
 
     private fun sendMulliganDone(returnIds: List<String>) {
@@ -493,15 +518,17 @@ class OnlineLobbyViewModel(
                 }
 
                 "GAME_MULLIGAN" -> {
-                    val handJson = json.optJSONArray("hand")
-                    mulliganHand.value      = parseCardArray(handJson)
-                    mulliganSelected.value  = emptySet()
-                    mulliganSubmitted.value = false
+                    val handJson   = json.optJSONArray("hand")
+                    val timeoutMs  = json.optInt("timeoutMs", 30_000)
+                    mulliganHand.value         = parseCardArray(handJson)
+                    mulliganSelected.value     = emptySet()
+                    mulliganSubmitted.value    = false
                     opponentMulliganDone.value = false
-                    lastPlayedCard.value    = null   // čistý stav pro novou hru
-                    lastPlayedByMe.value    = false
+                    lastPlayedCard.value       = null   // čistý stav pro novou hru
+                    lastPlayedByMe.value       = false
                     phase.value = OnlinePhase.GAME_MULLIGAN
-                    android.util.Log.d("MULLIGAN", "GAME_MULLIGAN přijato: hand=${mulliganHand.value.size} karet, matchInfo=${matchInfo.value?.gameId}")
+                    startMulliganTimer((timeoutMs / 1_000).coerceAtLeast(5))
+                    android.util.Log.d("MULLIGAN", "GAME_MULLIGAN přijato: hand=${mulliganHand.value.size} karet, timeout=${timeoutMs}ms")
                 }
 
                 "MULLIGAN_OK" -> {
@@ -755,6 +782,7 @@ class OnlineLobbyViewModel(
     // ── Pomocné ───────────────────────────────────────────────────────────────
 
     private fun resetGameState() {
+        cancelMulliganTimer()
         gameEndPending.value       = false
         mulliganHand.value         = emptyList()
         mulliganSelected.value     = emptySet()

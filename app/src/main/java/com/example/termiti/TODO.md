@@ -63,10 +63,6 @@ Nové karty / mechaniky:
    - Na začátku každého kola se karta v ruce změní v náhodnou kartu ze hry
    - Speciální karta s persistentním chováním — potřeba příznak isShapeshifter + logika v generateResources/startOfTurn
 
-6) Vrácení v čase (magic, legendary)
-   - Vrať hru o 1 tah zpět (HP hradu, hradby, zdroje, ruka obou hráčů) — tato karta se ztratí
-   - Potřeba: snapshot stavu před každým tahem, rollback mechanismus v enginu
-
 7) Krádež identity (chaos, legendary)
    - Prohoď s oponentem celé ruce karet
    - Nový efekt: SwapHands
@@ -80,3 +76,5 @@ Nové karty / mechaniky:
      · Generování zdrojů → odeberou se vygenerované suroviny
      · Stavba dolu → důl se odebere
    - Potřeba: ukládat snapshot stavu před každým tahem soupeře (efekty karet, ne suroviny)
+
+9) Combo mechanika - za každou další kartu typu X se stane něcě (lízní kartu, dostaň suroviny, hrad, hradby, atd.)

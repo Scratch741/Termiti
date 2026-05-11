@@ -59,6 +59,14 @@ fun rarityOverlayResource(rarity: Rarity): Int {
     }
 }
 
+// ─── Fallback ilustrace ────────────────────────────────────────────────────────
+
+/**
+ * Vrátí resource ID ilustrace karty.
+ * Pokud karta nemá vlastní art ([artResId] == null), použije se [R.drawable.art_default].
+ */
+internal fun Card.effectiveArtResId(): Int = artResId ?: R.drawable.art_default
+
 // ─── Pomocné funkce (dostupné z GameScreen i DeckBuilderScreen) ────────────────
 
 /**

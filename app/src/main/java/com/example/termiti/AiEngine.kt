@@ -161,6 +161,26 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
             val amt = xVal / fx.divisor
             5 + amt * 2   // přidává dva zdroje najednou
         }
+        // Výměna rukou: hodnotná, pokud soupeř má víc karet než AI
+        is CardEffect.SwapHands ->
+            if (opponent.hand.size > ai.hand.size) 10 + (opponent.hand.size - ai.hand.size) * 2 else 3
+        // Každá combo karta zahraná po této přinese líz – hodnotnější pokud AI má víc combo karet v ruce
+        is CardEffect.DrawPerCardPlayed -> {
+            val comboInHand = ai.hand.count { it.isCombo }
+            4 + comboInHand * 3
+        }
+        // Každá zahraná karta přidá zdroje – hodnotnější při více combo kartách v ruce
+        is CardEffect.GainResourcePerCardPlayed -> {
+            val comboInHand = ai.hand.count { it.isCombo }
+            3 + comboInHand * fx.amount
+        }
+        // Každá zahraná stavební karta přidá HP hradu – hodnotnější při více combo v ruce
+        is CardEffect.GainCastlePerCardPlayed -> {
+            val comboInHand = ai.hand.count { it.isCombo }
+            3 + comboInHand * fx.amount
+        }
+        // Wildcard – průměrná hodnota náhodné karty
+        is CardEffect.ShapeShift -> 5
     }
 
     // ── Detekce lethal: karta zabije soupeře tento tah ──────────────────────

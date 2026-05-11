@@ -24,7 +24,7 @@ object CardPresentation {
     val presentations: Map<String, CardPres> = mapOf(
 
         // ── Útok (platí ATTACK) ───────────────────────────────────────────────
-        "001" to CardPres("Zaútočí na nepřítele za 5.",
+        "001" to CardPres("Zaútočí na nepřítele za 5. [Combo]",
             R.drawable.art_zakladni_utok, "Útok", isBasic = true),
         "008" to CardPres("Zaútočí na hrad za 3.",
             R.drawable.art_sipy, "Útok",
@@ -108,7 +108,7 @@ object CardPresentation {
         "026" to CardPres("Poškodí hrad o 5. Pokud >5 útoku, +5.",
             R.drawable.art_ostrelovac, "Útok",
             artScale = 0.85f, artBiasY = 0.10f),
-        "027" to CardPres("Zaútočí za 4 a přidá +2 útoku. [Combo]",
+        "027" to CardPres("Zaútočí za 4. **Toto kolo:** za každou zahranou **ÚTOK** +2 útoku. [Combo]",
             R.drawable.art_valecne_bubny, "Útok",
             artScale = 0.80f, artBiasY = -0.60f, soundResId = R.raw.drums_of_war),
 
@@ -116,7 +116,7 @@ object CardPresentation {
         "028" to CardPres("Opraví hrad o 3.",
             R.drawable.art_zaplata, "Stavba",
             artBiasX = 0.50f, artBiasY = -1.00f, artScale = 0.85f),
-        "029" to CardPres("Postaví hradby +6.",
+        "029" to CardPres("Postaví hradby +6. [Combo]",
             R.drawable.art_opevneni, "Stavba",
             artScale = 0.80f, artBiasY = 0.55f),
         "030" to CardPres("Postaví hradby +13.",
@@ -210,7 +210,7 @@ object CardPresentation {
             R.drawable.art_basta, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
         "058" to CardPres("Hradby +4. [Combo]",
-            R.drawable.art_obranny_val, "Magie",
+            R.drawable.art_obranny_val, "Stavba",
             artScale = 0.80f),
         "059" to CardPres("Hradby +5 a hrad +7.",
             R.drawable.art_pevnostni_hrad, "Stavba",
@@ -320,6 +320,8 @@ object CardPresentation {
         "092" to CardPres("Pokud máš >20 hradeb, postav +14.",
             R.drawable.art_strategicka_vystavba, "Stavba",
             artScale = 0.80f, artBiasY = -0.55f),
+        "093" to CardPres("+5 hrad. **Toto kolo:** za každou zahranou **STAVBU** +3 hrad. [Combo]",
+            null, "Stavba"),
         "094" to CardPres("Hradby +6, získej +2 kameny. [Combo]",
             R.drawable.art_sklad_materialu, "Stavba",
             artScale = 0.80f),
@@ -428,7 +430,7 @@ object CardPresentation {
         "C22" to CardPres("Přidej 2 'Chaos výbuch' do svého balíčku.",
             R.drawable.art_chaos_manufaktura, "Chaos",
             artScale = 0.80f),
-        "C23" to CardPres("Přidej 2 kopie 'Základní útok' do svého balíčku.",
+        "C23" to CardPres("Přidej 2 kopie 'Rychlý útok' do svého balíčku.",
             R.drawable.art_klonovani, "Chaos",
             artScale = 0.75f, artBiasY = -0.20f),
 
@@ -460,6 +462,10 @@ object CardPresentation {
         "C32" to CardPres("Soupeř −10 hrad, vlastní hrad −10.",
             R.drawable.art_vzajemna_zkaza, "Chaos",
             artScale = 0.80f, artBiasY = -0.40f),
+        "C33" to CardPres("Prohoď s oponentem celé ruce karet.",
+            null, "Chaos"),
+        "C34" to CardPres("Na začátku každého tahu se promění v náhodnou kartu ze hry.",
+            null, "Chaos"),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",
@@ -486,6 +492,8 @@ object CardPresentation {
         "D08" to CardPres("Pokud máš >4 magie, líz 2 karty.",
             R.drawable.art_vize, "Magie",
             artScale = 0.80f, artBiasY = -0.40f),
+        "D09" to CardPres("**Toto kolo:** za **KAŽDOU** další zahranou kartu lízni 1. [Combo]",
+            null, "Magie"),
 
         // ── Testovací ─────────────────────────────────────────────────────────
         "T01" to CardPres("+5 Magie.",

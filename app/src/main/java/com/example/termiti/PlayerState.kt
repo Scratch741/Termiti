@@ -51,20 +51,40 @@ class PlayerState(
      * během applyEffects, aby ConditionalEffect (ResourceAbove) viděl stav před
      * odečtem ceny. Mimo playCard/aiPlay je vždy null.
      */
-    var preCostResources: Map<ResourceType, Int>? = null
+    var preCostResources: Map<ResourceType, Int>? = null,
+    /**
+     * true = efekt DrawPerCardPlayed je aktivní: za každou DALŠÍ zahranou kartu v tomto kole
+     * líznout 1 kartu. Resetuje se při přechodu na nový tah (v finishTurn / startMyTurn).
+     */
+    var drawCardOnPlay: Boolean = false,
+    /**
+     * Seznam aktivních GainResourcePerCardPlayed efektů v tomto kole.
+     * Každý efekt se triggeruje na každou DALŠÍ zahranou kartu (s volitelným filtrem cardType).
+     * Resetuje se při přechodu na nový tah.
+     */
+    var gainResourcePerCardPlayed: MutableList<CardEffect.GainResourcePerCardPlayed> = mutableListOf(),
+    /**
+     * Seznam aktivních GainCastlePerCardPlayed efektů v tomto kole.
+     * Každý efekt se triggeruje na každou DALŠÍ zahranou kartu (s volitelným filtrem cardType).
+     * Resetuje se při přechodu na nový tah.
+     */
+    var gainCastlePerCardPlayed: MutableList<CardEffect.GainCastlePerCardPlayed> = mutableListOf()
 ) {
     fun deepCopy(): PlayerState = PlayerState(
-        castleHP         = castleHP,
-        wallHP           = wallHP,
-        resources        = resources.toMutableMap(),
-        mines            = mines.toMutableMap(),
-        mineBlockedTurns = mineBlockedTurns.toMutableMap(),
-        pendingResources = pendingResources.map { it.copy() }.toMutableList(),
-        deck             = deck.toMutableList(),
-        hand             = hand.toMutableList(),
-        discardPile      = discardPile.toMutableList(),
-        lastPlayedType   = lastPlayedType,
-        preCostResources = preCostResources?.toMap()
+        castleHP                 = castleHP,
+        wallHP                   = wallHP,
+        resources                = resources.toMutableMap(),
+        mines                    = mines.toMutableMap(),
+        mineBlockedTurns         = mineBlockedTurns.toMutableMap(),
+        pendingResources         = pendingResources.map { it.copy() }.toMutableList(),
+        deck                     = deck.toMutableList(),
+        hand                     = hand.toMutableList(),
+        discardPile              = discardPile.toMutableList(),
+        lastPlayedType           = lastPlayedType,
+        preCostResources         = preCostResources?.toMap(),
+        drawCardOnPlay           = drawCardOnPlay,
+        gainResourcePerCardPlayed = gainResourcePerCardPlayed.toMutableList(),
+        gainCastlePerCardPlayed   = gainCastlePerCardPlayed.toMutableList()
     )
 
     /**

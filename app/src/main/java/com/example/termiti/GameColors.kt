@@ -2,6 +2,30 @@ package com.example.termiti
 
 import androidx.compose.ui.graphics.Color
 
+// ── Pomocné funkce závislé na herních datových typech ────────────────────────
+// Definovány zde, aby byly dostupné z GameCardView, GameLog i GameHUD
+
+internal fun rarityColor(rarity: Rarity) = when (rarity) {
+    Rarity.COMMON    -> Color(0xFF9E9E9E)
+    Rarity.RARE      -> Color(0xFF4A90D9)
+    Rarity.EPIC      -> Color(0xFF9B59B6)
+    Rarity.LEGENDARY -> Color(0xFFD4A843)
+}
+
+internal fun resourceColor(type: ResourceType) = when (type) {
+    ResourceType.MAGIC  -> MagicPurple
+    ResourceType.ATTACK -> AttackRed
+    ResourceType.STONES -> StoneColor
+    ResourceType.CHAOS  -> ChaosOrange
+}
+
+internal fun resourceIcon(type: ResourceType) = when (type) {
+    ResourceType.MAGIC  -> "✨"
+    ResourceType.ATTACK -> "⚔️"
+    ResourceType.STONES -> "🪨"
+    ResourceType.CHAOS  -> "🌀"
+}
+
 /**
  * Sdílená paleta barev pro celou aplikaci.
  * Používá se v GameScreen, DeckBuilderScreen, ArenaDraftScreen, MenuScreen a dalších.
@@ -21,6 +45,7 @@ internal val Crimson     = Color(0xFFBF2D2D)   // útok, krev
 internal val CrimsonDark = Color(0xFF8B1A1A)   // tmavší červená
 internal val HpRed       = Color(0xFFE53935)   // nízké HP, zahazování
 internal val AttackRed   = Color(0xFFBF2D2D)   // útočný resource (= Crimson)
+internal val DiscardRed  = HpRed               // alias – zvýraznění zahazování karty
 
 // ── Zelené / stavební ─────────────────────────────────────────────────────────
 internal val HpGreen     = Color(0xFF4CAF50)   // plné HP, pozitivní
@@ -38,3 +63,4 @@ internal val MagicPurple  = Color(0xFF9B59B6)  // resource MAGIC
 internal val StoneColor   = Color(0xFFB8A898)  // resource STONES
 internal val ChaosOrange  = Color(0xFFE67E22)  // resource CHAOS
 internal val WallBlue     = Color(0xFF5C9BD6)  // hradby
+internal val ComboYellow  = Color(0xFFFFD600)  // zvýraznění combo karet

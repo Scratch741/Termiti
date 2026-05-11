@@ -1,0 +1,624 @@
+﻿package com.example.termiti
+
+
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+/**
+ * Parsuje popis karty – text uzavřený v **…** se zobrazí tučně a velkými písmeny.
+ * Příklad: "za každou **STAVBU** +3" → "STAVBU" bude bold.
+ */
+fun parseCardDesc(text: String): AnnotatedString = buildAnnotatedString {
+    val parts = text.split("**")
+    parts.forEachIndexed { i, part ->
+        if (i % 2 == 0) append(part)
+        else {
+            pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+            append(part)
+            pop()
+        }
+    }
+}
+
+private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
+    is CardEffect.AttackPlayer      -> "⚔️"
+    is CardEffect.AttackCastle      -> "🎯"
+    is CardEffect.AttackWall        -> "💣"
+    is CardEffect.BuildCastle       -> "🏰"
+    is CardEffect.BuildWall         -> "🧱"
+    is CardEffect.AddResource       -> "💰"
+    is CardEffect.AddMine           -> "⛏️"
+    is CardEffect.StealResource     -> "🗡️"
+    is CardEffect.DrainResource     -> "☠️"
+    is CardEffect.ConditionalEffect -> "🔮"
+    is CardEffect.DestroyMine       -> "💥"
+    is CardEffect.StealCard         -> "🃏"
+    is CardEffect.BurnCard          -> "🔥"
+    is CardEffect.AddCardsToDeck    -> "📦"
+    is CardEffect.DrawCard          -> "🎴"
+    is CardEffect.StealCastle       -> "🧛"
+    is CardEffect.AddResourceDelayed  -> "⏳"
+    is CardEffect.BlockMine           -> "🚫"
+    is CardEffect.XScaledAttackPlayer -> "⚔️"
+    is CardEffect.XScaledAttackCastle -> "🎯"
+    is CardEffect.XScaledBuildCastle  -> "🏰"
+    is CardEffect.XScaledDualResource -> "💰"
+    is CardEffect.SwapHands           -> "🔄"
+    is CardEffect.DrawPerCardPlayed        -> "🎴"
+    is CardEffect.GainResourcePerCardPlayed -> "⚡"
+    is CardEffect.GainCastlePerCardPlayed   -> "🏯"
+    is CardEffect.ShapeShift                -> "🎭"
+    null                              -> "❓"
+}
+
+/** Mapuje ID skinu rubu karty na drawable resource. */
+fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
+    "card_back_frame_2" -> R.drawable.card_back_frame_2
+    "card_back_frame_3" -> R.drawable.card_back_frame_3
+    else                -> R.drawable.card_back_frame
+}
+
+/** Vrátí res-ID skinu rubu z profilu přihlášeného hráče. */
+fun playerCardBackResId(): Int =
+    cardBackSkinDrawable(PlayerProfileManager.profile?.cardBackSkin ?: "card_back_frame")
+
+@Composable
+fun CardBack(
+    modifier:  Modifier = Modifier,
+    skinResId: Int      = R.drawable.card_back_frame   // výchozí = základní rub (AI / neznámý hráč)
+) {
+    Image(
+        painter            = painterResource(skinResId),
+        contentDescription = null,
+        contentScale       = ContentScale.FillBounds,
+        modifier           = modifier.size(width = 22.dp, height = 32.dp)
+    )
+}
+
+/** Vrátí název drawable rámu podle typu zdroje karty. */
+private fun cardFrameName(costType: ResourceType) = when (costType) {
+    ResourceType.MAGIC  -> "card_frame_magic"
+    ResourceType.ATTACK -> "card_frame_attack"
+    ResourceType.CHAOS  -> "card_frame_chaos"
+    ResourceType.STONES -> "card_frame_stones"
+}
+
+/** Miniatura líce karty – stejná velikost jako CardBack (22×32 dp). */
+@Composable
+fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
+    val borderColor = rarityColor(card.rarity)
+    val context = LocalContext.current
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+    Box(
+        modifier = modifier
+            .size(width = 22.dp, height = 32.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .border(1.dp, borderColor.copy(alpha = 0.8f), RoundedCornerShape(3.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .height(16.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter = painterResource(card.effectiveArtResId()),
+                contentDescription = null,
+                modifier = artModifier(card),
+                contentScale = ContentScale.Crop,
+                alignment = artAlignment(card)
+            )
+        }
+        if (frameResId != 0) {
+            Image(
+                painter = painterResource(frameResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+        // Cena v levém horním rohu
+        Box(
+            Modifier.align(Alignment.TopStart).padding(1.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(if (card.isXCost) "X" else "${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+
+// Zvýrazněná odhalená mini karta – poslední zahraná AI kartou
+@Composable
+internal fun CardBackPlayed(card: Card) {
+    val costColor = resourceColor(card.costType)
+    Column(
+        modifier = Modifier
+            .size(width = 36.dp, height = 48.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(BgCard)
+            .border(1.5.dp, Crimson, RoundedCornerShape(4.dp))
+            .padding(3.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(effectIcon(card), fontSize = 11.sp)
+        Text(card.name, color = TextPrimary, fontSize = 5.sp,
+            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+            maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
+        Text("${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}", color = costColor, fontSize = 5.5.sp)
+    }
+}
+
+/** Slot zahrané karty soupeře v pruhu ruky – čitelný název + cena, červený rámeček. */
+@Composable
+internal fun PlayedCardSlot(card: Card) {
+    val costColor = resourceColor(card.costType)
+    Column(
+        modifier = Modifier
+            .size(width = 38.dp, height = 38.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color(0xFF2A0A0A))
+            .border(1.5.dp, Crimson, RoundedCornerShape(5.dp))
+            .padding(3.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            effectIcon(card),
+            fontSize = 12.sp
+        )
+        Text(
+            card.name,
+            color      = TextPrimary,
+            fontSize   = 6.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign  = TextAlign.Center,
+            maxLines   = 2,
+            overflow   = TextOverflow.Ellipsis,
+            lineHeight = 7.sp
+        )
+        Text(
+            "${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}",
+            color    = costColor,
+            fontSize = 6.sp
+        )
+    }
+}
+
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+@Composable
+fun CardView(
+    card: Card,
+    canPlay: Boolean,
+    discardMode: Boolean,
+    onClick: () -> Unit,
+    onDiscard: (() -> Unit)? = null,
+    isComboCard: Boolean = card.isCombo,
+    conditionMet: Boolean? = null,  // null = karta nemá podmínku
+    showFade: Boolean = true,       // false = vždy plná opacity (např. zahraná karta uprostřed)
+    showGlow: Boolean = true
+) {
+    val offsetY   = remember { Animatable(0f) }
+    val scope     = rememberCoroutineScope()
+    val density   = LocalDensity.current
+    val threshold = remember(density) { with(density) { 68.dp.toPx() } }
+    val progress  = (-offsetY.value / threshold).coerceIn(0f, 1f)
+    val isDragging = offsetY.value < -6f
+
+    // ── Zelený glow: zahratelná karta se splněnou podmínkou ───────────────────
+    val showGreenGlow = showGlow && canPlay && conditionMet == true
+    val glowTransition = rememberInfiniteTransition(label = "cardGlow")
+    val glowAlpha by glowTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue  = 0.75f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+    val GlowGreen = Color(0xFF4DB86E)
+
+    // ── Fialový glow: Shapeshifter karta (i po transformaci – trackovano přes ID prefix) ──
+    val isShapeShifter = card.isShapeShifterInstance()
+    val purpleGlowAlpha by glowTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue  = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "purpleGlowAlpha"
+    )
+
+    val dragModifier = if (onDiscard != null) Modifier.pointerInput(card.id) {
+        detectVerticalDragGestures(
+            onDragEnd = {
+                scope.launch {
+                    if (offsetY.value <= -threshold) onDiscard()
+                    offsetY.animateTo(0f, spring(dampingRatio = 0.55f, stiffness = 280f))
+                }
+            },
+            onDragCancel = { scope.launch { offsetY.animateTo(0f, spring()) } },
+            onVerticalDrag = { _, delta ->
+                scope.launch { offsetY.snapTo((offsetY.value + delta).coerceAtMost(0f)) }
+            }
+        )
+    } else Modifier
+
+    // ── Textured card layout (art_default pro karty bez vlastního artu) ─────
+    CardViewTextured(
+        card           = card,
+        artResId       = card.effectiveArtResId(),
+        canPlay        = canPlay,
+        discardMode    = discardMode,
+        isDragging     = isDragging,
+        progress       = progress,
+        offsetY        = offsetY,
+        conditionMet   = conditionMet,
+        isComboCard    = isComboCard,
+        dragModifier   = dragModifier,
+        showFade       = showFade,
+        showGreenGlow  = showGreenGlow,
+        glowAlpha      = glowAlpha,
+        showPurpleGlow = isShapeShifter,
+        purpleGlowAlpha = purpleGlowAlpha,
+        onClick        = onClick
+    )
+}
+
+// ── Textured card view ────────────────────────────────────────────────────────
+@Composable
+private fun CardViewTextured(
+    card: Card,
+    artResId: Int,
+    canPlay: Boolean,
+    discardMode: Boolean,
+    isDragging: Boolean,
+    progress: Float,
+    offsetY: Animatable<Float, *>,
+    conditionMet: Boolean?,
+    isComboCard: Boolean,
+    dragModifier: Modifier,
+    showFade: Boolean = true,
+    showGreenGlow: Boolean = false,
+    glowAlpha: Float = 0f,
+    showPurpleGlow: Boolean = false,
+    purpleGlowAlpha: Float = 0f,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    // Načtení rámu karty dynamicky podle costType (card_frame_magic/attack/chaos/stones).
+    // Pokud soubor neexistuje, vrátí 0 a rám se nepřikresluje.
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+
+    val GlowGreen  = Color(0xFF4DB86E)
+    val GlowPurple = Color(0xFFBB66FF)
+
+    // Zahratelná Shapeshifter: breathing animace; nezahratelná: statická ztlumená fialová
+    val effectivePurpleAlpha = when {
+        !showPurpleGlow        -> 0f
+        canPlay                -> purpleGlowAlpha          // 0.5–1.0 breathing
+        else                   -> 0.30f                    // statická, ztlumená
+    }
+
+    val borderColor = when {
+        isDragging             -> DiscardRed.copy(alpha = 0.35f + progress * 0.6f)
+        discardMode            -> DiscardRed.copy(alpha = 0.8f)
+        showPurpleGlow         -> GlowPurple.copy(alpha = effectivePurpleAlpha)
+        canPlay && isComboCard -> ComboYellow
+        showGreenGlow          -> GlowGreen.copy(alpha = glowAlpha)
+        canPlay                -> Gold
+        else                   -> Color.Transparent
+    }
+    val borderWidth = if (showPurpleGlow) 2.dp else 1.5.dp
+    val bgColor = when {
+        showPurpleGlow && canPlay  -> Color(0xFF1A0830)    // živá tmavě fialová
+        showPurpleGlow             -> Color(0xFF0F0520)    // tmavší = nezahratelná
+        showGreenGlow              -> Color(0xFF0D1E12)
+        else                       -> BgCard
+    }
+
+    Box(
+        modifier = Modifier
+            .size(width = 100.dp, height = 140.dp)
+            .offset { IntOffset(0, offsetY.value.roundToInt()) }
+            .then(dragModifier)
+            .drawBehind {
+                if (showPurpleGlow) {
+                    val cr = CornerRadius(10.dp.toPx())
+                    repeat(4) { i ->
+                        val spread = (i + 1) * 4f
+                        drawRoundRect(
+                            color = GlowPurple.copy(alpha = effectivePurpleAlpha * 0.18f / (i + 1)),
+                            topLeft = Offset(-spread, -spread),
+                            size = Size(size.width + spread * 2, size.height + spread * 2),
+                            cornerRadius = cr
+                        )
+                    }
+                }
+            }
+            .clip(RoundedCornerShape(6.dp))
+            .background(bgColor)
+            .then(if (borderColor != Color.Transparent)
+                Modifier.border(borderWidth, borderColor, RoundedCornerShape(6.dp)) else Modifier)
+            .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
+    ) {
+        // Vrstva 1: ilustrace karty
+        // Oblast ilustrace je horních ~90 dp — pokrývá průhlednou zónu frame i gradient přechod.
+        // 70 dp by způsobilo tvrdou hranu uprostřed semi-transparentní části rámu.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .fillMaxWidth()
+                .height(90.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter = painterResource(artResId),
+                contentDescription = null,
+                modifier = artModifier(card),
+                contentScale = ContentScale.Crop,
+                alignment = artAlignment(card),
+                alpha = if (!showFade || canPlay || discardMode) 1f else 0.6f
+            )
+        }
+
+        // Vrstva 2: rám karty (průhlednost v oblasti ilustrace zajistí soubor card_frame.png)
+        if (frameResId != 0) {
+            Image(
+                painter = painterResource(frameResId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Vrstva 2.5: Překryv rarity (PNG s průhledností, mění barvu jen určité části)
+        val rarityOverlayId = rarityOverlayResource(card.rarity)
+        if (rarityOverlayId != 0) {
+            Image(
+                painter = painterResource(rarityOverlayId),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Vrstva 3: cena karty v levém horním kruhu rámu
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 1.5.dp, y = 2.dp)
+                .size(18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            val costLabel = if (card.isXCost) "X" else "${card.cost}"
+            // TextStyle s LineHeightStyle.Trim.Both = glyf přesně uprostřed boxu
+            val costStyle = TextStyle(
+                fontSize = 9.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
+            )
+            // Černý obrys – 4 posunuté kopie
+            // fillMaxWidth + textAlign.Center = glyf centrován v celé šíři boxu (ne jen v šíři glyfu)
+            for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
+                Text(costLabel, color = Color.Black,
+                    modifier = Modifier.fillMaxWidth().offset(x = off.x.dp, y = off.y.dp),
+                    style = costStyle)
+            }
+            // Bílá výplň
+            Text(costLabel, color = Color.White,
+                modifier = Modifier.fillMaxWidth(),
+                style = costStyle)
+        }
+
+        // Vrstva 4: název karty v obloukovém pásu (~70 dp od vrchu) — zakřivený text
+        ArcCardName(
+            name         = card.name,
+            modifier     = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 69.dp)
+                .fillMaxWidth()
+                .height(22.dp),
+            fontSizeSp   = 8f,
+            arcRadiusDp  = 350f,
+            baselineFrac = 0.78f
+        )
+
+        // Vrstva 5: text karty pod názvem (92–130 dp od vrchu)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 92.dp)
+                .fillMaxWidth()
+                .height(38.dp)
+                .clipToBounds()
+                .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                parseCardDesc(card.description),
+                color = Color(0xFFDDD0B0),
+                fontSize = 7.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 9.sp,
+                style = LocalTextStyle.current.merge(
+                    TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    )
+                )
+            )
+        }
+
+        // Vrstva 5b: ikony stavu (splněno / combo) – vpravo nahoře, nepřekrývají text ani grafiku
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp, end = 8.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            if (conditionMet != null) {
+                val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
+                val condIcon  = if (conditionMet) "✓" else "✗"
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, condColor.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        condIcon,
+                        color = condColor,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
+            if (isComboCard) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, ComboYellow.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "⚡",
+                        fontSize = 9.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
+        }
+
+        // Vrstva 6: typ karty v úplně dolním pruhu (127–139 dp od vrchu)
+        if (card.type.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(y = 129.dp)
+                    .fillMaxWidth()
+                    .height(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    card.type.uppercase(),
+                    color = Color(0xFFD4B870),
+                    fontSize = 6.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                )
+            }
+        }
+
+        // Vrstva 7: zelený glow overlay (na vrchu — ale průhledný, nepřekáží čtení)
+        if (showGreenGlow) {
+            Box(Modifier.fillMaxSize()
+                .border(3.dp, GlowGreen.copy(alpha = glowAlpha * 0.35f), RoundedCornerShape(6.dp)))
+        }
+
+        // Vrstva 8: overlay při tažení / discard
+        if (isDragging) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(DiscardRed.copy(alpha = (progress * 0.55f).coerceAtMost(0.55f))),
+                contentAlignment = Alignment.Center
+            ) { if (progress > 0.35f) Text("🗑️", fontSize = (12 + progress * 16).sp) }
+        } else if (discardMode) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(DiscardRed.copy(alpha = 0.35f)),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                Box(
+                    Modifier.padding(4.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(DiscardRed.copy(alpha = 0.7f))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) { Text("✕", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold) }
+            }
+        }
+    }
+}
+

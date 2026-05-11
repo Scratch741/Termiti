@@ -540,6 +540,9 @@ class MultiplayerViewModel(
 
     private fun startMyTurn() {
         val me = myState.value.deepCopy()
+        me.drawCardOnPlay = false                    // reset per-card-played efektů
+        me.gainResourcePerCardPlayed.clear()
+        me.gainCastlePerCardPlayed.clear()
         me.generateResources()
         // First player skips draw on their very first turn
         if (!(iGoFirst && turnIndex == 0)) {
@@ -550,15 +553,20 @@ class MultiplayerViewModel(
                 sendMsg("t" to "BURN", "uid" to b.id)
             }
         }
+        transformShapeShifters(me.hand, allCards)
         myState.value  = me
         isMyTurn.value = true
     }
 
     private fun startOppTurn() {
         val opp = oppState.value.deepCopy()
+        opp.drawCardOnPlay = false                   // reset per-card-played efektů
+        opp.gainResourcePerCardPlayed.clear()
+        opp.gainCastlePerCardPlayed.clear()
         opp.generateResources()
         // Opponent (= second player if iGoFirst) always draws from turn 1
         if (!(!iGoFirst && turnIndex == 0)) opp.drawCards(1)
+        transformShapeShifters(opp.hand, allCards)
         oppState.value = opp
         isMyTurn.value = false
     }
@@ -600,6 +608,20 @@ class MultiplayerViewModel(
             me.resources[card.costType] = (me.resources[card.costType] ?: 0) - card.cost
         }
         me.lastPlayedType = card.type
+        // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu
+        if (me.drawCardOnPlay) me.drawCards(1)
+        // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
+        for (grp in me.gainResourcePerCardPlayed) {
+            if (grp.cardType == null || grp.cardType == card.type) {
+                me.resources[grp.type] = ((me.resources[grp.type] ?: 0) + grp.amount).coerceAtMost(MAX_RESOURCE)
+            }
+        }
+        // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou (s filtrem typu)
+        for (gcpp in me.gainCastlePerCardPlayed) {
+            if (gcpp.cardType == null || gcpp.cardType == card.type) {
+                me.castleHP = (me.castleHP + gcpp.amount).coerceAtMost(100)
+            }
+        }
         applyEffects(card.effects, me, opp, allCards, xValue = xValue)
         me.preCostResources = null
         me.hand.remove(card)

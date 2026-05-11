@@ -4,18 +4,20 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
+  CARD_MAP, ALL_CARDS, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
   createPlayerState, generateResources, drawCards,
-  applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp
+  applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp,
+  transformShapeShifters
 } = require('./engine');
 const { ratingSystem } = require('./RatingSystem');
 
-const MULLIGAN_HAND_SIZE = 4;
-const TURN_HAND_DRAW    = 1;
-const TURN_SECONDS      = 15;
-const TIMEBANK_SECONDS  = 120;
+const MULLIGAN_HAND_SIZE    = 4;
+const MULLIGAN_TIMEOUT_MS   = 30_000;   // 30 s na mulligan; po vypršení auto-skip
+const TURN_HAND_DRAW        = 1;
+const TURN_SECONDS          = 15;
+const TIMEBANK_SECONDS      = 120;
 
 class GameSession {
 
@@ -47,7 +49,8 @@ class GameSession {
     this.turnNumber = 0;
 
     // Mulligan tracking
-    this.mulliganDone = { A: false, B: false };
+    this.mulliganDone   = { A: false, B: false };
+    this._mulliganTimers = { A: null, B: null };
 
     // Quick-draw tracking (1 extra card on first turn, not in mulligan)
     this.quickDrawApplied = { A: false, B: false };
@@ -111,8 +114,17 @@ class GameSession {
     this.activeSide = 'A';
 
     // Notify both clients
-    this._send('A', { type: 'GAME_MULLIGAN', hand: this._serializeHand('A') });
-    this._send('B', { type: 'GAME_MULLIGAN', hand: this._serializeHand('B') });
+    this._send('A', { type: 'GAME_MULLIGAN', hand: this._serializeHand('A'), timeoutMs: MULLIGAN_TIMEOUT_MS });
+    this._send('B', { type: 'GAME_MULLIGAN', hand: this._serializeHand('B'), timeoutMs: MULLIGAN_TIMEOUT_MS });
+
+    // Auto-confirm after timeout if player hasn't responded
+    for (const side of ['A', 'B']) {
+      this._mulliganTimers[side] = setTimeout(() => {
+        if (this.phase !== 'mulligan' || this.mulliganDone[side]) return;
+        console.log(`[Mulligan ${this.gameId}] Timeout pro ${this.name[side]}(${side}) – auto-skip`);
+        this.handleMulligan(side, []);
+      }, MULLIGAN_TIMEOUT_MS);
+    }
   }
 
   // ── Mulligan ───────────────────────────────────────────────────────────────
@@ -125,6 +137,9 @@ class GameSession {
     console.log(`[Mulligan ${this.gameId}] ${this.name[side]}(${side}) odeslal – phase=${this.phase} doneA=${this.mulliganDone.A} doneB=${this.mulliganDone.B}`);
     if (this.phase !== 'mulligan') { console.log(`[Mulligan ${this.gameId}] BLOKOVÁNO – phase není mulligan`); return; }
     if (this.mulliganDone[side])   { console.log(`[Mulligan ${this.gameId}] BLOKOVÁNO – ${side} už odeslal`);  return; }
+
+    // Zruš mulligan timer pro tuto stranu
+    if (this._mulliganTimers[side]) { clearTimeout(this._mulliganTimers[side]); this._mulliganTimers[side] = null; }
 
     const ps = this.state[side];
 
@@ -232,6 +247,12 @@ class GameSession {
   _clearTurnTimer() {
     if (this._turnTimer) { clearTimeout(this._turnTimer); this._turnTimer = null; }
     this.timebankStartedAt = null;
+  }
+
+  _clearMulliganTimers() {
+    for (const side of ['A', 'B']) {
+      if (this._mulliganTimers[side]) { clearTimeout(this._mulliganTimers[side]); this._mulliganTimers[side] = null; }
+    }
   }
 
   /**
@@ -353,6 +374,24 @@ class GameSession {
     // Nastav typ právě hrané karty před applyEffects – podmínka LastPlayedType to přečte
     self.lastPlayedType = deriveCardType(card);
 
+    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu před efekty
+    if (self.drawCardOnPlay) {
+      drawCards(self, 1, self.maxHandSize || 7);
+    }
+    // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
+    const cardType = deriveCardType(card);
+    for (const grp of (self.gainResourcePerCardPlayed || [])) {
+      if (!grp.cardType || grp.cardType === cardType) {
+        self.resources[grp.resType] = Math.min(MAX_RESOURCE, (self.resources[grp.resType] || 0) + grp.amount);
+      }
+    }
+    // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou (s filtrem typu)
+    for (const gcpp of (self.gainCastlePerCardPlayed || [])) {
+      if (!gcpp.cardType || gcpp.cardType === cardType) {
+        self.castleHP = Math.min(100, self.castleHP + gcpp.amount);
+      }
+    }
+
     const lostCards = [];
     applyEffects(
       card.effects,
@@ -457,6 +496,12 @@ class GameSession {
   // ── Advance turn ───────────────────────────────────────────────────────────
 
   _advanceTurn() {
+    // Reset per-card-played efektů pro hráče, který právě skončil tah
+    const prevState = this.state[this.activeSide];
+    prevState.drawCardOnPlay = false;
+    prevState.gainResourcePerCardPlayed = [];
+    prevState.gainCastlePerCardPlayed = [];
+
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';
     // Increment round counter only when A's turn starts (= one full round completed)
@@ -474,6 +519,7 @@ class GameSession {
       extraDraw = 1;
     }
     const burned = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
+    transformShapeShifters(next.hand, ALL_CARDS);
 
     if (burned.length > 0) {
       this._log(`${this.name[this.activeSide]} spálil kartu (plná ruka).`);
@@ -497,6 +543,7 @@ class GameSession {
   _endGame(winner) {
     this.phase = 'ended';
     this._clearTurnTimer();
+    this._clearMulliganTimers();
 
     let winnerName = null;
     if (winner === 'A') winnerName = this.name.A;

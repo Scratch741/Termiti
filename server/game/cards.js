@@ -27,6 +27,11 @@ const xap= (d=2)    => ({ type:'XScaledAttackPlayer', divisor:d });
 const xac= (d=2)    => ({ type:'XScaledAttackCastle', divisor:d });
 const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
+const swh= ()       => ({ type:'SwapHands' });
+const dpc= ()       => ({ type:'DrawPerCardPlayed' });
+const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amount:n, ...(ct ? {cardType:ct} : {}) });
+const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
+const ss = ()            => ({ type:'ShapeShift' });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -43,9 +48,9 @@ const MAX_COPIES = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };
 // [id, name, cost, costType, isCombo, effects, rarity]
 const RAW = [
   // ── Útok (platí ATTACK) ──────────────────────────────────────────────────
-  ['001','Základní útok',  2,'ATTACK',0,[ap(5)],               'COMMON'],
+  ['001','Rychlý útok',    2,'ATTACK',1,[ap(5)],               'COMMON'],
   ['008','Šípy',           1,'ATTACK',0,[ac(3)],               'COMMON'],
-  ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'COMMON'],
+  ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'RARE'],
   ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'RARE'],
   ['006','Převaha síly',   3,'ATTACK',0,[cd(rMO('ATTACK'), ac(10))],   'RARE'],
   ['017','Válečný sekyrník',4,'ATTACK',0,[ap(8),sr('ATTACK',2)],       'COMMON'],
@@ -70,14 +75,14 @@ const RAW = [
 
   // ── Útok – rozšíření ─────────────────────────────────────────────────────
   ['019','Zápalné šípy',   1,'ATTACK',0,[aw(5)],               'COMMON'],
-  ['020','Beranidlo',      3,'ATTACK',0,[aw(12)],              'RARE'],
+  ['020','Beranidlo',      3,'ATTACK',1,[aw(12)],              'RARE'],
   ['021','Dělostřelectvo', 6,'ATTACK',0,[ap(15)],              'EPIC'],
   ['022','Přímý zásah',    3,'ATTACK',0,[ac(8)],               'RARE'],
   ['023','Dvojitý úder',   5,'ATTACK',0,[ac(7), aw(7)],        'EPIC'],
   ['024','Berserk',        4,'ATTACK',0,[cd(wB(5), ac(13))],   'RARE'],
   ['025','Protiútok',      3,'ATTACK',0,[cd(wB(10), ac(10))],  'RARE'],
   ['026','Ostřelovač',     3,'ATTACK',0,[ac(5), cd(rA('ATTACK',5), ac(5))], 'EPIC'],
-  ['027','Válečné bubny',  2,'ATTACK',1,[ap(4), ar('ATTACK',2)],       'COMMON'],
+  ['027','Válečné bubny',  2,'ATTACK',1,[ap(4), grp('ATTACK',2,'Útok')], 'RARE'],
 
   // ── Stavba – rozšíření ───────────────────────────────────────────────────
   ['028','Záplata',        1,'STONES',0,[bc(3)],               'COMMON'],
@@ -159,6 +164,7 @@ const RAW = [
   ['090','Rozšíření těžby', 7,'STONES',0,[am('STONES',2)],      'EPIC'],
   ['091','Barikády',       3,'STONES',0,[bw(9), dr('ATTACK',2)],'RARE'],
   ['092','Strategická výstavba',4,'STONES',0,[cd(wA(20), bw(14))], 'EPIC'],
+  ['093','Cihla na cihlu', 3,'STONES',1,[bc(5), gcp(3,'Stavba')],'EPIC'],
   ['094','Sklad materiálu',3,'STONES',1,[bw(6), ar('STONES',2)],'COMMON'],
   ['095','Obchod s kamenem',2,'STONES',0,[ar('STONES',5)],     'COMMON'],
   ['096','Nedobytná pevnost',10,'STONES',0,[bw(18), bc(8)],    'LEGENDARY'],
@@ -189,6 +195,8 @@ const RAW = [
   // ── Chaos – krádež karet ──────────────────────────────────────────────────
   ['C17','Telekineze',      3,'CHAOS',0,[sc(1)],               'EPIC'],
   ['C18','Krádež osudu',    5,'CHAOS',0,[sc(2)],               'LEGENDARY'],
+  ['C33','Krádež identity', 8,'CHAOS',0,[swh()],               'LEGENDARY'],
+  ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────
   ['C19','Spálená knihovna',4,'CHAOS',0,[bn(2)],               'EPIC'],
@@ -219,6 +227,7 @@ const RAW = [
   ['D06','Elitní zvěd',    4,'ATTACK',0,[ap(8), dc(1)],        'RARE'],
   ['D07','Tajná knihovna', 5,'MAGIC', 0,[dc(2), am('MAGIC',1)],'EPIC'],
   ['D08','Vize',           2,'MAGIC', 0,[cd(rA('MAGIC',4), dc(2))], 'RARE'],
+  ['D09','Inspirace',      3,'MAGIC', 1,[dpc()],                    'EPIC'],
 
   // ── Speciální útočné karty ────────────────────────────────────────────────
   ['098','Hod cihlou',     3,'ATTACK',0,[bw(-4), ap(11)],      'RARE'],

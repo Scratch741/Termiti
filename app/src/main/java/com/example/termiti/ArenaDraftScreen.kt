@@ -18,21 +18,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Paleta barev → GameColors.kt
-private val ChaosOrange = Color(0xFFE67E22)
+// ChaosOrange, rarityColor → GameColors.kt
 
 private fun resColor(type: ResourceType) = when (type) {
     ResourceType.MAGIC  -> MagicPurple
     ResourceType.ATTACK -> AttackRed
     ResourceType.STONES -> StoneColor
     ResourceType.CHAOS  -> ChaosOrange
-}
-
-private fun rarityColor(rarity: Rarity) = when (rarity) {
-    Rarity.COMMON    -> Color(0xFF9E9E9E)
-    Rarity.RARE      -> Color(0xFF4A90D9)
-    Rarity.EPIC      -> Color(0xFF9B59B6)
-    Rarity.LEGENDARY -> Color(0xFFD4A843)
 }
 
 private fun resIcon(type: ResourceType) = when (type) {
@@ -65,6 +57,11 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledAttackCastle -> "🎯"
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
+    is CardEffect.SwapHands           -> "🔄"
+    is CardEffect.DrawPerCardPlayed        -> "🎴"
+    is CardEffect.GainResourcePerCardPlayed -> "⚡"
+    is CardEffect.GainCastlePerCardPlayed   -> "🏯"
+    is CardEffect.ShapeShift                -> "🎭"
     null                              -> "❓"
 }
 

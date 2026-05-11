@@ -25,7 +25,13 @@ function createPlayerState(deckCards) {
     discardPile: [],
     lastPlayedType: null,
     /** Maximální velikost ruky – výchozí 7, extra_hand_card → 8. */
-    maxHandSize: 7
+    maxHandSize: 7,
+    /** true = DrawPerCardPlayed efekt aktivní: za každou zahranou kartu líznout 1. Resetuje se při přechodu na nový tah. */
+    drawCardOnPlay: false,
+    /** Seznam aktivních GainResourcePerCardPlayed efektů pro toto kolo. */
+    gainResourcePerCardPlayed: [],
+    /** Seznam aktivních GainCastlePerCardPlayed efektů pro toto kolo. */
+    gainCastlePerCardPlayed: []
   };
 }
 
@@ -252,6 +258,35 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'DrawPerCardPlayed':
+        self.drawCardOnPlay = true;
+        break;
+
+      case 'GainResourcePerCardPlayed':
+        self.gainResourcePerCardPlayed.push(fx);
+        break;
+
+      case 'GainCastlePerCardPlayed':
+        self.gainCastlePerCardPlayed.push(fx);
+        break;
+
+      // Pasivní příznak – transformace probíhá v transformShapeShifters() při startu tahu
+      case 'ShapeShift': break;
+
+      case 'SwapHands': {
+        const selfOldHand     = [...self.hand];
+        const opponentOldHand = [...opponent.hand];
+        self.hand.length     = 0;
+        opponent.hand.length = 0;
+        self.hand.push(...opponentOldHand);
+        opponent.hand.push(...selfOldHand);
+        // Zaloguj každou kartu z původní soupeřovy ruky jako ukradenou
+        for (const card of selfOldHand) {
+          onOpponentLoss && onOpponentLoss(card, 'STOLEN');
+        }
+        break;
+      }
+
       // ── X-kost efekty ────────────────────────────────────────────────────────
       case 'XScaledAttackPlayer': {
         const dmg     = Math.floor(xValue / (fx.divisor || 2));
@@ -353,8 +388,32 @@ function resolveByHp(stateA, stateB) {
   return 'DRAW';
 }
 
+/**
+ * Transformuje všechny ShapeShift karty v ruce v náhodné karty z pool.
+ * Volá se na začátku každého tahu (po lízu) v GameSession._advanceTurn().
+ * Původní instance ID je zachováno, aby klientský stav nerekrekoval slot.
+ */
+/** true = karta je (nebo byla) Shapeshifter – trackovano přes baseId i efekty */
+function isShapeShifterInstance(card) {
+  return card.baseId === 'C34' ||
+         (card.effects && card.effects.some(fx => fx.type === 'ShapeShift'));
+}
+
+function transformShapeShifters(hand, cardPool) {
+  const validPool = cardPool.filter(c => !c.effects.some(fx => fx.type === 'ShapeShift'));
+  if (validPool.length === 0) return;
+  for (let i = 0; i < hand.length; i++) {
+    if (isShapeShifterInstance(hand[i])) {
+      const tmpl = validPool[Math.floor(Math.random() * validPool.length)];
+      // baseId = 'C34' zachováme → příští kolo se znovu transformuje
+      hand[i] = { ...tmpl, id: hand[i].id, baseId: 'C34' };
+    }
+  }
+}
+
 module.exports = {
   createPlayerState, generateResources, drawCards,
   checkCondition, deriveCardType, applyEffects,
-  applyPassiveAbilities, checkWin, resolveByHp
+  applyPassiveAbilities, checkWin, resolveByHp,
+  transformShapeShifters
 };

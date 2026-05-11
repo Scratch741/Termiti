@@ -1,10 +1,10 @@
 [
   {
     "id": "001",
-    "name": "Základní útok",
+    "name": "Rychlý útok",
     "cost": 2,
     "costType": "ATTACK",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "AttackPlayer",
@@ -45,8 +45,8 @@
         "amount": 8
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "003"
   },
@@ -351,7 +351,7 @@
     "name": "Beranidlo",
     "cost": 3,
     "costType": "ATTACK",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "AttackWall",
@@ -507,13 +507,14 @@
         "amount": 4
       },
       {
-        "type": "AddResource",
+        "type": "GainResourcePerCardPlayed",
         "resType": "ATTACK",
-        "amount": 2
+        "amount": 2,
+        "cardType": "Útok"
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "027"
   },
@@ -1966,6 +1967,28 @@
     "baseId": "092"
   },
   {
+    "id": "093",
+    "name": "Cihla na cihlu",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 5
+      },
+      {
+        "type": "GainCastlePerCardPlayed",
+        "amount": 3,
+        "cardType": "Stavba"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "093"
+  },
+  {
     "id": "094",
     "name": "Sklad materiálu",
     "cost": 3,
@@ -2423,6 +2446,38 @@
     "baseId": "C18"
   },
   {
+    "id": "C33",
+    "name": "Krádež identity",
+    "cost": 8,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "SwapHands"
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "baseId": "C33"
+  },
+  {
+    "id": "C34",
+    "name": "Shapeshifter",
+    "cost": 0,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ShapeShift"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C34"
+  },
+  {
     "id": "C19",
     "name": "Spálená knihovna",
     "cost": 4,
@@ -2873,6 +2928,22 @@
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "D08"
+  },
+  {
+    "id": "D09",
+    "name": "Inspirace",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DrawPerCardPlayed"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "D09"
   },
   {
     "id": "098",

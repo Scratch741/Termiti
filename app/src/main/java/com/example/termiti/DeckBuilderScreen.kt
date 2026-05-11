@@ -1,4 +1,4 @@
-package com.example.termiti
+﻿package com.example.termiti
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -58,12 +58,7 @@ private fun resColor(type: ResourceType) = when (type) {
     ResourceType.CHAOS  -> ChaosOrange
 }
 
-private fun rarityColor(rarity: Rarity) = when (rarity) {
-    Rarity.COMMON    -> Color(0xFF9E9E9E)
-    Rarity.RARE      -> Color(0xFF4A90D9)
-    Rarity.EPIC      -> Color(0xFF9B59B6)
-    Rarity.LEGENDARY -> Color(0xFFD4A843)
-}
+// rarityColor → GameColors.kt
 
 private fun resIcon(type: ResourceType) = when (type) {
     ResourceType.MAGIC  -> "✨"
@@ -95,6 +90,11 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledAttackCastle -> "🎯"
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
+    is CardEffect.SwapHands           -> "🔄"
+    is CardEffect.DrawPerCardPlayed        -> "🎴"
+    is CardEffect.GainResourcePerCardPlayed -> "⚡"
+    is CardEffect.GainCastlePerCardPlayed   -> "🏯"
+    is CardEffect.ShapeShift                -> "🎭"
     null                              -> "❓"
 }
 
@@ -595,7 +595,7 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
 // ─── Card Preview (texturovaný náhled pro deck builder) ──────────────────────
 @Composable
 fun CardPreview(card: Card) {
-    val artResId = card.artResId ?: return
+    val artResId = card.effectiveArtResId()
     val context = LocalContext.current
     val frameResId = remember(card.costType) {
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
@@ -686,13 +686,13 @@ fun CardPreview(card: Card) {
                 .align(Alignment.TopStart)
                 .offset(y = 92.dp)
                 .fillMaxWidth()
-                .height(34.dp)
+                .height(38.dp)
                 .clipToBounds()
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(card.description, color = Color(0xFFDDD0B0), fontSize = 7.sp,
-                textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp,
+            Text(parseCardDesc(card.description), color = Color(0xFFDDD0B0), fontSize = 7.sp,
+                textAlign = TextAlign.Center, maxLines = 4, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(
                     TextStyle(
                         platformStyle = PlatformTextStyle(includeFontPadding = false),
@@ -950,12 +950,10 @@ private fun ActionCounter(
 private fun FullCardPreview(card: Card) {
     val costColor    = resColor(card.costType)
     val rarityCol    = rarityColor(card.rarity)
-    val artResId     = card.artResId
+    val artResId     = card.effectiveArtResId()
     val context      = LocalContext.current
     val frameResId   = remember(card.costType) {
-        if (artResId != null)
-            context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
-        else 0
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
     }
     val rarityOverlayId = rarityOverlayResource(card.rarity)
 
@@ -967,7 +965,6 @@ private fun FullCardPreview(card: Card) {
             .background(BgCard)
             .border(2.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
     ) {
-        if (artResId != null) {
             // ── Texturovaná karta ────────────────────────────────────────────
             // Artwork box: 90dp × 2.52 = 227dp
             Box(
@@ -1041,23 +1038,23 @@ private fun FullCardPreview(card: Card) {
                 baselineFrac = 0.78f
             )
 
-            // Popis — y = 92dp × 2.52 = 232dp, výška = 34dp × 2.52 = 86dp, padding = 10dp × 2.52 = 25dp
+            // Popis — y = 92dp × 2.52 = 232dp, výška = 38dp × 2.52 = 96dp, padding = 10dp × 2.52 = 25dp
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .fillMaxWidth()
                     .padding(top = 232.dp)
-                    .height(86.dp)
+                    .height(96.dp)
                     .clipToBounds()
                     .padding(horizontal = 25.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    card.description,
+                    parseCardDesc(card.description),
                     color = Color(0xFFDDD0B0),
                     fontSize = 18.sp,
                     textAlign = TextAlign.Center,
-                    maxLines = 3,
+                    maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 23.sp,
                     style = LocalTextStyle.current.merge(
@@ -1091,56 +1088,6 @@ private fun FullCardPreview(card: Card) {
                 }
             }
 
-        } else {
-            // ── Klasická karta bez artworku ──────────────────────────────────
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(listOf(
-                            costColor.copy(alpha = 0.08f),
-                            BgCard
-                        ))
-                    )
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Cena + typ zdroje
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Box(
-                        Modifier.size(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(costColor.copy(alpha = 0.15f))
-                            .border(2.dp, costColor.copy(alpha = 0.6f), RoundedCornerShape(24.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(if (card.isXCost) "X" else "${card.cost}", color = costColor,
-                            fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-                    Text(resIcon(card.costType), fontSize = 28.sp)
-                }
-
-                HorizontalDivider(color = costColor.copy(alpha = 0.2f))
-
-                // Název
-                Text(card.name, color = TextPrimary,
-                    fontSize = 22.sp, fontWeight = FontWeight.Bold)
-
-                // Popis
-                Text(card.description, color = Color(0xFFDDD0B0),
-                    fontSize = 16.sp, lineHeight = 22.sp)
-
-                if (card.type.isNotEmpty()) {
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
-                    Text(card.type.uppercase(), color = Color(0xFFD4B870),
-                        fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                }
-
-            }
-        }
     }
 }
 
@@ -1172,7 +1119,6 @@ private fun CatalogCardItem(
         .clip(RoundedCornerShape(7.dp))
         .clickable { onPreview() }
 
-    if (card.artResId != null) {
         // ── Texturovaná karta ─────────────────────────────────────────────────
         Box(itemModifier.alpha(if (isLocked) 0.35f else 1f)) {
             Column(
@@ -1215,82 +1161,6 @@ private fun CatalogCardItem(
                 NewBadge(Modifier.align(Alignment.TopEnd).offset(x = (-3).dp, y = 3.dp))
             }
         }
-    } else {
-        // ── Klasická karta (bez textury) ──────────────────────────────────────
-        val bg = if (hasAny) BgCard else Color(0xFF0F0C14)
-        Box(itemModifier.alpha(if (isLocked) 0.35f else 1f)) {
-            Column(
-                Modifier
-                    .background(bg)
-                    .border(if (isNew) 2.dp else 1.dp, border, RoundedCornerShape(7.dp))
-                    .padding(6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(effectIcon(card), fontSize = 14.sp)
-                    Row(
-                        Modifier.clip(RoundedCornerShape(4.dp))
-                            .background(costColor.copy(alpha = 0.13f))
-                            .padding(horizontal = 4.dp, vertical = 1.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(resIcon(card.costType), fontSize = 8.sp)
-                        Text(if (card.isXCost) "X" else "${card.cost}", color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Text(
-                    card.name,
-                    color = if (hasAny) TextPrimary else TextMuted,
-                    fontSize = 9.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    card.description,
-                    color = TextMuted.copy(alpha = 0.7f),
-                    fontSize = 7.5.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    lineHeight = 9.sp
-                )
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CountBtn("−", enabled = count > 0, onClick = onDecrement)
-                    Spacer(Modifier.width(4.dp))
-                    CopyDots(
-                        maxCopies  = card.rarity.maxCopies,
-                        inDeck     = count,
-                        usable     = usable,
-                        rarityColor = rc
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    CountBtn("+", enabled = count < usable && !deckFull, onClick = onIncrement)
-                }
-            }
-            // Zámek overlay
-            if (isLocked) {
-                Box(
-                    Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.45f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🔒", fontSize = 14.sp)
-                }
-            }
-            // Badge "NOVÉ"
-            if (isNew) {
-                NewBadge(Modifier.align(Alignment.TopEnd).offset(x = (-3).dp, y = 3.dp))
-            }
-        }
-    }
 }
 
 // ─── Badge „NOVÉ" ─────────────────────────────────────────────────────────────

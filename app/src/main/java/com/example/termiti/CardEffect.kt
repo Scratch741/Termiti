@@ -35,6 +35,33 @@ sealed class CardEffect {
     data class DrawCard(val count: Int = 1) : CardEffect()
     /** Ukradne amount životů hradu soupeři a přidá je vlastnímu hradu. */
     data class StealCastle(val amount: Int) : CardEffect()
+    /** Prohodí celé ruce hráčů – self dostane ruku soupeře a naopak. */
+    object SwapHands : CardEffect()
+    /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu. */
+    object DrawPerCardPlayed : CardEffect()
+    /**
+     * Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole přidat [amount] zdroje [type].
+     * [cardType] = null → triggeruje na jakoukoliv kartu; jinak jen na karty daného typu (např. "Útok").
+     */
+    data class GainResourcePerCardPlayed(
+        val type: ResourceType,
+        val amount: Int,
+        val cardType: String? = null
+    ) : CardEffect()
+    /**
+     * Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole přidat [amount] HP hradu.
+     * [cardType] = null → triggeruje na jakoukoliv kartu; jinak jen na karty daného typu (např. "Stavba").
+     */
+    data class GainCastlePerCardPlayed(
+        val amount: Int,
+        val cardType: String? = null
+    ) : CardEffect()
+    /**
+     * Persistentní efekt: na začátku každého tahu hráče se karta v ruce automaticky
+     * přemění v náhodnou kartu ze hry (jiného typu než ShapeShift).
+     * Karta se sama nikdy nehraje — vždy se transformuje dříve, než hráč hraje.
+     */
+    object ShapeShift : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

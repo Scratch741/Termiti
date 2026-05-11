@@ -116,6 +116,27 @@ fun applyEffects(
             self.castleHP = (self.castleHP + stolen).coerceAtMost(100)
         }
 
+        is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay = true
+
+        is CardEffect.GainResourcePerCardPlayed ->
+            self.gainResourcePerCardPlayed.add(effect)
+
+        is CardEffect.GainCastlePerCardPlayed ->
+            self.gainCastlePerCardPlayed.add(effect)
+
+        is CardEffect.SwapHands -> {
+            val selfOldHand     = self.hand.toList()
+            val opponentOldHand = opponent.hand.toList()
+            self.hand.clear()
+            self.hand.addAll(opponentOldHand)
+            opponent.hand.clear()
+            opponent.hand.addAll(selfOldHand)
+            // Zaloguj každou kartu z původní soupeřovy ruky jako ukradenou
+            for (card in opponentOldHand) {
+                onOpponentCardLost?.invoke(card, CardAction.STOLEN)
+            }
+        }
+
         // ── X-kost efekty ─────────────────────────────────────────────────────
         is CardEffect.XScaledAttackPlayer -> {
             val dmg     = xValue / effect.divisor
@@ -135,6 +156,33 @@ fun applyEffects(
             val amount = xValue / effect.divisor
             self.resources[effect.typeA] = ((self.resources[effect.typeA] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
             self.resources[effect.typeB] = ((self.resources[effect.typeB] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
+        }
+
+        // Pasivní příznak – transformace probíhá v transformShapeShifters() při startu tahu
+        is CardEffect.ShapeShift -> { /* no-op */ }
+    }
+}
+
+/**
+ * Vrátí true pokud je karta (nebo její instance) Shapeshifter.
+ * Kontroluje jak ShapeShift efekt (originál z balíčku), tak ID prefix "C34"
+ * (po transformaci karta ztratí ShapeShift efekt, ale ID zachová prefix).
+ */
+fun Card.isShapeShifterInstance(): Boolean =
+    effects.any { it is CardEffect.ShapeShift } || id.substringBefore("_") == "C34"
+
+/**
+ * Transformuje všechny Shapeshifter karty v ruce v náhodné karty z [pool].
+ * Volá se na ZAČÁTKU každého tahu (po lízu) — karta se mění každé kolo.
+ * Původní instance ID je zachováno, aby Compose LazyRow nerekrekoval slot.
+ */
+fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
+    val validPool = pool.filter { tmpl -> tmpl.effects.none { it is CardEffect.ShapeShift } }
+    if (validPool.isEmpty()) return
+    for (i in hand.indices) {
+        if (hand[i].isShapeShifterInstance()) {
+            val tmpl = validPool.random()
+            hand[i] = tmpl.copy(id = hand[i].id)  // id stále začíná "C34_" → příští kolo se znovu transformuje
         }
     }
 }

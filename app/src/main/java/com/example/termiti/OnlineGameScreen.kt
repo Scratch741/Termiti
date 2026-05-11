@@ -549,6 +549,7 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
     val submitted    by vm.mulliganSubmitted
     val oppDone      by vm.opponentMulliganDone
     val matchInfo    by vm.matchInfo
+    val secondsLeft  by vm.mulliganSecondsLeft
 
     // goesFirst = true pokud jsme strana A (první hráč)
     val goesFirst: Boolean? = when {
@@ -562,6 +563,7 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
         selectedIds = selected,
         submitted   = submitted,
         goesFirst   = goesFirst,
+        secondsLeft = secondsLeft,
         onToggle    = { if (!submitted) { SoundManager.playDeckSelect(); vm.toggleMulligan(it) } },
         onConfirm   = { SoundManager.playMenuTap(); vm.confirmMulligan() },
         onSkip      = { SoundManager.playMenuTap(); vm.skipMulligan() }

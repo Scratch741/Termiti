@@ -638,6 +638,84 @@ function loadJsonFile(event) {
   reader.readAsText(file, 'UTF-8');
 }
 
+// ── Auto-generování popisu z efektů ──────────────────────────────────────────
+
+function _resName(t) {
+  switch (t) {
+    case 'MAGIC':  return 'magie';
+    case 'ATTACK': return 'útoku';
+    case 'STONES': return 'kamene';
+    case 'CHAOS':  return 'chaosu';
+    default:       return t;
+  }
+}
+
+function _descCondition(c) {
+  const r = c.resType ? _resName(c.resType) : '';
+  switch (c.type) {
+    case 'ResourceAbove':            return `máš > ${c.threshold} ${r}`;
+    case 'WallAbove':                return `zeď > ${c.threshold}`;
+    case 'WallBelow':                return `zeď < ${c.threshold}`;
+    case 'CastleAbove':              return `hrad > ${c.threshold}`;
+    case 'CastleBelow':              return `hrad < ${c.threshold}`;
+    case 'ResourceMoreThanOpponent': return `více ${r} než soupeř`;
+    case 'LastPlayedType':           return `poslední: ${c.cardType}`;
+    default:                         return c.type;
+  }
+}
+
+function _descEffect(fx) {
+  const a = fx.amount;
+  const r = fx.resType ? _resName(fx.resType) : '';
+  switch (fx.type) {
+    case 'AttackPlayer':             return `Zaútočí za ${a}`;
+    case 'AttackCastle':             return `Zaútočí na hrad za ${a}`;
+    case 'AttackWall':               return `Zaútočí na zeď za ${a}`;
+    case 'BuildWall':                return `+${a} zeď`;
+    case 'BuildCastle':              return `+${a} hrad`;
+    case 'AddResource':              return `+${a} ${r}`;
+    case 'AddResourceDelayed':       return `+${a} ${r} za ${fx.turns || 1} kol`;
+    case 'AddMine':                  return `+${a} důl (${r})`;
+    case 'StealResource':            return `Ukradne ${a} ${r} soupeři`;
+    case 'DrainResource':            return `Zničí ${a} ${r} soupeři`;
+    case 'StealCastle':              return `Ukradne ${a} HP hradu`;
+    case 'DestroyMine':              return `Zničí důl (${r}) soupeři`;
+    case 'BlockMine':                return `Blokuje důl (${r}) na ${fx.turns} kol`;
+    case 'StealCard':                return `Ukradne ${fx.count} karet z ruky`;
+    case 'BurnCard':                 return `Spálí ${fx.count} karet soupeři`;
+    case 'AddCardsToDeck':           return `Přidá ${fx.count}× kartu do balíčku`;
+    case 'DrawCard':                 return `Lízne ${fx.count} karet`;
+    case 'SwapHands':                return `Vymění ruce s protihráčem`;
+    case 'DrawPerCardPlayed':        return `Za každou další zahranou kartu: lízni 1`;
+    case 'GainResourcePerCardPlayed':
+      return fx.cardType
+        ? `Za každou zahranou ${fx.cardType}: +${a} ${r}`
+        : `Za každou zahranou kartu: +${a} ${r}`;
+    case 'GainCastlePerCardPlayed':
+      return fx.cardType
+        ? `Za každou zahranou ${fx.cardType}: +${a} hrad`
+        : `Za každou zahranou kartu: +${a} hrad`;
+    case 'ShapeShift':               return 'Na začátku každého tahu se promění v náhodnou kartu';
+    case 'XScaledAttackPlayer':      return `Zaútočí za X÷${fx.divisor || 2}`;
+    case 'XScaledAttackCastle':      return `Zaútočí na hrad za X÷${fx.divisor || 2}`;
+    case 'XScaledBuildCastle':       return `+X÷${fx.divisor || 2} hrad`;
+    case 'XScaledDualResource':      return `+X÷${fx.divisor || 2} ${_resName(fx.typeA)} a ${_resName(fx.typeB)}`;
+    case 'ConditionalEffect':        return `Pokud ${_descCondition(fx.condition)}: ${_descEffect(fx.effect)}`;
+    default:                         return fx.type;
+  }
+}
+
+function generateCardDesc(card) {
+  if (!card.effects || card.effects.length === 0) return '';
+  const parts = card.effects.map(_descEffect);
+  let desc = parts.join('. ');
+  if (card.isCombo) desc += ' [Combo]';
+  if (card.isXCost) desc += ' [X-kost]';
+  return desc;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function parseJsonCards(jsonText) {
   const data = JSON.parse(jsonText);
   const newEffectsDb = {};
@@ -647,7 +725,7 @@ function parseJsonCards(jsonText) {
     cards.push({
       id:       card.id,
       name:     card.name,
-      desc:     '',           // popis je v CardPresentation.kt, ne v cards.json
+      desc:     generateCardDesc(card),
       cost:     card.cost,
       type:     card.costType,
       rarity:   card.rarity,
@@ -738,11 +816,16 @@ function loadArtFiles(event) {
 function renderBrowser() {
   const grid = document.getElementById('cardGrid');
   const q = document.getElementById('searchInput').value.toLowerCase();
+  const typeOrder = { ATTACK: 0, STONES: 1, MAGIC: 2, CHAOS: 3 };
   const filtered = CARDS.filter(c => {
     if (filter !== 'ALL' && c.type !== filter) return false;
     if (q && !c.name.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return false;
     return true;
-  });
+  }).sort((a, b) =>
+    a.cost - b.cost ||
+    (typeOrder[a.type] ?? 9) - (typeOrder[b.type] ?? 9) ||
+    a.name.localeCompare(b.name, 'cs')
+  );
 
     grid.innerHTML = filtered.map(c => {
     const isAdjusted = cardAdjustments[c.id] && (cardAdjustments[c.id].scale !== 1.0 || cardAdjustments[c.id].bx !== 0.0 || cardAdjustments[c.id].by !== 0.0);

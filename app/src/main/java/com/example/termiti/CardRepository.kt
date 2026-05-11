@@ -108,6 +108,18 @@ object CardRepository {
             condition = parseCondition(obj.getJSONObject("condition")),
             effect    = parseEffect(obj.getJSONObject("effect"))
         )
+        "SwapHands"           -> CardEffect.SwapHands
+        "DrawPerCardPlayed"        -> CardEffect.DrawPerCardPlayed
+        "GainResourcePerCardPlayed" -> CardEffect.GainResourcePerCardPlayed(
+            type     = resType(obj),
+            amount   = obj.getInt("amount"),
+            cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
+        )
+        "GainCastlePerCardPlayed" -> CardEffect.GainCastlePerCardPlayed(
+            amount   = obj.getInt("amount"),
+            cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
+        )
+        "ShapeShift"              -> CardEffect.ShapeShift
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 
