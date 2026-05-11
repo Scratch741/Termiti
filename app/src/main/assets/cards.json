@@ -2937,7 +2937,8 @@
     "isCombo": true,
     "effects": [
       {
-        "type": "DrawPerCardPlayed"
+        "type": "DrawPerCardPlayed",
+        "cardType": "Magie"
       }
     ],
     "rarity": "EPIC",

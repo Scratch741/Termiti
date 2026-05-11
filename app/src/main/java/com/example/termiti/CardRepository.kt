@@ -109,7 +109,9 @@ object CardRepository {
             effect    = parseEffect(obj.getJSONObject("effect"))
         )
         "SwapHands"           -> CardEffect.SwapHands
-        "DrawPerCardPlayed"        -> CardEffect.DrawPerCardPlayed
+        "DrawPerCardPlayed"        -> CardEffect.DrawPerCardPlayed(
+            cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
+        )
         "GainResourcePerCardPlayed" -> CardEffect.GainResourcePerCardPlayed(
             type     = resType(obj),
             amount   = obj.getInt("amount"),

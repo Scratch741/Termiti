@@ -56,7 +56,8 @@ class PlayerState(
      * true = efekt DrawPerCardPlayed je aktivní: za každou DALŠÍ zahranou kartu v tomto kole
      * líznout 1 kartu. Resetuje se při přechodu na nový tah (v finishTurn / startMyTurn).
      */
-    var drawCardOnPlay: Boolean = false,
+    /** null = neaktivní; "" = aktivní pro libovolný typ; "Magie" = jen Magie atd. */
+    var drawCardOnPlay: String? = null,
     /**
      * Seznam aktivních GainResourcePerCardPlayed efektů v tomto kole.
      * Každý efekt se triggeruje na každou DALŠÍ zahranou kartu (s volitelným filtrem cardType).

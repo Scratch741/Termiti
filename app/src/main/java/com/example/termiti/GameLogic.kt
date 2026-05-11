@@ -116,7 +116,7 @@ fun applyEffects(
             self.castleHP = (self.castleHP + stolen).coerceAtMost(100)
         }
 
-        is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay = true
+        is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay = effect.cardType ?: ""
 
         is CardEffect.GainResourcePerCardPlayed ->
             self.gainResourcePerCardPlayed.add(effect)

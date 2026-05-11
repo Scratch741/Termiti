@@ -28,7 +28,7 @@ const xac= (d=2)    => ({ type:'XScaledAttackCastle', divisor:d });
 const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 const swh= ()       => ({ type:'SwapHands' });
-const dpc= ()       => ({ type:'DrawPerCardPlayed' });
+const dpc= (ct=null)=> ({ type:'DrawPerCardPlayed', ...(ct ? {cardType:ct} : {}) });
 const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amount:n, ...(ct ? {cardType:ct} : {}) });
 const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
 const ss = ()            => ({ type:'ShapeShift' });
@@ -227,7 +227,7 @@ const RAW = [
   ['D06','Elitní zvěd',    4,'ATTACK',0,[ap(8), dc(1)],        'RARE'],
   ['D07','Tajná knihovna', 5,'MAGIC', 0,[dc(2), am('MAGIC',1)],'EPIC'],
   ['D08','Vize',           2,'MAGIC', 0,[cd(rA('MAGIC',4), dc(2))], 'RARE'],
-  ['D09','Inspirace',      3,'MAGIC', 1,[dpc()],                    'EPIC'],
+  ['D09','Inspirace',      3,'MAGIC', 1,[dpc('Magie')],              'EPIC'],
 
   // ── Speciální útočné karty ────────────────────────────────────────────────
   ['098','Hod cihlou',     3,'ATTACK',0,[bw(-4), ap(11)],      'RARE'],

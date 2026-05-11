@@ -37,8 +37,9 @@ sealed class CardEffect {
     data class StealCastle(val amount: Int) : CardEffect()
     /** Prohodí celé ruce hráčů – self dostane ruku soupeře a naopak. */
     object SwapHands : CardEffect()
-    /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu. */
-    object DrawPerCardPlayed : CardEffect()
+    /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu.
+     *  [cardType] = null → libovolný typ; neprázdný řetězec → jen daný typ (např. "Magie"). */
+    data class DrawPerCardPlayed(val cardType: String? = null) : CardEffect()
     /**
      * Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole přidat [amount] zdroje [type].
      * [cardType] = null → triggeruje na jakoukoliv kartu; jinak jen na karty daného typu (např. "Útok").

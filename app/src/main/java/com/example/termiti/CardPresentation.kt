@@ -492,7 +492,7 @@ object CardPresentation {
         "D08" to CardPres("Pokud máš >4 magie, líz 2 karty.",
             R.drawable.art_vize, "Magie",
             artScale = 0.80f, artBiasY = -0.40f),
-        "D09" to CardPres("**Toto kolo:** za **KAŽDOU** další zahranou kartu lízni 1. [Combo]",
+        "D09" to CardPres("**Toto kolo:** za každou další zahranou **MAGII** lízni 1. [Combo]",
             null, "Magie"),
 
         // ── Testovací ─────────────────────────────────────────────────────────

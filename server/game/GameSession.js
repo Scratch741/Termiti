@@ -379,8 +379,9 @@ class GameSession {
     // Nastav typ právě hrané karty před applyEffects – podmínka LastPlayedType to přečte
     self.lastPlayedType = deriveCardType(card);
 
-    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu před efekty
-    if (self.drawCardOnPlay) {
+    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
+    const drawFilter = self.drawCardOnPlay;
+    if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
       drawCards(self, 1, self.maxHandSize || 7);
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
@@ -503,7 +504,7 @@ class GameSession {
   _advanceTurn() {
     // Reset per-card-played efektů pro hráče, který právě skončil tah
     const prevState = this.state[this.activeSide];
-    prevState.drawCardOnPlay = false;
+    prevState.drawCardOnPlay = null;
     prevState.gainResourcePerCardPlayed = [];
     prevState.gainCastlePerCardPlayed = [];
 

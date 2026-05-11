@@ -26,8 +26,8 @@ function createPlayerState(deckCards) {
     lastPlayedType: null,
     /** Maximální velikost ruky – výchozí 7, extra_hand_card → 8. */
     maxHandSize: 7,
-    /** true = DrawPerCardPlayed efekt aktivní: za každou zahranou kartu líznout 1. Resetuje se při přechodu na nový tah. */
-    drawCardOnPlay: false,
+    /** null = neaktivní; '' = libovolný typ; 'Magie' = jen Magie. Resetuje se při přechodu na nový tah. */
+    drawCardOnPlay: null,
     /** Seznam aktivních GainResourcePerCardPlayed efektů pro toto kolo. */
     gainResourcePerCardPlayed: [],
     /** Seznam aktivních GainCastlePerCardPlayed efektů pro toto kolo. */
@@ -259,7 +259,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'DrawPerCardPlayed':
-        self.drawCardOnPlay = true;
+        self.drawCardOnPlay = fx.cardType || '';
         break;
 
       case 'GainResourcePerCardPlayed':

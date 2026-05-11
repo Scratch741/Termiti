@@ -540,7 +540,7 @@ class MultiplayerViewModel(
 
     private fun startMyTurn() {
         val me = myState.value.deepCopy()
-        me.drawCardOnPlay = false                    // reset per-card-played efektů
+        me.drawCardOnPlay = null                     // reset per-card-played efektů
         me.gainResourcePerCardPlayed.clear()
         me.gainCastlePerCardPlayed.clear()
         me.generateResources()
@@ -566,7 +566,7 @@ class MultiplayerViewModel(
         myState.value = me
 
         val opp = oppState.value.deepCopy()
-        opp.drawCardOnPlay = false                   // reset per-card-played efektů
+        opp.drawCardOnPlay = null                    // reset per-card-played efektů
         opp.gainResourcePerCardPlayed.clear()
         opp.gainCastlePerCardPlayed.clear()
         opp.generateResources()
@@ -614,8 +614,9 @@ class MultiplayerViewModel(
             me.resources[card.costType] = (me.resources[card.costType] ?: 0) - card.cost
         }
         me.lastPlayedType = card.type
-        // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu
-        if (me.drawCardOnPlay) me.drawCards(1)
+        // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
+        val drawFilter = me.drawCardOnPlay
+        if (drawFilter != null && (drawFilter.isEmpty() || drawFilter == card.type)) me.drawCards(1)
         // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
         for (grp in me.gainResourcePerCardPlayed) {
             if (grp.cardType == null || grp.cardType == card.type) {

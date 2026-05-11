@@ -686,7 +686,7 @@ function _descEffect(fx) {
     case 'AddCardsToDeck':           return `Přidá ${fx.count}× kartu do balíčku`;
     case 'DrawCard':                 return `Lízne ${fx.count} karet`;
     case 'SwapHands':                return `Vymění ruce s protihráčem`;
-    case 'DrawPerCardPlayed':        return `Za každou další zahranou kartu: lízni 1`;
+    case 'DrawPerCardPlayed':        return fx.cardType ? `Za každou další zahranou ${fx.cardType}: lízni 1` : `Za každou další zahranou kartu: lízni 1`;
     case 'GainResourcePerCardPlayed':
       return fx.cardType
         ? `Za každou zahranou ${fx.cardType}: +${a} ${r}`
