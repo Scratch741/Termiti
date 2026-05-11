@@ -24,3 +24,18 @@ Screen shake?
 Připravit preset karet pro nováčka. Současné presety poté přidat AI, se kterou bojuješ v módu "vlastní balíček" - vybere si náhodný preset balík.
 Extra XP za kampaň. Přidat více do kampaně. Dodat informace, že dostáváš XP a goldy za jiné módy. Lepší gold progress.
 Sestavit balík - filtr na karty, které mám. Celkově rework filtry a sestavení balíku, je to dogshit.
+
+── Nové návrhy ──────────────────────────────────────────────────────────────
+
+Replay systém
+- Uložení průběhu hry (každý tah, zahraná karta, stav po tahu)
+- Možnost přehrát replay po skončení hry
+- Případně sdílení / uložení replayů
+
+Nové karty / mechaniky:
+
+1) Bomba v balíčku — přidej oponentovi 3 bomby do jeho balíčku; po líznutí bomby hrad -5
+2) Naklonování karty [Combo] — magic karta; toto kolo naklonuje do balíčku další zahranou kartu
+3) Nová mechanika: Rozhodnutí — otevře se mulligan-like tabulka s výběrem karet (např. "vyber 1 ze 3 karet do ruky")
+4) Nová mechanika: Nahlédnutí do balíčku — podívej se na top N karet svého nebo soupeřova balíčku, případně vyber pořadí
+5) Legendární chaos karta: Velký zmatek — vyměň všem hráčům celé ruce za náhodné karty (chaos efekt)
