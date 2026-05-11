@@ -39,3 +39,34 @@ Nové karty / mechaniky:
 3) Nová mechanika: Rozhodnutí — otevře se mulligan-like tabulka s výběrem karet (např. "vyber 1 ze 3 karet do ruky")
 4) Nová mechanika: Nahlédnutí do balíčku — podívej se na top N karet svého nebo soupeřova balíčku, případně vyber pořadí
 5) Legendární chaos karta: Velký zmatek — vyměň všem hráčům celé ruce za náhodné karty (chaos efekt)
+
+── Nové karty a mechaniky (2. vlna) ─────────────────────────────────────────
+
+1) Zrcadlo (magic, rare)
+   - Karta se vizuálně mění podle toho, co bylo naposledy zahráno soupeřem
+   - Aktivuje se AŽ po tom, co soupeř zahraje kartu (= zkopíruje její efekt)
+   - Pokud soupeř ještě nic nezahrál, efekt je prázdný / slabý fallback
+
+2) Chaotická přeměna (chaos, rare)
+   - Znič vlastní důl magie a přetvoř ho na důl chaosu
+   - Nový efekt: ConvertMine(MAGIC → CHAOS)
+
+3) Dvojník (magic, rare, combo)
+   - Přidej kopii náhodné karty z vlastního odhazovacího balíčku do ruky
+   - Nový efekt: DrawFromDiscard(1)
+
+4) Mulligan timer v online módu
+   - Hráč má omezený čas na mulligan (např. 30s), po vypršení se automaticky potvrdí bez výměn
+   - Server musí po timeoutu odeslat MULLIGAN_DONE s prázdnými returnIds
+
+5) Shapeshifter (chaos, epic)
+   - Na začátku každého kola se karta v ruce změní v náhodnou kartu ze hry
+   - Speciální karta s persistentním chováním — potřeba příznak isShapeshifter + logika v generateResources/startOfTurn
+
+6) Vrácení v čase (magic, legendary)
+   - Vrať hru o 1 tah zpět (HP hradu, hradby, zdroje, ruka obou hráčů) — tato karta se ztratí
+   - Potřeba: snapshot stavu před každým tahem, rollback mechanismus v enginu
+
+7) Krádež identity (chaos, legendary)
+   - Prohoď s oponentem celé ruce karet
+   - Nový efekt: SwapHands
