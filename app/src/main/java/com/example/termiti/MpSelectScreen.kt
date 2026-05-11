@@ -15,15 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// ─── Barvy (sdílené s ostatními MP obrazovkami) ───────────────────────────────
-private val SelTeal   = Color(0xFF3DBFAD)
-private val SelGold   = Color(0xFFD4A843)
-private val SelMuted  = Color(0xFF7A6E5F)
-private val SelText   = Color(0xFFEDE0C4)
-private val SelBg     = Color(0xFF0A0D14)
 
 // ─── Výběr módu ──────────────────────────────────────────────────────────────
 
@@ -33,78 +27,104 @@ fun MpSelectScreen(
     onLocal  : () -> Unit,
     onBack   : () -> Unit
 ) {
-    Box(Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val W = maxWidth
+        val H = maxHeight
 
-        // Pozadí – stejné jako hlavní menu
+        // ── Pozadí – stejné jako hlavní menu ─────────────────────────────────
         Image(
             painter            = painterResource(R.drawable.menu_bg),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
         )
-        Box(Modifier.fillMaxSize().background(Color(0x66000000)))
 
-        // ── Tlačítko Zpět – vždy viditelné v levém horním rohu ───────────────
+        // ── Pochodně (menu_bg 1791×975, AR≈1.837) ────────────────────────────
+        val imgAR  = 1791f / 975f
+        val dispAR = W.value / H.value.coerceAtLeast(1f)
+        val imgDispW: Dp
+        val imgDispH: Dp
+        val cropX: Dp
+        val cropY: Dp
+        if (dispAR >= imgAR) {
+            imgDispW = W
+            imgDispH = W / imgAR
+            cropX    = 0.dp
+            cropY    = (imgDispH - H) / 2f
+        } else {
+            imgDispW = H * imgAR
+            imgDispH = H
+            cropX    = (imgDispW - W) / 2f
+            cropY    = 0.dp
+        }
+        val torchSize = H * 0.15f
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.112f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ),
+            size = torchSize, seed = 0f
+        )
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.898f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ),
+            size = torchSize, seed = 1.7f
+        )
+
+        // ── Tlačítko Zpět ─────────────────────────────────────────────────────
         Box(
             Modifier
                 .padding(start = 16.dp, top = 16.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color.White.copy(alpha = 0.05f))
-                .border(1.dp, SelMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .border(1.dp, TextMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                 .clickable { SoundManager.playMenuTap(); onBack() }
                 .padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
-            Text("← Zpět", color = SelMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text("← Zpět", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
 
         // ── Střed: nadpis + tlačítka ─────────────────────────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 40.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        val centerW = minOf(W * 0.46f, H * 1.0f)
+
+        Box(
+            modifier         = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-
-            // Nadpis
-            Text(
-                "MULTIPLAYER",
-                color         = SelGold,
-                fontSize      = 28.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 5.sp
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "Vyber způsob připojení",
-                color         = SelMuted,
-                fontSize      = 11.sp,
-                letterSpacing = 1.5.sp
-            )
-
-            Spacer(Modifier.height(40.dp))
-
-            // Online tlačítko
-            MenuButton(
-                label    = "ONLINE",
-                accent   = SelTeal,
-                imageRes = R.drawable.button_8,
-                modifier = Modifier.width(320.dp),
-                onClick  = onOnline
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Lokálně tlačítko
-            MenuButton(
-                label    = "LOKÁLNĚ",
-                accent   = SelGold,
-                imageRes = R.drawable.button_9,
-                modifier = Modifier.width(320.dp),
-                onClick  = onLocal
-            )
+            Column(
+                modifier            = Modifier.width(centerW),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(H * 0.010f)
+            ) {
+                Text(
+                    "MULTIPLAYER",
+                    color         = Gold,
+                    fontSize      = (H.value * 0.08f).sp,
+                    fontWeight    = FontWeight.Bold,
+                    letterSpacing = 6.sp
+                )
+                Text(
+                    "Vyber způsob připojení",
+                    color         = TextMuted,
+                    fontSize      = (H.value * 0.024f).sp,
+                    letterSpacing = 2.sp
+                )
+                Spacer(Modifier.height(H * 0.01f))
+                MenuButton(
+                    label    = "ONLINE",
+                    accent   = TealLight,
+                    imageRes = R.drawable.button_8,
+                    onClick  = onOnline
+                )
+                MenuButton(
+                    label    = "LOKÁLNĚ",
+                    accent   = Gold,
+                    imageRes = R.drawable.button_9,
+                    onClick  = onLocal
+                )
+            }
         }
     }
 }
-
-

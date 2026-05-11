@@ -197,6 +197,11 @@ class GameSession {
       drawCards(this.state[this.activeSide], 1);
     }
 
+    // Transformuj shapeshiftery pro oba hráče před prvním tahem
+    // (_advanceTurn to dělá automaticky od 2. tahu, ale první tah hráče A by bez toho byl netransformovaný)
+    transformShapeShifters(this.state.A.hand, ALL_CARDS);
+    transformShapeShifters(this.state.B.hand, ALL_CARDS);
+
     this._log(`Hra začala. Na tahu: ${this.name[this.activeSide]}`);
     this._startTurnTimer();  // nejdřív nastav turnStartedAt, pak pošli stav
     this._sendStateBoth();

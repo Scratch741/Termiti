@@ -559,6 +559,12 @@ class MultiplayerViewModel(
     }
 
     private fun startOppTurn() {
+        // Transformuj i vlastní ruku – hráč vidí svůj shapeshifter v nové podobě
+        // i během soupeřova tahu (karta se mění na začátku každého tahu, ne jen svého)
+        val me = myState.value.deepCopy()
+        transformShapeShifters(me.hand, allCards)
+        myState.value = me
+
         val opp = oppState.value.deepCopy()
         opp.drawCardOnPlay = false                   // reset per-card-played efektů
         opp.gainResourcePerCardPlayed.clear()
