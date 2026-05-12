@@ -7,6 +7,7 @@ const {
   CARD_MAP, ALL_CARDS, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
+  MAX_RESOURCE,
   createPlayerState, generateResources, drawCards,
   applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp,
   transformShapeShifters

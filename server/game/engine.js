@@ -412,6 +412,7 @@ function transformShapeShifters(hand, cardPool) {
 }
 
 module.exports = {
+  MAX_RESOURCE,
   createPlayerState, generateResources, drawCards,
   checkCondition, deriveCardType, applyEffects,
   applyPassiveAbilities, checkWin, resolveByHp,
