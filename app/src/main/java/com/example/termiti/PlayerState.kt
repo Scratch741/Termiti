@@ -20,7 +20,7 @@ data class PendingResource(
  * Kotlin `data class copy()` vytvoří pouze plytkou kopii (stejné reference na kolekce),
  * což by způsobilo sdílení stavu mezi hráčem a AI. Proto existuje [deepCopy].
  *
- * Při přidání nového pole: aktualizuj konstruktor + [deepCopy] + případně MultiplayerViewModel.deserializeState.
+ * Při přidání nového pole: aktualizuj konstruktor + [deepCopy].
  */
 class PlayerState(
     var castleHP: Int = 30,

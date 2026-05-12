@@ -17,7 +17,7 @@ import com.example.termiti.ui.theme.TermitiTheme
 
 private enum class Screen {
     PROFILE_SETUP,
-    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, MP_SELECT, LOCAL_MP, ONLINE_MP, SETTINGS, PROFILE,
+    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, ONLINE_MP, SETTINGS, PROFILE,
     CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT,
     SHOP, LEADERBOARD
 }
@@ -25,13 +25,6 @@ private enum class Screen {
 class MainActivity : ComponentActivity() {
 
     private val viewModel: GameViewModel by viewModels()
-    private val multiVm: MultiplayerViewModel by viewModels {
-        MultiplayerViewModel.factory(
-            allCards        = viewModel.allCards,
-            decks           = viewModel.decks.toList(),
-            activeDeckIndex = viewModel.activeDeckIndex.value
-        )
-    }
     private val onlineLobbyVm: OnlineLobbyViewModel by viewModels {
         OnlineLobbyViewModel.Factory(allCards = viewModel.allCards, context = applicationContext)
     }
@@ -77,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         Screen.MENU -> MenuScreen(
                             onPlay        = { screen = Screen.PLAY_MENU },
                             onBuildDeck   = { screen = Screen.DECK_BUILDER },
-                            onMultiplayer = { screen = Screen.MP_SELECT },
+                            onMultiplayer = { screen = Screen.ONLINE_MP },
                             onProfile     = { screen = Screen.PROFILE },
                             onShop        = { screen = Screen.SHOP },
                             onSettings    = { screen = Screen.SETTINGS },
@@ -125,19 +118,10 @@ class MainActivity : ComponentActivity() {
                         )
 
                         // ── Multiplayer ───────────────────────────────────────
-                        Screen.MP_SELECT -> MpSelectScreen(
-                            onOnline = { screen = Screen.ONLINE_MP },
-                            onLocal  = { screen = Screen.LOCAL_MP },
-                            onBack   = { screen = Screen.MENU }
-                        )
-                        Screen.LOCAL_MP -> MultiplayerScreen(
-                            vm     = multiVm,
-                            onBack = { screen = Screen.MP_SELECT }
-                        )
                         Screen.ONLINE_MP -> OnlineMpScreen(
                             vm            = onlineLobbyVm,
                             decks         = viewModel.decks,
-                            onBack        = { screen = Screen.MP_SELECT },
+                            onBack        = { screen = Screen.MENU },
                             onLeaderboard = { screen = Screen.LEADERBOARD }
                         )
 

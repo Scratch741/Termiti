@@ -1,7 +1,7 @@
 package com.example.termiti
 
 /**
- * Sdílená herní logika – použitelná v GameViewModel i MultiplayerViewModel.
+ * Sdílená herní logika – použitelná v GameViewModel i OnlineLobbyViewModel.
  *
  * Přidání nového efektu:
  *  1. Přidej data class do CardEffect.kt

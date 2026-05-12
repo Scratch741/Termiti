@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 
 /**
  * Sdílené extension funkce pro herní log a historii karet.
- * Používají: GameViewModel, MultiplayerViewModel, OnlineLobbyViewModel.
+ * Používají: GameViewModel, OnlineLobbyViewModel.
  */
 
 /** Přidá systémovou zprávu do logu (keepuje posledních 50 záznamů). */
