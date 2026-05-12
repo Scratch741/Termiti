@@ -368,7 +368,8 @@ class GameSession {
     self.discardPile.push(card);
 
     // Zapamatuj si zahranou kartu + index v ruce (před splice) pro zobrazení soupeři
-    this.lastPlayedCard    = { id: card.id, baseId: card.baseId, name: card.name,
+    // Shapeshifter: použij displayBaseId → klient zobrazí transformovanou kartu, ne C34
+    this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity };
     this.lastPlayedAction  = 'PLAYED';
     this.lastPlayedBySide  = side;
@@ -453,7 +454,7 @@ class GameSession {
     const card = self.hand.splice(cardIdx, 1)[0];
     self.discardPile.push(card);
 
-    this.lastPlayedCard   = { id: card.id, baseId: card.baseId, name: card.name,
+    this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                cost: card.cost, costType: card.costType, rarity: card.rarity };
     this.lastPlayedAction  = 'DISCARDED';
     this.lastPlayedBySide  = side;
@@ -602,7 +603,9 @@ class GameSession {
   _serializeHand(side) {
     return this.state[side].hand.map(c => ({
       id:       c.id,
-      baseId:   c.baseId,
+      // Transformovaný Shapeshifter: pošli displayBaseId (skutečná šablona) nikoli 'C34',
+      // aby klient zobrazil správnou kartu. Server sleduje Shapeshifter pomocí baseId: 'C34'.
+      baseId:   c.displayBaseId || c.baseId,
       name:     c.name,
       cost:     c.cost,
       costType: c.costType,
