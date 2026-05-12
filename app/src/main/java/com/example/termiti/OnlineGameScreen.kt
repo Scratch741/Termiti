@@ -109,12 +109,26 @@ fun OnlineGameScreen(
     vm: OnlineLobbyViewModel,
     onBack: () -> Unit
 ) {
-    val phase by vm.phase
+    val phase      by vm.phase
+    val gameResult by vm.gameResult
 
     // Review mód: hráč si prohlíží zamrzlou hru po jejím skončení
     var reviewMode by remember { mutableStateOf(false) }
     // Reset review módu při přechodu z GAME_OVER do jiné fáze
     LaunchedEffect(phase) { if (phase != OnlinePhase.GAME_OVER) reviewMode = false }
+
+    // Zvuk + odměna – spustí se JEDNOU při příchodu výsledku, bez ohledu na reviewMode.
+    // Záměrně hoisted sem (mimo OnlineGameOverOverlay), aby se nepouštělo znovu
+    // pokaždé, když overlay vstoupí/opustí kompozici při přepínání review módu.
+    LaunchedEffect(gameResult) {
+        val r = gameResult ?: return@LaunchedEffect
+        when {
+            r.winner == "DRAW" || r.winner == "DRAW_BOTH_DEAD" -> Unit
+            r.youWin -> SoundManager.playWin()
+            else     -> SoundManager.playLose()
+        }
+        PlayerProfileManager.recordGameResult(win = r.youWin, online = true)
+    }
 
     val opponentDisconnected by vm.opponentDisconnected
     val opponentDisconnectSec by vm.opponentDisconnectSec
@@ -581,18 +595,6 @@ private fun OnlineGameOverOverlay(
     val result       by vm.gameResult
     val ratingChange by vm.ratingChange
     val newRating    by vm.newRating
-
-    // Přehraj zvuk a zaznamenej výsledek při zobrazení overlay
-    LaunchedEffect(result) {
-        if (result == null) return@LaunchedEffect
-        when {
-            result!!.winner == "DRAW" || result!!.winner == "DRAW_BOTH_DEAD" -> Unit
-            result!!.youWin           -> SoundManager.playWin()
-            else                      -> SoundManager.playLose()
-        }
-        // Statistiky + XP + gold
-        PlayerProfileManager.recordGameResult(win = result!!.youWin, online = true)
-    }
 
     Box(
         modifier = Modifier
