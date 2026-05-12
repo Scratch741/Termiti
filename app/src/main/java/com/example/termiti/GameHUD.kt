@@ -640,7 +640,8 @@ fun HandPanel(
     playerWallHp: Int = 0,
     playerCastleHp: Int = 0,
     oppResources: Map<ResourceType, Int> = emptyMap(),
-    lastPlayedType: String? = null
+    lastPlayedType: String? = null,
+    onLongPressCard: ((Card) -> Unit)? = null
 ) {
     Column(modifier = modifier.padding(vertical = 6.dp)) {
 
@@ -685,6 +686,7 @@ fun HandPanel(
                         discardMode   = false,
                         onClick       = { onPlayCard(card) },
                         onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
+                        onLongPress   = if (onLongPressCard != null) { { onLongPressCard(card) } } else null,
                         conditionMet  = cardConditionMet(
                             card,
                             playerResources,

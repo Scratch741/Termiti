@@ -86,6 +86,7 @@ fun GameScreen(
     var showLog          by remember { mutableStateOf(false) }
     var reviewMode       by remember { mutableStateOf(false) }
     var showOppHand      by remember { mutableStateOf(false) }
+    var cardPreview      by remember { mutableStateOf<Card?>(null) }
     // Resetuj pohled na soupeřovu ruku při zavření review módu
     LaunchedEffect(reviewMode) { if (!reviewMode) showOppHand = false }
 
@@ -234,6 +235,7 @@ fun GameScreen(
                 playerCastleHp   = state.playerState.castleHP,
                 oppResources     = state.aiState.resources,
                 lastPlayedType   = state.playerState.lastPlayedType,
+                onLongPressCard  = { cardPreview = it },
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
                                                painterResource(R.drawable.hand_background),
@@ -324,6 +326,11 @@ fun GameScreen(
                         }
                     }
             )
+        }
+
+        // Náhled karty (long press) – kreslí se nad hrou, ale pod letem
+        cardPreview?.let { card ->
+            CardFullPreviewOverlay(card = card, onDismiss = { cardPreview = null })
         }
 
         // Letící karta – kreslí se jako poslední, aby byla nad vším

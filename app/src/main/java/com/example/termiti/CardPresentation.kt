@@ -87,7 +87,7 @@ object CardPresentation {
         "019" to CardPres("Poškodí jen hradby o 5.",
             R.drawable.art_zapalne_sipy, "Útok",
             artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit),
-        "020" to CardPres("[Combo] Poškodí jen hradby o 12.",
+        "020" to CardPres("Poškodí jen hradby o 12. [Combo] ",
             R.drawable.art_beranidlo, "Útok",
             artScale = 0.85f, artBiasY = 0.05f),
         "021" to CardPres("Zaútočí na nepřítele za 15.",
@@ -322,7 +322,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.55f),
         "093" to CardPres("+5 hrad. **Toto kolo:** za každou zahranou **STAVBU** +3 hrad. [Combo]",
             R.drawable.art_cihla_na_cihlu, "Stavba",
-            artScale = 0.80f),
+            artScale = 0.90f, artBiasY = -1.00f),
         "094" to CardPres("Hradby +6, získej +2 kameny. [Combo]",
             R.drawable.art_sklad_materialu, "Stavba",
             artScale = 0.80f),
@@ -464,10 +464,11 @@ object CardPresentation {
             R.drawable.art_vzajemna_zkaza, "Chaos",
             artScale = 0.80f, artBiasY = -0.40f),
         "C33" to CardPres("Prohoď s oponentem celé ruce karet.",
-            null, "Chaos"),
+            R.drawable.art_kradez_identity, "Chaos",
+            artScale = 0.80f, artBiasY = -0.75f),
         "C34" to CardPres("Na začátku každého tahu se promění v náhodnou kartu ze hry.",
             R.drawable.art_shapeshifter, "Chaos",
-            artScale = 0.80f),
+            artScale = 0.90f, artBiasY = -0.75f),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",
@@ -496,7 +497,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.40f),
         "D09" to CardPres("**Toto kolo:** za každou další zahranou **MAGII** lízni 1. [Combo]",
             R.drawable.art_inspirace, "Magie",
-            artScale = 0.80f),
+            artScale = 0.90f, artBiasY = -1.0f),
 
         // ── Testovací ─────────────────────────────────────────────────────────
         "T01" to CardPres("+5 Magie.",

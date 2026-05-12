@@ -55,17 +55,6 @@ Nové karty / mechaniky:
    - Přidej kopii náhodné karty z vlastního odhazovacího balíčku do ruky
    - Nový efekt: DrawFromDiscard(1)
 
-4) Mulligan timer v online módu
-   - Hráč má omezený čas na mulligan (např. 30s), po vypršení se automaticky potvrdí bez výměn
-   - Server musí po timeoutu odeslat MULLIGAN_DONE s prázdnými returnIds
-
-5) Shapeshifter (chaos, epic)
-   - Na začátku každého kola se karta v ruce změní v náhodnou kartu ze hry
-   - Speciální karta s persistentním chováním — potřeba příznak isShapeshifter + logika v generateResources/startOfTurn
-
-7) Krádež identity (chaos, legendary)
-   - Prohoď s oponentem celé ruce karet
-   - Nový efekt: SwapHands
 
 8) Anulace tahu (chaos, legendary)
    - Zruší všechny karty, které soupeř zahrál v předchozím kole

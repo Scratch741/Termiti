@@ -258,6 +258,7 @@ private fun OnlineGameplay(
     var showLog     by remember { mutableStateOf(false) }
     var showMenu    by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
+    var cardPreview by remember { mutableStateOf<Card?>(null) }
     val gameLog     by vm.gameLog
     val phase       by vm.phase
     val isGameOver  = phase == OnlinePhase.GAME_OVER
@@ -477,6 +478,7 @@ private fun OnlineGameplay(
                 playerWallHp     = myPs.wallHP,
                 playerCastleHp   = myPs.castleHP,
                 oppResources     = oppPs.resources,
+                onLongPressCard  = { card -> if (card.id != "__dummy__") cardPreview = card },
                 // Pevná výška ruky – zabrání posunu lišty, když je ruka prázdná
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
@@ -501,6 +503,11 @@ private fun OnlineGameplay(
                         }
                     }
             )
+        }
+
+        // Náhled karty (long press) – kreslí se nad hrou, ale pod letem
+        cardPreview?.let { card ->
+            CardFullPreviewOverlay(card = card, onDismiss = { cardPreview = null })
         }
 
         // Letící karta (hráčova) – nad vším ostatním v Boxu

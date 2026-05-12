@@ -83,12 +83,12 @@ fun OnlineMpScreen(
                 // Pokud má hráč profilový nick, auto-connect proběhne v LaunchedEffect –
                 // zobraz rovnou ConnectingPanel, aby se NAME_INPUT panel neobjevil ani na okamžik.
                 if (!PlayerProfileManager.profile?.name.isNullOrBlank()) {
-                    ConnectingPanel()
+                    ConnectingPanel(onCancel = { vm.disconnect(); onBack() })
                 } else {
                     NameInputPanel(vm, onBack)
                 }
             }
-            OnlinePhase.CONNECTING  -> ConnectingPanel()
+            OnlinePhase.CONNECTING  -> ConnectingPanel(onCancel = { vm.disconnect(); onBack() })
             OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack, onLeaderboard)
             OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
             OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
@@ -159,7 +159,7 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 // ─── Připojování ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun ConnectingPanel() {
+private fun ConnectingPanel(onCancel: (() -> Unit)? = null) {
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -168,6 +168,10 @@ private fun ConnectingPanel() {
         CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
         Text("Připojuji k serveru…", color = OnText, fontSize = 13.sp)
+        if (onCancel != null) {
+            Spacer(Modifier.height(20.dp))
+            OnBtn("← Zrušit", OnMuted, Modifier.width(180.dp)) { onCancel() }
+        }
     }
 }
 
@@ -529,9 +533,9 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
         )
         Spacer(Modifier.height(20.dp))
 
-        OnBtn("🔄  Zkusit znovu", OnTeal, Modifier.width(220.dp)) { vm.clearError() }
+        OnBtn("🔄  Zkusit znovu", OnTeal, Modifier.width(220.dp)) { vm.retryConnect() }
         Spacer(Modifier.height(8.dp))
-        OnBtn("← Zpět", OnMuted, Modifier.width(220.dp)) { vm.clearError(); onBack() }
+        OnBtn("← Zpět", OnMuted, Modifier.width(220.dp)) { vm.disconnect(); onBack() }
     }
 }
 

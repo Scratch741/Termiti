@@ -4,6 +4,7 @@
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -251,6 +252,7 @@ fun CardView(
     discardMode: Boolean,
     onClick: () -> Unit,
     onDiscard: (() -> Unit)? = null,
+    onLongPress: (() -> Unit)? = null,
     isComboCard: Boolean = card.isCombo,
     conditionMet: Boolean? = null,  // null = karta nemá podmínku
     showFade: Boolean = true,       // false = vždy plná opacity (např. zahraná karta uprostřed)
@@ -321,7 +323,8 @@ fun CardView(
         glowAlpha      = glowAlpha,
         showPurpleGlow = isShapeShifter,
         purpleGlowAlpha = purpleGlowAlpha,
-        onClick        = onClick
+        onClick        = onClick,
+        onLongPress    = onLongPress
     )
 }
 
@@ -343,7 +346,8 @@ private fun CardViewTextured(
     glowAlpha: Float = 0f,
     showPurpleGlow: Boolean = false,
     purpleGlowAlpha: Float = 0f,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongPress: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     // Načtení rámu karty dynamicky podle costType (card_frame_magic/attack/chaos/stones).
@@ -402,7 +406,21 @@ private fun CardViewTextured(
             .background(bgColor)
             .then(if (borderColor != Color.Transparent)
                 Modifier.border(borderWidth, borderColor, RoundedCornerShape(6.dp)) else Modifier)
-            .then(if (canPlay || discardMode) Modifier.clickable { onClick() } else Modifier)
+            .then(when {
+                // Zahratelná / odhazovatelná: klik + long press (s ripple efektem)
+                canPlay || discardMode -> Modifier.combinedClickable(
+                    onClick    = onClick,
+                    onLongClick = onLongPress
+                )
+                // Nezahratelná, ale má long press: reaguje na podržení bez ripple
+                onLongPress != null -> Modifier.combinedClickable(
+                    indication        = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick           = {},
+                    onLongClick       = onLongPress
+                )
+                else -> Modifier
+            })
     ) {
         // Vrstva 1: ilustrace karty
         // Oblast ilustrace je horních ~90 dp — pokrývá průhlednou zónu frame i gradient přechod.
@@ -619,6 +637,186 @@ private fun CardViewTextured(
                 ) { Text("✕", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold) }
             }
         }
+    }
+}
+
+// ─── Fullscreen card preview overlay ─────────────────────────────────────────
+
+/**
+ * Modální overlay zobrazující velký náhled [card].
+ * Kliknutí kamkoli (mimo kartu nebo na pozadí) zavolá [onDismiss].
+ *
+ * Rozměry 220×308 dp (2.2× základní 100×140 dp) – vhodné i pro landscape.
+ */
+@Composable
+fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+    val artResId        = card.effectiveArtResId()
+    val rarityOverlayId = rarityOverlayResource(card.rarity)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.82f))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+        // Kliknutí na samotnou kartu neprotíká do dismiss overlay
+        Box(
+            modifier = Modifier
+                .size(width = 220.dp, height = 308.dp)
+                .clickable(
+                    indication        = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick           = {}
+                )
+                .clip(RoundedCornerShape(14.dp))
+                .background(BgCard)
+        ) {
+            // Artwork (90dp × 2.2 = 198dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(198.dp)
+                    .clipToBounds()
+            ) {
+                Image(
+                    painter          = painterResource(artResId),
+                    contentDescription = null,
+                    modifier         = artModifier(card),
+                    contentScale     = ContentScale.Crop,
+                    alignment        = artAlignment(card)
+                )
+            }
+
+            // Rám
+            if (frameResId != 0) {
+                Image(
+                    painter          = painterResource(frameResId),
+                    contentDescription = null,
+                    modifier         = Modifier.fillMaxSize(),
+                    contentScale     = ContentScale.FillBounds
+                )
+            }
+            // Rarity overlay
+            if (rarityOverlayId != 0) {
+                Image(
+                    painter          = painterResource(rarityOverlayId),
+                    contentDescription = null,
+                    modifier         = Modifier.fillMaxSize(),
+                    contentScale     = ContentScale.FillBounds
+                )
+            }
+
+            // Cena (offset × 2.2)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = 3.dp, y = 4.dp)
+                    .size(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val costLabel = if (card.isXCost) "X" else "${card.cost}"
+                val costStyle = TextStyle(
+                    fontSize        = 20.sp,
+                    fontWeight      = FontWeight.ExtraBold,
+                    textAlign       = TextAlign.Center,
+                    platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim      = LineHeightStyle.Trim.Both
+                    )
+                )
+                for (off in listOf(Offset(-1.5f, 0f), Offset(1.5f, 0f), Offset(0f, -1.5f), Offset(0f, 1.5f))) {
+                    Text(costLabel, color = Color.Black,
+                        modifier = Modifier.fillMaxWidth().offset(x = off.x.dp, y = off.y.dp),
+                        style = costStyle)
+                }
+                Text(costLabel, color = Color.White,
+                    modifier = Modifier.fillMaxWidth(), style = costStyle)
+            }
+
+            // Název v obloukovém pásu (69dp × 2.2 = 152dp, výška 22dp × 2.2 = 48dp)
+            ArcCardName(
+                name         = card.name,
+                modifier     = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 152.dp)
+                    .height(48.dp),
+                fontSizeSp   = 17f,
+                arcRadiusDp  = 770f,   // 350 × 2.2
+                baselineFrac = 0.78f
+            )
+
+            // Popis (92dp × 2.2 = 202dp, výška 38dp × 2.2 = 84dp)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .padding(top = 202.dp)
+                    .height(84.dp)
+                    .clipToBounds()
+                    .padding(horizontal = 22.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    parseCardDesc(card.description),
+                    color     = Color(0xFFDDD0B0),
+                    fontSize  = 16.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines  = 4,
+                    overflow  = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp,
+                    style     = LocalTextStyle.current.merge(
+                        TextStyle(
+                            platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim      = LineHeightStyle.Trim.Both
+                            )
+                        )
+                    )
+                )
+            }
+
+            // Typ (129dp × 2.2 = 284dp, výška 12dp × 2.2 = 26dp)
+            if (card.type.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 284.dp)
+                        .fillMaxWidth()
+                        .height(26.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        card.type.uppercase(),
+                        color         = Color(0xFFD4B870),
+                        fontSize      = 11.sp,
+                        fontWeight    = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        textAlign     = TextAlign.Center,
+                        style         = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                    )
+                }
+            }
+        }
+
+        // Hint pro zavření – vždy přímo pod kartou
+        Spacer(Modifier.height(14.dp))
+        Text(
+            "Klepnutím zavřeš",
+            color    = Color.White.copy(alpha = 0.35f),
+            fontSize = 10.sp
+        )
+        } // Column
     }
 }
 

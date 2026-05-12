@@ -237,7 +237,10 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     decks         = decks,
                     activeDeckIdx = activeDeckIdx,
                     editingIdx    = editingIdx,
-                    onSelectDeck  = { editingIdx = it },
+                    onSelectDeck  = { idx ->
+                        editingIdx = idx
+                        if (decks[idx].isValid) viewModel.setActiveDeck(idx)
+                    },
                     onBack        = onBack
                 )
                 HorizontalDivider(color = Gold.copy(alpha = 0.2f))

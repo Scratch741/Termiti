@@ -180,6 +180,11 @@ class OnlineLobbyViewModel(
 
     // ── WebSocket ─────────────────────────────────────────────────────────────
     private var ws: WebSocket? = null
+    /**
+     * Čítač generací spojení – inkrementuje se při každém novém connect().
+     * GameListener drží gen z doby svého vzniku; pokud se liší, je považován za zastaralý.
+     */
+    private var connectionGeneration = 0
     private val httpClient = OkHttpClient.Builder()
         .pingInterval(25, TimeUnit.SECONDS)
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -196,12 +201,28 @@ class OnlineLobbyViewModel(
         val name = playerName.value.trim()
         if (name.isBlank()) { errorMsg.value = "Zadej přezdívku"; return }
 
+        // Zruš předchozí spojení a invaliduj staré listenery novou generací
+        ws?.cancel()
+        ws = null
+        connectionGeneration++
+        isReconnecting.value = false
+        reconnectAttempts    = 0
+
         phase.value     = OnlinePhase.CONNECTING
         statusMsg.value = "Připojuji k serveru…"
         errorMsg.value  = ""
 
         val request = Request.Builder().url(LOBBY_WS_URL).build()
-        ws = httpClient.newWebSocket(request, GameListener())
+        ws = httpClient.newWebSocket(request, GameListener(connectionGeneration))
+    }
+
+    /**
+     * Znovu se připoj po chybě – zruší staré WS, resetuje stav a zavolá connect().
+     * Používá se z ErrorPanel tlačítka "Zkusit znovu".
+     */
+    fun retryConnect() {
+        errorMsg.value = ""
+        connect()
     }
 
     fun joinQueue(superRandom: Boolean = false) {
@@ -274,6 +295,8 @@ class OnlineLobbyViewModel(
     }
 
     fun clearError() {
+        ws?.cancel()
+        ws = null
         errorMsg.value = ""
         phase.value    = OnlinePhase.NAME_INPUT
     }
@@ -382,9 +405,17 @@ class OnlineLobbyViewModel(
 
     // ── WebSocket listener ────────────────────────────────────────────────────
 
-    private inner class GameListener : WebSocketListener() {
+    /**
+     * @param gen Generace spojení v době vzniku listeneru.
+     * Pokud se [connectionGeneration] změní (nové connect()), tento listener je zastaralý
+     * a tiše ignoruje všechny callbacky – zabraňuje přepsání stavu novějšího spojení.
+     */
+    private inner class GameListener(private val gen: Int) : WebSocketListener() {
+
+        private fun isStale() = gen != connectionGeneration
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
+            if (isStale()) { webSocket.cancel(); return }
             val abilitiesArr = JSONArray().apply {
                 PlayerProfileManager.profile?.activeAbilities?.forEach { put(it) }
             }
@@ -401,11 +432,14 @@ class OnlineLobbyViewModel(
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
+            if (isStale()) return
             handleMessage(text)
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            if (isStale()) return
             viewModelScope.launch {
+                if (isStale()) return@launch
                 val inGame = phase.value == OnlinePhase.GAME_PLAYING ||
                              phase.value == OnlinePhase.GAME_MULLIGAN
                 if (inGame && reconnectAttempts < maxReconnectAttempts) {
@@ -419,8 +453,10 @@ class OnlineLobbyViewModel(
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            if (isStale()) return
             if (code != 1000) {
                 viewModelScope.launch {
+                    if (isStale()) return@launch
                     val inGame = phase.value == OnlinePhase.GAME_PLAYING ||
                                  phase.value == OnlinePhase.GAME_MULLIGAN
                     if (inGame && reconnectAttempts < maxReconnectAttempts) {
@@ -439,13 +475,15 @@ class OnlineLobbyViewModel(
     private fun scheduleReconnect() {
         isReconnecting.value = true
         reconnectAttempts++
-        val delayMs = (reconnectAttempts * 2000L).coerceAtMost(10_000L)
+        val delayMs  = (reconnectAttempts * 2000L).coerceAtMost(10_000L)
+        val snapGen  = connectionGeneration          // zapamatuj si generaci v době naplánování
         viewModelScope.launch {
             delay(delayMs)
-            if (isReconnecting.value) {
-                val request = Request.Builder().url(LOBBY_WS_URL).build()
-                ws = httpClient.newWebSocket(request, GameListener())
-            }
+            // Přeruš pokud mezitím přišlo nové manuální connect()
+            if (!isReconnecting.value || snapGen != connectionGeneration) return@launch
+            connectionGeneration++
+            val request = Request.Builder().url(LOBBY_WS_URL).build()
+            ws = httpClient.newWebSocket(request, GameListener(connectionGeneration))
         }
     }
 
@@ -617,6 +655,12 @@ class OnlineLobbyViewModel(
                         )
                         allModeStats.value = allModeStats.value + (mode to updatedStats)
                     }
+                    // Pokud forfeit() již výsledek nastavil (winner="OPP"), nepřepisuj ho –
+                    // jinak by se LaunchedEffect(gameResult) spustil podruhé a hráč
+                    // by dostal dvojitou odměnu. Fázi ani gameEndPending nenastavujeme –
+                    // forfeit() už přepnul do GAME_OVER okamžitě.
+                    if (gameResult.value != null) return@launch
+
                     gameEndPending.value = true
                     viewModelScope.launch {
                         kotlinx.coroutines.delay(1750L)
