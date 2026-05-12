@@ -87,7 +87,7 @@ object CardPresentation {
         "019" to CardPres("Poškodí jen hradby o 5.",
             R.drawable.art_zapalne_sipy, "Útok",
             artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit),
-        "020" to CardPres("Poškodí jen hradby o 12.",
+        "020" to CardPres("[Combo] Poškodí jen hradby o 12.",
             R.drawable.art_beranidlo, "Útok",
             artScale = 0.85f, artBiasY = 0.05f),
         "021" to CardPres("Zaútočí na nepřítele za 15.",
