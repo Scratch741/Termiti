@@ -566,6 +566,61 @@ let selectedCardId = null;
 let artFiles = {}; // id -> dataUrl
 let cardAdjustments = {}; // id -> {scale, bx, by}
 
+// Mapování ID karty → název art souboru (synchronizováno s CardPresentation.kt)
+// Bez tohoto mapování by deckbuilder hledal art_C34.jpg místo art_shapeshifter.png atd.
+const ART_MAP = {
+  '001':'art_zakladni_utok',  '002':'art_kamenna_zed',     '003':'art_ohniva_koule',
+  '004':'art_magie',          '005':'art_posila_hradu',    '006':'art_prevaha_sily',
+  '007':'art_silny_uder',     '008':'art_sipy',            '009':'art_pevne_zaklady',
+  '010':'art_palisada',       '011':'art_zasoby_kamene',   '012':'art_mobilizace',
+  '013':'art_magicky_pramen', '014':'art_kamenolom',       '015':'art_vycvikovy_tabor',
+  '016':'art_velky_pramen',   '017':'art_valecny_sekyrnik','018':'art_mohutna_vez',
+  '019':'art_zapalne_sipy',   '020':'art_beranidlo',       '021':'art_delostrelectvo',
+  '022':'art_primy_zasah',    '023':'art_dvojity_utok',    '024':'art_berserk',
+  '025':'art_protiutok',      '026':'art_ostrelovac',      '027':'art_valecne_bubny',
+  '028':'art_zaplata',        '029':'art_opevneni',        '030':'art_kamenny_val',
+  '031':'art_renovace',       '032':'art_citadela',        '033':'art_zemni_val',
+  '034':'art_opravar',        '035':'art_zakladni_kamen',  '036':'art_hradni_prikop',
+  '037':'art_rychla_magie',   '038':'art_vojensky_rozkaz', '039':'art_stavebni_boom',
+  '040':'art_alchymie',       '041':'art_magicke_trio',    '042':'art_velky_kamenolom',
+  '043':'art_vycvikove_centrum','044':'art_trifekta_dolu', '045':'art_ocarovane_doly',
+  '046':'art_goblin',         '047':'art_ogr',             '048':'art_upir',
+  '049':'art_jed',            '050':'art_podkopani_hradeb','051':'art_drak',
+  '052':'art_demon',          '053':'art_plamenomet',      '054':'art_valecny_pochod',
+  '055':'art_posledni_vzdor', '056':'art_najezdnik',       '057':'art_basta',
+  '058':'art_obranny_val',    '059':'art_pevnostni_hrad',  '060':'art_chram',
+  '061':'art_tunely',         '062':'art_obranna_aliance', '063':'art_vez_strazni',
+  '064':'art_zasobnik',       '065':'art_lupic',           '066':'art_kamenna_dan',
+  '067':'art_saboter',        '068':'art_demoralizace',    '069':'art_dvojity_agent',
+  '070':'art_krize_zasobovani','071':'art_spion',          '072':'art_zbrojnice',
+  '073':'art_skola_magie',    '074':'art_trziste',         '075':'art_rozmach_tezby',
+  '076':'art_vojenska_zakladna','077':'art_premena_magie', '078':'art_draci_upir',
+  '079':'art_oblehani',       '080':'art_velkovyroba',     '081':'art_rychla_hradba',
+  '082':'art_masivni_zed',    '083':'art_nouzove_opevneni','084':'art_velka_oprava',
+  '085':'art_kralovska_obnova','086':'art_zednicka_rota',  '087':'art_pevnost',
+  '088':'art_zesilene_hradby','089':'art_architekt',       '090':'art_rozsireni_tezby',
+  '091':'art_barikady',       '092':'art_strategicka_vystavba','093':'art_cihla_na_cihlu',
+  '094':'art_sklad_materialu','095':'art_obchod_s_kamenem','096':'art_nedobytna_pevnost',
+  '097':'art_obnova_kralovstvi','098':'art_hod_cihlou',    '099':'art_temny_prenos',
+  '100':'art_krvavy_uder',    '101':'art_nahla_smrt',      '102':'art_kamenny_prival',
+  '103':'art_magicke_rozdeleni',
+  'C01':'art_chaoticka_jiskra','C02':'art_entropie',       'C03':'art_chaoticky_dul',
+  'C04':'art_kradez_chaosu',  'C05':'art_chaoticky_vybuch','C06':'art_boure_chaosu',
+  'C07':'art_chaoticky_stit', 'C08':'art_zazrak_chaosu',   'C09':'art_chaoticka_krize',
+  'C10':'art_chaoticky_drak', 'C11':'art_chaos_a_rad',     'C12':'art_anarchie',
+  'C13':'art_sabotaz',        'C14':'art_niceni_kamenolomu','C15':'art_zakernost',
+  'C16':'art_velka_sabotaz',  'C17':'art_telekineze',      'C18':'art_kradez_osudu',
+  'C19':'art_spalena_knihovna','C20':'art_prazdna_mysl',   'C21':'art_replikace',
+  'C22':'art_chaos_manufaktura','C23':'art_klonovani',     'C24':'art_temny_ritual',
+  'C25':'art_nestabilni_vir', 'C26':'art_krvava_obet',     'C27':'art_odraz_magie',
+  'C28':'art_chaoticka_trofej','C29':'art_bourliva_mysl',  'C30':'art_chram_chaosu',
+  'C31':'art_chaoticky_vymenik','C32':'art_vzajemna_zkaza','C34':'art_shapeshifter',
+  'D01':'art_pruzkumnik',     'D02':'art_vestba',          'D03':'art_kronika',
+  'D04':'art_bojova_taktika', 'D05':'art_stavebni_plany',  'D06':'art_elitni_zved',
+  'D07':'art_tajna_knihovna', 'D08':'art_vize',            'D09':'art_inspirace',
+  'T01':'art_goblin_saman',
+};
+
 // Default Global
 let globalScale = 1.1;
 let globalBX = 0.0;
@@ -729,7 +784,7 @@ function parseJsonCards(jsonText) {
       cost:     card.cost,
       type:     card.costType,
       rarity:   card.rarity,
-      artRes:   null,
+      artRes:   ART_MAP[card.id] || null,
       costType: card.costType,
     });
     const entry = { ct: card.costType, fx: cvtFx };
@@ -936,7 +991,8 @@ function updateArt() {
     } else {
       img.style.display = 'none';
       placeholder.style.display = 'flex';
-      placeholder.textContent = `Chybí obrázek art_${selectedCardId}.jpg`;
+      const expectedArt = ART_MAP[selectedCardId] || ('art_' + selectedCardId);
+      placeholder.textContent = `Chybí obrázek ${expectedArt}.png`;
     }
   }
   saveToStorage();
