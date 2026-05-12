@@ -321,7 +321,8 @@ object CardPresentation {
             R.drawable.art_strategicka_vystavba, "Stavba",
             artScale = 0.80f, artBiasY = -0.55f),
         "093" to CardPres("+5 hrad. **Toto kolo:** za každou zahranou **STAVBU** +3 hrad. [Combo]",
-            null, "Stavba"),
+            R.drawable.art_cihla_na_cihlu, "Stavba",
+            artScale = 0.80f),
         "094" to CardPres("Hradby +6, získej +2 kameny. [Combo]",
             R.drawable.art_sklad_materialu, "Stavba",
             artScale = 0.80f),
@@ -465,7 +466,8 @@ object CardPresentation {
         "C33" to CardPres("Prohoď s oponentem celé ruce karet.",
             null, "Chaos"),
         "C34" to CardPres("Na začátku každého tahu se promění v náhodnou kartu ze hry.",
-            null, "Chaos"),
+            R.drawable.art_shapeshifter, "Chaos",
+            artScale = 0.80f),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",
@@ -493,7 +495,8 @@ object CardPresentation {
             R.drawable.art_vize, "Magie",
             artScale = 0.80f, artBiasY = -0.40f),
         "D09" to CardPres("**Toto kolo:** za každou další zahranou **MAGII** lízni 1. [Combo]",
-            null, "Magie"),
+            R.drawable.art_inspirace, "Magie",
+            artScale = 0.80f),
 
         // ── Testovací ─────────────────────────────────────────────────────────
         "T01" to CardPres("+5 Magie.",
