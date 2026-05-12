@@ -378,12 +378,12 @@ class GameSession {
     self.lastPlayedType = deriveCardType(card);
 
     // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
+    const cardType = deriveCardType(card);
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
       drawCards(self, 1, self.maxHandSize || 7);
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
-    const cardType = deriveCardType(card);
     for (const grp of (self.gainResourcePerCardPlayed || [])) {
       if (!grp.cardType || grp.cardType === cardType) {
         self.resources[grp.resType] = Math.min(MAX_RESOURCE, (self.resources[grp.resType] || 0) + grp.amount);
