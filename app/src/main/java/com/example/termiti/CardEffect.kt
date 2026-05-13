@@ -64,6 +64,13 @@ sealed class CardEffect {
      */
     object ShapeShift : CardEffect()
 
+    /**
+     * Převede 1 jednotku dolu [from] na 1 jednotku dolu [to].
+     * Netýká se soupeře – operuje výhradně na vlastních dolech.
+     * Respektuje floor pro non-CHAOS doly (min 1) – nelze snížit z 1 → 0.
+     */
+    data class ConvertMine(val from: ResourceType, val to: ResourceType) : CardEffect()
+
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */
     data class XScaledAttackPlayer(val divisor: Int = 2) : CardEffect()

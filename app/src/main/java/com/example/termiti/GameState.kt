@@ -5,7 +5,7 @@ package com.example.termiti
 data class GameState(
     val playerState: PlayerState,
     val aiState: PlayerState,
-    var currentTurn: Int = 0,
+    var currentTurn: Int = 1,
     var activePlayer: ActivePlayer = ActivePlayer.PLAYER,
     val playerWinTarget: Int = 60,  // zvýší se na 65 s pasivní schopností extra_castle
     val aiWinTarget: Int = 60,      // zvýší se na 65, pokud hráč má iron_bastion

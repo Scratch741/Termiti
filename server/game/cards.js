@@ -32,6 +32,7 @@ const dpc= (ct=null)=> ({ type:'DrawPerCardPlayed', ...(ct ? {cardType:ct} : {})
 const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amount:n, ...(ct ? {cardType:ct} : {}) });
 const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
 const ss = ()            => ({ type:'ShapeShift' });
+const cvM= (from,to)     => ({ type:'ConvertMine', from, to });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -49,7 +50,7 @@ const MAX_COPIES = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };
 const RAW = [
   // ── Útok (platí ATTACK) ──────────────────────────────────────────────────
   ['001','Rychlý útok',    2,'ATTACK',1,[ap(5)],               'COMMON'],
-  ['008','Šípy',           1,'ATTACK',0,[ac(3)],               'COMMON'],
+  ['008','Šípy',           1,'ATTACK',1,[ac(3)],               'COMMON'],
   ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'RARE'],
   ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'RARE'],
   ['006','Převaha síly',   3,'ATTACK',0,[cd(rMO('ATTACK'), ac(10))],   'RARE'],
@@ -74,7 +75,7 @@ const RAW = [
   ['016','Velký pramen',   5,'MAGIC', 0,[am('MAGIC',2)],       'EPIC'],
 
   // ── Útok – rozšíření ─────────────────────────────────────────────────────
-  ['019','Zápalné šípy',   1,'ATTACK',0,[aw(5)],               'COMMON'],
+  ['019','Zápalné šípy',   1,'ATTACK',1,[aw(5)],               'COMMON'],
   ['020','Beranidlo',      3,'ATTACK',1,[aw(12)],              'RARE'],
   ['021','Dělostřelectvo', 6,'ATTACK',0,[ap(15)],              'EPIC'],
   ['022','Přímý zásah',    3,'ATTACK',0,[ac(8)],               'RARE'],
@@ -197,6 +198,7 @@ const RAW = [
   ['C18','Krádež osudu',    5,'CHAOS',0,[sc(2)],               'LEGENDARY'],
   ['C33','Krádež identity', 8,'CHAOS',0,[swh()],               'LEGENDARY'],
   ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
+  ['C35','Chaotická přeměna',4,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────
   ['C19','Spálená knihovna',4,'CHAOS',0,[bn(2)],               'EPIC'],

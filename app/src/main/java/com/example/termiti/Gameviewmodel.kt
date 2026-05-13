@@ -341,8 +341,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun createInitialState(randomDeck: Boolean = false, superRandom: Boolean = false): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
+        // Super náhodný mód: oba hráči sdílí stejný balíček (jen jinak zamíchaný)
+        val sharedSuperDeck: List<Card>? = if (superRandom) superRandomDeck() else null
+
         val playerCards = when {
-            superRandom              -> superRandomDeck()
+            superRandom              -> sharedSuperDeck!!
             randomDeck               -> balancedDeck()
             activeDeck.isValid       -> activeDeck.toCardList(allCards)
             else                     -> balancedDeck()
@@ -376,16 +379,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.drawCards(4)
         }
         val aiState = PlayerState().also {
-            val aiDeck = if (superRandom) superRandomDeck() else balancedDeck()
+            val aiDeck = if (superRandom) sharedSuperDeck!! else balancedDeck()
             it.deck.addAll(aiDeck.withUniqueIds().shuffled())
             it.drawCards(4)
         }
 
         val firstPlayer = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI
+        // Pokud AI začíná jako první, finishTurn přičte +1 před hráčovým prvním tahem.
+        // Začneme na 0, aby se hráčovo první kolo správně zobrazilo jako T1.
+        val startTurn = if (firstPlayer == ActivePlayer.AI) 0 else 1
         return GameState(
             playerState     = playerState,
             aiState         = aiState,
             activePlayer    = firstPlayer,
+            currentTurn     = startTurn,
             playerWinTarget = playerWinTarget,
             aiWinTarget     = aiWinTarget,
             playerMaxHand   = playerMaxHand

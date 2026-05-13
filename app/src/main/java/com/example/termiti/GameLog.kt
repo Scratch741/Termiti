@@ -62,7 +62,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
     when (entry) {
         is LogEntry.SystemEvent -> {
             Text(
-                text       = entry.message,
+                text       = parseCardDesc(entry.message),
                 color      = TextMuted.copy(alpha = 0.8f * rowAlpha),
                 fontSize   = 9.sp,
                 lineHeight = 12.sp,
@@ -163,7 +163,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                     // ── řádek 3: popis karty ──────────────────────────────────
                     if (entry.card.description.isNotBlank()) {
                         Text(
-                            text       = entry.card.description,
+                            text       = parseCardDesc(entry.card.description),
                             color      = TextMuted.copy(alpha = 0.72f),
                             fontSize   = 7.sp,
                             lineHeight = 9.sp,

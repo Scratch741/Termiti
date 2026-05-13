@@ -122,6 +122,10 @@ object CardRepository {
             cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
         )
         "ShapeShift"              -> CardEffect.ShapeShift
+        "ConvertMine"             -> CardEffect.ConvertMine(
+            from = ResourceType.valueOf(obj.getString("from")),
+            to   = ResourceType.valueOf(obj.getString("to"))
+        )
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

@@ -26,7 +26,7 @@ object CardPresentation {
         // ── Útok (platí ATTACK) ───────────────────────────────────────────────
         "001" to CardPres("Zaútočí na nepřítele za 5. [Combo]",
             R.drawable.art_zakladni_utok, "Útok", isBasic = true),
-        "008" to CardPres("Zaútočí na hrad za 3.",
+        "008" to CardPres("Zaútočí na hrad za 3. [Combo]",
             R.drawable.art_sipy, "Útok",
             soundResId = R.raw.arrow_hit),
         "003" to CardPres("Přímý zásah ohněm: hrad −8.",
@@ -84,7 +84,7 @@ object CardPresentation {
             artScale = 0.75f, artBiasY = -0.55f),
 
         // ── Útok – rozšíření ──────────────────────────────────────────────────
-        "019" to CardPres("Poškodí jen hradby o 5.",
+        "019" to CardPres("Poškodí jen hradby o 5. [Combo]",
             R.drawable.art_zapalne_sipy, "Útok",
             artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit),
         "020" to CardPres("Poškodí jen hradby o 12. [Combo] ",
@@ -469,6 +469,9 @@ object CardPresentation {
         "C34" to CardPres("Na začátku každého tahu se promění v náhodnou kartu ze hry.",
             R.drawable.art_shapeshifter, "Chaos",
             artScale = 0.90f, artBiasY = -0.75f),
+        "C35" to CardPres("Zničí jeden vlastní **DŮL MAGIE** a přemění ho na **DŮL CHAOSU**. Nelze snížit pod 1.",
+            R.drawable.art_chaoticka_premena, "Důl",
+            artScale = 0.80f, artBiasY = -0.75f),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",

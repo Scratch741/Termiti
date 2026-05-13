@@ -181,6 +181,11 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         }
         // Wildcard – průměrná hodnota náhodné karty
         is CardEffect.ShapeShift -> 5
+        // Konverze vlastního dolu: hodnotné pokud AI má chaos strategii
+        is CardEffect.ConvertMine -> {
+            val chaosMin = ai.mines[ResourceType.CHAOS] ?: 0
+            if (fx.from == ResourceType.MAGIC && (ai.mines[fx.from] ?: 0) > 1) 4 + chaosMin else 0
+        }
     }
 
     // ── Detekce lethal: karta zabije soupeře tento tah ──────────────────────

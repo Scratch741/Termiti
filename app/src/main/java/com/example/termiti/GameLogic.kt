@@ -68,6 +68,14 @@ fun applyEffects(
             if (cur > min) opponent.mines[effect.type] = (cur - effect.amount).coerceAtLeast(min)
         }
 
+        is CardEffect.ConvertMine   -> {
+            val floor   = if (effect.from == ResourceType.CHAOS) 0 else 1
+            val curFrom = self.mines[effect.from] ?: 0
+            // Chaos důl se vždy zvýší; zdrojový důl se sníží jen pokud je nad floorem
+            self.mines[effect.to] = ((self.mines[effect.to] ?: 0) + 1).coerceAtMost(MAX_MINES)
+            if (curFrom > floor) self.mines[effect.from] = curFrom - 1
+        }
+
         is CardEffect.BlockMine     -> {
             // Přičti blokovací kola (stackuje se, ale max 5 kol)
             val current = opponent.mineBlockedTurns[effect.type] ?: 0

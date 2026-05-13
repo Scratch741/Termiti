@@ -95,6 +95,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.GainResourcePerCardPlayed -> "⚡"
     is CardEffect.GainCastlePerCardPlayed   -> "🏯"
     is CardEffect.ShapeShift                -> "🎭"
+    is CardEffect.ConvertMine               -> "🔀"
     null                              -> "❓"
 }
 
@@ -129,12 +130,9 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     var filterCat      by remember { mutableStateOf<String?>(null) }
     var filterUnlocked by remember { mutableStateOf(false) }
     var searchQuery    by remember { mutableStateOf("") }
-    var currentPage    by remember { mutableIntStateOf(0) }
+    var filterCost     by remember { mutableStateOf<Int?>(null) }
 
-    // Reset stránky při změně filtrů
-    LaunchedEffect(filterRes, filterCat, filterUnlocked, searchQuery) { currentPage = 0 }
-
-    val filteredCards = remember(filterRes, filterCat, filterUnlocked, searchQuery, profile) {
+    val filteredCards = remember(filterRes, filterCat, filterUnlocked, searchQuery, filterCost, profile) {
         viewModel.allCards
             .filter { card ->
                 (filterRes == null || card.costType == filterRes) &&
@@ -147,15 +145,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     (profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0) > 0
                 }) &&
                 (searchQuery.isBlank() || card.name.contains(searchQuery.trim(), ignoreCase = true) ||
-                    card.description.contains(searchQuery.trim(), ignoreCase = true))
+                    card.description.contains(searchQuery.trim(), ignoreCase = true)) &&
+                (filterCost == null ||
+                    if (filterCost == 7) card.cost >= 7 else card.cost == filterCost)
             }
             .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.name }))
     }
-
-    val cardsPerPage = 12   // 4 sloupce × ~3 řady
-    val totalPages   = maxOf(1, (filteredCards.size + cardsPerPage - 1) / cardsPerPage)
-    val safePage     = currentPage.coerceIn(0, totalPages - 1)
-    val pageCards    = filteredCards.drop(safePage * cardsPerPage).take(cardsPerPage)
 
     Box(Modifier.fillMaxSize().background(BgDeep)) {
         Row(Modifier.fillMaxSize()) {
@@ -180,7 +175,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier              = Modifier.weight(1f).fillMaxWidth()
                 ) {
-                    items(pageCards, key = { it.id }) { card ->
+                    items(filteredCards, key = { it.id }) { card ->
                         val count  = editingDeck.cardCounts[card.id] ?: 0
                         val isFull = editingDeck.totalCards >= 30
                         val usable = when {
@@ -219,13 +214,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                         )
                     }
                 }
-                // ── Spodní lišta: počet + stránkování ────────────────────────
-                CardGridFooter(
+                // ── Spodní lišta: počet + filtr dle mana costu ───────────────
+                ManaCostFilterBar(
                     showing      = filteredCards.size,
                     total        = viewModel.allCards.size,
-                    currentPage  = safePage,
-                    totalPages   = totalPages,
-                    onPageChange = { currentPage = it }
+                    filterCost   = filterCost,
+                    onCostFilter = { filterCost = if (filterCost == it) null else it }
                 )
             }
 
@@ -499,77 +493,59 @@ private fun FilterBar(
     }
 }
 
-// ─── Card Grid Footer (počítadlo + stránkování) ───────────────────────────────
+// ─── Mana Cost Filter Bar ─────────────────────────────────────────────────────
 @Composable
-private fun CardGridFooter(
+private fun ManaCostFilterBar(
     showing: Int,
     total: Int,
-    currentPage: Int,
-    totalPages: Int,
-    onPageChange: (Int) -> Unit
+    filterCost: Int?,
+    onCostFilter: (Int) -> Unit
 ) {
-    Row(
+    Box(
         Modifier
             .fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.8f))
-            .padding(horizontal = 8.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(horizontal = 8.dp, vertical = 5.dp)
     ) {
+        // Počet karet – zarovnán vlevo
         Text(
-            "ZOBRAZUJI: $showing / $total",
+            "$showing/$total",
             color = TextMuted,
             fontSize = 8.sp,
-            letterSpacing = 0.5.sp
+            letterSpacing = 0.3.sp,
+            modifier = Modifier.align(Alignment.CenterStart)
         )
-        Spacer(Modifier.weight(1f))
-        if (totalPages > 1) {
-            PageBtn("‹", enabled = currentPage > 0) { onPageChange(currentPage - 1) }
-            val rangeStart = maxOf(0, currentPage - 1)
-            val rangeEnd   = minOf(totalPages - 1, rangeStart + 2)
-            (rangeStart..rangeEnd).forEach { page ->
-                PageNumBtn(page + 1, isActive = page == currentPage) { onPageChange(page) }
+        // Chipy – vycentrované
+        Row(
+            Modifier.align(Alignment.Center),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            (0..7).forEach { cost ->
+                val label  = if (cost == 7) "7+" else "$cost"
+                val active = filterCost == cost
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (active) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
+                        .border(
+                            1.dp,
+                            if (active) Gold.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
+                            RoundedCornerShape(4.dp)
+                        )
+                        .clickable { onCostFilter(cost) }
+                        .padding(horizontal = 13.dp, vertical = 3.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        label,
+                        color      = if (active) Gold else TextMuted,
+                        fontSize   = 8.sp,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
             }
-            PageBtn("›", enabled = currentPage < totalPages - 1) { onPageChange(currentPage + 1) }
         }
-    }
-}
-
-@Composable
-private fun PageBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier.size(22.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(if (enabled) Color.White.copy(alpha = 0.08f) else Color.Transparent)
-            .border(1.dp, if (enabled) Color.White.copy(alpha = 0.12f) else Color.Transparent, RoundedCornerShape(4.dp))
-            .then(if (enabled) Modifier.clickable { onClick() } else Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            label,
-            color = if (enabled) TextPrimary else TextMuted.copy(alpha = 0.25f),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-private fun PageNumBtn(page: Int, isActive: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier.size(22.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(if (isActive) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
-            .border(1.dp, if (isActive) Gold.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.10f), RoundedCornerShape(4.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            "$page",
-            color = if (isActive) Gold else TextMuted,
-            fontSize = 9.sp,
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
-        )
     }
 }
 

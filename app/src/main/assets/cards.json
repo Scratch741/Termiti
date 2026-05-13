@@ -21,7 +21,7 @@
     "name": "Šípy",
     "cost": 1,
     "costType": "ATTACK",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "AttackCastle",
@@ -334,7 +334,7 @@
     "name": "Zápalné šípy",
     "cost": 1,
     "costType": "ATTACK",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "AttackWall",
@@ -2476,6 +2476,24 @@
     "maxCopies": 2,
     "isXCost": false,
     "baseId": "C34"
+  },
+  {
+    "id": "C35",
+    "name": "Chaotická přeměna",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConvertMine",
+        "from": "MAGIC",
+        "to": "CHAOS"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "C35"
   },
   {
     "id": "C19",

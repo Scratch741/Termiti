@@ -202,6 +202,16 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'ConvertMine': {
+        // Chaos důl se vždy zvýší; zdrojový důl se sníží jen pokud je nad floorem.
+        // Non-CHAOS dol nejde pod 1 (nelze si zničit poslední magický důl).
+        const floor   = fx.from === 'CHAOS' ? 0 : 1;
+        const curFrom = self.mines[fx.from] || 0;
+        self.mines[fx.to] = Math.min(MAX_MINES, (self.mines[fx.to] || 0) + 1);
+        if (curFrom > floor) self.mines[fx.from] = curFrom - 1;
+        break;
+      }
+
       case 'BlockMine': {
         // Zablokuj produkci dolu na N kol (stackuje se, max 5)
         opponent.mineBlockedTurns = opponent.mineBlockedTurns || {};

@@ -62,6 +62,7 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.GainResourcePerCardPlayed -> "⚡"
     is CardEffect.GainCastlePerCardPlayed   -> "🏯"
     is CardEffect.ShapeShift                -> "🎭"
+    is CardEffect.ConvertMine               -> "🔀"
     null                              -> "❓"
 }
 

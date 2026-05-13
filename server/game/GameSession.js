@@ -81,8 +81,10 @@ class GameSession {
     // Build decks – vlastní balíček pokud poslaný, jinak náhodný
     console.log(`[GameSession] ${this.name.A} deckIds: ${this.deckIds.A ? `${this.deckIds.A.length} karet` : 'náhodný'}`);
     console.log(`[GameSession] ${this.name.B} deckIds: ${this.deckIds.B ? `${this.deckIds.B.length} karet` : 'náhodný'}`);
+    // super_random: oba hráči sdílí stejný balíček, každý jen jinak zamíchaný
+    const sharedSuperDeck = this.mode === 'super_random' ? superBalancedDeck() : null;
     const buildDeck = (ids) => {
-      if (this.mode === 'super_random') return superBalancedDeck();
+      if (sharedSuperDeck) return [...sharedSuperDeck];
       return ids ? buildDeckFromIds(ids) : balancedDeck();
     };
     const deckA = buildDeck(this.deckIds.A);
