@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,18 +13,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
-private val StBgDeep    = Color(0xFF0D0A0E)
-private val StBgPanel   = Color(0xFF13101A)
-private val StBgCard    = Color(0xFF1A1320)
-private val StGold      = Color(0xFFD4A843)
-private val StTealLight = Color(0xFF3DBFAD)
+private val StBgCard      = Color(0xFF1A1320)
+private val StGold        = Color(0xFFD4A843)
+private val StTealLight   = Color(0xFF3DBFAD)
 private val StTextPrimary = Color(0xFFEDE0C4)
 private val StTextMuted   = Color(0xFF7A6E5F)
 
@@ -32,12 +33,57 @@ fun SettingsScreen(onBack: () -> Unit) {
     var musicVol by remember { mutableFloatStateOf(SoundManager.musicVolume) }
     var sfxVol   by remember { mutableFloatStateOf(SoundManager.sfxVolume) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(StBgDeep, StBgPanel, StBgDeep))),
-        contentAlignment = Alignment.Center
-    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val W = maxWidth
+        val H = maxHeight
+
+        // ── Pozadí – stejné jako main menu ───────────────────────────────────
+        Image(
+            painter            = painterResource(R.drawable.menu_bg),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.Crop
+        )
+
+        // ── Pochodně – stejná logika jako v MenuScreen ────────────────────────
+        val imgAR  = 1791f / 975f
+        val dispAR = W.value / H.value.coerceAtLeast(1f)
+        val imgDispW: Dp
+        val imgDispH: Dp
+        val cropX: Dp
+        val cropY: Dp
+        if (dispAR >= imgAR) {
+            imgDispW = W
+            imgDispH = W / imgAR
+            cropX    = 0.dp
+            cropY    = (imgDispH - H) / 2f
+        } else {
+            imgDispW = H * imgAR
+            imgDispH = H
+            cropX    = (imgDispW - W) / 2f
+            cropY    = 0.dp
+        }
+        val torchSize = H * 0.15f
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.112f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ),
+            size = torchSize, seed = 0f
+        )
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.898f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ),
+            size = torchSize, seed = 1.7f
+        )
+
+        // ── Panel uprostřed ───────────────────────────────────────────────────
+        Box(
+            modifier         = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
         Column(
             modifier = Modifier
                 .width(260.dp)
@@ -97,7 +143,8 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
             }
         }
-    }
+    } // konec středového Boxu
+} // konec BoxWithConstraints
 }
 
 @Composable

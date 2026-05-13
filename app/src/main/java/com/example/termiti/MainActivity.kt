@@ -84,7 +84,6 @@ class MainActivity : ComponentActivity() {
                         // ── Výběr herního módu ────────────────────────────────
                         Screen.PLAY_MENU -> PlayMenuScreen(
                             onOwnDeck     = { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
-                            onRandomDeck  = { gameRandom = true;  gameSuperRandom = false; viewModel.restartGame(randomDeck = true);                     screen = Screen.GAME },
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onCampaign    = { screen = Screen.CAMPAIGN_MAP },

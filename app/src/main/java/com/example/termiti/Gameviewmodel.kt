@@ -339,6 +339,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 List(count) { card }
             }
 
+    /** Náhodně vybraný předdefinovaný balíček (stejné presety jako v DeckBuilderu). */
+    private fun presetDeck(): List<Card> =
+        presetTemplates.random().second
+            .flatMap { (id, count) ->
+                val card = allCards.find { it.id == id } ?: return@flatMap emptyList()
+                List(count) { card }
+            }
+
     private fun createInitialState(randomDeck: Boolean = false, superRandom: Boolean = false): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
         // Super náhodný mód: oba hráči sdílí stejný balíček (jen jinak zamíchaný)
@@ -380,7 +388,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.drawCards(4)
         }
         val aiState = PlayerState().also {
-            val aiCards = if (superRandom) sharedSuperDeck!!.withUniqueIds() else balancedDeck().withUniqueIds()
+            val aiCards = when {
+                superRandom  -> sharedSuperDeck!!.withUniqueIds()
+                !randomDeck && activeDeck.isValid -> presetDeck().withUniqueIds()  // vlastní balíček hráče → AI hraje s prestem
+                else         -> balancedDeck().withUniqueIds()
+            }
             it.deck.addAll(aiCards)
             it.deck.shuffle()   // 2. míchání – oddělené volání, zaručeně jiný stav Random
             it.drawCards(4)
