@@ -349,7 +349,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             randomDeck               -> balancedDeck()
             activeDeck.isValid       -> activeDeck.toCardList(allCards)
             else                     -> balancedDeck()
-        }.withUniqueIds().shuffled()
+        }.withUniqueIds()   // ještě NEZAMÍCHÁNO – shuffle se provede uvnitř also{} níže
 
         // ── Pasivní schopnosti hráče ──────────────────────────────────────────
         val actives = PlayerProfileManager.profile
@@ -376,11 +376,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (extraStones > 0) it.resources[ResourceType.STONES] = extraStones
             if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
             it.deck.addAll(playerCards)
+            it.deck.shuffle()   // 1. míchání – provede se na MutableList přímo
             it.drawCards(4)
         }
         val aiState = PlayerState().also {
-            val aiDeck = if (superRandom) sharedSuperDeck!! else balancedDeck()
-            it.deck.addAll(aiDeck.withUniqueIds().shuffled())
+            val aiCards = if (superRandom) sharedSuperDeck!!.withUniqueIds() else balancedDeck().withUniqueIds()
+            it.deck.addAll(aiCards)
+            it.deck.shuffle()   // 2. míchání – oddělené volání, zaručeně jiný stav Random
             it.drawCards(4)
         }
 

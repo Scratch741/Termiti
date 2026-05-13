@@ -84,7 +84,7 @@ class GameSession {
     // super_random: oba hráči sdílí stejný balíček, každý jen jinak zamíchaný
     const sharedSuperDeck = this.mode === 'super_random' ? superBalancedDeck() : null;
     const buildDeck = (ids) => {
-      if (sharedSuperDeck) return [...sharedSuperDeck];
+      if (sharedSuperDeck) return shuffle([...sharedSuperDeck]); // kopie s vlastním zamícháním
       return ids ? buildDeckFromIds(ids) : balancedDeck();
     };
     const deckA = buildDeck(this.deckIds.A);
