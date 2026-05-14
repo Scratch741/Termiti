@@ -366,13 +366,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ?: emptyList()
 
         val startCastle      = 30 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
-        val startWall        = 10 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
+        val startWall        = 15 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
         val extraMagic       =       if (PassiveAbility.EXTRA_MAGIC      in actives) 1 else 0
         val extraAttack      =       if (PassiveAbility.EXTRA_ATTACK     in actives) 1 else 0
         val extraStones      =       if (PassiveAbility.EXTRA_STONES     in actives) 1 else 0
         val extraChaos       =       if (PassiveAbility.EXTRA_CHAOS      in actives) 1 else 0
-        val playerWinTarget  =  60 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
-        val aiWinTarget      =  60 + if (PassiveAbility.IRON_BASTION     in actives) 5 else 0
+        val playerWinTarget  =  70 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
+        val aiWinTarget      =  70 + if (PassiveAbility.IRON_BASTION     in actives) 5 else 0
         val playerMaxHand    =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in actives) 1 else 0
 
         val playerState = PlayerState(
@@ -859,7 +859,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Hráčův startovní stav ────────────────────────────────────────────
         val startCastle = 30 + (if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0) + h.extraCastle
-        val startWall   = 10 + (if (PassiveAbility.EXTRA_WALL   in actives) 5 else 0) + h.extraWall
+        val startWall   = 15 + (if (PassiveAbility.EXTRA_WALL   in actives) 5 else 0) + h.extraWall
         val extraMagic  =      (if (PassiveAbility.EXTRA_MAGIC  in actives) 1 else 0) + h.extraMagic
         val extraAttack =      (if (PassiveAbility.EXTRA_ATTACK in actives) 1 else 0) + h.extraAttack
         val extraStones =      (if (PassiveAbility.EXTRA_STONES in actives) 1 else 0) + h.extraStones

@@ -24,7 +24,7 @@ data class PendingResource(
  */
 class PlayerState(
     var castleHP: Int = 30,
-    var wallHP: Int = 10,
+    var wallHP: Int = 15,
     var resources: MutableMap<ResourceType, Int> = mutableMapOf(
         ResourceType.MAGIC  to 0,
         ResourceType.ATTACK to 0,

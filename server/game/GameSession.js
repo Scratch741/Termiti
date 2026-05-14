@@ -98,13 +98,13 @@ class GameSession {
     applyPassiveAbilities(this.state.B, this.abilities.B);
 
     // Vítězný cíl hradu:
-    //   extra_castle  → vlastní cíl 65 (výměna za 5 HP navíc při startu)
-    //   iron_bastion  → soupeřův cíl 65 (soupeř musí postavit více)
-    // Obě schopnosti NESTACKUJÍ – max je vždy 65, ne 70.
+    //   extra_castle  → vlastní cíl 75 (výměna za 5 HP navíc při startu)
+    //   iron_bastion  → soupeřův cíl 75 (soupeř musí postavit více)
+    // Obě schopnosti NESTACKUJÍ – max je vždy 75, ne 80.
     // (Obě jsou popsané jako "cíl 65", nikoli "+5")
     this.winTarget = {
-      A: (this.abilities.A.includes('extra_castle') || this.abilities.B.includes('iron_bastion')) ? 65 : 60,
-      B: (this.abilities.B.includes('extra_castle') || this.abilities.A.includes('iron_bastion')) ? 65 : 60
+      A: (this.abilities.A.includes('extra_castle') || this.abilities.B.includes('iron_bastion')) ? 75 : 70,
+      B: (this.abilities.B.includes('extra_castle') || this.abilities.A.includes('iron_bastion')) ? 75 : 70
     };
 
     // Deal opening hands

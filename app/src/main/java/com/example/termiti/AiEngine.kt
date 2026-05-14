@@ -54,6 +54,15 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
     val bothDecksEmpty = ai.deck.isEmpty() && opponent.deck.isEmpty()
     val handFull       = ai.hand.size >= 7
 
+    // TOTO KOLO buffery – aktivní pokud AI již zahrála TOTO KOLO kartu tento tah
+    val buffDrawActive     = ai.drawCardOnPlay != null
+    val buffResourceActive = ai.gainResourcePerCardPlayed.isNotEmpty()
+    val buffCastleActive   = ai.gainCastlePerCardPlayed.isNotEmpty()
+    val anyBuffActive      = buffDrawActive || buffResourceActive || buffCastleActive
+
+    // Počet combo karet v ruce (bez aktuálně hodnocené karty)
+    val comboCardsInHand   = ai.hand.count { it.isCombo }
+
     // Rekurzivní ohodnocení jednoho efektu v kontextu stavu AI
     // xVal = hodnota X pro X-kost efekty (aktuální zásoby daného zdroje)
     // Situační příznaky soupeře – pro chytřejší hodnocení efektů
@@ -166,18 +175,17 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
             if (opponent.hand.size > ai.hand.size) 10 + (opponent.hand.size - ai.hand.size) * 2 else 3
         // Každá combo karta zahraná po této přinese líz – hodnotnější pokud AI má víc combo karet v ruce
         is CardEffect.DrawPerCardPlayed -> {
-            val comboInHand = ai.hand.count { it.isCombo }
-            4 + comboInHand * 3
+            // Buff stojí za to jen pokud máme combo karty k zahrání
+            if (comboCardsInHand == 0) -2 else 5 + comboCardsInHand * 4
+            // Poznámka: dostupnost zdrojů po zaplacení se kontroluje v score() níže
         }
         // Každá zahraná karta přidá zdroje – hodnotnější při více combo kartách v ruce
         is CardEffect.GainResourcePerCardPlayed -> {
-            val comboInHand = ai.hand.count { it.isCombo }
-            3 + comboInHand * fx.amount
+            if (comboCardsInHand == 0) -2 else 4 + comboCardsInHand * (fx.amount + 1)
         }
         // Každá zahraná stavební karta přidá HP hradu – hodnotnější při více combo v ruce
         is CardEffect.GainCastlePerCardPlayed -> {
-            val comboInHand = ai.hand.count { it.isCombo }
-            3 + comboInHand * fx.amount
+            if (comboCardsInHand == 0) -2 else 4 + comboCardsInHand * (fx.amount + 1)
         }
         // Wildcard – průměrná hodnota náhodné karty
         is CardEffect.ShapeShift -> 5
@@ -263,7 +271,34 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         val costForScore = if (card.isXCost) xVal else card.cost
         val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0
         val noise       = (-2..2).random()
-        return effectScore - costForScore - chaosBlock + noise
+
+        // ── TOTO KOLO penalty: zahraj jen pokud zbydou resources na combo kartu ──
+        // Zkontroluj, zda AI po zaplacení této TOTO KOLO karty může zahrát
+        // alespoň jednu combo kartu z ruky. Pokud ne, buff by vyšel naprázdno.
+        val isTotoKolo = card.effects.any {
+            it is CardEffect.DrawPerCardPlayed ||
+            it is CardEffect.GainResourcePerCardPlayed ||
+            it is CardEffect.GainCastlePerCardPlayed
+        }
+        val totoKoloPenalty = if (isTotoKolo && comboCardsInHand > 0) {
+            val residualRes = ai.resources.toMutableMap()
+            residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.cost).coerceAtLeast(0)
+            val canAffordCombo = ai.hand.any { combo ->
+                combo.isCombo && combo.id != card.id &&
+                (residualRes[combo.costType] ?: 0) >= combo.cost
+            }
+            if (!canAffordCombo) -25 else 0  // po zaplacení není na žádnou combo → silná penalta
+        } else 0
+
+        // ── TOTO KOLO bonus pro combo karty ───────────────────────────────────
+        // Pokud je aktivní buff z TOTO KOLO karty, combo karty dostávají velký bonus.
+        val totoBuff = if (anyBuffActive && card.isCombo) {
+            val activeBuffCount = listOf(buffDrawActive, buffResourceActive, buffCastleActive).count { it }
+            val drawBonus = if (buffDrawActive) 4 else 0
+            activeBuffCount * 6 + drawBonus
+        } else 0
+
+        return effectScore - costForScore - chaosBlock + totoKoloPenalty + totoBuff + noise
     }
 
     // Chytrý výběr karty k zahození:

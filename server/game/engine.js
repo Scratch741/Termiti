@@ -13,7 +13,7 @@ const MAX_MINES    = 99;
 function createPlayerState(deckCards) {
   return {
     castleHP: 30,
-    wallHP:   10,
+    wallHP:   15,
     resources: { MAGIC: 0, ATTACK: 0, STONES: 0, CHAOS: 0 },
     mines:     { MAGIC: 1, ATTACK: 1, STONES: 1 },
     /** Zbývající kola blokády produkce pro každý typ dolu. */
