@@ -77,8 +77,10 @@ class GameSession {
     this.lastLog = [];
 
     // Pending Decision state (set while waiting for DECISION_RESPONSE from client)
-    this.pendingDecision = null;  // { side, effect, isCombo, options }
-    this._decisionTimer  = null;
+    this.pendingDecision      = null;  // { side, effect, isCombo, options }
+    this._decisionTimer       = null;
+    this._decisionStartedAt   = null;  // timestamp kdy byl odeslán DECISION_REQUEST
+    this._decisionTurnPhaseMs = null;  // zbývající ms ve fázi kola v tom okamžiku (bez timebanku)
   }
 
   // ── Start ──────────────────────────────────────────────────────────────────
@@ -328,15 +330,15 @@ class GameSession {
       return;
     }
 
-    // Zachyť zbývající čas PŘED vymazáním timeru – použijeme ho jako timeout Rozhodnutí,
-    // aby hráč neměl více času na výběr karty než měl zbývajícího v tomto kole.
+    // Zachyť zbývající čas PŘED vymazáním timeru – použijeme ho jako základ pro timeout Rozhodnutí.
+    // Timeout = zbývající turn čas + zbývající timebank (resp. jen timebank pokud jsme v timebank fázi).
     const _now = Date.now();
     if (this.timebankStartedAt !== null) {
-      // Jsme ve fázi timebanku – zbývající timebank hráče
-      this._remainingTurnMsAtAction = Math.max(5000, this.timebank[side] * 1000 - (_now - this.timebankStartedAt));
+      // Jsme ve fázi timebanku → turn čas je pryč; zbývající čas bude jen z timebanku
+      this._remainingTurnMsAtAction = 0;
     } else {
-      // Jsme ve fázi kola – zbývající ms v tomto kole
-      this._remainingTurnMsAtAction = Math.max(5000, TURN_SECONDS * 1000 - (_now - this.turnStartedAt));
+      // Jsme ve fázi kola → zbývající ms v tomto kole (bez Min5000 – přičteme timebank)
+      this._remainingTurnMsAtAction = Math.max(0, TURN_SECONDS * 1000 - (_now - this.turnStartedAt));
     }
 
     this._consumeTimebank(side);  // odečti spotřebovaný timebank (pokud byl použit)
@@ -472,8 +474,15 @@ class GameSession {
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
       this._sendStateBoth();
 
-      // Timeout = zbývající čas z aktuálního kola (zachyceno v handleAction)
-      const decisionTimeoutMs = this._remainingTurnMsAtAction ?? (TURN_SECONDS * 1000);
+      // Timeout = zbývající turn čas + zbývající timebank hráče
+      // (po _consumeTimebank je this.timebank[side] již aktuální)
+      const decisionTurnPhaseMs = this._remainingTurnMsAtAction ?? 0;
+      const decisionTimebankMs  = this.timebank[side] * 1000;
+      const decisionTimeoutMs   = Math.max(5000, decisionTurnPhaseMs + decisionTimebankMs);
+
+      // Zapamatuj si kdy začalo rozhodnutí – při _resolveDecision odečteme spotřebovaný timebank
+      this._decisionStartedAt   = Date.now();
+      this._decisionTurnPhaseMs = decisionTurnPhaseMs;
 
       // Pošli nabídku aktivnímu hráči
       this._send(side, {
@@ -492,10 +501,14 @@ class GameSession {
         timeoutMs: decisionTimeoutMs
       });
 
-      // Auto-resolve po timeoutu
+      // Auto-resolve po timeoutu – timebank byl spotřebován celý
       this._decisionTimer = setTimeout(() => {
         if (!this.pendingDecision || this.pendingDecision.side !== side) return;
         console.log(`[Decision ${this.gameId}] Timeout – auto-resolve`);
+        // Nastav start na null, aby _resolveDecision neodečítal znovu (timeout = celý timebank pryč)
+        this.timebank[side]         = 0;
+        this._decisionStartedAt     = null;
+        this._decisionTurnPhaseMs   = null;
         this._resolveDecision(side, options.length > 0 ? options[0].id : null);
       }, decisionTimeoutMs);
 
@@ -568,6 +581,17 @@ class GameSession {
 
     const { effect, isCombo } = this.pendingDecision;
     this.pendingDecision = null;
+
+    // Spotřebuj timebank hráče za dobu strávenou výběrem (pokud hráč odpověděl sám, ne timeout)
+    if (this._decisionStartedAt !== null) {
+      const decisionElapsed  = Date.now() - this._decisionStartedAt;
+      const turnPhaseMs      = this._decisionTurnPhaseMs || 0;
+      const timebankUsedMs   = Math.max(0, decisionElapsed - turnPhaseMs);
+      const timebankUsedSec  = Math.ceil(timebankUsedMs / 1000);
+      this.timebank[side]    = Math.max(0, this.timebank[side] - timebankUsedSec);
+      this._decisionStartedAt   = null;
+      this._decisionTurnPhaseMs = null;
+    }
 
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
