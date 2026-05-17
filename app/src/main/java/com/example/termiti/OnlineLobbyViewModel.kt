@@ -631,6 +631,26 @@ class OnlineLobbyViewModel(
                     gameState.value = parseGameState(json)
                     phase.value = OnlinePhase.GAME_PLAYING
 
+                    // Pokud matchInfo chybí (appka byla restartována během hry),
+                    // rekonstruuj ho ze základních polí v GAME_STATE.
+                    // gameId a mySide jsou povinné pro sendAction; ostatní pole dostanou výchozí hodnoty.
+                    if (matchInfo.value == null) {
+                        val recoveredGameId = json.optString("gameId", "")
+                        val recoveredSide   = json.optString("mySide", "A")
+                        if (recoveredGameId.isNotEmpty()) {
+                            matchInfo.value = OnlineMatchInfo(
+                                gameId               = recoveredGameId,
+                                opponentName         = "Soupeř",
+                                opponentAvatar       = "👺",
+                                opponentCardBackSkin = "card_back_frame",
+                                opponentCastleSkin   = "castle_player",
+                                opponentLevel        = -1,
+                                side                 = recoveredSide
+                            )
+                            android.util.Log.d("RECONNECT", "matchInfo rekonstruován z GAME_STATE: gameId=$recoveredGameId side=$recoveredSide")
+                        }
+                    }
+
                     // Serverové textové logy (spálené karty, oznámení tahu, atd.)
                     // Server posílá jen nové záznamy od posledního stavu (lastLog se čistí po každém push).
                     val serverLogs = gameState.value.log

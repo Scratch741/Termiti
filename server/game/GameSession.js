@@ -880,6 +880,8 @@ class GameSession {
 
     return {
       type: 'GAME_STATE',
+      gameId:     this.gameId,   // klient potřebuje gameId pro GAME_ACTION po restartu appky
+      mySide:     side,          // klient potřebuje vědět, která strana je jeho
       activeSide: this.activeSide,
       isMyTurn:   this.activeSide === side,
       turnNumber: this.turnNumber,
