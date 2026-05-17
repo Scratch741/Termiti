@@ -556,7 +556,9 @@ class OnlineLobbyViewModel(
                         // pošle GAME_MULLIGAN / GAME_STATE pro obnovení hry.
                         // Pokud server hru nezná (restart bez persistence), klient
                         // správně zůstane v lobby místo aby uvízl v herní fázi.
-                        resetGameState()   // vyčistí mulligan timer i herní stav
+                        // preserveMatchInfo = true: matchInfo (gameId, side …) zůstane,
+                        // aby sendAction() mohlo odeslat akci po příchodu GAME_STATE.
+                        resetGameState(preserveMatchInfo = true)
                         phase.value     = OnlinePhase.LOBBY
                         statusMsg.value = "Reconnect ✓"
                         errorMsg.value  = ""
@@ -906,7 +908,13 @@ class OnlineLobbyViewModel(
 
     // ── Pomocné ───────────────────────────────────────────────────────────────
 
-    private fun resetGameState() {
+    /**
+     * Vyresetuje herní stav.
+     * @param preserveMatchInfo  true při reconnectu – zachová matchInfo (gameId, side, jméno soupeře),
+     *                           protože akce (PLAY_CARD, END_TURN …) bez gameId tiše selžou.
+     *                           false při normálním odchodu ze hry – kompletní reset.
+     */
+    private fun resetGameState(preserveMatchInfo: Boolean = false) {
         cancelMulliganTimer()
         cancelOnlineDecisionTimer()
         onlinePendingDecision.value = null
@@ -921,7 +929,7 @@ class OnlineLobbyViewModel(
         lastPlayedCard.value       = null
         lastPlayedByMe.value       = false
         lastPlayedAction.value     = null
-        matchInfo.value            = null
+        if (!preserveMatchInfo) matchInfo.value = null
     }
 
     private fun send(vararg pairs: Pair<String, Any>) {
