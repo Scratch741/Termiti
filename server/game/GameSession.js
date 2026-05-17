@@ -328,6 +328,17 @@ class GameSession {
       return;
     }
 
+    // Zachyť zbývající čas PŘED vymazáním timeru – použijeme ho jako timeout Rozhodnutí,
+    // aby hráč neměl více času na výběr karty než měl zbývajícího v tomto kole.
+    const _now = Date.now();
+    if (this.timebankStartedAt !== null) {
+      // Jsme ve fázi timebanku – zbývající timebank hráče
+      this._remainingTurnMsAtAction = Math.max(5000, this.timebank[side] * 1000 - (_now - this.timebankStartedAt));
+    } else {
+      // Jsme ve fázi kola – zbývající ms v tomto kole
+      this._remainingTurnMsAtAction = Math.max(5000, TURN_SECONDS * 1000 - (_now - this.turnStartedAt));
+    }
+
     this._consumeTimebank(side);  // odečti spotřebovaný timebank (pokud byl použit)
     this._clearTurnTimer();       // hráč reagoval – zastav odpočet
 
@@ -461,8 +472,8 @@ class GameSession {
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
       this._sendStateBoth();
 
-      // Timeout shodný s délkou kola – hráč nemá extra čas na rozhodnutí
-      const decisionTimeoutMs = TURN_SECONDS * 1000;
+      // Timeout = zbývající čas z aktuálního kola (zachyceno v handleAction)
+      const decisionTimeoutMs = this._remainingTurnMsAtAction ?? (TURN_SECONDS * 1000);
 
       // Pošli nabídku aktivnímu hráči
       this._send(side, {
