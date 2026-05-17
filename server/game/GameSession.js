@@ -402,7 +402,8 @@ class GameSession {
     const cardType = deriveCardType(card);
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
-      drawCards(self, 1, self.maxHandSize || 7);
+      const drawBurned = drawCards(self, 1, self.maxHandSize || 7);
+      for (const bc of drawBurned) this._log(`🔥 ${this.name[side]} spálil ${bc.name} (plná ruka).`);
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
     for (const grp of (self.gainResourcePerCardPlayed || [])) {
@@ -435,13 +436,19 @@ class GameSession {
 
     this._log(`${this.name[side]} zahrál ${card.name}`);
 
-    // Notify opponent about stolen/burned cards
+    // Notify opponent about stolen/burned cards + log for both players
+    const oppSideName = this.name[side === 'A' ? 'B' : 'A'];
     for (const { card: lc, action } of lostCards) {
       this._send(side === 'A' ? 'B' : 'A', {
         type:   'CARD_LOST',
         cardId: lc.id,
         action  // 'STOLEN' | 'BURNED'
       });
+      if (action === 'BURNED') {
+        this._log(`🔥 ${oppSideName} přišel o ${lc.name} (spálena).`);
+      } else if (action === 'STOLEN') {
+        this._log(`🗡️ ${this.name[side]} ukradl ${lc.name} od ${oppSideName}.`);
+      }
     }
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
@@ -719,8 +726,8 @@ class GameSession {
     const burned = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
     transformShapeShifters(next.hand, ALL_CARDS);
 
-    if (burned.length > 0) {
-      this._log(`${this.name[this.activeSide]} spálil kartu (plná ruka).`);
+    for (const bc of burned) {
+      this._log(`🔥 ${this.name[this.activeSide]} spálil ${bc.name} (plná ruka).`);
     }
 
     this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
