@@ -311,10 +311,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Rozhodnutí – helpery ──────────────────────────────────────────────────
 
-    private fun buildDecisionOptions(fx: CardEffect, self: PlayerState, opponent: PlayerState): List<Card> = when (fx) {
+    private fun buildDecisionOptions(
+        fx: CardEffect,
+        self: PlayerState,
+        opponent: PlayerState,
+        excludeId: String? = null   // vyloučí právě zahranou kartu z nabídky (Vzpomínka)
+    ): List<Card> = when (fx) {
         is CardEffect.DecisionBurnOpponent -> opponent.deck.shuffled().take(fx.picks)
         is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType }.shuffled().take(fx.picks)
-        is CardEffect.DecisionFromDiscard  -> self.discardPile.shuffled().take(fx.picks)
+        is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDeck     -> self.deck.shuffled().take(fx.picks)
         else -> emptyList()
     }
@@ -615,7 +620,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it is CardEffect.DecisionFromDeck
         }
         if (decisionFx != null) {
-            val options = buildDecisionOptions(decisionFx, player, ai)
+            val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
             if (options.isNotEmpty()) {
                 decisionPlayer  = player
                 decisionAi      = ai
