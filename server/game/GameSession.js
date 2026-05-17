@@ -469,6 +469,13 @@ class GameSession {
       // Předej ID právě zahrané karty – DecisionFromDiscard ji vyloučí z nabídky
       // (karta je už v discardu, ale efekt by měl proběhnout "před" zahozením)
       const options = this._buildDecisionOptions(side, decisionFx, card.id);
+
+      // Pokud nejsou žádné možnosti (prázdný discard / balíček), přeskoč rozhodnutí
+      // a pokračuj normálním průběhem – jinak by hráč uvízl bez možnosti výběru.
+      if (options.length === 0) {
+        console.log(`[Decision ${this.gameId}] Žádné options pro ${decisionFx.type} – přeskakuji`);
+        // (pokračuje pod blokem if decisionFx)
+      } else {
       this.pendingDecision = { side, effect: decisionFx, isCombo: card.isCombo, options };
 
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
@@ -509,10 +516,11 @@ class GameSession {
         this.timebank[side]         = 0;
         this._decisionStartedAt     = null;
         this._decisionTurnPhaseMs   = null;
-        this._resolveDecision(side, options.length > 0 ? options[0].id : null);
+        this._resolveDecision(side, options[0]?.id ?? null);
       }, decisionTimeoutMs);
 
       return;
+      } // konec else (options.length > 0)
     }
 
     // ── Normální průběh ────────────────────────────────────────────────────
