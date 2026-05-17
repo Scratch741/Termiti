@@ -145,8 +145,8 @@ private fun cardFrameName(costType: ResourceType) = when (costType) {
 
 /** Miniatura líce karty – stejná velikost jako CardBack (22×32 dp). */
 @Composable
-fun MiniCardFront(card: Card, modifier: Modifier = Modifier) {
-    val borderColor = rarityColor(card.rarity)
+fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color? = null) {
+    val borderColor = borderColor ?: rarityColor(card.rarity)
     val context = LocalContext.current
     val frameResId = remember(card.costType) {
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
@@ -212,40 +212,10 @@ internal fun CardBackPlayed(card: Card) {
     }
 }
 
-/** Slot zahrané karty soupeře v pruhu ruky – čitelný název + cena, červený rámeček. */
+/** Slot zahrané karty soupeře v pruhu ruky – miniatura artu s červeným okrajem. */
 @Composable
 internal fun PlayedCardSlot(card: Card) {
-    val costColor = resourceColor(card.costType)
-    Column(
-        modifier = Modifier
-            .size(width = 38.dp, height = 38.dp)
-            .clip(RoundedCornerShape(5.dp))
-            .background(Color(0xFF2A0A0A))
-            .border(1.5.dp, Crimson, RoundedCornerShape(5.dp))
-            .padding(3.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            effectIcon(card),
-            fontSize = 12.sp
-        )
-        Text(
-            card.name,
-            color      = TextPrimary,
-            fontSize   = 6.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center,
-            maxLines   = 2,
-            overflow   = TextOverflow.Ellipsis,
-            lineHeight = 7.sp
-        )
-        Text(
-            "${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}",
-            color    = costColor,
-            fontSize = 6.sp
-        )
-    }
+    MiniCardFront(card = card, borderColor = Crimson)
 }
 
 
