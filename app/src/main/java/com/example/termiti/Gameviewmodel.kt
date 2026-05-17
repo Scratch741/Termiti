@@ -373,10 +373,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 log.appendLog("Hráč si vzal z odhazovacího balíčku: ${chosen.name}")
             }
             is CardEffect.DecisionFromDeck -> {
-                player.deck.remove(chosen)
-                val retrieved = chosen.copy(isGenerated = true)
-                if (player.hand.size < old.playerMaxHand) player.hand.add(retrieved) else player.discardPile.add(retrieved)
-                log.appendLog("Hráč si vybral z balíčku: ${chosen.name}")
+                // Karta zůstane v balíčku – do ruky přijde kopie s novým ID
+                val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(copy) else player.discardPile.add(copy)
+                log.appendLog("Hráč zkopíroval z balíčku: ${chosen.name}")
             }
             else -> {}
         }
