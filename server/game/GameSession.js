@@ -446,7 +446,9 @@ class GameSession {
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
     if (decisionFx) {
-      const options = this._buildDecisionOptions(side, decisionFx);
+      // Předej ID právě zahrané karty – DecisionFromDiscard ji vyloučí z nabídky
+      // (karta je už v discardu, ale efekt by měl proběhnout "před" zahozením)
+      const options = this._buildDecisionOptions(side, decisionFx, card.id);
       this.pendingDecision = { side, effect: decisionFx, isCombo: card.isCombo, options };
 
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
@@ -500,7 +502,7 @@ class GameSession {
 
   // ── Decision: sestav nabídku karet ─────────────────────────────────────────
 
-  _buildDecisionOptions(side, effect) {
+  _buildDecisionOptions(side, effect, playedCardId = null) {
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
     const n    = effect.picks || 3;
@@ -518,7 +520,12 @@ class GameSession {
       }
       case 'DecisionFromDiscard': {
         // N náhodných karet z vlastního odhazovacího balíčku
-        return [...self.discardPile].sort(() => Math.random() - 0.5).slice(0, n);
+        // Vyloučí právě zahranou kartu – ta sice fyzicky leží v discardu, ale efekt
+        // Vzpomínky by měl proběhnout "před" zahozením (hráč si nemůže vzít sám sebe)
+        return [...self.discardPile]
+          .filter(c => c.id !== playedCardId)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, n);
       }
       case 'DecisionFromDeck': {
         // N náhodných karet z vlastního balíčku
