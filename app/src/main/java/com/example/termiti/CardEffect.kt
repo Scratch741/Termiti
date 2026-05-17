@@ -73,13 +73,16 @@ sealed class CardEffect {
 
     // ── Rozhodnutí ────────────────────────────────────────────────────────────
     /** Zobrazí [picks] karet ze soupeřova balíčku; hráč vybere jednu k zahození. */
-    data class DecisionBurnOpponent(val picks: Int = 3) : CardEffect()
-    /** Zobrazí [picks] náhodných karet daného [cardType] ze hry; hráč přidá jednu do ruky. */
-    data class DecisionChooseType(val cardType: String, val picks: Int = 3) : CardEffect()
+    data class DecisionBurnOpponent(val picks: Int = 4) : CardEffect()
+    /**
+     * Zobrazí [picks] náhodných karet daného [cardType] ze hry; hráč přidá jednu do ruky.
+     * [costReduction] = o kolik bude vybraná karta levnější (0 = žádná sleva).
+     */
+    data class DecisionChooseType(val cardType: String, val picks: Int = 4, val costReduction: Int = 0) : CardEffect()
     /** Zobrazí [picks] karet z vlastního odhazovacího balíčku; hráč přidá jednu do ruky. */
-    data class DecisionFromDiscard(val picks: Int = 3) : CardEffect()
+    data class DecisionFromDiscard(val picks: Int = 4) : CardEffect()
     /** Zobrazí [picks] karet z vlastního balíčku; hráč přidá jednu do ruky. */
-    data class DecisionFromDeck(val picks: Int = 3) : CardEffect()
+    data class DecisionFromDeck(val picks: Int = 4) : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

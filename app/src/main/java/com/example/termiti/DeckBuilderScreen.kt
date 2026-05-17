@@ -114,6 +114,10 @@ private fun Card.category() = when (effects.firstOrNull()) {
     is CardEffect.BuildWall         -> "Obrana"
     is CardEffect.AddResource       -> "Zdroje"
     is CardEffect.AddMine           -> "Doly"
+    is CardEffect.DecisionBurnOpponent,
+    is CardEffect.DecisionChooseType,
+    is CardEffect.DecisionFromDiscard,
+    is CardEffect.DecisionFromDeck  -> "Rozhodnutí"
     else                            -> "Ostatní"
 }
 
@@ -419,14 +423,19 @@ private fun FilterBar(
         Modifier.fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.6f))
     ) {
-        // ── Řádek 0: vyhledávání ──────────────────────────────────────────────
+        // ── Řádek 1: zdroj + hledání ─────────────────────────────────────────
         Row(
             Modifier.fillMaxWidth()
                 .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text("🔍", fontSize = 11.sp)
+            Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
+            FilterChip("✨ Magie",  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
+            FilterChip("⚔️ Útok",  filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
+            FilterChip("🪨 Kámen", filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
+            FilterChip("🌀 Chaos", filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
+            Spacer(Modifier.weight(1f))
             BasicTextField(
                 value         = searchQuery,
                 onValueChange = onSearchChange,
@@ -434,7 +443,7 @@ private fun FilterBar(
                 textStyle     = TextStyle(color = TextPrimary, fontSize = 10.sp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier      = Modifier
-                    .weight(1f)
+                    .width(150.dp)
                     .clip(RoundedCornerShape(5.dp))
                     .background(Color.White.copy(alpha = 0.06f))
                     .border(
@@ -447,7 +456,7 @@ private fun FilterBar(
                 decorationBox = { inner ->
                     Box {
                         if (searchQuery.isBlank()) {
-                            Text("Hledat kartu…", color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
+                            Text("🔍 Hledat…", color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
                         }
                         inner()
                     }
@@ -465,19 +474,6 @@ private fun FilterBar(
                 }
             }
         }
-        // ── Řádek 1: zdroj ────────────────────────────────────────────────────
-        Row(
-            Modifier.fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
-            FilterChip("✨ Magie",  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
-            FilterChip("⚔️ Útok",  filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
-            FilterChip("🪨 Kámen", filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
-            FilterChip("🌀 Chaos", filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
-        }
         // ── Řádek 2: efekt + kombo + odemčené ────────────────────────────────
         Row(
             Modifier.fillMaxWidth()
@@ -486,11 +482,12 @@ private fun FilterBar(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text("Efekt:", color = TextMuted, fontSize = 9.sp)
-            FilterChip("Útok",      filterCat == "Útok",   AttackRed)  { onCatFilter("Útok")   }
-            FilterChip("Obrana",    filterCat == "Obrana", StoneColor) { onCatFilter("Obrana") }
-            FilterChip("Zdroje",    filterCat == "Zdroje", MagicPurple){ onCatFilter("Zdroje") }
-            FilterChip("Doly",      filterCat == "Doly",   Gold)       { onCatFilter("Doly")   }
-            FilterChip("🔗 Kombo",  filterCat == "Kombo",  TealLight)  { onCatFilter("Kombo")  }
+            FilterChip("Útok",        filterCat == "Útok",        AttackRed)              { onCatFilter("Útok")        }
+            FilterChip("Obrana",      filterCat == "Obrana",      StoneColor)             { onCatFilter("Obrana")      }
+            FilterChip("Zdroje",      filterCat == "Zdroje",      MagicPurple)            { onCatFilter("Zdroje")      }
+            FilterChip("Doly",        filterCat == "Doly",        Gold)                   { onCatFilter("Doly")        }
+            FilterChip("🔗 Kombo",    filterCat == "Kombo",       TealLight)              { onCatFilter("Kombo")       }
+            FilterChip("Rozhodnutí",  filterCat == "Rozhodnutí",  Color(0xFFAB47BC))      { onCatFilter("Rozhodnutí")  }
             Spacer(Modifier.weight(1f))
             FilterChip("🔓 Odemčené", filterUnlocked, HpGreen) { onUnlocked() }
         }

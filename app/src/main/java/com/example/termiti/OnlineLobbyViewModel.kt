@@ -665,8 +665,9 @@ class OnlineLobbyViewModel(
                         val template = allCards.find { it.id == baseId }
                         if (template != null) {
                             val card = template.copy(
-                                id          = lpc.optString("id", baseId),
-                                isGenerated = lpc.optBoolean("isGenerated", false)
+                                id           = lpc.optString("id", baseId),
+                                isGenerated  = lpc.optBoolean("isGenerated",  false),
+                                costModifier = lpc.optInt("costModifier", 0)
                             )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
@@ -864,12 +865,13 @@ class OnlineLobbyViewModel(
             val obj        = arr.getJSONObject(i)
             val instanceId = obj.optString("id", "")
             val baseId     = obj.optString("baseId", instanceId.substringBefore('_'))
-            val isGenerated = obj.optBoolean("isGenerated", false)
+            val isGenerated  = obj.optBoolean("isGenerated",  false)
+            val costModifier = obj.optInt("costModifier", 0)
             // Najdi plný Card objekt v allCards podle baseId
             val template = allCards.find { it.id == baseId }
             if (template != null) {
-                // Přetypuj s instančním ID + příznakem generování
-                result.add(template.copy(id = instanceId, isGenerated = isGenerated))
+                // Přetypuj s instančním ID + příznakem generování + modifikátorem ceny
+                result.add(template.copy(id = instanceId, isGenerated = isGenerated, costModifier = costModifier))
             }
         }
         return result

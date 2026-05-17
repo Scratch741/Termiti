@@ -70,5 +70,19 @@ data class Card(
      * True = karta přišla do ruky mimořádnou cestou (Rozhodnutí, krádež, výměna rukou atd.),
      * nikoli normálním líznutím z vlastního balíčku. UI zobrazí ✨ odznak.
      */
-    val isGenerated: Boolean = false
-)
+    val isGenerated: Boolean = false,
+    /**
+     * Modifikátor ceny (delta od základní ceny). Záporná = sleva, kladná = zdražení.
+     * Výsledná cena [effectiveCost] je vždy v rozsahu 0–99.
+     * Neaplikuje se na X-kost karty (ty spotřebují všechny zásoby bez ohledu).
+     */
+    val costModifier: Int = 0
+) {
+    /**
+     * Skutečná cena, která se platí a zobrazuje.
+     * = (cost + costModifier) omezeno na 0..99.
+     * Pro X-kost karty vždy 0 (skutečná hodnota X se určí z dostupných zdrojů).
+     */
+    val effectiveCost: Int get() =
+        if (isXCost) 0 else (cost + costModifier).coerceIn(0, 99)
+}

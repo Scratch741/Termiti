@@ -41,7 +41,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
@@ -80,6 +79,12 @@ fun GameScreen(
     val mulliganSelected     by viewModel.mulliganSelected
     val isComboTurn          by viewModel.isPlayerComboTurn
     val campaignOpponent     by viewModel.activeCampaignOpponent
+    val aiPassives           by viewModel.aiPassiveAbilities
+    val playerPassives = remember {
+        PlayerProfileManager.profile?.activeAbilities
+            ?.mapNotNull { PassiveAbility.fromId(it) }
+            ?: emptyList()
+    }
 
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
@@ -133,7 +138,9 @@ fun GameScreen(
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.name   ?: "Nepřítel",
                 opponentAvatar = campaignOpponent?.avatar ?: "👺",
-                onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true }
+                onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true },
+                playerPassives = playerPassives,
+                aiPassives     = if (campaignOpponent == null) aiPassives else emptyList()
             )
 
             // ── Hlavní řada ───────────────────────────────────────────────────

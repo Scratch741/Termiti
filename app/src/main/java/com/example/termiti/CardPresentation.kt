@@ -364,7 +364,7 @@ object CardPresentation {
         "110" to CardPres("**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku.",
             R.drawable.art_vzpominka, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
-        "111" to CardPres("**Rozhodnutí:** Prohledej vlastní balíček a vyber si 1 kartu.",
+        "111" to CardPres("**Rozhodnutí:** Prohledej vlastní balíček a vyber si 1 kopii karty.",
             R.drawable.art_intuice, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
         "104" to CardPres("Zaútočí za 5,  +1 důl útoku. [Combo]",

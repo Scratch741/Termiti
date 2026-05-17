@@ -234,6 +234,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         saveDeck(deckIndex)
     }
 
+    /** Pasivní schopnosti, které AI dostala na začátku aktuální (offline) hry.
+     *  Musí být inicializováno PŘED gameState, protože createInitialState() do něj zapisuje. */
+    var aiPassiveAbilities = androidx.compose.runtime.mutableStateOf<List<PassiveAbility>>(emptyList())
+        private set
+
     var gameState = androidx.compose.runtime.mutableStateOf(createInitialState())
         private set
 
@@ -367,9 +372,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 log.appendLog("Hráč zahodil ze soupeřova balíku: ${chosen.name}")
             }
             is CardEffect.DecisionChooseType -> {
-                val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
+                val newCard = chosen.copy(
+                    id           = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                    isGenerated  = true,
+                    costModifier = -effect.costReduction   // záporná = sleva; 0 = beze změny
+                )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
-                log.appendLog("Hráč si vybral: ${chosen.name}")
+                val discountMsg = if (effect.costReduction > 0) " (−${effect.costReduction} ${chosen.costType.label})" else ""
+                log.appendLog("Hráč si vybral: ${chosen.name}$discountMsg")
             }
             is CardEffect.DecisionFromDiscard -> {
                 player.discardPile.remove(chosen)
@@ -497,8 +507,26 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val extraStones      =       if (PassiveAbility.EXTRA_STONES     in actives) 1 else 0
         val extraChaos       =       if (PassiveAbility.EXTRA_CHAOS      in actives) 1 else 0
         val playerWinTarget  =  70 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
-        val aiWinTarget      =  70 + if (PassiveAbility.IRON_BASTION     in actives) 5 else 0
         val playerMaxHand    =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in actives) 1 else 0
+
+        // ── Pasivní schopnosti AI (2 náhodné, mimo IRON_BASTION který je jen pro hráče) ──
+        val aiPassives = PassiveAbility.entries
+            .filter { it != PassiveAbility.IRON_BASTION }
+            .shuffled()
+            .take(2)
+        aiPassiveAbilities.value = aiPassives
+
+        val aiStartCastle    = 30 + if (PassiveAbility.EXTRA_CASTLE     in aiPassives) 5 else 0
+        val aiStartWall      = 15 + if (PassiveAbility.EXTRA_WALL       in aiPassives) 5 else 0
+        val aiExtraMagic     =       if (PassiveAbility.EXTRA_MAGIC      in aiPassives) 1 else 0
+        val aiExtraAttack    =       if (PassiveAbility.EXTRA_ATTACK     in aiPassives) 1 else 0
+        val aiExtraStones    =       if (PassiveAbility.EXTRA_STONES     in aiPassives) 1 else 0
+        val aiExtraChaos     =       if (PassiveAbility.EXTRA_CHAOS      in aiPassives) 1 else 0
+        val aiMaxHand        =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in aiPassives) 1 else 0
+        // aiWinTarget: EXTRA_CASTLE AI zvýší její cíl o 5 (stejný tradeoff jako u hráče),
+        //              IRON_BASTION hráče přidá dalších +5 na cíl AI.
+        val aiWinTarget      = (70 + if (PassiveAbility.EXTRA_CASTLE  in aiPassives) 5 else 0) +
+                                    (if (PassiveAbility.IRON_BASTION  in actives)    5 else 0)
 
         val playerState = PlayerState(
             castleHP  = startCastle,
@@ -512,15 +540,34 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it.deck.shuffle()   // 1. míchání – provede se na MutableList přímo
             it.drawCards(4)
         }
-        val aiState = PlayerState().also {
-            val aiCards = when {
+
+        val aiState = PlayerState(
+            castleHP = aiStartCastle,
+            wallHP   = aiStartWall
+        ).also {
+            if (aiExtraMagic  > 0) it.resources[ResourceType.MAGIC]  = aiExtraMagic
+            if (aiExtraAttack > 0) it.resources[ResourceType.ATTACK] = aiExtraAttack
+            if (aiExtraStones > 0) it.resources[ResourceType.STONES] = aiExtraStones
+            if (aiExtraChaos  > 0) it.resources[ResourceType.CHAOS]  = aiExtraChaos
+            val aiBaseCards = when {
                 superRandom  -> sharedSuperDeck!!.withUniqueIds()
-                !randomDeck && activeDeck.isValid -> presetDeck().withUniqueIds()  // vlastní balíček hráče → AI hraje s prestem
+                !randomDeck && activeDeck.isValid -> presetDeck().withUniqueIds()
                 else         -> balancedDeck().withUniqueIds()
             }
-            it.deck.addAll(aiCards)
+            // Posila balíčku z AI pasivních schopností
+            val aiBoostCards = buildList {
+                fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter(f).shuffled().take(n)
+                if (PassiveAbility.BOOST_ATTACK in aiPassives) addAll(pick({ it.type == "Útok"  }, 2))
+                if (PassiveAbility.BOOST_BUILD  in aiPassives) addAll(pick({ it.type == "Stavba" }, 2))
+                if (PassiveAbility.BOOST_MAGIC  in aiPassives) addAll(pick({ it.type == "Magie" }, 2))
+                if (PassiveAbility.BOOST_CHAOS  in aiPassives) addAll(pick({ it.type == "Chaos" }, 2))
+                if (PassiveAbility.BOOST_RANDOM in aiPassives) addAll(pick({ it.type != "Důl"   }, 3))
+            }.withUniqueIds()
+            it.deck.addAll(aiBaseCards + aiBoostCards)
             it.deck.shuffle()   // 2. míchání – oddělené volání, zaručeně jiný stav Random
-            it.drawCards(4)
+            // QUICK_DRAW: AI lízne 1 kartu navíc na začátku první tahu
+            val initDraw = 4 + if (PassiveAbility.QUICK_DRAW in aiPassives) 1 else 0
+            it.drawCards(initDraw, aiMaxHand)
         }
 
         val firstPlayer = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI
@@ -534,7 +581,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             currentTurn     = startTurn,
             playerWinTarget = playerWinTarget,
             aiWinTarget     = aiWinTarget,
-            playerMaxHand   = playerMaxHand
+            playerMaxHand   = playerMaxHand,
+            aiMaxHand       = aiMaxHand
         )
     }
 
@@ -545,7 +593,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val ai     = old.aiState.deepCopy()
 
         // Affordability check (X-kost karty jsou vždy zahratelné)
-        if (!card.isXCost && (player.resources[card.costType] ?: 0) < card.cost) {
+        if (!card.isXCost && (player.resources[card.costType] ?: 0) < card.effectiveCost) {
             log.appendLog("Nedostatek ${card.costType.label} pro: ${card.name}")
             return
         }
@@ -561,7 +609,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.resources[card.costType] = 0
         } else {
             xValue = 0
-            player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.cost
+            player.resources[card.costType] = (player.resources[card.costType] ?: 0) - card.effectiveCost
         }
         player.hand.remove(card)
         player.discardPile.add(card)
@@ -741,7 +789,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // AI dostane zdroje a líže 1 kartu na ZAČÁTKU svého tahu
             ai.generateResources()
             if (aiDrawsAtStart && ai.deck.isNotEmpty()) {
-                ai.drawCards(1)
+                ai.drawCards(1, old.aiMaxHand)
                 SoundManager.playCardDraw()
             }
             transformShapeShifters(ai.hand, allCards)
@@ -749,7 +797,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true
             while (aiContinues) {
-                val aiChoice = aiChooseAction(ai, player)
+                val aiChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
                 when (aiChoice) {
                     is AiAction.Play -> {
                         val aiCard = aiChoice.card
@@ -761,7 +809,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = 0
                         } else {
                             aiXValue = 0
-                            ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.cost
+                            ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
                         // DrawPerCardPlayed: flag nastaven předchozí kartou AI → líz (s volitelným filtrem typu)
@@ -779,11 +827,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 ai.castleHP = (ai.castleHP + gcpp.amount).coerceAtMost(100)
                             }
                         }
+                        // Odeber kartu z ruky PŘED efekty – stejně jako hráčův playCard.
+                        // Bez tohoto pořadí by SwapHands viděl zahrávanou kartu v ruce AI
+                        // a předal ji hráči místo do discardu.
+                        ai.hand.remove(aiCard)
+                        ai.discardPile.add(aiCard)
                         applyEffects(
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
                             onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
                             onDrawCard = { state, count ->
-                                repeat(count) { state.drawCards(1); SoundManager.playCardDraw() }
+                                repeat(count) { state.drawCards(1, old.aiMaxHand); SoundManager.playCardDraw() }
                             }
                         )
                         // AI auto-pick pro Decision efekty
@@ -799,30 +852,32 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 }
                                 is CardEffect.DecisionChooseType -> {
                                     buildDecisionOptions(fx, ai, player).firstOrNull()?.let { chosen ->
-                                        val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}")
-                                        if (ai.hand.size < 7) ai.hand.add(newCard)
+                                        val newCard = chosen.copy(
+                                            id           = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                                            isGenerated  = true,
+                                            costModifier = -fx.costReduction
+                                        )
+                                        if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
                                     }
                                 }
                                 is CardEffect.DecisionFromDiscard -> {
-                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    val opts = buildDecisionOptions(fx, ai, player, excludeId = aiCard.id)
                                     opts.firstOrNull()?.let { chosen ->
                                         ai.discardPile.remove(chosen)
-                                        if (ai.hand.size < 7) ai.hand.add(chosen)
+                                        if (ai.hand.size < old.aiMaxHand) ai.hand.add(chosen)
                                     }
                                 }
                                 is CardEffect.DecisionFromDeck -> {
                                     val opts = buildDecisionOptions(fx, ai, player)
                                     opts.firstOrNull()?.let { chosen ->
                                         ai.deck.remove(chosen)
-                                        if (ai.hand.size < 7) ai.hand.add(chosen)
+                                        if (ai.hand.size < old.aiMaxHand) ai.hand.add(chosen)
                                     }
                                 }
                                 else -> {}
                             }
                         }
                         ai.preCostResources = null
-                        ai.hand.remove(aiCard)
-                        ai.discardPile.add(aiCard)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
@@ -1003,6 +1058,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
+        // Zaloguj AI schopnosti, aby hráč věděl, co AI dostala
+        val aiAbilities = aiPassiveAbilities.value
+        if (aiAbilities.isNotEmpty()) {
+            val names = aiAbilities.joinToString(", ") { "${it.icon} ${it.title}" }
+            log.value = listOf(LogEntry.SystemEvent("🤖 AI dostala schopnosti: $names"))
+        }
     }
 
     /** Spustí bitvu v kampani proti danému soupeři. */
@@ -1010,6 +1071,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
+        aiPassiveAbilities.value = emptyList()   // kampaňský soupeř má vlastní stats, ne náhodné pasivky
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null

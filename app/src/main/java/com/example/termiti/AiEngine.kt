@@ -37,19 +37,24 @@ sealed class AiAction {
  *  – Preferuje zahazovat karty s největším „shortfallem" (daleko od dovolení)
  *    v poměru k rychlosti přírůstku daného zdroje (důl).
  */
-fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
+fun aiChooseAction(
+    ai: PlayerState,
+    opponent: PlayerState,
+    aiWinTarget: Int = 70,
+    playerWinTarget: Int = 70
+): AiAction {
     // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
     val affordable     = ai.hand.filter { card ->
         if (card.isXCost) true
-        else (ai.resources[card.costType] ?: 0) >= card.cost
+        else (ai.resources[card.costType] ?: 0) >= card.effectiveCost
     }
 
     // Situační příznaky
     val aiLowHp        = ai.castleHP < 15
     val aiLowWall      = ai.wallHP   < 5
     val oppLowHp       = opponent.castleHP < 20
-    val oppCloseToWin  = opponent.castleHP >= 50   // soupeř je blízko výhry hradem
-    val aiCloseToWin   = ai.castleHP >= 50         // AI je blízko výhry hradem
+    val oppCloseToWin  = opponent.castleHP >= (playerWinTarget - 20) // soupeř je blízko výhry hradem
+    val aiCloseToWin   = ai.castleHP       >= (aiWinTarget - 20)    // AI je blízko výhry hradem
     val chaos          = ai.resources[ResourceType.CHAOS] ?: 0
     val bothDecksEmpty = ai.deck.isEmpty() && opponent.deck.isEmpty()
     val handFull       = ai.hand.size >= 7
@@ -201,12 +206,13 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         }
     }
 
-    // ── Detekce lethal: karta zabije soupeře tento tah ──────────────────────
-    // Simulujeme poškození hradeb + hradu efektů karty (v pořadí zahrání).
-    // Pokud celkové poškození hradu ≥ soupeřův HP → lethal.
+    // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────
+    // Simulujeme poškození hradeb + hradu (soupeřův hrad → 0) NEBO
+    // nárůst vlastního hradu na win target (výhra postavením hradu).
     fun isLethal(card: Card, xVal: Int): Boolean {
-        var wallLeft      = opponent.wallHP
-        var castleDmg     = 0
+        var wallLeft       = opponent.wallHP
+        var castleDmg      = 0
+        var selfCastleGain = 0
         fun processEffect(fx: CardEffect) {
             when (fx) {
                 is CardEffect.AttackPlayer -> {
@@ -214,7 +220,7 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
                     wallLeft     = (wallLeft - fx.amount).coerceAtLeast(0)
                     castleDmg   += pierce
                 }
-                is CardEffect.AttackCastle      -> castleDmg += fx.amount
+                is CardEffect.AttackCastle        -> castleDmg += fx.amount
                 is CardEffect.XScaledAttackPlayer -> {
                     val amt      = xVal / fx.divisor
                     val pierce   = (amt - wallLeft).coerceAtLeast(0)
@@ -222,14 +228,21 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
                     castleDmg   += pierce
                 }
                 is CardEffect.XScaledAttackCastle -> castleDmg += xVal / fx.divisor
-                is CardEffect.StealCastle         -> castleDmg += fx.amount
+                is CardEffect.StealCastle         -> {
+                    castleDmg      += fx.amount
+                    selfCastleGain += fx.amount
+                }
+                is CardEffect.BuildCastle         -> if (fx.amount > 0) selfCastleGain += fx.amount
+                is CardEffect.XScaledBuildCastle  -> selfCastleGain += xVal / fx.divisor
                 is CardEffect.ConditionalEffect   ->
                     if (checkCondition(fx.condition, ai, opponent)) processEffect(fx.effect)
                 else -> {}
             }
         }
         card.effects.forEach { processEffect(it) }
-        return castleDmg >= opponent.castleHP
+        // Výhra zničením soupeřova hradu NEBO dosažením win targetu vlastním hradem
+        return castleDmg >= opponent.castleHP ||
+               (ai.castleHP + selfCastleGain) >= aiWinTarget
     }
 
     // Celkové skóre karty = suma efektů − cena + šum ±2
@@ -273,8 +286,8 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         }
 
         val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
-        val costForScore = if (card.isXCost) xVal else card.cost
-        val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.cost) 100 else 0
+        val costForScore = if (card.isXCost) xVal else card.effectiveCost
+        val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.effectiveCost) 100 else 0
         val noise       = (-2..2).random()
 
         // ── TOTO KOLO penalty: zahraj jen pokud zbydou resources na combo kartu ──
@@ -287,10 +300,10 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         }
         val totoKoloPenalty = if (isTotoKolo && comboCardsInHand > 0) {
             val residualRes = ai.resources.toMutableMap()
-            residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.cost).coerceAtLeast(0)
+            residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.effectiveCost).coerceAtLeast(0)
             val canAffordCombo = ai.hand.any { combo ->
                 combo.isCombo && combo.id != card.id &&
-                (residualRes[combo.costType] ?: 0) >= combo.cost
+                (residualRes[combo.costType] ?: 0) >= combo.effectiveCost
             }
             if (!canAffordCombo) -25 else 0  // po zaplacení není na žádnou combo → silná penalta
         } else 0
@@ -310,7 +323,7 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
     // Preferuje zahazovat karty s největším shortfallem / rychlostí dolu
     // (= karty, na které bychom čekali nejdéle)
     fun bestDiscard(): Card? = ai.hand.maxByOrNull { card ->
-        val shortfall = (card.cost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
+        val shortfall = (card.effectiveCost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
         val mineRate  = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
         shortfall * 10 / mineRate
     }

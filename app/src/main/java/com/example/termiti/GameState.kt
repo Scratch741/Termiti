@@ -8,8 +8,9 @@ data class GameState(
     var currentTurn: Int = 1,
     var activePlayer: ActivePlayer = ActivePlayer.PLAYER,
     val playerWinTarget: Int = 70,  // zvýší se na 75 s pasivní schopností extra_castle
-    val aiWinTarget: Int = 70,      // zvýší se na 75, pokud hráč má iron_bastion
-    val playerMaxHand: Int = 7      // zvýší se na 8 s pasivní schopností extra_hand_card
+    val aiWinTarget: Int = 70,      // zvýší se na 75, pokud hráč má iron_bastion nebo AI má extra_castle
+    val playerMaxHand: Int = 7,     // zvýší se na 8 s pasivní schopností extra_hand_card
+    val aiMaxHand: Int = 7          // zvýší se na 8, pokud AI dostala extra_hand_card
 ) {
     fun checkWinCondition(): GameResult? {
         val playerDead  = playerState.castleHP <= 0

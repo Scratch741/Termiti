@@ -34,10 +34,10 @@ const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,      
 const ss = ()            => ({ type:'ShapeShift' });
 const cvM= (from,to)     => ({ type:'ConvertMine', from, to });
 // Rozhodnutí
-const dbo= (n=3)         => ({ type:'DecisionBurnOpponent',  picks:n });
-const dct= (ct,n=3)      => ({ type:'DecisionChooseType',    cardType:ct, picks:n });
-const dfd= (n=3)         => ({ type:'DecisionFromDiscard',   picks:n });
-const dfk= (n=3)         => ({ type:'DecisionFromDeck',      picks:n });
+const dbo= (n=4)         => ({ type:'DecisionBurnOpponent',  picks:n });
+const dct= (ct,n=4,cr=0) => ({ type:'DecisionChooseType',    cardType:ct, picks:n, ...(cr ? {costReduction:cr} : {}) });
+const dfd= (n=4)         => ({ type:'DecisionFromDiscard',   picks:n });
+const dfk= (n=4)         => ({ type:'DecisionFromDeck',      picks:n });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -242,10 +242,10 @@ const RAW = [
   ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
   ['104','Válečný trénink',4,'ATTACK',1,[ap(5), am('ATTACK',1)],'EPIC'],
   ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3)], 'EPIC'],
-  ['108','Likvidace',      4,'CHAOS', 0,[dbo(3)],              'EPIC'],
-  ['109','Rekrut',         2,'ATTACK',0,[dct('Útok',3)],       'RARE'],
-  ['110','Vzpomínka',      3,'MAGIC', 0,[dfd(3)],              'EPIC'],
-  ['111','Intuice',        3,'MAGIC', 0,[dfk(3)],              'EPIC'],
+  ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
+  ['109','Rekrut',         2,'ATTACK',0,[dct('Útok',4,2)],     'RARE'],
+  ['110','Vzpomínka',      3,'MAGIC', 0,[dfd()],               'EPIC'],
+  ['111','Intuice',        3,'MAGIC', 0,[dfk()],               'EPIC'],
 
   // ── Testovací ─────────────────────────────────────────────────────────────
   ['T01','Goblin šaman',    3,'MAGIC', 0,[ar('MAGIC',5)],      'RARE'],

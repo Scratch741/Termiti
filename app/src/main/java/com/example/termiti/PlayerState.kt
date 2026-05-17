@@ -129,11 +129,11 @@ class PlayerState(
         return burned
     }
 
-    /** Zaplatí správný zdroj podle costType karty. */
+    /** Zaplatí správný zdroj podle effectiveCost karty. */
     fun playCard(card: Card): Boolean {
         val available = resources[card.costType] ?: 0
-        if (available < card.cost) return false
-        resources[card.costType] = available - card.cost
+        if (available < card.effectiveCost) return false
+        resources[card.costType] = available - card.effectiveCost
         hand.remove(card)
         discardPile.add(card)
         return true

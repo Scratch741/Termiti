@@ -313,7 +313,7 @@ class GameSession {
           type:       'DECISION_REQUEST',
           effectType: effect.type,
           cardType:   effect.cardType || null,
-          picks:      effect.picks    || 3,
+          picks:      effect.picks    || 4,
           options:    pd.options.map(c => ({
             id:       c.id,
             baseId:   c.baseId || c.id,
@@ -402,11 +402,13 @@ class GameSession {
     // X-kost karty spotřebují veškerý dostupný zdroj
     const res = card.costType;
     let xValue = 0;
+    // effectiveCost = základní cena + costModifier, omezeno na 0–99
+    const effectiveCost = card.isXCost ? 0
+      : Math.min(99, Math.max(0, (card.cost || 0) + (card.costModifier || 0)));
     if (card.isXCost) {
       xValue = self.resources[res] || 0;
     } else {
-      const cost = card.cost || 0;
-      if (res && cost > 0 && (self.resources[res] || 0) < cost) {
+      if (res && effectiveCost > 0 && (self.resources[res] || 0) < effectiveCost) {
         this._sendError(side, 'Nedostatek zdrojů.');
         return;
       }
@@ -414,12 +416,11 @@ class GameSession {
     // Snapshot zdrojů PŘED zaplacením – ConditionalEffect (ResourceAbove) se
     // vyhodnocuje proti tomuto stavu, aby karta mohla splnit vlastní podmínku.
     self._preCostResources = { ...self.resources };
-    // Zaplatit až teď (X-kost = vynuluj, jinak odečti cenu)
+    // Zaplatit až teď (X-kost = vynuluj, jinak odečti effectiveCost)
     if (card.isXCost) {
       self.resources[res] = 0;
     } else {
-      const cost = card.cost || 0;
-      if (res && cost > 0) self.resources[res] -= cost;
+      if (res && effectiveCost > 0) self.resources[res] -= effectiveCost;
     }
 
     // Remove from hand → discard
@@ -430,7 +431,8 @@ class GameSession {
     // Shapeshifter: použij displayBaseId → klient zobrazí transformovanou kartu, ne C34
     this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity,
-                                isGenerated: card.isGenerated || false };
+                                isGenerated: card.isGenerated || false,
+                                costModifier: card.costModifier || 0 };
     this.lastPlayedAction  = 'PLAYED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
@@ -527,7 +529,7 @@ class GameSession {
         type:       'DECISION_REQUEST',
         effectType: decisionFx.type,
         cardType:   decisionFx.cardType || null,
-        picks:      decisionFx.picks   || 3,
+        picks:      decisionFx.picks   || 4,
         options:    options.map(c => ({
           id:       c.id,
           baseId:   c.baseId || c.id,
@@ -575,7 +577,7 @@ class GameSession {
   _buildDecisionOptions(side, effect, playedCardId = null) {
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
-    const n    = effect.picks || 3;
+    const n    = effect.picks || 4;
 
     switch (effect.type) {
       case 'DecisionBurnOpponent': {
@@ -656,8 +658,12 @@ class GameSession {
         if (chosenId) {
           const tmpl = CARD_MAP.get(chosenId);
           if (tmpl && self.hand.length < maxH) {
-            self.hand.push({ ...makeInstance(tmpl), isGenerated: true });
-            this._log(`${this.name[side]} přidal ${tmpl.name} do ruky.`);
+            const costReduction = effect.costReduction || 0;
+            const newCard = { ...makeInstance(tmpl), isGenerated: true };
+            if (costReduction > 0) newCard.costModifier = -costReduction;
+            self.hand.push(newCard);
+            const discountStr = costReduction > 0 ? ` (−${costReduction})` : '';
+            this._log(`${this.name[side]} přidal ${tmpl.name}${discountStr} do ruky.`);
           }
         }
         break;
@@ -726,7 +732,8 @@ class GameSession {
 
     this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                cost: card.cost, costType: card.costType, rarity: card.rarity,
-                               isGenerated: card.isGenerated || false };
+                               isGenerated: card.isGenerated || false,
+                               costModifier: card.costModifier || 0 };
     this.lastPlayedAction  = 'DISCARDED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
@@ -887,12 +894,13 @@ class GameSession {
       id:          c.id,
       // Transformovaný Shapeshifter: pošli displayBaseId (skutečná šablona) nikoli 'C34',
       // aby klient zobrazil správnou kartu. Server sleduje Shapeshifter pomocí baseId: 'C34'.
-      baseId:      c.displayBaseId || c.baseId,
-      name:        c.name,
-      cost:        c.cost,
-      costType:    c.costType,
-      rarity:      c.rarity,
-      isGenerated: c.isGenerated || false
+      baseId:       c.displayBaseId || c.baseId,
+      name:         c.name,
+      cost:         c.cost,
+      costType:     c.costType,
+      rarity:       c.rarity,
+      isGenerated:  c.isGenerated  || false,
+      costModifier: c.costModifier || 0
     }));
   }
 

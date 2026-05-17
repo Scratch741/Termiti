@@ -104,7 +104,9 @@ fun NewTopBar(
     playerTimerText: String? = null,
     playerTimerColor: Color = Color(0xFF4CAF50),
     oppTimerText: String? = null,
-    oppTimerColor: Color = Color(0xFF4CAF50)
+    oppTimerColor: Color = Color(0xFF4CAF50),
+    playerPassives: List<PassiveAbility> = emptyList(),
+    aiPassives: List<PassiveAbility> = emptyList()
 ) {
     val activeTurn = isPlayerTurn || isComboTurn
     val dotColor = if (activeTurn) TealLight else Crimson
@@ -175,6 +177,23 @@ fun NewTopBar(
                 Text("🂠", fontSize = 11.sp)
                 Text("$playerDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
+            if (playerPassives.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    playerPassives.forEach { ability ->
+                        Box(
+                            Modifier
+                                .size(20.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
+                                .border(0.5.dp, Gold.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
+                            contentAlignment = Alignment.Center
+                        ) { Text(ability.icon, fontSize = 11.sp) }
+                    }
+                }
+            }
             if (playerTimerText != null) {
                 Text(playerTimerText, color = playerTimerColor,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -218,6 +237,23 @@ fun NewTopBar(
             if (oppTimerText != null) {
                 Text(oppTimerText, color = oppTimerColor,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            if (aiPassives.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    aiPassives.forEach { ability ->
+                        Box(
+                            Modifier
+                                .size(20.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
+                                .border(0.5.dp, Crimson.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
+                            contentAlignment = Alignment.Center
+                        ) { Text(ability.icon, fontSize = 11.sp) }
+                    }
+                }
             }
             Row(
                 Modifier
@@ -673,7 +709,7 @@ fun HandPanel(
             contentPadding        = PaddingValues(horizontal = 10.dp)
         ) {
             items(hand, key = { it.id }) { card ->
-                val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.cost
+                val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.effectiveCost
                 Box(
                     Modifier
                         .animateItem()

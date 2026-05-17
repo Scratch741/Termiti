@@ -185,7 +185,13 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
             Modifier.align(Alignment.TopStart).padding(1.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(if (card.isXCost) "X" else "${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+            val miniCostColor = when {
+                card.isXCost           -> Color.White
+                card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
+                card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
+                else                   -> Color.White
+            }
+            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
         }
         // ✨ odznak – vygenerovaná karta (vpravo nahoře)
         if (card.isGenerated) {
@@ -245,7 +251,13 @@ internal fun CardBackPlayed(card: Card) {
         Text(card.name, color = TextPrimary, fontSize = 5.sp,
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
-        Text("${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.cost}"}", color = costColor, fontSize = 5.5.sp)
+        val modifiedCostColor = when {
+            card.isXCost           -> costColor
+            card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
+            card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
+            else                   -> costColor
+        }
+        Text("${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.effectiveCost}"}", color = modifiedCostColor, fontSize = 5.5.sp)
     }
 }
 
@@ -483,7 +495,13 @@ private fun CardViewTextured(
                 .size(18.dp),
             contentAlignment = Alignment.Center
         ) {
-            val costLabel = if (card.isXCost) "X" else "${card.cost}"
+            val costLabel = if (card.isXCost) "X" else "${card.effectiveCost}"
+            val costFillColor = when {
+                card.isXCost           -> Color.White
+                card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
+                card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
+                else                   -> Color.White
+            }
             // TextStyle s LineHeightStyle.Trim.Both = glyf přesně uprostřed boxu
             val costStyle = TextStyle(
                 fontSize = 9.sp,
@@ -496,14 +514,13 @@ private fun CardViewTextured(
                 )
             )
             // Černý obrys – 4 posunuté kopie
-            // fillMaxWidth + textAlign.Center = glyf centrován v celé šíři boxu (ne jen v šíři glyfu)
             for (off in listOf(Offset(-1f, 0f), Offset(1f, 0f), Offset(0f, -1f), Offset(0f, 1f))) {
                 Text(costLabel, color = Color.Black,
                     modifier = Modifier.fillMaxWidth().offset(x = off.x.dp, y = off.y.dp),
                     style = costStyle)
             }
-            // Bílá výplň
-            Text(costLabel, color = Color.White,
+            // Výplň (bílá / zelená / červená)
+            Text(costLabel, color = costFillColor,
                 modifier = Modifier.fillMaxWidth(),
                 style = costStyle)
         }
@@ -752,7 +769,13 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                     .size(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val costLabel = if (card.isXCost) "X" else "${card.cost}"
+                val costLabel = if (card.isXCost) "X" else "${card.effectiveCost}"
+                val bigCostFillColor = when {
+                    card.isXCost           -> Color.White
+                    card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
+                    card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
+                    else                   -> Color.White
+                }
                 val costStyle = TextStyle(
                     fontSize        = 20.sp,
                     fontWeight      = FontWeight.ExtraBold,
@@ -768,7 +791,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().offset(x = off.x.dp, y = off.y.dp),
                         style = costStyle)
                 }
-                Text(costLabel, color = Color.White,
+                Text(costLabel, color = bigCostFillColor,
                     modifier = Modifier.fillMaxWidth(), style = costStyle)
             }
 

@@ -3095,7 +3095,7 @@
     "effects": [
       {
         "type": "DecisionBurnOpponent",
-        "picks": 3
+        "picks": 4
       }
     ],
     "rarity": "EPIC",
@@ -3113,7 +3113,8 @@
       {
         "type": "DecisionChooseType",
         "cardType": "Útok",
-        "picks": 3
+        "picks": 4,
+        "costReduction": 2
       }
     ],
     "rarity": "RARE",
@@ -3130,7 +3131,7 @@
     "effects": [
       {
         "type": "DecisionFromDiscard",
-        "picks": 3
+        "picks": 4
       }
     ],
     "rarity": "EPIC",
@@ -3147,7 +3148,7 @@
     "effects": [
       {
         "type": "DecisionFromDeck",
-        "picks": 3
+        "picks": 4
       }
     ],
     "rarity": "EPIC",

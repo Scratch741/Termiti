@@ -270,6 +270,11 @@ private fun OnlineGameplay(
     var showMenu    by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
     var cardPreview by remember { mutableStateOf<Card?>(null) }
+    val playerPassives = remember {
+        PlayerProfileManager.profile?.activeAbilities
+            ?.mapNotNull { PassiveAbility.fromId(it) }
+            ?: emptyList()
+    }
     val gameLog     by vm.gameLog
     val phase       by vm.phase
     val isGameOver  = phase == OnlinePhase.GAME_OVER
@@ -391,7 +396,8 @@ private fun OnlineGameplay(
                 playerTimerText  = timerText(isMe = true),
                 playerTimerColor = timerColor(isMe = true),
                 oppTimerText     = timerText(isMe = false),
-                oppTimerColor    = timerColor(isMe = false)
+                oppTimerColor    = timerColor(isMe = false),
+                playerPassives   = playerPassives
             )
 
             // ── Hlavní řada: zdroje + bojiště ────────────────────────────────
