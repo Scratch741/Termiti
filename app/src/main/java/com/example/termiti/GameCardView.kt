@@ -187,6 +187,21 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
         ) {
             Text(if (card.isXCost) "X" else "${card.cost}", color = Color.White, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
         }
+        // ✨ odznak – vygenerovaná karta (vpravo nahoře)
+        if (card.isGenerated) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(1.dp)
+                    .size(8.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color.Black.copy(alpha = 0.65f))
+                    .border(0.5.dp, Color(0xFFB388FF).copy(alpha = 0.8f), RoundedCornerShape(2.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✨", fontSize = 4.5.sp, lineHeight = 4.5.sp)
+            }
+        }
         // Název karty ve spodní části mini karty
         Box(
             modifier = Modifier
