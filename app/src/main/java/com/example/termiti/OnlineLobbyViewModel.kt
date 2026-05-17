@@ -630,6 +630,14 @@ class OnlineLobbyViewModel(
                 "GAME_STATE" -> {
                     gameState.value = parseGameState(json)
                     phase.value = OnlinePhase.GAME_PLAYING
+
+                    // Serverové textové logy (spálené karty, oznámení tahu, atd.)
+                    // Server posílá jen nové záznamy od posledního stavu (lastLog se čistí po každém push).
+                    val serverLogs = gameState.value.log
+                    if (serverLogs.isNotEmpty()) {
+                        gameLog.value = (gameLog.value + serverLogs.map { LogEntry.SystemEvent(it) }).takeLast(50)
+                    }
+
                     // Zahraná karta pro animaci + log záznam
                     val lpc = json.optJSONObject("lastPlayedCard")
                     if (lpc != null) {
