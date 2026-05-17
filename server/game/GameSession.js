@@ -298,6 +298,33 @@ class GameSession {
       }
     } else if (this.phase === 'playing') {
       this._send(side, this._buildStateFor(side));
+
+      // Pokud čekáme na Decision odpověď od tohoto hráče, znovu pošli DECISION_REQUEST.
+      // Klient ho při restartu appky neviděl – bez toho by neměl jak overlay zobrazit.
+      if (this.pendingDecision && this.pendingDecision.side === side) {
+        const pd      = this.pendingDecision;
+        const effect  = pd.effect;
+        // Zbývající čas = původní timeout mínus čas který už uplynul
+        const totalDecisionMs = (this._decisionTurnPhaseMs || 0) + (this.timebank[side] * 1000);
+        const elapsedMs       = this._decisionStartedAt ? (Date.now() - this._decisionStartedAt) : totalDecisionMs;
+        const remainingMs     = Math.max(5000, totalDecisionMs - elapsedMs);
+        console.log(`[Reconnect ${this.gameId}] Znovu posílám DECISION_REQUEST → ${side} (${effect.type}), remainingMs=${remainingMs}`);
+        this._send(side, {
+          type:       'DECISION_REQUEST',
+          effectType: effect.type,
+          cardType:   effect.cardType || null,
+          picks:      effect.picks    || 3,
+          options:    pd.options.map(c => ({
+            id:       c.id,
+            baseId:   c.baseId || c.id,
+            name:     c.name,
+            cost:     c.cost,
+            costType: c.costType,
+            rarity:   c.rarity
+          })),
+          timeoutMs: remainingMs
+        });
+      }
     }
   }
 
