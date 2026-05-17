@@ -10,6 +10,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+// ── Rozhodnutí ────────────────────────────────────────────────────────────────
+data class DecisionState(
+    val title    : String,
+    val subtitle : String,
+    val options  : List<Card>
+)
+
 class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Zachytí výjimky z viewModelScope.launch, které by jinak zmizely tiše. */
@@ -261,6 +268,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var mulliganSelected = androidx.compose.runtime.mutableStateOf<Set<String>>(emptySet())
         private set
 
+    // ── Rozhodnutí ────────────────────────────────────────────────────────────
+    var pendingDecision    = androidx.compose.runtime.mutableStateOf<DecisionState?>(null)
+        private set
+    var decisionSecondsLeft = androidx.compose.runtime.mutableStateOf<Int?>(null)
+        private set
+    private var decisionPlayer  : PlayerState? = null
+    private var decisionAi      : PlayerState? = null
+    private var decisionOld     : GameState?   = null
+    private var decisionIsCombo : Boolean      = false
+    private var decisionEffect  : CardEffect?  = null
+    private var decisionTimerJob: kotlinx.coroutines.Job? = null
+
     fun toggleMulliganCard(cardId: String) {
         val cur = mulliganSelected.value
         mulliganSelected.value = if (cardId in cur) cur - cardId else cur + cardId
@@ -288,6 +307,105 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         isMulligan.value       = false
         mulliganSelected.value = emptySet()
         maybeStartAiFirstTurn()
+    }
+
+    // ── Rozhodnutí – helpery ──────────────────────────────────────────────────
+
+    private fun buildDecisionOptions(fx: CardEffect, self: PlayerState, opponent: PlayerState): List<Card> = when (fx) {
+        is CardEffect.DecisionBurnOpponent -> opponent.deck.shuffled().take(fx.picks)
+        is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType }.shuffled().take(fx.picks)
+        is CardEffect.DecisionFromDiscard  -> self.discardPile.shuffled().take(fx.picks)
+        is CardEffect.DecisionFromDeck     -> self.deck.shuffled().take(fx.picks)
+        else -> emptyList()
+    }
+
+    private fun buildDecisionState(fx: CardEffect, options: List<Card>): DecisionState = when (fx) {
+        is CardEffect.DecisionBurnOpponent -> DecisionState("ROZHODNUTÍ", "Vyber kartu ze soupeřova balíku k zahození", options)
+        is CardEffect.DecisionChooseType   -> DecisionState("ROZHODNUTÍ", "Vyber si kartu typu ${fx.cardType}", options)
+        is CardEffect.DecisionFromDiscard  -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
+        is CardEffect.DecisionFromDeck     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
+        else -> DecisionState("", "", emptyList())
+    }
+
+    private fun startDecisionTimer(seconds: Int = 30) {
+        decisionTimerJob?.cancel()
+        decisionSecondsLeft.value = seconds
+        decisionTimerJob = viewModelScope.launch(crashHandler) {
+            for (s in seconds downTo 0) {
+                decisionSecondsLeft.value = s
+                kotlinx.coroutines.delay(1000L)
+            }
+            autoResolveDecision()
+        }
+    }
+
+    private fun cancelDecisionTimer() {
+        decisionTimerJob?.cancel()
+        decisionTimerJob = null
+        decisionSecondsLeft.value = null
+    }
+
+    /** Hráč si vybral [chosen] v overlay Rozhodnutí — aplikuje efekt a pokračuje v tahu. */
+    fun resolveDecision(chosen: Card) {
+        val player     = decisionPlayer  ?: return
+        val ai         = decisionAi      ?: return
+        val old        = decisionOld     ?: return
+        val isComboCard = decisionIsCombo
+        val effect     = decisionEffect  ?: return
+
+        cancelDecisionTimer()
+
+        when (effect) {
+            is CardEffect.DecisionBurnOpponent -> {
+                ai.deck.remove(chosen)
+                ai.discardPile.add(chosen)
+                log.appendLog("Hráč zahodil ze soupeřova balíku: ${chosen.name}")
+            }
+            is CardEffect.DecisionChooseType -> {
+                val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}")
+                if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
+                log.appendLog("Hráč si vybral: ${chosen.name}")
+            }
+            is CardEffect.DecisionFromDiscard -> {
+                player.discardPile.remove(chosen)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
+                log.appendLog("Hráč si vzal z odhazovacího balíčku: ${chosen.name}")
+            }
+            is CardEffect.DecisionFromDeck -> {
+                player.deck.remove(chosen)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
+                log.appendLog("Hráč si vybral z balíčku: ${chosen.name}")
+            }
+            else -> {}
+        }
+
+        // Vyčisti stav
+        pendingDecision.value = null
+        decisionPlayer  = null
+        decisionAi      = null
+        decisionOld     = null
+        decisionEffect  = null
+        decisionIsCombo = false
+
+        val s1 = old.copy(playerState = player, aiState = ai)
+        s1.checkWinCondition()?.let { result ->
+            isPlayerComboTurn.value = false
+            scheduleGameEnd(result, s1); return
+        }
+
+        if (isComboCard) {
+            isPlayerComboTurn.value = true
+            gameState.value = s1
+        } else {
+            isPlayerComboTurn.value = false
+            finishTurn(old, player, ai)
+        }
+    }
+
+    /** Automaticky vybere první možnost (timeout nebo AI). */
+    fun autoResolveDecision() {
+        val first = pendingDecision.value?.options?.firstOrNull() ?: return
+        resolveDecision(first)
     }
 
     /**
@@ -487,6 +605,28 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
         player.preCostResources = null
 
+        // ── Rozhodnutí: pauza tahu pro výběr hráče ──────────────────────────
+        val decisionFx = card.effects.firstOrNull {
+            it is CardEffect.DecisionBurnOpponent ||
+            it is CardEffect.DecisionChooseType   ||
+            it is CardEffect.DecisionFromDiscard  ||
+            it is CardEffect.DecisionFromDeck
+        }
+        if (decisionFx != null) {
+            val options = buildDecisionOptions(decisionFx, player, ai)
+            if (options.isNotEmpty()) {
+                decisionPlayer  = player
+                decisionAi      = ai
+                decisionOld     = old
+                decisionIsCombo = card.isCombo
+                decisionEffect  = decisionFx
+                gameState.value = old.copy(playerState = player, aiState = ai)
+                pendingDecision.value = buildDecisionState(decisionFx, options)
+                // Timer jen pro online (offline = bez limitu)
+                return
+            }
+        }
+
         val s1 = old.copy(playerState = player, aiState = ai)
         s1.checkWinCondition()?.let { result ->
             isPlayerComboTurn.value = false
@@ -639,6 +779,40 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 repeat(count) { state.drawCards(1); SoundManager.playCardDraw() }
                             }
                         )
+                        // AI auto-pick pro Decision efekty
+                        for (fx in aiCard.effects) {
+                            when (fx) {
+                                is CardEffect.DecisionBurnOpponent -> {
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    opts.firstOrNull()?.let { chosen ->
+                                        player.deck.remove(chosen)
+                                        player.discardPile.add(chosen)
+                                        log.appendLog("AI zahodila z tvého balíku: ${chosen.name}")
+                                    }
+                                }
+                                is CardEffect.DecisionChooseType -> {
+                                    buildDecisionOptions(fx, ai, player).firstOrNull()?.let { chosen ->
+                                        val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}")
+                                        if (ai.hand.size < 7) ai.hand.add(newCard)
+                                    }
+                                }
+                                is CardEffect.DecisionFromDiscard -> {
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    opts.firstOrNull()?.let { chosen ->
+                                        ai.discardPile.remove(chosen)
+                                        if (ai.hand.size < 7) ai.hand.add(chosen)
+                                    }
+                                }
+                                is CardEffect.DecisionFromDeck -> {
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    opts.firstOrNull()?.let { chosen ->
+                                        ai.deck.remove(chosen)
+                                        if (ai.hand.size < 7) ai.hand.add(chosen)
+                                    }
+                                }
+                                else -> {}
+                            }
+                        }
                         ai.preCostResources = null
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)

@@ -168,6 +168,12 @@ fun applyEffects(
 
         // Pasivní příznak – transformace probíhá v transformShapeShifters() při startu tahu
         is CardEffect.ShapeShift -> { /* no-op */ }
+
+        // Rozhodnutí – asynchronní zpracování ve ViewModelu; applyEffects je pouze no-op
+        is CardEffect.DecisionBurnOpponent  -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionChooseType    -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionFromDiscard   -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionFromDeck      -> { /* řeší ViewModel */ }
     }
 }
 

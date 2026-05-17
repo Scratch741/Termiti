@@ -71,6 +71,16 @@ sealed class CardEffect {
      */
     data class ConvertMine(val from: ResourceType, val to: ResourceType) : CardEffect()
 
+    // ── Rozhodnutí ────────────────────────────────────────────────────────────
+    /** Zobrazí [picks] karet ze soupeřova balíčku; hráč vybere jednu k zahození. */
+    data class DecisionBurnOpponent(val picks: Int = 3) : CardEffect()
+    /** Zobrazí [picks] náhodných karet daného [cardType] ze hry; hráč přidá jednu do ruky. */
+    data class DecisionChooseType(val cardType: String, val picks: Int = 3) : CardEffect()
+    /** Zobrazí [picks] karet z vlastního odhazovacího balíčku; hráč přidá jednu do ruky. */
+    data class DecisionFromDiscard(val picks: Int = 3) : CardEffect()
+    /** Zobrazí [picks] karet z vlastního balíčku; hráč přidá jednu do ruky. */
+    data class DecisionFromDeck(val picks: Int = 3) : CardEffect()
+
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */
     data class XScaledAttackPlayer(val divisor: Int = 2) : CardEffect()

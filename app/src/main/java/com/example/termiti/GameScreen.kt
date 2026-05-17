@@ -300,6 +300,16 @@ fun GameScreen(
             )
         }
 
+        val pendingDecision  by viewModel.pendingDecision
+        val decisionSeconds  by viewModel.decisionSecondsLeft
+        pendingDecision?.let { decision ->
+            DecisionOverlay(
+                decision    = decision,
+                secondsLeft = decisionSeconds,
+                onChoice    = { viewModel.resolveDecision(it) }
+            )
+        }
+
         if (showLostCards) {
             LostCardsOverlay(
                 lostCards = lostToOpponent,

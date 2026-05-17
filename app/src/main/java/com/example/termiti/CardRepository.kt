@@ -126,6 +126,10 @@ object CardRepository {
             from = ResourceType.valueOf(obj.getString("from")),
             to   = ResourceType.valueOf(obj.getString("to"))
         )
+        "DecisionBurnOpponent"  -> CardEffect.DecisionBurnOpponent(obj.optInt("picks", 3))
+        "DecisionChooseType"    -> CardEffect.DecisionChooseType(obj.getString("cardType"), obj.optInt("picks", 3))
+        "DecisionFromDiscard"   -> CardEffect.DecisionFromDiscard(obj.optInt("picks", 3))
+        "DecisionFromDeck"      -> CardEffect.DecisionFromDeck(obj.optInt("picks", 3))
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

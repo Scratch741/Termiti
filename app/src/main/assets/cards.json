@@ -123,6 +123,11 @@
       {
         "type": "BuildWall",
         "amount": 9
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 1
       }
     ],
     "rarity": "COMMON",
@@ -139,7 +144,7 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 5
+        "amount": 6
       },
       {
         "type": "AddResource",
@@ -161,7 +166,7 @@
     "effects": [
       {
         "type": "BuildCastle",
-        "amount": 4
+        "amount": 5
       }
     ],
     "rarity": "COMMON",
@@ -179,6 +184,11 @@
       {
         "type": "BuildCastle",
         "amount": 8
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": 1
       }
     ],
     "rarity": "COMMON",
@@ -231,7 +241,7 @@
       {
         "type": "AddResource",
         "resType": "STONES",
-        "amount": 4
+        "amount": 3
       }
     ],
     "rarity": "COMMON",
@@ -523,15 +533,15 @@
     "name": "Záplata",
     "cost": 1,
     "costType": "STONES",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "BuildCastle",
         "amount": 3
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "028"
   },
@@ -544,7 +554,7 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 6
+        "amount": 7
       }
     ],
     "rarity": "COMMON",
@@ -578,7 +588,7 @@
     "effects": [
       {
         "type": "BuildCastle",
-        "amount": 6
+        "amount": 7
       }
     ],
     "rarity": "COMMON",
@@ -642,7 +652,7 @@
         },
         "effect": {
           "type": "BuildCastle",
-          "amount": 8
+          "amount": 9
         }
       }
     ],
@@ -1161,12 +1171,11 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 7
+        "amount": 3
       },
       {
-        "type": "AddResource",
-        "resType": "STONES",
-        "amount": 1
+        "type": "BuildCastle",
+        "amount": 5
       }
     ],
     "rarity": "RARE",
@@ -1200,11 +1209,16 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 5
+        "amount": 4
       },
       {
         "type": "BuildCastle",
-        "amount": 7
+        "amount": 6
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 1
       }
     ],
     "rarity": "RARE",
@@ -1262,11 +1276,11 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 7
+        "amount": 6
       },
       {
         "type": "BuildCastle",
-        "amount": 4
+        "amount": 5
       },
       {
         "type": "AddResource",
@@ -1719,11 +1733,11 @@
     "name": "Rychlá hradba",
     "cost": 2,
     "costType": "STONES",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 7
+        "amount": 6
       }
     ],
     "rarity": "COMMON",
@@ -1781,7 +1795,7 @@
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 4
+        "amount": 5
       },
       {
         "type": "BuildCastle",
@@ -1953,7 +1967,7 @@
         "type": "ConditionalEffect",
         "condition": {
           "type": "WallAbove",
-          "threshold": 20
+          "threshold": 15
         },
         "effect": {
           "type": "BuildWall",
@@ -2634,7 +2648,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 4
+        "amount": 3
       }
     ],
     "rarity": "RARE",
@@ -2789,7 +2803,7 @@
   {
     "id": "D01",
     "name": "Průzkumník",
-    "cost": 1,
+    "cost": 2,
     "costType": "MAGIC",
     "isCombo": true,
     "effects": [
@@ -2798,8 +2812,8 @@
         "count": 1
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "D01"
   },
@@ -2861,7 +2875,7 @@
   {
     "id": "D05",
     "name": "Stavební plány",
-    "cost": 3,
+    "cost": 2,
     "costType": "STONES",
     "isCombo": true,
     "effects": [
@@ -2874,8 +2888,8 @@
         "count": 1
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "D05"
   },
@@ -3022,6 +3036,124 @@
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "100"
+  },
+  {
+    "id": "104",
+    "name": "Válečný trénink",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 5
+      },
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "104"
+  },
+  {
+    "id": "107",
+    "name": "Prokletí",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 3
+      },
+      {
+        "type": "DrainResource",
+        "resType": "ATTACK",
+        "amount": 3
+      },
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "107"
+  },
+  {
+    "id": "108",
+    "name": "Likvidace",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DecisionBurnOpponent",
+        "picks": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "108"
+  },
+  {
+    "id": "109",
+    "name": "Rekrut",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DecisionChooseType",
+        "cardType": "Útok",
+        "picks": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "109"
+  },
+  {
+    "id": "110",
+    "name": "Vzpomínka",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DecisionFromDiscard",
+        "picks": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "110"
+  },
+  {
+    "id": "111",
+    "name": "Intuice",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DecisionFromDeck",
+        "picks": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "111"
   },
   {
     "id": "T01",

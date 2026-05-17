@@ -189,6 +189,11 @@ fun aiChooseAction(ai: PlayerState, opponent: PlayerState): AiAction {
         }
         // Wildcard – průměrná hodnota náhodné karty
         is CardEffect.ShapeShift -> 5
+        // Rozhodnutí – statické skóre (AI auto-vybírá první možnost)
+        is CardEffect.DecisionBurnOpponent  -> 6
+        is CardEffect.DecisionChooseType    -> 5
+        is CardEffect.DecisionFromDiscard   -> 4
+        is CardEffect.DecisionFromDeck      -> 5
         // Konverze vlastního dolu: hodnotné pokud AI má chaos strategii
         is CardEffect.ConvertMine -> {
             val chaosMin = ai.mines[ResourceType.CHAOS] ?: 0

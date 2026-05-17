@@ -33,6 +33,11 @@ const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amou
 const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
 const ss = ()            => ({ type:'ShapeShift' });
 const cvM= (from,to)     => ({ type:'ConvertMine', from, to });
+// Rozhodnutí
+const dbo= (n=3)         => ({ type:'DecisionBurnOpponent',  picks:n });
+const dct= (ct,n=3)      => ({ type:'DecisionChooseType',    cardType:ct, picks:n });
+const dfd= (n=3)         => ({ type:'DecisionFromDiscard',   picks:n });
+const dfk= (n=3)         => ({ type:'DecisionFromDeck',      picks:n });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -57,15 +62,15 @@ const RAW = [
   ['017','Válečný sekyrník',4,'ATTACK',0,[ap(8),sr('ATTACK',2)],       'COMMON'],
 
   // ── Stavba (platí STONES) ────────────────────────────────────────────────
-  ['002','Kamenná zeď',    3,'STONES',0,[bw(9)],               'COMMON'],
-  ['010','Palisáda',       2,'STONES',0,[bw(5), ar('STONES',1)],'COMMON'],
-  ['005','Posila hradu',   2,'STONES',0,[bc(4)],               'COMMON'],
-  ['009','Pevné základy',  4,'STONES',0,[bc(8)],               'COMMON'],
+  ['002','Kamenná zeď',    3,'STONES',0,[bw(9), ar('STONES',1)],'COMMON'],
+  ['010','Palisáda',       2,'STONES',0,[bw(6), ar('STONES',1)],'COMMON'],
+  ['005','Posila hradu',   2,'STONES',0,[bc(5)],               'COMMON'],
+  ['009','Pevné základy',  4,'STONES',0,[bc(8), ar('STONES',1)],'COMMON'],
   ['018','Mohutná věž',    5,'STONES',0,[bw(15)],              'RARE'],
 
   // ── Zdroje okamžité (platí MAGIC) ────────────────────────────────────────
   ['004','Magie',          0,'MAGIC', 1,[ar('MAGIC',2)],       'COMMON'],
-  ['011','Zásoby kamene',  1,'MAGIC', 1,[ar('STONES',4)],      'COMMON'],
+  ['011','Zásoby kamene',  1,'MAGIC', 1,[ar('STONES',3)],      'COMMON'],
   ['012','Mobilizace',     1,'MAGIC', 1,[ar('ATTACK',3)],      'COMMON'],
 
   // ── Doly (platí MAGIC) ───────────────────────────────────────────────────
@@ -86,13 +91,13 @@ const RAW = [
   ['027','Válečné bubny',  2,'ATTACK',1,[ap(4), grp('ATTACK',2,'Útok')], 'RARE'],
 
   // ── Stavba – rozšíření ───────────────────────────────────────────────────
-  ['028','Záplata',        1,'STONES',0,[bc(3)],               'COMMON'],
-  ['029','Opevnění',       2,'STONES',1,[bw(6)],               'COMMON'],
+  ['028','Záplata',        1,'STONES',1,[bc(3)],               'RARE'],
+  ['029','Opevnění',       2,'STONES',1,[bw(7)],               'COMMON'],
   ['030','Kamenný val',    4,'STONES',0,[bw(13)],              'RARE'],
-  ['031','Renovace',       3,'STONES',0,[bc(6)],               'COMMON'],
+  ['031','Renovace',       3,'STONES',0,[bc(7)],               'COMMON'],
   ['032','Citadela',       6,'STONES',0,[bc(13)],              'EPIC'],
   ['033','Zemní val',      2,'STONES',0,[cd(wB(8), bw(11))],   'RARE'],
-  ['034','Opravář',        3,'STONES',0,[cd(wA(15), bc(8))],   'RARE'],
+  ['034','Opravář',        3,'STONES',0,[cd(wA(15), bc(9))],   'RARE'],
   ['035','Základní kámen', 3,'STONES',0,[bw(5), bc(4)],        'COMMON'],
   ['036','Hradní příkop',  3,'STONES',0,[bw(7), cd(cB(35), bw(5))], 'EPIC'],
 
@@ -123,12 +128,12 @@ const RAW = [
   ['056','Nájezdník',      3,'ATTACK',0,[sr('ATTACK',3), ap(4)],       'RARE'],
 
   // ── Stavba – Arcomage / Mravenci inspirace ────────────────────────────────
-  ['057','Bašta',          3,'STONES',0,[bw(7), ar('STONES',1)],'RARE'],
+  ['057','Bašta',          3,'STONES',0,[bw(3), bc(5)],         'RARE'],
   ['058','Obranný val',    0,'STONES',1,[bw(4)],               'EPIC'],
-  ['059','Pevnostní hrad', 4,'STONES',0,[bw(5), bc(7)],        'RARE'],
+  ['059','Pevnostní hrad', 4,'STONES',0,[bw(4), bc(6), dr('ATTACK',1)], 'RARE'],
   ['060','Chrám',         10,'STONES',0,[bc(18)],              'EPIC'],
   ['061','Tunely',         3,'STONES',0,[cd(cB(40), bw(12))],  'EPIC'],
-  ['062','Obranná aliance',5,'STONES',0,[bw(7), bc(4), ar('STONES',2)], 'EPIC'],
+  ['062','Obranná aliance',5,'STONES',0,[bw(6), bc(5), ar('STONES',2)], 'EPIC'],
   ['063','Věž strážní',    5,'STONES',0,[bw(11), am('STONES',1)],      'EPIC'],
   ['064','Zásobník',       3,'STONES',0,[cd(cB(40), bc(10))],  'EPIC'],
 
@@ -153,10 +158,10 @@ const RAW = [
   ['080','Velkovýroba',   10,'MAGIC', 0,[am('MAGIC',2), am('ATTACK',2), am('STONES',2)], 'LEGENDARY'],
 
   // ── Stavba – nové posily (STONES buff) ─────────────────────────────────────
-  ['081','Rychlá hradba',  2,'STONES',0,[bw(7)],               'COMMON'],
+  ['081','Rychlá hradba',  2,'STONES',1,[bw(6)],               'COMMON'],
   ['082','Masivní zeď',    6,'STONES',0,[bw(18)],              'RARE'],
   ['083','Nouzové opevnění',3,'STONES',0,[cd(wB(10), bw(14))], 'RARE'],
-  ['084','Velká oprava',   4,'STONES',0,[bw(4), bc(7)],        'COMMON'],
+  ['084','Velká oprava',   4,'STONES',0,[bw(5), bc(7)],        'COMMON'],
   ['085','Královská obnova',7,'STONES',0,[bc(15)],             'EPIC'],
   ['086','Zednická rota',  5,'STONES',0,[bw(8), bc(6)],        'RARE'],
   ['087','Pevnost',        6,'STONES',0,[bw(10), bc(8)],       'EPIC'],
@@ -164,7 +169,7 @@ const RAW = [
   ['089','Architekt',      4,'STONES',0,[bw(5), am('STONES',1)],'RARE'],
   ['090','Rozšíření těžby', 7,'STONES',0,[am('STONES',2)],      'EPIC'],
   ['091','Barikády',       3,'STONES',0,[bw(9), dr('ATTACK',2)],'RARE'],
-  ['092','Strategická výstavba',4,'STONES',0,[cd(wA(20), bw(14))], 'EPIC'],
+  ['092','Strategická výstavba',4,'STONES',0,[cd(wA(15), bw(14))], 'EPIC'],
   ['093','Cihla na cihlu', 3,'STONES',1,[bc(5), gcp(3,'Stavba')],'EPIC'],
   ['094','Sklad materiálu',3,'STONES',1,[bw(6), ar('STONES',2)],'COMMON'],
   ['095','Obchod s kamenem',2,'STONES',0,[ar('STONES',5)],     'COMMON'],
@@ -212,7 +217,7 @@ const RAW = [
   // ── Chaos – nové generátory ───────────────────────────────────────────────
   ['C24','Temný rituál',    2,'MAGIC', 1,[ar('CHAOS',5)],       'RARE'],
   ['C25','Nestabilní vír',  1,'MAGIC', 1,[ar('CHAOS',2), ar('MAGIC',2)], 'COMMON'],
-  ['C26','Krvavá oběť',     1,'MAGIC', 1,[ar('CHAOS',4)],       'RARE'],
+  ['C26','Krvavá oběť',     1,'MAGIC', 1,[ar('CHAOS',3)],       'RARE'],
   ['C27','Odraz magie',     2,'MAGIC', 0,[cd(rA('MAGIC',5), ar('CHAOS',7))], 'EPIC'],
   ['C28','Chaotická trofej',1,'MAGIC', 1,[sr('ATTACK',2), ar('CHAOS',3)], 'COMMON'],
   ['C29','Bouřlivá mysl',   5,'MAGIC', 0,[ar('CHAOS',3), am('CHAOS',1)], 'EPIC'],
@@ -221,11 +226,11 @@ const RAW = [
   ['C32','Vzájemná zkáza',  3,'CHAOS', 0,[ac(10), bc(-10)],     'EPIC'],
 
   // ── Lízni karet ───────────────────────────────────────────────────────────
-  ['D01','Průzkumník',     1,'MAGIC', 1,[dc(1)],               'COMMON'],
+  ['D01','Průzkumník',     2,'MAGIC', 1,[dc(1)],               'RARE'],
   ['D02','Věštba',         3,'MAGIC', 0,[dc(2)],               'RARE'],
   ['D03','Kronika',        5,'MAGIC', 0,[dc(3)],               'EPIC'],
   ['D04','Bojová taktika', 2,'ATTACK',0,[ap(4), dc(1)],        'COMMON'],
-  ['D05','Stavební plány', 3,'STONES',1,[bw(4), dc(1)],        'COMMON'],
+  ['D05','Stavební plány', 2,'STONES',1,[bw(4), dc(1)],        'RARE'],
   ['D06','Elitní zvěd',    4,'ATTACK',0,[ap(8), dc(1)],        'RARE'],
   ['D07','Tajná knihovna', 5,'MAGIC', 0,[dc(2), am('MAGIC',1)],'EPIC'],
   ['D08','Vize',           2,'MAGIC', 0,[cd(rA('MAGIC',4), dc(2))], 'RARE'],
@@ -235,6 +240,12 @@ const RAW = [
   ['098','Hod cihlou',     3,'ATTACK',0,[bw(-4), ap(11)],      'RARE'],
   ['099','Temný přenos',   8,'MAGIC', 0,[sca(10)],             'EPIC'],
   ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
+  ['104','Válečný trénink',4,'ATTACK',1,[ap(5), am('ATTACK',1)],'EPIC'],
+  ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3)], 'EPIC'],
+  ['108','Likvidace',      4,'CHAOS', 0,[dbo(3)],              'EPIC'],
+  ['109','Rekrut',         2,'ATTACK',0,[dct('Útok',3)],       'RARE'],
+  ['110','Vzpomínka',      3,'MAGIC', 0,[dfd(3)],              'EPIC'],
+  ['111','Intuice',        3,'MAGIC', 0,[dfk(3)],              'EPIC'],
 
   // ── Testovací ─────────────────────────────────────────────────────────────
   ['T01','Goblin šaman',    3,'MAGIC', 0,[ar('MAGIC',5)],      'RARE'],
