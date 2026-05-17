@@ -359,8 +359,7 @@ class OnlineLobbyViewModel(
     fun resolveOnlineDecision(card: Card) {
         cancelOnlineDecisionTimer()
         onlinePendingDecision.value = null
-        send("type" to "GAME_ACTION", "action" to "DECISION_RESPONSE",
-             "gameId" to (matchInfo.value?.gameId ?: ""), "chosenId" to card.id)
+        sendAction("DECISION_RESPONSE", JSONObject().apply { put("chosenId", card.id) })
     }
 
     private fun startOnlineDecisionTimer(seconds: Int) {

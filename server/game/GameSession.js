@@ -14,7 +14,6 @@ const {
 } = require('./engine');
 
 const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck']);
-const DECISION_TIMEOUT_MS = 30_000;
 const { ratingSystem } = require('./RatingSystem');
 
 const MULLIGAN_HAND_SIZE    = 4;
@@ -453,6 +452,9 @@ class GameSession {
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
       this._sendStateBoth();
 
+      // Timeout shodný s délkou kola – hráč nemá extra čas na rozhodnutí
+      const decisionTimeoutMs = TURN_SECONDS * 1000;
+
       // Pošli nabídku aktivnímu hráči
       this._send(side, {
         type:       'DECISION_REQUEST',
@@ -467,7 +469,7 @@ class GameSession {
           costType: c.costType,
           rarity:   c.rarity
         })),
-        timeoutMs: DECISION_TIMEOUT_MS
+        timeoutMs: decisionTimeoutMs
       });
 
       // Auto-resolve po timeoutu
@@ -475,7 +477,7 @@ class GameSession {
         if (!this.pendingDecision || this.pendingDecision.side !== side) return;
         console.log(`[Decision ${this.gameId}] Timeout – auto-resolve`);
         this._resolveDecision(side, options.length > 0 ? options[0].id : null);
-      }, DECISION_TIMEOUT_MS);
+      }, decisionTimeoutMs);
 
       return;
     }
