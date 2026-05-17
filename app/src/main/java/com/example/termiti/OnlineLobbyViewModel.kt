@@ -165,6 +165,14 @@ class OnlineLobbyViewModel(
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
 
+    // ── Online Rozhodnutí ─────────────────────────────────────────────────────
+    /** Čekající výběr karty (Rozhodnutí); null = žádné */
+    var onlinePendingDecision     = mutableStateOf<DecisionState?>(null); private set
+    var onlineDecisionSecondsLeft = mutableStateOf<Int?>(null); private set
+    /** Mapování baseId → instanceId pro aktuální Decision nabídku */
+    private var onlineDecisionOptionsById: Map<String, String> = emptyMap()
+    private var onlineDecisionTimerJob: Job? = null
+
     // ── Stav odpojení soupeře ─────────────────────────────────────────────────
     /** Soupeř se odpojil a čeká se na jeho reconnect */
     var opponentDisconnected      = mutableStateOf(false);  private set
@@ -345,6 +353,36 @@ class OnlineLobbyViewModel(
         mulliganSecondsLeft.value = null
     }
 
+    // ── Online Rozhodnutí ─────────────────────────────────────────────────────
+
+    /** Hráč vybral kartu z Decision nabídky – pošleme id serveru. */
+    fun resolveOnlineDecision(card: Card) {
+        cancelOnlineDecisionTimer()
+        onlinePendingDecision.value = null
+        send("type" to "GAME_ACTION", "action" to "DECISION_RESPONSE",
+             "gameId" to (matchInfo.value?.gameId ?: ""), "chosenId" to card.id)
+    }
+
+    private fun startOnlineDecisionTimer(seconds: Int) {
+        cancelOnlineDecisionTimer()
+        onlineDecisionSecondsLeft.value = seconds
+        onlineDecisionTimerJob = viewModelScope.launch {
+            for (remaining in seconds - 1 downTo 0) {
+                delay(1_000)
+                onlineDecisionSecondsLeft.value = remaining
+            }
+            // Timeout – zavři overlay; server auto-vybere sám
+            onlinePendingDecision.value = null
+            onlineDecisionSecondsLeft.value = null
+        }
+    }
+
+    private fun cancelOnlineDecisionTimer() {
+        onlineDecisionTimerJob?.cancel()
+        onlineDecisionTimerJob = null
+        onlineDecisionSecondsLeft.value = null
+    }
+
     private fun sendMulliganDone(returnIds: List<String>) {
         val gameId = matchInfo.value?.gameId
         if (gameId == null) {
@@ -514,15 +552,24 @@ class OnlineLobbyViewModel(
                         allModeStats.value = parsed
                         myRating.value = parsed["normal"]?.rating
                     }
-                    // Nepřepisuj fázi hry při reconnectu – buď z auto-reconnectu (isReconnecting)
-                    // nebo jsme aktivní ve hře (mulligan / playing)
-                    val inGame = phase.value == OnlinePhase.GAME_MULLIGAN ||
-                                 phase.value == OnlinePhase.GAME_PLAYING
-                    if (!isReconnecting.value && !inGame) {
-                        phase.value      = OnlinePhase.LOBBY
-                        statusMsg.value  = "Připojeno ✓"
+                    if (isReconnecting.value) {
+                        // Auto-reconnect proběhl – přejdi do lobby a čekej, zda server
+                        // pošle GAME_MULLIGAN / GAME_STATE pro obnovení hry.
+                        // Pokud server hru nezná (restart bez persistence), klient
+                        // správně zůstane v lobby místo aby uvízl v herní fázi.
+                        resetGameState()   // vyčistí mulligan timer i herní stav
+                        phase.value     = OnlinePhase.LOBBY
+                        statusMsg.value = "Reconnect ✓"
+                        errorMsg.value  = ""
+                    } else {
+                        val inGame = phase.value == OnlinePhase.GAME_MULLIGAN ||
+                                     phase.value == OnlinePhase.GAME_PLAYING
+                        if (!inGame) {
+                            phase.value      = OnlinePhase.LOBBY
+                            statusMsg.value  = "Připojeno ✓"
+                        }
                     }
-                    android.util.Log.d("WELCOME", "WELCOME: isReconnecting=${isReconnecting.value} inGame=$inGame phase=${phase.value}")
+                    android.util.Log.d("WELCOME", "WELCOME: isReconnecting=${isReconnecting.value} phase→${phase.value}")
                     isReconnecting.value = false
                     reconnectAttempts    = 0
                 }
@@ -705,6 +752,27 @@ class OnlineLobbyViewModel(
                     opponentDisconnectSec.value = 0
                 }
 
+                "DECISION_REQUEST" -> {
+                    val effectType = json.optString("effectType", "")
+                    val timeoutSec = json.optInt("timeoutMs", 30_000) / 1_000
+                    val optArr     = json.optJSONArray("options")
+                    val options    = parseCardArray(optArr)
+
+                    val (title, subtitle) = when (effectType) {
+                        "DecisionBurnOpponent" -> "Likvidace"  to "Vyber kartu k zahazení ze soupeřova balíčku"
+                        "DecisionChooseType"   -> {
+                            val ct = json.optString("cardType", "")
+                            "Rekrut" to "Vyber kartu typu $ct"
+                        }
+                        "DecisionFromDiscard"  -> "Vzpomínka" to "Vyber kartu z odhazovacího balíčku"
+                        "DecisionFromDeck"     -> "Intuice"   to "Vyber kartu z vlastního balíčku"
+                        else                   -> "Rozhodnutí" to "Vyber kartu"
+                    }
+
+                    onlinePendingDecision.value = DecisionState(title, subtitle, options)
+                    startOnlineDecisionTimer(timeoutSec)
+                }
+
                 "GAME_ERROR" -> {
                     // Dočasná chyba hry (špatná akce) – zobraz jako zprávu, nepřeruš hru
                     val msg = json.optString("msg", "Chyba")
@@ -712,10 +780,23 @@ class OnlineLobbyViewModel(
                 }
 
                 "ERROR" -> {
-                    errorMsg.value = json.optString("msg", "Chyba serveru")
-                    if (phase.value == OnlinePhase.CONNECTING ||
-                        phase.value == OnlinePhase.LOBBY) {
-                        phase.value = OnlinePhase.ERROR
+                    val msg = json.optString("msg", "Chyba serveru")
+                    errorMsg.value = msg
+                    when (phase.value) {
+                        OnlinePhase.CONNECTING,
+                        OnlinePhase.LOBBY -> {
+                            phase.value = OnlinePhase.ERROR
+                        }
+                        OnlinePhase.GAME_MULLIGAN,
+                        OnlinePhase.GAME_PLAYING -> {
+                            // Server nás vyhodil z herní fáze (např. po restartu hra neexistuje).
+                            // Vrátíme do lobby – jsme stále připojeni, hráč může hrát znovu.
+                            resetGameState()   // zahrnuje cancelMulliganTimer()
+                            phase.value     = OnlinePhase.LOBBY
+                            statusMsg.value = "⚠️ $msg"
+                            errorMsg.value  = ""   // zprávu zobrazí statusMsg, ne errorMsg
+                        }
+                        else -> { /* ostatní fáze neřešíme */ }
                     }
                 }
             }
@@ -827,6 +908,8 @@ class OnlineLobbyViewModel(
 
     private fun resetGameState() {
         cancelMulliganTimer()
+        cancelOnlineDecisionTimer()
+        onlinePendingDecision.value = null
         gameEndPending.value       = false
         mulliganHand.value         = emptyList()
         mulliganSelected.value     = emptySet()

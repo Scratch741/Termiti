@@ -283,44 +283,14 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       // Pasivní příznak – transformace probíhá v transformShapeShifters() při startu tahu
       case 'ShapeShift': break;
 
-      // Rozhodnutí – online: server auto-vybere první možnost (stejně jako AI offline)
-      // TODO: implementovat plnou online podporu s klientským výběrem
-      case 'DecisionBurnOpponent': {
-        const opts = (opponent.deck || []).slice().sort(() => Math.random() - 0.5).slice(0, fx.picks);
-        if (opts.length > 0) {
-          const chosen = opts[0];
-          opponent.deck = opponent.deck.filter(c => c.instanceId !== chosen.instanceId);
-          opponent.discardPile.push(chosen);
-        }
+      // Rozhodnutí – řeší GameSession (pošle DECISION_REQUEST klientovi, čeká na výběr).
+      // V applyEffects jsou no-ops; GameSession detekuje tyto efekty PŘED voláním applyEffects
+      // a zpracuje je odděleně (přerušení tahu + interakce s hráčem).
+      case 'DecisionBurnOpponent':
+      case 'DecisionChooseType':
+      case 'DecisionFromDiscard':
+      case 'DecisionFromDeck':
         break;
-      }
-      case 'DecisionChooseType': {
-        const pool = Object.values(cardMap).filter(c => c.type === fx.cardType);
-        if (pool.length > 0) {
-          const tmpl = pool[Math.floor(Math.random() * pool.length)];
-          const newCard = { ...tmpl, instanceId: `${tmpl.id}_${Date.now()}_${Math.random()}` };
-          if (self.hand.length < 7) self.hand.push(newCard);
-        }
-        break;
-      }
-      case 'DecisionFromDiscard': {
-        const opts = (self.discardPile || []).slice().sort(() => Math.random() - 0.5).slice(0, fx.picks);
-        if (opts.length > 0) {
-          const chosen = opts[0];
-          self.discardPile = self.discardPile.filter(c => c.instanceId !== chosen.instanceId);
-          if (self.hand.length < 7) self.hand.push(chosen);
-        }
-        break;
-      }
-      case 'DecisionFromDeck': {
-        const opts = (self.deck || []).slice().sort(() => Math.random() - 0.5).slice(0, fx.picks);
-        if (opts.length > 0) {
-          const chosen = opts[0];
-          self.deck = self.deck.filter(c => c.instanceId !== chosen.instanceId);
-          if (self.hand.length < 7) self.hand.push(chosen);
-        }
-        break;
-      }
 
       case 'SwapHands': {
         const selfOldHand     = [...self.hand];

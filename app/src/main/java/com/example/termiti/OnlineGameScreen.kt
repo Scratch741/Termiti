@@ -130,9 +130,11 @@ fun OnlineGameScreen(
         PlayerProfileManager.recordGameResult(win = r.youWin, online = true)
     }
 
-    val opponentDisconnected by vm.opponentDisconnected
-    val opponentDisconnectSec by vm.opponentDisconnectSec
-    val isReconnecting by vm.isReconnecting
+    val opponentDisconnected    by vm.opponentDisconnected
+    val opponentDisconnectSec   by vm.opponentDisconnectSec
+    val isReconnecting          by vm.isReconnecting
+    val onlinePendingDecision   by vm.onlinePendingDecision
+    val onlineDecisionSecondsLeft by vm.onlineDecisionSecondsLeft
 
     Box(
         modifier = Modifier
@@ -166,6 +168,15 @@ fun OnlineGameScreen(
             else -> {
                 // Zpět do lobby přes onBack (nemělo by nastat)
             }
+        }
+
+        // ── Overlay: Rozhodnutí ───────────────────────────────────────────────
+        onlinePendingDecision?.let { decision ->
+            DecisionOverlay(
+                decision    = decision,
+                secondsLeft = onlineDecisionSecondsLeft,
+                onChoice    = { vm.resolveOnlineDecision(it) }
+            )
         }
 
         // ── Overlay: soupeř se odpojil, čekáme na reconnect ──────────────────

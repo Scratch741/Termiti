@@ -4,7 +4,7 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, ALL_CARDS, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
+  CARD_MAP, ALL_CARDS, makeInstance, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
   MAX_RESOURCE,
@@ -12,6 +12,9 @@ const {
   applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp,
   transformShapeShifters
 } = require('./engine');
+
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck']);
+const DECISION_TIMEOUT_MS = 30_000;
 const { ratingSystem } = require('./RatingSystem');
 
 const MULLIGAN_HAND_SIZE    = 4;
@@ -73,6 +76,10 @@ class GameSession {
 
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
+
+    // Pending Decision state (set while waiting for DECISION_RESPONSE from client)
+    this.pendingDecision = null;  // { side, effect, isCombo, options }
+    this._decisionTimer  = null;
   }
 
   // ── Start ──────────────────────────────────────────────────────────────────
@@ -306,6 +313,17 @@ class GameSession {
       this._sendError(side, 'Hra není aktivní.');
       return;
     }
+
+    // ── Čekáme na výběr Rozhodnutí ──────────────────────────────────────────
+    if (this.pendingDecision) {
+      if (action === 'DECISION_RESPONSE' && side === this.pendingDecision.side) {
+        this._handleDecisionResponse(side, data);
+      } else if (side === this.pendingDecision.side) {
+        this._sendError(side, 'Nejdříve vyber kartu (Rozhodnutí).');
+      }
+      return;
+    }
+
     if (side !== this.activeSide) {
       this._sendError(side, 'Nejsi na tahu.');
       return;
@@ -400,6 +418,10 @@ class GameSession {
       }
     }
 
+    // ── Rozhodnutí: detekuj Decision efekt PŘED applyEffects ───────────────
+    // Decision efekty jsou no-ops v engine.applyEffects; zpracováváme je zde.
+    const decisionFx = card.effects.find(fx => DECISION_TYPES.has(fx.type));
+
     const lostCards = [];
     applyEffects(
       card.effects,
@@ -423,7 +445,42 @@ class GameSession {
       });
     }
 
-    // Win check
+    // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
+    if (decisionFx) {
+      const options = this._buildDecisionOptions(side, decisionFx);
+      this.pendingDecision = { side, effect: decisionFx, isCombo: card.isCombo, options };
+
+      // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
+      this._sendStateBoth();
+
+      // Pošli nabídku aktivnímu hráči
+      this._send(side, {
+        type:       'DECISION_REQUEST',
+        effectType: decisionFx.type,
+        cardType:   decisionFx.cardType || null,
+        picks:      decisionFx.picks   || 3,
+        options:    options.map(c => ({
+          id:       c.id,
+          baseId:   c.baseId || c.id,
+          name:     c.name,
+          cost:     c.cost,
+          costType: c.costType,
+          rarity:   c.rarity
+        })),
+        timeoutMs: DECISION_TIMEOUT_MS
+      });
+
+      // Auto-resolve po timeoutu
+      this._decisionTimer = setTimeout(() => {
+        if (!this.pendingDecision || this.pendingDecision.side !== side) return;
+        console.log(`[Decision ${this.gameId}] Timeout – auto-resolve`);
+        this._resolveDecision(side, options.length > 0 ? options[0].id : null);
+      }, DECISION_TIMEOUT_MS);
+
+      return;
+    }
+
+    // ── Normální průběh ────────────────────────────────────────────────────
     const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
     if (winner !== null) {
       this._endGame(winner);
@@ -435,6 +492,122 @@ class GameSession {
       this._advanceTurn();
     } else {
       // Combo karta → hráč pokračuje v tahu, jen pošleme nový stav
+      this._sendStateBoth();
+    }
+  }
+
+  // ── Decision: sestav nabídku karet ─────────────────────────────────────────
+
+  _buildDecisionOptions(side, effect) {
+    const self = this.state[side];
+    const opp  = this.state[side === 'A' ? 'B' : 'A'];
+    const n    = effect.picks || 3;
+
+    switch (effect.type) {
+      case 'DecisionBurnOpponent': {
+        // N náhodných karet ze soupeřova balíčku (hráč si vybere, která shoří)
+        return [...opp.deck].sort(() => Math.random() - 0.5).slice(0, n);
+      }
+      case 'DecisionChooseType': {
+        // N náhodných karet daného typu z celého poolu (šablony)
+        const pool = ALL_CARDS.filter(c => deriveCardType(c) === effect.cardType);
+        return [...pool].sort(() => Math.random() - 0.5).slice(0, n)
+          .map(c => ({ ...c, id: c.id, baseId: c.id }));
+      }
+      case 'DecisionFromDiscard': {
+        // N náhodných karet z vlastního odhazovacího balíčku
+        return [...self.discardPile].sort(() => Math.random() - 0.5).slice(0, n);
+      }
+      case 'DecisionFromDeck': {
+        // N náhodných karet z vlastního balíčku
+        return [...self.deck].sort(() => Math.random() - 0.5).slice(0, n);
+      }
+      default: return [];
+    }
+  }
+
+  // ── Decision: zpracuj odpověď hráče ────────────────────────────────────────
+
+  _handleDecisionResponse(side, { chosenId }) {
+    if (!this.pendingDecision || this.pendingDecision.side !== side) {
+      this._sendError(side, 'Žádné čekající rozhodnutí.');
+      return;
+    }
+    this._resolveDecision(side, chosenId);
+  }
+
+  _resolveDecision(side, chosenId) {
+    if (this._decisionTimer) { clearTimeout(this._decisionTimer); this._decisionTimer = null; }
+
+    const { effect, isCombo } = this.pendingDecision;
+    this.pendingDecision = null;
+
+    const self = this.state[side];
+    const opp  = this.state[side === 'A' ? 'B' : 'A'];
+    const maxH = self.maxHandSize || 7;
+
+    switch (effect.type) {
+      case 'DecisionBurnOpponent': {
+        if (chosenId) {
+          const idx = opp.deck.findIndex(c => c.id === chosenId);
+          if (idx !== -1) {
+            const [burned] = opp.deck.splice(idx, 1);
+            opp.discardPile.push(burned);
+            this._log(`${this.name[side]} zahodil kartu ze soupeřova balíčku (${burned.name}).`);
+          }
+        }
+        break;
+      }
+      case 'DecisionChooseType': {
+        if (chosenId) {
+          const tmpl = CARD_MAP.get(chosenId);
+          if (tmpl && self.hand.length < maxH) {
+            self.hand.push(makeInstance(tmpl));
+            this._log(`${this.name[side]} přidal ${tmpl.name} do ruky.`);
+          }
+        }
+        break;
+      }
+      case 'DecisionFromDiscard': {
+        if (chosenId) {
+          const idx = self.discardPile.findIndex(c => c.id === chosenId);
+          if (idx !== -1) {
+            const [card] = self.discardPile.splice(idx, 1);
+            if (self.hand.length < maxH) {
+              self.hand.push(card);
+              this._log(`${this.name[side]} vrátil ${card.name} z odhazovacího balíčku.`);
+            }
+          }
+        }
+        break;
+      }
+      case 'DecisionFromDeck': {
+        if (chosenId) {
+          const idx = self.deck.findIndex(c => c.id === chosenId);
+          if (idx !== -1) {
+            const [card] = self.deck.splice(idx, 1);
+            if (self.hand.length < maxH) {
+              self.hand.push(card);
+              this._log(`${this.name[side]} prohledal balíček a vzal ${card.name}.`);
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    // lastPlayedCard už byl zalogován při prvním state pushu → vymaž, aby se nezalogoval znovu
+    this.lastPlayedCard   = null;
+    this.lastPlayedAction = null;
+
+    const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
+    if (winner !== null) { this._endGame(winner); return; }
+
+    if (!isCombo) {
+      this._advanceTurn();
+    } else {
+      // Combo: hráč pokračuje v tahu – restart timeru, pošli stav
+      this._startTurnTimer();
       this._sendStateBoth();
     }
   }
@@ -471,12 +644,20 @@ class GameSession {
   _handleEndTurn(side) {
     // Hráč aktivně ukončil tah → resetuj příznak prázdného přeskočení
     this.skippedEmptyDeck[side] = false;
+    // Vymaž lastPlayedCard, aby se karta nezalogovala podruhé v GAME_STATE po změně tahu
+    // (platí zejména pro combo karty, kde _sendStateBoth bylo voláno i při zahraní karty)
+    this.lastPlayedCard   = null;
+    this.lastPlayedAction = null;
     this._advanceTurn();
   }
 
   // ── Skip turn (empty deck) ─────────────────────────────────────────────────
 
   _handleSkipTurn(side) {
+    // Stejně jako END_TURN: vymaž lastPlayedCard, aby nedošlo k duplicitě v logu
+    this.lastPlayedCard   = null;
+    this.lastPlayedAction = null;
+
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
 
@@ -552,6 +733,8 @@ class GameSession {
     this.phase = 'ended';
     this._clearTurnTimer();
     this._clearMulliganTimers();
+    if (this._decisionTimer) { clearTimeout(this._decisionTimer); this._decisionTimer = null; }
+    this.pendingDecision = null;
 
     let winnerName = null;
     if (winner === 'A') winnerName = this.name.A;

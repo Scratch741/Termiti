@@ -24,12 +24,14 @@
  * Klient → Server:
  *   { type:"MULLIGAN_DONE",     gameId:"...", returnIds:["001_1",...] }
  *   { type:"GAME_ACTION",       gameId:"...", action:"PLAY_CARD"|"DISCARD_CARD"|"END_TURN"|"SKIP_TURN", data:{...} }
+ *   { type:"GAME_ACTION",       gameId:"...", action:"DECISION_RESPONSE", chosenId:"..." }
  *
  * Server → Klient:
  *   { type:"GAME_MULLIGAN",     hand:[...] }
  *   { type:"MULLIGAN_OK",       hand:[...] }
  *   { type:"OPPONENT_MULLIGAN_DONE" }
  *   { type:"GAME_STATE",        activeSide, isMyTurn, turnNumber, myState, oppState, log }
+ *   { type:"DECISION_REQUEST", effectType, cardType?, picks, options:[{id,baseId,name,...}], timeoutMs }
  *   { type:"CARD_LOST",         cardId, action:"STOLEN"|"BURNED" }
  *   { type:"GAME_OVER",              winner:"A"|"B"|"DRAW", winnerName, youWin }
  *   { type:"GAME_ERROR",             msg:"..." }
