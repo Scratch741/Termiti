@@ -65,5 +65,10 @@ data class Card(
      * Má nejvyšší prioritu – přebije jak [sound], tak auto-detekci.
      * Příklad: soundResId = R.raw.my_special_card
      */
-    val soundResId: Int? = null
+    val soundResId: Int? = null,
+    /**
+     * True = karta přišla do ruky mimořádnou cestou (Rozhodnutí, krádež, výměna rukou atd.),
+     * nikoli normálním líznutím z vlastního balíčku. UI zobrazí ✨ odznak.
+     */
+    val isGenerated: Boolean = false
 )

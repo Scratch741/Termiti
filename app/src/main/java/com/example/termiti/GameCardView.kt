@@ -537,7 +537,7 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 5b: ikony stavu (splněno / combo) – vpravo nahoře, nepřekrývají text ani grafiku
+        // Vrstva 5b: ikony stavu (generováno / splněno / combo) – vpravo nahoře
         Column(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -545,6 +545,23 @@ private fun CardViewTextured(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
+            if (card.isGenerated) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, Color(0xFFB388FF).copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "✨",
+                        fontSize = 9.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
             if (conditionMet != null) {
                 val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
                 val condIcon  = if (conditionMet) "✓" else "✗"

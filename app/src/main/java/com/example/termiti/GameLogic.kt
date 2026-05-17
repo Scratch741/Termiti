@@ -87,7 +87,7 @@ fun applyEffects(
                 val stolen = opponent.hand.random()
                 opponent.hand.remove(stolen)
                 if (self.hand.size < 7) {
-                    self.hand.add(stolen)
+                    self.hand.add(stolen.copy(isGenerated = true))
                 } else {
                     self.discardPile.add(stolen)   // ruka plná → ukradená karta shoří
                 }
@@ -108,7 +108,7 @@ fun applyEffects(
             val template = allCards.find { it.id == effect.cardId }
             if (template != null) {
                 repeat(effect.count) {
-                    self.deck.add(template.copy(id = "${template.id}_${java.util.UUID.randomUUID()}"))
+                    self.deck.add(template.copy(id = "${template.id}_${java.util.UUID.randomUUID()}", isGenerated = true))
                 }
                 self.deck.shuffle()
             }
@@ -136,9 +136,9 @@ fun applyEffects(
             val selfOldHand     = self.hand.toList()
             val opponentOldHand = opponent.hand.toList()
             self.hand.clear()
-            self.hand.addAll(opponentOldHand)
+            self.hand.addAll(opponentOldHand.map { it.copy(isGenerated = true) })
             opponent.hand.clear()
-            opponent.hand.addAll(selfOldHand)
+            opponent.hand.addAll(selfOldHand.map { it.copy(isGenerated = true) })
             // Zaloguj každou kartu z původní soupeřovy ruky jako ukradenou
             for (card in opponentOldHand) {
                 onOpponentCardLost?.invoke(card, CardAction.STOLEN)

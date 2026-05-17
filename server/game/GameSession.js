@@ -613,7 +613,7 @@ class GameSession {
         if (chosenId) {
           const tmpl = CARD_MAP.get(chosenId);
           if (tmpl && self.hand.length < maxH) {
-            self.hand.push(makeInstance(tmpl));
+            self.hand.push({ ...makeInstance(tmpl), isGenerated: true });
             this._log(`${this.name[side]} přidal ${tmpl.name} do ruky.`);
           }
         }
@@ -625,7 +625,7 @@ class GameSession {
           if (idx !== -1) {
             const [card] = self.discardPile.splice(idx, 1);
             if (self.hand.length < maxH) {
-              self.hand.push(card);
+              self.hand.push({ ...card, isGenerated: true });
               this._log(`${this.name[side]} vrátil ${card.name} z odhazovacího balíčku.`);
             }
           }
@@ -638,7 +638,7 @@ class GameSession {
           if (idx !== -1) {
             const [card] = self.deck.splice(idx, 1);
             if (self.hand.length < maxH) {
-              self.hand.push(card);
+              self.hand.push({ ...card, isGenerated: true });
               this._log(`${this.name[side]} prohledal balíček a vzal ${card.name}.`);
             }
           }
@@ -838,14 +838,15 @@ class GameSession {
   /** Serialize a player's hand for transmission (full card data for owner). */
   _serializeHand(side) {
     return this.state[side].hand.map(c => ({
-      id:       c.id,
+      id:          c.id,
       // Transformovaný Shapeshifter: pošli displayBaseId (skutečná šablona) nikoli 'C34',
       // aby klient zobrazil správnou kartu. Server sleduje Shapeshifter pomocí baseId: 'C34'.
-      baseId:   c.displayBaseId || c.baseId,
-      name:     c.name,
-      cost:     c.cost,
-      costType: c.costType,
-      rarity:   c.rarity
+      baseId:      c.displayBaseId || c.baseId,
+      name:        c.name,
+      cost:        c.cost,
+      costType:    c.costType,
+      rarity:      c.rarity,
+      isGenerated: c.isGenerated || false
     }));
   }
 

@@ -226,7 +226,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
             const idx = Math.floor(Math.random() * opponent.hand.length);
             const stolen = opponent.hand.splice(idx, 1)[0];
             if (self.hand.length < 7) {
-              self.hand.push(stolen);
+              self.hand.push({ ...stolen, isGenerated: true });
             } else {
               self.discardPile.push(stolen);  // ruka plná → ukradená karta shoří
             }
@@ -250,7 +250,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         const tmpl = cardMap && cardMap.get(fx.cardId);
         if (tmpl) {
           for (let i = 0; i < fx.count; i++) {
-            self.deck.push(makeInstance(tmpl));
+            self.deck.push({ ...makeInstance(tmpl), isGenerated: true });
           }
           shuffle(self.deck);
         }
@@ -297,8 +297,8 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         const opponentOldHand = [...opponent.hand];
         self.hand.length     = 0;
         opponent.hand.length = 0;
-        self.hand.push(...opponentOldHand);
-        opponent.hand.push(...selfOldHand);
+        self.hand.push(...opponentOldHand.map(c => ({ ...c, isGenerated: true })));
+        opponent.hand.push(...selfOldHand.map(c => ({ ...c, isGenerated: true })));
         // Zaloguj každou kartu z původní soupeřovy ruky jako ukradenou
         for (const card of selfOldHand) {
           onOpponentLoss && onOpponentLoss(card, 'STOLEN');

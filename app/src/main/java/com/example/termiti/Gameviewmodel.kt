@@ -362,18 +362,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 log.appendLog("Hráč zahodil ze soupeřova balíku: ${chosen.name}")
             }
             is CardEffect.DecisionChooseType -> {
-                val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}")
+                val newCard = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
                 log.appendLog("Hráč si vybral: ${chosen.name}")
             }
             is CardEffect.DecisionFromDiscard -> {
                 player.discardPile.remove(chosen)
-                if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
+                val retrieved = chosen.copy(isGenerated = true)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(retrieved) else player.discardPile.add(retrieved)
                 log.appendLog("Hráč si vzal z odhazovacího balíčku: ${chosen.name}")
             }
             is CardEffect.DecisionFromDeck -> {
                 player.deck.remove(chosen)
-                if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
+                val retrieved = chosen.copy(isGenerated = true)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(retrieved) else player.discardPile.add(retrieved)
                 log.appendLog("Hráč si vybral z balíčku: ${chosen.name}")
             }
             else -> {}

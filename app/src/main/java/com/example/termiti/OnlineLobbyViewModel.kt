@@ -808,14 +808,15 @@ class OnlineLobbyViewModel(
         if (arr == null) return emptyList()
         val result = mutableListOf<Card>()
         for (i in 0 until arr.length()) {
-            val obj    = arr.getJSONObject(i)
+            val obj        = arr.getJSONObject(i)
             val instanceId = obj.optString("id", "")
             val baseId     = obj.optString("baseId", instanceId.substringBefore('_'))
+            val isGenerated = obj.optBoolean("isGenerated", false)
             // Najdi plný Card objekt v allCards podle baseId
             val template = allCards.find { it.id == baseId }
             if (template != null) {
-                // Přetypuj s instančním ID (zachovej originál + přepiš id)
-                result.add(template.copy(id = instanceId))
+                // Přetypuj s instančním ID + příznakem generování
+                result.add(template.copy(id = instanceId, isGenerated = isGenerated))
             }
         }
         return result
