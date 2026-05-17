@@ -688,23 +688,43 @@ class OnlineLobbyViewModel(
                 }
 
                 "CARD_LOST" -> {
-                    // Karta nám byla odebrána – zobrazíme ji v centru bojiště s ikonou akce
                     val action = when (json.optString("action", "")) {
                         "BURNED" -> CardAction.BURNED
                         "STOLEN" -> CardAction.STOLEN
                         else     -> null
-                    }
-                    if (action != null) {
-                        val cardId   = json.optString("cardId", "")
-                        val baseId   = cardId.substringBefore('_')
-                        val template = allCards.find { it.id == baseId }
-                        if (template != null) {
-                            lastPlayedCard.value   = template.copy(id = cardId)
+                    } ?: return@launch
+                    val cardId      = json.optString("cardId", "")
+                    val baseId      = json.optString("baseId", cardId.substringBefore('_'))
+                    val isGenerated = json.optBoolean("isGenerated", false)
+                    val causedByMe  = json.optBoolean("causedByMe", false)
+                    val ownCard     = json.optBoolean("ownCard", false)
+                    val template    = allCards.find { it.id == baseId } ?: return@launch
+                    val card        = template.copy(id = cardId, isGenerated = isGenerated)
+                    val turn        = gameState.value.turnNumber
+                    val myName      = playerName.value
+                    val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
+
+                    when {
+                        ownCard -> {
+                            // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed
+                            lastPlayedCard.value   = card
                             lastPlayedAction.value = action
-                            lastPlayedByMe.value   = true  // naše karta = zobrazit jako "naše"
-                            val oppName = matchInfo.value?.opponentName ?: "Soupeř"
-                            val turn = gameState.value.turnNumber
-                            gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, template, action, isMe = false, turn)).takeLast(50)
+                            lastPlayedByMe.value   = true
+                            gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                        }
+                        causedByMe -> {
+                            // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
+                            lastPlayedCard.value   = card
+                            lastPlayedAction.value = action
+                            lastPlayedByMe.value   = false  // soupeřova karta
+                            gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                        }
+                        else -> {
+                            // Soupeř způsobil ztrátu mé karty
+                            lastPlayedCard.value   = card
+                            lastPlayedAction.value = action
+                            lastPlayedByMe.value   = true
+                            gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
                         }
                     }
                 }

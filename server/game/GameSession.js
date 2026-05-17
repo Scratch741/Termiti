@@ -444,7 +444,10 @@ class GameSession {
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
       const drawBurned = drawCards(self, 1, self.maxHandSize || 7);
-      for (const bc of drawBurned) this._log(`🔥 ${this.name[side]} spálil ${bc.name} (plná ruka).`);
+      for (const bc of drawBurned) {
+        this._send(side, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
+          action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+      }
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
     for (const grp of (self.gainResourcePerCardPlayed || [])) {
@@ -477,19 +480,19 @@ class GameSession {
 
     this._log(`${this.name[side]} zahrál ${card.name}`);
 
-    // Notify opponent about stolen/burned cards + log for both players
-    const oppSideName = this.name[side === 'A' ? 'B' : 'A'];
+    // Notify both players about stolen/burned cards via structured CARD_LOST
+    // (místo textového logu – klient zobrazí CardEvent s artworkem)
+    const victimSide = side === 'A' ? 'B' : 'A';
     for (const { card: lc, action } of lostCards) {
-      this._send(side === 'A' ? 'B' : 'A', {
-        type:   'CARD_LOST',
-        cardId: lc.id,
-        action  // 'STOLEN' | 'BURNED'
-      });
-      if (action === 'BURNED') {
-        this._log(`🔥 ${oppSideName} přišel o ${lc.name} (spálena).`);
-      } else if (action === 'STOLEN') {
-        this._log(`🗡️ ${this.name[side]} ukradl ${lc.name} od ${oppSideName}.`);
-      }
+      const payload = {
+        type:        'CARD_LOST',
+        cardId:      lc.id,
+        baseId:      lc.baseId || lc.id,
+        action,
+        isGenerated: lc.isGenerated || false
+      };
+      this._send(victimSide, payload);                            // oběť – jejich karta
+      this._send(side,       { ...payload, causedByMe: true });   // útočník – způsobil ztrátu
     }
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
@@ -640,7 +643,11 @@ class GameSession {
           if (idx !== -1) {
             const [burned] = opp.deck.splice(idx, 1);
             opp.discardPile.push(burned);
-            this._log(`${this.name[side]} zahodil kartu ze soupeřova balíčku (${burned.name}).`);
+            const oppSide = side === 'A' ? 'B' : 'A';
+            const payload = { type: 'CARD_LOST', cardId: burned.id, baseId: burned.baseId || burned.id,
+              action: 'BURNED', isGenerated: burned.isGenerated || false };
+            this._send(oppSide, payload);
+            this._send(side, { ...payload, causedByMe: true });
           }
         }
         break;
@@ -800,7 +807,8 @@ class GameSession {
     transformShapeShifters(next.hand, ALL_CARDS);
 
     for (const bc of burned) {
-      this._log(`🔥 ${this.name[this.activeSide]} spálil ${bc.name} (plná ruka).`);
+      this._send(this.activeSide, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
+        action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
     }
 
     this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
