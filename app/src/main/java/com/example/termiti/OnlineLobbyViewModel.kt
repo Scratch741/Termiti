@@ -664,7 +664,10 @@ class OnlineLobbyViewModel(
                         val baseId = lpc.optString("baseId", "")
                         val template = allCards.find { it.id == baseId }
                         if (template != null) {
-                            val card = template.copy(id = lpc.optString("id", baseId))
+                            val card = template.copy(
+                                id          = lpc.optString("id", baseId),
+                                isGenerated = lpc.optBoolean("isGenerated", false)
+                            )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
                             lastPlayedByMe.value   = isMe

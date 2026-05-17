@@ -429,7 +429,8 @@ class GameSession {
     // Zapamatuj si zahranou kartu + index v ruce (před splice) pro zobrazení soupeři
     // Shapeshifter: použij displayBaseId → klient zobrazí transformovanou kartu, ne C34
     this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
-                                cost: card.cost, costType: card.costType, rarity: card.rarity };
+                                cost: card.cost, costType: card.costType, rarity: card.rarity,
+                                isGenerated: card.isGenerated || false };
     this.lastPlayedAction  = 'PLAYED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
@@ -717,7 +718,8 @@ class GameSession {
     self.discardPile.push(card);
 
     this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
-                               cost: card.cost, costType: card.costType, rarity: card.rarity };
+                               cost: card.cost, costType: card.costType, rarity: card.rarity,
+                               isGenerated: card.isGenerated || false };
     this.lastPlayedAction  = 'DISCARDED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
