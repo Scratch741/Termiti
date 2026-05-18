@@ -249,7 +249,7 @@ const RAW = [
   ['112','Stavitel',       2,'STONES',0,[dct('Stavba',4,2)],   'RARE'],
 
   // ── Testovací ─────────────────────────────────────────────────────────────
-  ['T01','Goblin šaman',    3,'MAGIC', 0,[ar('MAGIC',5)],      'RARE'],
+  ['T01','Goblin šaman',    2,'MAGIC', 0,[dct('Magie',4,2)],   'RARE'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

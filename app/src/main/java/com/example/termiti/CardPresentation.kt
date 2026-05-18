@@ -524,7 +524,7 @@ object CardPresentation {
             artScale = 0.90f, artBiasY = -1.0f),
 
         // ── Testovací ─────────────────────────────────────────────────────────
-        "T01" to CardPres("+5 Magie.",
+        "T01" to CardPres("**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2.",
             R.drawable.art_goblin_saman, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
     )

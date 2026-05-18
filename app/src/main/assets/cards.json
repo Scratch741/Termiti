@@ -3178,14 +3178,15 @@
   {
     "id": "T01",
     "name": "Goblin šaman",
-    "cost": 3,
+    "cost": 2,
     "costType": "MAGIC",
     "isCombo": false,
     "effects": [
       {
-        "type": "AddResource",
-        "resType": "MAGIC",
-        "amount": 5
+        "type": "DecisionChooseType",
+        "cardType": "Magie",
+        "picks": 4,
+        "costReduction": 2
       }
     ],
     "rarity": "RARE",
