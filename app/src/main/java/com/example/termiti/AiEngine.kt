@@ -204,6 +204,13 @@ fun aiChooseAction(
             val chaosMin = ai.mines[ResourceType.CHAOS] ?: 0
             if (fx.from == ResourceType.MAGIC && (ai.mines[fx.from] ?: 0) > 1) 4 + chaosMin else 0
         }
+        // Líz pro oba hráče: hodnotný jen pokud AI má místo v ruce; soupeřův líz penalizujeme
+        is CardEffect.DrawBoth -> {
+            val slotsLeft = (7 - ai.hand.size).coerceAtLeast(0)
+            val useful    = minOf(fx.count, slotsLeft)
+            val burned    = fx.count - useful
+            useful * 5 - burned * 4 - fx.count * 2   // -2 za každou soupeřovu líznutou kartu
+        }
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────
