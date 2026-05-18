@@ -86,3 +86,16 @@ data class Card(
     val effectiveCost: Int get() =
         if (isXCost) 0 else (cost + costModifier).coerceIn(0, 99)
 }
+
+/**
+ * True, pokud karta obsahuje útočný efekt, který vizuálně odpovídá střele
+ * (projektilu) — používá se ke spuštění Fireball Lottie animace.
+ */
+fun Card.hasProjectileEffect(): Boolean =
+    effects.any { effect ->
+        effect is CardEffect.AttackPlayer ||
+        effect is CardEffect.AttackCastle ||
+        effect is CardEffect.AttackWall   ||
+        effect is CardEffect.StealResource||
+        effect is CardEffect.DrainResource
+    }
