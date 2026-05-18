@@ -142,17 +142,19 @@ fun buildBalancedDeck(allCards: List<Card>): Map<String, Int> = buildDeck(
  */
 fun buildSuperRandomDeck(allCards: List<Card>): Map<String, Int> = buildDeck(
     allCards    = allCards,
+    // CHAOS jde první – jeho karty jsou výhradně RARE/EPIC/LEGENDARY,
+    // takže musí dostat prioritu než ostatní buckety spotřebují rarity stropy.
     quota       = mapOf(
+        ResourceType.CHAOS  to 5,
         ResourceType.MAGIC  to 15,
         ResourceType.ATTACK to 15,
-        ResourceType.STONES to 15,
-        ResourceType.CHAOS  to 5
+        ResourceType.STONES to 15
     ),
     totalTarget = 50,
     rarityCaps  = mapOf(
-        Rarity.LEGENDARY to 4,
-        Rarity.EPIC      to 10,
-        Rarity.RARE      to 20
+        Rarity.LEGENDARY to 8,
+        Rarity.EPIC      to 16,
+        Rarity.RARE      to 24
         // COMMON: bez stropu
     )
 )
