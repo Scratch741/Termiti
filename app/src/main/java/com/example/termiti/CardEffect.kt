@@ -33,6 +33,8 @@ sealed class CardEffect {
     data class AddCardsToDeck(val cardId: String, val count: Int = 1) : CardEffect()
     /** Líže count karet z vlastního balíčku do ruky (přebytečné shoří). */
     data class DrawCard(val count: Int = 1) : CardEffect()
+    /** Oba hráči líží count karet (přebytečné shoří). */
+    data class DrawBoth(val count: Int = 1) : CardEffect()
     /** Ukradne amount životů hradu soupeři a přidá je vlastnímu hradu. */
     data class StealCastle(val amount: Int) : CardEffect()
     /** Prohodí celé ruce hráčů – self dostane ruku soupeře a naopak. */

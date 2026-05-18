@@ -21,6 +21,7 @@ const sc = (n=1)    => ({ type:'StealCard',          count:n });
 const bn = (n=1)    => ({ type:'BurnCard',           count:n });
 const ad = (id,n)   => ({ type:'AddCardsToDeck',     cardId:id, count:n });
 const dc = (n=1)    => ({ type:'DrawCard',           count:n });
+const dbb= (n=1)    => ({ type:'DrawBoth',           count:n });
 const sca= (n)      => ({ type:'StealCastle',        amount:n });
 // X-kost efekty
 const xap= (d=2)    => ({ type:'XScaledAttackPlayer', divisor:d });
@@ -250,6 +251,7 @@ const RAW = [
 
   ['113','Goblin šaman',    2,'MAGIC', 0,[dct('Magie',4,2)],   'RARE'],
   ['114','Chaotický mudrc', 3,'CHAOS', 1,[dct('Chaos',4,2)],   'RARE'],
+  ['115','Studna vědomostí',3,'MAGIC', 0,[dbb(2)],             'RARE'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

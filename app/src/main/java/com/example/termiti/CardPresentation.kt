@@ -527,6 +527,9 @@ object CardPresentation {
             R.drawable.art_goblin_saman, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
         "114" to CardPres("**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]",
-            R.drawable.art_chaoticky_mudrc, "Chaos"),
+            R.drawable.art_chaoticky_mudrc, "Chaos",
+            artScale = 0.80f, artBiasY = -1.00f),
+        "115" to CardPres("Oba hráči líznou 2 karty.",
+            R.drawable.art_default, "Magie"),
     )
 }

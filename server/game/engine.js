@@ -261,6 +261,11 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         drawCards(self, fx.count, self.maxHandSize || 7);
         break;
 
+      case 'DrawBoth':
+        drawCards(self,     fx.count, self.maxHandSize     || 7);
+        drawCards(opponent, fx.count, opponent.maxHandSize || 7);
+        break;
+
       case 'StealCastle': {
         const stolen = Math.min(fx.amount, Math.max(0, opponent.castleHP));
         opponent.castleHP -= stolen;

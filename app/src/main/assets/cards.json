@@ -3267,5 +3267,22 @@
     "maxCopies": 1,
     "isXCost": true,
     "baseId": "103"
+  },
+  {
+    "id": "115",
+    "name": "Studna vědomostí",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DrawBoth",
+        "count": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "115"
   }
 ]

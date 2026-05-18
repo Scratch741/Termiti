@@ -118,6 +118,12 @@ fun applyEffects(
             if (onDrawCard != null) onDrawCard(self, effect.count)
             else self.drawCards(effect.count)   // přebytečné karty shoří (hand full → discardPile)
 
+        is CardEffect.DrawBoth -> {
+            if (onDrawCard != null) onDrawCard(self, effect.count)
+            else self.drawCards(effect.count)
+            opponent.drawCards(effect.count)
+        }
+
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))
             opponent.castleHP -= stolen
