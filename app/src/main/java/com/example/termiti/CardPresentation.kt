@@ -530,6 +530,6 @@ object CardPresentation {
             R.drawable.art_chaoticky_mudrc, "Chaos",
             artScale = 0.80f, artBiasY = -1.00f),
         "115" to CardPres("Oba hráči líznou 2 karty.",
-            R.drawable.art_default, "Magie"),
+            R.drawable.art_studna_vedomosti, "Magie"),
     )
 }
