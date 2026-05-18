@@ -523,11 +523,10 @@ object CardPresentation {
             R.drawable.art_inspirace, "Magie",
             artScale = 0.90f, artBiasY = -1.0f),
 
-        // ── Testovací ─────────────────────────────────────────────────────────
-        "T01" to CardPres("**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2.",
+        "113" to CardPres("**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2.",
             R.drawable.art_goblin_saman, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
-        "T02" to CardPres("**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]",
+        "114" to CardPres("**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]",
             R.drawable.art_chaoticky_mudrc, "Chaos"),
     )
 }

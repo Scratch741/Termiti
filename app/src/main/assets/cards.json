@@ -550,11 +550,15 @@
     "name": "Opevnění",
     "cost": 2,
     "costType": "STONES",
-    "isCombo": true,
+    "isCombo": false,
     "effects": [
       {
         "type": "BuildWall",
-        "amount": 7
+        "amount": 6
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 2
       }
     ],
     "rarity": "COMMON",
@@ -1251,15 +1255,13 @@
     "isCombo": false,
     "effects": [
       {
-        "type": "ConditionalEffect",
-        "condition": {
-          "type": "CastleBelow",
-          "threshold": 40
-        },
-        "effect": {
-          "type": "BuildWall",
-          "amount": 12
-        }
+        "type": "BuildCastle",
+        "amount": 4
+      },
+      {
+        "type": "BlockMine",
+        "resType": "ATTACK",
+        "turns": 1
       }
     ],
     "rarity": "EPIC",
@@ -3176,26 +3178,7 @@
     "baseId": "112"
   },
   {
-    "id": "T02",
-    "name": "Chaotický mudrc",
-    "cost": 3,
-    "costType": "CHAOS",
-    "isCombo": true,
-    "effects": [
-      {
-        "type": "DecisionChooseType",
-        "cardType": "Chaos",
-        "picks": 4,
-        "costReduction": 2
-      }
-    ],
-    "rarity": "RARE",
-    "maxCopies": 3,
-    "isXCost": false,
-    "baseId": "T02"
-  },
-  {
-    "id": "T01",
+    "id": "113",
     "name": "Goblin šaman",
     "cost": 2,
     "costType": "MAGIC",
@@ -3211,7 +3194,26 @@
     "rarity": "RARE",
     "maxCopies": 3,
     "isXCost": false,
-    "baseId": "T01"
+    "baseId": "113"
+  },
+  {
+    "id": "114",
+    "name": "Chaotický mudrc",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DecisionChooseType",
+        "cardType": "Chaos",
+        "picks": 4,
+        "costReduction": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "114"
   },
   {
     "id": "101",
