@@ -31,6 +31,7 @@ fi
 echo "[2/5] Kopíruji soubory do $APP_DIR..."
 mkdir -p "$APP_DIR/game"
 mkdir -p "$APP_DIR/data"
+mkdir -p "$APP_DIR/logs"
 
 # Kopíruj jen pokud zdroj != cíl (ochrana před spuštěním přímo z APP_DIR)
 copy_if_different() {
@@ -51,9 +52,11 @@ copy_if_different "$SRC/game/RatingSystem.js" "$APP_DIR/game/RatingSystem.js"
 copy_if_different "$SRC/game/GameLogger.js"   "$APP_DIR/game/GameLogger.js"
 copy_if_different "$SRC/game/ReplayViewer.js" "$APP_DIR/game/ReplayViewer.js"
 
-# Oprávnění pro data/ – nobody musí moci zapisovat ratings.json
+# Oprávnění pro data/ a logs/ – nobody musí moci zapisovat
 chown -R nobody:nogroup "$APP_DIR/data"
 chmod 755 "$APP_DIR/data"
+chown -R nobody:nogroup "$APP_DIR/logs"
+chmod 755 "$APP_DIR/logs"
 
 cd "$APP_DIR"
 echo "[3/5] Instaluji npm závislosti..."
@@ -79,7 +82,7 @@ After=network.target
 Type=simple
 User=nobody
 SupplementaryGroups=nogroup
-ReadWritePaths=$APP_DIR/data
+ReadWritePaths=$APP_DIR/data $APP_DIR/logs
 WorkingDirectory=$APP_DIR
 ExecStart=$(which node) $APP_DIR/server.js
 Restart=always
