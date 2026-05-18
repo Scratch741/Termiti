@@ -362,7 +362,7 @@ object CardPresentation {
             R.drawable.art_rekrut, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
         "112" to CardPres("**Rozhodnutí:** Vyber si 1 stavební kartu ze hry. Zlevni ji o 2.",
-            R.drawable.art_default, "Stavba",
+            R.drawable.art_stavitel, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
         "110" to CardPres("**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku.",
             R.drawable.art_vzpominka, "Magie",
