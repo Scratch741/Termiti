@@ -236,18 +236,6 @@ fun NewBattlefield(
         var displayAction       by remember { mutableStateOf(lastCardAction) }
         var displayIsPlayer     by remember { mutableStateOf(lastCardIsPlayer) }
 
-        // ── Fireball animace ─────────────────────────────────────────────────────
-        var fireballTrigger  by remember { mutableIntStateOf(0) }
-        var fireballMirrored by remember { mutableStateOf(false) }
-        LaunchedEffect(lastCard?.id, lastCardAction, lastCardIsPlayer) {
-            if (lastCard != null &&
-                lastCardAction == CardAction.PLAYED &&
-                lastCard.hasProjectileEffect()
-            ) {
-                fireballMirrored = !lastCardIsPlayer   // AI útočí = zrcadlení
-                fireballTrigger++
-            }
-        }
         LaunchedEffect(lastCard?.id, lastCardIsPlayer, flight?.landedPlayerCardId) {
             val c = lastCard
             if (c == null) { displayCard = null; return@LaunchedEffect }
@@ -365,15 +353,6 @@ fun NewBattlefield(
             }
         }
 
-        // ── Fireball overlay – přes celou šířku bojiště, zarovnaný k dolní hraně ──
-        FireballAnimation(
-            trigger  = fireballTrigger,
-            mirrored = fireballMirrored,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(180.dp)
-        )
     }
 }
 

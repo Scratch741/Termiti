@@ -93,8 +93,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     // WebSocket pro Online multiplayer
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    // Lottie animace
-    implementation("com.airbnb.android:lottie-compose:6.4.0")
-    // Serializace profilu a questů (PlayerProfileManager, QuestManager)
+// Serializace profilu a questů (PlayerProfileManager, QuestManager)
     implementation(libs.kotlinx.serialization.json)
 }
