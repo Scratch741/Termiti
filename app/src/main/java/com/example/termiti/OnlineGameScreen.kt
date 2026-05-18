@@ -275,6 +275,11 @@ private fun OnlineGameplay(
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
     }
+    val opponentPassives = remember(matchInfo?.opponentAbilities) {
+        matchInfo?.opponentAbilities
+            ?.mapNotNull { PassiveAbility.fromId(it) }
+            ?: emptyList()
+    }
     val gameLog     by vm.gameLog
     val phase       by vm.phase
     val isGameOver  = phase == OnlinePhase.GAME_OVER
@@ -397,7 +402,8 @@ private fun OnlineGameplay(
                 playerTimerColor = timerColor(isMe = true),
                 oppTimerText     = timerText(isMe = false),
                 oppTimerColor    = timerColor(isMe = false),
-                playerPassives   = playerPassives
+                playerPassives   = playerPassives,
+                aiPassives       = opponentPassives
             )
 
             // ── Hlavní řada: zdroje + bojiště ────────────────────────────────

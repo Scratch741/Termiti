@@ -358,7 +358,7 @@ object CardPresentation {
         "108" to CardPres("**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu.",
             R.drawable.art_likvidace, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
-        "109" to CardPres("**Rozhodnutí:** Vyber si 1 útočnou kartu ze hry.",
+        "109" to CardPres("**Rozhodnutí:** Vyber si 1 útočnou kartu ze hry. Zlevni ji o 2.",
             R.drawable.art_rekrut, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
         "110" to CardPres("**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku.",

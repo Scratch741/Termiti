@@ -15,6 +15,7 @@ const {
 
 const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck']);
 const { ratingSystem } = require('./RatingSystem');
+const { GameLogger, compactState } = require('./GameLogger');
 
 const MULLIGAN_HAND_SIZE    = 4;
 const MULLIGAN_TIMEOUT_MS   = 30_000;   // 30 s na mulligan; po vypršení auto-skip
@@ -75,6 +76,9 @@ class GameSession {
 
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
+
+    // Strukturovaný server-side log (soubor na disk)
+    this._logger = new GameLogger(gameId);
 
     // Pending Decision state (set while waiting for DECISION_RESPONSE from client)
     this.pendingDecision      = null;  // { side, effect, isCombo, options }
@@ -172,6 +176,7 @@ class GameSession {
     }
 
     this.mulliganDone[side] = true;
+    this._logger.logMulligan(side, returnIds ? returnIds.length : 0);
 
     // Acknowledge to the submitting player
     this._send(side, {
@@ -212,6 +217,15 @@ class GameSession {
     transformShapeShifters(this.state.B.hand, ALL_CARDS);
 
     this._log(`Hra začala. Na tahu: ${this.name[this.activeSide]}`);
+
+    this._logger.logStart({
+      nameA:      this.name.A,      nameB:      this.name.B,
+      deviceIdA:  this.deviceId.A,  deviceIdB:  this.deviceId.B,
+      abilitiesA: this.abilities.A, abilitiesB: this.abilities.B,
+      mode:       this.mode,
+      winTargetA: this.winTarget.A, winTargetB: this.winTarget.B
+    });
+
     this._startTurnTimer();  // nejdřív nastav turnStartedAt, pak pošli stav
     this._sendStateBoth();
   }
@@ -284,6 +298,25 @@ class GameSession {
   resendStateTo(side, newWs) {
     this.ws[side] = newWs;
     console.log(`[Reconnect ${this.gameId}] resendStateTo(${side}) phase=${this.phase} doneA=${this.mulliganDone.A} doneB=${this.mulliganDone.B}`);
+
+    // Hra už skončila – hráč se reconnectoval poté, co mu GAME_OVER nedorazilo.
+    // Pošleme mu finální stav + GAME_OVER znovu, aby odblokoval UI.
+    if (this.phase === 'ended') {
+      const w         = this._winner || 'DRAW';
+      const winnerName = w === 'A' ? this.name.A : w === 'B' ? this.name.B : null;
+      this._send(side, {
+        type:        'GAME_OVER',
+        winner:       w,
+        winnerName,
+        mode:         this.mode,
+        youWin:       w === side,
+        ratingChange: null,
+        newRating:    null
+      });
+      console.log(`[Reconnect ${this.gameId}] Hra skončila → posílám GAME_OVER znovu → ${side} (winner=${w})`);
+      return;
+    }
+
     if (this.phase === 'mulligan') {
       // Resetuj mulliganDone pro reconnectujícího hráče – klient dostane GAME_MULLIGAN
       // znovu a musí mít možnost znovu odeslat svůj výběr.
@@ -482,6 +515,19 @@ class GameSession {
 
     this._log(`${this.name[side]} zahrál ${card.name}`);
 
+    // Zaloguj akci na disk
+    this._logger.logAction({
+      turn:       this.turnNumber,
+      side,
+      action:     'play',
+      cardId:     card.id,
+      cardBaseId: card.baseId || card.id,
+      cardName:   card.name,
+      costPaid:   card.isXCost ? xValue : effectiveCost,
+      costType:   card.costType || null,
+      isXCost:    card.isXCost || false
+    }, compactState(this.state.A, this.state.B));
+
     // Notify both players about stolen/burned cards via structured CARD_LOST
     // (místo textového logu – klient zobrazí CardEvent s artworkem)
     const victimSide = side === 'A' ? 'B' : 'A';
@@ -495,6 +541,7 @@ class GameSession {
       };
       this._send(victimSide, payload);                            // oběť – jejich karta
       this._send(side,       { ...payload, causedByMe: true });   // útočník – způsobil ztrátu
+      this._logger.logCardLost(side, action, lc.name || lc.id);
     }
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
@@ -621,6 +668,9 @@ class GameSession {
     if (this._decisionTimer) { clearTimeout(this._decisionTimer); this._decisionTimer = null; }
 
     const { effect, isCombo } = this.pendingDecision;
+    // Zaloguj rozhodnutí ještě před vymazáním pendingDecision
+    const _chosenCard = this.pendingDecision.options.find(c => c.id === chosenId);
+    this._logger.logDecision(side, effect.type, chosenId || null, _chosenCard?.name || null);
     this.pendingDecision = null;
 
     // Spotřebuj timebank hráče za dobu strávenou výběrem (pokud hráč odpověděl sám, ne timeout)
@@ -739,6 +789,16 @@ class GameSession {
     this.lastPlayedCardIdx = cardIdx;
 
     this._log(`${this.name[side]} odhodil ${card.name}`);
+    this._logger.logAction({
+      turn:       this.turnNumber,
+      side,
+      action:     'discard',
+      cardId:     card.id,
+      cardBaseId: card.baseId || card.id,
+      cardName:   card.name,
+      costPaid:   null,
+      isXCost:    false
+    }, compactState(this.state.A, this.state.B));
     this._advanceTurn();
   }
 
@@ -834,7 +894,8 @@ class GameSession {
   // ── Game over ──────────────────────────────────────────────────────────────
 
   _endGame(winner) {
-    this.phase = 'ended';
+    this.phase   = 'ended';
+    this._winner = winner;  // uložíme pro případ resendStateTo po reconnectu
     this._clearTurnTimer();
     this._clearMulliganTimers();
     if (this._decisionTimer) { clearTimeout(this._decisionTimer); this._decisionTimer = null; }
@@ -881,6 +942,9 @@ class GameSession {
 
     this._log(`Konec hry. Vítěz: ${winnerName || 'REMÍZA'}`);
     console.log(`[Game ${this.gameId}] ended – winner: ${winner}`);
+
+    this._logger.logEnd(winner, compactState(this.state.A, this.state.B));
+    this._logger.close();
 
     // Uvolni hráče – aby mohli znovu vstoupit do fronty
     if (this.onEnd) this.onEnd(this.gameId);

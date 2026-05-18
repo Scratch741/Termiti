@@ -47,6 +47,12 @@ const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const { GameSession } = require('./game/GameSession');
 const { ratingSystem } = require('./game/RatingSystem');
+const { cleanupOldLogs } = require('./game/GameLogger');
+const { parseReplay, listReplays, buildListHtml, buildViewerHtml } = require('./game/ReplayViewer');
+
+// Smaž staré logy při startu + jednou denně
+cleanupOldLogs();
+setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000);
 
 const PORT = 8765;
 const PATH = '/lobby';
@@ -67,6 +73,51 @@ const httpServer = http.createServer((req, res) => {
     const data  = ratingSystem.getLeaderboard(mode, limit);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(JSON.stringify({ mode, players: data, total: ratingSystem.getTotalPlayers() }));
+    return;
+  }
+
+  // ── GET /replays → seznam všech replay souborů ───────────────────────────
+  if (path === '/replays') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(buildListHtml(listReplays()));
+    return;
+  }
+
+  // ── GET /replay?id=<gameId> → vizuální přehrávač ─────────────────────────
+  if (path === '/replay') {
+    const gameId = url.searchParams.get('id') || '';
+    if (!gameId || !/^[0-9a-f-]{8,36}$/i.test(gameId)) {
+      res.writeHead(400);
+      res.end('Chybí nebo neplatný parametr id');
+      return;
+    }
+    const events = parseReplay(gameId);
+    if (!events) {
+      res.writeHead(404);
+      res.end('Replay nenalezen: ' + gameId);
+      return;
+    }
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(buildViewerHtml(gameId, events));
+    return;
+  }
+
+  // ── GET /replay-data?id=<gameId> → raw JSON pole eventů ─────────────────
+  if (path === '/replay-data') {
+    const gameId = url.searchParams.get('id') || '';
+    if (!gameId || !/^[0-9a-f-]{8,36}$/i.test(gameId)) {
+      res.writeHead(400);
+      res.end('{"error":"bad id"}');
+      return;
+    }
+    const events = parseReplay(gameId);
+    if (!events) {
+      res.writeHead(404);
+      res.end('{"error":"not found"}');
+      return;
+    }
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(events));
     return;
   }
 
@@ -204,8 +255,8 @@ function tryMatchFromQueue(q, mode) {
     const ratingA = pA.deviceId ? ratingSystem.getRating(pA.deviceId, mode) : null;
     const ratingB = pB.deviceId ? ratingSystem.getRating(pB.deviceId, mode) : null;
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, side: 'B', mode });
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, opponentActiveAbilities: pB.activeAbilities ?? [], side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode });
 
     const onGameEnd = (gid) => {
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }

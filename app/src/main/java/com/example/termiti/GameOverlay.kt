@@ -314,15 +314,15 @@ fun MulliganOverlay(
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White.copy(alpha = 0.05f))
-                            .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                            .background(Gold.copy(alpha = 0.18f))
+                            .border(1.5.dp, Gold.copy(alpha = 0.70f), RoundedCornerShape(8.dp))
                             .clickable { onSkip() }
                             .padding(horizontal = 22.dp, vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "Hrát bez výměny",
-                            color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                            color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold
                         )
                     }
 
@@ -451,7 +451,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
 
 // ─── Game Over ────────────────────────────────────────────────────────────────
 @Composable
-fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}) {
+fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}, onReplay: () -> Unit = {}) {
     val (title, sub) = when (result) {
         GameResult.PLAYER_CASTLE_DESTROYED -> "Prohrál jsi"  to "Tvůj hrad byl zničen."
         GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."

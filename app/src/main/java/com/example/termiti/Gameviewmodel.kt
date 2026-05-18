@@ -258,6 +258,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var cardHistory        = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard AI (celá hra). */
     var lostToOpponent     = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
+    /** Snímky pro replay aktuální hry. */
+    private val replayFrames = mutableListOf<ReplayFrame>()
     // Combo: hráč zahrál combo kartu – kolo nepokračuje automaticky
     var isPlayerComboTurn = androidx.compose.runtime.mutableStateOf(false)
         private set
@@ -405,6 +407,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         decisionIsCombo = false
 
         val s1 = old.copy(playerState = player, aiState = ai)
+        addReplayFrame(s1, chosen, isPlayer = true, action = CardAction.PLAYED)
         s1.checkWinCondition()?.let { result ->
             isPlayerComboTurn.value = false
             scheduleGameEnd(result, s1); return
@@ -683,6 +686,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         val s1 = old.copy(playerState = player, aiState = ai)
+        addReplayFrame(s1, card, isPlayer = true, action = CardAction.PLAYED)
         s1.checkWinCondition()?.let { result ->
             isPlayerComboTurn.value = false
             scheduleGameEnd(result, s1); return
@@ -766,6 +770,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         SoundManager.playDiscard()
 
         isPlayerComboTurn.value = false
+        addReplayFrame(old.copy(playerState = player, aiState = ai), card, isPlayer = true, action = CardAction.DISCARDED)
         finishTurn(old, player, ai)
     }
 
@@ -878,6 +883,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             }
                         }
                         ai.preCostResources = null
+                        addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
@@ -919,6 +925,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         val toDiscard = aiChoice.card
                         ai.hand.remove(toDiscard)
                         ai.discardPile.add(toDiscard)
+                        addReplayFrame(old.copy(playerState = player, aiState = ai), toDiscard, isPlayer = false, action = CardAction.DISCARDED)
                         recordCard(toDiscard, CardAction.DISCARDED, isPlayer = false)
                         addCardLog("AI", toDiscard, CardAction.DISCARDED, isMe = false)
                         aiContinues = false
@@ -1008,6 +1015,19 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      * Během prodlevy je [gameEndPending] = true → UI blokuje veškerý vstup.
      */
     private fun scheduleGameEnd(result: GameResult, snapshot: GameState) {
+        // Ulož replay před koncem hry
+        val profile = PlayerProfileManager.profile
+        val opp     = activeCampaignOpponent.value
+        ReplayManager.lastReplay = GameReplay(
+            frames          = replayFrames.toList(),
+            playerName      = profile?.name   ?: "Hráč",
+            playerAvatar    = profile?.avatar ?: "⚔️",
+            opponentName    = opp?.name       ?: "Nepřítel",
+            opponentAvatar  = opp?.avatar     ?: "👺",
+            result          = result,
+            playerWinTarget = snapshot.playerWinTarget,
+            aiWinTarget     = snapshot.aiWinTarget
+        )
         gameState.value = snapshot
         gameEndPending.value = true
         if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
@@ -1043,6 +1063,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.appendHistory(card, action, isMine = isPlayer)
     }
 
+    /** Přidá snímek do replay záznamu aktuální hry. */
+    private fun addReplayFrame(state: GameState, card: Card?, isPlayer: Boolean, action: CardAction) {
+        replayFrames.add(ReplayFrame(
+            state      = state.snapshot(),
+            card       = card,
+            isPlayer   = isPlayer,
+            action     = action,
+            turnNumber = state.currentTurn
+        ))
+    }
+
     fun restartGame(randomDeck: Boolean = false, superRandom: Boolean = false) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
@@ -1055,6 +1086,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        replayFrames.clear()
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
@@ -1081,6 +1113,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         quickDrawUsed           = false
+        replayFrames.clear()
         gameState.value         = createCampaignState(opponent)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
@@ -1212,6 +1245,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun startArenaBattle() {
         arenaPhase.value = ArenaPhase.BATTLE
+        replayFrames.clear()
         val ps = PlayerState().also {
             it.deck.addAll(arenaDraft.toList().withUniqueIds().shuffled())
             it.drawCards(5)

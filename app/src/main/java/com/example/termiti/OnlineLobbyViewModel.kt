@@ -32,10 +32,11 @@ enum class OnlinePhase {
 data class OnlineMatchInfo(
     val gameId                : String,
     val opponentName          : String,
-    val opponentAvatar        : String = "👺",
-    val opponentCardBackSkin  : String = "card_back_frame",
-    val opponentCastleSkin    : String = "castle_player",
-    val opponentLevel         : Int    = -1,
+    val opponentAvatar        : String       = "👺",
+    val opponentCardBackSkin  : String       = "card_back_frame",
+    val opponentCastleSkin    : String       = "castle_player",
+    val opponentLevel         : Int          = -1,
+    val opponentAbilities     : List<String> = emptyList(),
     val side                  : String   // "A" nebo "B"
 )
 
@@ -586,6 +587,15 @@ class OnlineLobbyViewModel(
                 }
 
                 "MATCH_FOUND" -> {
+                    val oppAbilitiesArr = json.optJSONArray("opponentActiveAbilities")
+                    val oppAbilities = buildList {
+                        if (oppAbilitiesArr != null) {
+                            for (i in 0 until oppAbilitiesArr.length()) {
+                                val a = oppAbilitiesArr.optString(i)
+                                if (a.isNotEmpty()) add(a)
+                            }
+                        }
+                    }
                     matchInfo.value = OnlineMatchInfo(
                         gameId               = json.optString("gameId", ""),
                         opponentName         = json.optString("opponentName", "Soupeř"),
@@ -593,6 +603,7 @@ class OnlineLobbyViewModel(
                         opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
                         opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
                         opponentLevel        = json.optInt("opponentLevel", -1),
+                        opponentAbilities    = oppAbilities,
                         side                 = json.optString("side", "A")
                     )
                     // Načti rating hráče i soupeře z MATCH_FOUND
@@ -629,7 +640,11 @@ class OnlineLobbyViewModel(
 
                 "GAME_STATE" -> {
                     gameState.value = parseGameState(json)
-                    phase.value = OnlinePhase.GAME_PLAYING
+                    // Nepřepisuj fázi pokud hra právě končí nebo skončila –
+                    // zabrání zaseknutí způsobenému GAME_STATE dorazivším po GAME_OVER
+                    if (!gameEndPending.value && gameResult.value == null) {
+                        phase.value = OnlinePhase.GAME_PLAYING
+                    }
 
                     // Pokud matchInfo chybí (appka byla restartována během hry),
                     // rekonstruuj ho ze základních polí v GAME_STATE.
