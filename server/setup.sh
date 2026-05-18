@@ -48,6 +48,8 @@ copy_if_different "$SRC/game/cards.js"        "$APP_DIR/game/cards.js"
 copy_if_different "$SRC/game/engine.js"       "$APP_DIR/game/engine.js"
 copy_if_different "$SRC/game/GameSession.js"  "$APP_DIR/game/GameSession.js"
 copy_if_different "$SRC/game/RatingSystem.js" "$APP_DIR/game/RatingSystem.js"
+copy_if_different "$SRC/game/GameLogger.js"   "$APP_DIR/game/GameLogger.js"
+copy_if_different "$SRC/game/ReplayViewer.js" "$APP_DIR/game/ReplayViewer.js"
 
 # Oprávnění pro data/ – nobody musí moci zapisovat ratings.json
 chown -R nobody:nogroup "$APP_DIR/data"
