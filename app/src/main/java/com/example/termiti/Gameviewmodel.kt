@@ -415,7 +415,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         if (isComboCard) {
             isPlayerComboTurn.value = true
-            gameState.value = s1
+            // PlayerState je mutable class s referenční rovností. Pokud bychom použili
+            // stejnou referenci player, gameState.value = s1 by Compose vyhodnotil jako
+            // beze změny (s1 == stávající gameState.value) a ruka by se nepřekreslila.
+            // deepCopy() vytvoří nový objekt → Compose detekuje změnu a ruka se aktualizuje.
+            gameState.value = s1.copy(playerState = player.deepCopy())
         } else {
             isPlayerComboTurn.value = false
             finishTurn(old, player, ai)
