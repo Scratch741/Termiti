@@ -3106,9 +3106,9 @@
   {
     "id": "109",
     "name": "Rekrut",
-    "cost": 2,
+    "cost": 3,
     "costType": "ATTACK",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "DecisionChooseType",
@@ -3155,6 +3155,25 @@
     "maxCopies": 2,
     "isXCost": false,
     "baseId": "111"
+  },
+  {
+    "id": "112",
+    "name": "Stavitel",
+    "cost": 2,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "DecisionChooseType",
+        "cardType": "Stavba",
+        "picks": 4,
+        "costReduction": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "112"
   },
   {
     "id": "T01",
