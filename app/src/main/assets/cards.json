@@ -3176,6 +3176,25 @@
     "baseId": "112"
   },
   {
+    "id": "T02",
+    "name": "Chaotický mudrc",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DecisionChooseType",
+        "cardType": "Chaos",
+        "picks": 4,
+        "costReduction": 2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 3,
+    "isXCost": false,
+    "baseId": "T02"
+  },
+  {
     "id": "T01",
     "name": "Goblin šaman",
     "cost": 2,
