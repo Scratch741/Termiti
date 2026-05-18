@@ -361,7 +361,7 @@ object CardPresentation {
         "109" to CardPres("**Rozhodnutí:** Vyber si 1 útočnou kartu ze hry. Zlevni ji o 2. [Combo]",
             R.drawable.art_rekrut, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
-        "112" to CardPres("**Rozhodnutí:** Vyber si 1 stavební kartu ze hry. Zlevni ji o 2.",
+        "112" to CardPres("**Rozhodnutí:** Vyber si 1 stavební kartu ze hry. Zlevni ji o 2. [Combo]",
             R.drawable.art_stavitel, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
         "110" to CardPres("**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku.",
@@ -523,13 +523,14 @@ object CardPresentation {
             R.drawable.art_inspirace, "Magie",
             artScale = 0.90f, artBiasY = -1.0f),
 
-        "113" to CardPres("**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2.",
+        "113" to CardPres("**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2. [Combo]",
             R.drawable.art_goblin_saman, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
         "114" to CardPres("**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]",
             R.drawable.art_chaoticky_mudrc, "Chaos",
             artScale = 0.80f, artBiasY = -1.00f),
-        "115" to CardPres("Oba hráči líznou 2 karty.",
-            R.drawable.art_studna_vedomosti, "Magie"),
+        "115" to CardPres("Oba hráči líznou 2 karty. [Combo]",
+            R.drawable.art_studna_vedomosti, "Magie",
+            artScale = 0.80f, artBiasY = -1.00f),
     )
 }

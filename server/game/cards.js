@@ -247,9 +247,9 @@ const RAW = [
   ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
   ['110','Vzpomínka',      3,'MAGIC', 0,[dfd()],               'EPIC'],
   ['111','Intuice',        3,'MAGIC', 0,[dfk()],               'EPIC'],
-  ['112','Stavitel',       2,'STONES',0,[dct('Stavba',4,2)],   'RARE'],
+  ['112','Stavitel',       3,'STONES',1,[dct('Stavba',4,2)],   'RARE'],
 
-  ['113','Goblin šaman',    2,'MAGIC', 0,[dct('Magie',4,2)],   'RARE'],
+  ['113','Goblin šaman',    3,'MAGIC', 1,[dct('Magie',4,2)],   'RARE'],
   ['114','Chaotický mudrc', 3,'CHAOS', 1,[dct('Chaos',4,2)],   'RARE'],
   ['115','Studna vědomostí',2,'MAGIC', 1,[dbb(2)],             'RARE'],
 

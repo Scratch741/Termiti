@@ -3161,9 +3161,9 @@
   {
     "id": "112",
     "name": "Stavitel",
-    "cost": 2,
+    "cost": 3,
     "costType": "STONES",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "DecisionChooseType",
@@ -3180,9 +3180,9 @@
   {
     "id": "113",
     "name": "Goblin šaman",
-    "cost": 2,
+    "cost": 3,
     "costType": "MAGIC",
-    "isCombo": false,
+    "isCombo": true,
     "effects": [
       {
         "type": "DecisionChooseType",
