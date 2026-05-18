@@ -103,23 +103,30 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     null                              -> "❓"
 }
 
-private fun Card.category() = when (effects.firstOrNull()) {
+private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.AttackPlayer,
     is CardEffect.AttackCastle,
     is CardEffect.AttackWall,
     is CardEffect.StealResource,
-    is CardEffect.DrainResource,
-    is CardEffect.ConditionalEffect -> "Útok"
-    is CardEffect.BuildCastle,
-    is CardEffect.BuildWall         -> "Obrana"
+    is CardEffect.DrainResource     -> "Útok"
+    is CardEffect.ConditionalEffect -> this.effect.toCategory()
+    is CardEffect.BuildCastle       -> if (this.amount > 0) "Obrana" else "Útok"
+    is CardEffect.BuildWall         -> if (this.amount > 0) "Obrana" else "Útok"
     is CardEffect.AddResource       -> "Zdroje"
-    is CardEffect.AddMine           -> "Doly"
+    is CardEffect.AddMine,
+    is CardEffect.ConvertMine       -> "Doly"
     is CardEffect.DecisionBurnOpponent,
     is CardEffect.DecisionChooseType,
     is CardEffect.DecisionFromDiscard,
     is CardEffect.DecisionFromDeck  -> "Rozhodnutí"
-    else                            -> "Ostatní"
+    else                            -> null
 }
+
+/** Vrátí všechny kategorie efektů karty (karta může mít víc najednou, např. Obrana + Doly). */
+private fun Card.categories(): Set<String> =
+    effects.mapNotNull { it.toCategory() }.toSet().ifEmpty { setOf("Ostatní") }
+
+private fun Card.category() = categories().first()
 
 // ─── Root ────────────────────────────────────────────────────────────────────
 @Composable
@@ -146,7 +153,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 (filterRes == null || card.costType == filterRes) &&
                 (filterCat == null ||
                     (filterCat == "Kombo" && card.isCombo) ||
-                    (filterCat != "Kombo" && card.category() == filterCat)) &&
+                    (filterCat != "Kombo" && card.categories().contains(filterCat))) &&
                 (!filterUnlocked || run {
                     profile?.allCardsUnlocked == true ||
                     CardCollectionManager.isBasicCard(card) ||

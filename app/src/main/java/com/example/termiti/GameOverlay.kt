@@ -54,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.airbnb.lottie.compose.*
 
 // ─── Floating HP-delta animace ───────────────────────────────────────────────
 
@@ -596,5 +597,41 @@ fun ArenaGameOverDialog(
                 }
             }
         }
+    }
+}
+
+// ─── Fireball Lottie animace ──────────────────────────────────────────────────
+
+/**
+ * Přehraje fireball animaci jednou při změně [trigger].
+ * [mirrored] = true → AI útočí na hráče (animace zrcadlená zprava doleva).
+ *
+ * Soubor: app/src/main/res/raw/fireball.json
+ */
+@Composable
+fun FireballAnimation(
+    trigger: Int,
+    mirrored: Boolean,
+    modifier: Modifier = Modifier
+) {
+    // trigger == 0 znamená žádný útok ještě nebyl – nic nezobrazuj
+    if (trigger == 0) return
+
+    key(trigger) {
+        val composition by rememberLottieComposition(
+            LottieCompositionSpec.RawRes(R.raw.fireball_anim)
+        )
+        val progress by animateLottieCompositionAsState(
+            composition   = composition,
+            iterations    = 1,
+            isPlaying     = true,
+            restartOnPlay = false
+        )
+        LottieAnimation(
+            composition = composition,
+            progress    = { progress },
+            modifier    = modifier
+                .graphicsLayer { scaleX = if (mirrored) -1f else 1f }
+        )
     }
 }

@@ -92,7 +92,7 @@ const RAW = [
 
   // ── Stavba – rozšíření ───────────────────────────────────────────────────
   ['028','Záplata',        1,'STONES',1,[bc(3)],               'RARE'],
-  ['029','Opevnění',       2,'STONES',1,[bw(7)],               'COMMON'],
+  ['029','Opevnění',       2,'STONES',0,[bw(6),bc(2)],          'COMMON'],
   ['030','Kamenný val',    4,'STONES',0,[bw(13)],              'RARE'],
   ['031','Renovace',       3,'STONES',0,[bc(7)],               'COMMON'],
   ['032','Citadela',       6,'STONES',0,[bc(13)],              'EPIC'],
@@ -132,7 +132,7 @@ const RAW = [
   ['058','Obranný val',    0,'STONES',1,[bw(4)],               'EPIC'],
   ['059','Pevnostní hrad', 4,'STONES',0,[bw(4), bc(6), dr('ATTACK',1)], 'RARE'],
   ['060','Chrám',         10,'STONES',0,[bc(18)],              'EPIC'],
-  ['061','Tunely',         3,'STONES',0,[cd(cB(40), bw(12))],  'EPIC'],
+  ['061','Tunely',         3,'STONES',0,[bc(4), bm('ATTACK',1)], 'EPIC'],
   ['062','Obranná aliance',5,'STONES',0,[bw(6), bc(5), ar('STONES',2)], 'EPIC'],
   ['063','Věž strážní',    5,'STONES',0,[bw(11), am('STONES',1)],      'EPIC'],
   ['064','Zásobník',       3,'STONES',0,[cd(cB(40), bc(10))],  'EPIC'],
@@ -243,9 +243,10 @@ const RAW = [
   ['104','Válečný trénink',4,'ATTACK',1,[ap(5), am('ATTACK',1)],'EPIC'],
   ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3)], 'EPIC'],
   ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
-  ['109','Rekrut',         2,'ATTACK',0,[dct('Útok',4,2)],     'RARE'],
+  ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
   ['110','Vzpomínka',      3,'MAGIC', 0,[dfd()],               'EPIC'],
   ['111','Intuice',        3,'MAGIC', 0,[dfk()],               'EPIC'],
+  ['112','Stavitel',       2,'STONES',0,[dct('Stavba',4,2)],   'RARE'],
 
   // ── Testovací ─────────────────────────────────────────────────────────────
   ['T01','Goblin šaman',    3,'MAGIC', 0,[ar('MAGIC',5)],      'RARE'],
