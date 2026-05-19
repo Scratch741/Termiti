@@ -245,8 +245,8 @@ const RAW = [
   ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3)], 'EPIC'],
   ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
   ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
-  ['110','Vzpomínka',      3,'MAGIC', 0,[dfd()],               'EPIC'],
-  ['111','Intuice',        3,'MAGIC', 0,[dfk()],               'EPIC'],
+  ['110','Vzpomínka',      2,'MAGIC', 0,[dfd()],               'EPIC'],
+  ['111','Intuice',        2,'MAGIC', 0,[dfk()],               'EPIC'],
   ['112','Stavitel',       3,'STONES',1,[dct('Stavba',4,2)],   'RARE'],
 
   ['113','Goblin šaman',    3,'MAGIC', 1,[dct('Magie',4,2)],   'RARE'],

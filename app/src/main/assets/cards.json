@@ -3127,7 +3127,7 @@
   {
     "id": "110",
     "name": "Vzpomínka",
-    "cost": 3,
+    "cost": 2,
     "costType": "MAGIC",
     "isCombo": false,
     "effects": [
@@ -3144,7 +3144,7 @@
   {
     "id": "111",
     "name": "Intuice",
-    "cost": 3,
+    "cost": 2,
     "costType": "MAGIC",
     "isCombo": false,
     "effects": [
