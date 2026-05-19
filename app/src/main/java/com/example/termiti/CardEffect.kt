@@ -35,6 +35,11 @@ sealed class CardEffect {
     data class DrawCard(val count: Int = 1) : CardEffect()
     /** Oba hráči líží count karet (přebytečné shoří). */
     data class DrawBoth(val count: Int = 1) : CardEffect()
+    /**
+     * Toto kolo: příští zahraná karta bude naklonována — [count] kopií se zamíchá do balíčku.
+     * Resetuje se při přechodu na nový tah nebo po aktivaci.
+     */
+    data class CloneNextPlayed(val count: Int = 2) : CardEffect()
     /** Ukradne amount životů hradu soupeři a přidá je vlastnímu hradu. */
     data class StealCastle(val amount: Int) : CardEffect()
     /** Prohodí celé ruce hráčů – self dostane ruku soupeře a naopak. */

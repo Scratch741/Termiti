@@ -124,6 +124,8 @@ fun applyEffects(
             opponent.drawCards(effect.count)
         }
 
+        is CardEffect.CloneNextPlayed -> self.cloneNextPlayed = effect.count
+
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))
             opponent.castleHP -= stolen

@@ -3284,5 +3284,22 @@
     "maxCopies": 1,
     "isXCost": true,
     "baseId": "103"
+  },
+  {
+    "id": "116",
+    "name": "Chaotická replikace",
+    "cost": 2,
+    "costType": "CHAOS",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "CloneNextPlayed",
+        "count": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "116"
   }
 ]

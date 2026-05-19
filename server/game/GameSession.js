@@ -474,8 +474,17 @@ class GameSession {
     // Nastav typ právě hrané karty před applyEffects – podmínka LastPlayedType to přečte
     self.lastPlayedType = deriveCardType(card);
 
-    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
+    // CloneNextPlayed: flag nastaven předchozí kartou → přidej kopie právě zahrané karty do balíčku
     const cardType = deriveCardType(card);
+    const cloneCount = self.cloneNextPlayed || 0;
+    if (cloneCount > 0) {
+      for (let i = 0; i < cloneCount; i++) {
+        self.deck.push({ ...makeInstance(CARD_MAP.get(card.baseId) || card), isGenerated: true });
+      }
+      shuffle(self.deck);
+      self.cloneNextPlayed = 0;
+    }
+    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
       const drawBurned = drawCards(self, 1, self.maxHandSize || 7);
@@ -853,6 +862,7 @@ class GameSession {
     prevState.drawCardOnPlay = null;
     prevState.gainResourcePerCardPlayed = [];
     prevState.gainCastlePerCardPlayed = [];
+    prevState.cloneNextPlayed = 0;
 
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';

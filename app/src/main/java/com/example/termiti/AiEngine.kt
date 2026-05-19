@@ -209,8 +209,10 @@ fun aiChooseAction(
             val slotsLeft = (7 - ai.hand.size).coerceAtLeast(0)
             val useful    = minOf(fx.count, slotsLeft)
             val burned    = fx.count - useful
-            useful * 5 - burned * 4 - fx.count * 2   // -2 za každou soupeřovu líznutou kartu
+            useful * 5 - burned * 4 - fx.count * 2
         }
+        // Klonování: hodnotné pokud AI má silné karty v ruce (přidá 2 kopie příští zahrané karty)
+        is CardEffect.CloneNextPlayed -> 6
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

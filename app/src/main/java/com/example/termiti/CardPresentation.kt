@@ -532,5 +532,7 @@ object CardPresentation {
         "115" to CardPres("Oba hráči líznou 2 karty. [Combo]",
             R.drawable.art_studna_vedomosti, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
+        "116" to CardPres("**Toto kolo:** příští karta, co zahraješ, se 2× zkopíruje do balíčku. [Combo]",
+            R.drawable.art_default, "Chaos"),
     )
 }

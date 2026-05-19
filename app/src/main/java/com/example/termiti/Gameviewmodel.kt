@@ -671,6 +671,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
+        // CloneNextPlayed: flag nastaven předchozí kartou → naklonuj tuto kartu do balíčku
+        val cloneCount = player.cloneNextPlayed
+        if (cloneCount != null && cloneCount > 0) {
+            repeat(cloneCount) {
+                player.deck.add(card.copy(id = "${card.baseId}_clone_${System.nanoTime()}", isGenerated = true))
+            }
+            player.deck.shuffle()
+            player.cloneNextPlayed = null
+        }
         // DrawPerCardPlayed: flag byl nastaven předchozí kartou → tato karta triggeruje líz (s volitelným filtrem typu)
         val drawFilter = player.drawCardOnPlay
         if (drawFilter != null && (drawFilter.isEmpty() || drawFilter == card.type)) pendingDrawCount += 1
@@ -857,6 +866,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
+                        // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku
+                        val aiCloneCount = ai.cloneNextPlayed
+                        if (aiCloneCount != null && aiCloneCount > 0) {
+                            repeat(aiCloneCount) {
+                                ai.deck.add(aiCard.copy(id = "${aiCard.baseId}_clone_${System.nanoTime()}", isGenerated = true))
+                            }
+                            ai.deck.shuffle()
+                            ai.cloneNextPlayed = null
+                        }
                         // DrawPerCardPlayed: flag nastaven předchozí kartou AI → líz (s volitelným filtrem typu)
                         val aiDrawFilter = ai.drawCardOnPlay
                         if (aiDrawFilter != null && (aiDrawFilter.isEmpty() || aiDrawFilter == aiCard.type)) { ai.drawCards(1); SoundManager.playCardDraw() }
@@ -1034,6 +1052,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.drawCardOnPlay = null;               ai.drawCardOnPlay = null
             player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
+            player.cloneNextPlayed = null;              ai.cloneNextPlayed = null
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(

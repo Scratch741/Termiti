@@ -69,7 +69,12 @@ class PlayerState(
      * Každý efekt se triggeruje na každou DALŠÍ zahranou kartu (s volitelným filtrem cardType).
      * Resetuje se při přechodu na nový tah.
      */
-    var gainCastlePerCardPlayed: MutableList<CardEffect.GainCastlePerCardPlayed> = mutableListOf()
+    var gainCastlePerCardPlayed: MutableList<CardEffect.GainCastlePerCardPlayed> = mutableListOf(),
+    /**
+     * Počet kopií příští zahrané karty, které se zamíchají do balíčku.
+     * null = neaktivní. Resetuje se po aktivaci nebo při přechodu na nový tah.
+     */
+    var cloneNextPlayed: Int? = null
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -85,7 +90,8 @@ class PlayerState(
         preCostResources         = preCostResources?.toMap(),
         drawCardOnPlay           = drawCardOnPlay,
         gainResourcePerCardPlayed = gainResourcePerCardPlayed.toMutableList(),
-        gainCastlePerCardPlayed   = gainCastlePerCardPlayed.toMutableList()
+        gainCastlePerCardPlayed   = gainCastlePerCardPlayed.toMutableList(),
+        cloneNextPlayed           = cloneNextPlayed
     )
 
     /**

@@ -266,6 +266,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         drawCards(opponent, fx.count, opponent.maxHandSize || 7);
         break;
 
+      case 'CloneNextPlayed':
+        self.cloneNextPlayed = fx.count;
+        break;
+
       case 'StealCastle': {
         const stolen = Math.min(fx.amount, Math.max(0, opponent.castleHP));
         opponent.castleHP -= stolen;

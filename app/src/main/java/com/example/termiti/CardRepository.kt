@@ -97,6 +97,7 @@ object CardRepository {
         "AddCardsToDeck"      -> CardEffect.AddCardsToDeck(obj.getString("cardId"), obj.optInt("count", 1))
         "DrawCard"            -> CardEffect.DrawCard(obj.optInt("count", 1))
         "DrawBoth"            -> CardEffect.DrawBoth(obj.optInt("count", 1))
+        "CloneNextPlayed"     -> CardEffect.CloneNextPlayed(obj.optInt("count", 2))
         "XScaledAttackPlayer" -> CardEffect.XScaledAttackPlayer(obj.optInt("divisor", 2))
         "XScaledAttackCastle" -> CardEffect.XScaledAttackCastle(obj.optInt("divisor", 2))
         "XScaledBuildCastle"  -> CardEffect.XScaledBuildCastle(obj.optInt("divisor", 2))
