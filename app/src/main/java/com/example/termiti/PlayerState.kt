@@ -74,7 +74,12 @@ class PlayerState(
      * Počet kopií příští zahrané karty, které se zamíchají do balíčku.
      * null = neaktivní. Resetuje se po aktivaci nebo při přechodu na nový tah.
      */
-    var cloneNextPlayed: Int? = null
+    var cloneNextPlayed: Int? = null,
+    /**
+     * Klony čekající na zamíchání do balíčku. Přidávají se AŽ PO lízu tahu v finishTurn,
+     * aby líz tahu nesebral kopii dřív, než ji hráč vidí v balíčku.
+     */
+    var pendingClones: MutableList<Card> = mutableListOf()
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -91,7 +96,8 @@ class PlayerState(
         drawCardOnPlay           = drawCardOnPlay,
         gainResourcePerCardPlayed = gainResourcePerCardPlayed.toMutableList(),
         gainCastlePerCardPlayed   = gainCastlePerCardPlayed.toMutableList(),
-        cloneNextPlayed           = cloneNextPlayed
+        cloneNextPlayed           = cloneNextPlayed,
+        pendingClones             = pendingClones.toMutableList()
     )
 
     /**

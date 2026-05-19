@@ -671,14 +671,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
-        // CloneNextPlayed: flag nastaven předchozí kartou → naklonuj tuto kartu do balíčku
+        // CloneNextPlayed: flag nastaven předchozí kartou → naklonuj tuto kartu do balíčku.
+        // Klony se ukládají do pendingClones a zamíchají se do balíčku AŽ PO lízu tahu
+        // (v finishTurn), aby líz konce kola nesebral kopii dřív, než ji hráč uvidí.
         val cloneCount = player.cloneNextPlayed
         if (cloneCount != null && cloneCount > 0) {
             repeat(cloneCount) {
-                player.deck.add(card.copy(id = "${card.id}_clone_${System.nanoTime()}", isGenerated = true))
+                player.pendingClones.add(card.copy(id = "${card.id}_clone_${System.nanoTime()}", isGenerated = true))
             }
-            player.deck.shuffle()
             player.cloneNextPlayed = null
+            log.appendLog("Replikace: ${cloneCount}× ${card.name} bude zamícháno do balíčku po skončení kola")
         }
         // DrawPerCardPlayed: flag byl nastaven předchozí kartou → tato karta triggeruje líz (s volitelným filtrem typu)
         val drawFilter = player.drawCardOnPlay
@@ -866,13 +868,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
-                        // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku
+                        // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
+                        // Stejně jako u hráče: klony jdou do pendingClones, zamíchají se po lízu.
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
                             repeat(aiCloneCount) {
-                                ai.deck.add(aiCard.copy(id = "${aiCard.id}_clone_${System.nanoTime()}", isGenerated = true))
+                                ai.pendingClones.add(aiCard.copy(id = "${aiCard.id}_clone_${System.nanoTime()}", isGenerated = true))
                             }
-                            ai.deck.shuffle()
                             ai.cloneNextPlayed = null
                         }
                         // DrawPerCardPlayed: flag nastaven předchozí kartou AI → líz (s volitelným filtrem typu)
@@ -1028,6 +1030,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
 
+            // PendingClones: zamíchej klony do balíčku AŽ PO lízu tahu.
+            // Tím hráč vidí oba klony v balíčku a líz tahu si neubral žádnou kopii.
+            if (player.pendingClones.isNotEmpty()) {
+                player.deck.addAll(player.pendingClones)
+                player.deck.shuffle()
+                log.appendLog("Do balíčku hráče zamícháno ${player.pendingClones.size}× klon")
+                player.pendingClones.clear()
+            }
+            if (ai.pendingClones.isNotEmpty()) {
+                ai.deck.addAll(ai.pendingClones)
+                ai.deck.shuffle()
+                ai.pendingClones.clear()
+            }
+
             transformShapeShifters(player.hand, allCards)
 
             // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
@@ -1053,6 +1069,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
             player.cloneNextPlayed = null;              ai.cloneNextPlayed = null
+            player.pendingClones.clear();               ai.pendingClones.clear()
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(
