@@ -50,7 +50,7 @@ const cA  = (v)   => ({ type:'CastleAbove',   threshold:v });
 const cB  = (v)   => ({ type:'CastleBelow',   threshold:v });
 
 // ── Rarity max copies ─────────────────────────────────────────────────────────
-const MAX_COPIES = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };
+const MAX_COPIES = { COMMON:3, RARE:2, EPIC:2, LEGENDARY:1 };
 
 // ── Raw card data ─────────────────────────────────────────────────────────────
 // [id, name, cost, costType, isCombo, effects, rarity]

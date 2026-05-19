@@ -76,7 +76,7 @@ private fun buildDeck(
     }
 
     // ── KROK 3: Doplnit každý costType bucket na kvótu ───────────────────────
-    // Projdeme celý pool opakovaně (dle max kopií rarity COMMON = 4 průchodů).
+    // Projdeme celý pool opakovaně (dle max kopií rarity COMMON = 3 průchodů).
     // tryAdd() zastaví přidávání jakmile karta dosáhne svého maxCopies NEBO
     // rarity-strop celého balíčku je naplněn.
 

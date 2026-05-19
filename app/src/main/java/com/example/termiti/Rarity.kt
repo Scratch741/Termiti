@@ -10,8 +10,8 @@ enum class Rarity(
     /** Relativní váha při náhodném losování karty ze standardního slotu balíčku. */
     val packWeight : Int
 ) {
-    COMMON    ("Běžná",       4,    5,   40,  60),
-    RARE      ("Vzácná",      3,   20,  100,  25),
+    COMMON    ("Běžná",       3,    5,   40,  60),
+    RARE      ("Vzácná",      2,   20,  100,  25),
     EPIC      ("Epická",      2,  100,  400,  10),
     LEGENDARY ("Legendární",  1,  400, 1600,   5)
 }
