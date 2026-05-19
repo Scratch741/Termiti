@@ -675,7 +675,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val cloneCount = player.cloneNextPlayed
         if (cloneCount != null && cloneCount > 0) {
             repeat(cloneCount) {
-                player.deck.add(card.copy(id = "${card.baseId}_clone_${System.nanoTime()}", isGenerated = true))
+                player.deck.add(card.copy(id = "${card.id}_clone_${System.nanoTime()}", isGenerated = true))
             }
             player.deck.shuffle()
             player.cloneNextPlayed = null
@@ -870,7 +870,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
                             repeat(aiCloneCount) {
-                                ai.deck.add(aiCard.copy(id = "${aiCard.baseId}_clone_${System.nanoTime()}", isGenerated = true))
+                                ai.deck.add(aiCard.copy(id = "${aiCard.id}_clone_${System.nanoTime()}", isGenerated = true))
                             }
                             ai.deck.shuffle()
                             ai.cloneNextPlayed = null
