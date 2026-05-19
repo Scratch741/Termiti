@@ -10,6 +10,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+/** Výsledek migrace limitů karet (zobrazí se hráči po prvním spuštění nové verze). */
+data class RarityMigrationResult(
+    val dustGained      : Int,
+    val deckCardsRemoved: Int
+)
+
 // ── Rozhodnutí ────────────────────────────────────────────────────────────────
 data class DecisionState(
     val title    : String,
@@ -44,7 +50,79 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var activeDeckIndex = androidx.compose.runtime.mutableStateOf(0)
         private set
 
-    init { loadDecks() }
+    /**
+     * Výsledek migrace limitů kopií – null = žádná migrace neproběhla.
+     * UI ho přečte a zobrazí hráči toast / dialog.
+     */
+    val rarityMigrationResult = androidx.compose.runtime.mutableStateOf<RarityMigrationResult?>(null)
+
+    init {
+        loadDecks()
+        migrateRarityLimits()
+    }
+
+    /**
+     * Migrace po snížení limitů rarities (3/2/2/1).
+     *
+     * 1. Decky: ořízne počty karet nad nový maxCopies a uloží.
+     * 2. Kolekce: přebytečné kopie nad maxCopies → prach (dustValue × počet navíc).
+     *
+     * Výsledek se uloží do [rarityMigrationResult] pro zobrazení hráči.
+     * Migrace je jednorázová – po provedení nastaví příznak v prefs.
+     */
+    private fun migrateRarityLimits() {
+        val MIGRATION_KEY = "rarity_migration_v2"   // zvýšit při další změně limitů
+        if (prefs.getBoolean(MIGRATION_KEY, false)) return
+
+        val cardMap = allCards.associateBy { it.id }
+        var dustGained = 0
+        var deckCardsRemoved = 0
+
+        // ── 1. Decky ─────────────────────────────────────────────────────────
+        decks.forEachIndexed { i, deck ->
+            val newCounts = deck.cardCounts.mapValues { (id, count) ->
+                val limit = cardMap[id]?.rarity?.maxCopies ?: count
+                val clamped = count.coerceAtMost(limit)
+                deckCardsRemoved += (count - clamped)
+                clamped
+            }.filter { it.value > 0 }
+            if (newCounts != deck.cardCounts) {
+                decks[i] = deck.copy(cardCounts = newCounts)
+                saveDeck(i)
+            }
+        }
+
+        // ── 2. Kolekce ───────────────────────────────────────────────────────
+        val profile = PlayerProfileManager.profile
+        if (profile != null) {
+            val newCollection = profile.cardCollection.mapValues { (id, count) ->
+                val card  = cardMap[id]
+                val limit = card?.rarity?.maxCopies ?: count
+                val excess = (count - limit).coerceAtLeast(0)
+                if (excess > 0 && card != null) dustGained += excess * card.rarity.dustValue
+                count.coerceAtMost(limit)
+            }.filter { it.value > 0 }
+
+            if (dustGained > 0 || newCollection != profile.cardCollection) {
+                PlayerProfileManager.save(
+                    profile.copy(
+                        cardCollection = newCollection,
+                        dust           = profile.dust + dustGained
+                    )
+                )
+            }
+        }
+
+        // ── Označ jako hotové ─────────────────────────────────────────────
+        prefs.edit().putBoolean(MIGRATION_KEY, true).apply()
+
+        if (dustGained > 0 || deckCardsRemoved > 0) {
+            rarityMigrationResult.value = RarityMigrationResult(
+                dustGained       = dustGained,
+                deckCardsRemoved = deckCardsRemoved
+            )
+        }
+    }
 
     private fun saveDeck(index: Int) {
         val value = decks[index].cardCounts.entries
