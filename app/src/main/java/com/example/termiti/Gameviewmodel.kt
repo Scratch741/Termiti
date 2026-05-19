@@ -280,12 +280,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var decisionSecondsLeft = androidx.compose.runtime.mutableStateOf<Int?>(null)
         private set
-    private var decisionPlayer  : PlayerState? = null
-    private var decisionAi      : PlayerState? = null
-    private var decisionOld     : GameState?   = null
-    private var decisionIsCombo : Boolean      = false
-    private var decisionEffect  : CardEffect?  = null
-    private var decisionTimerJob: kotlinx.coroutines.Job? = null
+    private var decisionPlayer       : PlayerState? = null
+    private var decisionAi           : PlayerState? = null
+    private var decisionOld          : GameState?   = null
+    private var decisionIsCombo      : Boolean      = false
+    private var decisionEffect       : CardEffect?  = null
+    private var decisionPendingDraws : Int          = 0
+    private var decisionTimerJob     : kotlinx.coroutines.Job? = null
 
     fun toggleMulliganCard(cardId: String) {
         val cur = mulliganSelected.value
@@ -399,18 +400,50 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         // Vyčisti stav
-        pendingDecision.value = null
-        decisionPlayer  = null
-        decisionAi      = null
-        decisionOld     = null
-        decisionEffect  = null
-        decisionIsCombo = false
+        val pendingDrawCount     = decisionPendingDraws
+        pendingDecision.value    = null
+        decisionPlayer           = null
+        decisionAi               = null
+        decisionOld              = null
+        decisionEffect           = null
+        decisionIsCombo          = false
+        decisionPendingDraws     = 0
 
         val s1 = old.copy(playerState = player, aiState = ai)
         addReplayFrame(s1, chosen, isPlayer = true, action = CardAction.PLAYED)
         s1.checkWinCondition()?.let { result ->
             isPlayerComboTurn.value = false
             scheduleGameEnd(result, s1); return
+        }
+
+        if (pendingDrawCount > 0) {
+            // DrawPerCardPlayed / DrawCard efekty, které vznikly při zahraní Decision karty —
+            // provedeme je teď, po výběru hráče (stejná logika jako v playCard).
+            viewModelScope.launch(crashHandler) {
+                gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
+                repeat(pendingDrawCount) {
+                    delay(210L)
+                    SoundManager.playCardDraw()
+                    player.drawCards(1, old.playerMaxHand)
+                    gameState.value = old.copy(
+                        playerState  = player.deepCopy(),
+                        aiState      = ai,
+                        activePlayer = ActivePlayer.AI
+                    )
+                }
+                if (isComboCard) {
+                    isPlayerComboTurn.value = true
+                    gameState.value = old.copy(
+                        playerState  = player.deepCopy(),
+                        aiState      = ai,
+                        activePlayer = ActivePlayer.PLAYER
+                    )
+                } else {
+                    isPlayerComboTurn.value = false
+                    finishTurn(old, player, ai)
+                }
+            }
+            return
         }
 
         if (isComboCard) {
@@ -677,11 +710,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
             if (options.isNotEmpty()) {
-                decisionPlayer  = player
-                decisionAi      = ai
-                decisionOld     = old
-                decisionIsCombo = card.isCombo
-                decisionEffect  = decisionFx
+                decisionPlayer       = player
+                decisionAi           = ai
+                decisionOld          = old
+                decisionIsCombo      = card.isCombo
+                decisionEffect       = decisionFx
+                // Uložíme pending lízy (DrawPerCardPlayed, DrawCard efekty) –
+                // provedeme je v resolveDecision po výběru karty hráčem.
+                decisionPendingDraws = pendingDrawCount
                 gameState.value = old.copy(playerState = player, aiState = ai)
                 pendingDecision.value = buildDecisionState(decisionFx, options)
                 // Timer jen pro online (offline = bez limitu)
