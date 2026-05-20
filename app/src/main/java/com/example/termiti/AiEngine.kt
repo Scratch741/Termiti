@@ -317,6 +317,20 @@ fun aiChooseAction(
             if (!canAffordCombo) -25 else 0  // po zaplacení není na žádnou combo → silná penalta
         } else 0
 
+        // ── CloneNextPlayed penalty: zahraj jen pokud po zaplacení zbydou zdroje na další kartu ──
+        // CloneNextPlayed (Chaotická replikace atd.) nemá žádný efekt, pokud AI nezahraje
+        // po ní alespoň jednu další kartu. Proto silná penalta, pokud na to nezbydou zdroje.
+        val hasCloneNextPlayed = card.effects.any { it is CardEffect.CloneNextPlayed }
+        val clonePenalty = if (hasCloneNextPlayed) {
+            val residualRes = ai.resources.toMutableMap()
+            residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.effectiveCost).coerceAtLeast(0)
+            val canAffordAny = ai.hand.any { other ->
+                other.id != card.id &&
+                (residualRes[other.costType] ?: 0) >= other.effectiveCost
+            }
+            if (!canAffordAny) -30 else 0  // po zaplacení není na žádnou kartu → zahazovat místo hrát
+        } else 0
+
         // ── TOTO KOLO bonus pro combo karty ───────────────────────────────────
         // Pokud je aktivní buff z TOTO KOLO karty, combo karty dostávají velký bonus.
         val totoBuff = if (anyBuffActive && card.isCombo) {
@@ -325,7 +339,7 @@ fun aiChooseAction(
             activeBuffCount * 6 + drawBonus
         } else 0
 
-        return effectScore - costForScore - chaosBlock + totoKoloPenalty + totoBuff + noise
+        return effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + noise
     }
 
     // Chytrý výběr karty k zahození:
