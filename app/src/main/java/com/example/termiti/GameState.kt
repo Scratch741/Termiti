@@ -13,6 +13,9 @@ data class GameState(
     val aiMaxHand: Int = 7          // zvýší se na 8, pokud AI dostala extra_hand_card
 ) {
     fun checkWinCondition(): GameResult? {
+        // Limit kol: po 99. kole rozhoduje výška hradu
+        if (currentTurn >= 99) return resolveByHp()
+
         val playerDead  = playerState.castleHP <= 0
         val aiDead      = aiState.castleHP     <= 0
         val playerBuilt = playerState.castleHP >= playerWinTarget

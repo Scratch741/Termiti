@@ -890,6 +890,13 @@ class GameSession {
 
     this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
 
+    // Limit kol: po dosažení 99. kola rozhoduje výška hradu
+    if (this.turnNumber >= 99) {
+      this._log('Dosažen limit 99 kol – hra rozhodnuta výší hradu.');
+      this._endGame(resolveByHp(this.state.A, this.state.B));
+      return;
+    }
+
     // Win check (shouldn't happen mid-turn but be safe)
     const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
     if (winner !== null) {
