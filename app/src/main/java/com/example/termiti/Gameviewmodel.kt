@@ -198,101 +198,25 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // ── Předpřipravené šablony (každá přesně 30 karet) ───────────────────────
     val presetTemplates: List<Pair<String, Map<String, Int>>> = listOf(
 
-        // 1. ⚔️ Útočník – přímý útok pomocí ATTACK zdrojů (30 karet)
         "⚔️ Útočník" to mapOf(
-            // Přímý útok (ATTACK)
-            "027" to 3,   // Válečný buben  – útok −4 + 2 útoku, cena 2
-            "046" to 3,   // Goblin         – útok −2 + krádež, cena 1
-            "056" to 3,   // Nájezdník
-            "022" to 2,   // Přímý zásah    – hrad −8, cena 3
+            "104" to 2,
+            "109" to 2,
+            "098" to 2,
+            "046" to 2,
+            "056" to 2,
             "026" to 2,
             "024" to 2,
-            "021" to 1,
+            "022" to 2,
+            "023" to 2,
+            "054" to 2,
+            "015" to 2,
+            "038" to 2,
+            "078" to 1,
             "052" to 1,
             "051" to 1,
-            "078" to 1,
-            "055" to 2,   // Mravenci       – útok −3 + podmíněně hrad −8, cena 2
-            "054" to 2,   // Válečný pochod – útok −13 + 2atk, cena 5
-            // Generování ATTACK zdrojů (MAGIC)
-            "004" to 2,   // Magie            – +4 magie, zdarma
-            "038" to 3,   // Vojenský rozkaz – +7 útoku, cena 2
-            "043" to 2,   // Výcvikové centrum – +2 doly útoku, cena 4
+            "053" to 2,
+            "020" to 1,
         ),
-
-        // 2. 🏰 Obránce – postavit hrad na 100 HP pomocí STONES zdrojů (30 karet)
-        "🏰 Obránce" to mapOf(
-                "095"   to 4,   // Obchod s kamenem
-                "057"   to 3,   // Bašta
-                "083"   to 2,   // Nouzové opevnění
-                "094"   to 4,   // Sklad materiálu
-                "089"   to 3,   // Architekt
-                "084"   to 4,   // Velká oprava
-                "062"   to 2,   // Obranná aliance
-                "032"   to 2,   // Citadela
-                "085"   to 2,   // Královská obnova
-                "096"   to 1,   // Nedobytná pevnost
-                "097"   to 1,   // Obnova království
-                "011"   to 2,   // Zásoby kamene
-            ),  // 30 karet
-
-
-        // 3. ⚔️ Útočník 2 – agresivní útočný balíček (30 karet)
-        "⚔️ Útočník 2" to mapOf(
-                "098"   to 3,
-                "054"   to 2,
-                "052"   to 1,
-                "051"   to 1,
-                "046"   to 3,
-                "026"   to 2,
-                "024"   to 3,
-                "022"   to 3,
-                "038"   to 3,
-                "015"   to 3,
-                "078"   to 1,
-                "056"   to 3,
-                "021"   to 2,
-            ),  // 30 karet
-
-        // 4. 💰 Ekonom – budovat doly pro zdrcující ekonomiku (30 karet)
-        "💰 Ekonom" to mapOf(
-                "101"   to 1,
-                "102"   to 1,
-                "013"   to 2,
-                "044"   to 1,
-                "075"   to 1,
-                "045"   to 1,
-                "080"   to 1,
-                "076"   to 1,
-                "091"   to 3,
-                "032"   to 2,
-                "060"   to 2,
-                "089"   to 2,
-                "097"   to 1,
-                "059"   to 3,
-                "046"   to 3,
-                "022"   to 3,
-                "033"   to 2,
-            ),  // 30 karet
-
-        // 5. 🌀 Chaosmancer – Chaos ekonomika + sabotáž soupeře (30 karet)
-        "🌀 Chaosmancer" to mapOf(
-                "022"   to 2,
-                "046"   to 3,
-                "C26"   to 2,
-                "037"   to 2,
-                "C24"   to 2,
-                "C02"   to 2,
-                "C03"   to 1,
-                "C31"   to 2,
-                "C29"   to 2,
-                "091"   to 3,
-                "C22"   to 2,
-                "C32"   to 2,
-                "C11"   to 1,
-                "C06"   to 1,
-                "C05"   to 2,
-                "C10"   to 1,
-            ),  // 30 karet
     )
 
     fun loadPreset(deckIndex: Int, presetIndex: Int) {
