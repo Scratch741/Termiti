@@ -149,16 +149,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Nastaví balíček 0 jako předpřipravený startovní balíček pro nováčka. */
     fun grantStarterDeck() {
         val starterCounts = mapOf(
-            "007" to 3,
-            "047" to 3,
-            "D04" to 4,
-            "056" to 3,
-            "010" to 3,
-            "015" to 3,
-            "013" to 2,
-            "038" to 3,
-            "065" to 3,
-            "D01" to 3,
+            "012" to 2,  // Mobilizace
+            "065" to 3,  // Lupič
+            "D01" to 2,  // Průzkumník
+            "013" to 2,  // Magický pramen
+            "038" to 2,  // Vojenský rozkaz
+            "015" to 2,  // Výcvikový tábor
+            "D04" to 3,  // Bojová taktika
+            "001" to 3,  // Rychlý útok
+            "056" to 2,  // Nájezdník
+            "047" to 3,  // Ogr
+            "007" to 3,  // Silný úder
+            "010" to 3,  // Palisáda
         )
         val deckName = "Začátečník"
         decks[0] = decks[0].copy(name = deckName, cardCounts = starterCounts)
