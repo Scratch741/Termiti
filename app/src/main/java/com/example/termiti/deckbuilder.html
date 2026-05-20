@@ -887,20 +887,20 @@ function renderBrowser() {
   const grid = document.getElementById('cardGrid');
   const q = document.getElementById('searchInput').value.toLowerCase();
   const typeOrder = { ATTACK: 0, STONES: 1, MAGIC: 2, CHAOS: 3 };
-  const DECISION_TYPES = new Set(['DecisionBurnOpponent','DecisionChooseType','DecisionFromDiscard','DecisionFromDeck']);
   const filtered = CARDS.filter(c => {
+    const db = CARD_EFFECTS_DB[c.id] || {};
+    const fx = db.fx || [];
     if (filter === 'MINE') {
-      const hasMine = (c.effects || []).some(fx =>
-        fx.type === 'AddMine' ||
-        (fx.type === 'ConditionalEffect' && fx.effect?.type === 'AddMine')
-      );
+      // AddMine → t:'AM'; nebo v ConditionalEffect → t:'CE', e.t:'AM'
+      const hasMine = fx.some(f => f.t === 'AM' || (f.t === 'CE' && f.e?.t === 'AM'));
       if (!hasMine) return false;
     } else if (filter === 'COMBO') {
-      if (!c.isCombo) return false;
+      if (!db.combo) return false;
     } else if (filter === 'DECISION') {
-      const hasDecision = (c.effects || []).some(fx =>
-        DECISION_TYPES.has(fx.type) ||
-        (fx.type === 'ConditionalEffect' && DECISION_TYPES.has(fx.effect?.type))
+      // Decision efekty jsou uloženy jako { t:'?', raw:'Decision...' }
+      const hasDecision = fx.some(f =>
+        (f.t === '?' && typeof f.raw === 'string' && f.raw.startsWith('Decision')) ||
+        (f.t === 'CE' && f.e?.t === '?' && typeof f.e?.raw === 'string' && f.e.raw.startsWith('Decision'))
       );
       if (!hasDecision) return false;
     } else if (filter !== 'ALL' && c.type !== filter) {
