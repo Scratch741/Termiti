@@ -509,6 +509,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                 }
+                // Pauza: Compose musí stihnout rekomponovat s deepCopy stavem (líznutá karta
+                // je vidět) DŘÍVE, než finishTurn přepíše gameState mutable player referencí.
+                // Bez delay Compose batchuje obě změny a líznutá karta se zobrazí až při
+                // prvním deepCopy v finishTurn – tj. při lízání karty na začátku kola.
+                delay(350L)
                 if (isComboCard) {
                     isPlayerComboTurn.value = true
                     gameState.value = old.copy(
@@ -837,6 +842,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                 }
+                // Pauza: Compose musí stihnout rekomponovat s deepCopy stavem (líznutá karta
+                // je vidět) DŘÍVE, než finishTurn přepíše gameState mutable player referencí.
+                // Bez delay Compose batchuje obě změny a líznutá karta se zobrazí až při
+                // prvním deepCopy v finishTurn – tj. při lízání karty na začátku kola.
+                delay(350L)
                 if (isComboCard) {
                     isPlayerComboTurn.value = true
                     gameState.value = old.copy(
