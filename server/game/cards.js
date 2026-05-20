@@ -59,7 +59,7 @@ const RAW = [
   ['001','Rychlý útok',    2,'ATTACK',1,[ap(5)],               'COMMON'],
   ['008','Šípy',           1,'ATTACK',1,[ac(3)],               'COMMON'],
   ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'RARE'],
-  ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'RARE'],
+  ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'COMMON'],
   ['006','Převaha síly',   3,'ATTACK',0,[cd(rMO('ATTACK'), ac(10))],   'RARE'],
   ['017','Válečný sekyrník',4,'ATTACK',0,[ap(8),sr('ATTACK',2)],       'COMMON'],
 
@@ -71,9 +71,9 @@ const RAW = [
   ['018','Mohutná věž',    5,'STONES',0,[bw(15)],              'RARE'],
 
   // ── Zdroje okamžité (platí MAGIC) ────────────────────────────────────────
-  ['004','Magie',          0,'MAGIC', 1,[ar('MAGIC',2)],       'COMMON'],
-  ['011','Zásoby kamene',  1,'MAGIC', 1,[ar('STONES',3)],      'COMMON'],
-  ['012','Mobilizace',     1,'MAGIC', 1,[ar('ATTACK',3)],      'COMMON'],
+  ['004','Magie',          0,'MAGIC', 1,[ar('MAGIC',2)],       'RARE'],
+  ['011','Zásoby kamene',  1,'MAGIC', 1,[ar('STONES',3)],      'RARE'],
+  ['012','Mobilizace',     1,'MAGIC', 1,[ar('ATTACK',3)],      'RARE'],
 
   // ── Doly (platí MAGIC) ───────────────────────────────────────────────────
   ['013','Magický pramen', 3,'MAGIC', 0,[am('MAGIC',1)],       'RARE'],
@@ -93,7 +93,7 @@ const RAW = [
   ['027','Válečné bubny',  2,'ATTACK',1,[ap(4), grp('ATTACK',2,'Útok')], 'RARE'],
 
   // ── Stavba – rozšíření ───────────────────────────────────────────────────
-  ['028','Záplata',        1,'STONES',1,[bc(3)],               'RARE'],
+  ['028','Záplata',        1,'STONES',1,[bc(3)],               'COMMON'],
   ['029','Opevnění',       2,'STONES',0,[bw(6),bc(2)],          'COMMON'],
   ['030','Kamenný val',    4,'STONES',0,[bw(13)],              'RARE'],
   ['031','Renovace',       3,'STONES',0,[bc(7)],               'COMMON'],
@@ -104,10 +104,10 @@ const RAW = [
   ['036','Hradní příkop',  3,'STONES',0,[bw(7), cd(cB(35), bw(5))], 'EPIC'],
 
   // ── Zdroje – rozšíření ───────────────────────────────────────────────────
-  ['037','Rychlá magie',   1,'MAGIC', 1,[ar('MAGIC',4)],       'COMMON'],
+  ['037','Rychlá magie',   1,'MAGIC', 1,[ar('MAGIC',4)],       'RARE'],
   ['038','Vojenský rozkaz',3,'MAGIC', 1,[ar('ATTACK',6)],      'RARE'],
   ['039','Stavební boom',  3,'MAGIC', 1,[ar('STONES',6)],      'RARE'],
-  ['040','Alchymie',       2,'MAGIC', 0,[cd(rA('MAGIC',4), ar('ATTACK',8))], 'EPIC'],
+  ['040','Alchymie',       2,'MAGIC', 0,[cd(rA('MAGIC',4), ar('ATTACK',8))], 'RARE'],
   ['041','Magické trio',   3,'MAGIC', 1,[ar('MAGIC',2), ar('ATTACK',2), ar('STONES',2)], 'RARE'],
 
   // ── Doly – rozšíření ──────────────────────────────────────────────────────
@@ -118,7 +118,7 @@ const RAW = [
 
   // ── Útok – Arcomage / Mravenci inspirace ──────────────────────────────────
   ['046','Goblin',         1,'ATTACK',0,[ap(2), sr('MAGIC',1), ar('CHAOS',1)], 'RARE'],
-  ['047','Ogr',            3,'ATTACK',0,[ap(9)],               'RARE'],
+  ['047','Ogr',            3,'ATTACK',0,[ap(9)],               'COMMON'],
   ['048','Upír',           4,'ATTACK',1,[ap(6), ar('MAGIC',3)],        'RARE'],
   ['049','Jed',            3,'ATTACK',0,[ap(3), dr('MAGIC',3), ar('CHAOS',1)], 'RARE'],
   ['050','Podkopání hradeb',4,'ATTACK',0,[ap(8), dr('STONES',4)],       'RARE'],
@@ -136,7 +136,7 @@ const RAW = [
   ['060','Chrám',         10,'STONES',0,[bc(18)],              'EPIC'],
   ['061','Tunely',         3,'STONES',0,[bc(4), bm('ATTACK',1)], 'EPIC'],
   ['062','Obranná aliance',5,'STONES',0,[bw(6), bc(5), ar('STONES',2)], 'EPIC'],
-  ['063','Věž strážní',    5,'STONES',0,[bw(11), am('STONES',1)],      'EPIC'],
+  ['063','Věž strážní',    5,'STONES',0,[bw(11), am('STONES',1)],      'RARE'],
   ['064','Zásobník',       3,'STONES',0,[cd(cB(40), bc(10))],  'EPIC'],
 
   // ── Sabotáž a krádež (platí MAGIC) ────────────────────────────────────────
@@ -151,7 +151,7 @@ const RAW = [
   // ── Zdroje + doly – Arcomage / Mravenci inspirace ──────────────────────────
   ['072','Zbrojnice',      4,'MAGIC', 0,[ar('ATTACK',2), am('ATTACK',1)], 'EPIC'],
   ['073','Škola magie',    4,'MAGIC', 0,[ar('MAGIC',2), am('MAGIC',1)],   'EPIC'],
-  ['074','Tržiště',        4,'MAGIC', 1,[ar('MAGIC',3), ar('ATTACK',3), ar('STONES',3)], 'COMMON'],
+  ['074','Tržiště',        4,'MAGIC', 1,[ar('MAGIC',3), ar('ATTACK',3), ar('STONES',3)], 'RARE'],
   ['075','Rozmach těžby',  6,'MAGIC', 0,[am('MAGIC',2), am('STONES',1)],  'EPIC'],
   ['076','Vojenská základna',6,'MAGIC',0,[am('ATTACK',2), am('STONES',1)],'EPIC'],
   ['077','Přeměna magie',  3,'MAGIC', 0,[cd(rA('MAGIC',8), ar('ATTACK',10))], 'RARE'],
@@ -160,7 +160,7 @@ const RAW = [
   ['080','Velkovýroba',   10,'MAGIC', 0,[am('MAGIC',2), am('ATTACK',2), am('STONES',2)], 'LEGENDARY'],
 
   // ── Stavba – nové posily (STONES buff) ─────────────────────────────────────
-  ['081','Rychlá hradba',  2,'STONES',1,[bw(6)],               'COMMON'],
+  ['081','Rychlá hradba',  2,'STONES',1,[bw(6)],               'RARE'],
   ['082','Masivní zeď',    6,'STONES',0,[bw(18)],              'RARE'],
   ['083','Nouzové opevnění',3,'STONES',0,[cd(wB(10), bw(14))], 'RARE'],
   ['084','Velká oprava',   4,'STONES',0,[bw(5), bc(7)],        'COMMON'],
@@ -173,7 +173,7 @@ const RAW = [
   ['091','Barikády',       3,'STONES',0,[bw(9), dr('ATTACK',2)],'RARE'],
   ['092','Strategická výstavba',4,'STONES',0,[cd(wA(15), bw(14))], 'EPIC'],
   ['093','Cihla na cihlu', 3,'STONES',1,[bc(5), gcp(3,'Stavba')],'EPIC'],
-  ['094','Sklad materiálu',3,'STONES',1,[bw(6), ar('STONES',2)],'COMMON'],
+  ['094','Sklad materiálu',3,'STONES',1,[bw(6), ar('STONES',2)],'RARE'],
   ['095','Obchod s kamenem',2,'STONES',0,[ar('STONES',5)],     'COMMON'],
   ['096','Nedobytná pevnost',10,'STONES',0,[bw(18), bc(8)],    'LEGENDARY'],
   ['097','Obnova království',14,'STONES',0,[bc(25)],           'LEGENDARY'],
@@ -218,10 +218,10 @@ const RAW = [
 
   // ── Chaos – nové generátory ───────────────────────────────────────────────
   ['C24','Temný rituál',    2,'MAGIC', 1,[ar('CHAOS',5)],       'RARE'],
-  ['C25','Nestabilní vír',  1,'MAGIC', 1,[ar('CHAOS',2), ar('MAGIC',2)], 'COMMON'],
+  ['C25','Nestabilní vír',  1,'MAGIC', 1,[ar('CHAOS',2), ar('MAGIC',2)], 'RARE'],
   ['C26','Krvavá oběť',     1,'MAGIC', 1,[ar('CHAOS',3)],       'RARE'],
   ['C27','Odraz magie',     2,'MAGIC', 0,[cd(rA('MAGIC',5), ar('CHAOS',7))], 'EPIC'],
-  ['C28','Chaotická trofej',1,'MAGIC', 1,[sr('ATTACK',2), ar('CHAOS',3)], 'COMMON'],
+  ['C28','Chaotická trofej',1,'MAGIC', 1,[sr('ATTACK',2), ar('CHAOS',3)], 'RARE'],
   ['C29','Bouřlivá mysl',   5,'MAGIC', 0,[ar('CHAOS',3), am('CHAOS',1)], 'EPIC'],
   ['C30','Chrám chaosu',    7,'MAGIC', 0,[am('CHAOS',2)],       'LEGENDARY'],
   ['C31','Chaotický výměník',4,'MAGIC', 0,[ar('CHAOS',4), dr('MAGIC',2), dr('ATTACK',2), dr('STONES',2)], 'EPIC'],
@@ -233,7 +233,7 @@ const RAW = [
   ['D03','Kronika',        5,'MAGIC', 0,[dc(3)],               'EPIC'],
   ['D04','Bojová taktika', 2,'ATTACK',0,[ap(4), dc(1)],        'COMMON'],
   ['D05','Stavební plány', 2,'STONES',1,[bw(4), dc(1)],        'RARE'],
-  ['D06','Elitní zvěd',    4,'ATTACK',0,[ap(8), dc(1)],        'RARE'],
+  ['D06','Elitní zvěd',    4,'ATTACK',0,[ap(8), dc(1)],        'COMMON'],
   ['D07','Tajná knihovna', 5,'MAGIC', 0,[dc(2), am('MAGIC',1)],'EPIC'],
   ['D08','Vize',           2,'MAGIC', 0,[cd(rA('MAGIC',4), dc(2))], 'RARE'],
   ['D09','Inspirace',      3,'MAGIC', 1,[dpc('Magie')],              'EPIC'],
@@ -252,7 +252,7 @@ const RAW = [
 
   ['113','Goblin šaman',    3,'MAGIC', 1,[dct('Magie',4,2)],   'RARE'],
   ['114','Chaotický mudrc', 3,'CHAOS', 1,[dct('Chaos',4,2)],   'RARE'],
-  ['115','Studna vědomostí',2,'MAGIC', 1,[dbb(2)],             'RARE'],
+  ['115','Studna vědomostí',2,'MAGIC', 1,[dbb(2)],             'EPIC'],
   ['116','Chaotická replikace',2,'CHAOS',1,[cnp(2)],           'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
