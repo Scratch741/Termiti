@@ -217,6 +217,26 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             "053" to 2,
             "020" to 1,
         ),
+
+        "🌀 Chaos" to mapOf(
+            "114" to 2,
+            "116" to 1,
+            "C05" to 2,
+            "C10" to 1,
+            "C06" to 1,
+            "C22" to 2,
+            "C29" to 2,
+            "C03" to 1,
+            "C35" to 2,
+            "C02" to 2,
+            "C24" to 2,
+            "013" to 2,
+            "046" to 2,
+            "091" to 2,
+            "022" to 2,
+            "C25" to 2,
+            "037" to 2,
+        ),
     )
 
     fun loadPreset(deckIndex: Int, presetIndex: Int) {
