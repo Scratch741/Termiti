@@ -12,7 +12,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "001"
   },
@@ -29,7 +29,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "008"
   },
@@ -46,7 +46,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "003"
   },
@@ -62,8 +62,8 @@
         "amount": 11
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "007"
   },
@@ -87,7 +87,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "006"
   },
@@ -109,7 +109,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "017"
   },
@@ -131,7 +131,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "002"
   },
@@ -153,7 +153,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "010"
   },
@@ -170,7 +170,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "005"
   },
@@ -192,7 +192,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "009"
   },
@@ -209,7 +209,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "018"
   },
@@ -226,7 +226,7 @@
         "amount": 2
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "004"
@@ -244,7 +244,7 @@
         "amount": 3
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "011"
@@ -262,7 +262,7 @@
         "amount": 3
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "012"
@@ -281,7 +281,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "013"
   },
@@ -299,7 +299,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "014"
   },
@@ -317,7 +317,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "015"
   },
@@ -352,7 +352,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "019"
   },
@@ -369,7 +369,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "020"
   },
@@ -403,7 +403,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "022"
   },
@@ -448,7 +448,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "024"
   },
@@ -472,7 +472,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "025"
   },
@@ -524,7 +524,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "027"
   },
@@ -540,8 +540,8 @@
         "amount": 3
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "028"
   },
@@ -562,7 +562,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "029"
   },
@@ -579,7 +579,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "030"
   },
@@ -596,7 +596,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "031"
   },
@@ -637,7 +637,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "033"
   },
@@ -661,7 +661,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "034"
   },
@@ -682,7 +682,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "035"
   },
@@ -727,7 +727,7 @@
         "amount": 4
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "037"
@@ -746,7 +746,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "038"
   },
@@ -764,7 +764,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "039"
   },
@@ -789,8 +789,8 @@
         }
       }
     ],
-    "rarity": "RARE",
-    "maxCopies": 3,
+    "rarity": "EPIC",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "040"
   },
@@ -818,7 +818,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "041"
   },
@@ -927,7 +927,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "046"
   },
@@ -943,8 +943,8 @@
         "amount": 9
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "047"
   },
@@ -966,7 +966,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "048"
   },
@@ -993,7 +993,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "049"
   },
@@ -1015,7 +1015,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "050"
   },
@@ -1085,7 +1085,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "053"
   },
@@ -1162,7 +1162,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "056"
   },
@@ -1183,7 +1183,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "057"
   },
@@ -1226,7 +1226,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "059"
   },
@@ -1312,8 +1312,8 @@
         "amount": 1
       }
     ],
-    "rarity": "RARE",
-    "maxCopies": 3,
+    "rarity": "EPIC",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "063"
   },
@@ -1355,7 +1355,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "065"
   },
@@ -1373,7 +1373,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "066"
   },
@@ -1391,7 +1391,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "067"
   },
@@ -1409,7 +1409,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "068"
   },
@@ -1566,7 +1566,7 @@
         "amount": 3
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "074"
@@ -1639,7 +1639,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "077"
   },
@@ -1742,7 +1742,7 @@
         "amount": 6
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "081"
@@ -1760,7 +1760,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "082"
   },
@@ -1784,7 +1784,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "083"
   },
@@ -1805,7 +1805,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "084"
   },
@@ -1843,7 +1843,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "086"
   },
@@ -1892,7 +1892,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "088"
   },
@@ -1914,7 +1914,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "089"
   },
@@ -1954,7 +1954,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "091"
   },
@@ -2021,7 +2021,7 @@
         "amount": 2
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "094"
@@ -2040,7 +2040,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "095"
   },
@@ -2096,7 +2096,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C01"
   },
@@ -2155,7 +2155,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C04"
   },
@@ -2559,7 +2559,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C21"
   },
@@ -2595,7 +2595,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C23"
   },
@@ -2613,7 +2613,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C24"
   },
@@ -2635,7 +2635,7 @@
         "amount": 2
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "C25"
@@ -2654,7 +2654,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "C26"
   },
@@ -2702,7 +2702,7 @@
         "amount": 3
       }
     ],
-    "rarity": "RARE",
+    "rarity": "COMMON",
     "maxCopies": 3,
     "isXCost": false,
     "baseId": "C28"
@@ -2815,7 +2815,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "D01"
   },
@@ -2832,7 +2832,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "D02"
   },
@@ -2870,7 +2870,7 @@
       }
     ],
     "rarity": "COMMON",
-    "maxCopies": 4,
+    "maxCopies": 3,
     "isXCost": false,
     "baseId": "D04"
   },
@@ -2891,7 +2891,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "D05"
   },
@@ -2911,8 +2911,8 @@
         "count": 1
       }
     ],
-    "rarity": "COMMON",
-    "maxCopies": 4,
+    "rarity": "RARE",
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "D06"
   },
@@ -2959,7 +2959,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "D08"
   },
@@ -2997,7 +2997,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "098"
   },
@@ -3035,7 +3035,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "100"
   },
@@ -3120,7 +3120,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "109"
   },
@@ -3173,7 +3173,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "112"
   },
@@ -3192,7 +3192,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "113"
   },
@@ -3211,7 +3211,7 @@
       }
     ],
     "rarity": "RARE",
-    "maxCopies": 3,
+    "maxCopies": 2,
     "isXCost": false,
     "baseId": "114"
   },
@@ -3227,10 +3227,27 @@
         "count": 2
       }
     ],
-    "rarity": "EPIC",
+    "rarity": "RARE",
     "maxCopies": 2,
     "isXCost": false,
     "baseId": "115"
+  },
+  {
+    "id": "116",
+    "name": "Chaotická replikace",
+    "cost": 2,
+    "costType": "CHAOS",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "CloneNextPlayed",
+        "count": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "116"
   },
   {
     "id": "101",
@@ -3284,22 +3301,5 @@
     "maxCopies": 1,
     "isXCost": true,
     "baseId": "103"
-  },
-  {
-    "id": "116",
-    "name": "Chaotická replikace",
-    "cost": 2,
-    "costType": "CHAOS",
-    "isCombo": true,
-    "effects": [
-      {
-        "type": "CloneNextPlayed",
-        "count": 2
-      }
-    ],
-    "rarity": "EPIC",
-    "maxCopies": 2,
-    "isXCost": false,
-    "baseId": "116"
   }
 ]
