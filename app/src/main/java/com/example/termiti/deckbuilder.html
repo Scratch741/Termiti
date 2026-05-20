@@ -170,11 +170,14 @@
     font-size: 13px;
     transition: all .12s;
   }
-  .filter-btn.active-all    { border-color: var(--gold-dim); color: var(--gold); }
-  .filter-btn.active-attack { border-color: var(--attack); color: var(--attack); background: var(--attack-bg); }
-  .filter-btn.active-stones { border-color: var(--stones); color: var(--stones); background: var(--stones-bg); }
-  .filter-btn.active-magic  { border-color: var(--magic);  color: var(--magic);  background: var(--magic-bg); }
-  .filter-btn.active-chaos  { border-color: var(--chaos);  color: var(--chaos);  background: var(--chaos-bg); }
+  .filter-btn.active-all      { border-color: var(--gold-dim); color: var(--gold); }
+  .filter-btn.active-attack   { border-color: var(--attack); color: var(--attack); background: var(--attack-bg); }
+  .filter-btn.active-stones   { border-color: var(--stones); color: var(--stones); background: var(--stones-bg); }
+  .filter-btn.active-magic    { border-color: var(--magic);  color: var(--magic);  background: var(--magic-bg); }
+  .filter-btn.active-chaos    { border-color: var(--chaos);  color: var(--chaos);  background: var(--chaos-bg); }
+  .filter-btn.active-mine     { border-color: #7a9a5a; color: #7a9a5a; background: #0e1a0a; }
+  .filter-btn.active-combo    { border-color: #c0a030; color: #c0a030; background: #1a1400; }
+  .filter-btn.active-decision { border-color: #5ab0c0; color: #5ab0c0; background: #091418; }
 
   .card-grid {
     flex: 1;
@@ -436,6 +439,9 @@
         <button class="filter-btn" onclick="setFilter('STONES')">🏰</button>
         <button class="filter-btn" onclick="setFilter('MAGIC')">✦</button>
         <button class="filter-btn" onclick="setFilter('CHAOS')">🌀</button>
+        <button class="filter-btn" onclick="setFilter('MINE')">⛏ Důl</button>
+        <button class="filter-btn" onclick="setFilter('COMBO')">🔗 Combo</button>
+        <button class="filter-btn" onclick="setFilter('DECISION')">❓ Rozhodnutí</button>
       </div>
       <div class="card-grid" id="cardGrid"></div>
     </div>
@@ -666,6 +672,15 @@ function maxCopies(rarity) {
 
 function setFilter(f) {
   filter = f;
+  // Aktualizuj aktivní třídu na všech filter tlačítkách
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.className = 'filter-btn';
+    const map = { ALL:'all', ATTACK:'attack', STONES:'stones', MAGIC:'magic', CHAOS:'chaos',
+                  MINE:'mine', COMBO:'combo', DECISION:'decision' };
+    if (btn.getAttribute('onclick') === `setFilter('${f}')`) {
+      btn.classList.add('active-' + (map[f] || 'all'));
+    }
+  });
   renderBrowser();
 }
 
@@ -872,8 +887,25 @@ function renderBrowser() {
   const grid = document.getElementById('cardGrid');
   const q = document.getElementById('searchInput').value.toLowerCase();
   const typeOrder = { ATTACK: 0, STONES: 1, MAGIC: 2, CHAOS: 3 };
+  const DECISION_TYPES = new Set(['DecisionBurnOpponent','DecisionChooseType','DecisionFromDiscard','DecisionFromDeck']);
   const filtered = CARDS.filter(c => {
-    if (filter !== 'ALL' && c.type !== filter) return false;
+    if (filter === 'MINE') {
+      const hasMine = (c.effects || []).some(fx =>
+        fx.type === 'AddMine' ||
+        (fx.type === 'ConditionalEffect' && fx.effect?.type === 'AddMine')
+      );
+      if (!hasMine) return false;
+    } else if (filter === 'COMBO') {
+      if (!c.isCombo) return false;
+    } else if (filter === 'DECISION') {
+      const hasDecision = (c.effects || []).some(fx =>
+        DECISION_TYPES.has(fx.type) ||
+        (fx.type === 'ConditionalEffect' && DECISION_TYPES.has(fx.effect?.type))
+      );
+      if (!hasDecision) return false;
+    } else if (filter !== 'ALL' && c.type !== filter) {
+      return false;
+    }
     if (q && !c.name.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return false;
     return true;
   }).sort((a, b) =>
