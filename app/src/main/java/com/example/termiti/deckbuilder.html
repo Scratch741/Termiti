@@ -1364,6 +1364,18 @@ let CARD_EFFECTS_DB = {
   "D06":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DC",a:1}]},
   "D07":{ct:"MAGIC", fx:[{t:"DC",a:2},{t:"AM",r:"MAGIC",a:1}]},
   "D08":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"DC",a:2}}]},
+  "D09":{ct:"MAGIC", fx:[{t:"?",raw:"DrawPerCardPlayed"}],combo:true},
+  "104":{ct:"ATTACK",fx:[{t:"AP",a:5},{t:"AM",r:"ATTACK",a:1}],combo:true},
+  "107":{ct:"MAGIC", fx:[{t:"AP",a:3},{t:"DR",r:"ATTACK",a:3},{t:"DR",r:"STONES",a:3}]},
+  "108":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionBurnOpponent"}]},
+  "109":{ct:"ATTACK",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
+  "110":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionFromDiscard"}]},
+  "111":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionFromDeck"}]},
+  "112":{ct:"STONES",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
+  "113":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
+  "114":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
+  "115":{ct:"MAGIC", fx:[{t:"?",raw:"DrawBoth"}],combo:true},
+  "116":{ct:"CHAOS", fx:[{t:"?",raw:"CloneNextPlayed"}],combo:true},
 };
 
 // Předpřipravené balíčky (shodné s Kotlin presetTemplates)
@@ -2223,6 +2235,7 @@ function showSimResults(lA,lB,wA,wB,dr,tot,totT,cardStatsA,cardStatsB){
 
 function saveToStorage() {
   localStorage.setItem('termiti_cards', JSON.stringify(CARDS));
+  localStorage.setItem('termiti_effects_db', JSON.stringify(CARD_EFFECTS_DB));
   localStorage.setItem('termiti_adjustments', JSON.stringify(cardAdjustments));
   localStorage.setItem('termiti_globals', JSON.stringify({s: globalScale, x: globalBX, y: globalBY}));
 }
@@ -2233,6 +2246,8 @@ function restoreFromStorage() {
     CARDS = JSON.parse(c);
     CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
   }
+  const e = localStorage.getItem('termiti_effects_db');
+  if (e) CARD_EFFECTS_DB = Object.assign(CARD_EFFECTS_DB, JSON.parse(e));
   const a = localStorage.getItem('termiti_adjustments');
   if (a) cardAdjustments = JSON.parse(a);
   const g = localStorage.getItem('termiti_globals');
