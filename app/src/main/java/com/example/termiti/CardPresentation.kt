@@ -96,7 +96,7 @@ object CardPresentation {
         "022" to CardPres("Poškodí hrad −8.",
             R.drawable.art_primy_zasah, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
-        "023" to CardPres("Zaútočí na hrad za 7 a hradby za 7.",
+        "023" to CardPres("Zaútočí na hrad za 7 a na soupeře za 7.",
             R.drawable.art_dvojity_utok, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
         "024" to CardPres("Pokud máš <5 hradeb, udeř hrad za 13.",

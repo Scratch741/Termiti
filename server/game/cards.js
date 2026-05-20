@@ -86,7 +86,7 @@ const RAW = [
   ['020','Beranidlo',      3,'ATTACK',1,[aw(12)],              'RARE'],
   ['021','Dělostřelectvo', 6,'ATTACK',0,[ap(15)],              'EPIC'],
   ['022','Přímý zásah',    3,'ATTACK',0,[ac(8)],               'RARE'],
-  ['023','Dvojitý úder',   5,'ATTACK',0,[ac(7), aw(7)],        'EPIC'],
+  ['023','Dvojitý úder',   5,'ATTACK',0,[ac(7), ap(7)],        'EPIC'],
   ['024','Berserk',        4,'ATTACK',0,[cd(wB(5), ac(13))],   'RARE'],
   ['025','Protiútok',      3,'ATTACK',0,[cd(wB(10), ac(10))],  'RARE'],
   ['026','Ostřelovač',     3,'ATTACK',0,[ac(5), cd(rA('ATTACK',5), ac(5))], 'EPIC'],
