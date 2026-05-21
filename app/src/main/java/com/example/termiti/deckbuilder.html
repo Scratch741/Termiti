@@ -892,6 +892,7 @@ function convertJsonEffect(fx) {
     case 'BurnCard':            return { t:'BurnC',  a:fx.count };
     case 'AddCardsToDeck':      return { t:'AddD',   id:fx.cardId, count:fx.count };
     case 'DrawCard':            return { t:'DC',     a:fx.count };
+    case 'DrawBoth':            return { t:'DBo',    a:fx.count };
     case 'XScaledAttackPlayer': return { t:'XAP',    div:fx.divisor };
     case 'XScaledAttackCastle': return { t:'XAC',    div:fx.divisor };
     case 'XScaledBuildCastle':  return { t:'XBC',    div:fx.divisor };
@@ -1437,7 +1438,7 @@ let CARD_EFFECTS_DB = {
   "112":{ct:"STONES",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
   "113":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
   "114":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "115":{ct:"MAGIC", fx:[{t:"?",raw:"DrawBoth"}],combo:true},
+  "115":{ct:"MAGIC", fx:[{t:"DBo",a:2}],combo:true},
   "116":{ct:"CHAOS", fx:[{t:"?",raw:"CloneNextPlayed"}],combo:true},
 };
 
@@ -2280,7 +2281,7 @@ function buildSimDeck(presetIdx) {
 // ── Herní stav ──────────────────────────────────────────────
 function createSimState() {
   return {
-    castleHP: 30, wallHP: 10,
+    castleHP: 30, wallHP: 15,
     res: { MAGIC:0, ATTACK:0, STONES:0, CHAOS:0 },
     mines: { MAGIC:1, ATTACK:1, STONES:1 },
     mineBlocked: {}, pending: [],
@@ -2315,7 +2316,7 @@ function simGenRes(s) {
   }
 }
 
-function simCond(cond, s) {
+function simCond(cond, s, opp) {
   const r = s.preCostRes || s.res;
   switch (cond.t) {
     case 'RA': return (r[cond.r]||0) > cond.v;
@@ -2323,6 +2324,8 @@ function simCond(cond, s) {
     case 'WB': return s.wallHP < cond.v;
     case 'CA': return s.castleHP > cond.v;
     case 'CB': return s.castleHP < cond.v;
+    case 'LPT': return s.lastType === cond.r;
+    case 'RMO': return opp ? ((r[cond.r]||0) > (opp.res[cond.r]||0)) : false;
     default:   return false;
   }
 }
@@ -2342,11 +2345,12 @@ function simFx(fx, me, opp, xv) {
     case 'SC': { const st=Math.min(fx.a,Math.max(0,opp.castleHP)); opp.castleHP-=st; me.castleHP=Math.min(100,me.castleHP+st); break; }
     case 'DM': { const cur=opp.mines[fx.r]||0,min=fx.r==='CHAOS'?0:1; if(cur>min)opp.mines[fx.r]=Math.max(min,cur-fx.a); break; }
     case 'BLK': { opp.mineBlocked[fx.r]=Math.min(5,(opp.mineBlocked[fx.r]||0)+fx.turns); break; }
-    case 'StealC': for(let i=0;i<fx.a;i++){if(opp.hand.length){const idx=Math.floor(Math.random()*opp.hand.length);me.hand.push(opp.hand.splice(idx,1)[0]);}} break;
+    case 'StealC': for(let i=0;i<fx.a;i++){if(opp.hand.length&&me.hand.length<7){const idx=Math.floor(Math.random()*opp.hand.length);me.hand.push(opp.hand.splice(idx,1)[0]);}} break;
     case 'BurnC':  for(let i=0;i<fx.a;i++){if(opp.hand.length){const idx=Math.floor(Math.random()*opp.hand.length);opp.discard.push(opp.hand.splice(idx,1)[0]);}} break;
     case 'AddD': { const db=CARD_EFFECTS_DB[fx.id]; if(db){for(let i=0;i<fx.count;i++)me.deck.push(makeSimCard(fx.id));simShuffle(me.deck);} break; }
     case 'ARD': me.pending.push({r:fx.r,a:fx.a,turns:fx.turns||1}); break;
-    case 'CE': if(simCond(fx.c,me)) simFx(fx.e,me,opp,xv); break;
+    case 'DBo': simDraw(me, fx.a); simDraw(opp, fx.a); break;
+    case 'CE': if(simCond(fx.c,me,opp)) simFx(fx.e,me,opp,xv); break;
     case 'XAP': { const d=Math.floor(xv/fx.div),wd=Math.min(d,opp.wallHP); opp.wallHP-=wd; const ov=d-wd; if(ov>0)opp.castleHP-=ov; break; }
     case 'XAC': opp.castleHP -= Math.floor(xv/fx.div); break;
     case 'XBC': me.castleHP = Math.min(100, me.castleHP + Math.floor(xv/fx.div)); break;
@@ -2359,7 +2363,7 @@ function simApply(effects, me, opp, xv) {
 }
 
 function simWin(pA, pB) {
-  const aD=pA.castleHP<=0, bD=pB.castleHP<=0, aB=pA.castleHP>=60, bB=pB.castleHP>=60;
+  const aD=pA.castleHP<=0, bD=pB.castleHP<=0, aB=pA.castleHP>=70, bB=pB.castleHP>=70;
   if(aD&&bD||aB&&bB) return 'draw';
   if(aD) return 'B'; if(bD) return 'A';
   if(aB) return 'A'; if(bB) return 'B';
@@ -2394,12 +2398,13 @@ function simAI(ai, opp) {
       case 'BurnC': return 6;
       case 'AddD': return 4;
       case 'DC': return (fx.a||0)*5;
+      case 'DBo': return (fx.a||0)*3;
       case 'SC': return (fx.a||0)+(oLH?8:0)+(aLH?8:0);
-      case 'CE': return simCond(fx.c,ai)?se(fx.e,xv):0;
-      case 'XAP': {const a=Math.floor(xv/(fx.div||1));return(oLH?20:oCW?6:8)+Math.floor(a/4);}
-      case 'XAC': {const a=Math.floor(xv/(fx.div||1));return(oLH?22:oCW?8:7)+Math.floor(a/4);}
-      case 'XBC': {const a=Math.floor(xv/(fx.div||1));return(aLH?12:aCW?6:4)+Math.floor(a/4);}
-      case 'XDR': {const a=Math.floor(xv/(fx.div||1));return 4+Math.floor(a/3);}
+      case 'CE': return simCond(fx.c,ai,opp)?se(fx.e,xv):0;
+      case 'XAP': {const a=Math.floor(xv/(fx.div||1));return(oLH?20:oCW?6:8)+a*2;}
+      case 'XAC': {const a=Math.floor(xv/(fx.div||1));return(oLH?22:oCW?8:7)+a*2;}
+      case 'XBC': {const a=Math.floor(xv/(fx.div||1));return(aLH?12:aCW?6:4)+a*2;}
+      case 'XDR': {const a=Math.floor(xv/(fx.div||1));return 4+a*2;}
       default: return 0;
     }
   }
@@ -2440,6 +2445,21 @@ function simAI(ai, opp) {
     const d=bd();return d?{type:'discard',card:d}:{type:'wait'};
   }
 
+  // Lethal detection: pokud karta může zabít soupeře, zahraj ji okamžitě
+  function isLethal(c) {
+    const xv=c.isXCost?(ai.res[c.costType]||0):0;
+    let dmg=0;
+    for(const fx of c.effects){
+      if(fx.t==='AP'){const wd=Math.min(fx.a,opp.wallHP);dmg+=fx.a-wd;}
+      else if(fx.t==='AC')dmg+=fx.a;
+      else if(fx.t==='XAP'){const a=Math.floor(xv/(fx.div||1));const wd=Math.min(a,opp.wallHP);dmg+=a-wd;}
+      else if(fx.t==='XAC')dmg+=Math.floor(xv/(fx.div||1));
+    }
+    return dmg>=opp.castleHP;
+  }
+  const lethalCard=aff.find(c=>isLethal(c));
+  if(lethalCard)return{type:'play',card:lethalCard};
+
   const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
   if(!best||best.s<=0){
     if(hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
@@ -2453,7 +2473,7 @@ function simOneGame(deckA, deckB, trackCards) {
   const pA=createSimState(), pB=createSimState();
   const dA=[...deckA]; simShuffle(dA); pA.deck=dA;
   const dB=[...deckB]; simShuffle(dB); pB.deck=dB;
-  simDraw(pA,5); simDraw(pB,5);
+  simDraw(pA,4); simDraw(pB,4);
 
   // Sledování zahraných karet (jen pokud trackCards=true – kvůli výkonu)
   const playedA={}, playedB={};
@@ -2485,6 +2505,7 @@ function simOneGame(deckA, deckB, trackCards) {
         if(c.isXCost){xv=me.res[c.costType]||0;me.res[c.costType]=0;}
         else me.res[c.costType]=Math.max(0,(me.res[c.costType]||0)-c.cost);
         simApply(c.effects,me,opp,xv);
+        me.lastType=c.costType;
         me.preCostRes=null;
         const w=simWin(pA,pB);
         if(w!==null)return{winner:w,turns:t,playedA,playedB};
