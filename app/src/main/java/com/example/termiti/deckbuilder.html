@@ -2137,7 +2137,7 @@ function findInterestingDeck() {
 
   const GAMES_PER_PRESET = 300;
   const MAX_ATTEMPTS     = 200;
-  const MIN_WR = 0.37, MAX_WR = 0.63;
+  const MIN_WR = 0.45;
 
   // Presety k testování (přeskočí "Náhodný" na indexu 0)
   const presetDecks = SIM_PRESETS.slice(1).map(function(p) {
@@ -2183,8 +2183,8 @@ function findInterestingDeck() {
       totalWins += wins; totalGames += GAMES_PER_PRESET;
     }
     const overallWR  = totalWins / totalGames;
-    const allInRange = results.every(function(r) { return r.wr >= MIN_WR && r.wr <= MAX_WR; })
-                       && overallWR >= MIN_WR && overallWR <= MAX_WR;
+    const passingCount = results.filter(function(r) { return r.wr >= MIN_WR; }).length;
+    const allInRange = passingCount >= 3;
 
     // Progress info
     const wrStrs = results.map(function(r) {
