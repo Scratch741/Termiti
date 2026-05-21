@@ -199,6 +199,7 @@ fun aiChooseAction(
         is CardEffect.DecisionChooseType    -> 5
         is CardEffect.DecisionFromDiscard   -> 4
         is CardEffect.DecisionFromDeck      -> 5
+        is CardEffect.DecisionMine          -> 6
         // Konverze vlastního dolu: hodnotné pokud AI má chaos strategii
         is CardEffect.ConvertMine -> {
             val chaosMin = ai.mines[ResourceType.CHAOS] ?: 0

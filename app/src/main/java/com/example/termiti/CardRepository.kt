@@ -136,6 +136,7 @@ object CardRepository {
         )
         "DecisionFromDiscard"   -> CardEffect.DecisionFromDiscard(obj.optInt("picks", 4))
         "DecisionFromDeck"      -> CardEffect.DecisionFromDeck(obj.optInt("picks", 4))
+        "DecisionMine"          -> CardEffect.DecisionMine
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

@@ -353,6 +353,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDeck     -> self.deck.shuffled().take(fx.picks)
+        is CardEffect.DecisionMine         -> listOf(
+            ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
+        ).mapNotNull { resType ->
+            allCards.filter { card ->
+                card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
+            }.shuffled().firstOrNull()
+        }
         else -> emptyList()
     }
 
@@ -361,6 +368,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionChooseType   -> DecisionState("ROZHODNUTÍ", "Vyber si kartu typu ${fx.cardType}", options)
         is CardEffect.DecisionFromDiscard  -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
         is CardEffect.DecisionFromDeck     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
+        is CardEffect.DecisionMine         -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
         else -> DecisionState("", "", emptyList())
     }
 
@@ -419,6 +427,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(copy) else player.discardPile.add(copy)
                 log.appendLog("Hráč zkopíroval z balíčku: ${chosen.name}")
+            }
+            is CardEffect.DecisionMine -> {
+                val newCard = chosen.copy(
+                    id          = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                    isGenerated = true
+                )
+                if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
+                log.appendLog("Hráč si vybral důl: ${chosen.name}")
             }
             else -> {}
         }
@@ -745,7 +761,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it is CardEffect.DecisionBurnOpponent ||
             it is CardEffect.DecisionChooseType   ||
             it is CardEffect.DecisionFromDiscard  ||
-            it is CardEffect.DecisionFromDeck
+            it is CardEffect.DecisionFromDeck     ||
+            it is CardEffect.DecisionMine
         }
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
@@ -971,6 +988,21 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     opts.firstOrNull()?.let { chosen ->
                                         ai.deck.remove(chosen)
                                         if (ai.hand.size < old.aiMaxHand) ai.hand.add(chosen)
+                                    }
+                                }
+                                is CardEffect.DecisionMine -> {
+                                    // AI si vybere důl, který mu nejvíce chybí
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    val best = opts.minByOrNull { card ->
+                                        val mineEffect = card.effects.filterIsInstance<CardEffect.AddMine>().firstOrNull()
+                                        ai.mines[mineEffect?.type] ?: 0
+                                    }
+                                    best?.let { chosen ->
+                                        val newCard = chosen.copy(
+                                            id          = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                                            isGenerated = true
+                                        )
+                                        if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
                                     }
                                 }
                                 else -> {}

@@ -182,6 +182,7 @@ fun applyEffects(
         is CardEffect.DecisionChooseType    -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDiscard   -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDeck      -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionMine          -> { /* řeší ViewModel */ }
     }
 }
 

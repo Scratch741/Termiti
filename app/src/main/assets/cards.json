@@ -3250,6 +3250,22 @@
     "baseId": "116"
   },
   {
+    "id": "117",
+    "name": "Průzkum dolů",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DecisionMine"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "baseId": "117"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,

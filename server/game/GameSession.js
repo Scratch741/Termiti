@@ -13,7 +13,7 @@ const {
   transformShapeShifters
 } = require('./engine');
 
-const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck']);
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine']);
 const { ratingSystem } = require('./RatingSystem');
 const { GameLogger, compactState } = require('./GameLogger');
 
@@ -659,6 +659,20 @@ class GameSession {
         // N náhodných karet z vlastního balíčku
         return [...self.deck].sort(() => Math.random() - 0.5).slice(0, n);
       }
+      case 'DecisionMine': {
+        // Přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos)
+        const mineTypes = ['MAGIC', 'ATTACK', 'STONES', 'CHAOS'];
+        return mineTypes
+          .map(resType => {
+            const pool = ALL_CARDS.filter(c =>
+              c.effects.some(e => e.type === 'AddMine' && e.resType === resType)
+            );
+            if (pool.length === 0) return null;
+            const tmpl = pool[Math.floor(Math.random() * pool.length)];
+            return { ...tmpl, id: tmpl.id, baseId: tmpl.id };
+          })
+          .filter(Boolean);
+      }
       default: return [];
     }
   }
@@ -750,6 +764,17 @@ class GameSession {
               self.hand.push(copy);
               this._log(`${this.name[side]} zkopíroval z balíčku: ${orig.name}.`);
             }
+          }
+        }
+        break;
+      }
+      case 'DecisionMine': {
+        if (chosenId) {
+          const tmpl = CARD_MAP.get(chosenId);
+          if (tmpl && self.hand.length < maxH) {
+            const newCard = { ...makeInstance(tmpl), isGenerated: true };
+            self.hand.push(newCard);
+            this._log(`${this.name[side]} si vybral důl: ${tmpl.name}.`);
           }
         }
         break;

@@ -90,6 +90,11 @@ sealed class CardEffect {
     data class DecisionFromDiscard(val picks: Int = 4) : CardEffect()
     /** Zobrazí [picks] karet z vlastního balíčku; hráč přidá jednu do ruky. */
     data class DecisionFromDeck(val picks: Int = 4) : CardEffect()
+    /**
+     * Zobrazí přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos).
+     * Hráč vybere jednu kartu a ta mu přijde do ruky.
+     */
+    object DecisionMine : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

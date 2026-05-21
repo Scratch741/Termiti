@@ -833,7 +833,8 @@ class OnlineLobbyViewModel(
                             "Rekrut" to "Vyber kartu typu $ct"
                         }
                         "DecisionFromDiscard"  -> "Vzpomínka" to "Vyber kartu z odhazovacího balíčku"
-                        "DecisionFromDeck"     -> "Intuice"   to "Vyber kartu z vlastního balíčku"
+                        "DecisionFromDeck"     -> "Intuice"        to "Vyber kartu z vlastního balíčku"
+                        "DecisionMine"         -> "Průzkum dolů"  to "Vyber si důl: Magie, Útok, Kámen nebo Chaos"
                         else                   -> "Rozhodnutí" to "Vyber kartu"
                     }
 
