@@ -278,6 +278,28 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             "052" to 1,
         ),
 
+        "🕵️ Sabotér" to mapOf(
+            "109" to 1,
+            "075" to 1,
+            "015" to 2,
+            "003" to 2,
+            "024" to 2,
+            "022" to 2,
+            "D05" to 2,
+            "009" to 2,
+            "064" to 1,
+            "074" to 2,
+            "004" to 1,
+            "039" to 2,
+            "D08" to 1,
+            "C02" to 2,
+            "C11" to 1,
+            "006" to 2,
+            "081" to 1,
+            "071" to 1,
+            "086" to 2,
+        ),
+
         "🌀 Chaos" to mapOf(
             "114" to 2,
             "116" to 1,
