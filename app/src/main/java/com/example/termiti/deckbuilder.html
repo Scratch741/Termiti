@@ -399,9 +399,45 @@
   #sim-results-view { flex: 1; overflow-y: auto; display: none; flex-direction: column; background: var(--bg); }
   #sim-panel-view { display: none; flex-direction: column; height: 100%; }
 
+  /* ── Finder modal ── */
+  #finder-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.75);
+    align-items: center; justify-content: center;
+  }
+  #finder-modal.open { display: flex; }
+  #finder-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    width: min(480px, 92vw);
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0,0,0,.7);
+  }
+  #finder-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #finder-modal-body {
+    overflow-y: auto; padding: 14px; flex: 1;
+  }
+
 </style>
 </head>
 <body onload="init()">
+
+<!-- Finder modal -->
+<div id="finder-modal" onclick="if(event.target===this)closefinderModal()">
+  <div id="finder-modal-box">
+    <div id="finder-modal-header">
+      <span style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;color:var(--gold)">🔍 ZAJÍMAVÝ DECK</span>
+      <button onclick="closefinderModal()" style="background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="finder-modal-body"></div>
+  </div>
+</div>
 
 <input type="file" id="fileInput" accept=".json" onchange="loadJsonFile(event)" style="display:none">
 <input type="file" id="artInput" accept="image/*" multiple onchange="loadArtFiles(event)" style="display:none">
@@ -506,8 +542,7 @@
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(180,130,20,.12);border-color:#b8920a"
                 id="finder-btn" onclick="findInterestingDeck()">🔍 HLEDEJ ZAJÍMAVÝ DECK</button>
         <div id="finder-progress" style="font-size:10px;color:var(--text-dim);min-height:14px;margin-bottom:4px;line-height:1.4"></div>
-        <div id="finder-result"></div>
-        <button class="btn-action" style="width:100%;margin-top:6px" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
+        <button class="btn-action" style="width:100%;margin-top:2px" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
     </div>
@@ -1729,14 +1764,16 @@ let _finderRunning = false;
 let _finderStop    = false;
 let _lastFoundDeckCounts = null;
 
+function closefinderModal() {
+  document.getElementById('finder-modal').classList.remove('open');
+}
+
 function loadFoundDeck() {
   if (!_lastFoundDeckCounts) return;
   DECK = Object.assign({}, _lastFoundDeckCounts);
   renderDeck();
   renderBrowser();
-  const r = document.getElementById('finder-result');
-  if (r) r.insertAdjacentHTML('beforeend',
-    '<div style="color:var(--ok);font-size:12px;margin-top:8px;text-align:center">✓ Balíček načten do builderu</div>');
+  closefinderModal();
 }
 
 function findInterestingDeck() {
@@ -1752,9 +1789,7 @@ function findInterestingDeck() {
 
   const btn      = document.getElementById('finder-btn');
   const progress = document.getElementById('finder-progress');
-  const result   = document.getElementById('finder-result');
-  if (btn)    btn.textContent = '⏹ ZASTAVIT';
-  if (result) result.innerHTML = '';
+  if (btn) btn.textContent = '⏹ ZASTAVIT';
 
   const GAMES_PER_PRESET = 300;
   const MAX_ATTEMPTS     = 30;
@@ -1823,8 +1858,10 @@ function findInterestingDeck() {
       _finderRunning = false;
       if (btn) btn.textContent = '🔍 HLEDEJ ZAJÍMAVÝ DECK';
 
-      // Render výsledku
-      let html = '<div style="margin-top:10px;padding:12px;background:var(--panel);border:1px solid rgba(80,200,100,.4)">';
+      // Render výsledku v modalu
+      const modalBody = document.getElementById('finder-modal-body');
+      document.getElementById('finder-modal').classList.add('open');
+      let html = '<div>';
       html += '<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--ok);letter-spacing:1px;margin-bottom:6px">';
       html += '✓ ZAJÍMAVÝ DECK NALEZEN (pokus ' + attempt + ')</div>';
       html += '<div style="font-size:12px;color:var(--gold);margin-bottom:8px">' + arch + '</div>';
@@ -1870,7 +1907,7 @@ function findInterestingDeck() {
       html += '<button onclick="loadFoundDeck()" class="btn-action"';
       html += ' style="width:100%;margin-top:10px;background:rgba(40,160,80,.15);border-color:#3a8a50">';
       html += '📥 NAČÍST DO BUILDERU</button></div>';
-      if (result) result.innerHTML = html;
+      if (modalBody) modalBody.innerHTML = html;
       return;
     }
 
