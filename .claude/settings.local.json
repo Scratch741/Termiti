@@ -55,7 +55,12 @@
       "Bash(git pull *)",
       "WebFetch(domain:chatgpt.com)",
       "Bash(python3 -c ' *)",
-      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\res\\\\drawable\\\\castle_background.png\"\\); \"$\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\))"
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\res\\\\drawable\\\\castle_background.png\"\\); \"$\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "Bash(grep -oP \"'[A-Z]+'\\\\]$\")",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git restore *)",
+      "Bash(git commit *)"
     ]
   }
 }
