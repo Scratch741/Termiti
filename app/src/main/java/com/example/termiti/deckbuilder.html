@@ -399,6 +399,16 @@
   #sim-results-view { flex: 1; overflow-y: auto; display: none; flex-direction: column; background: var(--bg); }
   #sim-panel-view { display: none; flex-direction: column; height: 100%; }
 
+  /* ── Archetype selector ── */
+  .arch-btn {
+    font-family: 'Crimson Pro', serif; font-size: 11px;
+    padding: 3px 7px; cursor: pointer;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); white-space: nowrap;
+  }
+  .arch-btn:hover { border-color: var(--border-light); color: var(--text); }
+  .arch-active { border-color: var(--gold) !important; color: var(--gold) !important; background: rgba(200,150,50,.1) !important; }
+
   /* ── Finder modal ── */
   #finder-modal {
     display: none;
@@ -539,6 +549,18 @@
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(40,100,60,.15);border-color:#3a8a50"
                 onclick="generateBalancedDeck()">⚖️ GENERUJ VYVÁŽENÝ BALÍČEK (9/9/9/3)</button>
         <div id="balanced-deck-info" style="font-size:11px;color:var(--gold);text-align:center;min-height:16px;margin-bottom:6px;transition:opacity .5s;opacity:0"></div>
+        <div style="margin-bottom:4px">
+          <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--text-muted);margin-bottom:5px">TYP HLEDANÉHO DECKU</div>
+          <div id="arch-selector" style="display:flex;flex-wrap:wrap;gap:3px">
+            <button class="arch-btn arch-active" data-arch="random"   onclick="setArch(this)">🎲 Náhodný</button>
+            <button class="arch-btn"             data-arch="attacker" onclick="setArch(this)">⚔️ Útočník</button>
+            <button class="arch-btn"             data-arch="defender" onclick="setArch(this)">🏰 Obránce</button>
+            <button class="arch-btn"             data-arch="mage"     onclick="setArch(this)">🔮 Mágik</button>
+            <button class="arch-btn"             data-arch="drawer"   onclick="setArch(this)">📚 Kartář</button>
+            <button class="arch-btn"             data-arch="chaos"    onclick="setArch(this)">🌀 Chaos</button>
+            <button class="arch-btn"             data-arch="saboteur" onclick="setArch(this)">🕵️ Sabotér</button>
+          </div>
+        </div>
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(180,130,20,.12);border-color:#b8920a"
                 id="finder-btn" onclick="findInterestingDeck()">🔍 HLEDEJ ZAJÍMAVÝ DECK</button>
         <div id="finder-progress" style="font-size:10px;color:var(--text-dim);min-height:14px;margin-bottom:4px;line-height:1.4"></div>
@@ -1978,9 +2000,17 @@ function startOptimizer(sourceCounts) {
   doNextRound();
 }
 
+// ── Archetype selector ───────────────────────────────────────────────────────
+let _selectedArch = 'random';
+function setArch(btn) {
+  _selectedArch = btn.dataset.arch;
+  document.querySelectorAll('.arch-btn').forEach(function(b) { b.classList.remove('arch-active'); });
+  btn.classList.add('arch-active');
+}
+
 // ── Generátor kandidátů pro finder ──────────────────────────────────────────
 // Každá karta dostane počet kopií najednou (bias k 2×, ale 1× i 3× jsou možné).
-function buildFinderCandidateDeck() {
+function buildFinderCandidateDeck(archKey) {
   function hasFxT(fx, ...tt) {
     return fx.some(f => tt.includes(f.t) || (f.t === 'CE' && tt.includes(f.e && f.e.t)));
   }
@@ -2020,20 +2050,23 @@ function buildFinderCandidateDeck() {
   }
 
   const ARCHETYPES = [
-    {name:'⚔️ Útočník',  prefer:'ATTACK',
+    {key:'attacker', name:'⚔️ Útočník',  prefer:'ATTACK',
      slots:{mine:[2,4],attack:[13,17],def:[2,4],res:[3,6],draw:[0,2],ctrl:[0,3],chaos:[0,0]}},
-    {name:'🏰 Obránce',   prefer:'STONES',
+    {key:'defender', name:'🏰 Obránce',   prefer:'STONES',
      slots:{mine:[2,4],attack:[2,5],def:[13,18],res:[3,6],draw:[0,2],ctrl:[0,2],chaos:[0,0]}},
-    {name:'🔮 Mágik',     prefer:'MAGIC',
+    {key:'mage',     name:'🔮 Mágik',     prefer:'MAGIC',
      slots:{mine:[4,6],attack:[4,8],def:[4,8],res:[6,10],draw:[2,4],ctrl:[1,3],chaos:[0,0]}},
-    {name:'📚 Kartář',    prefer:'MAGIC',
+    {key:'drawer',   name:'📚 Kartář',    prefer:'MAGIC',
      slots:{mine:[2,4],attack:[4,8],def:[3,6],res:[4,8],draw:[5,9],ctrl:[0,2],chaos:[0,0]}},
-    {name:'🌀 Chaosager', prefer:'CHAOS',
+    {key:'chaos',    name:'🌀 Chaosager', prefer:'CHAOS',
      slots:{mine:[2,3],attack:[2,5],def:[2,5],res:[0,0],draw:[0,2],ctrl:[1,3],chaos:[10,14]}},
-    {name:'🕵️ Sabotér',  prefer:'MAGIC',
+    {key:'saboteur', name:'🕵️ Sabotér',  prefer:'MAGIC',
      slots:{mine:[3,5],attack:[3,6],def:[3,6],res:[3,7],draw:[0,3],ctrl:[6,10],chaos:[0,0]}},
   ];
-  const arch = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+  const key  = archKey || 'random';
+  const arch = key === 'random'
+    ? ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)]
+    : (ARCHETYPES.find(function(a) { return a.key === key; }) || ARCHETYPES[0]);
   _lastSmartArchetype = arch.name;
 
   const counts = {};
@@ -2131,7 +2164,7 @@ function findInterestingDeck() {
     }
 
     attempt++;
-    const candidateDeck = buildFinderCandidateDeck();
+    const candidateDeck = buildFinderCandidateDeck(_selectedArch);
     const arch = _lastSmartArchetype;
 
     // Simulace vs každý preset
