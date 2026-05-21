@@ -1776,6 +1776,112 @@ function loadFoundDeck() {
   closefinderModal();
 }
 
+// ── Generátor kandidátů pro finder ──────────────────────────────────────────
+// Každá karta dostane počet kopií najednou (bias k 2×, ale 1× i 3× jsou možné).
+function buildFinderCandidateDeck() {
+  function hasFxT(fx, ...tt) {
+    return fx.some(f => tt.includes(f.t) || (f.t === 'CE' && tt.includes(f.e && f.e.t)));
+  }
+  const allIds = Object.keys(CARD_EFFECTS_DB).filter(id => !id.startsWith('T'));
+  const cards  = allIds.map(id => {
+    const db = CARD_EFFECTS_DB[id], base = CARD_MAP[id] || {};
+    return {
+      id, costType:db.ct, cost:base.cost||0, rarity:base.rarity||'COMMON',
+      isCombo:!!db.combo, isXCost:!!db.xCost,
+      isMine:     hasFxT(db.fx,'AM'),
+      isAttack:   hasFxT(db.fx,'AP','AC','AW'),
+      isDef:      hasFxT(db.fx,'BW','BC'),
+      isDraw:     hasFxT(db.fx,'DC'),
+      isCtrl:     hasFxT(db.fx,'SR','DR','StealC','BurnC','DM','BLK'),
+      isRes:      db.fx.some(f=>(f.t==='AR'||f.t==='ARD')&&f.r!=='CHAOS'),
+      isChaosGen: db.fx.some(f=>(f.t==='AR'||f.t==='AM')&&f.r==='CHAOS'),
+    };
+  });
+
+  const maxCop = c => ({COMMON:3,RARE:2,EPIC:2,LEGENDARY:1}[c.rarity]??3);
+
+  // Rozhodne, kolik kopií karta dostane.
+  // Bias: LEGENDARY=1, EPIC 25% 1× / 75% 2×,
+  //       RARE    30% 1× / 70% 2×,
+  //       COMMON  15% 1× / 50% 2× / 35% 3×
+  function decideCopies(c, budget) {
+    const max = Math.min(maxCop(c), budget);
+    if (max <= 1) return 1;
+    const r = Math.random();
+    if (c.rarity === 'LEGENDARY') return 1;
+    if (c.rarity === 'EPIC')   return r < 0.25 ? 1 : Math.min(2, max);
+    if (c.rarity === 'RARE')   return r < 0.30 ? 1 : Math.min(2, max);
+    // COMMON
+    if (r < 0.15) return 1;
+    if (r < 0.65) return Math.min(2, max);
+    return Math.min(3, max);
+  }
+
+  const ARCHETYPES = [
+    {name:'⚔️ Útočník',  prefer:'ATTACK',
+     slots:{mine:[2,4],attack:[13,17],def:[2,4],res:[3,6],draw:[0,2],ctrl:[0,3],chaos:[0,0]}},
+    {name:'🏰 Obránce',   prefer:'STONES',
+     slots:{mine:[2,4],attack:[2,5],def:[13,18],res:[3,6],draw:[0,2],ctrl:[0,2],chaos:[0,0]}},
+    {name:'🔮 Mágik',     prefer:'MAGIC',
+     slots:{mine:[4,6],attack:[4,8],def:[4,8],res:[6,10],draw:[2,4],ctrl:[1,3],chaos:[0,0]}},
+    {name:'📚 Kartář',    prefer:'MAGIC',
+     slots:{mine:[2,4],attack:[4,8],def:[3,6],res:[4,8],draw:[5,9],ctrl:[0,2],chaos:[0,0]}},
+    {name:'🌀 Chaosager', prefer:'CHAOS',
+     slots:{mine:[2,3],attack:[2,5],def:[2,5],res:[0,0],draw:[0,2],ctrl:[1,3],chaos:[10,14]}},
+    {name:'🕵️ Sabotér',  prefer:'MAGIC',
+     slots:{mine:[3,5],attack:[3,6],def:[3,6],res:[3,7],draw:[0,3],ctrl:[6,10],chaos:[0,0]}},
+  ];
+  const arch = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
+  _lastSmartArchetype = arch.name;
+
+  const counts = {};
+  const total  = () => Object.values(counts).reduce((s,n)=>s+n,0);
+  const rnd    = ([lo,hi]) => lo + Math.floor(Math.random()*(hi-lo+1));
+
+  // Vyplní slot: vybere unikátní karty z poolu a každé hned přiřadí počet kopií.
+  function pickCards(pool, target, preferCost) {
+    if (!pool.length || target <= 0) return;
+    const sorted = [...pool].sort((a,b) => {
+      const w = c => (c.costType===(preferCost||arch.prefer)?0:c.costType==='MAGIC'?0.3:0.7)
+                   + (c.cost>=5?0.4:0) + Math.random()*1.4;
+      return w(a)-w(b);
+    });
+    let rem = target;
+    for (const c of sorted) {
+      if (total()>=30 || rem<=0) break;
+      if (counts[c.id]) continue;          // skip already picked
+      const copies = decideCopies(c, Math.min(30-total(), rem));
+      counts[c.id] = copies;
+      rem -= copies;
+    }
+  }
+
+  const sl = arch.slots;
+  // Doly jako základ
+  const minePool = arch.prefer==='CHAOS'
+    ? cards.filter(c=>c.isMine&&(c.isChaosGen||c.costType==='MAGIC'))
+    : cards.filter(c=>c.isMine&&c.costType==='MAGIC');
+  pickCards(minePool.length?minePool:cards.filter(c=>c.isMine), rnd(sl.mine), 'MAGIC');
+
+  if (sl.chaos[1]>0)
+    pickCards(cards.filter(c=>c.isChaosGen||c.costType==='CHAOS'), rnd(sl.chaos), 'CHAOS');
+  pickCards(cards.filter(c=>c.isAttack&&!c.isMine),                              rnd(sl.attack), arch.prefer);
+  pickCards(cards.filter(c=>c.isDef&&!c.isMine&&!c.isAttack),                   rnd(sl.def),    arch.prefer==='STONES'?'STONES':undefined);
+  pickCards(cards.filter(c=>c.isRes&&!c.isMine&&!c.isAttack&&!c.isDef&&!c.isChaosGen), rnd(sl.res), 'MAGIC');
+  pickCards(cards.filter(c=>c.isDraw),                                           rnd(sl.draw),   'MAGIC');
+  pickCards(cards.filter(c=>c.isCtrl&&!c.isMine&&!c.isAttack&&!c.isDef),        rnd(sl.ctrl),   'MAGIC');
+
+  // Filler
+  const rem = 30-total();
+  if (rem>0) pickCards(cards, rem, arch.prefer);
+
+  // Sestav pole karet
+  const deck = [];
+  for (const [id,cnt] of Object.entries(counts))
+    for (let i=0;i<cnt;i++) { const c=makeSimCard(id); if(c) deck.push(c); }
+  return deck;
+}
+
 function findInterestingDeck() {
   if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
     alert('Nejdříve nahraj cards.json.');
@@ -1823,7 +1929,7 @@ function findInterestingDeck() {
     }
 
     attempt++;
-    const candidateDeck = buildSmartRandomDeck();
+    const candidateDeck = buildFinderCandidateDeck();
     const arch = _lastSmartArchetype;
 
     // Simulace vs každý preset
