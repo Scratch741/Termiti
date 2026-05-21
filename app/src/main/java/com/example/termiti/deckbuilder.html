@@ -503,7 +503,11 @@
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(40,100,60,.15);border-color:#3a8a50"
                 onclick="generateBalancedDeck()">⚖️ GENERUJ VYVÁŽENÝ BALÍČEK (9/9/9/3)</button>
         <div id="balanced-deck-info" style="font-size:11px;color:var(--gold);text-align:center;min-height:16px;margin-bottom:6px;transition:opacity .5s;opacity:0"></div>
-        <button class="btn-action" style="width:100%" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
+        <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(180,130,20,.12);border-color:#b8920a"
+                id="finder-btn" onclick="findInterestingDeck()">🔍 HLEDEJ ZAJÍMAVÝ DECK</button>
+        <div id="finder-progress" style="font-size:10px;color:var(--text-dim);min-height:14px;margin-bottom:4px;line-height:1.4"></div>
+        <div id="finder-result"></div>
+        <button class="btn-action" style="width:100%;margin-top:6px" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
     </div>
@@ -1718,6 +1722,163 @@ function generateBalancedDeck() {
     infoEl.style.opacity = '1';
     setTimeout(() => { infoEl.style.opacity = '0'; }, 4000);
   }
+}
+
+// ── Hledač zajímavého decku ──────────────────────────────────────────────────
+let _finderRunning = false;
+let _finderStop    = false;
+let _lastFoundDeckCounts = null;
+
+function loadFoundDeck() {
+  if (!_lastFoundDeckCounts) return;
+  DECK = Object.assign({}, _lastFoundDeckCounts);
+  renderDeck();
+  renderBrowser();
+  const r = document.getElementById('finder-result');
+  if (r) r.insertAdjacentHTML('beforeend',
+    '<div style="color:var(--ok);font-size:12px;margin-top:8px;text-align:center">✓ Balíček načten do builderu</div>');
+}
+
+function findInterestingDeck() {
+  if (!CARD_MAP || Object.keys(CARD_MAP).length === 0) {
+    alert('Nejdříve nahraj cards.json.');
+    return;
+  }
+  if (_finderRunning) { _finderStop = true; return; }
+
+  _finderRunning = true;
+  _finderStop    = false;
+  _lastFoundDeckCounts = null;
+
+  const btn      = document.getElementById('finder-btn');
+  const progress = document.getElementById('finder-progress');
+  const result   = document.getElementById('finder-result');
+  if (btn)    btn.textContent = '⏹ ZASTAVIT';
+  if (result) result.innerHTML = '';
+
+  const GAMES_PER_PRESET = 300;
+  const MAX_ATTEMPTS     = 30;
+  const MIN_WR = 0.37, MAX_WR = 0.63;
+
+  // Presety k testování (přeskočí "Náhodný" na indexu 0)
+  const presetDecks = SIM_PRESETS.slice(1).map(function(p) {
+    const deck = [];
+    for (const id in p.counts) {
+      for (let i = 0; i < p.counts[id]; i++) { const c = makeSimCard(id); if (c) deck.push(c); }
+    }
+    return { name: p.name, deck: deck };
+  });
+
+  if (!presetDecks.length) {
+    if (progress) progress.textContent = 'Žádné presety k testování.';
+    _finderRunning = false;
+    if (btn) btn.textContent = '🔍 HLEDEJ ZAJÍMAVÝ DECK';
+    return;
+  }
+
+  let attempt = 0;
+
+  function tryOne() {
+    if (_finderStop || attempt >= MAX_ATTEMPTS) {
+      _finderRunning = false; _finderStop = false;
+      if (btn) btn.textContent = '🔍 HLEDEJ ZAJÍMAVÝ DECK';
+      if (!_lastFoundDeckCounts && attempt >= MAX_ATTEMPTS)
+        if (progress) progress.textContent = 'Nenalezeno po ' + MAX_ATTEMPTS + ' pokusech. Zkus znovu.';
+      return;
+    }
+
+    attempt++;
+    const candidateDeck = buildSmartRandomDeck();
+    const arch = _lastSmartArchetype;
+
+    // Simulace vs každý preset
+    const results = [];
+    let totalWins = 0, totalGames = 0;
+    for (const preset of presetDecks) {
+      let wins = 0;
+      for (let i = 0; i < GAMES_PER_PRESET; i++) {
+        if (simOneGame(candidateDeck, preset.deck, false).winner === 'A') wins++;
+      }
+      const wr = wins / GAMES_PER_PRESET;
+      results.push({ name: preset.name, wr: wr });
+      totalWins += wins; totalGames += GAMES_PER_PRESET;
+    }
+    const overallWR  = totalWins / totalGames;
+    const allInRange = results.every(function(r) { return r.wr >= MIN_WR && r.wr <= MAX_WR; })
+                       && overallWR >= MIN_WR && overallWR <= MAX_WR;
+
+    // Progress info
+    const wrStrs = results.map(function(r) {
+      return r.name.replace(/[^\wÁ-žá-ž ]/gu, '').trim() + ': ' + (r.wr * 100).toFixed(0) + '%';
+    }).join('  |  ');
+    if (progress) progress.innerHTML =
+      'Pokus ' + attempt + '/' + MAX_ATTEMPTS + ' &nbsp;–&nbsp; ' + arch +
+      '<br>' + wrStrs + '&nbsp;&nbsp;→ celkem: <strong>' + (overallWR * 100).toFixed(0) + '%</strong>';
+
+    if (allInRange) {
+      // Nalezen! Ulož a zobraz
+      const counts = {};
+      for (const c of candidateDeck) counts[c.id] = (counts[c.id] || 0) + 1;
+      _lastFoundDeckCounts = counts;
+      _finderRunning = false;
+      if (btn) btn.textContent = '🔍 HLEDEJ ZAJÍMAVÝ DECK';
+
+      // Render výsledku
+      let html = '<div style="margin-top:10px;padding:12px;background:var(--panel);border:1px solid rgba(80,200,100,.4)">';
+      html += '<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--ok);letter-spacing:1px;margin-bottom:6px">';
+      html += '✓ ZAJÍMAVÝ DECK NALEZEN (pokus ' + attempt + ')</div>';
+      html += '<div style="font-size:12px;color:var(--gold);margin-bottom:8px">' + arch + '</div>';
+
+      // WR bary
+      const tColor = { MAGIC:'var(--magic)', ATTACK:'var(--attack)', STONES:'var(--stones)', CHAOS:'var(--chaos)' };
+      for (const r of results) {
+        const col  = r.wr > 0.55 ? 'var(--ok)' : r.wr < 0.45 ? 'var(--attack)' : 'var(--gold)';
+        const fill = Math.round(r.wr * 16);
+        const bar  = '█'.repeat(fill) + '░'.repeat(16 - fill);
+        const label = r.name.replace(/^\S+\s*/, '');
+        html += '<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:3px">';
+        html += '<span style="color:var(--text-dim);min-width:80px;white-space:nowrap">' + label + '</span>';
+        html += '<span style="color:' + col + ';font-weight:bold;min-width:36px">' + (r.wr*100).toFixed(1) + '%</span>';
+        html += '<span style="color:var(--border-light);font-size:9px;letter-spacing:1px">' + bar + '</span>';
+        html += '</div>';
+      }
+      html += '<div style="font-size:11px;color:var(--text-dim);margin:6px 0 10px">';
+      html += 'Celkový WR: <strong style="color:var(--text)">' + (overallWR*100).toFixed(1) + '%</strong>';
+      html += '&nbsp;&nbsp;(' + totalGames + ' her)</div>';
+
+      // Seznam karet
+      const groups = { MAGIC:[], ATTACK:[], STONES:[], CHAOS:[] };
+      const seen   = new Set();
+      for (const c of candidateDeck) {
+        if (seen.has(c.id)) continue; seen.add(c.id);
+        (groups[c.costType] || groups.MAGIC).push({ id:c.id, name:c.name, cost:c.cost, count:counts[c.id] });
+      }
+      const tLabel = { MAGIC:'🔮 Magie', ATTACK:'⚔️ Útok', STONES:'🏗️ Kameny', CHAOS:'🌀 Chaos' };
+      for (const type of Object.keys(groups)) {
+        if (!groups[type].length) continue;
+        html += '<div style="font-size:10px;color:' + tColor[type] + ';font-family:\'Cinzel\',serif;';
+        html += 'letter-spacing:1px;margin:7px 0 3px">' + tLabel[type] + '</div>';
+        for (const c of groups[type].sort(function(a,b){return a.cost-b.cost;})) {
+          html += '<div style="display:flex;justify-content:space-between;font-size:11px;';
+          html += 'padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
+          html += '<span style="color:var(--text)">' + c.name + '</span>';
+          html += '<span style="color:var(--text-dim)">cost ' + c.cost;
+          html += '&nbsp;&nbsp;<span style="color:var(--gold);font-weight:700">×' + c.count + '</span></span></div>';
+        }
+      }
+
+      html += '<button onclick="loadFoundDeck()" class="btn-action"';
+      html += ' style="width:100%;margin-top:10px;background:rgba(40,160,80,.15);border-color:#3a8a50">';
+      html += '📥 NAČÍST DO BUILDERU</button></div>';
+      if (result) result.innerHTML = html;
+      return;
+    }
+
+    // Nevyhovující, zkus další v dalším ticku (UI responsive)
+    setTimeout(tryOne, 0);
+  }
+
+  tryOne();
 }
 
 function buildSimDeck(presetIdx) {
