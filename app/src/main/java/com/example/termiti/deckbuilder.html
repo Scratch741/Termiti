@@ -542,6 +542,8 @@
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(180,130,20,.12);border-color:#b8920a"
                 id="finder-btn" onclick="findInterestingDeck()">🔍 HLEDEJ ZAJÍMAVÝ DECK</button>
         <div id="finder-progress" style="font-size:10px;color:var(--text-dim);min-height:14px;margin-bottom:4px;line-height:1.4"></div>
+        <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(140,100,20,.12);border-color:#8a6010"
+                onclick="startOptimizer(Object.keys(DECK).length?DECK:null)">🔧 OPTIMALIZOVAT AKTUÁLNÍ DECK</button>
         <button class="btn-action" style="width:100%;margin-top:2px" onclick="copyDeckCode()">KOPÍROVAT KOTLIN MAPU</button>
         <div id="deck-output" class="output-box">—</div>
       </div>
@@ -1776,6 +1778,206 @@ function loadFoundDeck() {
   closefinderModal();
 }
 
+// ── Optimizer ────────────────────────────────────────────────────────────────
+let _optRunning = false;
+let _optStop    = false;
+
+function deckArrayFromCounts(counts) {
+  const deck = [];
+  for (const [id, cnt] of Object.entries(counts))
+    for (let i = 0; i < cnt; i++) { const c = makeSimCard(id); if (c) deck.push(c); }
+  return deck;
+}
+
+// Synchronně vyhodnotí deck vs všechny presety → {overallWR, presetResults, cardStats}
+function evalDeck(deckArray, gamesPerPreset) {
+  const presetDecks = SIM_PRESETS.slice(1).map(function(p) {
+    const d = [];
+    for (const id in p.counts)
+      for (let i = 0; i < p.counts[id]; i++) { const c = makeSimCard(id); if (c) d.push(c); }
+    return { name: p.name, deck: d };
+  });
+  const cs = {}; let tw = 0, tg = 0; const pr = [];
+  for (const preset of presetDecks) {
+    let w = 0;
+    for (let i = 0; i < gamesPerPreset; i++) {
+      const r = simOneGame(deckArray, preset.deck, true);
+      if (r.winner === 'A') w++;
+      for (const [id, cnt] of Object.entries(r.playedA)) {
+        if (!cs[id]) cs[id] = { wins:0, games:0, plays:0 };
+        cs[id].games++; cs[id].plays += cnt;
+        if (r.winner === 'A') cs[id].wins++;
+      }
+    }
+    pr.push({ name: preset.name, wr: w / gamesPerPreset });
+    tw += w; tg += gamesPerPreset;
+  }
+  return { overallWR: tg ? tw / tg : 0, presetResults: pr, cardStats: cs };
+}
+
+function startOptimizer(sourceCounts) {
+  if (!sourceCounts || !Object.keys(sourceCounts).length) {
+    alert('Prázdný balíček.'); return;
+  }
+  if (_optRunning) { _optStop = true; return; }
+  _optRunning = true; _optStop = false;
+
+  document.getElementById('finder-modal').classList.add('open');
+  const body = document.getElementById('finder-modal-body');
+
+  const EVAL_G   = 200; // hry per preset – plné vyhodnocení
+  const TEST_G   = 100; // hry per preset – test kandidáta
+  const MAX_ROUNDS = 5;
+  const N_CANDS    = 5; // kandidátů na každou slabou kartu
+
+  const allIds = Object.keys(CARD_EFFECTS_DB).filter(function(id) { return !id.startsWith('T'); });
+  let counts   = Object.assign({}, sourceCounts);
+  const log    = [];
+  let baseEval = null;
+  let round    = 0;
+
+  function setProgress(html) {
+    if (body) body.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--text-dim);line-height:1.8">' + html + '</div>';
+  }
+
+  function doNextRound() {
+    if (_optStop || round >= MAX_ROUNDS) { finish(); return; }
+    round++;
+    setProgress('🔧 Kolo ' + round + '/' + MAX_ROUNDS + ' – vyhodnocuji deck...');
+
+    setTimeout(function() {
+      if (_optStop) { finish(); return; }
+      baseEval = evalDeck(deckArrayFromCounts(counts), EVAL_G);
+      const wr = baseEval.overallWR;
+
+      // Nejslabší karta: dost hraná + WR výrazně pod průměrem
+      const minGames = Math.max(8, EVAL_G * SIM_PRESETS.slice(1).length * 0.12);
+      const weak = Object.entries(baseEval.cardStats)
+        .filter(function(e) { return e[1].games >= minGames && (e[1].wins / e[1].games) < wr - 0.05; })
+        .sort(function(a, b) { return (a[1].wins/a[1].games) - (b[1].wins/b[1].games); });
+
+      if (!weak.length) { finish(); return; }
+
+      const weakId   = weak[0][0];
+      const weakStat = weak[0][1];
+      const weakName = (CARD_MAP[weakId] || {}).name || weakId;
+      const weakWR   = (weakStat.wins / weakStat.games * 100).toFixed(1);
+      const weakCnt  = counts[weakId] || 1;
+
+      // Kandidáti: náhodný výběr z karet, které v decku nejsou
+      const candidates = allIds
+        .filter(function(id) { return !counts[id]; })
+        .sort(function() { return Math.random() - 0.5; })
+        .slice(0, N_CANDS);
+
+      let bestWR  = wr;
+      let bestId  = null;
+      let ci      = 0;
+
+      function tryNextCand() {
+        if (_optStop) { finish(); return; }
+        if (ci >= candidates.length) {
+          // Aplikuj nejlepší náhradu
+          if (bestId) {
+            const maxC = { COMMON:3, RARE:2, EPIC:2, LEGENDARY:1 }[(CARD_MAP[bestId]||{}).rarity||'COMMON'] ?? 1;
+            delete counts[weakId];
+            counts[bestId] = Math.min(weakCnt, maxC);
+            const bestName = (CARD_MAP[bestId]||{}).name || bestId;
+            log.push('K' + round + ': <span style="color:var(--attack)">-' + weakName + '</span> (' + weakWR + '%) → <span style="color:var(--ok)">+' + bestName + '</span> (' + (bestWR*100).toFixed(1) + '%)');
+          } else {
+            log.push('K' + round + ': <span style="color:var(--text-dim)">' + weakName + '</span> – žádná lepší náhrada');
+          }
+          setTimeout(doNextRound, 0);
+          return;
+        }
+
+        const candId   = candidates[ci++];
+        const candName = (CARD_MAP[candId]||{}).name || candId;
+        setProgress(
+          '🔧 Kolo ' + round + '/' + MAX_ROUNDS + '<br>' +
+          'Slabá karta: <span style="color:var(--attack)">' + weakName + '</span> (WR ' + weakWR + '%)<br>' +
+          'Testuji <strong>' + ci + '/' + candidates.length + '</strong>: ' + candName + '...'
+        );
+
+        setTimeout(function() {
+          if (_optStop) { finish(); return; }
+          const tc = Object.assign({}, counts);
+          delete tc[weakId];
+          const maxC = { COMMON:3, RARE:2, EPIC:2, LEGENDARY:1 }[(CARD_MAP[candId]||{}).rarity||'COMMON'] ?? 1;
+          tc[candId] = Math.min(weakCnt, maxC);
+          const te = evalDeck(deckArrayFromCounts(tc), TEST_G);
+          if (te.overallWR > bestWR) { bestWR = te.overallWR; bestId = candId; }
+          tryNextCand();
+        }, 0);
+      }
+
+      tryNextCand();
+    }, 0);
+  }
+
+  function finish() {
+    _optRunning = false; _optStop = false;
+    _lastFoundDeckCounts = counts;
+
+    const fe = evalDeck(deckArrayFromCounts(counts), EVAL_G);
+    const tColor = { MAGIC:'var(--magic)', ATTACK:'var(--attack)', STONES:'var(--stones)', CHAOS:'var(--chaos)' };
+    const tLabel = { MAGIC:'🔮 Magie', ATTACK:'⚔️ Útok', STONES:'🏗️ Kameny', CHAOS:'🌀 Chaos' };
+
+    let html = '<div>';
+    html += '<div style="font-family:\'Cinzel\',serif;font-size:10px;color:var(--ok);letter-spacing:1px;margin-bottom:8px">🔧 OPTIMALIZACE DOKONČENA</div>';
+
+    // WR bary
+    for (const r of fe.presetResults) {
+      const col  = r.wr > 0.55 ? 'var(--ok)' : r.wr < 0.45 ? 'var(--attack)' : 'var(--gold)';
+      const fill = Math.round(r.wr * 16);
+      html += '<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:3px">';
+      html += '<span style="color:var(--text-dim);min-width:80px;white-space:nowrap">' + r.name.replace(/^\S+\s*/,'') + '</span>';
+      html += '<span style="color:'+col+';font-weight:bold;min-width:36px">'+(r.wr*100).toFixed(1)+'%</span>';
+      html += '<span style="color:var(--border-light);font-size:9px;letter-spacing:1px">'+'█'.repeat(fill)+'░'.repeat(16-fill)+'</span></div>';
+    }
+    html += '<div style="font-size:11px;color:var(--text-dim);margin:4px 0 10px">Celkový WR: <strong style="color:var(--text)">'+(fe.overallWR*100).toFixed(1)+'%</strong></div>';
+
+    // Log změn
+    html += '<div style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin-bottom:4px">PROVEDENÉ ZMĚNY</div>';
+    if (log.length) {
+      for (const entry of log)
+        html += '<div style="font-size:10px;color:var(--text-dim);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)">' + entry + '</div>';
+    } else {
+      html += '<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Žádné – deck byl již optimální.</div>';
+    }
+
+    // Finální seznam karet s WR
+    html += '<div style="font-family:\'Cinzel\',serif;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin:10px 0 4px">FINÁLNÍ BALÍČEK</div>';
+    const groups = { MAGIC:[], ATTACK:[], STONES:[], CHAOS:[] };
+    const seen   = new Set();
+    for (const [id, cnt] of Object.entries(counts)) {
+      const base = CARD_MAP[id]; if (!base || seen.has(id)) continue; seen.add(id);
+      const s    = fe.cardStats[id];
+      const wr   = s ? s.wins / s.games : null;
+      (groups[base.type || base.costType] || groups.MAGIC).push({ name:base.name, cost:base.cost||0, count:cnt, wr });
+    }
+    for (const type of Object.keys(groups)) {
+      if (!groups[type].length) continue;
+      html += '<div style="font-size:10px;color:'+tColor[type]+';font-family:\'Cinzel\',serif;letter-spacing:1px;margin:6px 0 3px">'+tLabel[type]+'</div>';
+      for (const c of groups[type].sort(function(a,b){return a.cost-b.cost;})) {
+        const wrCol = c.wr === null ? 'var(--text-muted)' : c.wr > 0.55 ? 'var(--ok)' : c.wr < 0.45 ? 'var(--attack)' : 'var(--gold)';
+        const wrStr = c.wr !== null ? ' <span style="color:'+wrCol+'">'+(c.wr*100).toFixed(0)+'%</span>' : '';
+        html += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
+        html += '<span style="color:var(--text)">'+c.name+wrStr+'</span>';
+        html += '<span style="color:var(--text-dim)">cost '+c.cost+'&nbsp;&nbsp;<span style="color:var(--gold);font-weight:700">×'+c.count+'</span></span></div>';
+      }
+    }
+
+    html += '<div style="display:flex;gap:6px;margin-top:10px">';
+    html += '<button onclick="loadFoundDeck()" class="btn-action" style="flex:1;background:rgba(40,160,80,.15);border-color:#3a8a50">📥 NAČÍST</button>';
+    html += '<button onclick="startOptimizer(_lastFoundDeckCounts)" class="btn-action" style="flex:1;background:rgba(180,130,20,.15);border-color:#b8920a">🔧 ZNOVU</button>';
+    html += '</div></div>';
+    if (body) body.innerHTML = html;
+  }
+
+  doNextRound();
+}
+
 // ── Generátor kandidátů pro finder ──────────────────────────────────────────
 // Každá karta dostane počet kopií najednou (bias k 2×, ale 1× i 3× jsou možné).
 function buildFinderCandidateDeck() {
@@ -2010,9 +2212,12 @@ function findInterestingDeck() {
         }
       }
 
+      html += '<div style="display:flex;gap:6px;margin-top:10px">';
       html += '<button onclick="loadFoundDeck()" class="btn-action"';
-      html += ' style="width:100%;margin-top:10px;background:rgba(40,160,80,.15);border-color:#3a8a50">';
-      html += '📥 NAČÍST DO BUILDERU</button></div>';
+      html += ' style="flex:1;background:rgba(40,160,80,.15);border-color:#3a8a50">📥 NAČÍST</button>';
+      html += '<button onclick="startOptimizer(_lastFoundDeckCounts)" class="btn-action"';
+      html += ' style="flex:1;background:rgba(180,130,20,.15);border-color:#b8920a">🔧 OPTIMALIZOVAT</button>';
+      html += '</div></div>';
       if (modalBody) modalBody.innerHTML = html;
       return;
     }
