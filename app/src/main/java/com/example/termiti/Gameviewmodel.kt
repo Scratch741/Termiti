@@ -218,6 +218,23 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             "020" to 1,
         ),
 
+        "🔮 Mágik" to mapOf(
+            "076" to 2,
+            "003" to 2,
+            "098" to 2,
+            "007" to 3,
+            "091" to 2,
+            "010" to 3,
+            "009" to 2,
+            "037" to 1,
+            "074" to 2,
+            "004" to 2,
+            "026" to 2,
+            "025" to 2,
+            "087" to 2,
+            "031" to 2,
+        ),
+
         "🏰 Obránce" to mapOf(
             "107" to 1,
             "043" to 2,
