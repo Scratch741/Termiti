@@ -35,8 +35,6 @@ Replay systém
 Nové karty / mechaniky:
 
 1) Bomba v balíčku — přidej oponentovi 3 bomby do jeho balíčku; po líznutí bomby hrad -5
-2) Naklonování karty [Combo] — magic karta; toto kolo naklonuje do balíčku další zahranou kartu
-3) Nová mechanika: Rozhodnutí — otevře se mulligan-like tabulka s výběrem karet (např. "vyber 1 ze 3 karet do ruky")
 4) Nová mechanika: Nahlédnutí do balíčku — podívej se na top N karet svého nebo soupeřova balíčku, případně vyber pořadí
 5) Legendární chaos karta: Velký zmatek — vyměň všem hráčům celé ruce za náhodné karty (chaos efekt)
 6) Karty, co manipulují s cenou soupeře/své karty. Při změně costu bude číslovka červená/zelená.

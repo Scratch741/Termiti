@@ -2512,44 +2512,6 @@
     "baseId": "C35"
   },
   {
-    "id": "C36",
-    "name": "Skrytá bomba",
-    "cost": 4,
-    "costType": "CHAOS",
-    "isCombo": false,
-    "effects": [
-      {
-        "type": "AddToOpponentDeck",
-        "cardId": "C37",
-        "count": 3
-      }
-    ],
-    "rarity": "RARE",
-    "maxCopies": 2,
-    "isXCost": false,
-    "baseId": "C36"
-  },
-  {
-    "id": "C37",
-    "name": "Bomba",
-    "cost": 0,
-    "costType": "CHAOS",
-    "isCombo": false,
-    "effects": [
-      {
-        "type": "TrapOnDraw",
-        "effect": {
-          "type": "AttackCastle",
-          "amount": 5
-        }
-      }
-    ],
-    "rarity": "COMMON",
-    "maxCopies": 0,
-    "isXCost": false,
-    "baseId": "C37"
-  },
-  {
     "id": "C19",
     "name": "Spálená knihovna",
     "cost": 4,
