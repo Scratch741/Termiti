@@ -156,6 +156,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     val filteredCards = remember(filterRes, filterCat, filterUnlocked, searchQuery, filterCost, profile) {
         viewModel.allCards
             .filter { card ->
+                card.effects.none { it is CardEffect.TrapOnDraw } &&
                 (filterRes == null || card.costType == filterRes) &&
                 (filterCat == null ||
                     (filterCat == "Kombo" && card.isCombo) ||

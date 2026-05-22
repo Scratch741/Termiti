@@ -20,6 +20,8 @@ const bm = (t,turns)=> ({ type:'BlockMine',          resType:t, turns });
 const sc = (n=1)    => ({ type:'StealCard',          count:n });
 const bn = (n=1)    => ({ type:'BurnCard',           count:n });
 const ad = (id,n)   => ({ type:'AddCardsToDeck',     cardId:id, count:n });
+const aod= (id,n)   => ({ type:'AddToOpponentDeck',  cardId:id, count:n });
+const tod= (e)      => ({ type:'TrapOnDraw',          effect:e });
 const dc = (n=1)    => ({ type:'DrawCard',           count:n });
 const dbb= (n=1)    => ({ type:'DrawBoth',           count:n });
 const cnp= (n=2)    => ({ type:'CloneNextPlayed',    count:n });
@@ -207,6 +209,8 @@ const RAW = [
   ['C33','Krádež identity', 8,'CHAOS',0,[swh()],               'LEGENDARY'],
   ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
   ['C35','Chaotická přeměna',4,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
+  ['C36','Skrytá bomba',    4,'CHAOS',0,[aod('C37',3)],          'RARE'],
+  ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0],  // maxCopies:0 = nelze přidat do balíčku
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────
   ['C19','Spálená knihovna',4,'CHAOS',0,[bn(2)],               'EPIC'],
@@ -264,10 +268,10 @@ const RAW = [
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────
-const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost]) => ({
+const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost, maxCopiesOverride]) => ({
   id, name, cost, costType, isCombo: !!isCombo, effects,
   rarity: rarity || 'COMMON',
-  maxCopies: MAX_COPIES[rarity || 'COMMON'] || 4,
+  maxCopies: maxCopiesOverride !== undefined ? maxCopiesOverride : (MAX_COPIES[rarity || 'COMMON'] || 4),
   isXCost: !!isXCost,
   baseId: id    // pro instance je baseId = id šablony
 }));
