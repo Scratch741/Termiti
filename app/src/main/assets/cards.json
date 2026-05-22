@@ -2513,7 +2513,7 @@
   },
   {
     "id": "C36",
-    "name": "Bomba v balíčku",
+    "name": "Skrytá bomba",
     "cost": 4,
     "costType": "CHAOS",
     "isCombo": false,
