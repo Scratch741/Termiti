@@ -752,7 +752,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 if (PassiveAbility.BOOST_MAGIC  in aiPassives) addAll(pick({ it.type == "Magie" }, 2))
                 if (PassiveAbility.BOOST_CHAOS  in aiPassives) addAll(pick({ it.type == "Chaos" }, 2))
                 if (PassiveAbility.BOOST_RANDOM in aiPassives) addAll(pick({ it.type != "Důl"   }, 3))
-            }.withUniqueIds()+
+            }.withUniqueIds()
             it.deck.addAll(aiBaseCards + aiBoostCards)
             it.deck.shuffle()   // 2. míchání – oddělené volání, zaručeně jiný stav Random
             // QUICK_DRAW: AI lízne 1 kartu navíc na začátku první tahu
