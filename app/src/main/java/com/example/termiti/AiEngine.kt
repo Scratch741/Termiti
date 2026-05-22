@@ -139,6 +139,8 @@ fun aiChooseAction(
         }
         is CardEffect.BurnCard            -> if (opponent.hand.isEmpty()) -8 else 6
         is CardEffect.AddCardsToDeck      -> 4
+        is CardEffect.AddToOpponentDeck   -> effect.count * 5  // 3× Bomba = potenciál 15 dmg na hrad
+        is CardEffect.TrapOnDraw          -> 0  // pasca se nehraje přímo
         is CardEffect.DrawCard            -> {
             // Líznout kartu má smysl jen pokud je v ruce místo;
             // karty navíc se spálí → penalizuj každou spálenou kartu

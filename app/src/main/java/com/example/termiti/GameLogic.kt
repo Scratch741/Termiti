@@ -114,6 +114,19 @@ fun applyEffects(
             }
         }
 
+        is CardEffect.AddToOpponentDeck -> {
+            val template = allCards.find { it.id == effect.cardId }
+            if (template != null) {
+                repeat(effect.count) {
+                    opponent.deck.add(template.copy(id = "${template.id}_${java.util.UUID.randomUUID()}", isGenerated = true))
+                }
+                opponent.deck.shuffle()
+            }
+        }
+
+        // Pasca se spustí při líznutí v PlayerState.drawCards — při zahraní karty je to no-op
+        is CardEffect.TrapOnDraw -> { }
+
         is CardEffect.DrawCard ->
             if (onDrawCard != null) onDrawCard(self, effect.count)
             else self.drawCards(effect.count)   // přebytečné karty shoří (hand full → discardPile)

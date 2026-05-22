@@ -502,6 +502,14 @@ object CardPresentation {
         "C35" to CardPres("Zničí jeden vlastní **DŮL MAGIE** a přemění ho na **DŮL CHAOSU**. Nelze snížit pod 1.",
             R.drawable.art_chaoticka_premena, "Důl",
             artScale = 0.80f, artBiasY = -0.75f),
+        "C36" to CardPres("Zamíchá **3 BOMBY** do soupeřova balíčku. Po líznutí bomby **HRAD -5**.",
+            null, "Chaos",
+            artScale = 0.85f, artBiasY = -0.5f,
+            descriptionEn = "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE -5**."),
+        "C37" to CardPres("💥 **VÝBUCH!** Hrad **-5**. *(pasca – spustí se při líznutí)*",
+            null, "Chaos",
+            artScale = 0.85f, artBiasY = -0.5f,
+            descriptionEn = "💥 **EXPLOSION!** Castle **-5**. *(trap — triggers on draw)*"),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",

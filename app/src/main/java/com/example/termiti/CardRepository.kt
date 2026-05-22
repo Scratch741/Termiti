@@ -95,6 +95,8 @@ object CardRepository {
         "StealCard"           -> CardEffect.StealCard(obj.optInt("count", 1))
         "BurnCard"            -> CardEffect.BurnCard(obj.optInt("count", 1))
         "AddCardsToDeck"      -> CardEffect.AddCardsToDeck(obj.getString("cardId"), obj.optInt("count", 1))
+        "AddToOpponentDeck"   -> CardEffect.AddToOpponentDeck(obj.getString("cardId"), obj.optInt("count", 1))
+        "TrapOnDraw"          -> CardEffect.TrapOnDraw(parseEffect(obj.getJSONObject("effect")))
         "DrawCard"            -> CardEffect.DrawCard(obj.optInt("count", 1))
         "DrawBoth"            -> CardEffect.DrawBoth(obj.optInt("count", 1))
         "CloneNextPlayed"     -> CardEffect.CloneNextPlayed(obj.optInt("count", 2))

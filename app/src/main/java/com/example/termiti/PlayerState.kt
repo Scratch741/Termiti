@@ -122,14 +122,32 @@ class PlayerState(
         }
     }
 
-    /** Líže [count] karet; vrátí seznam karet, které byly spáleny (ruka plná). */
+    /** Líže [count] karet; vrátí seznam karet, které byly spáleny (ruka plná) nebo explodovaly (pasca). */
     fun drawCards(count: Int, maxHandSize: Int = 7): List<Card> {
         val burned = mutableListOf<Card>()
         repeat(count) {
             if (deck.isNotEmpty()) {
                 val card = deck.removeFirst()
-                if (hand.size < maxHandSize) hand.add(card)
-                else { discardPile.add(card); burned.add(card) }
+                val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
+                if (trap != null) {
+                    // Pasca: spustí efekt ihned na hráče, který lízl, karta jde do odhodiště
+                    when (val e = trap.effect) {
+                        is CardEffect.AttackCastle -> castleHP -= e.amount
+                        is CardEffect.AttackWall   -> wallHP = (wallHP - e.amount).coerceAtLeast(0)
+                        is CardEffect.AttackPlayer -> {
+                            val dmg = e.amount.coerceAtMost(wallHP)
+                            wallHP -= dmg
+                            castleHP -= (e.amount - dmg)
+                        }
+                        is CardEffect.BuildCastle  -> castleHP = (castleHP + e.amount).coerceAtMost(100)
+                        else -> {}
+                    }
+                    discardPile.add(card)
+                    burned.add(card)
+                } else {
+                    if (hand.size < maxHandSize) hand.add(card)
+                    else { discardPile.add(card); burned.add(card) }
+                }
             }
         }
         return burned
