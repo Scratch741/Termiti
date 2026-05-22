@@ -36,4 +36,16 @@ Updated pages: `cards/decisions.md`, `mechanics/mines.md`, `systems/ai.md`, `car
 
 ## [2026-05-21] maintenance | Translated wiki to English
 
+## [2026-05-21] ingest | Localization infrastructure
+
+Added language switching (Czech / English) preparation:
+- `Language.kt` — enum with CZECH / ENGLISH + label + flag
+- `LanguageManager.kt` — singleton, SharedPreferences persistence, `currentState: MutableState<Language>` for reactive Compose updates
+- `AppStrings.kt` — `AppStrings` data class with all UI strings + `CzStrings` + `EnStrings` + `LocalStrings` CompositionLocal + `currentStrings` shortcut
+- `CardPresentation.kt` — `CardPres.descriptionEn` field added; `localizedDescription(language)` helper
+- `SettingsScreen.kt` — language toggle (CZ 🇨🇿 / EN 🇬🇧) + strings via `LocalStrings`
+- `MainActivity.kt` — `LanguageManager.init()` + `CompositionLocalProvider(LocalStrings provides ...)`
+
+Migration status: SettingsScreen strings migrated. All other screens still use hardcoded Czech strings — migrate by replacing literals with `LocalStrings.current.*`.
+
 All pages rewritten in English for token efficiency. `overview.md` kept in Czech as a human-readable overview.

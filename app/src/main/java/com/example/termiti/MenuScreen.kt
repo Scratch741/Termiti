@@ -38,6 +38,7 @@ fun MenuScreen(
     onSettings: () -> Unit,
     onExit: () -> Unit
 ) {
+    val s       = LocalStrings.current
     val profile = PlayerProfileManager.profile
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -157,10 +158,10 @@ fun MenuScreen(
                         letterSpacing = 2.sp
                     )
                     Spacer(modifier = Modifier.height(H * 0.01f))
-                    MenuButton("HRÁT",           imageRes = R.drawable.button_1, accent = TealLight,         onClick = onPlay)
-                    MenuButton("MULTIPLAYER",     imageRes = R.drawable.button_2, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
-                    MenuButton("SESTAVIT BALÍK",  imageRes = R.drawable.button_3, accent = Gold,              onClick = onBuildDeck)
-                    MenuButton("PROFIL",          imageRes = R.drawable.button_4, accent = Color(0xFF7EC8E3), onClick = onProfile)
+                    MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         onClick = onPlay)
+                    MenuButton(s.multiplayer,  imageRes = R.drawable.button_2, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
+                    MenuButton(s.buildDeck,    imageRes = R.drawable.button_3, accent = Gold,              onClick = onBuildDeck)
+                    MenuButton(s.profile,      imageRes = R.drawable.button_4, accent = Color(0xFF7EC8E3), onClick = onProfile)
                 }
             }
 
@@ -174,9 +175,9 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
-                    IconMenuButton(imageRes = R.drawable.button_7, label = "BALÍČKY",  size = iconSize, onClick = onShop)
-                    IconMenuButton(imageRes = R.drawable.button_5, label = "NASTAVENÍ", size = iconSize, onClick = onSettings)
-                    IconMenuButton(imageRes = R.drawable.button_6, label = "KONEC",     size = iconSize, onClick = onExit)
+                    IconMenuButton(imageRes = R.drawable.button_7, label = s.shop,     size = iconSize, onClick = onShop)
+                    IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
+                    IconMenuButton(imageRes = R.drawable.button_6, label = s.exit,     size = iconSize, onClick = onExit)
                 }
             }
         }

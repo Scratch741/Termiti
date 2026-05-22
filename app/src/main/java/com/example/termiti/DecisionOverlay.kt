@@ -32,6 +32,7 @@ fun DecisionOverlay(
     secondsLeft : Int?,
     onChoice    : (Card) -> Unit
 ) {
+    val s       = LocalStrings.current
     var peeking by remember { mutableStateOf(false) }
 
     if (peeking) {
@@ -60,7 +61,7 @@ fun DecisionOverlay(
                 ) {
                     Text("↩", color = Gold, fontSize = 14.sp)
                     Text(
-                        "Zpět na rozhodnutí",
+                        s.decisionBackToDecision,
                         color         = Gold,
                         fontSize      = 13.sp,
                         fontWeight    = FontWeight.Bold,
@@ -158,7 +159,7 @@ fun DecisionOverlay(
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            "Náhled hry",
+                            s.decisionPreviewGame,
                             color      = Gold,
                             fontSize   = 10.sp,
                             fontWeight = FontWeight.Bold

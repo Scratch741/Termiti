@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.runtime.getValue
 import com.example.termiti.ui.theme.TermitiTheme
 
 private enum class Screen {
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
         PlayerProfileManager.init(this)
         CampaignManager.init(this)
         QuestManager.init(this)
+        LanguageManager.init(this)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
@@ -45,6 +47,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TermitiTheme {
+                // ── Language provider ─────────────────────────────────────────
+                val langPack by LanguageManager.currentPackState
+                val strings  = langPack?.strings ?: LanguageManager.currentStrings
+
+                androidx.compose.runtime.CompositionLocalProvider(LocalStrings provides strings) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val initialScreen = if (PlayerProfileManager.isFirstLaunch())
                         Screen.PROFILE_SETUP else Screen.MENU
@@ -230,6 +237,7 @@ class MainActivity : ComponentActivity() {
                     // Toast overlay – musí být poslední, aby byl nad vším ostatním
                     RewardToastOverlay()
                 }
+                } // konec CompositionLocalProvider
             }
         }
     }

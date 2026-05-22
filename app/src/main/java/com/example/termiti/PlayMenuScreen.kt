@@ -34,6 +34,7 @@ fun PlayMenuScreen(
     onCampaign:   () -> Unit,
     onBack:       () -> Unit
 ) {
+    val s = LocalStrings.current
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val W = maxWidth
         val H = maxHeight
@@ -91,7 +92,7 @@ fun PlayMenuScreen(
                 .clickable { SoundManager.playMenuTap(); onBack() }
                 .padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
-            Text("← Zpět", color = PmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(s.back, color = PmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
 
         // ── Obsah ─────────────────────────────────────────────────────────────
@@ -127,28 +128,28 @@ fun PlayMenuScreen(
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 FantasyButton(
-                    text     = "VLASTNÍ BALÍČEK",
+                    text     = s.ownDeck,
                     subtitle = "Hraj se svým sestaveným balíčkem proti AI",
                     modifier = Modifier.fillMaxWidth(0.55f),
                     compact  = true,
                     onClick  = onOwnDeck
                 )
                 FantasyButton(
-                    text     = "SUPER NÁHODNÝ",
+                    text     = s.superRandom,
                     subtitle = "50 karet (15/15/15/5) – větší balíček, větší chaos",
                     modifier = Modifier.fillMaxWidth(0.55f),
                     compact  = true,
                     onClick  = onSuperRandom
                 )
                 FantasyButton(
-                    text     = "ARÉNA",
+                    text     = s.arena,
                     subtitle = "Sestav balíček z nabídky a bojuj o výhry",
                     modifier = Modifier.fillMaxWidth(0.55f),
                     compact  = true,
                     onClick  = onArena
                 )
                 FantasyButton(
-                    text     = "KAMPAŇ",
+                    text     = s.campaign,
                     subtitle = "Projdi lokacemi a poraž záporáky",
                     modifier = Modifier.fillMaxWidth(0.55f),
                     compact  = true,

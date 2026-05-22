@@ -9,16 +9,25 @@ package com.example.termiti
  * bez ilustrace a s prázdným popisem.
  */
 data class CardPres(
-    val description: String   = "",
-    val artResId:    Int?     = null,
-    val type:        String   = "",
-    val artBiasX:    Float    = 0f,
-    val artBiasY:    Float    = 0f,
-    val artScale:    Float    = 1f,
-    val isBasic:     Boolean  = false,
-    val sound:       CardSound? = null,
-    val soundResId:  Int?     = null
-)
+    val description:   String    = "",
+    val artResId:      Int?      = null,
+    val type:          String    = "",
+    val artBiasX:      Float     = 0f,
+    val artBiasY:      Float     = 0f,
+    val artScale:      Float     = 1f,
+    val isBasic:       Boolean   = false,
+    val sound:         CardSound? = null,
+    val soundResId:    Int?      = null,
+    /** English description. Empty string = not yet translated → falls back to [description]. */
+    val descriptionEn: String    = ""
+) {
+    /**
+     * Returns the localized description for the given [languageCode] (e.g. "cs", "en").
+     * Falls back to the Czech [description] if no translation is available for this language.
+     */
+    fun localizedDescription(languageCode: String): String =
+        if (languageCode != "cs" && descriptionEn.isNotEmpty()) descriptionEn else description
+}
 
 object CardPresentation {
     val presentations: Map<String, CardPres> = mapOf(
@@ -535,7 +544,8 @@ object CardPresentation {
         "116" to CardPres("**Toto kolo:** příští karta, co zahraješ, se 2× zkopíruje do balíčku. [Combo]",
             R.drawable.art_chaoticka_replikace, "Chaos",
             artScale = 0.90f, artBiasY = -0.30f),
-        "117" to CardPres("**Rozhodnutí:** vyber si 1 ze 4 dolů — Magie, Útok, Kámen nebo Chaos — a přidej ho do ruky. [Combo]",
-            R.drawable.art_default, "Magie"),
+        "117" to CardPres("**Rozhodnutí:** vyber si 1 ze 4 různých dolů. [Combo]",
+            R.drawable.art_pruzkum_dolu, "Magie",
+            artScale = 0.85f, artBiasY = 0.25f),
     )
 }

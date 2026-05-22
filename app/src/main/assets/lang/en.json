@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "code": "en",
+    "name": "English",
+    "flag": "🇬🇧",
+    "author": "Termiti Team",
+    "version": 1
+  },
+  "strings": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "← BACK",
+
+    "settings": "SETTINGS",
+    "music": "🎵  Music",
+    "soundEffects": "🔊  Sound Effects",
+    "languageLabel": "🌐  Language",
+
+    "play": "PLAY",
+    "buildDeck": "DECK",
+    "multiplayer": "MULTIPLAYER",
+    "profile": "PROFILE",
+    "shop": "SHOP",
+    "exit": "EXIT",
+
+    "ownDeck": "Own Deck",
+    "superRandom": "Super Random",
+    "arena": "Arena",
+    "campaign": "Campaign",
+
+    "yourTurn": "YOUR TURN",
+    "opponentTurn": "OPPONENT'S TURN",
+    "endTurn": "End Turn",
+    "discard": "Discard",
+    "castle": "Castle",
+    "wall": "Wall",
+    "round": "Round",
+
+    "decisionTitle": "DECISION",
+    "decisionPreviewGame": "Preview game",
+    "decisionBackToDecision": "Back to decision",
+    "decisionChooseType": "Choose a %s card",
+    "decisionBurnOpponent": "Choose a card from opponent's deck to discard",
+    "decisionFromDiscard": "Choose a card from your discard pile",
+    "decisionFromDeck": "Choose a card from your deck",
+    "decisionMine": "Choose a mine: Magic, Attack, Stone or Chaos",
+
+    "resultVictory": "VICTORY!",
+    "resultDefeat": "DEFEAT",
+    "resultDraw": "DRAW",
+    "resultCastleBuilt": "You built your castle!",
+    "resultCastleDestroyed": "You destroyed the enemy castle!",
+    "resultHpWins": "Tallest castle after 99 rounds!",
+    "resultHpLose": "Opponent had a taller castle.",
+    "resultBothDead": "Both castles destroyed.",
+    "resultPlayAgain": "Play again",
+    "resultBackToMenu": "Back to menu",
+
+    "deckBuilder": "DECK BUILDER",
+    "deckSave": "Save",
+    "deckReset": "Reset",
+    "deckClear": "Clear",
+    "deckCardCount": "%d / %d cards",
+
+    "arenaDraft": "ARENA DRAFT",
+    "arenaPickCard": "Pick a card",
+    "arenaWins": "%d wins",
+
+    "mulliganTitle": "MULLIGAN",
+    "mulliganSubtitle": "Select cards to replace",
+    "mulliganConfirm": "Confirm",
+
+    "profileTitle": "PROFILE",
+    "profileWins": "Wins",
+    "profileLosses": "Losses",
+    "profileGames": "Total games",
+
+    "shopTitle": "SHOP",
+    "shopBuy": "Buy",
+    "shopDust": "Dust",
+
+    "onlineConnecting": "Connecting…",
+    "onlineWaiting": "Waiting for opponent…",
+    "onlineDisconnected": "Disconnected",
+
+    "rarityCommon": "Common",
+    "rarityRare": "Rare",
+    "rarityEpic": "Epic",
+    "rarityLegendary": "Legendary",
+
+    "typeAttack": "Attack",
+    "typeBuild": "Build",
+    "typeMagic": "Magic",
+    "typeChaos": "Chaos",
+    "typeMines": "Mines",
+    "typeDecision": "Decision",
+    "typeDraw": "Draw"
+  }
+}

@@ -195,6 +195,7 @@ fun MulliganOverlay(
     goesFirst: Boolean? = null,
     secondsLeft: Int? = null      // null = bez timeru (offline / WiFi)
 ) {
+    val s = LocalStrings.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -227,7 +228,7 @@ fun MulliganOverlay(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    "MULLIGAN",
+                    s.mulliganTitle,
                     color = Gold, fontSize = 20.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 5.sp
                 )
@@ -452,15 +453,16 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
 // ─── Game Over ────────────────────────────────────────────────────────────────
 @Composable
 fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}, onReplay: () -> Unit = {}) {
+    val s = LocalStrings.current
     val (title, sub) = when (result) {
-        GameResult.PLAYER_CASTLE_DESTROYED -> "Prohrál jsi"  to "Tvůj hrad byl zničen."
-        GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."
-        GameResult.PLAYER_CASTLE_BUILT     -> "Vítězství!"   to "Postavil jsi mocný hrad."
-        GameResult.AI_CASTLE_BUILT         -> "Prohrál jsi"  to "Nepřítel dokončil svůj hrad."
-        GameResult.PLAYER_HP_WINS          -> "Vítězství!"   to "Balíčky došly – tvůj hrad je vyšší."
-        GameResult.AI_HP_WINS              -> "Prohrál jsi"  to "Balíčky došly – nepřítel má vyšší hrad."
-        GameResult.DRAW                    -> "Remíza"       to "Balíčky došly – hrady jsou stejně vysoké."
-        GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
+        GameResult.PLAYER_CASTLE_DESTROYED -> s.resultDefeat  to s.resultCastleBuilt      // opponent built
+        GameResult.AI_CASTLE_DESTROYED     -> s.resultVictory to s.resultCastleDestroyed
+        GameResult.PLAYER_CASTLE_BUILT     -> s.resultVictory to s.resultCastleBuilt
+        GameResult.AI_CASTLE_BUILT         -> s.resultDefeat  to s.resultCastleBuilt
+        GameResult.PLAYER_HP_WINS          -> s.resultVictory to s.resultHpWins
+        GameResult.AI_HP_WINS              -> s.resultDefeat  to s.resultHpLose
+        GameResult.DRAW                    -> s.resultDraw    to s.resultHpWins
+        GameResult.DRAW_BOTH_DEAD          -> s.resultDraw    to s.resultBothDead
     }
     val isWin = result.isPlayerWin()
 
@@ -492,7 +494,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("HRÁT ZNOVU", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Text(s.resultPlayAgain.uppercase(), color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             }
             Spacer(Modifier.height(8.dp))
             Button(
@@ -510,7 +512,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("MENU", color = TextMuted, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Text(s.resultBackToMenu.uppercase(), color = TextMuted, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             }
         }
     }

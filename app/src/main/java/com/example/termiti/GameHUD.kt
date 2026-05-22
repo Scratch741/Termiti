@@ -108,12 +108,13 @@ fun NewTopBar(
     playerPassives: List<PassiveAbility> = emptyList(),
     aiPassives: List<PassiveAbility> = emptyList()
 ) {
+    val s          = LocalStrings.current
     val activeTurn = isPlayerTurn || isComboTurn
     val dotColor = if (activeTurn) TealLight else Crimson
     val turnText = when {
         isComboTurn   -> "⚡ COMBO"
-        isPlayerTurn  -> "TVŮJ TAH"
-        else          -> "$opponentLabel HRAJE"
+        isPlayerTurn  -> s.yourTurn
+        else          -> s.opponentTurn
     }
 
     Row(
@@ -209,7 +210,7 @@ fun NewTopBar(
                     .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(5.dp))
                     .padding(horizontal = 9.dp, vertical = 2.dp)
             ) {
-                Text("Kolo $currentTurn", color = Gold, fontSize = 10.sp, letterSpacing = 1.sp)
+                Text("${s.round} $currentTurn", color = Gold, fontSize = 10.sp, letterSpacing = 1.sp)
             }
 
             if (arenaWins >= 0) {

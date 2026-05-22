@@ -32,6 +32,8 @@ private val StTextMuted   = Color(0xFF7A6E5F)
 fun SettingsScreen(onBack: () -> Unit) {
     var musicVol by remember { mutableFloatStateOf(SoundManager.musicVolume) }
     var sfxVol   by remember { mutableFloatStateOf(SoundManager.sfxVolume) }
+    val s           = LocalStrings.current
+    val currentPack by LanguageManager.currentPackState
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val W = maxWidth
@@ -96,7 +98,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         ) {
             // Nadpis
             Text(
-                "⚙️  NASTAVENÍ",
+                s.settings,
                 color = StGold,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -105,7 +107,7 @@ fun SettingsScreen(onBack: () -> Unit) {
 
             // Hlasitost hudby
             SettingsSlider(
-                label = "🎵  Hudba",
+                label = s.music,
                 value = musicVol,
                 onValueChange = { v ->
                     musicVol = v
@@ -115,12 +117,20 @@ fun SettingsScreen(onBack: () -> Unit) {
 
             // Hlasitost efektů
             SettingsSlider(
-                label = "🔊  Efekty",
+                label = s.soundEffects,
                 value = sfxVol,
                 onValueChange = { v ->
                     sfxVol = v
                     SoundManager.setSfxVolume(v)
                 }
+            )
+
+            // Jazyk
+            LanguageToggle(
+                label       = s.languageLabel,
+                currentPack = currentPack,
+                allPacks    = LanguageManager.availablePacks,
+                onSelect    = { pack -> LanguageManager.setLanguage(pack) }
             )
 
             // Zpět
@@ -135,7 +145,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "←  ZPĚT",
+                    s.back,
                     color = StTextPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -145,6 +155,52 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
     } // konec středového Boxu
 } // konec BoxWithConstraints
+}
+
+@Composable
+private fun LanguageToggle(
+    label:       String,
+    currentPack: LanguagePack?,
+    allPacks:    List<LanguagePack>,
+    onSelect:    (LanguagePack) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(label, color = StTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            allPacks.forEach { pack ->
+                val selected = currentPack?.language?.code == pack.language.code
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(
+                            if (selected) StGold.copy(alpha = 0.18f) else StBgCard
+                        )
+                        .border(
+                            1.dp,
+                            if (selected) StGold else StTextMuted.copy(alpha = 0.4f),
+                            RoundedCornerShape(8.dp)
+                        )
+                        .clickable { SoundManager.playMenuTap(); onSelect(pack) }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "${pack.language.flag}  ${pack.language.name}",
+                        color      = if (selected) StGold else StTextMuted,
+                        fontSize   = 12.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable

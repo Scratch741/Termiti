@@ -1262,6 +1262,7 @@ private fun DeckPanel(
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val s          = LocalStrings.current
     val validColor = when {
         deck.isValid         -> HpGreen
         deck.totalCards > 30 -> AttackRed
@@ -1468,7 +1469,7 @@ private fun DeckPanel(
                             .padding(horizontal = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Vymazat", color = AttackRed.copy(alpha = 0.75f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(s.deckClear, color = AttackRed.copy(alpha = 0.75f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

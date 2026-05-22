@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "code": "cs",
+    "name": "Čeština",
+    "flag": "🇨🇿",
+    "author": "Termiti Team",
+    "version": 1
+  },
+  "strings": {
+    "ok": "OK",
+    "cancel": "Zrušit",
+    "confirm": "Potvrdit",
+    "back": "← ZPĚT",
+
+    "settings": "NASTAVENÍ",
+    "music": "🎵  Hudba",
+    "soundEffects": "🔊  Efekty",
+    "languageLabel": "🌐  Jazyk",
+
+    "play": "HRÁT",
+    "buildDeck": "BALÍČEK",
+    "multiplayer": "MULTIPLAYER",
+    "profile": "PROFIL",
+    "shop": "OBCHOD",
+    "exit": "KONEC",
+
+    "ownDeck": "Vlastní balíček",
+    "superRandom": "Super náhodné",
+    "arena": "Aréna",
+    "campaign": "Kampaň",
+
+    "yourTurn": "VÁŠ TAH",
+    "opponentTurn": "TAH SOUPEŘE",
+    "endTurn": "Ukončit tah",
+    "discard": "Zahodit",
+    "castle": "Hrad",
+    "wall": "Hradby",
+    "round": "Kolo",
+
+    "decisionTitle": "ROZHODNUTÍ",
+    "decisionPreviewGame": "Náhled hry",
+    "decisionBackToDecision": "Zpět na rozhodnutí",
+    "decisionChooseType": "Vyber si kartu typu %s",
+    "decisionBurnOpponent": "Vyber kartu ze soupeřova balíku k zahození",
+    "decisionFromDiscard": "Vyber si kartu z odhazovacího balíčku",
+    "decisionFromDeck": "Vyber si kartu ze svého balíčku",
+    "decisionMine": "Vyber si důl: Magie, Útok, Kámen nebo Chaos",
+
+    "resultVictory": "VÝHRA!",
+    "resultDefeat": "PROHRA",
+    "resultDraw": "REMÍZA",
+    "resultCastleBuilt": "Postavil jsi hrad!",
+    "resultCastleDestroyed": "Zničil jsi soupeřův hrad!",
+    "resultHpWins": "Vyšší hrad po 99 kolech!",
+    "resultHpLose": "Soupeř měl vyšší hrad.",
+    "resultBothDead": "Oba hrady zničeny.",
+    "resultPlayAgain": "Hrát znovu",
+    "resultBackToMenu": "Zpět do menu",
+
+    "deckBuilder": "STAVITEL BALÍČKU",
+    "deckSave": "Uložit",
+    "deckReset": "Resetovat",
+    "deckClear": "Vymazat",
+    "deckCardCount": "%d / %d karet",
+
+    "arenaDraft": "DRAFT ARÉNY",
+    "arenaPickCard": "Vyber kartu",
+    "arenaWins": "%d výher",
+
+    "mulliganTitle": "MULLIGAN",
+    "mulliganSubtitle": "Vyber karty k výměně",
+    "mulliganConfirm": "Potvrdit",
+
+    "profileTitle": "PROFIL",
+    "profileWins": "Výhry",
+    "profileLosses": "Prohry",
+    "profileGames": "Celkem her",
+
+    "shopTitle": "OBCHOD",
+    "shopBuy": "Koupit",
+    "shopDust": "Prach",
+
+    "onlineConnecting": "Připojování…",
+    "onlineWaiting": "Čekám na soupeře…",
+    "onlineDisconnected": "Odpojeno",
+
+    "rarityCommon": "Běžná",
+    "rarityRare": "Vzácná",
+    "rarityEpic": "Epická",
+    "rarityLegendary": "Legendární",
+
+    "typeAttack": "Útok",
+    "typeBuild": "Stavba",
+    "typeMagic": "Magie",
+    "typeChaos": "Chaos",
+    "typeMines": "Doly",
+    "typeDecision": "Rozhodnutí",
+    "typeDraw": "Líznutí"
+  }
+}

@@ -204,8 +204,11 @@ fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
     if (validPool.isEmpty()) return
     for (i in hand.indices) {
         if (hand[i].isShapeShifterInstance()) {
+            val prev = hand[i]
             val tmpl = validPool.random()
-            hand[i] = tmpl.copy(id = hand[i].id)  // id stále začíná "C34_" → příští kolo se znovu transformuje
+            // id stále začíná "C34_" → příští kolo se znovu transformuje
+            // costModifier se zachová — sleva od Chaotického mudrce (DecisionChooseType) platí i po transformaci
+            hand[i] = tmpl.copy(id = prev.id, costModifier = prev.costModifier)
         }
     }
 }
