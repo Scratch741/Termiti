@@ -49,6 +49,8 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.StealCard         -> "🃏"
     is CardEffect.BurnCard          -> "🔥"
     is CardEffect.AddCardsToDeck    -> "📦"
+    is CardEffect.AddToOpponentDeck -> "💣"
+    is CardEffect.TrapOnDraw        -> "💥"
     is CardEffect.DrawCard          -> "🎴"
     is CardEffect.StealCastle        -> "🧛"
     is CardEffect.AddResourceDelayed  -> "⏳"
