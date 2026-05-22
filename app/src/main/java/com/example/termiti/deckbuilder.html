@@ -834,6 +834,11 @@ function convertJsonEffect(fx) {
     case 'XScaledBuildCastle':  return { t:'XBC',    div:fx.divisor };
     case 'XScaledDualResource': return { t:'XDR',    rA:fx.typeA, rB:fx.typeB, div:fx.divisor };
     case 'ConditionalEffect':   return { t:'CE',     c:convertJsonCondition(fx.condition), e:convertJsonEffect(fx.effect) };
+    case 'SwapHands':           return { t:'SW' };
+    case 'ShapeShift':          return { t:'SS' };
+    case 'ConvertMine':         return { t:'CM',     from:fx.from, to:fx.to };
+    case 'DrawBoth':            return { t:'DB',     a:fx.count };
+    case 'DecisionMine':        return { t:'DMINE' };
     default: return { t:'?', raw: fx.type };
   }
 }
@@ -1356,6 +1361,9 @@ let CARD_EFFECTS_DB = {
   "C30":{ct:"MAGIC", fx:[{t:"AM",r:"CHAOS",a:2}]},
   "C31":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4},{t:"DR",r:"MAGIC",a:2},{t:"DR",r:"ATTACK",a:2},{t:"DR",r:"STONES",a:2}]},
   "C32":{ct:"CHAOS", fx:[{t:"AC",a:10},{t:"BC",a:-10}]},
+  "C33":{ct:"CHAOS", fx:[{t:"SW"}]},
+  "C34":{ct:"CHAOS", fx:[{t:"SS"}]},
+  "C35":{ct:"CHAOS", fx:[{t:"CM",from:"MAGIC",to:"CHAOS"}]},
   "D01":{ct:"MAGIC", fx:[{t:"DC",a:1}],combo:true},
   "D02":{ct:"MAGIC", fx:[{t:"DC",a:2}]},
   "D03":{ct:"MAGIC", fx:[{t:"DC",a:3}]},
@@ -1374,8 +1382,9 @@ let CARD_EFFECTS_DB = {
   "112":{ct:"STONES",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
   "113":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
   "114":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "115":{ct:"MAGIC", fx:[{t:"?",raw:"DrawBoth"}],combo:true},
+  "115":{ct:"MAGIC", fx:[{t:"DB",a:2}],combo:true},
   "116":{ct:"CHAOS", fx:[{t:"?",raw:"CloneNextPlayed"}],combo:true},
+  "117":{ct:"MAGIC", fx:[{t:"DMINE"}],combo:true},
 };
 
 // Předpřipravené balíčky (shodné s Kotlin presetTemplates)
@@ -1807,6 +1816,11 @@ function simFx(fx, me, opp, xv) {
     case 'XAC': opp.castleHP -= Math.floor(xv/fx.div); break;
     case 'XBC': me.castleHP = Math.min(100, me.castleHP + Math.floor(xv/fx.div)); break;
     case 'XDR': { const a=Math.floor(xv/fx.div); me.res[fx.rA]=(me.res[fx.rA]||0)+a; me.res[fx.rB]=(me.res[fx.rB]||0)+a; break; }
+    case 'SW': { const tmp=[...me.hand]; me.hand.splice(0,me.hand.length,...opp.hand.map(c=>({...c}))); opp.hand.splice(0,opp.hand.length,...tmp.map(c=>({...c}))); break; }
+    case 'CM': { const flr=fx.from==='CHAOS'?0:1; const cur=me.mines[fx.from]||0; me.mines[fx.to]=Math.min(10,(me.mines[fx.to]||0)+1); if(cur>flr)me.mines[fx.from]=cur-1; break; }
+    case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
+    case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
+    case 'DMINE': { const types=['MAGIC','ATTACK','STONES','CHAOS']; const best=types.reduce((b,r)=>(me.mines[r]||0)<(me.mines[b]||0)?r:b,types[0]); me.mines[best]=(me.mines[best]||0)+1; break; }
   }
 }
 
@@ -1856,6 +1870,11 @@ function simAI(ai, opp) {
       case 'XAC': {const a=Math.floor(xv/(fx.div||1));return(oLH?22:oCW?8:7)+Math.floor(a/4);}
       case 'XBC': {const a=Math.floor(xv/(fx.div||1));return(aLH?12:aCW?6:4)+Math.floor(a/4);}
       case 'XDR': {const a=Math.floor(xv/(fx.div||1));return 4+Math.floor(a/3);}
+      case 'SW': return ai.hand.length<opp.hand.length?15:opp.hand.length<ai.hand.length?-5:3;
+      case 'CM': return 8;
+      case 'SS': return 5;
+      case 'DB': return (fx.a||0)*3;
+      case 'DMINE': return 10;
       default: return 0;
     }
   }
@@ -1904,12 +1923,30 @@ function simAI(ai, opp) {
   return{type:'play',card:best.c};
 }
 
+// ── ShapeShifter transform (mirroring Kotlin transformShapeShifters) ─────────
+function simTransformShapeShifters(hand, pool) {
+  const validPool = pool.filter(c => !c.effects.some(fx => fx.t === 'SS'));
+  if (!validPool.length) return;
+  for (let i = 0; i < hand.length; i++) {
+    if (hand[i].effects.some(fx => fx.t === 'SS') || hand[i].id.startsWith('C34')) {
+      const prev = hand[i];
+      const tmpl = validPool[Math.floor(Math.random() * validPool.length)];
+      hand[i] = { ...tmpl, id: prev.id, costModifier: prev.costModifier || 0 };
+    }
+  }
+}
+
 // ── Jedna simulovaná hra ─────────────────────────────────────
 function simOneGame(deckA, deckB, trackCards) {
   const pA=createSimState(), pB=createSimState();
   const dA=[...deckA]; simShuffle(dA); pA.deck=dA;
   const dB=[...deckB]; simShuffle(dB); pB.deck=dB;
   simDraw(pA,5); simDraw(pB,5);
+
+  // Pool for ShapeShifter transforms (all unique cards from both decks, excluding SS itself)
+  const ssPoolMap={};
+  for(const c of [...deckA,...deckB]) ssPoolMap[c.id]=c;
+  const ssPool=Object.values(ssPoolMap).filter(c=>!c.effects.some(fx=>fx.t==='SS'));
 
   // Sledování zahraných karet (jen pokud trackCards=true – kvůli výkonu)
   const playedA={}, playedB={};
@@ -1926,6 +1963,7 @@ function simOneGame(deckA, deckB, trackCards) {
 
     simGenRes(me);
     if(!first) simDraw(me,1);
+    if(ssPool.length) simTransformShapeShifters(me.hand, ssPool);
 
     let waited=false, go=true;
     while(go){
