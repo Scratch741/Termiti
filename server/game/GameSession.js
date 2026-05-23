@@ -85,10 +85,11 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         score += 2;
     }
   }
-  // Bonus pokud si kartu právě můžeme dovolit
+  // Ve fallback (žádná dostupná karta): preferuj tu nejblíže k dostupnosti
   const res = resources[card.costType] || 0;
   const effectiveCost = Math.max(0, (card.cost || 0) + (card.costModifier || 0));
-  if (res >= effectiveCost) score += 15;
+  const deficit = Math.max(0, effectiveCost - res);
+  if (deficit > 0) score -= deficit * 5;  // penalizace za každý chybějící zdroj
   return score;
 }
 
@@ -778,16 +779,24 @@ class GameSession {
           .filter(Boolean);
       }
       case 'SmartJoker': {
-        // Z každého typu (Magie, Útok, Stavba, Chaos) vybere nejlepší kartu pro situaci
+        // Z každého typu (Magie, Útok, Stavba, Chaos) nejdřív filtr na dostupné karty,
+        // teprve z nich vybere situačně nejlepší. Fallback = celý pool, pokud nic nedostupného.
         const cardTypes = ['Magie', 'Útok', 'Stavba', 'Chaos'];
         const winTarget = this.winTarget[side] || 70;
+        const selfRes   = self.resources || {};
         return cardTypes
           .map(typeName => {
             const pool = ALL_CARDS.filter(c =>
               deriveCardType(c) === typeName && !c.isPlaceholder
             );
             if (pool.length === 0) return null;
-            const best = pool.reduce((a, b) =>
+            const affordable = pool.filter(c => {
+              const res  = selfRes[c.costType] || 0;
+              const cost = Math.max(0, (c.cost || 0) + (c.costModifier || 0));
+              return res >= cost;
+            });
+            const candidates = affordable.length > 0 ? affordable : pool;
+            const best = candidates.reduce((a, b) =>
               _scoreCardForSituation(b, self, opp, winTarget) >
               _scoreCardForSituation(a, self, opp, winTarget) ? b : a
             );

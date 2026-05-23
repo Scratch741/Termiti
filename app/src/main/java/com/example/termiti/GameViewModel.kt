@@ -496,10 +496,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 else                        -> 2.0
             }
         }
-        // Bonus pokud si kartu právě můžeme dovolit
-        val res          = self.resources[card.costType] ?: 0
+        // Ve fallback (žádná dostupná karta): preferuj tu nejblíže k dostupnosti
+        val res           = self.resources[card.costType] ?: 0
         val effectiveCost = (card.cost + card.costModifier).coerceAtLeast(0)
-        if (res >= effectiveCost) score += 15.0
+        val deficit       = (effectiveCost - res).coerceAtLeast(0)
+        if (deficit > 0) score -= deficit * 5.0   // penalizace za každý chybějící zdroj
         return score
     }
 
@@ -522,10 +523,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }.shuffled().firstOrNull()
         }
         is CardEffect.SmartJoker           -> listOf("Magie", "Útok", "Stavba", "Chaos").mapNotNull { typeName ->
-            // Z každého typu vezme kartu s nejvyšším skóre pro aktuální situaci
-            allCards
-                .filter { it.type == typeName && !it.isPlaceholder }
-                .maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
+            // Z každého typu nejdřív filtr na karty, které si hráč může PRÁVĚ dovolit;
+            // teprve z nich vybere situačně nejlepší. Jen pokud žádná dostupná není,
+            // sáhne na nejdostupnější nedostupnou (jako výhledová volba).
+            val pool = allCards.filter { it.type == typeName && !it.isPlaceholder }
+            val affordable = pool.filter { card ->
+                val res  = self.resources[card.costType] ?: 0
+                val cost = (card.cost + card.costModifier).coerceAtLeast(0)
+                res >= cost
+            }
+            val candidates = affordable.ifEmpty { pool }
+            candidates.maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
         }
         else -> emptyList()
     }
