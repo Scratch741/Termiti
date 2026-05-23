@@ -455,10 +455,10 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
 fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}, onReplay: () -> Unit = {}) {
     val s = LocalStrings.current
     val (title, sub) = when (result) {
-        GameResult.PLAYER_CASTLE_DESTROYED -> s.resultDefeat  to s.resultCastleBuilt      // opponent built
+        GameResult.PLAYER_CASTLE_DESTROYED -> s.resultDefeat  to s.resultCastleDestroyedSelf
         GameResult.AI_CASTLE_DESTROYED     -> s.resultVictory to s.resultCastleDestroyed
         GameResult.PLAYER_CASTLE_BUILT     -> s.resultVictory to s.resultCastleBuilt
-        GameResult.AI_CASTLE_BUILT         -> s.resultDefeat  to s.resultCastleBuilt
+        GameResult.AI_CASTLE_BUILT         -> s.resultDefeat  to s.resultCastleBuiltOpponent
         GameResult.PLAYER_HP_WINS          -> s.resultVictory to s.resultHpWins
         GameResult.AI_HP_WINS              -> s.resultDefeat  to s.resultHpLose
         GameResult.PLAYER_HP_WINS_TURN_LIMIT -> s.resultVictory to s.resultHpWinsTurnLimit

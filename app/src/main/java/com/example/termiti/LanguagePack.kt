@@ -95,8 +95,10 @@ data class LanguagePack(
                 resultVictory         = str("resultVictory",         "VÝHRA!"),
                 resultDefeat          = str("resultDefeat",          "PROHRA"),
                 resultDraw            = str("resultDraw",            "REMÍZA"),
-                resultCastleBuilt     = str("resultCastleBuilt",     "Postavil jsi hrad!"),
-                resultCastleDestroyed = str("resultCastleDestroyed", "Zničil jsi soupeřův hrad!"),
+                resultCastleBuilt         = str("resultCastleBuilt",         "Postavil jsi hrad!"),
+                resultCastleBuiltOpponent = str("resultCastleBuiltOpponent", "Soupeř postavil mocný hrad."),
+                resultCastleDestroyed     = str("resultCastleDestroyed",     "Zničil jsi soupeřův hrad!"),
+                resultCastleDestroyedSelf = str("resultCastleDestroyedSelf", "Tvůj hrad byl zničen."),
                 resultHpWins          = str("resultHpWins",          "Balíčky došly – tvůj hrad je vyšší!"),
                 resultHpLose          = str("resultHpLose",          "Balíčky došly – soupeř měl vyšší hrad."),
                 resultHpWinsTurnLimit = str("resultHpWinsTurnLimit", "Limit 99 kol – tvůj hrad je vyšší!"),
@@ -171,7 +173,9 @@ data class LanguagePack(
             "decisionMine" -> fb.decisionMine
             "resultVictory" -> fb.resultVictory; "resultDefeat" -> fb.resultDefeat
             "resultDraw" -> fb.resultDraw; "resultCastleBuilt" -> fb.resultCastleBuilt
+            "resultCastleBuiltOpponent" -> fb.resultCastleBuiltOpponent
             "resultCastleDestroyed" -> fb.resultCastleDestroyed
+            "resultCastleDestroyedSelf" -> fb.resultCastleDestroyedSelf
             "resultHpWins" -> fb.resultHpWins; "resultHpLose" -> fb.resultHpLose
             "resultHpWinsTurnLimit" -> fb.resultHpWinsTurnLimit
             "resultHpLoseTurnLimit" -> fb.resultHpLoseTurnLimit
