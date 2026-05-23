@@ -113,7 +113,7 @@ object CardPresentation {
         "023" to CardPres("Zaútočí na hrad za 7 a na soupeře za 7.",
             R.drawable.art_dvojity_utok, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
-        "024" to CardPres("Pokud máš <5 hradeb, udeř hrad za 13.",
+        "024" to CardPres("Pokud máš <5 hradeb, udeř hrad za 12.",
             R.drawable.art_berserk, "Útok",
             artScale = 0.75f, artBiasY = -0.50f),
         "025" to CardPres("Pokud máš <10 hradeb, udeř hrad za 10.",
@@ -566,9 +566,9 @@ object CardPresentation {
             R.drawable.art_pruzkum_dolu, "Magie",
             artScale = 0.85f, artBiasY = 0.25f),
         "118" to CardPres(
-            "**Rozhodnutí:** vyber si kartu, která se hodí do situace — 1 nejlepší z každého typu (Magie, Útok, Stavba, Chaos). [Combo]",
+            "**Rozhodnutí:** vyber si kartu, která se hodí do situace. [Combo]",
             R.drawable.art_magicky_zolik, "Magie",
-            artScale = 1.0f, artBiasX = 0.0f, artBiasY = 0.20f,
+            artScale = 0.8f, artBiasY = -1.00f,
             descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
             nameAccusative = "Magického žolíka"
         ),
