@@ -75,7 +75,7 @@ enum class PassiveAbility(
     IRON_BASTION(
         id          = "iron_bastion",
         title       = "Nedobytná pevnost",
-        description = "Soupeř potřebuje dosáhnout 65 bodů hradu k výhře výstavbou (místo 60).",
+        description = "Soupeř potřebuje dosáhnout 75 bodů hradu k výhře výstavbou (místo 70).",
         icon        = "🛡️",
         unlockLevel = 7,
         goldCost    = 160
