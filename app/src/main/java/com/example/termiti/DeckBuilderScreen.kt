@@ -157,6 +157,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
         viewModel.allCards
             .filter { card ->
                 card.effects.none { it is CardEffect.TrapOnDraw } &&
+                !card.isPlaceholder &&
                 (filterRes == null || card.costType == filterRes) &&
                 (filterCat == null ||
                     (filterCat == "Kombo" && card.isCombo) ||

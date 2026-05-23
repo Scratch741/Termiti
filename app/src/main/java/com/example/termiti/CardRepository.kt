@@ -67,9 +67,10 @@ object CardRepository {
             artBiasX    = pres.artBiasX,
             artBiasY    = pres.artBiasY,
             artScale    = pres.artScale,
-            isBasic     = pres.isBasic,
-            sound       = pres.sound,
-            soundResId  = pres.soundResId
+            isBasic         = pres.isBasic,
+            sound           = pres.sound,
+            soundResId      = pres.soundResId,
+            isPlaceholder   = obj.optBoolean("isPlaceholder", false)
         )
     }
 

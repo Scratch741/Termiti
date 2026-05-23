@@ -76,7 +76,13 @@ data class Card(
      * Výsledná cena [effectiveCost] je vždy v rozsahu 0–99.
      * Neaplikuje se na X-kost karty (ty spotřebují všechny zásoby bez ohledu).
      */
-    val costModifier: Int = 0
+    val costModifier: Int = 0,
+    /**
+     * True = karta je pouze gameplay-placeholder (např. "Explodovaná bomba").
+     * Nesmí se zobrazovat v katalogu karet, ani být targetem Decision efektů
+     * (DecisionBurnOpponent, DecisionFromDeck, DecisionFromDiscard).
+     */
+    val isPlaceholder: Boolean = false
 ) {
     /**
      * Skutečná cena, která se platí a zobrazuje.

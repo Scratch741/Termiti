@@ -510,6 +510,10 @@ object CardPresentation {
             null, "Chaos",
             artScale = 0.85f, artBiasY = -0.5f,
             descriptionEn = "💥 **EXPLOSION!** Castle **-5**. *(trap — triggers on draw)*"),
+        "C38" to CardPres("💨 Prázdná schránka po výbuchu. *(bezcenná karta)*",
+            R.drawable.art_explodovana_bomba, "Chaos",
+            artScale = 0.80f, artBiasY = -0.6f,
+            descriptionEn = "💨 Empty shell after the explosion. *(worthless card)*"),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",

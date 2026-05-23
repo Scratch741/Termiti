@@ -210,7 +210,8 @@ const RAW = [
   ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
   ['C35','Chaotická přeměna',4,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
   ['C36','Skrytá bomba',    4,'CHAOS',0,[aod('C37',3)],          'RARE'],
-  ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0],  // maxCopies:0 = nelze přidat do balíčku
+  ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0],       // maxCopies:0 = nelze přidat do balíčku
+  ['C38','Explodovaná bomba',0,'CHAOS',0,[],                      'COMMON', false, 0, true], // placeholder po výbuchu, isPlaceholder:true
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────
   ['C19','Spálená knihovna',4,'CHAOS',0,[bn(2)],               'EPIC'],
@@ -268,11 +269,12 @@ const RAW = [
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────
-const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost, maxCopiesOverride]) => ({
+const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost, maxCopiesOverride, isPlaceholder]) => ({
   id, name, cost, costType, isCombo: !!isCombo, effects,
   rarity: rarity || 'COMMON',
   maxCopies: maxCopiesOverride !== undefined ? maxCopiesOverride : (MAX_COPIES[rarity || 'COMMON'] || 4),
   isXCost: !!isXCost,
+  isPlaceholder: !!isPlaceholder,
   baseId: id    // pro instance je baseId = id šablony
 }));
 

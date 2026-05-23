@@ -454,10 +454,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         opponent: PlayerState,
         excludeId: String? = null   // vyloučí právě zahranou kartu z nabídky (Vzpomínka)
     ): List<Card> = when (fx) {
-        is CardEffect.DecisionBurnOpponent -> opponent.deck.shuffled().take(fx.picks)
-        is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType }.shuffled().take(fx.picks)
-        is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId }.shuffled().take(fx.picks)
-        is CardEffect.DecisionFromDeck     -> self.deck.shuffled().take(fx.picks)
+        is CardEffect.DecisionBurnOpponent -> opponent.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
+        is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType && !it.isPlaceholder }.shuffled().take(fx.picks)
+        is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPlaceholder }.shuffled().take(fx.picks)
+        is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionMine         -> listOf(
             ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
         ).mapNotNull { resType ->
@@ -576,7 +576,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
+                        injectExplosionPlaceholder(player)
                         log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
                     }
                 }
@@ -914,7 +916,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
+                        injectExplosionPlaceholder(player)
                         log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
                     }
                 }
@@ -1012,6 +1016,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 SoundManager.playCardDraw()
                 val drawResult = ai.drawCards(1, old.aiMaxHand)
                 for (trap in drawResult.traps) {
+                    injectExplosionPlaceholder(ai)
                     log.appendLog(trapLogMsg(trap, isPlayer = false))
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
@@ -1073,7 +1078,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 repeat(count) {
                                     val r = state.drawCards(1, old.aiMaxHand)
                                     SoundManager.playCardDraw()
-                                    r.traps.forEach { trap -> log.appendLog(trapLogMsg(trap, isPlayer = false)) }
+                                    r.traps.forEach { trap ->
+                                        injectExplosionPlaceholder(state)
+                                        log.appendLog(trapLogMsg(trap, isPlayer = false))
+                                    }
                                 }
                             }
                         )
@@ -1207,6 +1215,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
                 }
                 for (trap in drawResult.traps) {
+                    injectExplosionPlaceholder(player)
                     log.appendLog(trapLogMsg(trap, isPlayer = true))
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
@@ -1304,6 +1313,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     // addLog → log.appendLog() z GameLogManager.kt
     // addToHistory → cardHistory.appendHistory() z GameLogManager.kt
+
+    /**
+     * Po explozi pasti zamíchá do balíčku [state] jednu kopii "Explodovaná bomba" (C38) —
+     * placeholder karta, která připomíná výbuch a zacpává balíček.
+     */
+    private fun injectExplosionPlaceholder(state: PlayerState) {
+        val template = allCards.find { it.id == "C38" } ?: return
+        state.deck.add(template.copy(id = "C38_${java.util.UUID.randomUUID()}", isGenerated = true))
+        state.deck.shuffle()
+    }
 
     /** Sestaví log zprávu pro explozi pasti (TrapOnDraw). */
     private fun trapLogMsg(card: Card, isPlayer: Boolean): String {
