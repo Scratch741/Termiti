@@ -755,26 +755,35 @@ class OnlineLobbyViewModel(
                     val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
 
                     val applyCardLost: suspend () -> Unit = {
+                        // C37 (Bomba): jen log, NE centrum odhazovacího slotu
+                        // C38 (Explodovaná bomba): aktualizuj centrum + log
+                        val updateCenter = baseId != "C37"
                         when {
                             ownCard -> {
-                                // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed
-                                lastPlayedCard.value   = card
-                                lastPlayedAction.value = action
-                                lastPlayedByMe.value   = true
+                                // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed / past
+                                if (updateCenter) {
+                                    lastPlayedCard.value   = card
+                                    lastPlayedAction.value = action
+                                    lastPlayedByMe.value   = true
+                                }
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
                             }
                             causedByMe -> {
                                 // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
-                                lastPlayedCard.value   = card
-                                lastPlayedAction.value = action
-                                lastPlayedByMe.value   = false  // soupeřova karta
+                                if (updateCenter) {
+                                    lastPlayedCard.value   = card
+                                    lastPlayedAction.value = action
+                                    lastPlayedByMe.value   = false  // soupeřova karta
+                                }
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
                             }
                             else -> {
                                 // Soupeř způsobil ztrátu mé karty
-                                lastPlayedCard.value   = card
-                                lastPlayedAction.value = action
-                                lastPlayedByMe.value   = true
+                                if (updateCenter) {
+                                    lastPlayedCard.value   = card
+                                    lastPlayedAction.value = action
+                                    lastPlayedByMe.value   = true
+                                }
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
                             }
                         }
