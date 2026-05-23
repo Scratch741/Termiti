@@ -567,7 +567,8 @@ object CardPresentation {
             artScale = 0.85f, artBiasY = 0.25f),
         "118" to CardPres(
             "**Rozhodnutí:** vyber si kartu, která se hodí do situace — 1 nejlepší z každého typu (Magie, Útok, Stavba, Chaos). [Combo]",
-            null, "Magie",
+            R.drawable.art_magicky_zolik, "Magie",
+            artScale = 1.0f, artBiasX = 0.0f, artBiasY = 0.20f,
             descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
             nameAccusative = "Magického žolíka"
         ),
