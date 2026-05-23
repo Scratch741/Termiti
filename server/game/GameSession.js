@@ -487,10 +487,16 @@ class GameSession {
     // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
-      const drawBurned = drawCards(self, 1, self.maxHandSize || 7);
+      const { burned: drawBurned, traps: drawTraps } = drawCards(self, 1, self.maxHandSize || 7);
       for (const bc of drawBurned) {
         this._send(side, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
           action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+      }
+      for (const trap of drawTraps) {
+        this._send(side, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
+          action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
+        const c38 = CARD_MAP.get('C38');
+        if (c38) self.discardPile.push({ ...makeInstance(c38), isGenerated: true });
       }
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
@@ -905,12 +911,23 @@ class GameSession {
       this.quickDrawApplied[this.activeSide] = true;
       extraDraw = 1;
     }
-    const burned = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
+    const { burned, traps } = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
     transformShapeShifters(next.hand, ALL_CARDS);
 
     for (const bc of burned) {
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
         action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+    }
+    // Pasty: injektuj placeholder C38, reportuj klientovi, zkontroluj výhru
+    for (const trap of traps) {
+      this._send(this.activeSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
+        action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
+      const c38 = CARD_MAP.get('C38');
+      if (c38) next.discardPile.push({ ...makeInstance(c38), isGenerated: true });
+    }
+    if (traps.length > 0) {
+      const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
+      if (winner !== null) { this._endGame(winner); return; }
     }
 
     this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);

@@ -79,14 +79,38 @@ function generateResources(state) {
 }
 
 /**
- * Lízne count karet.
- * @returns {Array} Burned cards (ruka full → shoří)
+ * Lízne count karet. Pokud narazí na pascu (TrapOnDraw), spustí efekt okamžitě
+ * na hráče, který lízl, karta jde do odkladiště a hráč lízne náhradní kartu.
+ * @returns {{ burned: Card[], traps: Card[] }}
+ *   burned – karty zahozené kvůli plné ruce
+ *   traps  – karty, které explodovaly jako pasti
  */
 function drawCards(state, count, maxHand = 7) {
   const burned = [];
-  for (let i = 0; i < count; i++) {
-    if (state.deck.length > 0) {
-      const card = state.deck.shift();
+  const traps  = [];
+  let remaining = count;
+  while (remaining > 0 && state.deck.length > 0) {
+    const card = state.deck.shift();
+    const trap = card.effects && card.effects.find(fx => fx.type === 'TrapOnDraw');
+    if (trap) {
+      // Pasca: spustí efekt ihned, karta jde do odkladiště.
+      // remaining se NEsnižuje → hráč lízne náhradní kartu.
+      const e = trap.effect;
+      switch (e && e.type) {
+        case 'AttackCastle': state.castleHP -= e.amount; break;
+        case 'AttackWall':   state.wallHP = Math.max(0, state.wallHP - e.amount); break;
+        case 'AttackPlayer': {
+          const dmg = Math.min(e.amount, state.wallHP);
+          state.wallHP  -= dmg;
+          state.castleHP -= (e.amount - dmg);
+          break;
+        }
+        case 'BuildCastle': state.castleHP = Math.min(100, state.castleHP + e.amount); break;
+      }
+      state.discardPile.push(card);
+      traps.push(card);
+    } else {
+      remaining--;
       if (state.hand.length < maxHand) {
         state.hand.push(card);
       } else {
@@ -95,7 +119,7 @@ function drawCards(state, count, maxHand = 7) {
       }
     }
   }
-  return burned;
+  return { burned, traps };
 }
 
 // ── checkCondition ────────────────────────────────────────────────────────────
@@ -256,6 +280,20 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         }
         break;
       }
+
+      case 'AddToOpponentDeck': {
+        const tmpl = cardMap && cardMap.get(fx.cardId);
+        if (tmpl) {
+          for (let i = 0; i < fx.count; i++) {
+            opponent.deck.push({ ...makeInstance(tmpl), isGenerated: true });
+          }
+          shuffle(opponent.deck);
+        }
+        break;
+      }
+
+      case 'TrapOnDraw':
+        break; // no-op při zahraní – efekt se spustí až při líznutí v drawCards()
 
       case 'DrawCard':
         drawCards(self, fx.count, self.maxHandSize || 7);
