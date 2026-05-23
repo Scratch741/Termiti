@@ -492,11 +492,21 @@ class GameSession {
         this._send(side, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
           action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
       }
+      const _drawTrapOppSide = side === 'A' ? 'B' : 'A';
       for (const trap of drawTraps) {
-        this._send(side, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
+        this._send(side,           { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
           action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
-        const c38 = CARD_MAP.get('C38');
-        if (c38) self.discardPile.push({ ...makeInstance(c38), isGenerated: true });
+        this._send(_drawTrapOppSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
+          action: 'BURNED', isGenerated: trap.isGenerated || false });
+        const c38Tmpl2 = CARD_MAP.get('C38');
+        if (c38Tmpl2) {
+          const c38Inst2 = { ...makeInstance(c38Tmpl2), isGenerated: true };
+          self.discardPile.push(c38Inst2);
+          this._send(side,             { type: 'CARD_LOST', cardId: c38Inst2.id, baseId: c38Inst2.baseId || c38Inst2.id,
+            action: 'BURNED', isGenerated: true, ownCard: true });
+          this._send(_drawTrapOppSide, { type: 'CARD_LOST', cardId: c38Inst2.id, baseId: c38Inst2.baseId || c38Inst2.id,
+            action: 'BURNED', isGenerated: true });
+        }
       }
     }
     // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
@@ -918,12 +928,30 @@ class GameSession {
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
         action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
     }
-    // Pasty: injektuj placeholder C38, reportuj klientovi, zkontroluj výhru
+    // Pasty: injektuj placeholder C38, reportuj klientovi (oběma stranám), zkontroluj výhru
+    const oppSideForTrap = this.activeSide === 'A' ? 'B' : 'A';
     for (const trap of traps) {
+      // Pošli CARD_LOST pro past (C37) aktivnímu hráči (ownCard: true) A soupeři
+      // → oba hráči uvidí kartu v prostředním odhazovacím slotu
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
         action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
-      const c38 = CARD_MAP.get('C38');
-      if (c38) next.discardPile.push({ ...makeInstance(c38), isGenerated: true });
+      this._send(oppSideForTrap, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
+        action: 'BURNED', isGenerated: trap.isGenerated || false });
+      // Injektuj C38 placeholder do discardu
+      const c38Tmpl = CARD_MAP.get('C38');
+      if (c38Tmpl) {
+        const c38Inst = { ...makeInstance(c38Tmpl), isGenerated: true };
+        next.discardPile.push(c38Inst);
+        // Nastav lastPlayedCard = C38 → _sendStateBoth() ho pošle oběma hráčům v GAME_STATE,
+        // takže oba uvidí C38 v prostředním slotu a dostanou log záznam
+        this.lastPlayedCard    = { id: c38Inst.id, baseId: c38Inst.baseId || c38Inst.id,
+                                   name: c38Inst.name, cost: c38Inst.cost || 0,
+                                   costType: c38Inst.costType || 'CHAOS', rarity: c38Inst.rarity || 'COMMON',
+                                   isGenerated: true, costModifier: 0 };
+        this.lastPlayedAction  = 'BURNED';
+        this.lastPlayedBySide  = this.activeSide;
+        this.lastPlayedCardIdx = null;
+      }
     }
     if (traps.length > 0) {
       const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
