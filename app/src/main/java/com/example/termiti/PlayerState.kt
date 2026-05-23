@@ -122,35 +122,42 @@ class PlayerState(
         }
     }
 
-    /** Líže [count] karet; vrátí seznam karet, které byly spáleny (ruka plná) nebo explodovaly (pasca). */
-    fun drawCards(count: Int, maxHandSize: Int = 7): List<Card> {
+    /**
+     * Líže [count] karet. Pokud narazí na pascu (TrapOnDraw), spustí efekt okamžitě,
+     * karta jde do odhodiště a hráč lízne náhradní kartu (nezapočítává se do limitu).
+     *
+     * @return [DrawResult] se seznamem spálených karet (ruka plná) a výbuchů (pasti).
+     */
+    fun drawCards(count: Int, maxHandSize: Int = 7): DrawResult {
         val burned = mutableListOf<Card>()
-        repeat(count) {
-            if (deck.isNotEmpty()) {
-                val card = deck.removeFirst()
-                val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
-                if (trap != null) {
-                    // Pasca: spustí efekt ihned na hráče, který lízl, karta jde do odhodiště
-                    when (val e = trap.effect) {
-                        is CardEffect.AttackCastle -> castleHP -= e.amount
-                        is CardEffect.AttackWall   -> wallHP = (wallHP - e.amount).coerceAtLeast(0)
-                        is CardEffect.AttackPlayer -> {
-                            val dmg = e.amount.coerceAtMost(wallHP)
-                            wallHP -= dmg
-                            castleHP -= (e.amount - dmg)
-                        }
-                        is CardEffect.BuildCastle  -> castleHP = (castleHP + e.amount).coerceAtMost(100)
-                        else -> {}
+        val traps  = mutableListOf<Card>()
+        var remaining = count
+        while (remaining > 0 && deck.isNotEmpty()) {
+            val card = deck.removeFirst()
+            val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
+            if (trap != null) {
+                // Pasca: spustí efekt ihned na hráče, který lízl, karta jde do odhodiště.
+                // remaining se NEsnižuje → hráč lízne náhradní kartu.
+                when (val e = trap.effect) {
+                    is CardEffect.AttackCastle -> castleHP -= e.amount
+                    is CardEffect.AttackWall   -> wallHP = (wallHP - e.amount).coerceAtLeast(0)
+                    is CardEffect.AttackPlayer -> {
+                        val dmg = e.amount.coerceAtMost(wallHP)
+                        wallHP -= dmg
+                        castleHP -= (e.amount - dmg)
                     }
-                    discardPile.add(card)
-                    burned.add(card)
-                } else {
-                    if (hand.size < maxHandSize) hand.add(card)
-                    else { discardPile.add(card); burned.add(card) }
+                    is CardEffect.BuildCastle  -> castleHP = (castleHP + e.amount).coerceAtMost(100)
+                    else -> {}
                 }
+                discardPile.add(card)
+                traps.add(card)
+            } else {
+                remaining--
+                if (hand.size < maxHandSize) hand.add(card)
+                else { discardPile.add(card); burned.add(card) }
             }
         }
-        return burned
+        return DrawResult(burned = burned, traps = traps)
     }
 
     /** Zaplatí správný zdroj podle effectiveCost karty. */
@@ -163,6 +170,12 @@ class PlayerState(
         return true
     }
 }
+
+/** Výsledek lízu karet – obsahuje spálené karty (ruka plná) a explodované pasti. */
+data class DrawResult(
+    val burned: List<Card> = emptyList(),
+    val traps : List<Card> = emptyList()
+)
 
 /** Vrátí balíček s unikátními instanceID, aby LazyRow neměl duplicitní klíče. */
 fun List<Card>.withUniqueIds(): List<Card> =

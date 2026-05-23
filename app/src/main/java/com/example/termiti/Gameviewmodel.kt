@@ -569,12 +569,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 repeat(pendingDrawCount) {
                     delay(210L)
                     SoundManager.playCardDraw()
-                    player.drawCards(1, old.playerMaxHand)
+                    val drawResult = player.drawCards(1, old.playerMaxHand)
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
                         aiState      = ai,
                         activePlayer = ActivePlayer.AI
                     )
+                    for (trap in drawResult.traps) {
+                        log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        delay(1000L)
+                    }
                 }
                 // Pauza: Compose musí stihnout rekomponovat s deepCopy stavem (líznutá karta
                 // je vidět) DŘÍVE, než finishTurn přepíše gameState mutable player referencí.
@@ -903,12 +907,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 repeat(pendingDrawCount) {
                     delay(210L)
                     SoundManager.playCardDraw()
-                    player.drawCards(1, old.playerMaxHand)
+                    val drawResult = player.drawCards(1, old.playerMaxHand)
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
                         aiState      = ai,
                         activePlayer = ActivePlayer.AI
                     )
+                    for (trap in drawResult.traps) {
+                        log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        delay(1000L)
+                    }
                 }
                 // Pauza: Compose musí stihnout rekomponovat s deepCopy stavem (líznutá karta
                 // je vidět) DŘÍVE, než finishTurn přepíše gameState mutable player referencí.
@@ -1001,8 +1009,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // AI dostane zdroje a líže 1 kartu na ZAČÁTKU svého tahu
             ai.generateResources()
             if (aiDrawsAtStart && ai.deck.isNotEmpty()) {
-                ai.drawCards(1, old.aiMaxHand)
                 SoundManager.playCardDraw()
+                val drawResult = ai.drawCards(1, old.aiMaxHand)
+                for (trap in drawResult.traps) {
+                    log.appendLog(trapLogMsg(trap, isPlayer = false))
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    delay(1000L)
+                }
             }
             transformShapeShifters(ai.hand, allCards)
 
@@ -1057,7 +1070,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
                             onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
                             onDrawCard = { state, count ->
-                                repeat(count) { state.drawCards(1, old.aiMaxHand); SoundManager.playCardDraw() }
+                                repeat(count) {
+                                    val r = state.drawCards(1, old.aiMaxHand)
+                                    SoundManager.playCardDraw()
+                                    r.traps.forEach { trap -> log.appendLog(trapLogMsg(trap, isPlayer = false)) }
+                                }
                             }
                         )
                         // AI auto-pick pro Decision efekty
@@ -1183,11 +1200,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Konec kola: příprava hráčova tahu ────────────────────────────
             player.generateResources()
             if (playerDrawsAtEnd && player.deck.isNotEmpty()) {
-                val burned = player.drawCards(1, old.playerMaxHand)
                 SoundManager.playCardDraw()
-                burned.forEach { b ->
+                val drawResult = player.drawCards(1, old.playerMaxHand)
+                drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                }
+                for (trap in drawResult.traps) {
+                    log.appendLog(trapLogMsg(trap, isPlayer = true))
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    delay(1000L)
                 }
             }
             // Quick draw: extra karta na hráčově prvním tahu (pokud AI šla první)
@@ -1282,6 +1304,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     // addLog → log.appendLog() z GameLogManager.kt
     // addToHistory → cardHistory.appendHistory() z GameLogManager.kt
+
+    /** Sestaví log zprávu pro explozi pasti (TrapOnDraw). */
+    private fun trapLogMsg(card: Card, isPlayer: Boolean): String {
+        val who = if (isPlayer) "Ty jsi lízl" else "AI lízla"
+        val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
+        val dmgDesc = when (val e = trap?.effect) {
+            is CardEffect.AttackCastle -> "HRAD −${e.amount}"
+            is CardEffect.AttackWall   -> "ZEĎ −${e.amount}"
+            is CardEffect.AttackPlayer -> "−${e.amount} HP"
+            is CardEffect.BuildCastle  -> "HRAD +${e.amount}"
+            else                       -> "pasca spuštěna"
+        }
+        return "💥 $who ${card.name}! $dmgDesc"
+    }
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
         val turn = gameState.value.currentTurn
