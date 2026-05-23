@@ -798,6 +798,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val aiWinTarget      = (70 + if (PassiveAbility.EXTRA_CASTLE  in aiPassives) 5 else 0) +
                                     (if (PassiveAbility.IRON_BASTION  in actives)    5 else 0)
 
+        // Posila balíčku z hráčových pasivních schopností
+        val playerBoostCards = buildList {
+            fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter(f).shuffled().take(n)
+            if (PassiveAbility.BOOST_ATTACK in actives) addAll(pick({ it.type == "Útok"   }, 2))
+            if (PassiveAbility.BOOST_BUILD  in actives) addAll(pick({ it.type == "Stavba" }, 2))
+            if (PassiveAbility.BOOST_MAGIC  in actives) addAll(pick({ it.type == "Magie"  }, 2))
+            if (PassiveAbility.BOOST_CHAOS  in actives) addAll(pick({ it.type == "Chaos"  }, 2))
+            if (PassiveAbility.BOOST_RANDOM in actives) addAll(pick({ it.type != "Důl"    }, 3))
+        }.withUniqueIds()
+
         val playerState = PlayerState(
             castleHP  = startCastle,
             wallHP    = startWall
@@ -806,7 +816,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (extraAttack > 0) it.resources[ResourceType.ATTACK] = extraAttack
             if (extraStones > 0) it.resources[ResourceType.STONES] = extraStones
             if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
-            it.deck.addAll(playerCards)
+            it.deck.addAll(playerCards + playerBoostCards)
             it.deck.shuffle()   // 1. míchání – provede se na MutableList přímo
             it.drawCards(4)
         }
