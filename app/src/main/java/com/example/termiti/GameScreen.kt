@@ -88,7 +88,7 @@ fun GameScreen(
 
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
-    var showLog          by remember { mutableStateOf(false) }
+    var showSettings     by remember { mutableStateOf(false) }
     var reviewMode       by remember { mutableStateOf(false) }
     var showOppHand      by remember { mutableStateOf(false) }
     var cardPreview      by remember { mutableStateOf<Card?>(null) }
@@ -156,10 +156,10 @@ fun GameScreen(
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "📜 Log",
+                            label   = "⚙️ Hlas",
                             color   = Gold,
                             active  = true,
-                            onClick = { showLog = true }
+                            onClick = { showSettings = true }
                         )
                         if (lostToOpponent.isNotEmpty()) {
                             Spacer(Modifier.height(3.dp))
@@ -324,8 +324,8 @@ fun GameScreen(
             )
         }
 
-        if (showLog) {
-            LogOverlay(log = log, onDismiss = { showLog = false })
+        if (showSettings) {
+            SettingsScreen(onBack = { showSettings = false })
         }
 
         // ── Game-end delay (1s): blokuje veškerý vstup hráče ─────────────────
