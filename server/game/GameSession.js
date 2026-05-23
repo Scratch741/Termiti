@@ -932,28 +932,27 @@ class GameSession {
     const oppSideForTrap = this.activeSide === 'A' ? 'B' : 'A';
     for (const trap of traps) {
       // Pošli CARD_LOST pro past (C37) aktivnímu hráči (ownCard: true) A soupeři
-      // → oba hráči uvidí kartu v prostředním odhazovacím slotu
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
         action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
       this._send(oppSideForTrap, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
         action: 'BURNED', isGenerated: trap.isGenerated || false });
-      // Injektuj C38 placeholder do discardu
+      // Injektuj C38 placeholder a pošli CARD_LOST oběma stranám jako samostatný event
+      // (NEstavíme lastPlayedCard – GAME_STATE musí přijít s null, aby nepřepsal
+      //  sekvenční bomb display zpracovávaný s delay na klientu)
       const c38Tmpl = CARD_MAP.get('C38');
       if (c38Tmpl) {
         const c38Inst = { ...makeInstance(c38Tmpl), isGenerated: true };
         next.discardPile.push(c38Inst);
-        // Nastav lastPlayedCard = C38 → _sendStateBoth() ho pošle oběma hráčům v GAME_STATE,
-        // takže oba uvidí C38 v prostředním slotu a dostanou log záznam
-        this.lastPlayedCard    = { id: c38Inst.id, baseId: c38Inst.baseId || c38Inst.id,
-                                   name: c38Inst.name, cost: c38Inst.cost || 0,
-                                   costType: c38Inst.costType || 'CHAOS', rarity: c38Inst.rarity || 'COMMON',
-                                   isGenerated: true, costModifier: 0 };
-        this.lastPlayedAction  = 'BURNED';
-        this.lastPlayedBySide  = this.activeSide;
-        this.lastPlayedCardIdx = null;
+        this._send(this.activeSide, { type: 'CARD_LOST', cardId: c38Inst.id, baseId: c38Inst.baseId || c38Inst.id,
+          action: 'BURNED', isGenerated: true, ownCard: true });
+        this._send(oppSideForTrap, { type: 'CARD_LOST', cardId: c38Inst.id, baseId: c38Inst.baseId || c38Inst.id,
+          action: 'BURNED', isGenerated: true });
       }
     }
+    // Anuluj lastPlayedCard → GAME_STATE přijde s null → klient nenahradí bomb display
     if (traps.length > 0) {
+      this.lastPlayedCard   = null;
+      this.lastPlayedAction = null;
       const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
       if (winner !== null) { this._endGame(winner); return; }
     }
