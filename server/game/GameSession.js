@@ -184,15 +184,19 @@ class GameSession {
       hand: this._serializeHand(side)
     });
 
+    // Vždy notifikuj druhého hráče o potvrzení
+    const other = side === 'A' ? 'B' : 'A';
+    this._send(other, { type: 'OPPONENT_MULLIGAN_DONE' });
+
     // If both done → start game
     if (this.mulliganDone.A && this.mulliganDone.B) {
+      // Pošli OPPONENT_MULLIGAN_DONE i tomu, kdo právě potvrdil (= druhý potvrzovatel),
+      // aby měl klient spolehlivý signál pro watchdog recovery před příchodem GAME_STATE
+      this._send(side, { type: 'OPPONENT_MULLIGAN_DONE' });
       console.log(`[Mulligan ${this.gameId}] Oba hráči hotovi → startGame`);
       this._startGame();
     } else {
-      // Tell the other side their opponent confirmed
-      const other = side === 'A' ? 'B' : 'A';
       console.log(`[Mulligan ${this.gameId}] Čekám na ${other} → OPPONENT_MULLIGAN_DONE → ${this.name[other]}`);
-      this._send(other, { type: 'OPPONENT_MULLIGAN_DONE' });
     }
   }
 

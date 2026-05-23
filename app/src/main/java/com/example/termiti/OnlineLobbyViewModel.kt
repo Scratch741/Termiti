@@ -185,6 +185,13 @@ class OnlineLobbyViewModel(
     /** Zřetězuje CARD_LOST eventy pro bomby – každý čeká na předchozí + delay */
     private var bombDisplayJob: Job? = null
 
+    // ── Mulligan watchdog ─────────────────────────────────────────────────────
+    /**
+     * Spustí se když oba hráči potvrdili mulligan.
+     * Pokud GAME_STATE nedorazí do 6s (packet loss), force-reconnect.
+     */
+    private var mulliganWatchdogJob: Job? = null
+
     // ── Vlastní auto-reconnect ────────────────────────────────────────────────
     /** True = probíhá pokus o znovupřipojení po výpadku */
     var isReconnecting            = mutableStateOf(false);  private set
@@ -329,6 +336,8 @@ class OnlineLobbyViewModel(
         mulliganSubmitted.value = true
         val returnIds = mulliganSelected.value.toList()
         sendMulliganDone(returnIds)
+        // Pokud soupeř už potvrdil, spusť watchdog – oba potvrdili, čekáme na GAME_STATE
+        if (opponentMulliganDone.value) startMulliganWatchdog()
     }
 
     fun skipMulligan() {
@@ -336,6 +345,7 @@ class OnlineLobbyViewModel(
         cancelMulliganTimer()
         mulliganSubmitted.value = true
         sendMulliganDone(emptyList())
+        if (opponentMulliganDone.value) startMulliganWatchdog()
     }
 
     /** Spustí odpočet [seconds] sekund; po vypršení auto-skip bez výměn. */
@@ -356,6 +366,22 @@ class OnlineLobbyViewModel(
         mulliganTimerJob?.cancel()
         mulliganTimerJob = null
         mulliganSecondsLeft.value = null
+    }
+
+    private fun startMulliganWatchdog() {
+        mulliganWatchdogJob?.cancel()
+        mulliganWatchdogJob = viewModelScope.launch {
+            delay(6_000L)
+            if (phase.value == OnlinePhase.GAME_MULLIGAN && mulliganSubmitted.value) {
+                android.util.Log.w("MULLIGAN", "Watchdog: oba potvrdili ale GAME_STATE nedorazil → force reconnect")
+                ws?.cancel()   // onFailure → scheduleReconnect → server pošle GAME_STATE znovu
+            }
+        }
+    }
+
+    private fun cancelMulliganWatchdog() {
+        mulliganWatchdogJob?.cancel()
+        mulliganWatchdogJob = null
     }
 
     // ── Online Rozhodnutí ─────────────────────────────────────────────────────
@@ -627,6 +653,7 @@ class OnlineLobbyViewModel(
                     opponentMulliganDone.value = false
                     lastPlayedCard.value       = null   // čistý stav pro novou hru
                     lastPlayedByMe.value       = false
+                    cancelMulliganWatchdog()            // reset při reconnectu / novém mulliganu
                     phase.value = OnlinePhase.GAME_MULLIGAN
                     startMulliganTimer((timeoutMs / 1_000).coerceAtLeast(5))
                     android.util.Log.d("MULLIGAN", "GAME_MULLIGAN přijato: hand=${mulliganHand.value.size} karet, timeout=${timeoutMs}ms")
@@ -640,6 +667,8 @@ class OnlineLobbyViewModel(
 
                 "OPPONENT_MULLIGAN_DONE" -> {
                     opponentMulliganDone.value = true
+                    // Pokud jsme také potvrdili, spusť watchdog – oba potvrdili, čekáme na GAME_STATE
+                    if (mulliganSubmitted.value) startMulliganWatchdog()
                 }
 
                 "GAME_STATE" -> {
@@ -647,6 +676,7 @@ class OnlineLobbyViewModel(
                     // Nepřepisuj fázi pokud hra právě končí nebo skončila –
                     // zabrání zaseknutí způsobenému GAME_STATE dorazivším po GAME_OVER
                     if (!gameEndPending.value && gameResult.value == null) {
+                        cancelMulliganWatchdog()   // GAME_STATE dorazil → mulligan recovery není potřeba
                         phase.value = OnlinePhase.GAME_PLAYING
                     }
 
@@ -1004,6 +1034,7 @@ class OnlineLobbyViewModel(
      */
     private fun resetGameState(preserveMatchInfo: Boolean = false) {
         cancelMulliganTimer()
+        cancelMulliganWatchdog()
         cancelOnlineDecisionTimer()
         onlinePendingDecision.value = null
         gameEndPending.value       = false
