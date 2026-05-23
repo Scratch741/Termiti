@@ -19,7 +19,12 @@ data class CardPres(
     val sound:         CardSound? = null,
     val soundResId:    Int?      = null,
     /** English description. Empty string = not yet translated → falls back to [description]. */
-    val descriptionEn: String    = ""
+    val descriptionEn: String    = "",
+    /**
+     * Skloňovaný název karty ve 4. pádu (akuzativ) pro použití v log zprávách,
+     * např. "lízl Bombu". Pokud null, použije se [Card.name] bez skloňování.
+     */
+    val nameAccusative: String?  = null
 ) {
     /**
      * Returns the localized description for the given [languageCode] (e.g. "cs", "en").
@@ -509,7 +514,8 @@ object CardPresentation {
         "C37" to CardPres("💥 **VÝBUCH!** Hrad **-5**. *(pasca – spustí se při líznutí)*",
             null, "Chaos",
             artScale = 0.85f, artBiasY = -0.5f,
-            descriptionEn = "💥 **EXPLOSION!** Castle **-5**. *(trap — triggers on draw)*"),
+            descriptionEn = "💥 **EXPLOSION!** Castle **-5**. *(trap — triggers on draw)*",
+            nameAccusative = "Bombu"),
         "C38" to CardPres("💨 Prázdná schránka po výbuchu. *(bezcenná karta)*",
             R.drawable.art_explodovana_bomba, "Chaos",
             artScale = 0.80f, artBiasY = -0.6f,

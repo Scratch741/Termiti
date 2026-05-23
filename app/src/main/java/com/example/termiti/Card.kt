@@ -82,7 +82,12 @@ data class Card(
      * Nesmí se zobrazovat v katalogu karet, ani být targetem Decision efektů
      * (DecisionBurnOpponent, DecisionFromDeck, DecisionFromDiscard).
      */
-    val isPlaceholder: Boolean = false
+    val isPlaceholder: Boolean = false,
+    /**
+     * Skloňovaný název karty ve 4. pádu (akuzativ) pro log zprávy jako "lízl Bombu".
+     * Pokud null, použije se [name] bez skloňování.
+     */
+    val nameAccusative: String? = null
 ) {
     /**
      * Skutečná cena, která se platí a zobrazuje.

@@ -70,7 +70,8 @@ object CardRepository {
             isBasic         = pres.isBasic,
             sound           = pres.sound,
             soundResId      = pres.soundResId,
-            isPlaceholder   = obj.optBoolean("isPlaceholder", false)
+            isPlaceholder   = obj.optBoolean("isPlaceholder", false),
+            nameAccusative  = pres.nameAccusative
         )
     }
 

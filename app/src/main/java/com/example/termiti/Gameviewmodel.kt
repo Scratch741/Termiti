@@ -1315,18 +1315,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // addToHistory → cardHistory.appendHistory() z GameLogManager.kt
 
     /**
-     * Po explozi pasti zamíchá do balíčku [state] jednu kopii "Explodovaná bomba" (C38) —
-     * placeholder karta, která připomíná výbuch a zacpává balíček.
+     * Po explozi pasti přidá do odkladiště [state] jednu kopii "Explodovaná bomba" (C38) —
+     * placeholder karta viditelná v odhadovacím balíčku jako pozůstatek výbuchu.
      */
     private fun injectExplosionPlaceholder(state: PlayerState) {
         val template = allCards.find { it.id == "C38" } ?: return
-        state.deck.add(template.copy(id = "C38_${java.util.UUID.randomUUID()}", isGenerated = true))
-        state.deck.shuffle()
+        state.discardPile.add(template.copy(id = "C38_${java.util.UUID.randomUUID()}", isGenerated = true))
     }
 
     /** Sestaví log zprávu pro explozi pasti (TrapOnDraw). */
     private fun trapLogMsg(card: Card, isPlayer: Boolean): String {
         val who = if (isPlayer) "Ty jsi lízl" else "AI lízla"
+        val cardName = card.nameAccusative ?: card.name   // preferuj 4. pád, fallback na nominativ
         val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
         val dmgDesc = when (val e = trap?.effect) {
             is CardEffect.AttackCastle -> "HRAD −${e.amount}"
@@ -1335,7 +1335,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.BuildCastle  -> "HRAD +${e.amount}"
             else                       -> "pasca spuštěna"
         }
-        return "💥 $who ${card.name}! $dmgDesc"
+        return "💥 $who $cardName! $dmgDesc"
     }
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
