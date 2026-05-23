@@ -211,7 +211,7 @@ const RAW = [
   ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
   ['C35','Chaotická přeměna',4,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
   ['C36','Skrytá bomba',    4,'CHAOS',0,[aod('C37',3)],          'RARE'],
-  ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0],       // maxCopies:0 = nelze přidat do balíčku
+  ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0, true], // placeholder – vkládána pouze efektem C36
   ['C38','Explodovaná bomba',0,'CHAOS',0,[],                      'COMMON', false, 0, true], // placeholder po výbuchu, isPlaceholder:true
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────

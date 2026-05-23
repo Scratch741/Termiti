@@ -2666,7 +2666,7 @@
     "rarity": "COMMON",
     "maxCopies": 0,
     "isXCost": false,
-    "isPlaceholder": false,
+    "isPlaceholder": true,
     "baseId": "C37"
   },
   {
