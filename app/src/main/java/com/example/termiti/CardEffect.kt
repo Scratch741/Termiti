@@ -99,6 +99,12 @@ sealed class CardEffect {
      * Hráč vybere jednu kartu a ta mu přijde do ruky.
      */
     object DecisionMine : CardEffect()
+    /**
+     * Zobrazí přesně 4 karty — po jedné z každého typu (Magie, Útok, Stavba, Chaos).
+     * Karty jsou vybrány chytře na základě aktuální herní situace (HP hradu, suroviny, doly…).
+     * Hráč si vybere jednu, která mu přijde do ruky.
+     */
+    object SmartJoker : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

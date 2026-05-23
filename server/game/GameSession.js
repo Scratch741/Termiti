@@ -13,7 +13,85 @@ const {
   transformShapeShifters
 } = require('./engine');
 
-const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine']);
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker']);
+
+/**
+ * Ohodnotí vhodnost karty pro aktuální herní situaci.
+ * Vyšší skóre = karta se lépe hodí do situace.
+ * @param {Object} card       - karta (šablona z ALL_CARDS)
+ * @param {Object} self       - stav hrajícího hráče
+ * @param {Object} opp        - stav soupeře
+ * @param {number} winTarget  - cílové HP hradu hráče
+ * @returns {number}
+ */
+function _scoreCardForSituation(card, self, opp, winTarget = 70) {
+  let score = 0;
+  const selfHpMissing = Math.max(1, winTarget - self.castleHP);
+  const oppHpLeft     = Math.max(1, opp.castleHP);
+  const resources     = self.resources || {};
+  const mines         = self.mines || {};
+
+  for (const fx of (card.effects || [])) {
+    switch (fx.type) {
+      case 'AttackPlayer':
+      case 'AttackCastle': {
+        const dmg = fx.amount || 0;
+        score += (dmg >= oppHpLeft) ? 200 : (dmg * 12) / oppHpLeft;
+        break;
+      }
+      case 'AttackWall':
+        score += (fx.amount || 0) * 3;
+        break;
+      case 'BuildCastle': {
+        const amt = fx.amount || 0;
+        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
+        break;
+      }
+      case 'BuildWall':
+        score += (fx.amount || 0) * 2;
+        break;
+      case 'AddMine': {
+        const mine = Math.max(1, mines[fx.resType] || 1);
+        score += 20 / mine;
+        break;
+      }
+      case 'AddResource': {
+        const res = resources[fx.resType] || 0;
+        score += (fx.amount || 0) * (res < 3 ? 4 : 1.5);
+        break;
+      }
+      case 'StealResource':
+        score += (fx.amount || 0) * 5;
+        break;
+      case 'DrainResource':
+        score += (fx.amount || 0) * 3;
+        break;
+      case 'DrawCard':
+        score += (fx.count || 1) * 8;
+        break;
+      case 'StealCastle':
+        score += (fx.amount || 0) * 6;
+        break;
+      case 'DestroyMine':
+        score += 10;
+        break;
+      case 'StealCard':
+        score += 12;
+        break;
+      case 'BurnCard':
+        score += 8;
+        break;
+      default:
+        score += 2;
+    }
+  }
+  // Bonus pokud si kartu právě můžeme dovolit
+  const res = resources[card.costType] || 0;
+  const effectiveCost = Math.max(0, (card.cost || 0) + (card.costModifier || 0));
+  if (res >= effectiveCost) score += 15;
+  return score;
+}
+
 const { ratingSystem } = require('./RatingSystem');
 const { GameLogger, compactState } = require('./GameLogger');
 
@@ -699,6 +777,24 @@ class GameSession {
           })
           .filter(Boolean);
       }
+      case 'SmartJoker': {
+        // Z každého typu (Magie, Útok, Stavba, Chaos) vybere nejlepší kartu pro situaci
+        const cardTypes = ['Magie', 'Útok', 'Stavba', 'Chaos'];
+        const winTarget = this.winTarget[side] || 70;
+        return cardTypes
+          .map(typeName => {
+            const pool = ALL_CARDS.filter(c =>
+              deriveCardType(c) === typeName && !c.isPlaceholder
+            );
+            if (pool.length === 0) return null;
+            const best = pool.reduce((a, b) =>
+              _scoreCardForSituation(b, self, opp, winTarget) >
+              _scoreCardForSituation(a, self, opp, winTarget) ? b : a
+            );
+            return { ...best, id: best.id, baseId: best.id };
+          })
+          .filter(Boolean);
+      }
       default: return [];
     }
   }
@@ -801,6 +897,17 @@ class GameSession {
             const newCard = { ...makeInstance(tmpl), isGenerated: true };
             self.hand.push(newCard);
             this._log(`${this.name[side]} si vybral důl: ${tmpl.name}.`);
+          }
+        }
+        break;
+      }
+      case 'SmartJoker': {
+        if (chosenId) {
+          const tmpl = CARD_MAP.get(chosenId);
+          if (tmpl && self.hand.length < maxH) {
+            const newCard = { ...makeInstance(tmpl), isGenerated: true };
+            self.hand.push(newCard);
+            this._log(`${this.name[side]} si zvolil Magického žolíka: ${tmpl.name}.`);
           }
         }
         break;

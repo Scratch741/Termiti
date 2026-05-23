@@ -337,6 +337,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'DecisionChooseType':
       case 'DecisionFromDiscard':
       case 'DecisionFromDeck':
+      case 'SmartJoker':
         break;
 
       case 'SwapHands': {

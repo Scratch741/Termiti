@@ -448,11 +448,67 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Rozhodnutí – helpery ──────────────────────────────────────────────────
 
+    /**
+     * Ohodnotí vhodnost karty [card] pro aktuální situaci hráče [self] s cílovým HP [selfWinTarget]
+     * soupeřícím proti [opp]. Vyšší skóre = karta se více hodí do situace.
+     */
+    private fun scoreCardForSituation(
+        card: Card,
+        self: PlayerState,
+        opp: PlayerState,
+        selfWinTarget: Int = 70
+    ): Double {
+        var score = 0.0
+        val selfHpMissing = (selfWinTarget - self.castleHP).coerceAtLeast(1)
+        val oppHpLeft     = opp.castleHP.coerceAtLeast(1)
+
+        for (fx in card.effects) {
+            score += when (fx) {
+                is CardEffect.AttackPlayer  -> {
+                    val dmg = fx.amount
+                    if (dmg >= oppHpLeft) 200.0 else dmg * 12.0 / oppHpLeft
+                }
+                is CardEffect.AttackCastle  -> {
+                    val dmg = fx.amount
+                    if (dmg >= oppHpLeft) 200.0 else dmg * 12.0 / oppHpLeft
+                }
+                is CardEffect.AttackWall    -> fx.amount * 3.0
+                is CardEffect.BuildCastle   -> {
+                    if (fx.amount >= selfHpMissing) 200.0
+                    else fx.amount * 10.0 / selfHpMissing
+                }
+                is CardEffect.BuildWall     -> fx.amount * 2.0
+                is CardEffect.AddMine       -> {
+                    val mine = (self.mines[fx.type] ?: 1).coerceAtLeast(1)
+                    20.0 / mine
+                }
+                is CardEffect.AddResource   -> {
+                    val res = (self.resources[fx.type] ?: 0)
+                    fx.amount * (if (res < 3) 4.0 else 1.5)
+                }
+                is CardEffect.StealResource -> fx.amount * 5.0
+                is CardEffect.DrainResource -> fx.amount * 3.0
+                is CardEffect.DrawCard      -> fx.count * 8.0
+                is CardEffect.StealCastle   -> fx.amount * 6.0
+                is CardEffect.DestroyMine   -> 10.0
+                is CardEffect.StealCard     -> 12.0
+                is CardEffect.BurnCard      -> 8.0
+                else                        -> 2.0
+            }
+        }
+        // Bonus pokud si kartu právě můžeme dovolit
+        val res          = self.resources[card.costType] ?: 0
+        val effectiveCost = (card.cost + card.costModifier).coerceAtLeast(0)
+        if (res >= effectiveCost) score += 15.0
+        return score
+    }
+
     private fun buildDecisionOptions(
         fx: CardEffect,
         self: PlayerState,
         opponent: PlayerState,
-        excludeId: String? = null   // vyloučí právě zahranou kartu z nabídky (Vzpomínka)
+        excludeId: String? = null,   // vyloučí právě zahranou kartu z nabídky (Vzpomínka)
+        selfWinTarget: Int = gameState.value.playerWinTarget
     ): List<Card> = when (fx) {
         is CardEffect.DecisionBurnOpponent -> opponent.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType && !it.isPlaceholder }.shuffled().take(fx.picks)
@@ -465,6 +521,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
             }.shuffled().firstOrNull()
         }
+        is CardEffect.SmartJoker           -> listOf("Magie", "Útok", "Stavba", "Chaos").mapNotNull { typeName ->
+            // Z každého typu vezme kartu s nejvyšším skóre pro aktuální situaci
+            allCards
+                .filter { it.type == typeName && !it.isPlaceholder }
+                .maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
+        }
         else -> emptyList()
     }
 
@@ -474,6 +536,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionFromDiscard  -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
         is CardEffect.DecisionFromDeck     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
         is CardEffect.DecisionMine         -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
+        is CardEffect.SmartJoker           -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
         else -> DecisionState("", "", emptyList())
     }
 
@@ -540,6 +603,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
                 log.appendLog("Hráč si vybral důl: ${chosen.name}")
+            }
+            is CardEffect.SmartJoker -> {
+                val newCard = chosen.copy(
+                    id          = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                    isGenerated = true
+                )
+                if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
+                log.appendLog("Magický žolík: hráč si zvolil ${chosen.name}")
             }
             else -> {}
         }
@@ -876,7 +947,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             it is CardEffect.DecisionChooseType   ||
             it is CardEffect.DecisionFromDiscard  ||
             it is CardEffect.DecisionFromDeck     ||
-            it is CardEffect.DecisionMine
+            it is CardEffect.DecisionMine         ||
+            it is CardEffect.SmartJoker
         }
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
@@ -1153,6 +1225,19 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                         )
                                         if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
                                     }
+                                }
+                                is CardEffect.SmartJoker -> {
+                                    // AI si vybere nejvhodnější kartu ze 4 nabídnutých
+                                    val opts = buildDecisionOptions(fx, ai, player, selfWinTarget = old.aiWinTarget)
+                                    opts.maxByOrNull { scoreCardForSituation(it, ai, player, old.aiWinTarget) }
+                                        ?.let { chosen ->
+                                            val newCard = chosen.copy(
+                                                id          = "${chosen.id}_${java.util.UUID.randomUUID()}",
+                                                isGenerated = true
+                                            )
+                                            if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
+                                            log.appendLog("AI zvolila žolíka: ${chosen.name}")
+                                        }
                                 }
                                 else -> {}
                             }

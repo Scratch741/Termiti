@@ -141,6 +141,7 @@ object CardRepository {
         "DecisionFromDiscard"   -> CardEffect.DecisionFromDiscard(obj.optInt("picks", 4))
         "DecisionFromDeck"      -> CardEffect.DecisionFromDeck(obj.optInt("picks", 4))
         "DecisionMine"          -> CardEffect.DecisionMine
+        "SmartJoker"            -> CardEffect.SmartJoker
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

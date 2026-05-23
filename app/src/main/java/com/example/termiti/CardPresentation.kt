@@ -565,5 +565,11 @@ object CardPresentation {
         "117" to CardPres("**Rozhodnutí:** vyber si 1 ze 4 různých dolů. [Combo]",
             R.drawable.art_pruzkum_dolu, "Magie",
             artScale = 0.85f, artBiasY = 0.25f),
+        "118" to CardPres(
+            "**Rozhodnutí:** vyber si kartu, která se hodí do situace — 1 nejlepší z každého typu (Magie, Útok, Stavba, Chaos). [Combo]",
+            null, "Magie",
+            descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
+            nameAccusative = "Magického žolíka"
+        ),
     )
 }
