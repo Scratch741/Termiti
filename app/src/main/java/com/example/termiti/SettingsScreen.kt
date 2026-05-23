@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -42,7 +44,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
-                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        awaitPointerEvent(PointerEventPass.Initial)
                             .changes.forEach { it.consume() }
                     }
                 }
