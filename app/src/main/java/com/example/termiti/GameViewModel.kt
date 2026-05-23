@@ -806,7 +806,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (PassiveAbility.BOOST_MAGIC  in actives) addAll(pick({ it.type == "Magie"  }, 2))
             if (PassiveAbility.BOOST_CHAOS  in actives) addAll(pick({ it.type == "Chaos"  }, 2))
             if (PassiveAbility.BOOST_RANDOM in actives) addAll(pick({ it.type != "Důl"    }, 3))
-        }.withUniqueIds()
+        }.map { it.copy(isGenerated = true) }.withUniqueIds()
 
         val playerState = PlayerState(
             castleHP  = startCastle,
@@ -842,7 +842,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 if (PassiveAbility.BOOST_MAGIC  in aiPassives) addAll(pick({ it.type == "Magie" }, 2))
                 if (PassiveAbility.BOOST_CHAOS  in aiPassives) addAll(pick({ it.type == "Chaos" }, 2))
                 if (PassiveAbility.BOOST_RANDOM in aiPassives) addAll(pick({ it.type != "Důl"   }, 3))
-            }.withUniqueIds()
+            }.map { it.copy(isGenerated = true) }.withUniqueIds()
             it.deck.addAll(aiBaseCards + aiBoostCards)
             it.deck.shuffle()   // 2. míchání – oddělené volání, zaručeně jiný stav Random
             // QUICK_DRAW: AI lízne 1 kartu navíc na začátku první tahu
@@ -1593,7 +1593,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     addAll(boostCards({ it.type != "Důl" }, 3))
             }
 
-            it.deck.addAll((playerCards + deckBoost).withUniqueIds().shuffled())
+            it.deck.addAll((playerCards + deckBoost.map { c -> c.copy(isGenerated = true) }).withUniqueIds().shuffled())
             it.drawCards(opponent.playerStartHandSize.coerceIn(1, 7))
         }
 

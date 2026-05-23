@@ -419,7 +419,7 @@ function _addBoostCards(state, typeFilter, count) {
   if (pool.length === 0) return;
   const picked = shuffle([...pool]).slice(0, count);
   for (const tmpl of picked) {
-    state.deck.push(makeInstance(tmpl));
+    state.deck.push({ ...makeInstance(tmpl), isGenerated: true });
   }
   shuffle(state.deck);
 }
