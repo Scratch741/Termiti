@@ -266,8 +266,8 @@ private fun OnlineGameplay(
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
-    var showLog     by remember { mutableStateOf(false) }
     var showMenu    by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
     var cardPreview by remember { mutableStateOf<Card?>(null) }
     val playerPassives = remember {
@@ -416,10 +416,10 @@ private fun OnlineGameplay(
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "📜 Log",
+                            label   = "⚙️ Hlas",
                             color   = OgGold,
                             active  = true,
-                            onClick = { SoundManager.playMenuTap(); showLog = !showLog }
+                            onClick = { SoundManager.playMenuTap(); showSettings = true }
                         )
                     }
                 )
@@ -548,10 +548,10 @@ private fun OnlineGameplay(
             text  = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(
-                        onClick  = { SoundManager.playMenuTap(); showMenu = false; showLog = true },
+                        onClick  = { SoundManager.playMenuTap(); showMenu = false; showSettings = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("📜 Zobrazit log", color = OgGold)
+                        Text("⚙️ Nastavení zvuku a jazyka", color = OgGold)
                     }
                     HorizontalDivider(color = OgTextMuted.copy(alpha = 0.3f))
                     Text(
@@ -574,12 +574,9 @@ private fun OnlineGameplay(
         )
     }
 
-    // ── Log overlay ───────────────────────────────────────────────────────────
-    if (showLog) {
-        LogOverlay(
-            log = gameLog,
-            onDismiss = { showLog = false }
-        )
+    // ── Nastavení overlay ─────────────────────────────────────────────────────
+    if (showSettings) {
+        SettingsScreen(onBack = { showSettings = false })
     }
     } // CompositionLocalProvider
 }
