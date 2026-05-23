@@ -1030,6 +1030,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
                 }
+                // Zkontroluj výhru ihned po výbuchu — AI mohla zemřít před prvním tahem
+                if (drawResult.traps.isNotEmpty()) {
+                    val afterTrap = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    afterTrap.checkWinCondition()?.let { result ->
+                        scheduleGameEnd(result, afterTrap); return@launch
+                    }
+                }
             }
             transformShapeShifters(ai.hand, allCards)
 
