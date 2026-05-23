@@ -31,12 +31,37 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
   const resources     = self.resources || {};
   const mines         = self.mines || {};
 
+  const oppWall = Math.max(0, opp.wallHP || 0);
+  const xValue  = (resources[card.costType] || 0);
+
   for (const fx of (card.effects || [])) {
     switch (fx.type) {
-      case 'AttackPlayer':
+      case 'AttackPlayer': {
+        // Zeď absorbuje útok první; pouze přebytek poškodí hrad
+        const castleDmg = Math.max(0, (fx.amount || 0) - oppWall);
+        score += (castleDmg >= oppHpLeft) ? 200 : (castleDmg * 12) / oppHpLeft;
+        break;
+      }
       case 'AttackCastle': {
+        // Přímý útok na hrad (přeskakuje zeď)
         const dmg = fx.amount || 0;
         score += (dmg >= oppHpLeft) ? 200 : (dmg * 12) / oppHpLeft;
+        break;
+      }
+      case 'XScaledAttackPlayer': {
+        const dmg = xValue / (fx.divisor || 2);
+        const castleDmg = Math.max(0, dmg - oppWall);
+        score += (castleDmg >= oppHpLeft) ? 200 : (castleDmg * 12) / oppHpLeft;
+        break;
+      }
+      case 'XScaledAttackCastle': {
+        const dmg = xValue / (fx.divisor || 2);
+        score += (dmg >= oppHpLeft) ? 200 : (dmg * 12) / oppHpLeft;
+        break;
+      }
+      case 'XScaledBuildCastle': {
+        const amt = xValue / (fx.divisor || 2);
+        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
         break;
       }
       case 'AttackWall':

@@ -462,15 +462,33 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val selfHpMissing = (selfWinTarget - self.castleHP).coerceAtLeast(1)
         val oppHpLeft     = opp.castleHP.coerceAtLeast(1)
 
+        val oppWall = opp.wallHP.coerceAtLeast(0)
+        val xValue  = (self.resources[card.costType] ?: 0).toDouble()
+
         for (fx in card.effects) {
             score += when (fx) {
                 is CardEffect.AttackPlayer  -> {
-                    val dmg = fx.amount
-                    if (dmg >= oppHpLeft) 200.0 else dmg * 12.0 / oppHpLeft
+                    // Zeď absorbuje útok první; pouze přebytek poškodí hrad
+                    val castleDmg = (fx.amount - oppWall).coerceAtLeast(0).toDouble()
+                    if (castleDmg >= oppHpLeft) 200.0 else castleDmg * 12.0 / oppHpLeft
                 }
                 is CardEffect.AttackCastle  -> {
-                    val dmg = fx.amount
+                    // Přímý útok na hrad (přeskakuje zeď)
+                    val dmg = fx.amount.toDouble()
                     if (dmg >= oppHpLeft) 200.0 else dmg * 12.0 / oppHpLeft
+                }
+                is CardEffect.XScaledAttackPlayer -> {
+                    val dmg = xValue / fx.divisor
+                    val castleDmg = (dmg - oppWall).coerceAtLeast(0.0)
+                    if (castleDmg >= oppHpLeft) 200.0 else castleDmg * 12.0 / oppHpLeft
+                }
+                is CardEffect.XScaledAttackCastle -> {
+                    val dmg = xValue / fx.divisor
+                    if (dmg >= oppHpLeft) 200.0 else dmg * 12.0 / oppHpLeft
+                }
+                is CardEffect.XScaledBuildCastle  -> {
+                    val amt = xValue / fx.divisor
+                    if (amt >= selfHpMissing) 200.0 else amt * 10.0 / selfHpMissing
                 }
                 is CardEffect.AttackWall    -> fx.amount * 3.0
                 is CardEffect.BuildCastle   -> {
