@@ -78,6 +78,8 @@ data class AppStrings(
     val resultCastleDestroyed: String,
     val resultHpWins: String,
     val resultHpLose: String,
+    val resultHpWinsTurnLimit: String,
+    val resultHpLoseTurnLimit: String,
     val resultBothDead: String,
     val resultPlayAgain: String,
     val resultBackToMenu: String,

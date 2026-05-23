@@ -461,6 +461,8 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
         GameResult.AI_CASTLE_BUILT         -> s.resultDefeat  to s.resultCastleBuilt
         GameResult.PLAYER_HP_WINS          -> s.resultVictory to s.resultHpWins
         GameResult.AI_HP_WINS              -> s.resultDefeat  to s.resultHpLose
+        GameResult.PLAYER_HP_WINS_TURN_LIMIT -> s.resultVictory to s.resultHpWinsTurnLimit
+        GameResult.AI_HP_WINS_TURN_LIMIT   -> s.resultDefeat  to s.resultHpLoseTurnLimit
         GameResult.DRAW                    -> s.resultDraw    to s.resultHpWins
         GameResult.DRAW_BOTH_DEAD          -> s.resultDraw    to s.resultBothDead
     }
@@ -534,6 +536,8 @@ fun ArenaGameOverDialog(
         GameResult.AI_CASTLE_BUILT         -> "Prohrál jsi"  to "Nepřítel dokončil svůj hrad."
         GameResult.PLAYER_HP_WINS          -> "Vítězství!"   to "Balíčky došly – tvůj hrad je vyšší."
         GameResult.AI_HP_WINS              -> "Prohrál jsi"  to "Balíčky došly – nepřítel má vyšší hrad."
+        GameResult.PLAYER_HP_WINS_TURN_LIMIT -> "Vítězství!" to "Limit 99 kol – tvůj hrad je vyšší."
+        GameResult.AI_HP_WINS_TURN_LIMIT   -> "Prohrál jsi"  to "Limit 99 kol – nepřítel má vyšší hrad."
         GameResult.DRAW                    -> "Remíza"       to "Balíčky došly – hrady jsou stejně vysoké."
         GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
     }

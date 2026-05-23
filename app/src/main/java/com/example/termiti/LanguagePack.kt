@@ -97,8 +97,10 @@ data class LanguagePack(
                 resultDraw            = str("resultDraw",            "REMÍZA"),
                 resultCastleBuilt     = str("resultCastleBuilt",     "Postavil jsi hrad!"),
                 resultCastleDestroyed = str("resultCastleDestroyed", "Zničil jsi soupeřův hrad!"),
-                resultHpWins          = str("resultHpWins",          "Vyšší hrad po 99 kolech!"),
-                resultHpLose          = str("resultHpLose",          "Soupeř měl vyšší hrad."),
+                resultHpWins          = str("resultHpWins",          "Balíčky došly – tvůj hrad je vyšší!"),
+                resultHpLose          = str("resultHpLose",          "Balíčky došly – soupeř měl vyšší hrad."),
+                resultHpWinsTurnLimit = str("resultHpWinsTurnLimit", "Limit 99 kol – tvůj hrad je vyšší!"),
+                resultHpLoseTurnLimit = str("resultHpLoseTurnLimit", "Limit 99 kol – soupeř měl vyšší hrad."),
                 resultBothDead        = str("resultBothDead",        "Oba hrady zničeny."),
                 resultPlayAgain       = str("resultPlayAgain",       "Hrát znovu"),
                 resultBackToMenu      = str("resultBackToMenu",      "Zpět do menu"),
@@ -171,6 +173,8 @@ data class LanguagePack(
             "resultDraw" -> fb.resultDraw; "resultCastleBuilt" -> fb.resultCastleBuilt
             "resultCastleDestroyed" -> fb.resultCastleDestroyed
             "resultHpWins" -> fb.resultHpWins; "resultHpLose" -> fb.resultHpLose
+            "resultHpWinsTurnLimit" -> fb.resultHpWinsTurnLimit
+            "resultHpLoseTurnLimit" -> fb.resultHpLoseTurnLimit
             "resultBothDead" -> fb.resultBothDead
             "resultPlayAgain" -> fb.resultPlayAgain; "resultBackToMenu" -> fb.resultBackToMenu
             "deckBuilder" -> fb.deckBuilder; "deckSave" -> fb.deckSave

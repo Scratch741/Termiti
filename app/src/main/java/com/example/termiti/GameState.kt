@@ -14,7 +14,7 @@ data class GameState(
 ) {
     fun checkWinCondition(): GameResult? {
         // Limit kol: po 99. kole rozhoduje výška hradu
-        if (currentTurn >= 99) return resolveByHp()
+        if (currentTurn >= 99) return resolveByHpTurnLimit()
 
         val playerDead  = playerState.castleHP <= 0
         val aiDead      = aiState.castleHP     <= 0
@@ -36,6 +36,13 @@ data class GameState(
     fun resolveByHp(): GameResult = when {
         playerState.castleHP > aiState.castleHP -> GameResult.PLAYER_HP_WINS
         aiState.castleHP > playerState.castleHP -> GameResult.AI_HP_WINS
+        else                                    -> GameResult.DRAW
+    }
+
+    /** Porovná hrady po dosažení limitu kol (99. kolo). */
+    fun resolveByHpTurnLimit(): GameResult = when {
+        playerState.castleHP > aiState.castleHP -> GameResult.PLAYER_HP_WINS_TURN_LIMIT
+        aiState.castleHP > playerState.castleHP -> GameResult.AI_HP_WINS_TURN_LIMIT
         else                                    -> GameResult.DRAW
     }
 }
