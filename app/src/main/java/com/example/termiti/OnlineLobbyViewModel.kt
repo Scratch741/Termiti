@@ -181,6 +181,10 @@ class OnlineLobbyViewModel(
     var opponentDisconnectSec     = mutableStateOf(0);      private set
     private var oppDisconnectJob: Job? = null
 
+    // ── Sekvenční zobrazení bomb (C37 / C38) ──────────────────────────────────
+    /** Zřetězuje CARD_LOST eventy pro bomby – každý čeká na předchozí + delay */
+    private var bombDisplayJob: Job? = null
+
     // ── Vlastní auto-reconnect ────────────────────────────────────────────────
     /** True = probíhá pokus o znovupřipojení po výpadku */
     var isReconnecting            = mutableStateOf(false);  private set
@@ -720,28 +724,43 @@ class OnlineLobbyViewModel(
                     val myName      = playerName.value
                     val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
 
-                    when {
-                        ownCard -> {
-                            // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed
-                            lastPlayedCard.value   = card
-                            lastPlayedAction.value = action
-                            lastPlayedByMe.value   = true
-                            gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                    val applyCardLost: suspend () -> Unit = {
+                        when {
+                            ownCard -> {
+                                // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = true
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                            }
+                            causedByMe -> {
+                                // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = false  // soupeřova karta
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                            }
+                            else -> {
+                                // Soupeř způsobil ztrátu mé karty
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = true
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
+                            }
                         }
-                        causedByMe -> {
-                            // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
-                            lastPlayedCard.value   = card
-                            lastPlayedAction.value = action
-                            lastPlayedByMe.value   = false  // soupeřova karta
-                            gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                    }
+
+                    // Bomba (C37) a Explodovaná bomba (C38): zobraz sekvenčně s delay,
+                    // aby bylo každou kartu vidět zvlášť a neobjevily se najednou
+                    if (baseId == "C37" || baseId == "C38") {
+                        val prev = bombDisplayJob
+                        bombDisplayJob = viewModelScope.launch {
+                            prev?.join()
+                            delay(800L)
+                            applyCardLost()
                         }
-                        else -> {
-                            // Soupeř způsobil ztrátu mé karty
-                            lastPlayedCard.value   = card
-                            lastPlayedAction.value = action
-                            lastPlayedByMe.value   = true
-                            gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
-                        }
+                    } else {
+                        applyCardLost()
                     }
                 }
 
