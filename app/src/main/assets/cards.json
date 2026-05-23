@@ -3475,6 +3475,23 @@
     "baseId": "117"
   },
   {
+    "id": "118",
+    "name": "Magický žolík",
+    "cost": 4,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "SmartJoker"
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "118"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,
@@ -3529,22 +3546,5 @@
     "isXCost": true,
     "isPlaceholder": false,
     "baseId": "103"
-  },
-  {
-    "id": "118",
-    "name": "Magický žolík",
-    "cost": 5,
-    "costType": "MAGIC",
-    "isCombo": true,
-    "effects": [
-      {
-        "type": "SmartJoker"
-      }
-    ],
-    "rarity": "LEGENDARY",
-    "maxCopies": 1,
-    "isXCost": false,
-    "isPlaceholder": false,
-    "baseId": "118"
   }
 ]

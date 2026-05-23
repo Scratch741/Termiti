@@ -262,7 +262,7 @@ const RAW = [
   ['115','Studna vědomostí',2,'MAGIC', 1,[dbb(2)],             'EPIC'],
   ['116','Chaotická replikace',2,'CHAOS',1,[cnp(2)],           'EPIC'],
   ['117','Průzkum dolů',      1,'MAGIC',1,[dmine()],           'EPIC'],
-  ['118','Magický žolík',    5,'MAGIC',1,[sj()],              'LEGENDARY'],
+  ['118','Magický žolík',    4,'MAGIC',1,[sj()],              'LEGENDARY'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
