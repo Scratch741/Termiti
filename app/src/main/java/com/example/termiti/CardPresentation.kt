@@ -512,7 +512,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.75f,
             descriptionEn = "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE -5**."),
         "C37" to CardPres("💥 **VÝBUCH!** Hrad **-5**. *(pasca – spustí se při líznutí)*",
-            null, "Chaos",
+            R.drawable.art_skryta_bomba, "Chaos",
             artScale = 0.85f, artBiasY = -0.5f,
             descriptionEn = "💥 **EXPLOSION!** Castle **-5**. *(trap — triggers on draw)*",
             nameAccusative = "Bombu"),
