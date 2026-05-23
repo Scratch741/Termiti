@@ -305,7 +305,7 @@ function isChaosGen(card) {
  *    (zabraňuje 8+ různým Legendary kartám v jednom balíčku)
  */
 function buildDeckCore(quota, totalTarget, rarityCaps) {
-  const cards  = ALL_CARDS.filter(c => !c.id.startsWith('T'));
+  const cards  = ALL_CARDS.filter(c => !c.id.startsWith('T') && !c.isPlaceholder);
   const counts = {};
 
   const total      = () => Object.values(counts).reduce((s, n) => s + n, 0);

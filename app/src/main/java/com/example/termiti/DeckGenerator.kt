@@ -37,7 +37,7 @@ private fun buildDeck(
     rarityCaps : Map<Rarity, Int>          // celkový strop dle vzácnosti v celém balíčku
 ): Map<String, Int> {
 
-    val cards = allCards.filterNot { it.id.startsWith("T") }
+    val cards = allCards.filterNot { it.id.startsWith("T") || it.isPlaceholder }
 
     val counts = mutableMapOf<String, Int>()
 

@@ -415,7 +415,7 @@ function applyPassiveAbilities(state, abilities) {
 
 /** Přidá [count] náhodných karet filtrovaných podle typu do balíčku hráče. */
 function _addBoostCards(state, typeFilter, count) {
-  const pool = ALL_CARDS.filter(c => typeFilter(deriveCardType(c)));
+  const pool = ALL_CARDS.filter(c => typeFilter(deriveCardType(c)) && !c.isPlaceholder);
   if (pool.length === 0) return;
   const picked = shuffle([...pool]).slice(0, count);
   for (const tmpl of picked) {

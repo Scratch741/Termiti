@@ -800,7 +800,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Posila balíčku z hráčových pasivních schopností
         val playerBoostCards = buildList {
-            fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter(f).shuffled().take(n)
+            fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter { f(it) && !it.isPlaceholder }.shuffled().take(n)
             if (PassiveAbility.BOOST_ATTACK in actives) addAll(pick({ it.type == "Útok"   }, 2))
             if (PassiveAbility.BOOST_BUILD  in actives) addAll(pick({ it.type == "Stavba" }, 2))
             if (PassiveAbility.BOOST_MAGIC  in actives) addAll(pick({ it.type == "Magie"  }, 2))
@@ -836,7 +836,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
             // Posila balíčku z AI pasivních schopností
             val aiBoostCards = buildList {
-                fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter(f).shuffled().take(n)
+                fun pick(f: (Card) -> Boolean, n: Int) = allCards.filter { f(it) && !it.isPlaceholder }.shuffled().take(n)
                 if (PassiveAbility.BOOST_ATTACK in aiPassives) addAll(pick({ it.type == "Útok"  }, 2))
                 if (PassiveAbility.BOOST_BUILD  in aiPassives) addAll(pick({ it.type == "Stavba" }, 2))
                 if (PassiveAbility.BOOST_MAGIC  in aiPassives) addAll(pick({ it.type == "Magie" }, 2))
@@ -1578,7 +1578,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
             // Posila balíčku z pasivních schopností
             fun boostCards(filter: (Card) -> Boolean, count: Int): List<Card> =
-                allCards.filter(filter).shuffled().take(count)
+                allCards.filter { filter(it) && !it.isPlaceholder }.shuffled().take(count)
 
             val deckBoost = buildList {
                 if (PassiveAbility.BOOST_ATTACK in actives)
