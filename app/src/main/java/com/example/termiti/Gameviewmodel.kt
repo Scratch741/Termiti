@@ -576,10 +576,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
-                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
                         val ph = injectExplosionPlaceholder(player)
-                        if (ph != null) cardHistory.appendHistory(ph, CardAction.BURNED, isMine = true)
+                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
                         log.appendLog(trapLogMsg(trap, isPlayer = true))
                         gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
@@ -919,10 +917,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
-                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
                         val ph = injectExplosionPlaceholder(player)
-                        if (ph != null) cardHistory.appendHistory(ph, CardAction.BURNED, isMine = true)
+                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
                         log.appendLog(trapLogMsg(trap, isPlayer = true))
                         gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
@@ -1022,10 +1018,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 SoundManager.playCardDraw()
                 val drawResult = ai.drawCards(1, old.aiMaxHand)
                 for (trap in drawResult.traps) {
-                    cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
-                    addCardLog("AI", trap, CardAction.BURNED, isMe = false)
                     val ph = injectExplosionPlaceholder(ai)
-                    if (ph != null) cardHistory.appendHistory(ph, CardAction.BURNED, isMine = false)
+                    if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = false)
                     log.appendLog(trapLogMsg(trap, isPlayer = false))
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
@@ -1088,10 +1082,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     val r = state.drawCards(1, old.aiMaxHand)
                                     SoundManager.playCardDraw()
                                     r.traps.forEach { trap ->
-                                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
-                                        addCardLog("AI", trap, CardAction.BURNED, isMe = false)
                                         val ph = injectExplosionPlaceholder(state)
-                                        if (ph != null) cardHistory.appendHistory(ph, CardAction.BURNED, isMine = false)
+                                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = false)
                                         log.appendLog(trapLogMsg(trap, isPlayer = false))
                                     }
                                 }
@@ -1227,10 +1219,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
                 }
                 for (trap in drawResult.traps) {
-                    cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                    addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
                     val ph = injectExplosionPlaceholder(player)
-                    if (ph != null) cardHistory.appendHistory(ph, CardAction.BURNED, isMine = true)
+                    if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
                     log.appendLog(trapLogMsg(trap, isPlayer = true))
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
