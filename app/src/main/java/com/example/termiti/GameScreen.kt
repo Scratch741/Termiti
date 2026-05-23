@@ -88,6 +88,7 @@ fun GameScreen(
 
     var showMenuConfirm  by remember { mutableStateOf(false) }
     var showLostCards    by remember { mutableStateOf(false) }
+    var showLog          by remember { mutableStateOf(false) }
     var showSettings     by remember { mutableStateOf(false) }
     var reviewMode       by remember { mutableStateOf(false) }
     var showOppHand      by remember { mutableStateOf(false) }
@@ -156,10 +157,10 @@ fun GameScreen(
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "⚙️ Hlas",
+                            label   = "📜 Log",
                             color   = Gold,
                             active  = true,
-                            onClick = { showSettings = true }
+                            onClick = { showLog = true }
                         )
                         if (lostToOpponent.isNotEmpty()) {
                             Spacer(Modifier.height(3.dp))
@@ -283,7 +284,18 @@ fun GameScreen(
                 titleContentColor = Color(0xFFEDE0C4),
                 textContentColor  = Color(0xFF7A6E5F),
                 title = { Text("Opustit hru?", fontWeight = FontWeight.Bold) },
-                text  = { Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?") },
+                text  = {
+                    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?")
+                        HorizontalDivider(color = Color(0xFF7A6E5F).copy(alpha = 0.3f))
+                        TextButton(
+                            onClick  = { showMenuConfirm = false; showSettings = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("⚙️ Nastavení", color = Color(0xFFEDE0C4))
+                        }
+                    }
+                },
                 confirmButton = {
                     TextButton(onClick = { viewModel.restartGame(); onBackToMenu() }) {
                         Text("Odejít", color = Color(0xFFBF2D2D), fontWeight = FontWeight.Bold)
@@ -322,6 +334,10 @@ fun GameScreen(
                 lostCards = lostToOpponent,
                 onDismiss = { showLostCards = false }
             )
+        }
+
+        if (showLog) {
+            LogOverlay(log = log, onDismiss = { showLog = false })
         }
 
         if (showSettings) {

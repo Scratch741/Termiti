@@ -266,7 +266,8 @@ private fun OnlineGameplay(
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
-    var showMenu    by remember { mutableStateOf(false) }
+    var showLog      by remember { mutableStateOf(false) }
+    var showMenu     by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
     var cardPreview by remember { mutableStateOf<Card?>(null) }
@@ -416,10 +417,10 @@ private fun OnlineGameplay(
                     modifier    = Modifier.fillMaxHeight().width(112.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "⚙️ Hlas",
+                            label   = "📜 Log",
                             color   = OgGold,
                             active  = true,
-                            onClick = { SoundManager.playMenuTap(); showSettings = true }
+                            onClick = { SoundManager.playMenuTap(); showLog = !showLog }
                         )
                     }
                 )
@@ -572,6 +573,11 @@ private fun OnlineGameplay(
                 }
             }
         )
+    }
+
+    // ── Log overlay ───────────────────────────────────────────────────────────
+    if (showLog) {
+        LogOverlay(log = gameLog, onDismiss = { showLog = false })
     }
 
     // ── Nastavení overlay ─────────────────────────────────────────────────────
