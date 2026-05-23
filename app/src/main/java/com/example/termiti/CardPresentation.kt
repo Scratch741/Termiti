@@ -509,11 +509,11 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.75f),
         "C36" to CardPres("Zamíchá **3 BOMBY** do soupeřova balíčku. Po líznutí bomby **HRAD -5**.",
             R.drawable.art_skryta_bomba, "Chaos",
-            artScale = 0.80f, artBiasY = -0.75f,
+            artScale = 0.80f, artBiasY = -0.10f,
             descriptionEn = "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE -5**."),
         "C37" to CardPres("**VÝBUCH! Hrad -5. (past – spustí se při líznutí)**",
             R.drawable.art_skryta_bomba, "Chaos",
-            artScale = 0.85f, artBiasY = -0.5f,
+            artScale = 0.80f, artBiasY = -0.10f,
             descriptionEn = "**EXPLOSION! Castle -5. (trap — triggers on draw)**",
             nameAccusative = "Bombu"),
         "C38" to CardPres("Okamžitě zahraj. Lízni kartu a -5 hradu.",
@@ -568,7 +568,7 @@ object CardPresentation {
         "118" to CardPres(
             "**Rozhodnutí:** vyber si kartu, která se hodí do situace. [Combo]",
             R.drawable.art_magicky_zolik, "Magie",
-            artScale = 0.8f, artBiasY = -1.00f,
+            artScale = 0.8f, artBiasX = 0.15f, artBiasY = -0.20f,
             descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
             nameAccusative = "Magického žolíka"
         ),
