@@ -35,7 +35,19 @@ fun SettingsScreen(onBack: () -> Unit) {
     val s           = LocalStrings.current
     val currentPack by LanguageManager.currentPackState
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            // Blokuje všechny dotykové události – zabraňuje hraní karet přes nastavení
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            .changes.forEach { it.consume() }
+                    }
+                }
+            }
+    ) {
         val W = maxWidth
         val H = maxHeight
 
