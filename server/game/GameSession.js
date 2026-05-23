@@ -542,6 +542,12 @@ class GameSession {
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
 
+    // Loguj změnu velikosti balíčku po AddToOpponentDeck
+    const hasAOD = card.effects && card.effects.some(fx => fx.type === 'AddToOpponentDeck');
+    if (hasAOD) {
+      console.log(`[AOD] game=${this.gameId} card=${card.baseId} side=${side} oppDeckSize=${opp.deck.length}`);
+    }
+
     this._log(`${this.name[side]} zahrál ${card.name}`);
 
     // Zaloguj akci na disk
@@ -925,7 +931,11 @@ class GameSession {
       this.quickDrawApplied[this.activeSide] = true;
       extraDraw = 1;
     }
+    const deckBeforeDraw = next.deck.length;
     const { burned, traps } = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
+    if (traps.length > 0 || burned.length > 0) {
+      console.log(`[DRAW] game=${this.gameId} side=${this.activeSide} deckBefore=${deckBeforeDraw} deckAfter=${next.deck.length} traps=${traps.length} burned=${burned.length}`);
+    }
     transformShapeShifters(next.hand, ALL_CARDS);
 
     for (const bc of burned) {
@@ -1159,8 +1169,11 @@ class GameSession {
   }
 
   _sendStateBoth() {
-    this._send('A', this._buildStateFor('A'));
-    this._send('B', this._buildStateFor('B'));
+    const stateA = this._buildStateFor('A');
+    const stateB = this._buildStateFor('B');
+    console.log(`[DECK] game=${this.gameId} turn=${this.turnNumber} A.deck=${stateA.myState.deckSize} B.deck=${stateB.myState.deckSize} active=${this.activeSide}`);
+    this._send('A', stateA);
+    this._send('B', stateB);
     this.lastLog = [];
     // lastPlayedCard se NEresetuje – zůstane viditelný, dokud ho nenahradí nová karta
   }

@@ -1017,12 +1017,15 @@ class OnlineLobbyViewModel(
         if (logArr != null) {
             for (i in 0 until logArr.length()) logList.add(logArr.optString(i, ""))
         }
+        val myParsed  = parsePlayerState(json.optJSONObject("myState"),  true)
+        val oppParsed = parsePlayerState(json.optJSONObject("oppState"), false)
+        android.util.Log.d("DECK", "GAME_STATE parsed: myDeck=${myParsed.deckSize} oppDeck=${oppParsed.deckSize} isMyTurn=${json.optBoolean("isMyTurn")} turn=${json.optInt("turnNumber")}")
         return OnlineGameState(
             activeSide      = json.optString("activeSide", "A"),
             isMyTurn        = json.optBoolean("isMyTurn", false),
             turnNumber      = json.optInt("turnNumber", 1),
-            myState         = parsePlayerState(json.optJSONObject("myState"),  true),
-            oppState        = parsePlayerState(json.optJSONObject("oppState"), false),
+            myState         = myParsed,
+            oppState        = oppParsed,
             myWinTarget     = json.optInt("myWinTarget",  60),
             oppWinTarget    = json.optInt("oppWinTarget", 60),
             log             = logList,

@@ -1167,9 +1167,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             // Combo: krátká pauza + mezistate + pokračuj.
                             // activePlayer musí zůstat AI, aby hráč nemohl kliknout
                             // v okně delay a nespustil druhou souběžnou finishTurn coroutinu.
+                            // deepCopy zajistí, že Compose detekuje změny (AddToOpponentDeck, atd.)
                             val mid = old.copy(
-                                playerState  = player,
-                                aiState      = ai,
+                                playerState  = player.deepCopy(),
+                                aiState      = ai.deepCopy(),
                                 activePlayer = ActivePlayer.AI
                             )
                             mid.checkWinCondition()?.let { result ->
@@ -1211,9 +1212,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Kontrola výhry po tahu AI ─────────────────────────────────────
             // activePlayer = AI i v mezistavu, aby hráč nemohl kliknout v okně delay
             // a nespustil druhou souběžnou finishTurn coroutinu (primární příčina pádu).
+            // deepCopy zajistí, že Compose vždy detekuje změnu (reference equality pro PlayerState).
+            // Bez deepCopy by se stav nezobrazil správně pokud AI mutovala player/ai in-place
+            // (např. AddToOpponentDeck – player.deck se změní, ale reference zůstane stejná).
+            val playerSnap = player.deepCopy()
+            val aiSnap     = ai.deepCopy()
             val s2 = old.copy(
-                playerState  = player,
-                aiState      = ai,
+                playerState  = playerSnap,
+                aiState      = aiSnap,
                 activePlayer = ActivePlayer.AI
             )
             s2.checkWinCondition()?.let { result ->
