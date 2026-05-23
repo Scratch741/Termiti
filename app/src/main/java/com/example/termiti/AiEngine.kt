@@ -216,6 +216,7 @@ fun aiChooseAction(
         }
         // Klonování: hodnotné pokud AI má silné karty v ruce (přidá 2 kopie příští zahrané karty)
         is CardEffect.CloneNextPlayed -> 6
+        is CardEffect.SmartJoker      -> 8   // Rozhodnutí: silná situační karta
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

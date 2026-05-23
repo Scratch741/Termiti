@@ -113,6 +113,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.DecisionMine              -> "⛏️"
     is CardEffect.DrawBoth                  -> "🎴"
     is CardEffect.CloneNextPlayed           -> "🔁"
+    is CardEffect.SmartJoker                -> "🃏"
     null                              -> "❓"
 }
 

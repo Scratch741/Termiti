@@ -196,6 +196,7 @@ fun applyEffects(
         is CardEffect.DecisionFromDiscard   -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDeck      -> { /* řeší ViewModel */ }
         is CardEffect.DecisionMine          -> { /* řeší ViewModel */ }
+        is CardEffect.SmartJoker            -> { /* řeší ViewModel */ }
     }
 }
 
