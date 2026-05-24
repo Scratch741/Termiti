@@ -339,7 +339,8 @@ fun GameScreen(
         if (showLostCards) {
             LostCardsOverlay(
                 lostCards = lostToOpponent,
-                onDismiss = { showLostCards = false }
+                onDismiss = { showLostCards = false },
+                onMenu    = { showLostCards = false; showMenuConfirm = true }
             )
         }
 

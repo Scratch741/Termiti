@@ -214,7 +214,7 @@ fun Card.isShapeShifterInstance(): Boolean =
  * Původní instance ID je zachováno, aby Compose LazyRow nerekrekoval slot.
  */
 fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
-    val validPool = pool.filter { tmpl -> tmpl.effects.none { it is CardEffect.ShapeShift } }
+    val validPool = pool.filter { tmpl -> tmpl.effects.none { it is CardEffect.ShapeShift } && !tmpl.isPlaceholder }
     if (validPool.isEmpty()) return
     for (i in hand.indices) {
         if (hand[i].isShapeShifterInstance()) {

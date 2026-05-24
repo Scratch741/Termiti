@@ -360,7 +360,7 @@ fun MulliganOverlay(
 
 // ─── Lost Cards Overlay ───────────────────────────────────────────────────────
 @Composable
-fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
+fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, onMenu: (() -> Unit)? = null) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -434,17 +434,32 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
                 }
             }
 
-            // Zavřít
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White.copy(alpha = 0.06f))
-                    .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
-                    .clickable(onClick = onDismiss)
-                    .padding(horizontal = 28.dp, vertical = 9.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            // Tlačítka
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (onMenu != null) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Crimson.copy(alpha = 0.08f))
+                            .border(1.dp, Crimson.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                            .clickable(onClick = onMenu)
+                            .padding(horizontal = 20.dp, vertical = 9.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("☰ Menu", color = Crimson, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                        .clickable(onClick = onDismiss)
+                        .padding(horizontal = 28.dp, vertical = 9.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
