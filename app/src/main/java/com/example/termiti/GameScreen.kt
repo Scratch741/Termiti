@@ -124,6 +124,14 @@ fun GameScreen(
         )
         Box(Modifier.fillMaxSize().background(Color(0x88000000)))
 
+        // ── UI rámy: horní bar + levý/pravý sloupec ──────────────────────────
+        Image(
+            painter            = painterResource(R.drawable.bg_bars),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.FillBounds
+        )
+
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ── Top bar ───────────────────────────────────────────────────────
