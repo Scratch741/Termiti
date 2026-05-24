@@ -368,7 +368,7 @@ fun NewResourceSection(
                     drawLine(Gold.copy(alpha = 0.12f), Offset(0f, y), Offset(size.width, y), 0.5f)
                 } else Modifier
             )
-            .padding(horizontal = 5.dp, vertical = 3.dp),
+            .padding(horizontal = 5.dp, vertical = 1.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (!isAi) {
