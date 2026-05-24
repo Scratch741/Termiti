@@ -154,7 +154,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.playerState,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(118.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -195,7 +195,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.aiState,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(112.dp),
+                    modifier    = Modifier.fillMaxHeight().width(118.dp),
                     bottomSlot  = {
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
