@@ -123,7 +123,7 @@ fun NewTopBar(
             .height(40.dp)
             .clipToBounds()
             .paint(painterResource(R.drawable.bg_top_panel), contentScale = ContentScale.Crop)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 20.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -317,7 +317,7 @@ fun NewResourcePanel(
                 painterResource(R.drawable.bg_side_panels),
                 contentScale = ContentScale.Crop
             )
-            .padding(horizontal = 5.dp, vertical = 5.dp)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
     ) {
         NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
         NewResourceSection("⚔️", "Útok",   mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
