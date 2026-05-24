@@ -121,6 +121,7 @@ fun NewTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
+            .clipToBounds()
             .paint(painterResource(R.drawable.bg_top_panel), contentScale = ContentScale.Crop)
             .padding(horizontal = 8.dp),
         verticalAlignment     = Alignment.CenterVertically,
@@ -311,6 +312,7 @@ fun NewResourcePanel(
 
     Column(
         modifier = modifier
+            .clipToBounds()
             .paint(
                 painterResource(R.drawable.bg_side_panels),
                 contentScale = ContentScale.Crop
