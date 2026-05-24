@@ -121,7 +121,7 @@ fun NewTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .background(Color.Black.copy(alpha = 0.25f))
+            .paint(painterResource(R.drawable.bg_bar_top), contentScale = ContentScale.FillBounds)
             .drawBehind {
                 drawRect(
                     Color(0xFF6B3D12),
@@ -318,7 +318,10 @@ fun NewResourcePanel(
 
     Column(
         modifier = modifier
-            .background(Color.Black.copy(alpha = 0.25f))
+            .paint(
+                painterResource(if (isAi) R.drawable.bg_bar_right else R.drawable.bg_bar_left),
+                contentScale = ContentScale.FillBounds
+            )
             .drawBehind {
                 val w = 3.dp.toPx()
                 val x = if (isAi) w / 2f else size.width - w / 2f
