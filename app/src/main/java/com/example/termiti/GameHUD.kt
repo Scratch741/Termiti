@@ -121,7 +121,7 @@ fun NewTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .background(Brush.verticalGradient(listOf(Color(0xFF3D200A), Color(0xFF2A1505))))
+            .background(Color.Black.copy(alpha = 0.25f))
             .drawBehind {
                 drawRect(
                     Color(0xFF6B3D12),
@@ -318,11 +318,7 @@ fun NewResourcePanel(
 
     Column(
         modifier = modifier
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF2E1A08), Color(0xFF231408), Color(0xFF2E1A08))
-                )
-            )
+            .background(Color.Black.copy(alpha = 0.25f))
             .drawBehind {
                 val w = 3.dp.toPx()
                 val x = if (isAi) w / 2f else size.width - w / 2f
