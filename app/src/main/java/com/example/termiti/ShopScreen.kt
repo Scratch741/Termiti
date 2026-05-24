@@ -157,7 +157,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Rarity.entries.forEach { r ->
+                            Rarity.entries.filter { it.packWeight > 0 }.forEach { r ->
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
