@@ -226,7 +226,6 @@ fun GameScreen(
             }
 
             // ── Ruka hráče – přes celou šířku dole ───────────────────
-            Box(Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF6B3D12)))
             val displayHand = if (gameOver != null && showOppHand)
                 state.aiState.hand else state.playerState.hand
             HandPanel(

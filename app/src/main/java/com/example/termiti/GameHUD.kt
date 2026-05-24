@@ -121,14 +121,7 @@ fun NewTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .paint(painterResource(R.drawable.bg_bar_top), contentScale = ContentScale.FillBounds)
-            .drawBehind {
-                drawRect(
-                    Color(0xFF6B3D12),
-                    topLeft = Offset(0f, size.height - 2.dp.toPx()),
-                    size    = Size(size.width, 2.dp.toPx())
-                )
-            }
+            .paint(painterResource(R.drawable.bg_bar_top), contentScale = ContentScale.Crop)
             .padding(horizontal = 8.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -320,13 +313,8 @@ fun NewResourcePanel(
         modifier = modifier
             .paint(
                 painterResource(if (isAi) R.drawable.bg_bar_right else R.drawable.bg_bar_left),
-                contentScale = ContentScale.FillBounds
+                contentScale = ContentScale.Crop
             )
-            .drawBehind {
-                val w = 3.dp.toPx()
-                val x = if (isAi) w / 2f else size.width - w / 2f
-                drawLine(Color(0xFF6B3D12), Offset(x, 0f), Offset(x, size.height), w)
-            }
             .padding(horizontal = 5.dp, vertical = 5.dp)
     ) {
         NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
