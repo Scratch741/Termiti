@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -359,6 +360,8 @@ fun NewResourceSection(
 
     // ── Jedna kompaktní řádka: [mine#] [icon] [name] ... [amount] ──────────
     // Pro AI zrcadlově: [amount] ... [name] [icon] [mine#]
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp
+    val vertPadding = if (screenHeightDp > 860) 3.dp else 1.dp
     Row(
         Modifier
             .fillMaxWidth()
@@ -368,7 +371,7 @@ fun NewResourceSection(
                     drawLine(Gold.copy(alpha = 0.12f), Offset(0f, y), Offset(size.width, y), 0.5f)
                 } else Modifier
             )
-            .padding(horizontal = 5.dp, vertical = 1.dp),
+            .padding(horizontal = 5.dp, vertical = vertPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (!isAi) {
