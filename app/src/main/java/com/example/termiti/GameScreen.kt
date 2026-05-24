@@ -225,6 +225,14 @@ fun GameScreen(
                 )
             }
 
+            // ── Separátor – horní okraj prostoru karet ───────────────
+            Image(
+                painter = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale = ContentScale.FillWidth
+            )
+
             // ── Ruka hráče – přes celou šířku dole ───────────────────
             val displayHand = if (gameOver != null && showOppHand)
                 state.aiState.hand else state.playerState.hand
