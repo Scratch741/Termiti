@@ -121,7 +121,7 @@ fun NewTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
-            .paint(painterResource(R.drawable.bg_bar_top), contentScale = ContentScale.Crop)
+            .paint(painterResource(R.drawable.bg_top_panel), contentScale = ContentScale.Crop)
             .padding(horizontal = 8.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -312,7 +312,7 @@ fun NewResourcePanel(
     Column(
         modifier = modifier
             .paint(
-                painterResource(if (isAi) R.drawable.bg_bar_right else R.drawable.bg_bar_left),
+                painterResource(R.drawable.bg_side_panels),
                 contentScale = ContentScale.Crop
             )
             .padding(horizontal = 5.dp, vertical = 5.dp)
