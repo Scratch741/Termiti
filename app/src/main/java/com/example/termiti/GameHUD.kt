@@ -123,7 +123,7 @@ fun NewTopBar(
             .fillMaxWidth()
             .height(40.dp)
             .clipToBounds()
-            .paint(painterResource(R.drawable.bg_top_panel), contentScale = ContentScale.Crop)
+            .paint(painterResource(R.drawable.bg_top_bar), contentScale = ContentScale.Crop)
             .padding(horizontal = 25.dp),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

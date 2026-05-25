@@ -13,9 +13,6 @@ data class GameState(
     val aiMaxHand: Int = 7          // zvýší se na 8, pokud AI dostala extra_hand_card
 ) {
     fun checkWinCondition(): GameResult? {
-        // Limit kol: po 99. kole rozhoduje výška hradu
-        if (currentTurn >= 99) return resolveByHpTurnLimit()
-
         val playerDead  = playerState.castleHP <= 0
         val aiDead      = aiState.castleHP     <= 0
         val playerBuilt = playerState.castleHP >= playerWinTarget
@@ -28,6 +25,14 @@ data class GameState(
             aiDead                  -> GameResult.AI_CASTLE_DESTROYED
             playerBuilt             -> GameResult.PLAYER_CASTLE_BUILT
             aiBuilt                 -> GameResult.AI_CASTLE_BUILT
+            // Limit kol: až po vyhodnocení normálních podmínek, spustí se po konci
+            // 99. zobrazeného kola (hráč vidí "Kolo 99", tah se přičte na 100).
+            // Pokud jsou oba balíčky prázdné, hra skončila vyčerpáním karet (ne časovým
+            // limitem) → použij "Balíčky došly" zprávu, ne "Limit 99 kol".
+            currentTurn > 99        -> if (playerState.deck.isEmpty() && aiState.deck.isEmpty())
+                                           resolveByHp()
+                                       else
+                                           resolveByHpTurnLimit()
             else                    -> null
         }
     }

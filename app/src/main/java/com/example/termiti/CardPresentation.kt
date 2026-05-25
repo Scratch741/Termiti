@@ -520,9 +520,9 @@ object CardPresentation {
             R.drawable.art_explodovana_bomba, "Chaos",
             artScale = 0.80f, artBiasY = -0.6f,
             descriptionEn = "Play immediately. Draw a card and -5 castle."),
-        "C39" to CardPres("Oba hráči zahodí celou ruku a líznout stejný počet nových karet.",
+        "C39" to CardPres("Oba hráči zahodí celou ruku a líznou stejný počet nových karet.",
             R.drawable.art_velky_zmatek, "Chaos",
-            artScale = 0.80f, artBiasY = -0.50f,
+            artScale = 0.80f, artBiasY = 0.20f,
             descriptionEn = "Both players discard their entire hand and draw the same number of new cards."),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
@@ -579,19 +579,19 @@ object CardPresentation {
         "120" to CardPres(
             "Všechny karty v tvé ruce zlevní o 1.",
             R.drawable.art_hromadna_sleva, "Magie",
-            artScale = 0.80f, artBiasY = -0.50f,
+            artScale = 0.80f, artBiasY = 0.45f,
             descriptionEn = "All cards in your hand cost 1 less."
         ),
         "121" to CardPres(
             "Všechny karty v soupeřově ruce zdraží o 1.",
             R.drawable.art_kletba_cen, "Chaos",
-            artScale = 0.80f, artBiasY = -0.50f,
+            artScale = 0.80f, artBiasY = 0.70f,
             descriptionEn = "All cards in the opponent's hand cost 1 more."
         ),
         "119" to CardPres(
             "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]",
             R.drawable.art_valecny_pokrik, "Útok",
-            artScale = 0.80f, artBiasY = -0.50f,
+            artScale = 0.80f, artBiasY = -0.40f,
             descriptionEn = "Attack for 7. Get a random Attack card into your hand. [Combo]",
             nameAccusative = "Válečný pokřik"
         ),
