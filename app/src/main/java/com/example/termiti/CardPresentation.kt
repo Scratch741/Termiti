@@ -576,6 +576,16 @@ object CardPresentation {
             descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
             nameAccusative = "Magického žolíka"
         ),
+        "120" to CardPres(
+            "Všechny karty v tvé ruce zlevní o 1.",
+            null, "Magie",
+            descriptionEn = "All cards in your hand cost 1 less."
+        ),
+        "121" to CardPres(
+            "Všechny karty v soupeřově ruce zdraží o 1.",
+            null, "Chaos",
+            descriptionEn = "All cards in the opponent's hand cost 1 more."
+        ),
         "119" to CardPres(
             "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]",
             R.drawable.art_valecny_pokrik, "Útok",

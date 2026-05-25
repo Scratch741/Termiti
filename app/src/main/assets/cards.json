@@ -3531,6 +3531,43 @@
     "baseId": "119"
   },
   {
+    "id": "120",
+    "name": "Hromadná sleva",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ModifyHandCost",
+        "delta": -1
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "120"
+  },
+  {
+    "id": "121",
+    "name": "Kletba cen",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ModifyHandCost",
+        "delta": 1,
+        "targetOpponent": true
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "121"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,

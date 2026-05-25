@@ -770,6 +770,7 @@ function _descEffect(fx) {
     case 'SwapHands':                return `Vymění ruce s protihráčem`;
     case 'RandomizeHands':           return `Oba hráči zahodí celou ruku a líznout nové karty`;
     case 'GiveRandomCard':           return `Dostaneš náhodnou kartu typu ${fx.costType} do ruky`;
+    case 'ModifyHandCost':           return fx.targetOpponent ? `Soupeřova ruka zdraží o ${fx.delta}` : `Tvá ruka zlevní o ${-fx.delta}`;
     case 'DrawPerCardPlayed':        return fx.cardType ? `Za každou další zahranou ${fx.cardType}: lízni 1` : `Za každou další zahranou kartu: lízni 1`;
     case 'GainResourcePerCardPlayed':
       return fx.cardType
@@ -853,6 +854,7 @@ function convertJsonEffect(fx) {
     case 'SwapHands':           return { t:'SW' };
     case 'RandomizeHands':      return { t:'RH' };
     case 'GiveRandomCard':      return { t:'GRC', ct:fx.costType };
+    case 'ModifyHandCost':      return { t:'MHC', d:fx.delta, opp:!!fx.targetOpponent };
     case 'ShapeShift':          return { t:'SS' };
     case 'ConvertMine':         return { t:'CM',     from:fx.from, to:fx.to };
     case 'DrawBoth':            return { t:'DB',     a:fx.count };
@@ -1382,6 +1384,8 @@ let CARD_EFFECTS_DB = {
   "C33":{ct:"CHAOS", fx:[{t:"SW"}]},
   "C39":{ct:"CHAOS", fx:[{t:"RH"}]},
   "119":{ct:"ATTACK",fx:[{t:"AP",a:7},{t:"GRC",ct:"ATTACK"}],combo:true},
+  "120":{ct:"MAGIC", fx:[{t:"MHC",d:-1,opp:false}]},
+  "121":{ct:"CHAOS", fx:[{t:"MHC",d:1, opp:true}]},
   "C34":{ct:"CHAOS", fx:[{t:"SS"}]},
   "C35":{ct:"CHAOS", fx:[{t:"CM",from:"MAGIC",to:"CHAOS"}]},
   "D01":{ct:"MAGIC", fx:[{t:"DC",a:1}],combo:true},
@@ -1857,6 +1861,7 @@ function simFx(fx, me, opp, xv) {
     case 'SW': { const tmp=[...me.hand]; me.hand.splice(0,me.hand.length,...opp.hand.map(c=>({...c}))); opp.hand.splice(0,opp.hand.length,...tmp.map(c=>({...c}))); break; }
     case 'RH': { const mc=me.hand.length,oc=opp.hand.length; me.discard.push(...me.hand); me.hand.length=0; opp.discard.push(...opp.hand); opp.hand.length=0; simDraw(me,mc); simDraw(opp,oc); break; }
     case 'GRC': { const pool=Object.keys(CARD_EFFECTS_DB).filter(id=>CARD_EFFECTS_DB[id].ct===fx.ct); if(pool.length&&me.hand.length<7){const id=pool[Math.floor(Math.random()*pool.length)];const c=makeSimCard(id);if(c)me.hand.push(c);} break; }
+    case 'MHC': { const tgt=fx.opp?opp:me; for(let i=0;i<tgt.hand.length;i++) tgt.hand[i]={...tgt.hand[i],costModifier:(tgt.hand[i].costModifier||0)+fx.d}; break; }
     case 'CM': { const flr=fx.from==='CHAOS'?0:1; const cur=me.mines[fx.from]||0; me.mines[fx.to]=Math.min(10,(me.mines[fx.to]||0)+1); if(cur>flr)me.mines[fx.from]=cur-1; break; }
     case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
     case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
@@ -1884,7 +1889,8 @@ function simAI(ai, opp) {
   const bothE=ai.deck.length===0&&opp.deck.length===0;
   const hFull=ai.hand.length>=7;
 
-  const aff=ai.hand.filter(c=>c.isXCost||(ai.res[c.costType]||0)>=c.cost);
+  const effC=c=>c.isXCost?0:Math.max(0,c.cost+(c.costModifier||0));
+  const aff=ai.hand.filter(c=>c.isXCost||(ai.res[c.costType]||0)>=effC(c));
 
   function se(fx,xv){
     switch(fx.t){
@@ -1916,6 +1922,7 @@ function simAI(ai, opp) {
       case 'SW': return ai.hand.length<opp.hand.length?15:opp.hand.length<ai.hand.length?-5:3;
       case 'RH': return (ai.hand.length<4&&ai.deck.length>0)?12:(opp.hand.length>ai.hand.length?8:2);
       case 'GRC': return 6;
+      case 'MHC': return fx.opp ? opp.hand.length*fx.d*2 : ai.hand.length*(-fx.d)*2;
       case 'CM': return 8;
       case 'SS': return 5;
       case 'DB': return (fx.a||0)*3;
@@ -1928,7 +1935,7 @@ function simAI(ai, opp) {
     const xv=c.isXCost?(ai.res[c.costType]||0):0;
     if(c.isXCost&&!bothE){const mx=aLH&&oLH?2:aLH||oLH?4:8;if(xv<mx)return -20+((Math.random()*4-2)|0);}
     const es=c.effects.reduce((s,fx)=>s+se(fx,xv),0);
-    const cs=c.isXCost?xv:c.cost;
+    const cs=c.isXCost?xv:effC(c);
     const cb=c.costType==='CHAOS'&&chaos<c.cost?100:0;
     return es-cs-cb+((Math.random()*4-2)|0);
   }
@@ -2037,7 +2044,7 @@ function simOneGame(deckA, deckB, trackCards) {
         me.preCostRes={...me.res};
         let xv=0;
         if(c.isXCost){xv=me.res[c.costType]||0;me.res[c.costType]=0;}
-        else me.res[c.costType]=Math.max(0,(me.res[c.costType]||0)-c.cost);
+        else me.res[c.costType]=Math.max(0,(me.res[c.costType]||0)-Math.max(0,c.cost+(c.costModifier||0)));
         simApply(c.effects,me,opp,xv);
         me.lastType=c.costType;
         me.preCostRes=null;

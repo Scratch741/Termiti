@@ -57,6 +57,12 @@ sealed class CardEffect {
      * Karta se vybírá z celého poolu — bez decision obrazovky.
      */
     data class GiveRandomCard(val costType: ResourceType) : CardEffect()
+    /**
+     * Změní [costModifier] na všech kartách v ruce o [delta].
+     * [targetOpponent] = false → vlastní ruka, true → soupeřova ruka.
+     * Výsledný effectiveCost je vždy omezen na 0–99 (viz Card.effectiveCost).
+     */
+    data class ModifyHandCost(val delta: Int, val targetOpponent: Boolean = false) : CardEffect()
     /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu.
      *  [cardType] = null → libovolný typ; neprázdný řetězec → jen daný typ (např. "Magie"). */
     data class DrawPerCardPlayed(val cardType: String? = null) : CardEffect()

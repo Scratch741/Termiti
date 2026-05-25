@@ -62,6 +62,7 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.SwapHands           -> "🔄"
     is CardEffect.RandomizeHands      -> "🎲"
     is CardEffect.GiveRandomCard      -> "🎴"
+    is CardEffect.ModifyHandCost      -> "🏷️"
     is CardEffect.DrawPerCardPlayed        -> "🎴"
     is CardEffect.GainResourcePerCardPlayed -> "⚡"
     is CardEffect.GainCastlePerCardPlayed   -> "🏯"

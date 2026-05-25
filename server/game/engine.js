@@ -354,6 +354,14 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'ModifyHandCost': {
+        const target = fx.targetOpponent ? opponent : self;
+        for (let i = 0; i < target.hand.length; i++) {
+          target.hand[i] = { ...target.hand[i], costModifier: (target.hand[i].costModifier || 0) + fx.delta };
+        }
+        break;
+      }
+
       case 'GiveRandomCard': {
         const pool = ALL_CARDS.filter(c => c.costType === fx.costType && !c.isPlaceholder);
         if (pool.length) {

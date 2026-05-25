@@ -166,6 +166,15 @@ fun applyEffects(
             }
         }
 
+        is CardEffect.ModifyHandCost -> {
+            val target = if (effect.targetOpponent) opponent else self
+            val iter = target.hand.listIterator()
+            while (iter.hasNext()) {
+                val card = iter.next()
+                iter.set(card.copy(costModifier = card.costModifier + effect.delta))
+            }
+        }
+
         is CardEffect.GiveRandomCard -> {
             val pool = allCards.filter { it.costType == effect.costType && !it.isPlaceholder }
             if (pool.isNotEmpty()) {
