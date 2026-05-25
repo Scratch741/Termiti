@@ -144,6 +144,14 @@ fun GameScreen(
                 aiPassives     = if (campaignOpponent == null) aiPassives else emptyList()
             )
 
+            // ── Separátor – dolní okraj top baru ─────────────────────────────
+            Image(
+                painter = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale = ContentScale.FillWidth
+            )
+
             // ── Hlavní řada ───────────────────────────────────────────────────
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
 
