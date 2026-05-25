@@ -115,6 +115,7 @@ object CardRepository {
             effect    = parseEffect(obj.getJSONObject("effect"))
         )
         "SwapHands"           -> CardEffect.SwapHands
+        "RandomizeHands"      -> CardEffect.RandomizeHands
         "DrawPerCardPlayed"        -> CardEffect.DrawPerCardPlayed(
             cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
         )

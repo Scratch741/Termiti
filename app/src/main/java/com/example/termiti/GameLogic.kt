@@ -166,6 +166,18 @@ fun applyEffects(
             }
         }
 
+        is CardEffect.RandomizeHands -> {
+            val selfCount = self.hand.size
+            val oppCount  = opponent.hand.size
+            self.discardPile.addAll(self.hand)
+            self.hand.clear()
+            opponent.discardPile.addAll(opponent.hand)
+            opponent.hand.clear()
+            if (onDrawCard != null) onDrawCard(self, selfCount)
+            else self.drawCards(selfCount)
+            opponent.drawCards(oppCount)
+        }
+
         // ── X-kost efekty ─────────────────────────────────────────────────────
         is CardEffect.XScaledAttackPlayer -> {
             val dmg     = xValue / effect.divisor

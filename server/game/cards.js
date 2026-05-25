@@ -32,6 +32,7 @@ const xac= (d=2)    => ({ type:'XScaledAttackCastle', divisor:d });
 const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 const swh= ()       => ({ type:'SwapHands' });
+const rnh= ()       => ({ type:'RandomizeHands' });
 const dpc= (ct=null)=> ({ type:'DrawPerCardPlayed', ...(ct ? {cardType:ct} : {}) });
 const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amount:n, ...(ct ? {cardType:ct} : {}) });
 const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
@@ -213,6 +214,7 @@ const RAW = [
   ['C36','Skrytá bomba',    4,'CHAOS',0,[aod('C37',3)],          'RARE'],
   ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0, true], // placeholder – vkládána pouze efektem C36
   ['C38','Explodovaná bomba',0,'CHAOS',0,[],                      'COMMON', false, 0, true], // placeholder po výbuchu, isPlaceholder:true
+  ['C39','Velký zmatek',    7,'CHAOS',0,[rnh()],                  'LEGENDARY'],
 
   // ── Chaos – ničení karet ──────────────────────────────────────────────────
   ['C19','Spálená knihovna',4,'CHAOS',0,[bn(2)],               'EPIC'],

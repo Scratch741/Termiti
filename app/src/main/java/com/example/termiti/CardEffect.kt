@@ -48,6 +48,10 @@ sealed class CardEffect {
     data class StealCastle(val amount: Int) : CardEffect()
     /** Prohodí celé ruce hráčů – self dostane ruku soupeře a naopak. */
     object SwapHands : CardEffect()
+    /**
+     * Velký zmatek – oba hráči zahodí celé ruce a líznout stejný počet nových karet ze svého balíčku.
+     */
+    object RandomizeHands : CardEffect()
     /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu.
      *  [cardType] = null → libovolný typ; neprázdný řetězec → jen daný typ (např. "Magie"). */
     data class DrawPerCardPlayed(val cardType: String? = null) : CardEffect()

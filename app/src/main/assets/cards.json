@@ -2683,6 +2683,23 @@
     "baseId": "C38"
   },
   {
+    "id": "C39",
+    "name": "Velký zmatek",
+    "cost": 7,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "RandomizeHands"
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "C39"
+  },
+  {
     "id": "C19",
     "name": "Spálená knihovna",
     "cost": 4,

@@ -520,6 +520,9 @@ object CardPresentation {
             R.drawable.art_explodovana_bomba, "Chaos",
             artScale = 0.80f, artBiasY = -0.6f,
             descriptionEn = "Play immediately. Draw a card and -5 castle."),
+        "C39" to CardPres("Oba hráči zahodí celou ruku a líznout stejný počet nových karet.",
+            null, "Chaos",
+            descriptionEn = "Both players discard their entire hand and draw the same number of new cards."),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu. [Combo]",

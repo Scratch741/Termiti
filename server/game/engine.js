@@ -354,6 +354,18 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'RandomizeHands': {
+        const selfCount = self.hand.length;
+        const oppCount  = opponent.hand.length;
+        self.discardPile.push(...self.hand);
+        self.hand.length = 0;
+        opponent.discardPile.push(...opponent.hand);
+        opponent.hand.length = 0;
+        drawCards(self, selfCount);
+        drawCards(opponent, oppCount);
+        break;
+      }
+
       // ── X-kost efekty ────────────────────────────────────────────────────────
       case 'XScaledAttackPlayer': {
         const dmg     = Math.floor(xValue / (fx.divisor || 2));

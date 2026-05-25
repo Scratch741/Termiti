@@ -93,6 +93,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.XScaledBuildCastle  -> "🏰"
     is CardEffect.XScaledDualResource -> "💰"
     is CardEffect.SwapHands           -> "🔄"
+    is CardEffect.RandomizeHands      -> "🎲"
     is CardEffect.DrawPerCardPlayed        -> "🎴"
     is CardEffect.GainResourcePerCardPlayed -> "⚡"
     is CardEffect.GainCastlePerCardPlayed   -> "🏯"

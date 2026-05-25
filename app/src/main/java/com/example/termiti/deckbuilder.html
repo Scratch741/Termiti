@@ -768,6 +768,7 @@ function _descEffect(fx) {
     case 'TrapOnDraw':               return `Pasca při líznutí`;
     case 'DrawCard':                 return `Lízne ${fx.count} karet`;
     case 'SwapHands':                return `Vymění ruce s protihráčem`;
+    case 'RandomizeHands':           return `Oba hráči zahodí celou ruku a líznout nové karty`;
     case 'DrawPerCardPlayed':        return fx.cardType ? `Za každou další zahranou ${fx.cardType}: lízni 1` : `Za každou další zahranou kartu: lízni 1`;
     case 'GainResourcePerCardPlayed':
       return fx.cardType
@@ -849,6 +850,7 @@ function convertJsonEffect(fx) {
     case 'XScaledDualResource': return { t:'XDR',    rA:fx.typeA, rB:fx.typeB, div:fx.divisor };
     case 'ConditionalEffect':   return { t:'CE',     c:convertJsonCondition(fx.condition), e:convertJsonEffect(fx.effect) };
     case 'SwapHands':           return { t:'SW' };
+    case 'RandomizeHands':      return { t:'RH' };
     case 'ShapeShift':          return { t:'SS' };
     case 'ConvertMine':         return { t:'CM',     from:fx.from, to:fx.to };
     case 'DrawBoth':            return { t:'DB',     a:fx.count };
@@ -1376,6 +1378,7 @@ let CARD_EFFECTS_DB = {
   "C31":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4},{t:"DR",r:"MAGIC",a:2},{t:"DR",r:"ATTACK",a:2},{t:"DR",r:"STONES",a:2}]},
   "C32":{ct:"CHAOS", fx:[{t:"AC",a:10},{t:"BC",a:-10}]},
   "C33":{ct:"CHAOS", fx:[{t:"SW"}]},
+  "C39":{ct:"CHAOS", fx:[{t:"RH"}]},
   "C34":{ct:"CHAOS", fx:[{t:"SS"}]},
   "C35":{ct:"CHAOS", fx:[{t:"CM",from:"MAGIC",to:"CHAOS"}]},
   "D01":{ct:"MAGIC", fx:[{t:"DC",a:1}],combo:true},
@@ -1848,6 +1851,7 @@ function simFx(fx, me, opp, xv) {
     case 'XBC': me.castleHP = Math.min(100, me.castleHP + Math.floor(xv/fx.div)); break;
     case 'XDR': { const a=Math.floor(xv/fx.div); me.res[fx.rA]=(me.res[fx.rA]||0)+a; me.res[fx.rB]=(me.res[fx.rB]||0)+a; break; }
     case 'SW': { const tmp=[...me.hand]; me.hand.splice(0,me.hand.length,...opp.hand.map(c=>({...c}))); opp.hand.splice(0,opp.hand.length,...tmp.map(c=>({...c}))); break; }
+    case 'RH': { const mc=me.hand.length,oc=opp.hand.length; me.discard.push(...me.hand); me.hand.length=0; opp.discard.push(...opp.hand); opp.hand.length=0; simDraw(me,mc); simDraw(opp,oc); break; }
     case 'CM': { const flr=fx.from==='CHAOS'?0:1; const cur=me.mines[fx.from]||0; me.mines[fx.to]=Math.min(10,(me.mines[fx.to]||0)+1); if(cur>flr)me.mines[fx.from]=cur-1; break; }
     case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
     case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
@@ -1905,6 +1909,7 @@ function simAI(ai, opp) {
       case 'AddOpp': return (fx.count||0)*5;
       case 'Trap': return 0;
       case 'SW': return ai.hand.length<opp.hand.length?15:opp.hand.length<ai.hand.length?-5:3;
+      case 'RH': return (ai.hand.length<4&&ai.deck.length>0)?12:(opp.hand.length>ai.hand.length?8:2);
       case 'CM': return 8;
       case 'SS': return 5;
       case 'DB': return (fx.a||0)*3;
