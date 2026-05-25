@@ -578,12 +578,14 @@ object CardPresentation {
         ),
         "120" to CardPres(
             "Všechny karty v tvé ruce zlevní o 1.",
-            null, "Magie",
+            R.drawable.art_hromadna_sleva, "Magie",
+            artScale = 0.80f, artBiasY = -0.50f,
             descriptionEn = "All cards in your hand cost 1 less."
         ),
         "121" to CardPres(
             "Všechny karty v soupeřově ruce zdraží o 1.",
-            null, "Chaos",
+            R.drawable.art_kletba_cen, "Chaos",
+            artScale = 0.80f, artBiasY = -0.50f,
             descriptionEn = "All cards in the opponent's hand cost 1 more."
         ),
         "119" to CardPres(
