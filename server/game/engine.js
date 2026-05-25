@@ -354,6 +354,18 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'GiveRandomCard': {
+        const pool = ALL_CARDS.filter(c => c.costType === fx.costType && !c.isPlaceholder);
+        if (pool.length) {
+          const tmpl = pool[Math.floor(Math.random() * pool.length)];
+          const card = makeInstance(tmpl);
+          card.isGenerated = true;
+          if (self.hand.length < (self.maxHandSize || 7)) self.hand.push(card);
+          else self.discardPile.push(card);
+        }
+        break;
+      }
+
       case 'RandomizeHands': {
         const selfCount = self.hand.length;
         const oppCount  = opponent.hand.length;

@@ -52,6 +52,11 @@ sealed class CardEffect {
      * Velký zmatek – oba hráči zahodí celé ruce a líznout stejný počet nových karet ze svého balíčku.
      */
     object RandomizeHands : CardEffect()
+    /**
+     * Přidá 1 náhodnou kartu daného [costType] přímo do ruky hráče (isGenerated = true).
+     * Karta se vybírá z celého poolu — bez decision obrazovky.
+     */
+    data class GiveRandomCard(val costType: ResourceType) : CardEffect()
     /** Aktivuje efekt: za každou DALŠÍ zahranou kartu v tomto kole líznout 1 kartu.
      *  [cardType] = null → libovolný typ; neprázdný řetězec → jen daný typ (např. "Magie"). */
     data class DrawPerCardPlayed(val cardType: String? = null) : CardEffect()

@@ -33,6 +33,7 @@ const xbc= (d=2)    => ({ type:'XScaledBuildCastle',  divisor:d });
 const xdr= (tA,tB,d=2) => ({ type:'XScaledDualResource', typeA:tA, typeB:tB, divisor:d });
 const swh= ()       => ({ type:'SwapHands' });
 const rnh= ()       => ({ type:'RandomizeHands' });
+const grc= (ct)     => ({ type:'GiveRandomCard', costType:ct });
 const dpc= (ct=null)=> ({ type:'DrawPerCardPlayed', ...(ct ? {cardType:ct} : {}) });
 const grp= (t,n,ct=null) => ({ type:'GainResourcePerCardPlayed', resType:t, amount:n, ...(ct ? {cardType:ct} : {}) });
 const gcp= (n,ct=null)   => ({ type:'GainCastlePerCardPlayed',   amount:n,             ...(ct ? {cardType:ct} : {}) });
@@ -265,6 +266,7 @@ const RAW = [
   ['116','Chaotická replikace',2,'CHAOS',1,[cnp(2)],           'EPIC'],
   ['117','Průzkum dolů',      1,'MAGIC',1,[dmine()],           'EPIC'],
   ['118','Magický žolík',    4,'MAGIC',1,[sj()],              'LEGENDARY'],
+  ['119','Válečný pokřik',  4,'ATTACK',1,[ap(7),grc('ATTACK')],'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

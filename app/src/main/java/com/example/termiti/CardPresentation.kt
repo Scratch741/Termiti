@@ -575,5 +575,11 @@ object CardPresentation {
             descriptionEn = "**Decision:** choose a card that fits the situation — 1 best from each type (Magic, Attack, Build, Chaos). [Combo]",
             nameAccusative = "Magického žolíka"
         ),
+        "119" to CardPres(
+            "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]",
+            null, "Útok",
+            descriptionEn = "Attack for 7. Get a random Attack card into your hand. [Combo]",
+            nameAccusative = "Válečný pokřik"
+        ),
     )
 }

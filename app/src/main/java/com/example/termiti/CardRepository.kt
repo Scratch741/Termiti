@@ -116,6 +116,7 @@ object CardRepository {
         )
         "SwapHands"           -> CardEffect.SwapHands
         "RandomizeHands"      -> CardEffect.RandomizeHands
+        "GiveRandomCard"      -> CardEffect.GiveRandomCard(ResourceType.valueOf(obj.getString("costType")))
         "DrawPerCardPlayed"        -> CardEffect.DrawPerCardPlayed(
             cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
         )

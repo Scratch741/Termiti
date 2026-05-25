@@ -182,6 +182,7 @@ fun aiChooseAction(
             if (opponent.hand.size > ai.hand.size) 10 + (opponent.hand.size - ai.hand.size) * 2 else 3
         is CardEffect.RandomizeHands ->
             if (ai.hand.size < 3 && ai.deck.isNotEmpty()) 12 else if (opponent.hand.size > ai.hand.size) 8 else 2
+        is CardEffect.GiveRandomCard -> 6
         // Každá combo karta zahraná po této přinese líz – hodnotnější pokud AI má víc combo karet v ruce
         is CardEffect.DrawPerCardPlayed -> {
             // Buff stojí za to jen pokud máme combo karty k zahrání

@@ -166,6 +166,15 @@ fun applyEffects(
             }
         }
 
+        is CardEffect.GiveRandomCard -> {
+            val pool = allCards.filter { it.costType == effect.costType && !it.isPlaceholder }
+            if (pool.isNotEmpty()) {
+                val card = pool.random().copy(isGenerated = true)
+                if (self.hand.size < 7) self.hand.add(card)
+                else self.discardPile.add(card)
+            }
+        }
+
         is CardEffect.RandomizeHands -> {
             val selfCount = self.hand.size
             val oppCount  = opponent.hand.size
