@@ -521,7 +521,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.6f,
             descriptionEn = "Play immediately. Draw a card and -5 castle."),
         "C39" to CardPres("Oba hráči zahodí celou ruku a líznout stejný počet nových karet.",
-            null, "Chaos",
+            R.drawable.art_velky_zmatek, "Chaos",
             descriptionEn = "Both players discard their entire hand and draw the same number of new cards."),
 
         // ── Lízni karet ───────────────────────────────────────────────────────
@@ -577,7 +577,7 @@ object CardPresentation {
         ),
         "119" to CardPres(
             "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]",
-            null, "Útok",
+            R.drawable.art_valecny_pokrik, "Útok",
             descriptionEn = "Attack for 7. Get a random Attack card into your hand. [Combo]",
             nameAccusative = "Válečný pokřik"
         ),
