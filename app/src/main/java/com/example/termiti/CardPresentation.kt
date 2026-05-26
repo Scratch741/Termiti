@@ -595,5 +595,12 @@ object CardPresentation {
             descriptionEn = "Attack for 7. Get a random Attack card into your hand. [Combo]",
             nameAccusative = "Válečný pokřik"
         ),
+        "122" to CardPres(
+            "Postaví hrad o 7. Dostaneš náhodnou stavební kartu do ruky. [Combo]",
+            R.drawable.art_stavebni_posila, "Stavba",
+            artScale = 0.80f, artBiasY = -0.20f,
+            descriptionEn = "Build castle for 7. Get a random Build card into your hand. [Combo]",
+            nameAccusative = "Stavební posilu"
+        ),
     )
 }

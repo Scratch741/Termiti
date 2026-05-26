@@ -270,6 +270,7 @@ const RAW = [
   ['119','Válečný pokřik',  4,'ATTACK',1,[ap(7),grc('ATTACK')],'EPIC'],
   ['120','Hromadná sleva',  2,'MAGIC', 0,[mhc(-1)],           'EPIC'],
   ['121','Kletba cen',      3,'CHAOS', 0,[mhc(1,true)],       'RARE'],
+  ['122','Stavební posila', 4,'STONES',1,[bc(7),grc('STONES')],'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

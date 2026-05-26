@@ -22,10 +22,16 @@
 | `StealCard` | count=1 | Steals random cards from opponent's hand |
 | `BurnCard` | count=1 | Destroys random cards from opponent's hand |
 | `AddCardsToDeck` | cardId, count | Adds copies of a card to own deck (shuffled in) |
+| `AddToOpponentDeck` | cardId, count | Shuffles copies of a card into the **opponent's** deck |
 | `DrawCard` | count=1 | Draws cards from own deck to hand |
 | `DrawBoth` | count=1 | Both players draw cards |
+| `GiveRandomCard` | costType | Puts a random card of given costType into **own** hand |
+| `TrapOnDraw` | effect | Trap: instead of entering hand the card auto-triggers its effect on draw; card goes to discard. Supported inner effects: `AttackCastle/Wall/Player`, `BuildCastle`. Trap cards are filtered out of DeckBuilder. |
+| `ModifyHandCost` | delta, targetOpponent=false | Raises or lowers card costs in one player's hand for the rest of the turn |
+| `RandomizeHands` | — | Shuffles both hands together and redistributes randomly |
 | `ConvertMine` | from, to | Converts 1 unit of mine `from` → `to` |
 | `SwapHands` | — | Swaps both players' entire hands |
+| `SmartJoker` | — | Decision: player picks 1 best card from a set of 4 — best of each type (Magic / Attack / Build / Chaos) |
 
 ## Conditional effects
 
@@ -78,3 +84,4 @@ Card costs 0 but consumes ALL available resources of the given type on play (X =
 
 ## Changelog
 - 2026-05-21: Page created
+- 2026-05-26: Added missing effects: GiveRandomCard, TrapOnDraw, AddToOpponentDeck, ModifyHandCost, RandomizeHands, SmartJoker
