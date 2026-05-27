@@ -121,11 +121,10 @@ sealed class CardEffect {
      */
     object SmartJoker : CardEffect()
     /**
-     * Útočí na hráče za [base] + ([bonusPerConsecutiveAttack] × počet útočných karet
-     * zahraných před touto kartou v tomto tahu v řadě).
-     * Počítadlo je v [PlayerState.consecutiveAttackCardsThisTurn] a spravuje ho GameViewModel.
+     * Útočí na hráče za [base] + ([bonusPerAttack] × počet útočných karet zahraných v tomto tahu).
+     * Počítadlo je v [PlayerState.attackCardsThisTurn] a spravuje ho GameViewModel.
      */
-    data class MomentumAttack(val base: Int, val bonusPerConsecutiveAttack: Int) : CardEffect()
+    data class MomentumAttack(val base: Int, val bonusPerAttack: Int) : CardEffect()
     /**
      * Decision: zobrazí celou ruku soupeře; hráč si vybere jednu kartu a ukradne ji.
      */

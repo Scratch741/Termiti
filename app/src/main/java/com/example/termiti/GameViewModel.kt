@@ -989,8 +989,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // ── Rozhodnutí: pauza tahu pro výběr hráče ──────────────────────────
         // Momentum: aktualizuj počítadlo za útočné karty (PŘED decision pausou, ale PO applyEffects)
-        if (card.costType == ResourceType.ATTACK) player.consecutiveAttackCardsThisTurn++
-        else player.consecutiveAttackCardsThisTurn = 0
+        if (card.costType == ResourceType.ATTACK) player.attackCardsThisTurn++
 
         val decisionFx = card.effects.firstOrNull {
             it is CardEffect.DecisionBurnOpponent ||
@@ -1181,8 +1180,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
-                        if (aiCard.costType == ResourceType.ATTACK) ai.consecutiveAttackCardsThisTurn++
-                        else ai.consecutiveAttackCardsThisTurn = 0
+                        if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
                         // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
@@ -1436,7 +1434,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
             player.cloneNextPlayed = null;              ai.cloneNextPlayed = null
-            player.consecutiveAttackCardsThisTurn = 0;  ai.consecutiveAttackCardsThisTurn = 0
+            player.attackCardsThisTurn = 0;  ai.attackCardsThisTurn = 0
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(

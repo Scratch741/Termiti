@@ -646,9 +646,8 @@ class GameSession {
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
 
-    // Momentum: sleduj po sobě jdoucí útočné karty
-    if (card.costType === 'ATTACK') self.consecutiveAttackCardsThisTurn = (self.consecutiveAttackCardsThisTurn || 0) + 1;
-    else self.consecutiveAttackCardsThisTurn = 0;
+    // Momentum: sleduj útočné karty zahranné v tomto tahu
+    if (card.costType === 'ATTACK') self.attackCardsThisTurn = (self.attackCardsThisTurn || 0) + 1;
 
     // Loguj změnu velikosti balíčku po AddToOpponentDeck
     const hasAOD = card.effects && card.effects.some(fx => fx.type === 'AddToOpponentDeck');
@@ -1083,7 +1082,7 @@ class GameSession {
     prevState.gainResourcePerCardPlayed = [];
     prevState.gainCastlePerCardPlayed = [];
     prevState.cloneNextPlayed = 0;
-    prevState.consecutiveAttackCardsThisTurn = 0;
+    prevState.attackCardsThisTurn = 0;
 
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';

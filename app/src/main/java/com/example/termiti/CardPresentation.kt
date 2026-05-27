@@ -248,7 +248,7 @@ object CardPresentation {
         // ── Sabotáž a krádež (platí MAGIC) ────────────────────────────────────
         "065" to CardPres("Ukradni 4 útoku od soupeře.",
             R.drawable.art_lupic, "Magie",
-            artScale = 0.90f, artBiasY = -0.25f, isBasic = true),
+            artScale = 0.80f, artBiasY = 0.05f, isBasic = true),
         "066" to CardPres("Ukradni 4 kameny od soupeře.",
             R.drawable.art_kamenna_dan, "Magie",
             artScale = 0.80f),
@@ -589,16 +589,16 @@ object CardPresentation {
             descriptionEn = "All cards in the opponent's hand cost 1 more."
         ),
         "123" to CardPres(
-            "Zaútočí za 2 + 4 za každou útočnou kartu zahranou před ní v tomto tahu v řadě. [Combo]",
+            "Zaútočí za 2 + 4 za každou útočnou kartu zahranou v tomto tahu.",
             R.drawable.art_momentum, "Útok",
-            artScale = 0.80f, artBiasY = 0.0f,
-            descriptionEn = "Attack for 2 + 4 per consecutive Attack card played before it this turn. [Combo]",
+            artScale = 0.80f, artBiasY = 1.0f,
+            descriptionEn = "Attack for 2 + 4 per Attack card played this turn.",
             nameAccusative = "Momentum"
         ),
         "C40" to CardPres(
             "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji.",
-            R.drawable.art_zakezny_speh, "Chaos",
-            artScale = 0.80f, artBiasY = 0.0f,
+            R.drawable.art_zakerny_speh, "Chaos",
+            artScale = 0.80f, artBiasY = -0.5f,
             descriptionEn = "See the opponent's entire hand. Choose one card and steal it.",
             nameAccusative = "Zákeřného špeha"
         ),

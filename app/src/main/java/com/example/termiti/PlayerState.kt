@@ -76,11 +76,10 @@ class PlayerState(
      */
     var cloneNextPlayed: Int? = null,
     /**
-     * Počet útočných karet zahraných v řadě (bez přerušení ne-útočnou kartou) v tomto tahu.
-     * Čte se při aplikaci [CardEffect.MomentumAttack], poté se inkrementuje (je-li karta útočná)
-     * nebo resetuje na 0 (jiný typ). Resetuje se vždy při přechodu na nový tah.
+     * Počet útočných karet zahraných v tomto tahu (celkem).
+     * Čte se při aplikaci [CardEffect.MomentumAttack]. Resetuje se při přechodu na nový tah.
      */
-    var consecutiveAttackCardsThisTurn: Int = 0
+    var attackCardsThisTurn: Int = 0
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -98,7 +97,7 @@ class PlayerState(
         gainResourcePerCardPlayed = gainResourcePerCardPlayed.toMutableList(),
         gainCastlePerCardPlayed         = gainCastlePerCardPlayed.toMutableList(),
         cloneNextPlayed                 = cloneNextPlayed,
-        consecutiveAttackCardsThisTurn  = consecutiveAttackCardsThisTurn
+        attackCardsThisTurn             = attackCardsThisTurn
     )
 
     /**

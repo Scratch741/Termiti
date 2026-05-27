@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 
 @Composable
 fun DecisionOverlay(
@@ -81,16 +83,17 @@ fun DecisionOverlay(
         }
     } else {
         // ── Normální mód: plný overlay ────────────────────────────────────────
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xE5000000))
                 .pointerInput(Unit) { detectTapGestures {} },
             contentAlignment = Alignment.Center
         ) {
+            val maxPanelW = maxWidth * 0.96f
             Column(
                 modifier = Modifier
-                    .width(IntrinsicSize.Max)   // šířka = nejširší child (= Row karet)
+                    .widthIn(max = maxPanelW)
                     .clip(RoundedCornerShape(16.dp))
                     .then(
                         Modifier.paint(
@@ -130,8 +133,11 @@ fun DecisionOverlay(
                     textAlign = TextAlign.Center
                 )
 
-                // Karty – kliknutím se vybere
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Karty – kliknutím se vybere; při přeplnění scrollovatelné
+                Row(
+                    modifier              = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     decision.options.forEach { card ->
                         Box(modifier = Modifier.clickable { onChoice(card) }) {
                             CardView(

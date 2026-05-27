@@ -40,12 +40,12 @@ fun SettingsScreen(onBack: () -> Unit) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            // Blokuje všechny dotykové události – zabraňuje hraní karet přes nastavení
+            // Blokuje doteky na pozadí (hra pod ním), ale nechá projít doteky na vlastním UI
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
                         awaitPointerEvent(PointerEventPass.Final)
-                            .changes.forEach { it.consume() }
+                            .changes.filter { !it.isConsumed }.forEach { it.consume() }
                     }
                 }
             }

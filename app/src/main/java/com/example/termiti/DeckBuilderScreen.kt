@@ -119,7 +119,8 @@ private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.AttackCastle,
     is CardEffect.AttackWall,
     is CardEffect.StealResource,
-    is CardEffect.DrainResource     -> "Útok"
+    is CardEffect.DrainResource,
+    is CardEffect.MomentumAttack    -> "Útok"
     is CardEffect.ConditionalEffect -> this.effect.toCategory()
     is CardEffect.BuildCastle       -> if (this.amount > 0) "Obrana" else "Útok"
     is CardEffect.BuildWall         -> if (this.amount > 0) "Obrana" else "Útok"

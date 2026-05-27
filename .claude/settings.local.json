@@ -60,7 +60,17 @@
       "Bash(git stash *)",
       "Bash(git checkout *)",
       "Bash(git restore *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(Select-String -Pattern \"error:|warning: w:\")",
+      "PowerShell(cd C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti; .\\\\gradlew compileDebugKotlin --rerun-tasks 2>&1 | Where-Object { $_ -match \"error:|BUILD\" } | Select-Object -First 30)",
+      "PowerShell(node -e \"require\\('C:/Users/Scratch/AndroidStudioProjects/Termiti/server/game/engine.js'\\); console.log\\('engine.js OK'\\)\")",
+      "Bash(git ls-tree *)",
+      "Bash(ls /mnt/c/Users/Scratch/AndroidStudioProjects/Termiti/app/src/main/res/drawable/ | grep bg_)",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\(r'C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\\\\app\\\\src\\\\main\\\\res\\\\drawable\\\\bg_top_panel.png'\\); print\\(img.size, img.mode\\)\")",
+      "Bash(grep -v \"//\")",
+      "Bash(grep -rn \"TURN_LIMIT\\\\|resolveByHp\" --include=\"*.kt\" server/)",
+      "Bash(grep -rn \"TURN_LIMIT\\\\|resolveByHp\" --include=\"*.js\" server/)",
+      "Bash(grep -v \"//.*currentTurn\")"
     ]
   }
 }

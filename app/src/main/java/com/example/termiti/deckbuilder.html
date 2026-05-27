@@ -791,7 +791,7 @@ function _descEffect(fx) {
     case 'XScaledBuildCastle':       return `+X÷${fx.divisor || 2} hrad`;
     case 'XScaledDualResource':      return `+X÷${fx.divisor || 2} ${_resName(fx.typeA)} a ${_resName(fx.typeB)}`;
     case 'ConditionalEffect':        return `Pokud ${_descCondition(fx.condition)}: ${_descEffect(fx.effect)}`;
-    case 'MomentumAttack':           return `Zaútočí za ${fx.base} + ${fx.bonusPerConsecutiveAttack} za každou útočnou kartu v řadě [Combo]`;
+    case 'MomentumAttack':           return `Zaútočí za ${fx.base} + ${fx.bonusPerAttack} za každou útočnou kartu zahranou v tomto tahu.`;
     case 'PeekAndStealHand':         return `Vidí soupeřovu ruku a ukradne kartu`;
     default:                         return fx.type;
   }
@@ -866,7 +866,7 @@ function convertJsonEffect(fx) {
     case 'ConvertMine':         return { t:'CM',     from:fx.from, to:fx.to };
     case 'DrawBoth':            return { t:'DB',     a:fx.count };
     case 'DecisionMine':        return { t:'DMINE' };
-    case 'MomentumAttack':      return { t:'MMA',   b:fx.base, bon:fx.bonusPerConsecutiveAttack };
+    case 'MomentumAttack':      return { t:'MMA',   b:fx.base, bon:fx.bonusPerAttack };
     case 'PeekAndStealHand':    return { t:'PSH' };
     default: return { t:'?', raw: fx.type };
   }
@@ -1421,7 +1421,7 @@ let CARD_EFFECTS_DB = {
   "117":{ct:"MAGIC", fx:[{t:"DMINE"}],combo:true},
   "C36":{ct:"CHAOS", fx:[{t:"AddOpp",id:"C37",count:3}]},
   "C37":{ct:"CHAOS", fx:[{t:"Trap",e:{t:"AC",a:5}}]},
-  "123":{ct:"ATTACK",fx:[{t:"MMA",b:2,bon:4}],combo:true},
+  "123":{ct:"ATTACK",fx:[{t:"MMA",b:2,bon:4}],combo:false},
   "C40":{ct:"CHAOS", fx:[{t:"PSH"}]},
 };
 
@@ -1878,7 +1878,7 @@ function simFx(fx, me, opp, xv) {
     case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
     case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
     case 'DMINE': { const types=['MAGIC','ATTACK','STONES','CHAOS']; const best=types.reduce((b,r)=>(me.mines[r]||0)<(me.mines[b]||0)?r:b,types[0]); me.mines[best]=(me.mines[best]||0)+1; break; }
-    case 'MMA': { const total=fx.b+(me.consAttack||0)*fx.bon; const wd=Math.min(total,opp.wallHP); opp.wallHP-=wd; const ov=total-wd; if(ov>0)opp.castleHP-=ov; break; }
+    case 'MMA': { const total=fx.b+(me.attackCards||0)*fx.bon; const wd=Math.min(total,opp.wallHP); opp.wallHP-=wd; const ov=total-wd; if(ov>0)opp.castleHP-=ov; break; }
     case 'PSH': { if(opp.hand.length>0){const idx=Math.floor(Math.random()*opp.hand.length);const stolen=opp.hand.splice(idx,1)[0];if(me.hand.length<7)me.hand.push({...stolen});} break; }
   }
 }
@@ -1941,7 +1941,7 @@ function simAI(ai, opp) {
       case 'SS': return 5;
       case 'DB': return (fx.a||0)*3;
       case 'DMINE': return 10;
-      case 'MMA': { const total=fx.b+(ai.consAttack||0)*fx.bon; return (oLH?20:oCW?6:8)+Math.floor(total/4); }
+      case 'MMA': { const total=fx.b+(ai.attackCards||0)*fx.bon; return (oLH?20:oCW?6:8)+Math.floor(total/4); }
       case 'PSH': return opp.hand.length>0 ? 8+opp.hand.length : 2;
       default: return 0;
     }
@@ -2047,7 +2047,7 @@ function simOneGame(deckA, deckB, trackCards) {
     simGenRes(me);
     if(!first) simDraw(me,1);
     if(ssPool.length) simTransformShapeShifters(me.hand, ssPool);
-    me.consAttack = 0; // reset consecutive attack counter at start of each turn
+    me.attackCards = 0; // reset attack card counter at start of each turn
 
     let waited=false, go=true;
     while(go){
@@ -2065,7 +2065,7 @@ function simOneGame(deckA, deckB, trackCards) {
         simApply(c.effects,me,opp,xv);
         me.lastType=c.costType;
         me.preCostRes=null;
-        if(c.costType==='ATTACK') me.consAttack=(me.consAttack||0)+1; else me.consAttack=0;
+        if(c.costType==='ATTACK') me.attackCards=(me.attackCards||0)+1;
         const w=simWin(pA,pB);
         if(w!==null)return{winner:w,turns:t,playedA,playedB};
         if(!c.isCombo)go=false;

@@ -3568,16 +3568,38 @@
     "baseId": "121"
   },
   {
+    "id": "122",
+    "name": "Stavební posila",
+    "cost": 4,
+    "costType": "STONES",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "BuildCastle",
+        "amount": 7
+      },
+      {
+        "type": "GiveRandomCard",
+        "costType": "STONES"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "122"
+  },
+  {
     "id": "123",
     "name": "Momentum",
     "cost": 3,
     "costType": "ATTACK",
-    "isCombo": true,
+    "isCombo": false,
     "effects": [
       {
         "type": "MomentumAttack",
         "base": 2,
-        "bonusPerConsecutiveAttack": 4
+        "bonusPerAttack": 4
       }
     ],
     "rarity": "EPIC",

@@ -224,7 +224,7 @@ fun aiChooseAction(
         is CardEffect.CloneNextPlayed -> 6
         is CardEffect.SmartJoker      -> 8   // Rozhodnutí: silná situační karta
         is CardEffect.MomentumAttack  ->
-            fx.base + ai.consecutiveAttackCardsThisTurn * fx.bonusPerConsecutiveAttack
+            fx.base + ai.attackCardsThisTurn * fx.bonusPerAttack
         is CardEffect.PeekAndStealHand ->
             if (opponent.hand.isNotEmpty()) 8 + opponent.hand.size else 2
     }

@@ -387,7 +387,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'MomentumAttack': {
-        const total   = fx.base + (self.consecutiveAttackCardsThisTurn || 0) * fx.bonusPerConsecutiveAttack;
+        const total   = fx.base + (self.attackCardsThisTurn || 0) * fx.bonusPerAttack;
         const wallDmg = Math.min(total, opponent.wallHP);
         opponent.wallHP -= wallDmg;
         const overflow = total - wallDmg;

@@ -101,6 +101,7 @@ fun MenuScreen(
         val leftColVertShift   = 30.dp    // levý sloupec:  kladné = dolů, záporné = nahoru
         val rightColShift      = -25.dp  // pravý sloupec: kladné = doleva  (ke středu), záporné = doprava
         val rightColVertShift  = 35.dp   // pravý sloupec: kladné = dolů, záporné = nahoru
+        val centerShift        = 9.dp    // střední sloupec: kladné = doprava, záporné = doleva
         // ────────────────────────────────────────────────────────────────────
 
         Row(
@@ -129,7 +130,7 @@ fun MenuScreen(
 
             // ── Střed – titulek + 4 tlačítka (pevná šířka) ───────────────────
             Box(
-                modifier         = Modifier.fillMaxHeight().width(centerW),
+                modifier         = Modifier.fillMaxHeight().width(centerW).offset(x = centerShift),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -140,7 +141,9 @@ fun MenuScreen(
                     Image(
                         painter            = painterResource(R.drawable.logo_darkmage),
                         contentDescription = "DarkMage",
-                        modifier           = Modifier.width(centerW * 0.75f),
+                        modifier           = Modifier
+                            .requiredWidth(centerW * 1.1f)
+                            .offset(y = -H * -0.01f),
                         contentScale       = ContentScale.FillWidth
                     )
                     Spacer(modifier = Modifier.height(H * 0.01f))

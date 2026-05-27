@@ -221,7 +221,7 @@ fun applyEffects(
         is CardEffect.ShapeShift -> { /* no-op */ }
 
         is CardEffect.MomentumAttack -> {
-            val total = effect.base + self.consecutiveAttackCardsThisTurn * effect.bonusPerConsecutiveAttack
+            val total = effect.base + self.attackCardsThisTurn * effect.bonusPerAttack
             val dmg   = total.coerceAtMost(opponent.wallHP)
             opponent.wallHP -= dmg
             val overflow = total - dmg
