@@ -13,7 +13,7 @@ const {
   transformShapeShifters
 } = require('./engine');
 
-const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker']);
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand']);
 
 /**
  * Ohodnotí vhodnost karty pro aktuální herní situaci.
@@ -646,6 +646,10 @@ class GameSession {
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
 
+    // Momentum: sleduj po sobě jdoucí útočné karty
+    if (card.costType === 'ATTACK') self.consecutiveAttackCardsThisTurn = (self.consecutiveAttackCardsThisTurn || 0) + 1;
+    else self.consecutiveAttackCardsThisTurn = 0;
+
     // Loguj změnu velikosti balíčku po AddToOpponentDeck
     const hasAOD = card.effects && card.effects.some(fx => fx.type === 'AddToOpponentDeck');
     if (hasAOD) {
@@ -829,6 +833,10 @@ class GameSession {
           })
           .filter(Boolean);
       }
+      case 'PeekAndStealHand': {
+        // Zobrazí celou ruku soupeře (bez placeholderů)
+        return opp.hand.filter(c => !c.isPlaceholder);
+      }
       default: return [];
     }
   }
@@ -946,6 +954,26 @@ class GameSession {
         }
         break;
       }
+      case 'PeekAndStealHand': {
+        if (chosenId) {
+          const idx = opp.hand.findIndex(c => c.id === chosenId);
+          if (idx !== -1) {
+            const [stolen] = opp.hand.splice(idx, 1);
+            const oppSide  = side === 'A' ? 'B' : 'A';
+            const payload  = { type: 'CARD_LOST', cardId: stolen.id, baseId: stolen.baseId || stolen.id,
+              action: 'STOLEN', isGenerated: stolen.isGenerated || false };
+            this._send(oppSide, payload);
+            this._send(side, { ...payload, causedByMe: true });
+            if (self.hand.length < maxH) {
+              self.hand.push({ ...stolen, id: `${stolen.baseId || stolen.id}_stolen_${Date.now()}`, isGenerated: true });
+            } else {
+              self.discardPile.push(stolen);
+            }
+            this._log(`${this.name[side]} ukradl ze soupeřovy ruky: ${stolen.name}.`);
+          }
+        }
+        break;
+      }
     }
 
     // lastPlayedCard už byl zalogován při prvním state pushu → vymaž, aby se nezalogoval znovu
@@ -1055,6 +1083,7 @@ class GameSession {
     prevState.gainResourcePerCardPlayed = [];
     prevState.gainCastlePerCardPlayed = [];
     prevState.cloneNextPlayed = 0;
+    prevState.consecutiveAttackCardsThisTurn = 0;
 
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';

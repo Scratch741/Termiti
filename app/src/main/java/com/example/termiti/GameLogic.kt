@@ -220,12 +220,21 @@ fun applyEffects(
         // Pasivní příznak – transformace probíhá v transformShapeShifters() při startu tahu
         is CardEffect.ShapeShift -> { /* no-op */ }
 
+        is CardEffect.MomentumAttack -> {
+            val total = effect.base + self.consecutiveAttackCardsThisTurn * effect.bonusPerConsecutiveAttack
+            val dmg   = total.coerceAtMost(opponent.wallHP)
+            opponent.wallHP -= dmg
+            val overflow = total - dmg
+            if (overflow > 0) opponent.castleHP -= overflow
+        }
+
         // Rozhodnutí – asynchronní zpracování ve ViewModelu; applyEffects je pouze no-op
         is CardEffect.DecisionBurnOpponent  -> { /* řeší ViewModel */ }
         is CardEffect.DecisionChooseType    -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDiscard   -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDeck      -> { /* řeší ViewModel */ }
         is CardEffect.DecisionMine          -> { /* řeší ViewModel */ }
+        is CardEffect.PeekAndStealHand      -> { /* řeší ViewModel */ }
         is CardEffect.SmartJoker            -> { /* řeší ViewModel */ }
     }
 }

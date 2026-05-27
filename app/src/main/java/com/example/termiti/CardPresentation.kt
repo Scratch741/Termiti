@@ -588,6 +588,20 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = 0.70f,
             descriptionEn = "All cards in the opponent's hand cost 1 more."
         ),
+        "123" to CardPres(
+            "Zaútočí za 2 + 4 za každou útočnou kartu zahranou před ní v tomto tahu v řadě. [Combo]",
+            R.drawable.art_momentum, "Útok",
+            artScale = 0.80f, artBiasY = 0.0f,
+            descriptionEn = "Attack for 2 + 4 per consecutive Attack card played before it this turn. [Combo]",
+            nameAccusative = "Momentum"
+        ),
+        "C40" to CardPres(
+            "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji.",
+            R.drawable.art_zakezny_speh, "Chaos",
+            artScale = 0.80f, artBiasY = 0.0f,
+            descriptionEn = "See the opponent's entire hand. Choose one card and steal it.",
+            nameAccusative = "Zákeřného špeha"
+        ),
         "119" to CardPres(
             "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]",
             R.drawable.art_valecny_pokrik, "Útok",

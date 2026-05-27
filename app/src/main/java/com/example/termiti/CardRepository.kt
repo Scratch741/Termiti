@@ -148,6 +148,11 @@ object CardRepository {
         "DecisionFromDeck"      -> CardEffect.DecisionFromDeck(obj.optInt("picks", 4))
         "DecisionMine"          -> CardEffect.DecisionMine
         "SmartJoker"            -> CardEffect.SmartJoker
+        "MomentumAttack"        -> CardEffect.MomentumAttack(
+            base                     = obj.getInt("base"),
+            bonusPerConsecutiveAttack = obj.getInt("bonusPerConsecutiveAttack")
+        )
+        "PeekAndStealHand"      -> CardEffect.PeekAndStealHand
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

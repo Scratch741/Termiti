@@ -44,7 +44,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
-                        awaitPointerEvent(PointerEventPass.Initial)
+                        awaitPointerEvent(PointerEventPass.Final)
                             .changes.forEach { it.consume() }
                     }
                 }

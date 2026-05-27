@@ -137,25 +137,11 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.010f)
                 ) {
-                    Text(
-                        "DARKMAGE",
-                        color         = Gold,
-                        fontSize      = (H.value * 0.08f).sp,
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 6.sp,
-                        style         = TextStyle(
-                            shadow = Shadow(
-                                color      = Color.Black.copy(alpha = 0.85f),
-                                offset     = Offset(0f, 3f),
-                                blurRadius = 10f
-                            )
-                        )
-                    )
-                    Text(
-                        "Karetní hradní bitva",
-                        color         = TextMuted,
-                        fontSize      = (H.value * 0.024f).sp,
-                        letterSpacing = 2.sp
+                    Image(
+                        painter            = painterResource(R.drawable.logo_darkmage),
+                        contentDescription = "DarkMage",
+                        modifier           = Modifier.width(centerW * 0.75f),
+                        contentScale       = ContentScale.FillWidth
                     )
                     Spacer(modifier = Modifier.height(H * 0.01f))
                     MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         onClick = onPlay)

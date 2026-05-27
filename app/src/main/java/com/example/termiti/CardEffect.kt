@@ -120,6 +120,16 @@ sealed class CardEffect {
      * Hráč si vybere jednu, která mu přijde do ruky.
      */
     object SmartJoker : CardEffect()
+    /**
+     * Útočí na hráče za [base] + ([bonusPerConsecutiveAttack] × počet útočných karet
+     * zahraných před touto kartou v tomto tahu v řadě).
+     * Počítadlo je v [PlayerState.consecutiveAttackCardsThisTurn] a spravuje ho GameViewModel.
+     */
+    data class MomentumAttack(val base: Int, val bonusPerConsecutiveAttack: Int) : CardEffect()
+    /**
+     * Decision: zobrazí celou ruku soupeře; hráč si vybere jednu kartu a ukradne ji.
+     */
+    object PeekAndStealHand : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

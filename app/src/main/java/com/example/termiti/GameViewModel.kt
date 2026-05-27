@@ -553,6 +553,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             val candidates = affordable.ifEmpty { pool }
             candidates.maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
         }
+        is CardEffect.PeekAndStealHand -> opponent.hand.filter { !it.isPlaceholder }
         else -> emptyList()
     }
 
@@ -563,6 +564,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionFromDeck     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
         is CardEffect.DecisionMine         -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
         is CardEffect.SmartJoker           -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
+        is CardEffect.PeekAndStealHand     -> DecisionState("ŠPEHOVÁNÍ", "Vidíš soupeřovu ruku — vyber kartu ke krádeži", options)
         else -> DecisionState("", "", emptyList())
     }
 
@@ -637,6 +639,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
                 log.appendLog("Magický žolík: hráč si zvolil ${chosen.name}")
+            }
+            is CardEffect.PeekAndStealHand -> {
+                ai.hand.remove(chosen)
+                val stolen = chosen.copy(id = "${chosen.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(stolen) else player.discardPile.add(stolen)
+                log.appendLog("Hráč ukradl ze soupeřovy ruky: ${chosen.name}")
+                cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = false)
+                addCardLog("Hráč", chosen, CardAction.STOLEN, isMe = false)
             }
             else -> {}
         }
@@ -978,13 +988,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.preCostResources = null
 
         // ── Rozhodnutí: pauza tahu pro výběr hráče ──────────────────────────
+        // Momentum: aktualizuj počítadlo za útočné karty (PŘED decision pausou, ale PO applyEffects)
+        if (card.costType == ResourceType.ATTACK) player.consecutiveAttackCardsThisTurn++
+        else player.consecutiveAttackCardsThisTurn = 0
+
         val decisionFx = card.effects.firstOrNull {
             it is CardEffect.DecisionBurnOpponent ||
             it is CardEffect.DecisionChooseType   ||
             it is CardEffect.DecisionFromDiscard  ||
             it is CardEffect.DecisionFromDeck     ||
             it is CardEffect.DecisionMine         ||
-            it is CardEffect.SmartJoker
+            it is CardEffect.SmartJoker           ||
+            it is CardEffect.PeekAndStealHand
         }
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
@@ -1166,6 +1181,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
+                        if (aiCard.costType == ResourceType.ATTACK) ai.consecutiveAttackCardsThisTurn++
+                        else ai.consecutiveAttackCardsThisTurn = 0
                         // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
@@ -1273,6 +1290,19 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                             )
                                             if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
                                             log.appendLog("AI zvolila žolíka: ${chosen.name}")
+                                        }
+                                }
+                                is CardEffect.PeekAndStealHand -> {
+                                    // AI ukradne kartu s nejvyšší hodnotou z ruky hráče
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    opts.maxByOrNull { scoreCardForSituation(it, ai, player, old.aiWinTarget) }
+                                        ?.let { chosen ->
+                                            player.hand.remove(chosen)
+                                            val stolen = chosen.copy(id = "${chosen.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true)
+                                            if (ai.hand.size < old.aiMaxHand) ai.hand.add(stolen)
+                                            log.appendLog("AI ukradla z tvé ruky: ${chosen.name}")
+                                            cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = true)
+                                            addCardLog("AI", chosen, CardAction.STOLEN, isMe = true)
                                         }
                                 }
                                 else -> {}
@@ -1406,6 +1436,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
             player.cloneNextPlayed = null;              ai.cloneNextPlayed = null
+            player.consecutiveAttackCardsThisTurn = 0;  ai.consecutiveAttackCardsThisTurn = 0
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(

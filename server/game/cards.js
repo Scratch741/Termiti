@@ -47,6 +47,8 @@ const dfd= (n=4)         => ({ type:'DecisionFromDiscard',   picks:n });
 const dfk= (n=4)         => ({ type:'DecisionFromDeck',      picks:n });
 const dmine= ()          => ({ type:'DecisionMine' });
 const sj   = ()          => ({ type:'SmartJoker' });
+const mma  = (b,bon)     => ({ type:'MomentumAttack', base:b, bonusPerConsecutiveAttack:bon });
+const psh  = ()          => ({ type:'PeekAndStealHand' });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -271,6 +273,8 @@ const RAW = [
   ['120','Hromadná sleva',  2,'MAGIC', 0,[mhc(-1)],           'EPIC'],
   ['121','Kletba cen',      3,'CHAOS', 0,[mhc(1,true)],       'RARE'],
   ['122','Stavební posila', 4,'STONES',1,[bc(7),grc('STONES')],'EPIC'],
+  ['123','Momentum',        3,'ATTACK',1,[mma(2,4)],           'EPIC'],
+  ['C40','Zákeřný špeh',   4,'CHAOS', 0,[psh()],              'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

@@ -109,6 +109,8 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.DrawBoth                  -> "🎴"
     is CardEffect.CloneNextPlayed           -> "🔁"
     is CardEffect.SmartJoker                -> "🃏"
+    is CardEffect.MomentumAttack            -> "⚡"
+    is CardEffect.PeekAndStealHand          -> "🕵️"
     null                              -> "❓"
 }
 
@@ -244,7 +246,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 // ── Spodní lišta: počet + filtr dle mana costu ───────────────
                 ManaCostFilterBar(
                     showing      = filteredCards.size,
-                    total        = viewModel.allCards.size,
+                    total        = viewModel.allCards.count { !it.isPlaceholder && it.effects.none { e -> e is CardEffect.TrapOnDraw } },
                     filterCost   = filterCost,
                     onCostFilter = { filterCost = if (filterCost == it) null else it }
                 )

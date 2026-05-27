@@ -96,8 +96,8 @@ object CardCollectionManager {
         val p = PlayerProfileManager.profile ?: return null
         if (p.gold < PACK_COST_GOLD) return null
 
-        // Balíčky obsahují pouze sběratelské karty (ne základní COMMON)
-        val collectible = allCards.filter { !isBasicCard(it) }.ifEmpty { allCards }
+        // Balíčky obsahují pouze sběratelské karty (ne základní COMMON, ne placeholder)
+        val collectible = allCards.filter { !isBasicCard(it) && !it.isPlaceholder }.ifEmpty { allCards }
 
         val collection = p.cardCollection.toMutableMap()
         val gains      = mutableListOf<CardGain>()
