@@ -49,6 +49,7 @@ const dmine= ()          => ({ type:'DecisionMine' });
 const sj   = ()          => ({ type:'SmartJoker' });
 const mma  = (b,bon)     => ({ type:'MomentumAttack', base:b, bonusPerAttack:bon });
 const psh  = ()          => ({ type:'PeekAndStealHand' });
+const dcr  = (opts)      => ({ type:'DecisionChooseResource', options:opts });
 
 // Conditions
 const rA  = (t,v) => ({ type:'ResourceAbove',           resType:t, threshold:v });
@@ -275,6 +276,11 @@ const RAW = [
   ['122','Stavební posila', 4,'STONES',1,[bc(7),grc('STONES')],'EPIC'],
   ['123','Momentum',        3,'ATTACK',0,[mma(2,4)],           'EPIC'],
   ['C40','Zákeřný špeh',   4,'CHAOS', 0,[psh()],              'EPIC'],
+
+  // ── Nové karty (2026) ─────────────────────────────────────────────────────
+  ['124','Alchymistova volba', 2,'MAGIC', 1,[dcr([{resType:'MAGIC',amount:4},{resType:'ATTACK',amount:4},{resType:'STONES',amount:4}])], 'RARE'],
+  ['125','Válečný zápal',      2,'ATTACK',1,[ap(4),grp('CHAOS',1,'Útok')], 'RARE'],
+  ['126','Magický proud',      3,'MAGIC', 1,[grp('CHAOS',2,'Magie')],       'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

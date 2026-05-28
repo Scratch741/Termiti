@@ -227,6 +227,9 @@ fun aiChooseAction(
             fx.base + ai.attackCardsThisTurn * fx.bonusPerAttack
         is CardEffect.PeekAndStealHand ->
             if (opponent.hand.isNotEmpty()) 8 + opponent.hand.size else 2
+        is CardEffect.DecisionChooseResource ->
+            // Cena odpovídá nejlepší možnosti (surovině, které AI má nejméně)
+            fx.options.maxOfOrNull { it.amount } ?: 4
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

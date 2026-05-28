@@ -338,9 +338,10 @@ fun GameScreen(
         val decisionSeconds  by viewModel.decisionSecondsLeft
         pendingDecision?.let { decision ->
             DecisionOverlay(
-                decision    = decision,
-                secondsLeft = decisionSeconds,
-                onChoice    = { viewModel.resolveDecision(it) }
+                decision         = decision,
+                secondsLeft      = decisionSeconds,
+                onChoice         = { viewModel.resolveDecision(it) },
+                onResourceChoice = { type, amount -> viewModel.resolveResourceDecision(type, amount) }
             )
         }
 

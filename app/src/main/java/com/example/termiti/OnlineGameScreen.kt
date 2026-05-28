@@ -173,9 +173,10 @@ fun OnlineGameScreen(
         // ── Overlay: Rozhodnutí ───────────────────────────────────────────────
         onlinePendingDecision?.let { decision ->
             DecisionOverlay(
-                decision    = decision,
-                secondsLeft = onlineDecisionSecondsLeft,
-                onChoice    = { vm.resolveOnlineDecision(it) }
+                decision         = decision,
+                secondsLeft      = onlineDecisionSecondsLeft,
+                onChoice         = { vm.resolveOnlineDecision(it) },
+                onResourceChoice = { type, amount -> vm.resolveOnlineResourceDecision(type, amount) }
             )
         }
 

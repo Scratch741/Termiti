@@ -393,6 +393,13 @@ class OnlineLobbyViewModel(
         sendAction("DECISION_RESPONSE", JSONObject().apply { put("chosenId", card.id) })
     }
 
+    /** Hráč vybral surovinu v DecisionChooseResource – pošleme resType jako chosenId. */
+    fun resolveOnlineResourceDecision(type: ResourceType, amount: Int) {
+        cancelOnlineDecisionTimer()
+        onlinePendingDecision.value = null
+        sendAction("DECISION_RESPONSE", JSONObject().apply { put("chosenId", type.name) })
+    }
+
     private fun startOnlineDecisionTimer(seconds: Int) {
         cancelOnlineDecisionTimer()
         onlineDecisionSecondsLeft.value = seconds
@@ -885,18 +892,35 @@ class OnlineLobbyViewModel(
                     val options    = parseCardArray(optArr)
 
                     val (title, subtitle) = when (effectType) {
-                        "DecisionBurnOpponent" -> "Likvidace"  to "Vyber kartu k zahazení ze soupeřova balíčku"
-                        "DecisionChooseType"   -> {
+                        "DecisionBurnOpponent"   -> "Likvidace"     to "Vyber kartu k zahazení ze soupeřova balíčku"
+                        "DecisionChooseType"     -> {
                             val ct = json.optString("cardType", "")
                             "Rekrut" to "Vyber kartu typu $ct"
                         }
-                        "DecisionFromDiscard"  -> "Vzpomínka" to "Vyber kartu z odhazovacího balíčku"
-                        "DecisionFromDeck"     -> "Intuice"        to "Vyber kartu z vlastního balíčku"
-                        "DecisionMine"         -> "Průzkum dolů"  to "Vyber si důl: Magie, Útok, Kámen nebo Chaos"
-                        else                   -> "Rozhodnutí" to "Vyber kartu"
+                        "DecisionFromDiscard"    -> "Vzpomínka"     to "Vyber kartu z odhazovacího balíčku"
+                        "DecisionFromDeck"       -> "Intuice"       to "Vyber kartu z vlastního balíčku"
+                        "DecisionMine"           -> "Průzkum dolů" to "Vyber si důl: Magie, Útok, Kámen nebo Chaos"
+                        "DecisionChooseResource" -> "ALCHYMIE"      to "Vyber suroviny, které chceš získat"
+                        else                     -> "Rozhodnutí"   to "Vyber kartu"
                     }
 
-                    onlinePendingDecision.value = DecisionState(title, subtitle, options)
+                    // DecisionChooseResource má resourceOptions místo card options
+                    val resourceChoices: List<ResourceChoice> = if (effectType == "DecisionChooseResource") {
+                        val resArr = json.optJSONArray("resourceOptions")
+                        if (resArr != null) {
+                            (0 until resArr.length()).mapNotNull { i ->
+                                runCatching {
+                                    val o = resArr.getJSONObject(i)
+                                    ResourceChoice(
+                                        ResourceType.valueOf(o.getString("resType")),
+                                        o.getInt("amount")
+                                    )
+                                }.getOrNull()
+                            }
+                        } else emptyList()
+                    } else emptyList()
+
+                    onlinePendingDecision.value = DecisionState(title, subtitle, options, resourceChoices)
                     startOnlineDecisionTimer(timeoutSec)
                 }
 

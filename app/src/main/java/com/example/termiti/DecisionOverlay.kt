@@ -30,9 +30,10 @@ import androidx.compose.foundation.horizontalScroll
 
 @Composable
 fun DecisionOverlay(
-    decision    : DecisionState,
-    secondsLeft : Int?,
-    onChoice    : (Card) -> Unit
+    decision         : DecisionState,
+    secondsLeft      : Int?,
+    onChoice         : (Card) -> Unit,
+    onResourceChoice : ((ResourceType, Int) -> Unit)? = null
 ) {
     val s       = LocalStrings.current
     var peeking by remember { mutableStateOf(false) }
@@ -133,20 +134,68 @@ fun DecisionOverlay(
                     textAlign = TextAlign.Center
                 )
 
-                // Karty – kliknutím se vybere; při přeplnění scrollovatelné
-                Row(
-                    modifier              = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    decision.options.forEach { card ->
-                        Box(modifier = Modifier.clickable { onChoice(card) }) {
-                            CardView(
-                                card        = card,
-                                canPlay     = true,
-                                discardMode = false,
-                                onClick     = { onChoice(card) },
-                                showGlow    = true
-                            )
+                // Obsah rozhodnutí – buď výběr zdroje, nebo výběr karet
+                if (decision.resourceChoices.isNotEmpty() && onResourceChoice != null) {
+                    // ── Výběr zdroje (Alchymistova volba) ─────────────────────
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        decision.resourceChoices.forEach { rc ->
+                            val (emoji, label, accent) = when (rc.type) {
+                                ResourceType.MAGIC  -> Triple("✨", "Magie",  Color(0xFF7EC8E3))
+                                ResourceType.ATTACK -> Triple("⚔️", "Útok",   Color(0xFFE07070))
+                                ResourceType.STONES -> Triple("🪨", "Kameny", Color(0xFFB39DDB))
+                                ResourceType.CHAOS  -> Triple("🌀", "Chaos",  Gold)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(accent.copy(alpha = 0.14f))
+                                    .border(1.5.dp, accent.copy(alpha = 0.70f), RoundedCornerShape(12.dp))
+                                    .clickable { onResourceChoice(rc.type, rc.amount) }
+                                    .padding(vertical = 16.dp, horizontal = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(emoji, fontSize = 26.sp)
+                                    Text(
+                                        "+${rc.amount}",
+                                        color      = accent,
+                                        fontSize   = 22.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        label,
+                                        color      = TextMuted,
+                                        fontSize   = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign  = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // ── Výběr karet – kliknutím se vybere; při přeplnění scrollovatelné ──
+                    Row(
+                        modifier              = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        decision.options.forEach { card ->
+                            Box(modifier = Modifier.clickable { onChoice(card) }) {
+                                CardView(
+                                    card        = card,
+                                    canPlay     = true,
+                                    discardMode = false,
+                                    onClick     = { onChoice(card) },
+                                    showGlow    = true
+                                )
+                            }
                         }
                     }
                 }

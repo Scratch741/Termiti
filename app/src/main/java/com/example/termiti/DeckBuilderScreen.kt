@@ -111,6 +111,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.SmartJoker                -> "🃏"
     is CardEffect.MomentumAttack            -> "⚡"
     is CardEffect.PeekAndStealHand          -> "🕵️"
+    is CardEffect.DecisionChooseResource    -> "⚗️"
     null                              -> "❓"
 }
 
@@ -131,7 +132,8 @@ private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.DecisionChooseType,
     is CardEffect.DecisionFromDiscard,
     is CardEffect.DecisionFromDeck,
-    is CardEffect.DecisionMine      -> "Rozhodnutí"
+    is CardEffect.DecisionMine,
+    is CardEffect.DecisionChooseResource -> "Rozhodnutí"
     else                            -> null
 }
 

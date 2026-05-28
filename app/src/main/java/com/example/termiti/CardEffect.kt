@@ -3,6 +3,9 @@
 // ============================================================
 package com.example.termiti
 
+/** Jedna možnost volby zdroje (použito v [CardEffect.DecisionChooseResource]). */
+data class ResourceOption(val type: ResourceType, val amount: Int)
+
 sealed class CardEffect {
     data class AddResource(val type: ResourceType, val amount: Int) : CardEffect()
     /** Přidá suroviny až příští kolo (turns = 1 → příští tah, 2 → přespříští…). */
@@ -129,6 +132,11 @@ sealed class CardEffect {
      * Decision: zobrazí celou ruku soupeře; hráč si vybere jednu kartu a ukradne ji.
      */
     object PeekAndStealHand : CardEffect()
+    /**
+     * Zobrazí 3 tlačítka volby zdroje; hráč si vybere jeden a obdrží daný počet surovin.
+     * [options] = seznam možností (každá s typem zdroje a množstvím).
+     */
+    data class DecisionChooseResource(val options: List<ResourceOption>) : CardEffect()
 
     // ── X-kost efekty ─────────────────────────────────────────────────────────
     /** Poškodí hráče za (X / divisor) kde X = veškerý spotřebovaný zdroj při zahraní karty. */

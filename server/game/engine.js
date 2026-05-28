@@ -408,6 +408,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
+      case 'DecisionChooseResource':
+        // Řeší GameSession._resolveDecision po výběru hráče – zde no-op
+        break;
+
       // ── X-kost efekty ────────────────────────────────────────────────────────
       case 'XScaledAttackPlayer': {
         const dmg     = Math.floor(xValue / (fx.divisor || 2));

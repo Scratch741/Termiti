@@ -236,6 +236,7 @@ fun applyEffects(
         is CardEffect.DecisionMine          -> { /* řeší ViewModel */ }
         is CardEffect.PeekAndStealHand      -> { /* řeší ViewModel */ }
         is CardEffect.SmartJoker            -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionChooseResource -> { /* řeší ViewModel */ }
     }
 }
 

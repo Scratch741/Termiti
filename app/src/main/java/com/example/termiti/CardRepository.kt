@@ -153,6 +153,14 @@ object CardRepository {
             bonusPerAttack = obj.optInt("bonusPerAttack", obj.optInt("bonusPerConsecutiveAttack", 4))
         )
         "PeekAndStealHand"      -> CardEffect.PeekAndStealHand
+        "DecisionChooseResource" -> {
+            val optsArr = obj.getJSONArray("options")
+            val opts = (0 until optsArr.length()).map { i ->
+                val o = optsArr.getJSONObject(i)
+                ResourceOption(ResourceType.valueOf(o.getString("resType")), o.getInt("amount"))
+            }
+            CardEffect.DecisionChooseResource(opts)
+        }
         else -> throw IllegalArgumentException("Neznámý typ efektu: $t")
     }
 

@@ -17,10 +17,14 @@ data class RarityMigrationResult(
 )
 
 // ── Rozhodnutí ────────────────────────────────────────────────────────────────
+/** Jednorázová volba suroviny v DecisionChooseResource (zobrazí se jako tlačítko, ne jako karta). */
+data class ResourceChoice(val type: ResourceType, val amount: Int)
+
 data class DecisionState(
-    val title    : String,
-    val subtitle : String,
-    val options  : List<Card>
+    val title           : String,
+    val subtitle        : String,
+    val options         : List<Card>,
+    val resourceChoices : List<ResourceChoice> = emptyList()
 )
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
@@ -553,18 +557,23 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             val candidates = affordable.ifEmpty { pool }
             candidates.maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
         }
-        is CardEffect.PeekAndStealHand -> opponent.hand.filter { !it.isPlaceholder }
+        is CardEffect.PeekAndStealHand      -> opponent.hand.filter { !it.isPlaceholder }
+        is CardEffect.DecisionChooseResource -> emptyList()
         else -> emptyList()
     }
 
     private fun buildDecisionState(fx: CardEffect, options: List<Card>): DecisionState = when (fx) {
-        is CardEffect.DecisionBurnOpponent -> DecisionState("ROZHODNUTÍ", "Vyber kartu ze soupeřova balíku k zahození", options)
-        is CardEffect.DecisionChooseType   -> DecisionState("ROZHODNUTÍ", "Vyber si kartu typu ${fx.cardType}", options)
-        is CardEffect.DecisionFromDiscard  -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
-        is CardEffect.DecisionFromDeck     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
-        is CardEffect.DecisionMine         -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
-        is CardEffect.SmartJoker           -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
-        is CardEffect.PeekAndStealHand     -> DecisionState("ŠPEHOVÁNÍ", "Vidíš soupeřovu ruku — vyber kartu ke krádeži", options)
+        is CardEffect.DecisionBurnOpponent   -> DecisionState("ROZHODNUTÍ", "Vyber kartu ze soupeřova balíku k zahození", options)
+        is CardEffect.DecisionChooseType     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu typu ${fx.cardType}", options)
+        is CardEffect.DecisionFromDiscard    -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
+        is CardEffect.DecisionFromDeck       -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
+        is CardEffect.DecisionMine           -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
+        is CardEffect.SmartJoker             -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
+        is CardEffect.PeekAndStealHand       -> DecisionState("ŠPEHOVÁNÍ", "Vidíš soupeřovu ruku — vyber kartu ke krádeži", options)
+        is CardEffect.DecisionChooseResource -> DecisionState(
+            "ALCHYMIE", "Vyber suroviny, které chceš získat", emptyList(),
+            fx.options.map { ResourceChoice(it.type, it.amount) }
+        )
         else -> DecisionState("", "", emptyList())
     }
 
@@ -648,6 +657,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = false)
                 addCardLog("Hráč", chosen, CardAction.STOLEN, isMe = false)
             }
+            is CardEffect.DecisionChooseResource -> { /* řeší resolveResourceDecision – sem by nemělo dojít */ }
             else -> {}
         }
 
@@ -727,8 +737,77 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Automaticky vybere první možnost (timeout nebo AI). */
     fun autoResolveDecision() {
-        val first = pendingDecision.value?.options?.firstOrNull() ?: return
-        resolveDecision(first)
+        val pending = pendingDecision.value ?: return
+        if (pending.resourceChoices.isNotEmpty()) {
+            val first = pending.resourceChoices.first()
+            resolveResourceDecision(first.type, first.amount)
+        } else {
+            val first = pending.options.firstOrNull() ?: return
+            resolveDecision(first)
+        }
+    }
+
+    /** Hráč si vybral zdroj v overlay DecisionChooseResource — aplikuje efekt a pokračuje. */
+    fun resolveResourceDecision(type: ResourceType, amount: Int) {
+        val player      = decisionPlayer  ?: return
+        val ai          = decisionAi      ?: return
+        val old         = decisionOld     ?: return
+        val isComboCard = decisionIsCombo
+
+        cancelDecisionTimer()
+
+        player.resources[type] = ((player.resources[type] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
+        val resName = when (type) {
+            ResourceType.MAGIC  -> "magie"
+            ResourceType.ATTACK -> "útok"
+            ResourceType.STONES -> "kameny"
+            ResourceType.CHAOS  -> "chaos"
+        }
+        log.appendLog("Hráč si vybral: $amount× $resName")
+
+        val pendingDrawCount  = decisionPendingDraws
+        pendingDecision.value = null
+        decisionPlayer        = null
+        decisionAi            = null
+        decisionOld           = null
+        decisionEffect        = null
+        decisionIsCombo       = false
+        decisionPendingDraws  = 0
+
+        val s1 = old.copy(playerState = player, aiState = ai)
+        s1.checkWinCondition()?.let { result ->
+            isPlayerComboTurn.value = false
+            scheduleGameEnd(result, s1); return
+        }
+
+        if (pendingDrawCount > 0) {
+            viewModelScope.launch(crashHandler) {
+                gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
+                repeat(pendingDrawCount) {
+                    delay(210L)
+                    SoundManager.playCardDraw()
+                    player.drawCards(1, old.playerMaxHand)
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
+                }
+                delay(350L)
+                if (isComboCard) {
+                    isPlayerComboTurn.value = true
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.PLAYER)
+                } else {
+                    isPlayerComboTurn.value = false
+                    finishTurn(old, player, ai)
+                }
+            }
+            return
+        }
+
+        if (isComboCard) {
+            isPlayerComboTurn.value = true
+            gameState.value = s1.copy(playerState = player.deepCopy())
+        } else {
+            isPlayerComboTurn.value = false
+            finishTurn(old, player, ai)
+        }
     }
 
     /**
@@ -992,17 +1071,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (card.costType == ResourceType.ATTACK) player.attackCardsThisTurn++
 
         val decisionFx = card.effects.firstOrNull {
-            it is CardEffect.DecisionBurnOpponent ||
-            it is CardEffect.DecisionChooseType   ||
-            it is CardEffect.DecisionFromDiscard  ||
-            it is CardEffect.DecisionFromDeck     ||
-            it is CardEffect.DecisionMine         ||
-            it is CardEffect.SmartJoker           ||
-            it is CardEffect.PeekAndStealHand
+            it is CardEffect.DecisionBurnOpponent    ||
+            it is CardEffect.DecisionChooseType      ||
+            it is CardEffect.DecisionFromDiscard     ||
+            it is CardEffect.DecisionFromDeck        ||
+            it is CardEffect.DecisionMine            ||
+            it is CardEffect.SmartJoker              ||
+            it is CardEffect.PeekAndStealHand        ||
+            it is CardEffect.DecisionChooseResource
         }
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)
-            if (options.isNotEmpty()) {
+            if (options.isNotEmpty() || decisionFx is CardEffect.DecisionChooseResource) {
                 decisionPlayer       = player
                 decisionAi           = ai
                 decisionOld          = old
@@ -1302,6 +1382,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                             cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = true)
                                             addCardLog("AI", chosen, CardAction.STOLEN, isMe = true)
                                         }
+                                }
+                                is CardEffect.DecisionChooseResource -> {
+                                    // AI si vybere surovinu, které má nejméně
+                                    val best = fx.options.minByOrNull { ai.resources[it.type] ?: 0 }
+                                    if (best != null) {
+                                        ai.resources[best.type] = ((ai.resources[best.type] ?: 0) + best.amount).coerceAtMost(MAX_RESOURCE)
+                                        log.appendLog("AI si vybrala ${best.amount}× ${best.type.name.lowercase()}")
+                                    }
                                 }
                                 else -> {}
                             }

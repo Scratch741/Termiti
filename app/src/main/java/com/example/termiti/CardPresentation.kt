@@ -595,6 +595,24 @@ object CardPresentation {
             descriptionEn = "Attack for 2 + 4 per Attack card played this turn.",
             nameAccusative = "Momentum"
         ),
+        "124" to CardPres(
+            "Rozhodnutí: získej 4 magie, 4 útok, nebo 4 kameny. [Combo]",
+            null, "Magie",
+            descriptionEn = "Decision: gain 4 Magic, 4 Attack, or 4 Stones. [Combo]",
+            nameAccusative = "Alchymistovu volbu"
+        ),
+        "125" to CardPres(
+            "Zaútočí za 4. Toto kolo: každá útočná karta přidá 1 chaos. [Combo]",
+            null, "Útok",
+            descriptionEn = "Attack for 4. This turn: each Attack card adds 1 chaos. [Combo]",
+            nameAccusative = "Válečný zápal"
+        ),
+        "126" to CardPres(
+            "Toto kolo: každá magická karta přidá 2 chaos. [Combo]",
+            null, "Magie",
+            descriptionEn = "This turn: each Magic card adds 2 chaos. [Combo]",
+            nameAccusative = "Magický proud"
+        ),
         "C40" to CardPres(
             "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji.",
             R.drawable.art_zakerny_speh, "Chaos",

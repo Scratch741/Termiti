@@ -793,6 +793,7 @@ function _descEffect(fx) {
     case 'ConditionalEffect':        return `Pokud ${_descCondition(fx.condition)}: ${_descEffect(fx.effect)}`;
     case 'MomentumAttack':           return `Zaútočí za ${fx.base} + ${fx.bonusPerAttack} za každou útočnou kartu zahranou v tomto tahu.`;
     case 'PeekAndStealHand':         return `Vidí soupeřovu ruku a ukradne kartu`;
+    case 'DecisionChooseResource':   return `Rozhodnutí: vyber jeden zdroj (${(fx.options||[]).map(o=>`${o.amount}× ${o.resType}`).join(', ')})`;
     default:                         return fx.type;
   }
 }
@@ -866,8 +867,9 @@ function convertJsonEffect(fx) {
     case 'ConvertMine':         return { t:'CM',     from:fx.from, to:fx.to };
     case 'DrawBoth':            return { t:'DB',     a:fx.count };
     case 'DecisionMine':        return { t:'DMINE' };
-    case 'MomentumAttack':      return { t:'MMA',   b:fx.base, bon:fx.bonusPerAttack };
-    case 'PeekAndStealHand':    return { t:'PSH' };
+    case 'MomentumAttack':          return { t:'MMA',   b:fx.base, bon:fx.bonusPerAttack };
+    case 'PeekAndStealHand':        return { t:'PSH' };
+    case 'DecisionChooseResource':  return { t:'DCR' };
     default: return { t:'?', raw: fx.type };
   }
 }

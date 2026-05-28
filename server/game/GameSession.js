@@ -13,7 +13,7 @@ const {
   transformShapeShifters
 } = require('./engine');
 
-const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand']);
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand', 'DecisionChooseResource']);
 
 /**
  * Ohodnotí vhodnost karty pro aktuální herní situaci.
@@ -450,7 +450,7 @@ class GameSession {
         const elapsedMs       = this._decisionStartedAt ? (Date.now() - this._decisionStartedAt) : totalDecisionMs;
         const remainingMs     = Math.max(5000, totalDecisionMs - elapsedMs);
         console.log(`[Reconnect ${this.gameId}] Znovu posílám DECISION_REQUEST → ${side} (${effect.type}), remainingMs=${remainingMs}`);
-        this._send(side, {
+        const reconnectMsg = {
           type:       'DECISION_REQUEST',
           effectType: effect.type,
           cardType:   effect.cardType || null,
@@ -464,7 +464,11 @@ class GameSession {
             rarity:   c.rarity
           })),
           timeoutMs: remainingMs
-        });
+        };
+        if (effect.type === 'DecisionChooseResource') {
+          reconnectMsg.resourceOptions = effect.options || [];
+        }
+        this._send(side, reconnectMsg);
       }
     }
   }
@@ -692,9 +696,12 @@ class GameSession {
       // (karta je už v discardu, ale efekt by měl proběhnout "před" zahozením)
       const options = this._buildDecisionOptions(side, decisionFx, card.id);
 
+      const isResourceDecision = decisionFx.type === 'DecisionChooseResource';
+
       // Pokud nejsou žádné možnosti (prázdný discard / balíček), přeskoč rozhodnutí
       // a pokračuj normálním průběhem – jinak by hráč uvízl bez možnosti výběru.
-      if (options.length === 0) {
+      // Výjimka: DecisionChooseResource nemá card options, ale má resourceOptions.
+      if (options.length === 0 && !isResourceDecision) {
         console.log(`[Decision ${this.gameId}] Žádné options pro ${decisionFx.type} – přeskakuji`);
         // (pokračuje pod blokem if decisionFx)
       } else {
@@ -714,12 +721,12 @@ class GameSession {
       this._decisionTurnPhaseMs = decisionTurnPhaseMs;
 
       // Pošli nabídku aktivnímu hráči
-      this._send(side, {
-        type:       'DECISION_REQUEST',
-        effectType: decisionFx.type,
-        cardType:   decisionFx.cardType || null,
-        picks:      decisionFx.picks   || 4,
-        options:    options.map(c => ({
+      const decisionMsg = {
+        type:           'DECISION_REQUEST',
+        effectType:     decisionFx.type,
+        cardType:       decisionFx.cardType || null,
+        picks:          decisionFx.picks   || 4,
+        options:        options.map(c => ({
           id:       c.id,
           baseId:   c.baseId || c.id,
           name:     c.name,
@@ -727,8 +734,12 @@ class GameSession {
           costType: c.costType,
           rarity:   c.rarity
         })),
-        timeoutMs: decisionTimeoutMs
-      });
+        timeoutMs:      decisionTimeoutMs
+      };
+      if (isResourceDecision) {
+        decisionMsg.resourceOptions = decisionFx.options || [];
+      }
+      this._send(side, decisionMsg);
 
       // Auto-resolve po timeoutu – timebank byl spotřebován celý
       this._decisionTimer = setTimeout(() => {
@@ -836,6 +847,9 @@ class GameSession {
         // Zobrazí celou ruku soupeře (bez placeholderů)
         return opp.hand.filter(c => !c.isPlaceholder);
       }
+      case 'DecisionChooseResource':
+        // Žádné karty – možnosti jsou resource options, posílají se zvlášť
+        return [];
       default: return [];
     }
   }
@@ -970,6 +984,15 @@ class GameSession {
             }
             this._log(`${this.name[side]} ukradl ze soupeřovy ruky: ${stolen.name}.`);
           }
+        }
+        break;
+      }
+      case 'DecisionChooseResource': {
+        // chosenId je resType (např. "MAGIC", "ATTACK", "STONES")
+        const chosen = (effect.options || []).find(o => o.resType === chosenId);
+        if (chosen) {
+          self.resources[chosen.resType] = Math.min(999, (self.resources[chosen.resType] || 0) + chosen.amount);
+          this._log(`${this.name[side]} si vybral ${chosen.amount}× ${chosen.resType.toLowerCase()}.`);
         }
         break;
       }

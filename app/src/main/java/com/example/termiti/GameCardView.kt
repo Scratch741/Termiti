@@ -119,6 +119,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.SmartJoker                -> "🃏"
     is CardEffect.MomentumAttack            -> "⚡"
     is CardEffect.PeekAndStealHand          -> "🕵️"
+    is CardEffect.DecisionChooseResource    -> "⚗️"
     null                              -> "❓"
 }
 
