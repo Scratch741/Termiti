@@ -13,8 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -38,17 +36,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     val currentPack by LanguageManager.currentPackState
 
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            // Blokuje doteky na pozadí (hra pod ním), ale nechá projít doteky na vlastním UI
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent(PointerEventPass.Final)
-                            .changes.filter { !it.isConsumed }.forEach { it.consume() }
-                    }
-                }
-            }
+        modifier = Modifier.fillMaxSize()
     ) {
         val W = maxWidth
         val H = maxHeight

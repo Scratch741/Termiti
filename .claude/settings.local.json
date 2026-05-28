@@ -70,7 +70,10 @@
       "Bash(grep -v \"//\")",
       "Bash(grep -rn \"TURN_LIMIT\\\\|resolveByHp\" --include=\"*.kt\" server/)",
       "Bash(grep -rn \"TURN_LIMIT\\\\|resolveByHp\" --include=\"*.js\" server/)",
-      "Bash(grep -v \"//.*currentTurn\")"
+      "Bash(grep -v \"//.*currentTurn\")",
+      "PowerShell(Copy-Item \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_primy_zasah.png\" \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_momentum.png\")",
+      "PowerShell(Copy-Item \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_spion.png\" \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_zakezny_speh.png\")",
+      "Bash(cd /mnt/c/Users/Scratch/AndroidStudioProjects/Termiti && ./gradlew assembleDebug 2>&1 | tail -50)"
     ]
   }
 }
