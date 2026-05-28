@@ -52,6 +52,21 @@ Top bar texture replaced: `bg_top_bar.png` (1920×160 px) replaces `bg_top_panel
 
 Updated pages: `cards/effects.md`, `log.md`.
 
+## [2026-05-28] ingest | Cards 124–128 (new + cost-6 magic)
+
+New cards added:
+- `124 Alchymistova volba` (2 MAGIC, Combo, RARE): `DecisionChooseResource` — pick 4 Magic / 4 Attack / 4 Stones.
+- `125 Válečný zápal` (2 ATTACK, Combo, RARE): `ap(4)` + `grp(CHAOS,1,'Útok')`.
+- `126 Magický proud` (3 MAGIC, Combo, EPIC): `grp(CHAOS,2,'Magie')`.
+- `127 Pyroblast` (6 MAGIC, EPIC): `ac(10)` + `dr(MAGIC,2)` — direct castle hit + magic drain.
+- `128 Archmág` (6 MAGIC, Combo, LEGENDARY): `dpc()` + `grp(MAGIC,1)` — this turn, each extra card played draws 1 and gains 1 Magic (dual engine).
+
+New effect introduced: `DecisionChooseResource(options)` — decision overlay shows resource buttons instead of cards; resolved via `resolveResourceDecision` (offline) / `resolveOnlineResourceDecision` (online). Server: added to `DECISION_TYPES`, `_buildDecisionOptions`, `_resolveDecision`; `DECISION_REQUEST` carries `resourceOptions`.
+
+127/128 use only existing effects (`AttackCastle`, `DrainResource`, `DrawPerCardPlayed`, `GainResourcePerCardPlayed`).
+
+Updated pages: `cards/effects.md`, `cards/decisions.md`, `log.md`.
+
 ## [2026-05-21] maintenance | Translated wiki to English
 
 ## [2026-05-21] ingest | Localization infrastructure

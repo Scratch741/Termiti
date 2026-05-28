@@ -75,6 +75,15 @@ Card costs 0 but consumes ALL available resources of the given type on play (X =
 | `DecisionFromDiscard` | N cards from own discard pile; player adds one to hand |
 | `DecisionFromDeck` | N cards from own deck; a copy arrives in hand (original stays) |
 | `DecisionMine` | Exactly 4 options: 1 random mine of each type (MAGIC/ATTACK/STONES/CHAOS) |
+| `DecisionChooseResource` | Overlay shows resource buttons (`ResourceOption(type, amount)`); player gains the chosen resource |
+| `SmartJoker` | 4 situationally-best cards (one per type); player adds one to hand |
+| `PeekAndStealHand` | Shows opponent's full hand; player steals one card |
+
+## Special attack effects
+
+| Effect | Params | Description |
+|--------|--------|-------------|
+| `MomentumAttack` | base, bonusPerAttack | Attacks for `base + bonusPerAttack × attackCardsThisTurn` |
 
 ## Related pages
 - [[cards/types]] — card types
@@ -85,3 +94,4 @@ Card costs 0 but consumes ALL available resources of the given type on play (X =
 ## Changelog
 - 2026-05-21: Page created
 - 2026-05-26: Added missing effects: GiveRandomCard, TrapOnDraw, AddToOpponentDeck, ModifyHandCost, RandomizeHands, SmartJoker
+- 2026-05-28: Documented DecisionChooseResource, PeekAndStealHand, MomentumAttack

@@ -3701,6 +3701,51 @@
     "baseId": "126"
   },
   {
+    "id": "127",
+    "name": "Pyroblast",
+    "cost": 6,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 10
+      },
+      {
+        "type": "DrainResource",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "127"
+  },
+  {
+    "id": "128",
+    "name": "Archmág",
+    "cost": 6,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "DrawPerCardPlayed"
+      },
+      {
+        "type": "GainResourcePerCardPlayed",
+        "resType": "MAGIC",
+        "amount": 1
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "128"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,

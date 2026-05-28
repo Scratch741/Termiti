@@ -52,11 +52,19 @@ Shows exactly **4 options**: 1 random mine of each type (MAGIC, ATTACK, STONES, 
 |------|----|------|
 | Průzkum dolů | 117 | 1 MAGIC |
 
+### `DecisionChooseResource(options)`
+Special: the overlay shows **resource buttons** (not cards). Each option is a `ResourceOption(type, amount)`. The player picks one and immediately receives that amount of the resource. `DecisionState.resourceChoices` drives the UI branch in `DecisionOverlay`; resolved by `resolveResourceDecision(type, amount)` offline / `resolveOnlineResourceDecision` online (sends `chosenId = resType.name`).
+
+| Card | ID | Cost | Options |
+|------|----|------|---------|
+| Alchymistova volba | 124 | 2 MAGIC | 4 Magic / 4 Attack / 4 Stones |
+
 ## AI behavior for Decision cards
 
-AI auto-picks the first option for most Decision effects. Exception:
+AI auto-picks the first option for most Decision effects. Exceptions:
 
 - **`DecisionMine`** — AI picks the mine type it has the **least** of (minimizes `ai.mines[resType]`)
+- **`DecisionChooseResource`** — AI picks the resource it has the **least** of (minimizes `ai.resources[type]`)
 
 ## Online (GameSession.js)
 
@@ -74,3 +82,4 @@ Server handles Decision via:
 
 ## Changelog
 - 2026-05-21: Page created; Průzkum dolů (117) added
+- 2026-05-28: Added `DecisionChooseResource` (Alchymistova volba 124) — resource-button overlay variant

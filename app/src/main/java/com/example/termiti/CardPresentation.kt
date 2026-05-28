@@ -597,21 +597,38 @@ object CardPresentation {
         ),
         "124" to CardPres(
             "Rozhodnutí: získej 4 magie, 4 útok, nebo 4 kameny. [Combo]",
-            null, "Magie",
+            R.drawable.art_alchymistova_volba, "Magie",
+            artScale = 0.80f, artBiasY = -0.30f,
             descriptionEn = "Decision: gain 4 Magic, 4 Attack, or 4 Stones. [Combo]",
             nameAccusative = "Alchymistovu volbu"
         ),
         "125" to CardPres(
             "Zaútočí za 4. Toto kolo: každá útočná karta přidá 1 chaos. [Combo]",
-            null, "Útok",
+            R.drawable.art_valecny_zapal, "Útok",
+            artScale = 0.80f, artBiasY = 0.15f,
             descriptionEn = "Attack for 4. This turn: each Attack card adds 1 chaos. [Combo]",
             nameAccusative = "Válečný zápal"
         ),
         "126" to CardPres(
             "Toto kolo: každá magická karta přidá 2 chaos. [Combo]",
-            null, "Magie",
+            R.drawable.art_magicky_proud, "Magie",
+            artScale = 0.80f, artBiasY = -0.60f,
             descriptionEn = "This turn: each Magic card adds 2 chaos. [Combo]",
             nameAccusative = "Magický proud"
+        ),
+        "127" to CardPres(
+            "Přímý zásah hradu za 10, znič 2 magie soupeři.",
+            R.drawable.art_pyroblast, "Magie",
+            artScale = 0.80f, artBiasY = -0.30f,
+            descriptionEn = "Direct castle hit for 10, destroy 2 of the opponent's Magic.",
+            nameAccusative = "Pyroblast"
+        ),
+        "128" to CardPres(
+            "Toto kolo: za každou další zahranou kartu lízni 1 a získej 1 magii. [Combo]",
+            R.drawable.art_archmag, "Magie",
+            artScale = 0.80f, artBiasY = 0.40f,
+            descriptionEn = "This turn: for each additional card played, draw 1 and gain 1 Magic. [Combo]",
+            nameAccusative = "Archmága"
         ),
         "C40" to CardPres(
             "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji.",
