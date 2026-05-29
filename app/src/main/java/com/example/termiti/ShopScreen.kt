@@ -339,9 +339,9 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
     // Podržení prstu odhalí záři rarity skryté karty ještě před otočením
     var isHolding by remember { mutableStateOf(false) }
 
-    val isRarePlus = gain.card.rarity != Rarity.COMMON
-    val glowColor  = shRarityColor(gain.card.rarity)
-    val showGlow   = isRarePlus && (isRevealed || isHolding)
+    // Common karty mají také glow – světle šedivý; vzácnější dle barvy rarity
+    val glowColor  = if (gain.card.rarity == Rarity.COMMON) Color(0xFFCFCFCF) else shRarityColor(gain.card.rarity)
+    val showGlow   = isRevealed || isHolding
 
     // Pulsující záře pro RARE+ karty po odhalení
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
