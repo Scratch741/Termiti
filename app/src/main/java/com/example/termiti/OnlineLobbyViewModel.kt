@@ -915,11 +915,11 @@ class OnlineLobbyViewModel(
                                     val o      = resArr.getJSONObject(i)
                                     val type   = ResourceType.valueOf(o.getString("resType"))
                                     val amount = o.getInt("amount")
-                                    val (emoji, label) = when (type) {
-                                        ResourceType.MAGIC  -> "✨" to "Magie"
-                                        ResourceType.ATTACK -> "⚔️" to "Útok"
-                                        ResourceType.STONES -> "🪨" to "Kameny"
-                                        ResourceType.CHAOS  -> "🌀" to "Chaos"
+                                    val (emoji, label, artRes) = when (type) {
+                                        ResourceType.MAGIC  -> Triple("✨", "Magie",  R.drawable.art_placeholder_magie)
+                                        ResourceType.ATTACK -> Triple("⚔️", "Útok",   R.drawable.art_placeholder_utok)
+                                        ResourceType.STONES -> Triple("🪨", "Kameny", R.drawable.art_placeholder_kamen)
+                                        ResourceType.CHAOS  -> Triple("🌀", "Chaos",  R.drawable.art_placeholder_chaos)
                                     }
                                     Card(
                                         id            = "__res_${type.name}",
@@ -929,7 +929,8 @@ class OnlineLobbyViewModel(
                                         costType      = type,
                                         effects       = listOf(CardEffect.AddResource(type, amount)),
                                         isPlaceholder = true,
-                                        type          = label
+                                        type          = label,
+                                        artResId      = artRes
                                     )
                                 }.getOrNull()
                             }
