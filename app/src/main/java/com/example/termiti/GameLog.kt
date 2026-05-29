@@ -74,6 +74,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
             )
         }
         is LogEntry.CardEvent -> {
+            val s = LocalStrings.current
             val actionColor = when (entry.action) {
                 CardAction.PLAYED    -> if (entry.isMe) TealLight else Crimson
                 CardAction.DISCARDED -> TextMuted
@@ -81,10 +82,16 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                 CardAction.STOLEN    -> MagicPurple
             }
             val actionLabel = when (entry.action) {
-                CardAction.PLAYED    -> "zahrál"
-                CardAction.DISCARDED -> "zahodil"
-                CardAction.BURNED    -> "🔥 spálil"
-                CardAction.STOLEN    -> "🃏 ukradl"
+                CardAction.PLAYED    -> s.logVerbPlayed
+                CardAction.DISCARDED -> s.logVerbDiscarded
+                CardAction.BURNED    -> s.logVerbBurned
+                CardAction.STOLEN    -> s.logVerbStolen
+            }
+            // actorName je uloženo jako literál "Hráč"/"AI" → lokalizuj při zobrazení
+            val actorLabel = when (entry.actorName) {
+                "Hráč" -> s.logActorPlayer
+                "AI"   -> s.logActorAi
+                else   -> entry.actorName
             }
             val rc = rarityColor(entry.card.rarity)
 
@@ -129,7 +136,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                     // ── řádek 1: aktor · sloveso ... kolo ─────────────────────
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text       = entry.actorName,
+                            text       = actorLabel,
                             color      = if (entry.isMe) TealLight else Crimson,
                             fontSize   = 8.sp,
                             fontWeight = FontWeight.Bold,

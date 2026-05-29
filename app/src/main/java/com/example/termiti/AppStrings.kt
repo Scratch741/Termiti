@@ -149,6 +149,45 @@ data class AppStrings(
     val resAttack: String,
     val resStone: String,
     val resChaos: String,
+
+    // ── Game log feed (bottom-right) ───────────────────────────────────────────
+    // Card-event row: actor + verb
+    val logActorPlayer: String,
+    val logActorAi: String,
+    val logVerbPlayed: String,
+    val logVerbDiscarded: String,
+    val logVerbBurned: String,
+    val logVerbStolen: String,
+    // System events (some take %s = card/resource, %d = amount — sequential order)
+    val logBurnedFromOppDeck: String,
+    val logChose: String,
+    val logTookFromDiscard: String,
+    val logCopiedFromDeck: String,
+    val logChoseMine: String,
+    val logJoker: String,
+    val logStoleFromHand: String,
+    val logChoseResource: String,
+    val logPlayerFirst: String,
+    val logAiFirst: String,
+    val logNotEnough: String,
+    val logConditionNotMet: String,
+    val logReplication: String,
+    val logPlayerEndTurn: String,
+    val logPlayerSkip: String,
+    val logAiDiscardFromDeck: String,
+    val logAiJoker: String,
+    val logAiStoleFromHand: String,
+    val logAiChoseResource: String,
+    val logAiWaited: String,
+    val logBothPassedEmpty: String,
+    val logBothNoCards: String,
+    // Trap-on-draw message: "💥 <who> <card>! <effect>"
+    val logTrapDrewYou: String,
+    val logTrapDrewAi: String,
+    val logTrapCastle: String,
+    val logTrapWall: String,
+    val logTrapHp: String,
+    val logTrapTriggered: String,
 )
 
 // ── CompositionLocal ──────────────────────────────────────────────────────────

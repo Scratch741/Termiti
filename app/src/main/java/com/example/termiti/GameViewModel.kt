@@ -629,7 +629,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.DecisionBurnOpponent -> {
                 ai.deck.remove(chosen)
                 ai.discardPile.add(chosen)
-                log.appendLog("Hráč zahodil ze soupeřova balíku: ${chosen.name}")
+                log.appendLog(ls.logBurnedFromOppDeck.format(chosen.displayName))
             }
             is CardEffect.DecisionChooseType -> {
                 val newCard = chosen.copy(
@@ -638,20 +638,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     costModifier = -effect.costReduction   // záporná = sleva; 0 = beze změny
                 )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
-                val discountMsg = if (effect.costReduction > 0) " (−${effect.costReduction} ${chosen.costType.label})" else ""
-                log.appendLog("Hráč si vybral: ${chosen.name}$discountMsg")
+                val discountMsg = if (effect.costReduction > 0) " (−${effect.costReduction} ${resLabel(chosen.costType)})" else ""
+                log.appendLog(ls.logChose.format(chosen.displayName) + discountMsg)
             }
             is CardEffect.DecisionFromDiscard -> {
                 player.discardPile.remove(chosen)
                 val retrieved = chosen.copy(isGenerated = true)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(retrieved) else player.discardPile.add(retrieved)
-                log.appendLog("Hráč si vzal z odhazovacího balíčku: ${chosen.name}")
+                log.appendLog(ls.logTookFromDiscard.format(chosen.displayName))
             }
             is CardEffect.DecisionFromDeck -> {
                 // Karta zůstane v balíčku – do ruky přijde kopie s novým ID
                 val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(copy) else player.discardPile.add(copy)
-                log.appendLog("Hráč zkopíroval z balíčku: ${chosen.name}")
+                log.appendLog(ls.logCopiedFromDeck.format(chosen.displayName))
             }
             is CardEffect.DecisionMine -> {
                 val newCard = chosen.copy(
@@ -659,7 +659,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     isGenerated = true
                 )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
-                log.appendLog("Hráč si vybral důl: ${chosen.name}")
+                log.appendLog(ls.logChoseMine.format(chosen.displayName))
             }
             is CardEffect.SmartJoker -> {
                 val newCard = chosen.copy(
@@ -667,13 +667,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     isGenerated = true
                 )
                 if (player.hand.size < old.playerMaxHand) player.hand.add(newCard) else player.discardPile.add(newCard)
-                log.appendLog("Magický žolík: hráč si zvolil ${chosen.name}")
+                log.appendLog(ls.logJoker.format(chosen.displayName))
             }
             is CardEffect.PeekAndStealHand -> {
                 ai.hand.remove(chosen)
                 val stolen = chosen.copy(id = "${chosen.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(stolen) else player.discardPile.add(stolen)
-                log.appendLog("Hráč ukradl ze soupeřovy ruky: ${chosen.name}")
+                log.appendLog(ls.logStoleFromHand.format(chosen.displayName))
                 cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = false)
                 addCardLog("Hráč", chosen, CardAction.STOLEN, isMe = false)
             }
@@ -682,13 +682,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val addRes = chosen.effects.filterIsInstance<CardEffect.AddResource>().firstOrNull()
                 if (addRes != null) {
                     player.resources[addRes.type] = ((player.resources[addRes.type] ?: 0) + addRes.amount).coerceAtMost(MAX_RESOURCE)
-                    val resName = when (addRes.type) {
-                        ResourceType.MAGIC  -> "magie"
-                        ResourceType.ATTACK -> "útoku"
-                        ResourceType.STONES -> "kamene"
-                        ResourceType.CHAOS  -> "chaosu"
-                    }
-                    log.appendLog("Hráč si vybral: ${addRes.amount}× $resName")
+                    log.appendLog(ls.logChoseResource.format(addRes.amount, resLabel(addRes.type)))
                 }
             }
             else -> {}
@@ -785,13 +779,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cancelDecisionTimer()
 
         player.resources[type] = ((player.resources[type] ?: 0) + amount).coerceAtMost(MAX_RESOURCE)
-        val resName = when (type) {
-            ResourceType.MAGIC  -> "magie"
-            ResourceType.ATTACK -> "útok"
-            ResourceType.STONES -> "kameny"
-            ResourceType.CHAOS  -> "chaos"
-        }
-        log.appendLog("Hráč si vybral: $amount× $resName")
+        log.appendLog(ls.logChoseResource.format(amount, resLabel(type)))
 
         val pendingDrawCount  = decisionPendingDraws
         pendingDecision.value = null
@@ -859,11 +847,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             gameState.value = old.copy(playerState = player)
-            log.appendLog("Hráč začíná jako první!")
+            log.appendLog(ls.logPlayerFirst)
             return
         }
 
-        log.appendLog("AI začíná jako první!")
+        log.appendLog(ls.logAiFirst)
 
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
@@ -1017,7 +1005,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Affordability check (X-kost karty jsou vždy zahratelné)
         if (!card.isXCost && (player.resources[card.costType] ?: 0) < card.effectiveCost) {
-            log.appendLog("Nedostatek ${card.costType.label} pro: ${card.name}")
+            log.appendLog(ls.logNotEnough.format(resLabel(card.costType), card.displayName))
             return
         }
 
@@ -1046,7 +1034,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
             if (!checkCondition(ce.condition, player, ai)) {
-                log.appendLog("${card.name}: podmínka nesplněna!")
+                log.appendLog(ls.logConditionNotMet.format(card.displayName))
             }
         }
         // Quest: zahraná karta
@@ -1063,7 +1051,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
             player.deck.shuffle()
             player.cloneNextPlayed = null
-            log.appendLog("Replikace: ${cloneCount}× ${card.name} zamícháno do balíčku")
+            log.appendLog(ls.logReplication.format(cloneCount, card.displayName))
         }
         // DrawPerCardPlayed: flag byl nastaven předchozí kartou → tato karta triggeruje líz (s volitelným filtrem typu)
         val drawFilter = player.drawCardOnPlay
@@ -1195,7 +1183,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
         isPlayerComboTurn.value = false
-        log.appendLog("Hráč ukončil tah")
+        log.appendLog(ls.logPlayerEndTurn)
         finishTurn(old, player, ai)
     }
 
@@ -1207,7 +1195,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Čekat = přeskočit tah bez akce.
         // Karta se líže automaticky na začátku DALŠÍHO kola (v finishTurn).
-        log.appendLog("Hráč přeskočil kolo")
+        log.appendLog(ls.logPlayerSkip)
         isPlayerComboTurn.value = false
         finishTurn(old, player, ai, playerWaited = true)
     }
@@ -1343,7 +1331,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     opts.firstOrNull()?.let { chosen ->
                                         player.deck.remove(chosen)
                                         player.discardPile.add(chosen)
-                                        log.appendLog("AI zahodila z tvého balíku: ${chosen.name}")
+                                        log.appendLog(ls.logAiDiscardFromDeck.format(chosen.displayName))
                                     }
                                 }
                                 is CardEffect.DecisionChooseType -> {
@@ -1395,7 +1383,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                                 isGenerated = true
                                             )
                                             if (ai.hand.size < old.aiMaxHand) ai.hand.add(newCard)
-                                            log.appendLog("AI zvolila žolíka: ${chosen.name}")
+                                            log.appendLog(ls.logAiJoker.format(chosen.displayName))
                                         }
                                 }
                                 is CardEffect.PeekAndStealHand -> {
@@ -1406,7 +1394,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                             player.hand.remove(chosen)
                                             val stolen = chosen.copy(id = "${chosen.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true)
                                             if (ai.hand.size < old.aiMaxHand) ai.hand.add(stolen)
-                                            log.appendLog("AI ukradla z tvé ruky: ${chosen.name}")
+                                            log.appendLog(ls.logAiStoleFromHand.format(chosen.displayName))
                                             cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = true)
                                             addCardLog("AI", chosen, CardAction.STOLEN, isMe = true)
                                         }
@@ -1416,7 +1404,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     val best = fx.options.minByOrNull { ai.resources[it.type] ?: 0 }
                                     if (best != null) {
                                         ai.resources[best.type] = ((ai.resources[best.type] ?: 0) + best.amount).coerceAtMost(MAX_RESOURCE)
-                                        log.appendLog("AI si vybrala ${best.amount}× ${best.type.name.lowercase()}")
+                                        log.appendLog(ls.logAiChoseResource.format(best.amount, resLabel(best.type)))
                                     }
                                 }
                                 else -> {}
@@ -1449,7 +1437,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     }
                     is AiAction.Wait -> {
                         // AI čeká = přeskočí tah
-                        log.appendLog("AI čekala")
+                        log.appendLog(ls.logAiWaited)
                         aiContinues = false
                         // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad.
                         // Stačí prázdné BALÍČKY – hráč mohl projít s kartami v ruce a zvolit čekat.
@@ -1457,7 +1445,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()
-                            log.appendLog("Oba hráči pasovali s prázdnými balíčky – konec hry!")
+                            log.appendLog(ls.logBothPassedEmpty)
                             scheduleGameEnd(result, finalState)
                             return@launch
                         }
@@ -1540,7 +1528,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     activePlayer = ActivePlayer.PLAYER
                 )
                 val result = finalState.resolveByHp()
-                log.appendLog("Obě strany bez karet – konec hry!")
+                log.appendLog(ls.logBothNoCards)
                 scheduleGameEnd(result, finalState)
                 return@launch
             }
@@ -1621,17 +1609,29 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Sestaví log zprávu pro explozi pasti (TrapOnDraw). */
     private fun trapLogMsg(card: Card, isPlayer: Boolean): String {
-        val who = if (isPlayer) "Ty jsi lízl" else "AI lízla"
-        val cardName = card.nameAccusative ?: card.name   // preferuj 4. pád, fallback na nominativ
+        val who = if (isPlayer) ls.logTrapDrewYou else ls.logTrapDrewAi
+        // 4. pád (akuzativ) jen pro češtinu; jinak lokalizovaný název karty
+        val cardName = if (ls.languageCode == "cs") (card.nameAccusative ?: card.displayName) else card.displayName
         val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
         val dmgDesc = when (val e = trap?.effect) {
-            is CardEffect.AttackCastle -> "HRAD −${e.amount}"
-            is CardEffect.AttackWall   -> "ZEĎ −${e.amount}"
-            is CardEffect.AttackPlayer -> "−${e.amount} HP"
-            is CardEffect.BuildCastle  -> "HRAD +${e.amount}"
-            else                       -> "pasca spuštěna"
+            is CardEffect.AttackCastle -> "${ls.logTrapCastle} −${e.amount}"
+            is CardEffect.AttackWall   -> "${ls.logTrapWall} −${e.amount}"
+            is CardEffect.AttackPlayer -> "−${e.amount} ${ls.logTrapHp}"
+            is CardEffect.BuildCastle  -> "${ls.logTrapCastle} +${e.amount}"
+            else                       -> ls.logTrapTriggered
         }
         return "💥 $who $cardName! $dmgDesc"
+    }
+
+    /** Aktivní jazykový balíček – zkratka pro stavbu lokalizovaných log hlášek. */
+    private val ls get() = LanguageManager.currentStrings
+
+    /** Lokalizovaný název zdroje pro log hlášky. */
+    private fun resLabel(t: ResourceType): String = when (t) {
+        ResourceType.MAGIC  -> ls.resMagic
+        ResourceType.ATTACK -> ls.resAttack
+        ResourceType.STONES -> ls.resStone
+        ResourceType.CHAOS  -> ls.resChaos
     }
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
