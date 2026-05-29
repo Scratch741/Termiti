@@ -105,6 +105,9 @@ data class LanguagePack(
                 yourTurn      = str("yourTurn",      "VÁŠ TAH"),
                 opponentTurn  = str("opponentTurn",  "TAH SOUPEŘE"),
                 endTurn       = str("endTurn",       "Ukončit tah"),
+                endCombo      = str("endCombo",      "Konec combo"),
+                waitingTurn   = str("waitingTurn",   "Čekám…"),
+                inspectGame   = str("inspectGame",   "Prohlédnout hru"),
                 discard       = str("discard",       "Zahodit"),
                 castle        = str("castle",        "Hrad"),
                 wall          = str("wall",          "Hradby"),
@@ -147,6 +150,13 @@ data class LanguagePack(
                 mulliganTitle    = str("mulliganTitle",    "MULLIGAN"),
                 mulliganSubtitle = str("mulliganSubtitle", "Vyber karty k výměně"),
                 mulliganConfirm  = str("mulliganConfirm",  "Potvrdit"),
+                mulliganYouFirst        = str("mulliganYouFirst",        "Ty začínáš první"),
+                mulliganOpponentFirst   = str("mulliganOpponentFirst",   "Soupeř začíná první"),
+                mulliganWaitingOpponent = str("mulliganWaitingOpponent", "Čekám na soupeře…"),
+                mulliganInstruction     = str("mulliganInstruction",     "Klikni na karty, které chceš vyměnit za náhodné z balíku"),
+                mulliganSelected        = str("mulliganSelected",        "Vybráno: %d — klikni znovu pro zrušení"),
+                mulliganPlayNoSwap      = str("mulliganPlayNoSwap",      "Hrát bez výměny"),
+                mulliganSwap            = str("mulliganSwap",            "Vyměnit"),
 
                 profileTitle  = str("profileTitle",  "PROFIL"),
                 profileWins   = str("profileWins",   "Výhry"),
@@ -194,6 +204,8 @@ data class LanguagePack(
             "arena" -> fb.arena; "campaign" -> fb.campaign
             "yourTurn" -> fb.yourTurn; "opponentTurn" -> fb.opponentTurn
             "endTurn" -> fb.endTurn; "discard" -> fb.discard
+            "endCombo" -> fb.endCombo; "waitingTurn" -> fb.waitingTurn
+            "inspectGame" -> fb.inspectGame
             "castle" -> fb.castle; "wall" -> fb.wall; "round" -> fb.round
             "decisionTitle" -> fb.decisionTitle
             "decisionPreviewGame" -> fb.decisionPreviewGame
@@ -220,6 +232,13 @@ data class LanguagePack(
             "arenaWins" -> fb.arenaWins
             "mulliganTitle" -> fb.mulliganTitle; "mulliganSubtitle" -> fb.mulliganSubtitle
             "mulliganConfirm" -> fb.mulliganConfirm
+            "mulliganYouFirst" -> fb.mulliganYouFirst
+            "mulliganOpponentFirst" -> fb.mulliganOpponentFirst
+            "mulliganWaitingOpponent" -> fb.mulliganWaitingOpponent
+            "mulliganInstruction" -> fb.mulliganInstruction
+            "mulliganSelected" -> fb.mulliganSelected
+            "mulliganPlayNoSwap" -> fb.mulliganPlayNoSwap
+            "mulliganSwap" -> fb.mulliganSwap
             "profileTitle" -> fb.profileTitle; "profileWins" -> fb.profileWins
             "profileLosses" -> fb.profileLosses; "profileGames" -> fb.profileGames
             "shopTitle" -> fb.shopTitle; "shopBuy" -> fb.shopBuy; "shopDust" -> fb.shopDust

@@ -465,10 +465,11 @@ private fun OnlineGameplay(
                                 onClick = { SoundManager.playMenuTap(); showOppHand = !showOppHand }
                             )
                         } else {
+                            val s = LocalStrings.current
                             val btnColor = if (gs.isMyTurn) OgTealLight
                                            else OgTextMuted.copy(alpha = 0.35f)
                             NewPanelButton(
-                                label   = if (gs.isMyTurn) "⏩ Konec tahu" else "⏳ Čekám…",
+                                label   = if (gs.isMyTurn) "⏩ ${s.endTurn}" else "⏳ ${s.waitingTurn}",
                                 color   = btnColor,
                                 active  = gs.isMyTurn,
                                 onClick = if (gs.isMyTurn) {
@@ -717,7 +718,7 @@ private fun OnlineGameOverOverlay(
                 shape    = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(0.7f)
             ) {
-                Text("📋 Prohlédnout hru", color = OgTextPrimary, fontWeight = FontWeight.Bold)
+                Text("📋 ${LocalStrings.current.inspectGame}", color = OgTextPrimary, fontWeight = FontWeight.Bold)
             }
 
             TextButton(onClick = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }) {

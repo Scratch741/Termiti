@@ -214,7 +214,8 @@ fun GameScreen(
                                 onClick = { showOppHand = !showOppHand }
                             )
                         } else {
-                            val btnLabel = if (isComboTurn) "⚡ Konec combo" else "⏩ Konec tahu"
+                            val s = LocalStrings.current
+                            val btnLabel = if (isComboTurn) "⚡ ${s.endCombo}" else "⏩ ${s.endTurn}"
                             val btnColor = when {
                                 isComboTurn -> Gold
                                 active      -> TealLight

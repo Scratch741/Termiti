@@ -245,7 +245,7 @@ fun MulliganOverlay(
             // Badge: kdo jde první (jen pokud je znám)
             if (goesFirst != null) {
                 Text(
-                    if (goesFirst) "⚔️ Ty začínáš první" else "⏳ Soupeř začíná první",
+                    if (goesFirst) "⚔️ ${s.mulliganYouFirst}" else "⏳ ${s.mulliganOpponentFirst}",
                     color = if (goesFirst) Teal else TextMuted,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold
                 )
@@ -254,15 +254,15 @@ fun MulliganOverlay(
             // Podtitulek / čekání po odeslání
             if (submitted) {
                 Text(
-                    "Čekám na soupeře…",
+                    s.mulliganWaitingOpponent,
                     color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
                 )
             } else {
                 Text(
                     if (selectedIds.isEmpty())
-                        "Klikni na karty, které chceš vyměnit za náhodné z balíku"
+                        s.mulliganInstruction
                     else
-                        "Vyměníš ${selectedIds.size} ${if (selectedIds.size == 1) "kartu" else "karty"} — klikni znovu pro zrušení výběru",
+                        s.mulliganSelected.format(selectedIds.size),
                     color = TextMuted, fontSize = 10.sp, textAlign = TextAlign.Center
                 )
             }
@@ -322,7 +322,7 @@ fun MulliganOverlay(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Hrát bez výměny",
+                            s.mulliganPlayNoSwap,
                             color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold
                         )
                     }
@@ -347,7 +347,7 @@ fun MulliganOverlay(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            if (canConfirm) "Vyměnit (${selectedIds.size})" else "Vyměnit",
+                            if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
                             color = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
                             fontSize = 11.sp, fontWeight = FontWeight.Bold
                         )

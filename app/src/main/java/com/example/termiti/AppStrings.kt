@@ -55,6 +55,9 @@ data class AppStrings(
     val yourTurn: String,
     val opponentTurn: String,
     val endTurn: String,
+    val endCombo: String,
+    val waitingTurn: String,
+    val inspectGame: String,
     val discard: String,
     val castle: String,
     val wall: String,
@@ -102,6 +105,13 @@ data class AppStrings(
     val mulliganTitle: String,
     val mulliganSubtitle: String,
     val mulliganConfirm: String,
+    val mulliganYouFirst: String,
+    val mulliganOpponentFirst: String,
+    val mulliganWaitingOpponent: String,
+    val mulliganInstruction: String,
+    val mulliganSelected: String,       // formát s %d (počet vybraných karet)
+    val mulliganPlayNoSwap: String,
+    val mulliganSwap: String,
 
     // ── Profile ──────────────────────────────────────────────────────────────
     val profileTitle: String,
