@@ -720,7 +720,7 @@ fun CardPreview(card: Card) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    card.type.uppercase(), color = Color(0xFFD4B870),
+                    card.displayType.uppercase(), color = Color(0xFFD4B870),
                     fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp,
                     textAlign = TextAlign.Center,
                     style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
@@ -1085,7 +1085,7 @@ private fun FullCardPreview(card: Card) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        card.type.uppercase(), color = Color(0xFFD4B870),
+                        card.displayType.uppercase(), color = Color(0xFFD4B870),
                         fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp,
                         textAlign = TextAlign.Center,
                         style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))

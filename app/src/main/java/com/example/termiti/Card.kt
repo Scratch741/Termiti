@@ -123,4 +123,20 @@ data class Card(
      * or [baseId]) → built-in Czech [description] fallback.
      */
     val displayDescription: String get() = LanguageManager.cardDesc(localizationId ?: baseId, description)
+
+    /**
+     * Localized card-type band label (Magie/Útok/Stavba/Chaos/Důl → active language).
+     * Unknown values (e.g. already-localized resource placeholders) pass through.
+     */
+    val displayType: String get() {
+        val s = LanguageManager.currentStrings
+        return when (type) {
+            "Magie"  -> s.typeMagic
+            "Útok"   -> s.typeAttack
+            "Stavba" -> s.typeBuild
+            "Chaos"  -> s.typeChaos
+            "Důl"    -> s.typeMines
+            else     -> type
+        }
+    }
 }

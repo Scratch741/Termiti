@@ -665,7 +665,7 @@ private fun CardViewTextured(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    card.type.uppercase(),
+                    card.displayType.uppercase(),
                     color = Color(0xFFD4B870),
                     fontSize = 6.sp,
                     fontWeight = FontWeight.Bold,
@@ -869,7 +869,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        card.type.uppercase(),
+                        card.displayType.uppercase(),
                         color         = Color(0xFFD4B870),
                         fontSize      = 11.sp,
                         fontWeight    = FontWeight.Bold,
