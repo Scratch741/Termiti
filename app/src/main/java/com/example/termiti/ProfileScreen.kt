@@ -62,7 +62,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                 .clickable { SoundManager.playMenuTap(); onBack() }
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text("← Zpět", color = PrMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(LocalStrings.current.back, color = PrMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
 
         if (profile == null) return@Box
@@ -99,7 +99,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(profile!!.name, color = PrText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        Text("Úroveň ${profile!!.level}", color = PrGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(LocalStrings.current.profileLevel.format(profile!!.level), color = PrGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -128,9 +128,9 @@ fun ProfileScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CurrencyBadge("🪙", profile!!.gold, PrGold,           "Zlato",     Modifier.weight(1f))
-                    CurrencyBadge("💎", profile!!.gems, PrGems,           "Drahokamy", Modifier.weight(1f))
-                    CurrencyBadge("✨", profile!!.dust, Color(0xFFB39DDB), "Prach",     Modifier.weight(1f))
+                    CurrencyBadge("🪙", profile!!.gold, PrGold,           LocalStrings.current.profileGold, Modifier.weight(1f))
+                    CurrencyBadge("💎", profile!!.gems, PrGems,           LocalStrings.current.profileGems, Modifier.weight(1f))
+                    CurrencyBadge("✨", profile!!.dust, Color(0xFFB39DDB), LocalStrings.current.shopDust,    Modifier.weight(1f))
                 }
 
                 // Statistiky
@@ -138,8 +138,8 @@ fun ProfileScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StatBadge("⚔️", "${profile!!.winsOffline + profile!!.winsOnline}", "Výher",    Modifier.weight(1f))
-                    StatBadge("🎮", "${profile!!.totalGames}",                         "Odehráno", Modifier.weight(1f))
+                    StatBadge("⚔️", "${profile!!.winsOffline + profile!!.winsOnline}", LocalStrings.current.profileWins,   Modifier.weight(1f))
+                    StatBadge("🎮", "${profile!!.totalGames}",                         LocalStrings.current.profilePlayed, Modifier.weight(1f))
                 }
 
                 // ── Denní questy ─────────────────────────────────────────────
@@ -189,7 +189,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "🃏 Všechny karty odemčeny",
+                            "🃏 ${LocalStrings.current.profileUnlockAll}",
                             color    = PrMuted,
                             fontSize = 9.sp,
                             modifier = Modifier.weight(1f)
@@ -216,7 +216,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                if (allUnlocked) "✓ ZAP" else "VYP",
+                                if (allUnlocked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
                                 color      = if (allUnlocked) PrGreen else PrMuted,
                                 fontSize   = 9.sp,
                                 fontWeight = FontWeight.Bold
@@ -239,30 +239,30 @@ fun ProfileScreen(onBack: () -> Unit) {
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SectionHeader("🖼️  Ikonka hráče")
+                SectionHeader("🖼️  ${LocalStrings.current.profileSectionAvatar}")
                 AvatarPicker(
                     current   = profile!!.avatar,
                     level     = profile!!.level,
                     onChanged = { profile = it }
                 )
 
-                SectionHeader("🏰  Skin hradu")
+                SectionHeader("🏰  ${LocalStrings.current.profileSectionCastle}")
                 CastleSkinPicker(
                     current   = profile!!.castleSkin,
                     onChanged = { profile = it }
                 )
 
-                SectionHeader("🃏  Rub karty")
+                SectionHeader("🃏  ${LocalStrings.current.profileSectionCardBack}")
                 CardBackSkinPicker(
                     current   = profile!!.cardBackSkin,
                     onChanged = { profile = it }
                 )
 
-                SectionHeader("⚡  Pasivní schopnosti")
+                SectionHeader("⚡  ${LocalStrings.current.profileSectionAbilities}")
                 // slot info
                 val activeCount = profile!!.activeAbilities.size
                 Text(
-                    "Aktivní: $activeCount / ${PassiveAbility.MAX_ACTIVE}",
+                    LocalStrings.current.profileActiveCount.format(activeCount, PassiveAbility.MAX_ACTIVE),
                     color = if (activeCount >= PassiveAbility.MAX_ACTIVE) PrGold else PrMuted,
                     fontSize = 8.sp,
                     modifier = Modifier.fillMaxWidth(),
@@ -276,8 +276,8 @@ fun ProfileScreen(onBack: () -> Unit) {
                     )
                 }
 
-                SectionHeader("🎨  Kosmetika")
-                ComingSoonCard("Různé cardbacky, hrady a zdi za drahokamy.")
+                SectionHeader("🎨  ${LocalStrings.current.profileSectionCosmetics}")
+                ComingSoonCard(LocalStrings.current.profileCosmeticsSoon)
             }
         }
     }
@@ -409,7 +409,7 @@ private fun AbilityRow(
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        if (slotsLeft) "OFF" else "PLNO",
+                        if (slotsLeft) "OFF" else LocalStrings.current.slotFull,
                         color = if (slotsLeft) PrText else PrMuted,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold
@@ -479,11 +479,17 @@ private fun AvatarPicker(
 
 // ── Castle skin picker ────────────────────────────────────────────────────────
 
-private val CASTLE_SKINS = listOf(
-    "castle_player"   to "Klasický",
-    "castle_player_2" to "Kamenný",
-    "castle_player_3" to "Temný"
-)
+private val CASTLE_SKINS = listOf("castle_player", "castle_player_2", "castle_player_3")
+
+@Composable
+private fun castleSkinLabel(id: String): String {
+    val s = LocalStrings.current
+    return when (id) {
+        "castle_player"   -> s.castleClassic
+        "castle_player_2" -> s.castleStone
+        else              -> s.castleDark
+    }
+}
 
 @Composable
 private fun CastleSkinPicker(
@@ -499,7 +505,8 @@ private fun CastleSkinPicker(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        CASTLE_SKINS.forEach { (skinId, label) ->
+        CASTLE_SKINS.forEach { skinId ->
+            val label = castleSkinLabel(skinId)
             val selected = skinId == current
             val resId = castleSkinDrawable(skinId)
             Column(
@@ -538,7 +545,7 @@ private fun CastleSkinPicker(
                 )
                 if (selected) {
                     Text(
-                        "✓ Aktivní",
+                        LocalStrings.current.profileActive,
                         color    = PrGold,
                         fontSize = 8.sp
                     )
@@ -550,11 +557,17 @@ private fun CastleSkinPicker(
 
 // ── Card back skin picker ─────────────────────────────────────────────────────
 
-private val CARD_BACK_SKINS = listOf(
-    "card_back_frame"   to "Základní",
-    "card_back_frame_2" to "Styl 2",
-    "card_back_frame_3" to "Styl 3"
-)
+private val CARD_BACK_SKINS = listOf("card_back_frame", "card_back_frame_2", "card_back_frame_3")
+
+@Composable
+private fun cardBackLabel(id: String): String {
+    val s = LocalStrings.current
+    return when (id) {
+        "card_back_frame"   -> s.cardBackBasic
+        "card_back_frame_2" -> s.cardBackStyle2
+        else                -> s.cardBackStyle3
+    }
+}
 
 @Composable
 private fun CardBackSkinPicker(
@@ -570,7 +583,8 @@ private fun CardBackSkinPicker(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        CARD_BACK_SKINS.forEach { (skinId, label) ->
+        CARD_BACK_SKINS.forEach { skinId ->
+            val label = cardBackLabel(skinId)
             val selected = skinId == current
             val resId = cardBackSkinDrawable(skinId)
             Column(
@@ -608,7 +622,7 @@ private fun CardBackSkinPicker(
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
                 )
                 if (selected) {
-                    Text("✓ Aktivní", color = PrGold, fontSize = 8.sp)
+                    Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
                 }
             }
         }
@@ -698,8 +712,8 @@ private fun QuestSection(onProfileChanged: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("📋  Denní questy", color = QuestGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-            Text("Resetují se zítra", color = QuestMuted, fontSize = 8.sp)
+            Text("📋  ${LocalStrings.current.questsTitle}", color = QuestGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+            Text(LocalStrings.current.questsReset, color = QuestMuted, fontSize = 8.sp)
         }
 
         // Quest karty – claimnuté se skryjí
@@ -823,7 +837,7 @@ private fun QuestCard(
                             .clickable { SoundManager.playMenuTap(); onClaim() }
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
-                        Text("Převzít!", color = questGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(LocalStrings.current.questClaim, color = questGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

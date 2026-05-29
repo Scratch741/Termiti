@@ -103,6 +103,27 @@ data class AppStrings(
     val deckReset: String,
     val deckClear: String,
     val deckCardCount: String,            // String.format(s.deckCardCount, current, max)
+    val dbActiveShort: String,
+    val dbSearchHint: String,
+    val dbEffectLabel: String,
+    val catAttack: String,
+    val catDefense: String,
+    val catResources: String,
+    val catMines: String,
+    val catCombo: String,
+    val catDecision: String,
+    val catOther: String,
+    val dbFilterUnlocked: String,
+    val dbDisassemble: String,            // %d = dust value
+    val dbDustGain: String,               // %d = dust
+    val dbDustCost: String,               // %d = dust
+    val dbBadgeNew: String,
+    val dbTemplates: String,
+    val dbSetActive: String,
+    val dbActiveDeck: String,
+    val dbComposition: String,
+    val dbConfirm: String,
+    val dbDone: String,
 
     // ── Arena ────────────────────────────────────────────────────────────────
     val arenaDraft: String,
@@ -126,6 +147,31 @@ data class AppStrings(
     val profileWins: String,
     val profileLosses: String,
     val profileGames: String,
+    val profileLevel: String,             // %d
+    val profileGold: String,
+    val profileGems: String,
+    val profilePlayed: String,
+    val profileUnlockAll: String,
+    val profileSectionAvatar: String,
+    val profileSectionCastle: String,
+    val profileSectionCardBack: String,
+    val profileSectionAbilities: String,
+    val profileActiveCount: String,       // %d / %d
+    val profileSectionCosmetics: String,
+    val profileCosmeticsSoon: String,
+    val profileActive: String,
+    val toggleOn: String,
+    val toggleOff: String,
+    val slotFull: String,
+    val castleClassic: String,
+    val castleStone: String,
+    val castleDark: String,
+    val cardBackBasic: String,
+    val cardBackStyle2: String,
+    val cardBackStyle3: String,
+    val questsTitle: String,
+    val questsReset: String,
+    val questClaim: String,
 
     // ── Shop ─────────────────────────────────────────────────────────────────
     val shopTitle: String,

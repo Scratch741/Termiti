@@ -358,10 +358,10 @@ private fun TopBar(
                     .clickable { onBack() }
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text("← Zpět", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(LocalStrings.current.back, color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
             Text(
-                "SESTAVIT BALÍK", color = Gold,
+                LocalStrings.current.deckBuilder, color = Gold,
                 fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp
             )
         }
@@ -424,7 +424,7 @@ private fun DeckSlotChip(
                     fontSize = 8.sp
                 )
                 if (isActive) {
-                    Text("✓ aktivní", color = TealLight, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                    Text(LocalStrings.current.dbActiveShort, color = TealLight, fontSize = 7.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -480,7 +480,7 @@ private fun FilterBar(
                 decorationBox = { inner ->
                     Box {
                         if (searchQuery.isBlank()) {
-                            Text("🔍 Hledat…", color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
+                            Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
                         }
                         inner()
                     }
@@ -505,15 +505,16 @@ private fun FilterBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text("Efekt:", color = TextMuted, fontSize = 9.sp)
-            FilterChip("Útok",        filterCat == "Útok",        AttackRed)              { onCatFilter("Útok")        }
-            FilterChip("Obrana",      filterCat == "Obrana",      StoneColor)             { onCatFilter("Obrana")      }
-            FilterChip("Zdroje",      filterCat == "Zdroje",      MagicPurple)            { onCatFilter("Zdroje")      }
-            FilterChip("Doly",        filterCat == "Doly",        Gold)                   { onCatFilter("Doly")        }
-            FilterChip("🔗 Kombo",    filterCat == "Kombo",       TealLight)              { onCatFilter("Kombo")       }
-            FilterChip("Rozhodnutí",  filterCat == "Rozhodnutí",  Color(0xFFAB47BC))      { onCatFilter("Rozhodnutí")  }
+            val s = LocalStrings.current
+            Text(s.dbEffectLabel, color = TextMuted, fontSize = 9.sp)
+            FilterChip(s.catAttack,    filterCat == "Útok",        AttackRed)              { onCatFilter("Útok")        }
+            FilterChip(s.catDefense,   filterCat == "Obrana",      StoneColor)             { onCatFilter("Obrana")      }
+            FilterChip(s.catResources, filterCat == "Zdroje",      MagicPurple)            { onCatFilter("Zdroje")      }
+            FilterChip(s.catMines,     filterCat == "Doly",        Gold)                   { onCatFilter("Doly")        }
+            FilterChip(s.catCombo,     filterCat == "Kombo",       TealLight)              { onCatFilter("Kombo")       }
+            FilterChip(s.catDecision,  filterCat == "Rozhodnutí",  Color(0xFFAB47BC))      { onCatFilter("Rozhodnutí")  }
             Spacer(Modifier.weight(1f))
-            FilterChip("🔓 Odemčené", filterUnlocked, HpGreen) { onUnlocked() }
+            FilterChip(s.dbFilterUnlocked, filterUnlocked, HpGreen) { onUnlocked() }
         }
     }
 }
@@ -827,7 +828,7 @@ private fun CardActionPanel(
                 )
                 if (pendingCraft > 0) {
                     Text(
-                        "−${pendingCraft * card.rarity.craftCost} ✨ prachu",
+                        LocalStrings.current.dbDustCost.format(pendingCraft * card.rarity.craftCost),
                         color = craftAccent, fontSize = 9.sp
                     )
                 }
@@ -835,7 +836,7 @@ private fun CardActionPanel(
                 // ── Rozebrat ──────────────────────────────────────────────────
                 val dismantleAccent = Color(0xFFE57373)
                 ActionCounter(
-                    label       = "💥  Rozebrat  +${card.rarity.dustValue}✨",
+                    label       = LocalStrings.current.dbDisassemble.format(card.rarity.dustValue),
                     accent      = dismantleAccent,
                     count       = pendingDismantle,
                     maxCount    = maxDismantle,
@@ -844,7 +845,7 @@ private fun CardActionPanel(
                 )
                 if (pendingDismantle > 0) {
                     Text(
-                        "+${pendingDismantle * card.rarity.dustValue} ✨ prachu",
+                        LocalStrings.current.dbDustGain.format(pendingDismantle * card.rarity.dustValue),
                         color = dismantleAccent, fontSize = 9.sp
                     )
                 }
@@ -868,7 +869,7 @@ private fun CardActionPanel(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    if (hasPending) "✓  Potvrdit" else "✓  Hotovo",
+                    if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
                     color = Gold, fontSize = 11.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
@@ -1187,7 +1188,7 @@ private fun NewBadge(modifier: Modifier = Modifier) {
             .padding(horizontal = 4.dp, vertical = 1.5.dp)
     ) {
         Text(
-            "NOVÉ",
+            LocalStrings.current.dbBadgeNew,
             color      = Color(0xFF1A1320),
             fontSize   = 6.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -1369,7 +1370,7 @@ private fun DeckPanel(
 
         // Šablony
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Šablony", color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
+            Text(LocalStrings.current.dbTemplates, color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -1406,7 +1407,12 @@ private fun DeckPanel(
                     ) {
                         Text(resIcon(type), fontSize = 9.sp)
                         Text(
-                            type.label.replaceFirstChar { it.uppercase() },
+                            when (type) {
+                                ResourceType.MAGIC  -> LocalStrings.current.resMagic
+                                ResourceType.ATTACK -> LocalStrings.current.resAttack
+                                ResourceType.STONES -> LocalStrings.current.resStone
+                                ResourceType.CHAOS  -> LocalStrings.current.resChaos
+                            },
                             color = resColor(type).copy(alpha = 0.7f),
                             fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                         )
@@ -1467,7 +1473,7 @@ private fun DeckPanel(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            if (isActive) "✓ Aktivní balíček" else "Nastavit aktivní",
+                            if (isActive) LocalStrings.current.dbActiveDeck else LocalStrings.current.dbSetActive,
                             color = if (isActive) TealLight else if (deck.isValid) TealLight else TextMuted,
                             fontSize = 10.sp, fontWeight = FontWeight.Bold
                         )
@@ -1533,7 +1539,7 @@ private fun DeckStats(deck: Deck, deckCards: List<Card>) {
     val total = deck.totalCards.coerceAtLeast(1).toFloat()
 
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text("Složení balíčku", color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
+        Text(LocalStrings.current.dbComposition, color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
         ResourceType.entries.forEach { type ->
             val count = byType[type] ?: 0
             Row(
