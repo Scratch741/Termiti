@@ -200,9 +200,8 @@ fun DecisionOverlay(
                     }
                 }
 
-                // Tlačítko náhledu – vycentrované
+                // Tlačítko náhledu – vycentrované (Column centruje, panel se nerozšiřuje na celou šířku)
                 Box(
-                    modifier          = Modifier.fillMaxWidth(),
                     contentAlignment  = Alignment.Center
                 ) {
                     Box(
