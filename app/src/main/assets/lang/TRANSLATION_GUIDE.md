@@ -24,6 +24,7 @@ Want to translate Termiti into your language? Just create a new JSON file!
 - **Do NOT change key names or card ids** — only translate the values
 - **Keep `%s` and `%d` placeholders** exactly as they are (they are replaced at runtime)
 - **Keep markdown markers** like `**...**` and tags like `[Combo]` — they are styled/parsed at runtime
+- **Force a line break** in a card description with `|` (pipe) — it becomes a new line on the card
 - **Missing keys are fine** — any untranslated UI string or card falls back to Czech automatically
 - Use `en.json` as your starting template; `cs.json` is the original Czech source
 

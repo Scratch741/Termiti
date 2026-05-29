@@ -45,6 +45,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // Katalog všech dostupných karet
     val allCards get() = CardRepository.allCards
 
+    // ── Lokalizace log hlášek ──────────────────────────────────────────────────
+    /** Aktivní jazykový balíček – zkratka pro stavbu lokalizovaných log hlášek. */
+    private val ls get() = LanguageManager.currentStrings
+
+    /** Lokalizovaný název zdroje pro log hlášky. */
+    private fun resLabel(t: ResourceType): String = when (t) {
+        ResourceType.MAGIC  -> ls.resMagic
+        ResourceType.ATTACK -> ls.resAttack
+        ResourceType.STONES -> ls.resStone
+        ResourceType.CHAOS  -> ls.resChaos
+    }
+
     // ── Deck sloty ────────────────────────────────────────────────────────────
     val decks = androidx.compose.runtime.mutableStateListOf(
         Deck(0, "Balíček 1"),
@@ -1621,17 +1633,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             else                       -> ls.logTrapTriggered
         }
         return "💥 $who $cardName! $dmgDesc"
-    }
-
-    /** Aktivní jazykový balíček – zkratka pro stavbu lokalizovaných log hlášek. */
-    private val ls get() = LanguageManager.currentStrings
-
-    /** Lokalizovaný název zdroje pro log hlášky. */
-    private fun resLabel(t: ResourceType): String = when (t) {
-        ResourceType.MAGIC  -> ls.resMagic
-        ResourceType.ATTACK -> ls.resAttack
-        ResourceType.STONES -> ls.resStone
-        ResourceType.CHAOS  -> ls.resChaos
     }
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
