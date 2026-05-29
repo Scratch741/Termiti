@@ -1578,9 +1578,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val opp     = activeCampaignOpponent.value
         ReplayManager.lastReplay = GameReplay(
             frames          = replayFrames.toList(),
-            playerName      = profile?.name   ?: "Hráč",
+            playerName      = profile?.name   ?: ls.logActorPlayer,
             playerAvatar    = profile?.avatar ?: "⚔️",
-            opponentName    = opp?.name       ?: "Nepřítel",
+            opponentName    = opp?.name       ?: ls.enemy,
             opponentAvatar  = opp?.avatar     ?: "👺",
             result          = result,
             playerWinTarget = snapshot.playerWinTarget,

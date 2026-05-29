@@ -58,6 +58,8 @@ data class AppStrings(
     val endCombo: String,
     val waitingTurn: String,
     val inspectGame: String,
+    val gameLog: String,
+    val enemy: String,
     val discard: String,
     val castle: String,
     val wall: String,

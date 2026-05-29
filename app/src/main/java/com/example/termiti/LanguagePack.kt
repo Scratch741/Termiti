@@ -108,6 +108,8 @@ data class LanguagePack(
                 endCombo      = str("endCombo",      "Konec combo"),
                 waitingTurn   = str("waitingTurn",   "Čekám…"),
                 inspectGame   = str("inspectGame",   "Prohlédnout hru"),
+                gameLog       = str("gameLog",       "HERNÍ LOG"),
+                enemy         = str("enemy",         "Nepřítel"),
                 discard       = str("discard",       "Zahodit"),
                 castle        = str("castle",        "Hrad"),
                 wall          = str("wall",          "Hradby"),

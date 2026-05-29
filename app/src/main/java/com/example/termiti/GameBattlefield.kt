@@ -561,7 +561,7 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("HERNÍ LOG", color = Gold, fontSize = 13.sp,
+            Text(LocalStrings.current.gameLog, color = Gold, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
