@@ -558,8 +558,28 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             candidates.maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
         }
         is CardEffect.PeekAndStealHand      -> opponent.hand.filter { !it.isPlaceholder }
-        is CardEffect.DecisionChooseResource -> emptyList()
+        is CardEffect.DecisionChooseResource -> fx.options.map { opt -> resourcePlaceholderCard(opt.type, opt.amount) }
         else -> emptyList()
+    }
+
+    /** Vytvoří placeholder kartu reprezentující volbu suroviny v [CardEffect.DecisionChooseResource]. */
+    private fun resourcePlaceholderCard(type: ResourceType, amount: Int): Card {
+        val (emoji, label) = when (type) {
+            ResourceType.MAGIC  -> "✨" to "Magie"
+            ResourceType.ATTACK -> "⚔️" to "Útok"
+            ResourceType.STONES -> "🪨" to "Kameny"
+            ResourceType.CHAOS  -> "🌀" to "Chaos"
+        }
+        return Card(
+            id            = "__res_${type.name}",
+            name          = "$emoji +$amount $label",
+            description   = "Přidá $amount× ${label.lowercase()} do tvých surovin.",
+            cost          = 0,
+            costType      = type,
+            effects       = listOf(CardEffect.AddResource(type, amount)),
+            isPlaceholder = true,
+            type          = label
+        )
     }
 
     private fun buildDecisionState(fx: CardEffect, options: List<Card>): DecisionState = when (fx) {
@@ -570,10 +590,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionMine           -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
         is CardEffect.SmartJoker             -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
         is CardEffect.PeekAndStealHand       -> DecisionState("ŠPEHOVÁNÍ", "Vidíš soupeřovu ruku — vyber kartu ke krádeži", options)
-        is CardEffect.DecisionChooseResource -> DecisionState(
-            "ALCHYMIE", "Vyber suroviny, které chceš získat", emptyList(),
-            fx.options.map { ResourceChoice(it.type, it.amount) }
-        )
+        is CardEffect.DecisionChooseResource -> DecisionState("ALCHYMIE", "Vyber suroviny, které chceš získat", options)
         else -> DecisionState("", "", emptyList())
     }
 
@@ -657,7 +674,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = false)
                 addCardLog("Hráč", chosen, CardAction.STOLEN, isMe = false)
             }
-            is CardEffect.DecisionChooseResource -> { /* řeší resolveResourceDecision – sem by nemělo dojít */ }
+            is CardEffect.DecisionChooseResource -> {
+                // Vybraná karta je resource placeholder — obsahuje AddResource efekt
+                val addRes = chosen.effects.filterIsInstance<CardEffect.AddResource>().firstOrNull()
+                if (addRes != null) {
+                    player.resources[addRes.type] = ((player.resources[addRes.type] ?: 0) + addRes.amount).coerceAtMost(MAX_RESOURCE)
+                    val resName = when (addRes.type) {
+                        ResourceType.MAGIC  -> "magie"
+                        ResourceType.ATTACK -> "útoku"
+                        ResourceType.STONES -> "kamene"
+                        ResourceType.CHAOS  -> "chaosu"
+                    }
+                    log.appendLog("Hráč si vybral: ${addRes.amount}× $resName")
+                }
+            }
             else -> {}
         }
 
@@ -738,13 +768,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Automaticky vybere první možnost (timeout nebo AI). */
     fun autoResolveDecision() {
         val pending = pendingDecision.value ?: return
-        if (pending.resourceChoices.isNotEmpty()) {
-            val first = pending.resourceChoices.first()
-            resolveResourceDecision(first.type, first.amount)
-        } else {
-            val first = pending.options.firstOrNull() ?: return
-            resolveDecision(first)
-        }
+        val first = pending.options.firstOrNull() ?: return
+        resolveDecision(first)
     }
 
     /** Hráč si vybral zdroj v overlay DecisionChooseResource — aplikuje efekt a pokračuje. */

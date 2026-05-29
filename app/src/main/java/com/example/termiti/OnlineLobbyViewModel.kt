@@ -390,7 +390,9 @@ class OnlineLobbyViewModel(
     fun resolveOnlineDecision(card: Card) {
         cancelOnlineDecisionTimer()
         onlinePendingDecision.value = null
-        sendAction("DECISION_RESPONSE", JSONObject().apply { put("chosenId", card.id) })
+        // Resource placeholder karty mají ID "__res_MAGIC" apod. — server očekává resType jako chosenId
+        val chosenId = if (card.id.startsWith("__res_")) card.id.removePrefix("__res_") else card.id
+        sendAction("DECISION_RESPONSE", JSONObject().apply { put("chosenId", chosenId) })
     }
 
     /** Hráč vybral surovinu v DecisionChooseResource – pošleme resType jako chosenId. */
@@ -904,23 +906,37 @@ class OnlineLobbyViewModel(
                         else                     -> "Rozhodnutí"   to "Vyber kartu"
                     }
 
-                    // DecisionChooseResource má resourceOptions místo card options
-                    val resourceChoices: List<ResourceChoice> = if (effectType == "DecisionChooseResource") {
+                    // DecisionChooseResource: sestavíme placeholder karty ze serveru
+                    val resolvedOptions = if (effectType == "DecisionChooseResource") {
                         val resArr = json.optJSONArray("resourceOptions")
                         if (resArr != null) {
                             (0 until resArr.length()).mapNotNull { i ->
                                 runCatching {
-                                    val o = resArr.getJSONObject(i)
-                                    ResourceChoice(
-                                        ResourceType.valueOf(o.getString("resType")),
-                                        o.getInt("amount")
+                                    val o      = resArr.getJSONObject(i)
+                                    val type   = ResourceType.valueOf(o.getString("resType"))
+                                    val amount = o.getInt("amount")
+                                    val (emoji, label) = when (type) {
+                                        ResourceType.MAGIC  -> "✨" to "Magie"
+                                        ResourceType.ATTACK -> "⚔️" to "Útok"
+                                        ResourceType.STONES -> "🪨" to "Kameny"
+                                        ResourceType.CHAOS  -> "🌀" to "Chaos"
+                                    }
+                                    Card(
+                                        id            = "__res_${type.name}",
+                                        name          = "$emoji +$amount $label",
+                                        description   = "Přidá $amount× ${label.lowercase()} do tvých surovin.",
+                                        cost          = 0,
+                                        costType      = type,
+                                        effects       = listOf(CardEffect.AddResource(type, amount)),
+                                        isPlaceholder = true,
+                                        type          = label
                                     )
                                 }.getOrNull()
                             }
                         } else emptyList()
-                    } else emptyList()
+                    } else options
 
-                    onlinePendingDecision.value = DecisionState(title, subtitle, options, resourceChoices)
+                    onlinePendingDecision.value = DecisionState(title, subtitle, resolvedOptions)
                     startOnlineDecisionTimer(timeoutSec)
                 }
 

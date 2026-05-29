@@ -3646,6 +3646,10 @@
           {
             "resType": "STONES",
             "amount": 4
+          },
+          {
+            "resType": "CHAOS",
+            "amount": 4
           }
         ]
       }
