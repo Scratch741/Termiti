@@ -1720,27 +1720,42 @@ function getSelectedOppIdx() {
   return sel ? parseInt(sel.value) : -1;
 }
 
-// Soupeřící balíčky. oppIdx: -1 = gauntlet (presety + vyvážený), 0-5 = smart archetyp, 6 = vyvážený.
+// Mapování: index soupeře v dropdownu → index v SIM_PRESETS (pokud existuje fixní preset).
+// Zajišťuje konzistenci: optimizer i sim panel používají STEJNÝ balíček pro stejného soupeře.
+// Archaetypy bez presetu (Obránce, Kartář, Sabotér) stále smart-generujeme.
+const OPP_PRESET_IDX = { 0: 1, 2: 2, 4: 3 }; // Útočník→1, Mágik→2, Chaosager/Chaos→3
+
+function presetToDeck(p) {
+  const deck = [];
+  for (const [id, cnt] of Object.entries(p.counts))
+    for (let i = 0; i < cnt; i++) { const c = makeSimCard(id); if (c) deck.push(c); }
+  return deck;
+}
+
+// Soupeřící balíčky. oppIdx: -1 = gauntlet, 0-5 = archetyp, 6 = vyvážený.
 function buildGauntlet(oppIdx) {
-  // Konkrétní soupeř: jeden smart balíček daného archetypu (nebo vyvážený)
   if (oppIdx !== undefined && oppIdx >= 0) {
     if (oppIdx === 6) {
       try { const bal = buildBalancedDeck(); if (bal && bal.length >= 10) return [{ name: '⚖️ Vyvážený', deck: bal }]; } catch (e) {}
       return [];
     }
-    // Smart archetyp – vygeneruj 3 exempláře a vezmi průměr (stabilnější než 1 náhodný balíček)
+    // Pokud existuje fixní preset → použij ho (stejný jako v sim panelu!)
+    const pi = OPP_PRESET_IDX[oppIdx];
+    if (pi !== undefined && SIM_PRESETS[pi] && SIM_PRESETS[pi].counts) {
+      const deck = presetToDeck(SIM_PRESETS[pi]);
+      if (deck.length >= 10) return [{ name: SIM_PRESETS[pi].name, deck }];
+    }
+    // Žádný preset → smart generuj 3 exempláře (průměrnější odhad)
     const ARCH_NAMES = ['⚔️ Útočník','🏰 Obránce','🔮 Mágik','📚 Kartář','🌀 Chaosager','🕵️ Sabotér'];
     const decks = [];
     for (let i = 0; i < 3; i++) { const d = buildSmartRandomDeck(oppIdx); if (d.length >= 10) decks.push(d); }
-    return decks.map((d, i) => ({ name: ARCH_NAMES[oppIdx] + (decks.length > 1 ? ' #' + (i+1) : ''), deck: d }));
+    return decks.map((d, i) => ({ name: ARCH_NAMES[oppIdx] + ' #' + (i+1), deck: d }));
   }
   // Gauntlet: presety s counts + vyvážený
   const g = [];
   for (const p of SIM_PRESETS) {
     if (!p.counts) continue;
-    const deck = [];
-    for (const [id, cnt] of Object.entries(p.counts))
-      for (let i = 0; i < cnt; i++) { const c = makeSimCard(id); if (c) deck.push(c); }
+    const deck = presetToDeck(p);
     if (deck.length >= 10) g.push({ name: p.name, deck });
   }
   try { const bal = buildBalancedDeck(); if (bal && bal.length >= 10) g.push({ name: '⚖️ Vyvážený', deck: bal }); } catch (e) {}
