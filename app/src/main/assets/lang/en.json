@@ -70,6 +70,7 @@
     "deckReset": "Reset",
     "deckClear": "Clear",
     "deckCardCount": "%d / %d cards",
+    "deckDefaultName": "Deck %d",
     "dbActiveShort": "✓ active",
     "dbSearchHint": "🔍 Search…",
     "dbEffectLabel": "Effect:",

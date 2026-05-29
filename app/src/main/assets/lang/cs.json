@@ -70,6 +70,7 @@
     "deckReset": "Resetovat",
     "deckClear": "Vymazat",
     "deckCardCount": "%d / %d karet",
+    "deckDefaultName": "Balíček %d",
     "dbActiveShort": "✓ aktivní",
     "dbSearchHint": "🔍 Hledat…",
     "dbEffectLabel": "Efekt:",

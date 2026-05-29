@@ -155,6 +155,7 @@ data class LanguagePack(
                 deckReset     = str("deckReset",     "Resetovat"),
                 deckClear     = str("deckClear",     "Vymazat"),
                 deckCardCount = str("deckCardCount", "%d / %d karet"),
+                deckDefaultName  = str("deckDefaultName",  "Balíček %d"),
                 dbActiveShort    = str("dbActiveShort",    "✓ aktivní"),
                 dbSearchHint     = str("dbSearchHint",     "🔍 Hledat…"),
                 dbEffectLabel    = str("dbEffectLabel",    "Efekt:"),

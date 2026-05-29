@@ -322,7 +322,7 @@ private fun LobbyPanel(
                     )
                     decks.forEachIndexed { idx, deck ->
                         DeckChip(
-                            label     = deck.name,
+                            label     = localizedDeckName(deck.name),
                             selected  = selectedDeckIdx == idx,
                             valid     = deck.isValid,
                             cardCount = deck.totalCards,

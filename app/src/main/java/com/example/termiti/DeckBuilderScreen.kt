@@ -143,6 +143,16 @@ private fun Card.categories(): Set<String> =
 
 private fun Card.category() = categories().first()
 
+/**
+ * Lokalizuje auto-generovaný název balíčku ("Balíček 1" / "Deck 1" → aktivní jazyk).
+ * Vlastní (přejmenované) názvy projdou beze změny.
+ */
+private val DEFAULT_DECK_NAME = Regex("^(?:Balíček|Deck) (\\d+)$")
+fun localizedDeckName(name: String): String {
+    val m = DEFAULT_DECK_NAME.find(name) ?: return name
+    return LanguageManager.currentStrings.deckDefaultName.format(m.groupValues[1].toInt())
+}
+
 // ─── Root ────────────────────────────────────────────────────────────────────
 @Composable
 fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
@@ -410,7 +420,7 @@ private fun DeckSlotChip(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
-                deck.name,
+                localizedDeckName(deck.name),
                 color = if (isEditing) TextPrimary else TextMuted,
                 fontSize = 10.sp, fontWeight = FontWeight.Bold
             )
@@ -1349,7 +1359,7 @@ private fun DeckPanel(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(deck.name, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(localizedDeckName(deck.name), color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(4.dp))

@@ -105,6 +105,7 @@ data class AppStrings(
     val deckReset: String,
     val deckClear: String,
     val deckCardCount: String,            // String.format(s.deckCardCount, current, max)
+    val deckDefaultName: String,          // %d = slot number
     val dbActiveShort: String,
     val dbSearchHint: String,
     val dbEffectLabel: String,
