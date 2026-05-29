@@ -8,7 +8,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -334,9 +336,12 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
         label         = "cardFlip"
     )
 
+    // Podržení prstu odhalí záři rarity skryté karty ještě před otočením
+    var isHolding by remember { mutableStateOf(false) }
+
     val isRarePlus = gain.card.rarity != Rarity.COMMON
     val glowColor  = shRarityColor(gain.card.rarity)
-    val showGlow   = isRevealed && isRarePlus
+    val showGlow   = isRarePlus && (isRevealed || isHolding)
 
     // Pulsující záře pro RARE+ karty po odhalení
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
@@ -386,7 +391,18 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                     rotationY      = rotation
                     cameraDistance = 8f * density
                 }
-                .clickable(enabled = !isRevealed) { onClick() },
+                .pointerInput(isRevealed) {
+                    if (!isRevealed) {
+                        detectTapGestures(
+                            onPress = {
+                                isHolding = true
+                                tryAwaitRelease()
+                                isHolding = false
+                            },
+                            onTap = { onClick() }
+                        )
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             if (rotation <= 90f) {
