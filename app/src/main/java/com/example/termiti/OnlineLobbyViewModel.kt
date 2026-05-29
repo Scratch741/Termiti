@@ -15,6 +15,18 @@ import java.util.concurrent.TimeUnit
 // ─── Adresa lobby serveru ─────────────────────────────────────────────────────
 private const val LOBBY_WS_URL = "ws://138.2.136.49:8765/lobby"
 
+/**
+ * Verze síťového protokolu klient↔server. Posílá se v JOIN; server odmítne
+ * připojení při neshodě (→ VERSION_MISMATCH = "aktualizuj aplikaci").
+ *
+ * BUMP při KAŽDÉ změně, která rozbije kompatibilitu klient/server:
+ *  – změna formátu zpráv (nová povinná pole, přejmenování typů)
+ *  – změny v kartách/efektech, které server i klient musí znát stejně
+ * Nezávislé na verzi aplikace (versionName) – mění se jen při breaking změnách.
+ * Musí odpovídat PROTOCOL_VERSION v server/server.js.
+ */
+const val PROTOCOL_VERSION = 1
+
 // ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
     NAME_INPUT,       // zadání přezdívky
@@ -498,6 +510,7 @@ class OnlineLobbyViewModel(
             }
             webSocket.send(JSONObject().apply {
                 put("type",             "JOIN")
+                put("protocolVersion",  PROTOCOL_VERSION)
                 put("name",             playerName.value.trim())
                 put("avatar",           PlayerProfileManager.profile?.avatar        ?: "⚔️")
                 put("cardBackSkin",     PlayerProfileManager.profile?.cardBackSkin  ?: "card_back_frame")
@@ -945,6 +958,17 @@ class OnlineLobbyViewModel(
                     // Dočasná chyba hry (špatná akce) – zobraz jako zprávu, nepřeruš hru
                     val msg = json.optString("msg", "Chyba")
                     gameLog.appendLog("⚠️ $msg")
+                }
+
+                "VERSION_MISMATCH" -> {
+                    // Klient/server mají nekompatibilní protokol → hráč musí aktualizovat.
+                    // Server spojení nezavírá, takže nehrozí reconnect smyčka – jen ukážeme chybu.
+                    isReconnecting.value = false
+                    errorMsg.value = json.optString(
+                        "msg",
+                        "Tvá verze hry je zastaralá. Aktualizuj aplikaci pro hraní online."
+                    )
+                    phase.value = OnlinePhase.ERROR
                 }
 
                 "ERROR" -> {

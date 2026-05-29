@@ -16,8 +16,10 @@ android {
         applicationId = "com.example.termiti"
         minSdk = 26
         targetSdk = 36
+        // Verzování: versionName = SemVer (MAJOR.MINOR.PATCH), hra je v beta fázi (0.x).
+        // versionCode MUSÍ růst o 1 při každém vydaném buildu (požadavek Androidu pro update).
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

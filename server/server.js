@@ -7,7 +7,7 @@
  *
  * ── Lobby protokol ──────────────────────────────────────────────────────────
  * Klient → Server:
- *   { type:"JOIN",              name:"...", avatar:"..." }
+ *   { type:"JOIN",              protocolVersion:N, name:"...", avatar:"..." }
  *   { type:"QUEUE_JOIN" }
  *   { type:"QUEUE_LEAVE" }
  *   { type:"PING" }
@@ -17,6 +17,7 @@
  *   { type:"COUNT",             online:N, queue:N }
  *   { type:"QUEUE_OK" }
  *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", opponentAvatar:"...", side:"A"|"B" }
+ *   { type:"VERSION_MISMATCH",  server:N, client:N, msg:"..." }
  *   { type:"ERROR",             msg:"..." }
  *   { type:"PONG" }
  *
@@ -56,6 +57,14 @@ setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000);
 
 const PORT = 8765;
 const PATH = '/lobby';
+
+/**
+ * Verze síťového protokolu klient↔server. Klient ji posílá v JOIN; při neshodě
+ * server odmítne registraci zprávou VERSION_MISMATCH (klient → "aktualizuj appku").
+ * BUMP při KAŽDÉ breaking změně protokolu/sdílených karetních dat.
+ * Musí odpovídat PROTOCOL_VERSION v app/.../OnlineLobbyViewModel.kt.
+ */
+const PROTOCOL_VERSION = 1;
 
 // ── HTTP server (sdílený pro WS + REST + HTML) ────────────────────────────────
 
@@ -335,6 +344,18 @@ wss.on('connection', (ws, req) => {
       case 'JOIN': {
         if (player) {
           send(ws, { type: 'ERROR', msg: 'Už jsi přihlášen' });
+          return;
+        }
+        // Kontrola verze protokolu – odmítni nekompatibilní (starší/novější) klienty.
+        // Spojení nezavíráme, aby klient nespustil reconnect smyčku; jen odmítneme JOIN.
+        if (msg.protocolVersion !== PROTOCOL_VERSION) {
+          log('JOIN', `Odmítnut: protocolVersion klienta=${msg.protocolVersion}, server=${PROTOCOL_VERSION}`);
+          send(ws, {
+            type: 'VERSION_MISMATCH',
+            server: PROTOCOL_VERSION,
+            client: msg.protocolVersion ?? null,
+            msg: 'Tvá verze hry je zastaralá. Aktualizuj aplikaci pro hraní online.'
+          });
           return;
         }
         // Sanitizace jména: odstraň řídicí znaky, ponech jen tisknutelné znaky + mezery
