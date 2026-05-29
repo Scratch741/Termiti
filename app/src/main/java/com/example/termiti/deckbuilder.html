@@ -1989,9 +1989,11 @@ function simAI(ai, opp) {
     const d=bd();return d?{type:'discard',card:d}:{type:'wait'};
   }
 
-  // Lethal detection: zahraj kartu, která okamžitě zabije soupeře
-  function isLethal(c) {
-    const xv=c.isXCost?(ai.res[c.costType]||0):0;
+  // Lethal detection: zahraj kartu, která okamžitě zabije soupeře.
+  // [res] = mapa zdrojů pro X-kost výpočet (default = aktuální zásoby AI).
+  function isLethal(c, res) {
+    res = res || ai.res;
+    const xv=c.isXCost?(res[c.costType]||0):0;
     let dmg=0;
     for(const fx of c.effects){
       if(fx.t==='AP'){const wd=Math.min(fx.a,opp.wallHP);dmg+=fx.a-wd;}
@@ -2003,6 +2005,25 @@ function simAI(ai, opp) {
   }
   const lethalCard=aff.find(c=>isLethal(c));
   if(lethalCard)return{type:'play',card:lethalCard};
+
+  // Combo-chain lethal (1 krok dopředu) – mirror AiEngine.comboSetupForLethal:
+  // zahraj combo kartu generující zdroje, která zpřístupní smrtící kartu ještě
+  // tento tah (combo neukončí tah → smyčka pak smrtící kartu zahraje).
+  for(const setup of aff){
+    if(!setup.isCombo) continue;
+    const after={...ai.res};
+    if(!setup.isXCost) after[setup.costType]=Math.max(0,(after[setup.costType]||0)-effC(setup));
+    let generatedAny=false;
+    for(const fx of setup.effects) if(fx.t==='AR'){after[fx.r]=(after[fx.r]||0)+fx.a;generatedAny=true;}
+    if(!generatedAny) continue;
+    const enablesLethal=ai.hand.some(d=>
+      d!==setup &&
+      (ai.res[d.costType]||0) < effC(d) &&     // teď nedostupná
+      (after[d.costType]||0) >= effC(d) &&     // po setupu dostupná
+      isLethal(d, after)
+    );
+    if(enablesLethal)return{type:'play',card:setup};
+  }
 
   const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
   if(!best||best.s<=0){
