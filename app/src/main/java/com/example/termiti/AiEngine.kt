@@ -334,18 +334,23 @@ fun aiChooseAction(
             if (!canAffordCombo) -25 else 0  // po zaplacení není na žádnou combo → silná penalta
         } else 0
 
-        // ── CloneNextPlayed penalty: zahraj jen pokud po zaplacení zbydou zdroje na další kartu ──
+        // ── CloneNextPlayed skóre: zahraj jen pokud po zaplacení zbydou zdroje na další kartu ──
         // CloneNextPlayed (Chaotická replikace atd.) nemá žádný efekt, pokud AI nezahraje
-        // po ní alespoň jednu další kartu. Proto silná penalta, pokud na to nezbydou zdroje.
+        // po ní alespoň jednu další kartu.
         val hasCloneNextPlayed = card.effects.any { it is CardEffect.CloneNextPlayed }
         val clonePenalty = if (hasCloneNextPlayed) {
             val residualRes = ai.resources.toMutableMap()
             residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.effectiveCost).coerceAtLeast(0)
-            val canAffordAny = ai.hand.any { other ->
-                other.id != card.id &&
-                (residualRes[other.costType] ?: 0) >= other.effectiveCost
+            val followUpCards = ai.hand.filter { other ->
+                other.id != card.id && (residualRes[other.costType] ?: 0) >= other.effectiveCost
             }
-            if (!canAffordAny) -30 else 0  // po zaplacení není na žádnou kartu → zahazovat místo hrát
+            when {
+                followUpCards.isEmpty() -> -30  // žádná follow-up karta → silná penalta
+                // Bonus za hodnotný cíl klonu (nejlepší follow-up karta)
+                else -> followUpCards.maxOfOrNull { other ->
+                    other.effects.sumOf { scoreEffect(it) }
+                }?.let { bestFollowScore -> (bestFollowScore / 3).coerceIn(0, 12) } ?: 0
+            }
         } else 0
 
         // ── TOTO KOLO bonus pro combo karty ───────────────────────────────────
@@ -418,6 +423,10 @@ fun aiChooseAction(
     // Předpočítej skóre jednou (score() obsahuje náhodu, nevolej dvakrát)
     val scored = affordable.map { it to score(it) }
     val (best, bestScore) = scored.maxByOrNull { it.second } ?: return AiAction.Wait
+
+    // CloneNextPlayed je aktivní — musíme zahrát kartu, jinak klon přijde vniveč.
+    // Ignorujeme práh skóre a hrajeme nejlepší dostupnou kartu.
+    if (ai.cloneNextPlayed != null) return AiAction.Play(best)
 
     // Pokud je i nejlepší karta nevýhodná (podmínka nesplněna, čisté náklady):
     // – plná ruka → zahoď nejhorší kartu (uvolni místo pro lepší líz)
