@@ -579,7 +579,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             effects       = listOf(CardEffect.AddResource(type, amount)),
             isPlaceholder = true,
             type          = label,
-            artResId      = artRes
+            artResId      = artRes,
+            artScale      = 0.80f,
+            artBiasY      = -0.5f
         )
     }
 
