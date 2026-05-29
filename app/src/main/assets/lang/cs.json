@@ -129,6 +129,11 @@
     "questsTitle": "Denní questy",
     "questsReset": "Resetují se zítra",
     "questClaim": "Převzít!",
+    "questWinGames": "Vyhraj %d her",
+    "questWinOnline": "Vyhraj %d online her",
+    "questPlayCards": "Zahraj %d karet",
+    "questDealDamage": "Způsob %d poškození hradu",
+    "questWinCampaign": "Poraž %d soupeřů v kampani",
     "shopTitle": "OBCHOD",
     "shopBuy": "Koupit",
     "shopDust": "Prach",
@@ -890,5 +895,21 @@
       "name": "Temný mág",
       "desc": "Ukradne 3 magie, útoku a kamenů. Přímý úder za 18 na hrad soupeře (ignoruje hradby). Ukradne 5 HP hradu."
     }
+  },
+  "abilities": {
+    "extra_castle":    { "name": "Pevný hrad",        "desc": "+5 startovní hrad, ale vítězný cíl se zvýší z 60 na 65." },
+    "extra_wall":      { "name": "Silné hradby",      "desc": "+5 startovní hradba." },
+    "extra_magic":     { "name": "Magický talent",    "desc": "+1 magie na začátku hry." },
+    "extra_attack":    { "name": "Bojový výcvik",     "desc": "+1 útok na začátku hry." },
+    "extra_stones":    { "name": "Kamenný základ",    "desc": "+1 kameny na začátku hry." },
+    "extra_chaos":     { "name": "Chaotická mysl",    "desc": "+1 chaos na začátku hry." },
+    "extra_hand_card": { "name": "Velká ruka",        "desc": "Maximální velikost ruky vzroste na 8 (místo 7)." },
+    "iron_bastion":    { "name": "Nedobytná pevnost", "desc": "Soupeř potřebuje dosáhnout 75 bodů hradu k výhře výstavbou (místo 70)." },
+    "quick_draw":      { "name": "Rychlý tah",        "desc": "Na začátku prvního kola lízneš 1 kartu navíc." },
+    "boost_attack":    { "name": "Útočná posila",     "desc": "Do balíčku se přidají 2 náhodné útočné karty." },
+    "boost_build":     { "name": "Stavební posila",   "desc": "Do balíčku se přidají 2 náhodné stavební karty." },
+    "boost_magic":     { "name": "Magická posila",    "desc": "Do balíčku se přidají 2 náhodné magické karty." },
+    "boost_chaos":     { "name": "Chaotická posila",  "desc": "Do balíčku se přidají 2 náhodné chaos karty." },
+    "boost_random":    { "name": "Náhodná posila",    "desc": "Do balíčku se přidají 3 náhodné karty libovolného typu." }
   }
 }

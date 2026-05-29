@@ -60,6 +60,20 @@ object LanguageManager {
         return t.desc.ifBlank { fallback }
     }
 
+    /** Localized passive-ability title for [id]; falls back to [fallback] (built-in Czech). */
+    fun abilityTitle(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.abilities[id] ?: return fallback
+        return t.name.ifBlank { fallback }
+    }
+
+    /** Localized passive-ability description for [id]; falls back to [fallback] (built-in Czech). */
+    fun abilityDesc(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.abilities[id] ?: return fallback
+        return t.desc.ifBlank { fallback }
+    }
+
     // ── Init ─────────────────────────────────────────────────────────────────
 
     fun init(context: Context) {

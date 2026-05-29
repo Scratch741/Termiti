@@ -129,6 +129,11 @@
     "questsTitle": "Daily quests",
     "questsReset": "Reset tomorrow",
     "questClaim": "Claim!",
+    "questWinGames": "Win %d games",
+    "questWinOnline": "Win %d online games",
+    "questPlayCards": "Play %d cards",
+    "questDealDamage": "Deal %d castle damage",
+    "questWinCampaign": "Beat %d opponents in campaign",
     "shopTitle": "SHOP",
     "shopBuy": "Buy",
     "shopDust": "Dust",
@@ -890,5 +895,21 @@
       "name": "Darkmage",
       "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. Deals 18 direct castle damage (ignores walls). Steals 5 castle HP."
     }
+  },
+  "abilities": {
+    "extra_castle":    { "name": "Sturdy Castle",   "desc": "+5 starting castle, but the win target rises from 60 to 65." },
+    "extra_wall":      { "name": "Strong Walls",    "desc": "+5 starting wall." },
+    "extra_magic":     { "name": "Magic Talent",    "desc": "+1 Magic at the start of the game." },
+    "extra_attack":    { "name": "Combat Training", "desc": "+1 Attack at the start of the game." },
+    "extra_stones":    { "name": "Stone Foundation","desc": "+1 Stone at the start of the game." },
+    "extra_chaos":     { "name": "Chaotic Mind",    "desc": "+1 Chaos at the start of the game." },
+    "extra_hand_card": { "name": "Big Hand",        "desc": "Maximum hand size increases to 8 (instead of 7)." },
+    "iron_bastion":    { "name": "Iron Bastion",    "desc": "The opponent needs 75 castle points to win by building (instead of 70)." },
+    "quick_draw":      { "name": "Quick Draw",      "desc": "Draw 1 extra card at the start of the first turn." },
+    "boost_attack":    { "name": "Attack Boost",    "desc": "Adds 2 random Attack cards to your deck." },
+    "boost_build":     { "name": "Build Boost",     "desc": "Adds 2 random Build cards to your deck." },
+    "boost_magic":     { "name": "Magic Boost",     "desc": "Adds 2 random Magic cards to your deck." },
+    "boost_chaos":     { "name": "Chaos Boost",     "desc": "Adds 2 random Chaos cards to your deck." },
+    "boost_random":    { "name": "Random Boost",    "desc": "Adds 3 random cards of any type to your deck." }
   }
 }

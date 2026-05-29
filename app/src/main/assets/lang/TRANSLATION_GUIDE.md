@@ -49,6 +49,14 @@ Want to translate Termiti into your language? Just create a new JSON file!
 A card id missing from `cards` (or with an empty `name`/`desc`) falls back to
 the built-in Czech text, so partial translations still work.
 
+### `abilities` — passive-ability title + description (keyed by ability id)
+```json
+"abilities": {
+  "extra_castle": { "name": "Sturdy Castle", "desc": "+5 starting castle, ..." }
+}
+```
+Same fallback rule as `cards`.
+
 ## Language codes
 
 Use standard ISO 639-1 two-letter codes: `cs`, `en`, `de`, `pl`, `sk`, `fr`, `es`, `hu`, etc.

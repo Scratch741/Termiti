@@ -25,12 +25,15 @@ data class DailyQuest(
     val completed: Boolean get() = progress >= target
     val canClaim : Boolean get() = completed && !claimed
 
-    fun label(): String = when (type) {
-        QuestType.WIN_GAMES    -> "Vyhraj $target ${if (target == 1) "hru" else "her"}"
-        QuestType.WIN_ONLINE   -> "Vyhraj $target online ${if (target == 1) "hru" else "her"}"
-        QuestType.PLAY_CARDS   -> "Zahraj $target karet"
-        QuestType.DEAL_DAMAGE  -> "Způsob $target poškození hradu"
-        QuestType.WIN_CAMPAIGN -> "Poraž $target soupeřů v kampani"
+    fun label(): String {
+        val s = LanguageManager.currentStrings
+        return when (type) {
+            QuestType.WIN_GAMES    -> s.questWinGames.format(target)
+            QuestType.WIN_ONLINE   -> s.questWinOnline.format(target)
+            QuestType.PLAY_CARDS   -> s.questPlayCards.format(target)
+            QuestType.DEAL_DAMAGE  -> s.questDealDamage.format(target)
+            QuestType.WIN_CAMPAIGN -> s.questWinCampaign.format(target)
+        }
     }
 
     fun icon(): String = when (type) {

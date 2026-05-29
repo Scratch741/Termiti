@@ -172,6 +172,11 @@ data class AppStrings(
     val questsTitle: String,
     val questsReset: String,
     val questClaim: String,
+    val questWinGames: String,      // %d
+    val questWinOnline: String,     // %d
+    val questPlayCards: String,     // %d
+    val questDealDamage: String,    // %d
+    val questWinCampaign: String,   // %d
 
     // ── Shop ─────────────────────────────────────────────────────────────────
     val shopTitle: String,

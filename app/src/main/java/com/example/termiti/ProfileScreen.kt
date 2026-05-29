@@ -326,13 +326,13 @@ private fun AbilityRow(
         // name + description
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
-                ability.title,
+                ability.localizedTitle(),
                 color = if (canUnlock) PrText else PrMuted,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                ability.description,
+                ability.localizedDescription(),
                 color = PrMuted,
                 fontSize = 8.sp,
                 lineHeight = 11.sp

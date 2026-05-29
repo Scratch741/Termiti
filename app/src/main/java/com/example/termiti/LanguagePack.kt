@@ -20,7 +20,9 @@ data class LanguagePack(
     val language: Language,
     val strings:  AppStrings,
     /** id → localized {name, desc}. Empty for an untranslated pack. */
-    val cards:    Map<String, CardText> = emptyMap()
+    val cards:    Map<String, CardText> = emptyMap(),
+    /** passive-ability id → localized {name=title, desc=description}. */
+    val abilities: Map<String, CardText> = emptyMap()
 ) {
     companion object {
 
@@ -45,7 +47,8 @@ data class LanguagePack(
             )
             val strings = buildStrings(language.code, root.optJSONObject("strings") ?: JSONObject(), fallbackPack?.strings)
             val cards   = buildCards(root.optJSONObject("cards"))
-            return LanguagePack(language, strings, cards)
+            val abilities = buildCards(root.optJSONObject("abilities"))
+            return LanguagePack(language, strings, cards, abilities)
         }
 
         /**
@@ -216,6 +219,11 @@ data class LanguagePack(
                 questsTitle              = str("questsTitle",              "Denní questy"),
                 questsReset              = str("questsReset",              "Resetují se zítra"),
                 questClaim               = str("questClaim",               "Převzít!"),
+                questWinGames            = str("questWinGames",            "Vyhraj %d her"),
+                questWinOnline           = str("questWinOnline",           "Vyhraj %d online her"),
+                questPlayCards           = str("questPlayCards",           "Zahraj %d karet"),
+                questDealDamage          = str("questDealDamage",          "Způsob %d poškození hradu"),
+                questWinCampaign         = str("questWinCampaign",         "Poraž %d soupeřů v kampani"),
 
                 shopTitle = str("shopTitle", "OBCHOD"),
                 shopBuy   = str("shopBuy",   "Koupit"),

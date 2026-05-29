@@ -133,6 +133,12 @@ enum class PassiveAbility(
         goldCost    = 150
     );
 
+    /** Lokalizovaný název (jazykový balíček podle [id]) → vestavěná čeština [title]. */
+    fun localizedTitle(): String = LanguageManager.abilityTitle(id, title)
+
+    /** Lokalizovaný popis → vestavěná čeština [description]. */
+    fun localizedDescription(): String = LanguageManager.abilityDesc(id, description)
+
     companion object {
         fun fromId(id: String): PassiveAbility? = entries.find { it.id == id }
 
