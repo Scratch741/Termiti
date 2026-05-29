@@ -60,6 +60,8 @@ data class AppStrings(
     val inspectGame: String,
     val gameLog: String,
     val enemy: String,
+    val viewOpponentHand: String,
+    val viewMyHand: String,
     val discard: String,
     val castle: String,
     val wall: String,

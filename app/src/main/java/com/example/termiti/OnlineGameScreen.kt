@@ -459,7 +459,7 @@ private fun OnlineGameplay(
                         if (isGameOver) {
                             // Review mód: toggle soupeřovy ruky
                             NewPanelButton(
-                                label   = if (showOppHand) "🃏 Moje karty" else "👁 Oponent",
+                                label   = if (showOppHand) "🃏 ${LocalStrings.current.viewMyHand}" else "👁 ${LocalStrings.current.viewOpponentHand}",
                                 color   = if (showOppHand) OgTealLight else OgGold,
                                 active  = true,
                                 onClick = { SoundManager.playMenuTap(); showOppHand = !showOppHand }

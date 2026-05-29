@@ -262,7 +262,8 @@ fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
             val tmpl = validPool.random()
             // id stále začíná "C34_" → příští kolo se znovu transformuje
             // costModifier se zachová — sleva od Chaotického mudrce (DecisionChooseType) platí i po transformaci
-            hand[i] = tmpl.copy(id = prev.id, costModifier = prev.costModifier)
+            // localizationId = tmpl.id → lokalizovaný text odpovídá kartě, na kterou se proměnil (ne C34)
+            hand[i] = tmpl.copy(id = prev.id, costModifier = prev.costModifier, localizationId = tmpl.id)
         }
     }
 }

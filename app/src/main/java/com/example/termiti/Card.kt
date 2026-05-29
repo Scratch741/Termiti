@@ -87,7 +87,14 @@ data class Card(
      * Skloňovaný název karty ve 4. pádu (akuzativ) pro log zprávy jako "lízl Bombu".
      * Pokud null, použije se [name] bez skloňování.
      */
-    val nameAccusative: String? = null
+    val nameAccusative: String? = null,
+    /**
+     * Override id for localization lookup. Used by Shapeshifter: a transformed
+     * instance keeps its `C34_…` [id] (to re-transform + keep the UI slot), but
+     * its localized text must resolve to the card it became — set to that
+     * template's base id. Null = use [baseId].
+     */
+    val localizationId: String? = null
 ) {
     /**
      * Skutečná cena, která se platí a zobrazuje.
@@ -109,11 +116,11 @@ data class Card(
      * (by [baseId]); falls back to the built-in Czech [name] when untranslated.
      * Read inside a Composable to recompose automatically on language change.
      */
-    val displayName: String get() = LanguageManager.cardName(baseId, name)
+    val displayName: String get() = LanguageManager.cardName(localizationId ?: baseId, name)
 
     /**
-     * Localized display description — active language pack (by [baseId]) →
-     * built-in Czech [description] fallback.
+     * Localized display description — active language pack (by [localizationId]
+     * or [baseId]) → built-in Czech [description] fallback.
      */
-    val displayDescription: String get() = LanguageManager.cardDesc(baseId, description)
+    val displayDescription: String get() = LanguageManager.cardDesc(localizationId ?: baseId, description)
 }

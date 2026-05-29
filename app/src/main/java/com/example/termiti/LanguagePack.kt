@@ -113,6 +113,8 @@ data class LanguagePack(
                 inspectGame   = str("inspectGame",   "Prohlédnout hru"),
                 gameLog       = str("gameLog",       "HERNÍ LOG"),
                 enemy         = str("enemy",         "Nepřítel"),
+                viewOpponentHand = str("viewOpponentHand", "Oponent"),
+                viewMyHand       = str("viewMyHand",       "Moje karty"),
                 discard       = str("discard",       "Zahodit"),
                 castle        = str("castle",        "Hrad"),
                 wall          = str("wall",          "Hradby"),

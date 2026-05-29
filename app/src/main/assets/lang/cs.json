@@ -33,6 +33,8 @@
     "inspectGame": "Prohlédnout hru",
     "gameLog": "HERNÍ LOG",
     "enemy": "Nepřítel",
+    "viewOpponentHand": "Oponent",
+    "viewMyHand": "Moje karty",
     "discard": "Zahodit",
     "castle": "Hrad",
     "wall": "Hradby",

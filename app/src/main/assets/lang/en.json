@@ -33,6 +33,8 @@
     "inspectGame": "Inspect Game",
     "gameLog": "GAME LOG",
     "enemy": "Enemy",
+    "viewOpponentHand": "Opponent",
+    "viewMyHand": "My cards",
     "discard": "Discard",
     "castle": "Castle",
     "wall": "Wall",
@@ -320,7 +322,7 @@
       "desc": "Repair castle by 13."
     },
     "033": {
-      "name": "Earthwork",
+      "name": "Earthen Rampart",
       "desc": "If you have <8 walls, build +11."
     },
     "034": {
@@ -792,7 +794,7 @@
       "desc": "Attack for 3, opponent loses 3 Attack and 3 Stone."
     },
     "108": {
-      "name": "Liquidation",
+      "name": "Disposal",
       "desc": "**Decision:** peek into the opponent's deck and discard 1 card."
     },
     "109": {
@@ -828,7 +830,7 @@
       "desc": "**This turn:** the next card you play is copied into your deck 2x. [Combo]"
     },
     "117": {
-      "name": "Mine Survey",
+      "name": "Mine Exploration",
       "desc": "**Decision:** choose 1 of 4 different mines. [Combo]"
     },
     "118": {

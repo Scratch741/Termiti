@@ -208,7 +208,7 @@ fun GameScreen(
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
                             NewPanelButton(
-                                label   = if (showOppHand) "🃏 Moje karty" else "👁 Oponent",
+                                label   = if (showOppHand) "🃏 ${LocalStrings.current.viewMyHand}" else "👁 ${LocalStrings.current.viewOpponentHand}",
                                 color   = if (showOppHand) TealLight else Gold,
                                 active  = true,
                                 onClick = { showOppHand = !showOppHand }
