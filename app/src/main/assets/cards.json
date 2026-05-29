@@ -3808,7 +3808,7 @@
   {
     "id": "L01",
     "name": "Temný mág",
-    "cost": 8,
+    "cost": 13,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [

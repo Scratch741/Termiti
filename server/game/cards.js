@@ -285,7 +285,7 @@ const RAW = [
   ['128','Archmág',            6,'MAGIC', 1,[dpc(),grp('MAGIC',1)],         'LEGENDARY'],
 
   // ── Temný mág – ikonická legenda ──────────────────────────────────────────
-  ['L01','Temný mág',          8,'CHAOS', 0,[sr('MAGIC',3),sr('ATTACK',3),sr('STONES',3),ac(18),sca(5)], 'LEGENDARY'],
+  ['L01','Temný mág',         13,'CHAOS', 0,[sr('MAGIC',3),sr('ATTACK',3),sr('STONES',3),ac(18),sca(5)], 'LEGENDARY'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
