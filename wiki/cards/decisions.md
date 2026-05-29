@@ -53,11 +53,13 @@ Shows exactly **4 options**: 1 random mine of each type (MAGIC, ATTACK, STONES, 
 | Průzkum dolů | 117 | 1 MAGIC |
 
 ### `DecisionChooseResource(options)`
-Special: the overlay shows **resource buttons** (not cards). Each option is a `ResourceOption(type, amount)`. The player picks one and immediately receives that amount of the resource. `DecisionState.resourceChoices` drives the UI branch in `DecisionOverlay`; resolved by `resolveResourceDecision(type, amount)` offline / `resolveOnlineResourceDecision` online (sends `chosenId = resType.name`).
+Each option is a `ResourceOption(type, amount)`. The overlay renders each option as a **placeholder card** (`resourcePlaceholderCard()` builds a synthetic `Card` carrying an `AddResource` effect + the matching resource art), so it reuses the normal card-picker UI rather than custom buttons. On pick, `resolveDecision` reads the placeholder's `AddResource` effect and grants the resource. Online sends `chosenId = resType.name`.
 
 | Card | ID | Cost | Options |
 |------|----|------|---------|
 | Alchymistova volba | 124 | 2 MAGIC | 4 Magic / 4 Attack / 4 Stones |
+
+Title/subtitle come from `decisionAlchemyTitle` / `decisionAlchemySubtitle` (localized).
 
 ## AI behavior for Decision cards
 
@@ -82,4 +84,5 @@ Server handles Decision via:
 
 ## Changelog
 - 2026-05-21: Page created; Průzkum dolů (117) added
-- 2026-05-28: Added `DecisionChooseResource` (Alchymistova volba 124) — resource-button overlay variant
+- 2026-05-28: Added `DecisionChooseResource` (Alchymistova volba 124)
+- 2026-05-29: `DecisionChooseResource` now renders options as placeholder cards (not buttons); localized titles

@@ -6,8 +6,8 @@
 
 | Page | Description | Updated |
 |------|-------------|---------|
-| [[overview]] | CZ: game overview, loop, platforms | 2026-05-21 |
-| [[architecture]] | Tech stack, key files, Compose gotchas | 2026-05-21 |
+| [[overview]] | CZ: game overview, loop, platforms, localization | 2026-05-29 |
+| [[architecture]] | Tech stack, key files, versioning, Compose gotchas | 2026-05-29 |
 
 ## Cards
 
@@ -15,7 +15,7 @@
 |------|-------------|---------|
 | [[cards/types]] | Card types (Útok/Stavba/Magie/Chaos), deriveCardType | 2026-05-21 |
 | [[cards/effects]] | CardEffect sealed class — all effects | 2026-05-21 |
-| [[cards/decisions]] | Decision cards + AI behavior | 2026-05-21 |
+| [[cards/decisions]] | Decision cards + AI behavior | 2026-05-29 |
 
 ## Mechanics
 
@@ -31,12 +31,13 @@
 
 | Page | Description | Updated |
 |------|-------------|---------|
-| [[systems/ai]] | AiEngine scoring, penalties, Decision AI | 2026-05-21 |
-| [[systems/online]] | Online multiplayer, GameSession.js, timebank | 2026-05-21 |
+| [[systems/ai]] | AiEngine scoring, penalties, lethal lookahead, Decision AI | 2026-05-29 |
+| [[systems/online]] | Online multiplayer, GameSession.js, protocol handshake, timebank | 2026-05-29 |
+| [[systems/localization]] | JSON language packs (cs/en), AppStrings, fallback chain | 2026-05-29 |
 
 ## Missing pages (TODO)
 
-- `cards/list.md` — full list of all 100+ cards with IDs and effects
+- `cards/list.md` — full list of all 176 cards with IDs and effects
 - `systems/deck-builder.md` — deck builder, arena draft, starter deck
 - `mechanics/passive-abilities.md` — passive abilities (extra_castle, extra_hand_card)
 - `systems/rating.md` — online rating system

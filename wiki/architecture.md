@@ -1,6 +1,12 @@
 # Technical Architecture
 
-> Termiti is an Android app (Kotlin/Compose) with an optional Node.js server for online multiplayer.
+> Termiti (app display name **Darkmage**) is an Android app (Kotlin/Compose) with an optional Node.js server for online multiplayer.
+
+## Versioning
+
+- **SemVer** `MAJOR.MINOR.PATCH` — game is in beta (`0.x`). MAJOR = breaking client+server change, MINOR = new content/cards/localization, PATCH = fixes. See `CHANGELOG.md`; releases git-tagged (`v0.1.0`).
+- **`versionCode`** (Android, `app/build.gradle.kts`) increments by 1 on **every** released build, else Android refuses the update.
+- **`PROTOCOL_VERSION`** — client (`OnlineLobbyViewModel.kt`) ↔ server (`server.js`) handshake; independent of game version. Bumped only on breaking protocol / shared-card-data changes. Mismatch → server rejects JOIN with `VERSION_MISMATCH`. See [[systems/online]].
 
 ## Tech stack
 
@@ -29,11 +35,18 @@
 - **`GameOverlay.kt`** — overlay for Decision picker, game over, log
 
 ### Other systems
-- **`AiEngine.kt`** — heuristic card scoring for AI; returns `AiAction` (Play/Discard)
+- **`AiEngine.kt`** — heuristic card scoring for AI; returns `AiAction` (Play/Discard); combo-chain lethal lookahead
 - **`CardRepository.kt`** — parses `cards.json` → `List<Card>`
-- **`OnlineLobbyViewModel.kt`** — WebSocket client, online lobby, online Decision handling
+- **`OnlineLobbyViewModel.kt`** — WebSocket client, online lobby, online Decision handling, `PROTOCOL_VERSION`
 - **`DeckBuilderScreen.kt`** — deck builder UI
 - **`ArenaDraftScreen.kt`** — arena draft UI
+
+### Localization (see [[systems/localization]])
+- **`Language.kt`** — pack identity (code, name, flag, author, version)
+- **`AppStrings.kt`** — all UI strings as typed fields; `LocalStrings` CompositionLocal
+- **`LanguagePack.kt`** — `LanguagePack.fromJson()`, `CardText`, Czech fallback chain
+- **`LanguageManager.kt`** — loads `assets/lang/<code>.json`, persists selection
+- UI strings **and** card texts localized; missing keys fall back to Czech
 
 ## Key server files (Node.js)
 
@@ -57,17 +70,19 @@ gameState.value = old.copy(playerState = player.deepCopy())
 
 Most critical after Combo cards and inside `resolveDecision()`.
 
-## Card sync: cards.js ↔ cards.json
+## Card sync: cards.js → cards.json
 
-**Problem:** Gradle task `syncCards` invokes Node.js, but Node.js is not in PATH → task silently fails → `cards.json` stays stale.
+`server/game/cards.js` is the **single source of truth**. The Gradle task `syncCards` regenerates `app/src/main/assets/cards.json` from it on **every build** (`assembleDebug` logs `syncCards: cards.json updated`).
 
-**Workaround:** Manually update `app/src/main/assets/cards.json` on every change to `cards.js`.
+**Implication:** Never hand-edit `cards.json` — changes are overwritten at the next build. Always edit `cards.js`. (The build output / committed `cards.json` reflects the last sync, so it can be committed too.)
 
 ## Related pages
 - [[overview]] — game overview
 - [[systems/ai]] — AiEngine in depth
 - [[systems/online]] — online multiplayer
+- [[systems/localization]] — JSON language packs
 - [[cards/effects]] — CardEffect sealed class
 
 ## Changelog
 - 2026-05-21: Page created
+- 2026-05-29: Added versioning/`PROTOCOL_VERSION`, localization files, Darkmage rename; `syncCards` now regenerates `cards.json` at build (no manual sync)

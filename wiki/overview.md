@@ -1,12 +1,12 @@
 # Termiti — Přehled hry
 
-> Tahová karetní hra pro 2 hráče. Postav hrad do výšky 70 nebo zniž soupeřův hrad na 0.
+> Tahová karetní hra pro 2 hráče (kódový název **Termiti**, zobrazované jméno aplikace **Darkmage**). Postav hrad do výšky 70 nebo zniž soupeřův hrad na 0.
 
 ---
 
 ## Co je Termiti
 
-Android karetní hra inspirovaná **Arcomage**. Hráč vs. AI (offline) nebo hráč vs. hráč (online přes WebSocket server). Každý hráč buduje hrad, sbírá suroviny a hraje karty — útočí, staví, krade nebo sabotuje.
+Android karetní hra inspirovaná **Arcomage**. Hráč vs. AI (offline) nebo hráč vs. hráč (online přes WebSocket server). Každý hráč buduje hrad, sbírá suroviny a hraje karty — útočí, staví, krade nebo sabotuje. Aktuálně **176 karet** včetně ikonické legendy **Temný mág** (`L01`), podle níž se hra jmenuje.
 
 ---
 
@@ -70,6 +70,13 @@ Doly produkují suroviny každé kolo. Výchozí stav: 1 důl každého typu (Ch
 | Systém dolů | [[mechanics/mines]] |
 | AI engine | [[systems/ai]] |
 | Online multiplayer | [[systems/online]] |
+| Lokalizace (jazyky) | [[systems/localization]] |
+
+---
+
+## Lokalizace
+
+UI i karty jsou plně lokalizovatelné přes `assets/lang/<code>.json`. Hotová čeština (`cs`) a angličtina (`en`); nový jazyk = nový JSON soubor (viz `lang/TRANSLATION_GUIDE.md`). Chybějící klíče padají zpět na češtinu. Detaily: [[systems/localization]].
 
 ---
 
@@ -77,4 +84,5 @@ Doly produkují suroviny každé kolo. Výchozí stav: 1 důl každého typu (Ch
 
 - **Android** — Kotlin, Jetpack Compose
 - **Server** — Node.js + WebSocket
-- **Karty** — `cards.js` (server) + `cards.json` (klient, manuální sync)
+- **Karty** — `cards.js` (server, zdroj pravdy) → `cards.json` (klient, generuje `syncCards` při buildu)
+- **Verzování** — SemVer + `CHANGELOG.md`, `versionCode`, `PROTOCOL_VERSION` handshake (viz [[architecture]])

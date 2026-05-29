@@ -651,7 +651,7 @@ object CardPresentation {
         "L01" to CardPres(
             "Ukradne 3 magie, útoku a kamenů. Přímý úder za 18 na hrad soupeře (ignoruje hradby). Ukradne 5 HP hradu.",
             R.drawable.art_darkmage, "Chaos",
-            artScale = 0.80f, artBiasY = -0.5f,
+            artScale = 0.80f, artBiasX = 0.10f, artBiasY = -1.0f,
             descriptionEn = "Steals 3 magic, attack, and stone. Deals 18 direct castle damage (ignores walls). Steals 5 castle HP.",
             nameAccusative = "Temného mága"
         ),

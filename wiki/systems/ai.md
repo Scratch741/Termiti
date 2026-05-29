@@ -77,9 +77,20 @@ val best = opts.minByOrNull { card ->
 }
 ```
 
+## Lethal detection
+
+`isLethal(card, xVal)` simulates a card's damage (wall → castle overflow / direct castle hit) and self-castle gain; if it would drop the opponent's castle to ≤0 or push AI's castle to its win target this turn, the card gets an override score (`1000 ± noise`) so the AI always takes the kill.
+
+### Combo-chain lethal (1-step lookahead)
+`comboSetupForLethal()` catches kills that need a setup card first. For each affordable **combo** card that generates resources (`AddResource`), it recomputes AI resources after paying the cost + adding the gains, then checks whether a currently-**unaffordable** hand card becomes affordable **and** lethal. If so, the AI plays the setup combo first; the game loop then plays the finisher and wins.
+
+> Example: `Vojenský rozkaz` (+6 ATTACK) → `Démon` becomes affordable and lethal. Without this lookahead the AI only saw single-step lethals and missed the win.
+
 ## AI and Combo vs. Non-combo
 
 Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-combo card ends the AI's turn.
+
+> The standalone game **simulator** mirrors this logic (combo-chain lethal ported) so balance sims match real AI behavior.
 
 ## Related pages
 - [[cards/effects]] — effects and their values
@@ -88,3 +99,4 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 
 ## Changelog
 - 2026-05-21: Page created; DecisionMine AI logic added
+- 2026-05-29: Documented lethal detection + combo-chain lethal lookahead (`comboSetupForLethal`); DecisionChooseResource AI picks least-held resource; smarter discard (keep strong cards)

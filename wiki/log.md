@@ -67,6 +67,21 @@ New effect introduced: `DecisionChooseResource(options)` — decision overlay sh
 
 Updated pages: `cards/effects.md`, `cards/decisions.md`, `log.md`.
 
+## [2026-05-29] ingest | v0.1.0 — localization, versioning, Temný mág, AI lethal lookahead
+
+Large upstream pull (`30baa61..123c54a`, 44 files). Wiki synced to reflect:
+
+- **Localization system landed** (was only "prepared"): UI strings + all 176 card texts + passive abilities localizable via `assets/lang/<code>.json`; complete `cs` + `en`; Czech fallback chain. New types `LanguagePack`, `CardText`, `AppStrings`, `LanguageManager`. → **new page `systems/localization.md`**.
+- **Versioning introduced**: SemVer + `CHANGELOG.md` + git tag `v0.1.0`, `versionCode`/`versionName`, and `PROTOCOL_VERSION` client↔server handshake (`VERSION_MISMATCH` on mismatch). → `architecture.md`, `systems/online.md`.
+- **App display name** renamed Termiti → **Darkmage**. → `overview.md`, `architecture.md`.
+- **New card `L01` Temný mág** (13 CHAOS, LEGENDARY): `sr` MAGIC/ATTACK/STONES 3 each + `ac(18)` + `sca(5)` — iconic namesake legendary. Card total now **176**.
+- **`DecisionChooseResource` reworked**: options now render as **placeholder cards** (`resourcePlaceholderCard()`) reusing the card-picker UI, not custom buttons; localized titles. → `cards/decisions.md`, `cards/effects.md`.
+- **AI**: documented `isLethal` + combo-chain lethal lookahead (`comboSetupForLethal`, ported to simulator), smarter discard, DecisionChooseResource picks least-held resource. → `systems/ai.md`.
+- **`syncCards` now regenerates `cards.json` at build** (no more manual sync) — corrected the stale "Node.js not in PATH" workaround. → `architecture.md`.
+- **Card balance**: `125 Válečný zápal` chaos trigger now counts **every** card (`grp('CHAOS',1)`, no type filter); Temný mág cost 8→13.
+
+Updated pages: `overview.md`, `architecture.md`, `systems/online.md`, `systems/ai.md`, `cards/decisions.md`, `cards/effects.md`, `index.md` + new `systems/localization.md`.
+
 ## [2026-05-21] maintenance | Translated wiki to English
 
 ## [2026-05-21] ingest | Localization infrastructure
