@@ -377,6 +377,39 @@ fun aiChooseAction(
         effectScore * 2 - turnsToAfford * 3
     }
 
+    // ── Combo-chain lethal (1 krok dopředu) ───────────────────────────────────
+    // Pokud zahrání combo karty (která NEUKONČÍ tah) vygeneruje zdroje tak, že
+    // se teď NEDOSTUPNÁ karta stane dostupnou A je smrtící, zahraj nejdřív tu
+    // combo kartu — herní smyčka pak smrtící kartu zahraje a vyhraje.
+    // Bez tohoto AI vidí jen jednokrokové lethal a unikne jí výhra (např.
+    // Vojenský rozkaz +6 útok → Démon).
+    fun comboSetupForLethal(): Card? {
+        for (setup in affordable) {
+            if (!setup.isCombo) continue
+            // Zdroje po zahrání setup karty (zaplať cenu, přičti vygenerované zdroje)
+            val after = ai.resources.toMutableMap()
+            if (!setup.isXCost) {
+                after[setup.costType] = ((after[setup.costType] ?: 0) - setup.effectiveCost).coerceAtLeast(0)
+            }
+            var generatedAny = false
+            for (fx in setup.effects) if (fx is CardEffect.AddResource) {
+                after[fx.type] = (after[fx.type] ?: 0) + fx.amount
+                generatedAny = true
+            }
+            if (!generatedAny) continue
+            // Existuje karta, která je teď nedostupná, ale po setupu dostupná a lethal?
+            val enablesLethal = ai.hand.any { d ->
+                d.id != setup.id &&
+                (ai.resources[d.costType] ?: 0) < d.effectiveCost &&   // teď nedostupná
+                (after[d.costType] ?: 0) >= d.effectiveCost &&          // po setupu dostupná
+                isLethal(d, if (d.isXCost) (after[d.costType] ?: 0) else 0)
+            }
+            if (enablesLethal) return setup
+        }
+        return null
+    }
+    comboSetupForLethal()?.let { return AiAction.Play(it) }
+
     // =====================================================================
     // ENDGAME: oba balíčky prázdné
     // =====================================================================
