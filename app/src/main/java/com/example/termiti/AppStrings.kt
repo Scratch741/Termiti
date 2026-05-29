@@ -72,6 +72,12 @@ data class AppStrings(
     val decisionFromDiscard: String,
     val decisionFromDeck: String,
     val decisionMine: String,
+    val decisionSmartJoker: String,
+    val decisionPeekTitle: String,
+    val decisionPeekSubtitle: String,
+    val decisionAlchemyTitle: String,
+    val decisionAlchemySubtitle: String,
+    val decisionResourceCardDesc: String,   // "Přidá %d %s do tvých surovin." (amount, resource)
 
     // ── Game results ─────────────────────────────────────────────────────────
     val resultVictory: String,

@@ -121,6 +121,12 @@ data class LanguagePack(
                 decisionFromDiscard     = str("decisionFromDiscard",     "Vyber si kartu z odhazovacího balíčku"),
                 decisionFromDeck        = str("decisionFromDeck",        "Vyber si kartu ze svého balíčku"),
                 decisionMine            = str("decisionMine",            "Vyber si důl: Magie, Útok, Kámen nebo Chaos"),
+                decisionSmartJoker        = str("decisionSmartJoker",        "Vyber si kartu, která se hodí do situace"),
+                decisionPeekTitle         = str("decisionPeekTitle",         "ŠPEHOVÁNÍ"),
+                decisionPeekSubtitle      = str("decisionPeekSubtitle",      "Vidíš soupeřovu ruku — vyber kartu ke krádeži"),
+                decisionAlchemyTitle      = str("decisionAlchemyTitle",      "ALCHYMIE"),
+                decisionAlchemySubtitle   = str("decisionAlchemySubtitle",   "Vyber suroviny, které chceš získat"),
+                decisionResourceCardDesc  = str("decisionResourceCardDesc",  "Přidá %d %s do tvých surovin."),
 
                 resultVictory         = str("resultVictory",         "VÝHRA!"),
                 resultDefeat          = str("resultDefeat",          "PROHRA"),

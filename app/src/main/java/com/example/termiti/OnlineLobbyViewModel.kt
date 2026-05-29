@@ -906,17 +906,21 @@ class OnlineLobbyViewModel(
                     val optArr     = json.optJSONArray("options")
                     val options    = parseCardArray(optArr)
 
+                    val ls = LanguageManager.currentStrings
+                    fun resLabel(t: ResourceType) = when (t) {
+                        ResourceType.MAGIC  -> ls.resMagic
+                        ResourceType.ATTACK -> ls.resAttack
+                        ResourceType.STONES -> ls.resStone
+                        ResourceType.CHAOS  -> ls.resChaos
+                    }
                     val (title, subtitle) = when (effectType) {
-                        "DecisionBurnOpponent"   -> "Likvidace"     to "Vyber kartu k zahazení ze soupeřova balíčku"
-                        "DecisionChooseType"     -> {
-                            val ct = json.optString("cardType", "")
-                            "Rekrut" to "Vyber kartu typu $ct"
-                        }
-                        "DecisionFromDiscard"    -> "Vzpomínka"     to "Vyber kartu z odhazovacího balíčku"
-                        "DecisionFromDeck"       -> "Intuice"       to "Vyber kartu z vlastního balíčku"
-                        "DecisionMine"           -> "Průzkum dolů" to "Vyber si důl: Magie, Útok, Kámen nebo Chaos"
-                        "DecisionChooseResource" -> "ALCHYMIE"      to "Vyber suroviny, které chceš získat"
-                        else                     -> "Rozhodnutí"   to "Vyber kartu"
+                        "DecisionBurnOpponent"   -> ls.decisionTitle to ls.decisionBurnOpponent
+                        "DecisionChooseType"     -> ls.decisionTitle to ls.decisionChooseType.format(json.optString("cardType", ""))
+                        "DecisionFromDiscard"    -> ls.decisionTitle to ls.decisionFromDiscard
+                        "DecisionFromDeck"       -> ls.decisionTitle to ls.decisionFromDeck
+                        "DecisionMine"           -> ls.decisionTitle to ls.decisionMine
+                        "DecisionChooseResource" -> ls.decisionAlchemyTitle to ls.decisionAlchemySubtitle
+                        else                     -> ls.decisionTitle to ls.decisionTitle
                     }
 
                     // DecisionChooseResource: sestavíme placeholder karty ze serveru
@@ -928,16 +932,23 @@ class OnlineLobbyViewModel(
                                     val o      = resArr.getJSONObject(i)
                                     val type   = ResourceType.valueOf(o.getString("resType"))
                                     val amount = o.getInt("amount")
-                                    val (emoji, label, artRes) = when (type) {
-                                        ResourceType.MAGIC  -> Triple("✨", "Magie",  R.drawable.art_placeholder_magie)
-                                        ResourceType.ATTACK -> Triple("⚔️", "Útok",   R.drawable.art_placeholder_utok)
-                                        ResourceType.STONES -> Triple("🪨", "Kameny", R.drawable.art_placeholder_kamen)
-                                        ResourceType.CHAOS  -> Triple("🌀", "Chaos",  R.drawable.art_placeholder_chaos)
+                                    val emoji  = when (type) {
+                                        ResourceType.MAGIC  -> "✨"
+                                        ResourceType.ATTACK -> "⚔️"
+                                        ResourceType.STONES -> "🪨"
+                                        ResourceType.CHAOS  -> "🌀"
                                     }
+                                    val artRes = when (type) {
+                                        ResourceType.MAGIC  -> R.drawable.art_placeholder_magie
+                                        ResourceType.ATTACK -> R.drawable.art_placeholder_utok
+                                        ResourceType.STONES -> R.drawable.art_placeholder_kamen
+                                        ResourceType.CHAOS  -> R.drawable.art_placeholder_chaos
+                                    }
+                                    val label = resLabel(type)
                                     Card(
                                         id            = "__res_${type.name}",
                                         name          = "$emoji +$amount $label",
-                                        description   = "Přidá $amount× ${label.lowercase()} do tvých surovin.",
+                                        description   = ls.decisionResourceCardDesc.format(amount, label),
                                         cost          = 0,
                                         costType      = type,
                                         effects       = listOf(CardEffect.AddResource(type, amount)),

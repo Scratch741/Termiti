@@ -576,16 +576,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Vytvoří placeholder kartu reprezentující volbu suroviny v [CardEffect.DecisionChooseResource]. */
     private fun resourcePlaceholderCard(type: ResourceType, amount: Int): Card {
-        val (emoji, label, artRes) = when (type) {
-            ResourceType.MAGIC  -> Triple("✨", "Magie",  R.drawable.art_placeholder_magie)
-            ResourceType.ATTACK -> Triple("⚔️", "Útok",   R.drawable.art_placeholder_utok)
-            ResourceType.STONES -> Triple("🪨", "Kameny", R.drawable.art_placeholder_kamen)
-            ResourceType.CHAOS  -> Triple("🌀", "Chaos",  R.drawable.art_placeholder_chaos)
+        val (emoji, artRes) = when (type) {
+            ResourceType.MAGIC  -> "✨" to R.drawable.art_placeholder_magie
+            ResourceType.ATTACK -> "⚔️" to R.drawable.art_placeholder_utok
+            ResourceType.STONES -> "🪨" to R.drawable.art_placeholder_kamen
+            ResourceType.CHAOS  -> "🌀" to R.drawable.art_placeholder_chaos
         }
+        val label = resLabel(type)
         return Card(
             id            = "__res_${type.name}",
             name          = "$emoji +$amount $label",
-            description   = "Přidá $amount× ${label.lowercase()} do tvých surovin.",
+            description   = ls.decisionResourceCardDesc.format(amount, label),
             cost          = 0,
             costType      = type,
             effects       = listOf(CardEffect.AddResource(type, amount)),
@@ -598,14 +599,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun buildDecisionState(fx: CardEffect, options: List<Card>): DecisionState = when (fx) {
-        is CardEffect.DecisionBurnOpponent   -> DecisionState("ROZHODNUTÍ", "Vyber kartu ze soupeřova balíku k zahození", options)
-        is CardEffect.DecisionChooseType     -> DecisionState("ROZHODNUTÍ", "Vyber si kartu typu ${fx.cardType}", options)
-        is CardEffect.DecisionFromDiscard    -> DecisionState("ROZHODNUTÍ", "Vyber si kartu z odhazovacího balíčku", options)
-        is CardEffect.DecisionFromDeck       -> DecisionState("ROZHODNUTÍ", "Vyber si kartu ze svého balíčku", options)
-        is CardEffect.DecisionMine           -> DecisionState("ROZHODNUTÍ", "Vyber si důl: Magie, Útok, Kámen nebo Chaos", options)
-        is CardEffect.SmartJoker             -> DecisionState("ROZHODNUTÍ", "Vyber si kartu, která se hodí do situace", options)
-        is CardEffect.PeekAndStealHand       -> DecisionState("ŠPEHOVÁNÍ", "Vidíš soupeřovu ruku — vyber kartu ke krádeži", options)
-        is CardEffect.DecisionChooseResource -> DecisionState("ALCHYMIE", "Vyber suroviny, které chceš získat", options)
+        is CardEffect.DecisionBurnOpponent   -> DecisionState(ls.decisionTitle, ls.decisionBurnOpponent, options)
+        is CardEffect.DecisionChooseType     -> DecisionState(ls.decisionTitle, ls.decisionChooseType.format(fx.cardType), options)
+        is CardEffect.DecisionFromDiscard    -> DecisionState(ls.decisionTitle, ls.decisionFromDiscard, options)
+        is CardEffect.DecisionFromDeck       -> DecisionState(ls.decisionTitle, ls.decisionFromDeck, options)
+        is CardEffect.DecisionMine           -> DecisionState(ls.decisionTitle, ls.decisionMine, options)
+        is CardEffect.SmartJoker             -> DecisionState(ls.decisionTitle, ls.decisionSmartJoker, options)
+        is CardEffect.PeekAndStealHand       -> DecisionState(ls.decisionPeekTitle, ls.decisionPeekSubtitle, options)
+        is CardEffect.DecisionChooseResource -> DecisionState(ls.decisionAlchemyTitle, ls.decisionAlchemySubtitle, options)
         else -> DecisionState("", "", emptyList())
     }
 
