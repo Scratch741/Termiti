@@ -497,17 +497,32 @@
         <div id="mana-curve-labels" style="display:flex;gap:3px;margin-top:2px"></div>
       </div>
       <div style="padding:10px 16px 16px;border-top:1px solid var(--border)">
-        <div style="margin-bottom:8px">
-          <div style="font-size:10px;color:var(--text-muted);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px">TYP BALÍČKU</div>
-          <select id="arch-select" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 8px;font-family:'Crimson Pro',serif;font-size:13px;cursor:pointer">
-            <option value="-1">🎲 Náhodný archetyp</option>
-            <option value="0">⚔️ Útočník</option>
-            <option value="1">🏰 Obránce</option>
-            <option value="2">🔮 Mágik</option>
-            <option value="3">📚 Kartář</option>
-            <option value="4">🌀 Chaosager</option>
-            <option value="5">🕵️ Sabotér</option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div>
+            <div style="font-size:10px;color:var(--text-muted);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px">TYP BALÍČKU</div>
+            <select id="arch-select" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 8px;font-family:'Crimson Pro',serif;font-size:13px;cursor:pointer">
+              <option value="-1">🎲 Náhodný</option>
+              <option value="0">⚔️ Útočník</option>
+              <option value="1">🏰 Obránce</option>
+              <option value="2">🔮 Mágik</option>
+              <option value="3">📚 Kartář</option>
+              <option value="4">🌀 Chaosager</option>
+              <option value="5">🕵️ Sabotér</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text-muted);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px">SOUPEŘ</div>
+            <select id="opp-select" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px 8px;font-family:'Crimson Pro',serif;font-size:13px;cursor:pointer">
+              <option value="-1">🎯 Všichni</option>
+              <option value="0">⚔️ Útočník</option>
+              <option value="1">🏰 Obránce</option>
+              <option value="2">🔮 Mágik</option>
+              <option value="3">📚 Kartář</option>
+              <option value="4">🌀 Chaosager</option>
+              <option value="5">🕵️ Sabotér</option>
+              <option value="6">⚖️ Vyvážený</option>
+            </select>
+          </div>
         </div>
         <button class="btn-action" style="width:100%;margin-bottom:6px;background:rgba(100,80,160,.15);border-color:#7a5cc0"
                 onclick="generateSmartDeck()">🎲 GENERUJ SMART BALÍČEK</button>
@@ -1691,8 +1706,26 @@ function generateSmartDeck() {
 let optRunning = false;
 const OPT_MAX_COP = { COMMON:4, RARE:3, EPIC:2, LEGENDARY:1 };
 
-// Soupeřící balíčky: presety s counts + jeden vyvážený. Staví se jednou na začátku běhu.
-function buildGauntlet() {
+function getSelectedOppIdx() {
+  const sel = document.getElementById('opp-select');
+  return sel ? parseInt(sel.value) : -1;
+}
+
+// Soupeřící balíčky. oppIdx: -1 = gauntlet (presety + vyvážený), 0-5 = smart archetyp, 6 = vyvážený.
+function buildGauntlet(oppIdx) {
+  // Konkrétní soupeř: jeden smart balíček daného archetypu (nebo vyvážený)
+  if (oppIdx !== undefined && oppIdx >= 0) {
+    if (oppIdx === 6) {
+      try { const bal = buildBalancedDeck(); if (bal && bal.length >= 10) return [{ name: '⚖️ Vyvážený', deck: bal }]; } catch (e) {}
+      return [];
+    }
+    // Smart archetyp – vygeneruj 3 exempláře a vezmi průměr (stabilnější než 1 náhodný balíček)
+    const ARCH_NAMES = ['⚔️ Útočník','🏰 Obránce','🔮 Mágik','📚 Kartář','🌀 Chaosager','🕵️ Sabotér'];
+    const decks = [];
+    for (let i = 0; i < 3; i++) { const d = buildSmartRandomDeck(oppIdx); if (d.length >= 10) decks.push(d); }
+    return decks.map((d, i) => ({ name: ARCH_NAMES[oppIdx] + (decks.length > 1 ? ' #' + (i+1) : ''), deck: d }));
+  }
+  // Gauntlet: presety s counts + vyvážený
   const g = [];
   for (const p of SIM_PRESETS) {
     if (!p.counts) continue;
@@ -1768,12 +1801,13 @@ async function smartGenerateOptimize() {
   optRunning = true;
   const btn = document.getElementById('btn-opt'); if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
 
-  const gauntlet = buildGauntlet();
+  const fixedArchIdx = getSelectedArchIdx(); // -1 = náhodný, 0–5 = konkrétní archetyp
+  const oppIdx       = getSelectedOppIdx();  // -1 = gauntlet, 0–5 = smart arch, 6 = vyvážený
+  const gauntlet = buildGauntlet(oppIdx >= 0 ? oppIdx : undefined);
   const pool = buildCardPool();
   if (!gauntlet.length) { optStatus('<span style="color:var(--attack)">Žádné soupeřící balíčky.</span>'); optRunning = false; if (btn) { btn.disabled = false; btn.style.opacity = ''; } return; }
 
   const SCREEN_GAMES = 60, HILL_GAMES = 200, FINAL_GAMES = 500, CANDIDATES = 100, TOPK = 5, ITERS = 30, GATE = 0.40;
-  const fixedArchIdx = getSelectedArchIdx(); // -1 = náhodný, 0–5 = konkrétní archetyp
 
   // ── Fáze 1: vygeneruj kandidáty, hrubě ohodnoť (rychle), ponech TOP K ──
   // Screening na málo hrách jen seřadí – přesné měření až ve fázi 2.
