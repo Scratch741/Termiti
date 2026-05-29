@@ -3674,8 +3674,7 @@
       {
         "type": "GainResourcePerCardPlayed",
         "resType": "CHAOS",
-        "amount": 1,
-        "cardType": "Útok"
+        "amount": 1
       }
     ],
     "rarity": "RARE",
