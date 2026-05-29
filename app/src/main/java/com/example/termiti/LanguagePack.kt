@@ -173,6 +173,11 @@ data class LanguagePack(
                 typeMines    = str("typeMines",    "Doly"),
                 typeDecision = str("typeDecision", "Rozhodnutí"),
                 typeDraw     = str("typeDraw",     "Líznutí"),
+
+                resMagic  = str("resMagic",  "Magie"),
+                resAttack = str("resAttack", "Útok"),
+                resStone  = str("resStone",  "Kámen"),
+                resChaos  = str("resChaos",  "Chaos"),
             )
         }
 
@@ -226,6 +231,8 @@ data class LanguagePack(
             "typeMagic" -> fb.typeMagic; "typeChaos" -> fb.typeChaos
             "typeMines" -> fb.typeMines; "typeDecision" -> fb.typeDecision
             "typeDraw" -> fb.typeDraw
+            "resMagic" -> fb.resMagic; "resAttack" -> fb.resAttack
+            "resStone" -> fb.resStone; "resChaos" -> fb.resChaos
             else -> null
         }
     }

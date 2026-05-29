@@ -81,7 +81,11 @@
     "typeChaos": "Chaos",
     "typeMines": "Mines",
     "typeDecision": "Decision",
-    "typeDraw": "Draw"
+    "typeDraw": "Draw",
+    "resMagic": "Magic",
+    "resAttack": "Attack",
+    "resStone": "Stone",
+    "resChaos": "Chaos"
   },
   "cards": {
     "001": {

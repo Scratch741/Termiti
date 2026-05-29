@@ -81,7 +81,11 @@
     "typeChaos": "Chaos",
     "typeMines": "Doly",
     "typeDecision": "Rozhodnutí",
-    "typeDraw": "Líznutí"
+    "typeDraw": "Líznutí",
+    "resMagic": "Magie",
+    "resAttack": "Útok",
+    "resStone": "Kámen",
+    "resChaos": "Chaos"
   },
   "cards": {
     "001": {

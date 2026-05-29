@@ -310,6 +310,7 @@ fun NewResourcePanel(
     val blkAtk    = playerState.mineBlockedTurns[ResourceType.ATTACK] ?: 0
     val blkSto    = playerState.mineBlockedTurns[ResourceType.STONES] ?: 0
     val blkChaos  = playerState.mineBlockedTurns[ResourceType.CHAOS]  ?: 0
+    val s         = LocalStrings.current
 
     Column(
         modifier = modifier
@@ -320,10 +321,10 @@ fun NewResourcePanel(
             )
             .padding(horizontal = 16.dp, vertical = 5.dp)
     ) {
-        NewResourceSection("✨", "Magie",  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
-        NewResourceSection("⚔️", "Útok",   mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
-        NewResourceSection("🪨", "Kameny", mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
-        NewResourceSection("🌀", "Chaos",  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
+        NewResourceSection("✨", s.resMagic,  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
+        NewResourceSection("⚔️", s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
+        NewResourceSection("🪨", s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
+        NewResourceSection("🌀", s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
         Spacer(Modifier.weight(1f))
         bottomSlot()
     }

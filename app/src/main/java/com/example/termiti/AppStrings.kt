@@ -133,6 +133,12 @@ data class AppStrings(
     val typeMines: String,
     val typeDecision: String,
     val typeDraw: String,
+
+    // ── Resource names (battlefield HUD) ───────────────────────────────────────
+    val resMagic: String,
+    val resAttack: String,
+    val resStone: String,
+    val resChaos: String,
 )
 
 // ── CompositionLocal ──────────────────────────────────────────────────────────
