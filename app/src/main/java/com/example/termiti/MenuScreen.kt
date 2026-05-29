@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.termiti.BuildConfig
 
 // Paleta barev → GameColors.kt
 
@@ -170,6 +171,17 @@ fun MenuScreen(
                 }
             }
         }
+
+        // ── Verze – nenápadně v pravém dolním rohu ────────────────────────────
+        Text(
+            text     = "v${BuildConfig.VERSION_NAME}",
+            color    = TextMuted.copy(alpha = 0.45f),
+            fontSize = 9.sp,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 10.dp, bottom = 6.dp)
+        )
     }
 }
 
