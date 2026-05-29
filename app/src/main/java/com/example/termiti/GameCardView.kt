@@ -231,7 +231,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
             contentAlignment = Alignment.Center
         ) {
             Text(
-                card.name,
+                card.displayName,
                 color      = Color.White,
                 fontSize   = 3.5.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -260,7 +260,7 @@ internal fun CardBackPlayed(card: Card) {
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(effectIcon(card), fontSize = 11.sp)
-        Text(card.name, color = TextPrimary, fontSize = 5.sp,
+        Text(card.displayName, color = TextPrimary, fontSize = 5.sp,
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
         val modifiedCostColor = when {
@@ -539,7 +539,7 @@ private fun CardViewTextured(
 
         // Vrstva 4: název karty v obloukovém pásu (~70 dp od vrchu) — zakřivený text
         ArcCardName(
-            name         = card.name,
+            name         = card.displayName,
             modifier     = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 69.dp)
@@ -562,7 +562,7 @@ private fun CardViewTextured(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                parseCardDesc(card.description),
+                parseCardDesc(card.displayDescription),
                 color = Color(0xFFDDD0B0),
                 fontSize = 7.sp,
                 textAlign = TextAlign.Center,
@@ -809,7 +809,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
 
             // Název v obloukovém pásu (69dp × 2.2 = 152dp, výška 22dp × 2.2 = 48dp)
             ArcCardName(
-                name         = card.name,
+                name         = card.displayName,
                 modifier     = Modifier
                     .fillMaxWidth()
                     .padding(top = 152.dp)
@@ -831,7 +831,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    parseCardDesc(card.description),
+                    parseCardDesc(card.displayDescription),
                     color     = Color(0xFFDDD0B0),
                     fontSize  = 16.sp,
                     textAlign = TextAlign.Center,

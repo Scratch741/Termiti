@@ -18,21 +18,18 @@ data class CardPres(
     val isBasic:       Boolean   = false,
     val sound:         CardSound? = null,
     val soundResId:    Int?      = null,
-    /** English description. Empty string = not yet translated → falls back to [description]. */
+    /**
+     * LEGACY — no longer read. All localized card text (names + descriptions for every
+     * language, including English) now lives in assets/lang/<code>.json under "cards".
+     * Kept only so existing call sites compile; safe to drop in a future cleanup.
+     */
     val descriptionEn: String    = "",
     /**
      * Skloňovaný název karty ve 4. pádu (akuzativ) pro použití v log zprávách,
      * např. "lízl Bombu". Pokud null, použije se [Card.name] bez skloňování.
      */
     val nameAccusative: String?  = null
-) {
-    /**
-     * Returns the localized description for the given [languageCode] (e.g. "cs", "en").
-     * Falls back to the Czech [description] if no translation is available for this language.
-     */
-    fun localizedDescription(languageCode: String): String =
-        if (languageCode != "cs" && descriptionEn.isNotEmpty()) descriptionEn else description
-}
+)
 
 object CardPresentation {
     val presentations: Map<String, CardPres> = mapOf(

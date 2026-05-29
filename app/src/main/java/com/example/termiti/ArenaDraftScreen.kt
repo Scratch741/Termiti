@@ -302,7 +302,7 @@ private fun DraftStatsPanel(
                 ) {
                     Text(draftEffectIcon(card), fontSize = 8.sp)
                     Text(
-                        card.name,
+                        card.displayName,
                         color = TextPrimary.copy(alpha = 0.7f),
                         fontSize = 7.5.sp,
                         maxLines = 1, overflow = TextOverflow.Ellipsis,

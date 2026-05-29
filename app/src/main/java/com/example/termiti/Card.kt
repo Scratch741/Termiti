@@ -96,4 +96,24 @@ data class Card(
      */
     val effectiveCost: Int get() =
         if (isXCost) 0 else (cost + costModifier).coerceIn(0, 99)
+
+    /**
+     * Base card id stripped of any runtime suffix (clone/stolen/decision copies are
+     * `<baseId>_<uuid>`). Real base ids never contain '_' except the `__res_*`
+     * resource placeholders, which are returned unchanged.
+     */
+    val baseId: String get() = if (id.startsWith("__")) id else id.substringBefore('_')
+
+    /**
+     * Localized display name — resolves through the active language pack
+     * (by [baseId]); falls back to the built-in Czech [name] when untranslated.
+     * Read inside a Composable to recompose automatically on language change.
+     */
+    val displayName: String get() = LanguageManager.cardName(baseId, name)
+
+    /**
+     * Localized display description — active language pack (by [baseId]) →
+     * built-in Czech [description] fallback.
+     */
+    val displayDescription: String get() = LanguageManager.cardDesc(baseId, description)
 }

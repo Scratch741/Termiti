@@ -176,12 +176,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     CardCollectionManager.isBasicCard(card) ||
                     (profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0) > 0
                 }) &&
-                (searchQuery.isBlank() || card.name.contains(searchQuery.trim(), ignoreCase = true) ||
-                    card.description.contains(searchQuery.trim(), ignoreCase = true)) &&
+                (searchQuery.isBlank() || card.displayName.contains(searchQuery.trim(), ignoreCase = true) ||
+                    card.displayDescription.contains(searchQuery.trim(), ignoreCase = true)) &&
                 (filterCost == null ||
                     if (filterCost == 7) card.cost >= 7 else card.cost == filterCost)
             }
-            .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.name }))
+            .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.displayName }))
     }
 
     Box(Modifier.fillMaxSize().background(BgDeep)) {
@@ -674,7 +674,7 @@ fun CardPreview(card: Card) {
         }
         // Název — zakřivený text sledující oblouk ribbonu
         ArcCardName(
-            name         = card.name,
+            name         = card.displayName,
             modifier     = Modifier
                 .align(Alignment.TopStart)
                 .offset(y = 69.dp)
@@ -695,7 +695,7 @@ fun CardPreview(card: Card) {
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(parseCardDesc(card.description), color = Color(0xFFDDD0B0), fontSize = 7.sp,
+            Text(parseCardDesc(card.displayDescription), color = Color(0xFFDDD0B0), fontSize = 7.sp,
                 textAlign = TextAlign.Center, maxLines = 4, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(
                     TextStyle(
@@ -784,7 +784,7 @@ private fun CardActionPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(card.name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                Text(card.displayName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
                     lineHeight = 18.sp, modifier = Modifier.weight(1f))
                 if (!isBasic && !allUnlocked) {
                     Text(
@@ -1032,7 +1032,7 @@ private fun FullCardPreview(card: Card) {
 
             // Název — zakřivený text (× 2.52 od malé karty)
             ArcCardName(
-                name         = card.name,
+                name         = card.displayName,
                 modifier     = Modifier
                     .fillMaxWidth()
                     .padding(top = 174.dp)
@@ -1054,7 +1054,7 @@ private fun FullCardPreview(card: Card) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    parseCardDesc(card.description),
+                    parseCardDesc(card.displayDescription),
                     color = Color(0xFFDDD0B0),
                     fontSize = 18.sp,
                     textAlign = TextAlign.Center,
@@ -1285,7 +1285,7 @@ private fun DeckPanel(
     val deckCards = remember(deck.cardCounts) {
         allCards
             .filter { (deck.cardCounts[it.id] ?: 0) > 0 }
-            .sortedWith(compareBy({ it.costType.ordinal }, { it.cost }, { it.name }))
+            .sortedWith(compareBy({ it.costType.ordinal }, { it.cost }, { it.displayName }))
     }
 
     var isEditingName by remember(deck.id) { mutableStateOf(false) }
@@ -1505,7 +1505,7 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     ) {
         Text(effectIcon(card), fontSize = 10.sp)
         Text(
-            card.name, color = TextPrimary,
+            card.displayName, color = TextPrimary,
             fontSize = 9.sp, fontWeight = FontWeight.Bold,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

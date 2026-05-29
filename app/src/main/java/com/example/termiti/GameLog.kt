@@ -153,7 +153,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                     }
                     // ── řádek 2: název karty ──────────────────────────────────
                     Text(
-                        text       = entry.card.name,
+                        text       = entry.card.displayName,
                         color      = Gold.copy(alpha = 0.92f),
                         fontSize   = 9.5.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -161,9 +161,9 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                         overflow   = TextOverflow.Ellipsis
                     )
                     // ── řádek 3: popis karty ──────────────────────────────────
-                    if (entry.card.description.isNotBlank()) {
+                    if (entry.card.displayDescription.isNotBlank()) {
                         Text(
-                            text       = parseCardDesc(entry.card.description),
+                            text       = parseCardDesc(entry.card.displayDescription),
                             color      = TextMuted.copy(alpha = 0.72f),
                             fontSize   = 7.sp,
                             lineHeight = 9.sp,

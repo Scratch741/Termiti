@@ -5,16 +5,22 @@ package com.example.termiti
 
 import org.json.JSONObject
 
+/** Localized name + description for a single card (keyed by card id). */
+data class CardText(val name: String, val desc: String)
+
 /**
- * A loaded language pack: metadata + all UI strings.
+ * A loaded language pack: metadata + all UI strings + all card texts.
  *
  * Parsed from assets/lang/<code>.json.
- * Any missing key falls back to the Czech [fallback] pack so the app
- * never crashes on an incomplete community translation.
+ * Any missing UI key falls back to the Czech [fallback] pack so the app
+ * never crashes on an incomplete community translation. Missing card texts
+ * fall back to the card's built-in Czech name/description (see CardRepository).
  */
 data class LanguagePack(
     val language: Language,
-    val strings:  AppStrings
+    val strings:  AppStrings,
+    /** id → localized {name, desc}. Empty for an untranslated pack. */
+    val cards:    Map<String, CardText> = emptyMap()
 ) {
     companion object {
 
@@ -38,7 +44,28 @@ data class LanguagePack(
                 version = meta.optInt("version",    1)
             )
             val strings = buildStrings(language.code, root.optJSONObject("strings") ?: JSONObject(), fallbackPack?.strings)
-            return LanguagePack(language, strings)
+            val cards   = buildCards(root.optJSONObject("cards"))
+            return LanguagePack(language, strings, cards)
+        }
+
+        /**
+         * Parses the optional "cards" object: { "<id>": { "name": "...", "desc": "..." }, … }.
+         * A missing name/desc within an entry stays empty → caller falls back to the card's
+         * built-in Czech text. Returns an empty map if there is no "cards" block at all.
+         */
+        private fun buildCards(obj: JSONObject?): Map<String, CardText> {
+            if (obj == null) return emptyMap()
+            val out = LinkedHashMap<String, CardText>(obj.length())
+            val ids = obj.keys()
+            while (ids.hasNext()) {
+                val id = ids.next()
+                val e  = obj.optJSONObject(id) ?: continue
+                out[id] = CardText(
+                    name = e.optString("name", ""),
+                    desc = e.optString("desc", "")
+                )
+            }
+            return out
         }
 
         /**

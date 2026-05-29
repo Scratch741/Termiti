@@ -11,24 +11,20 @@
     "cancel": "Zrušit",
     "confirm": "Potvrdit",
     "back": "← ZPĚT",
-
     "settings": "NASTAVENÍ",
     "music": "🎵  Hudba",
     "soundEffects": "🔊  Efekty",
     "languageLabel": "🌐  Jazyk",
-
     "play": "HRÁT",
     "buildDeck": "BALÍČEK",
     "multiplayer": "MULTIPLAYER",
     "profile": "PROFIL",
     "shop": "OBCHOD",
     "exit": "KONEC",
-
     "ownDeck": "Vlastní balíček",
     "superRandom": "Super náhodné",
     "arena": "Aréna",
     "campaign": "Kampaň",
-
     "yourTurn": "VÁŠ TAH",
     "opponentTurn": "TAH SOUPEŘE",
     "endTurn": "Ukončit tah",
@@ -36,7 +32,6 @@
     "castle": "Hrad",
     "wall": "Hradby",
     "round": "Kolo",
-
     "decisionTitle": "ROZHODNUTÍ",
     "decisionPreviewGame": "Náhled hry",
     "decisionBackToDecision": "Zpět na rozhodnutí",
@@ -45,7 +40,6 @@
     "decisionFromDiscard": "Vyber si kartu z odhazovacího balíčku",
     "decisionFromDeck": "Vyber si kartu ze svého balíčku",
     "decisionMine": "Vyber si důl: Magie, Útok, Kámen nebo Chaos",
-
     "resultVictory": "VÝHRA!",
     "resultDefeat": "PROHRA",
     "resultDraw": "REMÍZA",
@@ -56,39 +50,31 @@
     "resultBothDead": "Oba hrady zničeny.",
     "resultPlayAgain": "Hrát znovu",
     "resultBackToMenu": "Zpět do menu",
-
     "deckBuilder": "STAVITEL BALÍČKU",
     "deckSave": "Uložit",
     "deckReset": "Resetovat",
     "deckClear": "Vymazat",
     "deckCardCount": "%d / %d karet",
-
     "arenaDraft": "DRAFT ARÉNY",
     "arenaPickCard": "Vyber kartu",
     "arenaWins": "%d výher",
-
     "mulliganTitle": "MULLIGAN",
     "mulliganSubtitle": "Vyber karty k výměně",
     "mulliganConfirm": "Potvrdit",
-
     "profileTitle": "PROFIL",
     "profileWins": "Výhry",
     "profileLosses": "Prohry",
     "profileGames": "Celkem her",
-
     "shopTitle": "OBCHOD",
     "shopBuy": "Koupit",
     "shopDust": "Prach",
-
     "onlineConnecting": "Připojování…",
     "onlineWaiting": "Čekám na soupeře…",
     "onlineDisconnected": "Odpojeno",
-
     "rarityCommon": "Běžná",
     "rarityRare": "Vzácná",
     "rarityEpic": "Epická",
     "rarityLegendary": "Legendární",
-
     "typeAttack": "Útok",
     "typeBuild": "Stavba",
     "typeMagic": "Magie",
@@ -96,5 +82,711 @@
     "typeMines": "Doly",
     "typeDecision": "Rozhodnutí",
     "typeDraw": "Líznutí"
+  },
+  "cards": {
+    "001": {
+      "name": "Rychlý útok",
+      "desc": "Zaútočí na nepřítele za 5. [Combo]"
+    },
+    "008": {
+      "name": "Šípy",
+      "desc": "Zaútočí na hrad za 3. [Combo]"
+    },
+    "003": {
+      "name": "Ohnivá koule",
+      "desc": "Přímý zásah ohněm: hrad −8."
+    },
+    "007": {
+      "name": "Silný úder",
+      "desc": "Zaútočí na nepřítele za 11."
+    },
+    "006": {
+      "name": "Převaha síly",
+      "desc": "Pokud máš více útoku než soupeř, udeř hrad za 10."
+    },
+    "017": {
+      "name": "Válečný sekyrník",
+      "desc": "Zaútočí za 8, ukradni 2 útoku soupeři."
+    },
+    "002": {
+      "name": "Kamenná zeď",
+      "desc": "Hradby +9, vrátí 1 kámen."
+    },
+    "010": {
+      "name": "Palisáda",
+      "desc": "Hradby +6, vrátí 1 kámen."
+    },
+    "005": {
+      "name": "Posila hradu",
+      "desc": "Opraví hrad o 5."
+    },
+    "009": {
+      "name": "Pevné základy",
+      "desc": "Opraví hrad o 8, vrátí 1 kámen."
+    },
+    "018": {
+      "name": "Mohutná věž",
+      "desc": "Postaví hradby +15."
+    },
+    "004": {
+      "name": "Magie",
+      "desc": "Okamžitě +2 magie. [Combo]"
+    },
+    "011": {
+      "name": "Zásoby kamene",
+      "desc": "Okamžitě +3 kameny. [Combo]"
+    },
+    "012": {
+      "name": "Mobilizace",
+      "desc": "Okamžitě +3 útoku. [Combo]"
+    },
+    "013": {
+      "name": "Magický pramen",
+      "desc": "Trvale +1 důl magie."
+    },
+    "014": {
+      "name": "Kamenolom",
+      "desc": "Trvale +1 důl kamene."
+    },
+    "015": {
+      "name": "Výcvikový tábor",
+      "desc": "Trvale +1 důl útoku."
+    },
+    "016": {
+      "name": "Velký pramen",
+      "desc": "Trvale +2 doly magie."
+    },
+    "019": {
+      "name": "Zápalné šípy",
+      "desc": "Poškodí jen hradby o 5. [Combo]"
+    },
+    "020": {
+      "name": "Beranidlo",
+      "desc": "Poškodí jen hradby o 12. [Combo] "
+    },
+    "021": {
+      "name": "Dělostřelectvo",
+      "desc": "Zaútočí na nepřítele za 15."
+    },
+    "022": {
+      "name": "Přímý zásah",
+      "desc": "Poškodí hrad −8."
+    },
+    "023": {
+      "name": "Dvojitý úder",
+      "desc": "Zaútočí na hrad za 7 a na soupeře za 7."
+    },
+    "024": {
+      "name": "Berserk",
+      "desc": "Pokud máš <5 hradeb, udeř hrad za 12."
+    },
+    "025": {
+      "name": "Protiútok",
+      "desc": "Pokud máš <10 hradeb, udeř hrad za 10."
+    },
+    "026": {
+      "name": "Ostřelovač",
+      "desc": "Poškodí hrad o 5. Pokud >5 útoku, +5."
+    },
+    "027": {
+      "name": "Válečné bubny",
+      "desc": "Zaútočí za 4. **Toto kolo:** za každou zahranou **ÚTOK** +2 útoku. [Combo]"
+    },
+    "028": {
+      "name": "Záplata",
+      "desc": "Opraví hrad o 3. [Combo]"
+    },
+    "029": {
+      "name": "Opevnění",
+      "desc": "Hradby +6, hrad +2."
+    },
+    "030": {
+      "name": "Kamenný val",
+      "desc": "Postaví hradby +13."
+    },
+    "031": {
+      "name": "Renovace",
+      "desc": "Opraví hrad o 7."
+    },
+    "032": {
+      "name": "Citadela",
+      "desc": "Opraví hrad o 13."
+    },
+    "033": {
+      "name": "Zemní val",
+      "desc": "Pokud máš <8 hradeb, postav +11."
+    },
+    "034": {
+      "name": "Opravář",
+      "desc": "Pokud máš >15 hradeb, oprav hrad o 9."
+    },
+    "035": {
+      "name": "Základní kámen",
+      "desc": "Hradby +5 a hrad +4."
+    },
+    "036": {
+      "name": "Hradní příkop",
+      "desc": "Hradby +7. Pokud hrad <35, hradby +5."
+    },
+    "037": {
+      "name": "Rychlá magie",
+      "desc": "Okamžitě +4 magie. [Combo]"
+    },
+    "038": {
+      "name": "Vojenský rozkaz",
+      "desc": "Okamžitě +6 útoku. [Combo]"
+    },
+    "039": {
+      "name": "Stavební boom",
+      "desc": "Okamžitě +6 kamene. [Combo]"
+    },
+    "040": {
+      "name": "Alchymie",
+      "desc": "Pokud máš >4 magie, získej +8 útoku."
+    },
+    "041": {
+      "name": "Magické trio",
+      "desc": "+2 magie, +2 útoku, +2 kamene. [Combo]"
+    },
+    "042": {
+      "name": "Velký kamenolom",
+      "desc": "Trvale +2 doly kamene."
+    },
+    "043": {
+      "name": "Výcvikové centrum",
+      "desc": "Trvale +2 doly útoku."
+    },
+    "044": {
+      "name": "Trifekta dolů",
+      "desc": "+1 důl magie, útoku i kamene."
+    },
+    "045": {
+      "name": "Očarované doly",
+      "desc": "Trvale +3 doly magie."
+    },
+    "046": {
+      "name": "Goblin",
+      "desc": "Zaútočí za 2, ukradni 1 magii, +1 chaosu."
+    },
+    "047": {
+      "name": "Ogr",
+      "desc": "Zaútočí na nepřítele za 9."
+    },
+    "048": {
+      "name": "Upír",
+      "desc": "Zaútočí za 6, získej +3 magie. [Combo]"
+    },
+    "049": {
+      "name": "Jed",
+      "desc": "Zaútočí za 3, soupeř ztratí 3 magie, +1 chaosu."
+    },
+    "050": {
+      "name": "Podkopání hradeb",
+      "desc": "Zaútočí za 8, soupeř ztratí 4 kameny."
+    },
+    "051": {
+      "name": "Drak",
+      "desc": "Zaútočí za 14, hrad −8 přímo, +2 chaosu."
+    },
+    "052": {
+      "name": "Démon",
+      "desc": "Přímý zásah: hrad −16. +2 chaosu."
+    },
+    "053": {
+      "name": "Plamenomet",
+      "desc": "Poškodí jen hradby o 10, získej +2 útoku."
+    },
+    "054": {
+      "name": "Válečný pochod",
+      "desc": "Zaútočí na nepřítele za 13, +2 útoku."
+    },
+    "055": {
+      "name": "Poslední vzdor",
+      "desc": "Zaútočí za 3, +1 útok. Pokud <5 hradeb: hrad −8."
+    },
+    "056": {
+      "name": "Nájezdník",
+      "desc": "Ukradni 3 útoku, zaútočí za 4."
+    },
+    "057": {
+      "name": "Bašta",
+      "desc": "Hradby +3, hrad +5."
+    },
+    "058": {
+      "name": "Obranný val",
+      "desc": "Hradby +4. [Combo]"
+    },
+    "059": {
+      "name": "Pevnostní hrad",
+      "desc": "Hradby +4, hrad +6, soupeř ztratí 1 útok."
+    },
+    "060": {
+      "name": "Chrám",
+      "desc": "Hrad +18."
+    },
+    "061": {
+      "name": "Tunely",
+      "desc": "Hrad +4. Zablokuj soupeřův útočný důl na 1 kolo."
+    },
+    "062": {
+      "name": "Obranná aliance",
+      "desc": "Hradby +6, hrad +5, +2 kameny."
+    },
+    "063": {
+      "name": "Věž strážní",
+      "desc": "Hradby +11, trvale +1 důl kamene."
+    },
+    "064": {
+      "name": "Zásobník",
+      "desc": "Pokud hrad <40, oprav hrad o 10."
+    },
+    "065": {
+      "name": "Lupič",
+      "desc": "Ukradni 4 útoku od soupeře."
+    },
+    "066": {
+      "name": "Kamenná daň",
+      "desc": "Ukradni 4 kameny od soupeře."
+    },
+    "067": {
+      "name": "Sabotér",
+      "desc": "Soupeř ztratí 5 kamenů."
+    },
+    "068": {
+      "name": "Demoralizace",
+      "desc": "Soupeř ztratí 5 útoku."
+    },
+    "069": {
+      "name": "Dvojitý agent",
+      "desc": "Ukradni 3 magie a 3 útoku, +1 chaosu."
+    },
+    "070": {
+      "name": "Krize zásobování",
+      "desc": "Soupeř ztratí 5 kamenů a 5 útoku."
+    },
+    "071": {
+      "name": "Špión",
+      "desc": "Ukradni 2 od každého zdroje, +2 chaosu."
+    },
+    "072": {
+      "name": "Zbrojnice",
+      "desc": "+2 útoku, trvale +1 důl útoku."
+    },
+    "073": {
+      "name": "Škola magie",
+      "desc": "+2 magie, trvale +1 důl magie."
+    },
+    "074": {
+      "name": "Tržiště",
+      "desc": "+3 magie, +3 útoku, +3 kameny. [Combo]"
+    },
+    "075": {
+      "name": "Rozmach těžby",
+      "desc": "Trvale +2 důl magie a +1 důl kamene."
+    },
+    "076": {
+      "name": "Vojenská základna",
+      "desc": "Trvale +2 důl útoku a +1 důl kamene."
+    },
+    "077": {
+      "name": "Přeměna magie",
+      "desc": "Pokud máš >8 magie, získej +10 útoku."
+    },
+    "078": {
+      "name": "Upíří drak",
+      "desc": "Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku, +2 chaosu."
+    },
+    "079": {
+      "name": "Obléhání",
+      "desc": "Zaútočí za 12, soupeř ztratí 3 magie, +2 chaosu."
+    },
+    "080": {
+      "name": "Velkovýroba",
+      "desc": "+2 každý důl."
+    },
+    "081": {
+      "name": "Rychlá hradba",
+      "desc": "Postaví hradby +6. [Combo]"
+    },
+    "082": {
+      "name": "Masivní zeď",
+      "desc": "Postaví hradby +18."
+    },
+    "083": {
+      "name": "Nouzové opevnění",
+      "desc": "Pokud máš <10 hradeb, postav +14."
+    },
+    "084": {
+      "name": "Velká oprava",
+      "desc": "Hradby +5 a hrad +7."
+    },
+    "085": {
+      "name": "Královská obnova",
+      "desc": "Oprav hrad o 15."
+    },
+    "086": {
+      "name": "Zednická rota",
+      "desc": "Hradby +8 a hrad +6."
+    },
+    "087": {
+      "name": "Pevnost",
+      "desc": "Hradby +10 a hrad +8."
+    },
+    "088": {
+      "name": "Zesílené hradby",
+      "desc": "Hradby +10. Pokud máš >30 hradu, +6 navíc."
+    },
+    "089": {
+      "name": "Architekt",
+      "desc": "Hradby +5, trvale +1 důl kamene."
+    },
+    "090": {
+      "name": "Rozšíření těžby",
+      "desc": "Trvale +2 doly kamene."
+    },
+    "091": {
+      "name": "Barikády",
+      "desc": "Hradby +9. Soupeř ztratí 2 útoku."
+    },
+    "092": {
+      "name": "Strategická výstavba",
+      "desc": "Pokud máš >15 hradeb, postav +14."
+    },
+    "093": {
+      "name": "Cihla na cihlu",
+      "desc": "+5 hrad. **Toto kolo:** za každou zahranou **STAVBU** +3 hrad. [Combo]"
+    },
+    "094": {
+      "name": "Sklad materiálu",
+      "desc": "Hradby +6, získej +2 kameny. [Combo]"
+    },
+    "095": {
+      "name": "Obchod s kamenem",
+      "desc": "Získej +5 kamenů."
+    },
+    "096": {
+      "name": "Nedobytná pevnost",
+      "desc": "Hradby +18, Hrad +8."
+    },
+    "097": {
+      "name": "Obnova království",
+      "desc": "Hrad +25."
+    },
+    "C01": {
+      "name": "Chaotická jiskra",
+      "desc": "+2 chaosu. [Combo]"
+    },
+    "C02": {
+      "name": "Entropie",
+      "desc": "+5 chaosu. Soupeř ztratí 2 magie."
+    },
+    "C03": {
+      "name": "Chaotický důl",
+      "desc": "Trvale +1 důl chaosu."
+    },
+    "C04": {
+      "name": "Krádež chaosu",
+      "desc": "Ukradni 3 chaos od soupeře. [Combo]"
+    },
+    "C05": {
+      "name": "Chaotický výbuch",
+      "desc": "Přímý zásah: hrad −14, ignoruje hradby."
+    },
+    "C06": {
+      "name": "Bouře chaosu",
+      "desc": "Zaútočí na nepřítele za 20."
+    },
+    "C07": {
+      "name": "Chaotický štít",
+      "desc": "Hradby +16."
+    },
+    "C08": {
+      "name": "Zázrak chaosu",
+      "desc": "Hrad +15."
+    },
+    "C09": {
+      "name": "Chaotická krize",
+      "desc": "Soupeř ztratí 6 od každého zdroje."
+    },
+    "C10": {
+      "name": "Chaotický drak",
+      "desc": "Zaútočí za 15, hrad −12 přímo."
+    },
+    "C11": {
+      "name": "Chaos a řád",
+      "desc": "Hrad +8 a hradby +8."
+    },
+    "C12": {
+      "name": "Anarchie",
+      "desc": "Ukradni 5 od každého zdroje soupeře."
+    },
+    "C13": {
+      "name": "Sabotáž",
+      "desc": "Znič 1 důl magie (min. 1). Zablokuj produkci na 2 kola."
+    },
+    "C14": {
+      "name": "Ničení kamenolomu",
+      "desc": "Znič 1 důl kamene (min. 1). Zablokuj produkci na 2 kola."
+    },
+    "C15": {
+      "name": "Zákeřnost",
+      "desc": "Znič 1 útočný výcvik (min. 1). Zablokuj produkci na 2 kola."
+    },
+    "C16": {
+      "name": "Velká sabotáž",
+      "desc": "Znič důl magie a kamene (min. 1). Zablokuj produkci na 3 kola."
+    },
+    "C17": {
+      "name": "Telekineze",
+      "desc": "Ukradni 1 náhodnou kartu ze soupeřovy ruky."
+    },
+    "C18": {
+      "name": "Krádež osudu",
+      "desc": "Ukradni 2 náhodné karty ze soupeřovy ruky."
+    },
+    "C33": {
+      "name": "Krádež identity",
+      "desc": "Prohoď s oponentem celé ruce karet."
+    },
+    "C34": {
+      "name": "Shapeshifter",
+      "desc": "Na začátku každého tahu se promění v náhodnou kartu ze hry."
+    },
+    "C35": {
+      "name": "Chaotická přeměna",
+      "desc": "Zničí jeden vlastní **DŮL MAGIE** a přemění ho na **DŮL CHAOSU**. Nelze snížit pod 1."
+    },
+    "C36": {
+      "name": "Skrytá bomba",
+      "desc": "Zamíchá **3 BOMBY** do soupeřova balíčku. Po líznutí bomby **HRAD -5**."
+    },
+    "C37": {
+      "name": "Bomba",
+      "desc": "**VÝBUCH! Hrad -5. (past – spustí se při líznutí)**"
+    },
+    "C38": {
+      "name": "Explodovaná bomba",
+      "desc": "Okamžitě zahraj. Lízni kartu a -5 hradu."
+    },
+    "C39": {
+      "name": "Velký zmatek",
+      "desc": "Oba hráči zahodí celou ruku a líznou stejný počet nových karet."
+    },
+    "C19": {
+      "name": "Spálená knihovna",
+      "desc": "Znič 2 náhodné karty ze soupeřovy ruky."
+    },
+    "C20": {
+      "name": "Prázdná mysl",
+      "desc": "Znič 3 náhodné karty ze soupeřovy ruky."
+    },
+    "C21": {
+      "name": "Replikace",
+      "desc": "Přidej 3 kopie 'Šípy' do svého balíčku."
+    },
+    "C22": {
+      "name": "Chaos manufaktura",
+      "desc": "Přidej 2 'Chaos výbuch' do svého balíčku."
+    },
+    "C23": {
+      "name": "Klonování",
+      "desc": "Přidej 2 kopie 'Rychlý útok' do svého balíčku."
+    },
+    "C24": {
+      "name": "Temný rituál",
+      "desc": "+5 chaosu. [Combo]"
+    },
+    "C25": {
+      "name": "Nestabilní vír",
+      "desc": "+2 chaosu a +2 magie. [Combo]"
+    },
+    "C26": {
+      "name": "Krvavá oběť",
+      "desc": "+3 chaosu. [Combo]"
+    },
+    "C27": {
+      "name": "Odraz magie",
+      "desc": "Pokud máš >5 magie, získej +7 chaosu."
+    },
+    "C28": {
+      "name": "Chaotická trofej",
+      "desc": "Ukradni 2 útoku, +3 chaosu. [Combo]"
+    },
+    "C29": {
+      "name": "Bouřlivá mysl",
+      "desc": "+3 chaosu a trvale +1 důl chaosu."
+    },
+    "C30": {
+      "name": "Chrám chaosu",
+      "desc": "Trvale +2 doly chaosu."
+    },
+    "C31": {
+      "name": "Chaotický výměník",
+      "desc": "+4 chaosu, soupeř ztratí 2 každého zdroje."
+    },
+    "C32": {
+      "name": "Vzájemná zkáza",
+      "desc": "Soupeř −10 hrad, vlastní hrad −10."
+    },
+    "D01": {
+      "name": "Průzkumník",
+      "desc": "Lízni 1 kartu. [Combo]"
+    },
+    "D02": {
+      "name": "Věštba",
+      "desc": "Lízni 2 karty."
+    },
+    "D03": {
+      "name": "Kronika",
+      "desc": "Lízni 3 karty."
+    },
+    "D04": {
+      "name": "Bojová taktika",
+      "desc": "Zaútočí za 4. Lízni 1 kartu."
+    },
+    "D05": {
+      "name": "Stavební plány",
+      "desc": "Hradby +4. Lízni 1 kartu. [Combo]"
+    },
+    "D06": {
+      "name": "Elitní zvěd",
+      "desc": "Zaútočí za 8. Lízni 1 kartu."
+    },
+    "D07": {
+      "name": "Tajná knihovna",
+      "desc": "Lízni 2 karty. Trvale +1 důl magie."
+    },
+    "D08": {
+      "name": "Vize",
+      "desc": "Pokud máš >4 magie, lízni 2 karty."
+    },
+    "D09": {
+      "name": "Inspirace",
+      "desc": "**Toto kolo:** za každou další zahranou **MAGII** lízni 1. [Combo]"
+    },
+    "098": {
+      "name": "Hod cihlou",
+      "desc": "Vlastní hradby −4, zaútočí na nepřítele za 11."
+    },
+    "099": {
+      "name": "Temný přenos",
+      "desc": "Ukradni 10 životů hradu soupeři."
+    },
+    "100": {
+      "name": "Krvavý úder",
+      "desc": "Zaútočí za 5, ukradni 6 životů hradu."
+    },
+    "104": {
+      "name": "Válečný trénink",
+      "desc": "Zaútočí za 5,  +1 důl útoku. [Combo]"
+    },
+    "107": {
+      "name": "Prokletí",
+      "desc": "Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů."
+    },
+    "108": {
+      "name": "Likvidace",
+      "desc": "**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu."
+    },
+    "109": {
+      "name": "Rekrut",
+      "desc": "**Rozhodnutí:** Vyber si 1 útočnou kartu ze hry. Zlevni ji o 2. [Combo]"
+    },
+    "110": {
+      "name": "Vzpomínka",
+      "desc": "**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku."
+    },
+    "111": {
+      "name": "Intuice",
+      "desc": "**Rozhodnutí:** Prohledej vlastní balíček a vyber si 1 kopii karty."
+    },
+    "112": {
+      "name": "Stavitel",
+      "desc": "**Rozhodnutí:** Vyber si 1 stavební kartu ze hry. Zlevni ji o 2. [Combo]"
+    },
+    "113": {
+      "name": "Goblin šaman",
+      "desc": "**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2. [Combo]"
+    },
+    "114": {
+      "name": "Chaotický mudrc",
+      "desc": "**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]"
+    },
+    "115": {
+      "name": "Studna vědomostí",
+      "desc": "Oba hráči líznou 2 karty. [Combo]"
+    },
+    "116": {
+      "name": "Chaotická replikace",
+      "desc": "**Toto kolo:** příští karta, co zahraješ, se 2× zkopíruje do balíčku. [Combo]"
+    },
+    "117": {
+      "name": "Průzkum dolů",
+      "desc": "**Rozhodnutí:** vyber si 1 ze 4 různých dolů. [Combo]"
+    },
+    "118": {
+      "name": "Magický žolík",
+      "desc": "**Rozhodnutí:** vyber si kartu, která se hodí do situace. [Combo]"
+    },
+    "119": {
+      "name": "Válečný pokřik",
+      "desc": "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]"
+    },
+    "120": {
+      "name": "Hromadná sleva",
+      "desc": "Všechny karty v tvé ruce zlevní o 1."
+    },
+    "121": {
+      "name": "Kletba cen",
+      "desc": "Všechny karty v soupeřově ruce zdraží o 1."
+    },
+    "122": {
+      "name": "Stavební posila",
+      "desc": "Postaví hrad o 7. Dostaneš náhodnou stavební kartu do ruky. [Combo]"
+    },
+    "123": {
+      "name": "Momentum",
+      "desc": "Zaútočí za 2 + 4 za každou útočnou kartu zahranou v tomto tahu."
+    },
+    "C40": {
+      "name": "Zákeřný špeh",
+      "desc": "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji."
+    },
+    "124": {
+      "name": "Alchymistova volba",
+      "desc": "**Rozhodnutí:** získej 4 magie, 4 útok, 4 kameny, nebo 4 chaos. [Combo]"
+    },
+    "125": {
+      "name": "Válečný zápal",
+      "desc": "Zaútočí za 4. **Toto kolo:** každá útočná karta přidá 1 chaos. [Combo]"
+    },
+    "126": {
+      "name": "Magický proud",
+      "desc": "**Toto kolo:** každá magická karta přidá 2 chaos. [Combo]"
+    },
+    "127": {
+      "name": "Pyroblast",
+      "desc": "Přímý zásah hradu za 10, znič 2 magie soupeři."
+    },
+    "128": {
+      "name": "Archmág",
+      "desc": "**Toto kolo:** za každou další zahranou kartu lízni 1 a získej 1 magii. [Combo]"
+    },
+    "101": {
+      "name": "Náhlá smrt",
+      "desc": "Spotřebuje veškerý útok. Přímý zásah hradu za X/2."
+    },
+    "102": {
+      "name": "Kamenný příval",
+      "desc": "Spotřebuje veškerý kámen. Opraví hrad o X/2."
+    },
+    "103": {
+      "name": "Magické rozdělení",
+      "desc": "Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene."
+    },
+    "L01": {
+      "name": "Temný mág",
+      "desc": "Ukradne 3 magie, útoku a kamenů. Přímý úder za 18 na hrad soupeře (ignoruje hradby). Ukradne 5 HP hradu."
+    }
   }
 }

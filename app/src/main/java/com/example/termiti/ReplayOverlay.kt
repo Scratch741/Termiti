@@ -126,7 +126,7 @@ fun ReplayOverlay(
                         fontSize   = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(bannerCard.name, color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(bannerCard.displayName, color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Box(

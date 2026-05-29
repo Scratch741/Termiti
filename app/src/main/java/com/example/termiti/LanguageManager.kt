@@ -42,6 +42,24 @@ object LanguageManager {
 
     val currentStrings: AppStrings get() = current.strings
 
+    // ── Card text lookup ───────────────────────────────────────────────────────
+    // Reading currentPackState inside a Composable makes card text reactive:
+    // switching language recomposes any card showing its name/description.
+
+    /** Localized card name for [id]; falls back to [fallback] (built-in Czech) if untranslated. */
+    fun cardName(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.cards[id] ?: return fallback
+        return t.name.ifBlank { fallback }
+    }
+
+    /** Localized card description for [id]; falls back to [fallback] (built-in Czech) if untranslated. */
+    fun cardDesc(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.cards[id] ?: return fallback
+        return t.desc.ifBlank { fallback }
+    }
+
     // ── Init ─────────────────────────────────────────────────────────────────
 
     fun init(context: Context) {
