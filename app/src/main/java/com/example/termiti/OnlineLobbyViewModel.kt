@@ -932,12 +932,6 @@ class OnlineLobbyViewModel(
                                     val o      = resArr.getJSONObject(i)
                                     val type   = ResourceType.valueOf(o.getString("resType"))
                                     val amount = o.getInt("amount")
-                                    val emoji  = when (type) {
-                                        ResourceType.MAGIC  -> "✨"
-                                        ResourceType.ATTACK -> "⚔️"
-                                        ResourceType.STONES -> "🪨"
-                                        ResourceType.CHAOS  -> "🌀"
-                                    }
                                     val artRes = when (type) {
                                         ResourceType.MAGIC  -> R.drawable.art_placeholder_magie
                                         ResourceType.ATTACK -> R.drawable.art_placeholder_utok
@@ -947,7 +941,7 @@ class OnlineLobbyViewModel(
                                     val label = resLabel(type)
                                     Card(
                                         id            = "__res_${type.name}",
-                                        name          = "$emoji +$amount $label",
+                                        name          = "+$amount $label",
                                         description   = ls.decisionResourceCardDesc.format(amount, label),
                                         cost          = 0,
                                         costType      = type,

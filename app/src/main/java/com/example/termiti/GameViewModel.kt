@@ -576,16 +576,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Vytvoří placeholder kartu reprezentující volbu suroviny v [CardEffect.DecisionChooseResource]. */
     private fun resourcePlaceholderCard(type: ResourceType, amount: Int): Card {
-        val (emoji, artRes) = when (type) {
-            ResourceType.MAGIC  -> "✨" to R.drawable.art_placeholder_magie
-            ResourceType.ATTACK -> "⚔️" to R.drawable.art_placeholder_utok
-            ResourceType.STONES -> "🪨" to R.drawable.art_placeholder_kamen
-            ResourceType.CHAOS  -> "🌀" to R.drawable.art_placeholder_chaos
+        val artRes = when (type) {
+            ResourceType.MAGIC  -> R.drawable.art_placeholder_magie
+            ResourceType.ATTACK -> R.drawable.art_placeholder_utok
+            ResourceType.STONES -> R.drawable.art_placeholder_kamen
+            ResourceType.CHAOS  -> R.drawable.art_placeholder_chaos
         }
         val label = resLabel(type)
         return Card(
             id            = "__res_${type.name}",
-            name          = "$emoji +$amount $label",
+            name          = "+$amount $label",
             description   = ls.decisionResourceCardDesc.format(amount, label),
             cost          = 0,
             costType      = type,
