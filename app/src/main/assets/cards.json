@@ -3804,5 +3804,24 @@
     "isXCost": true,
     "isPlaceholder": false,
     "baseId": "103"
+  },
+  {
+    "id": "L01",
+    "name": "Temný mág",
+    "cost": 8,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      { "type": "StealResource", "resType": "MAGIC",  "amount": 3 },
+      { "type": "StealResource", "resType": "ATTACK", "amount": 3 },
+      { "type": "StealResource", "resType": "STONES", "amount": 3 },
+      { "type": "AttackCastle",  "amount": 18 },
+      { "type": "StealCastle",   "amount": 5 }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "L01"
   }
 ]

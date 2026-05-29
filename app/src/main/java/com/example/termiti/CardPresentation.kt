@@ -651,5 +651,12 @@ object CardPresentation {
             descriptionEn = "Build castle for 7. Get a random Build card into your hand. [Combo]",
             nameAccusative = "Stavební posilu"
         ),
+        "L01" to CardPres(
+            "Ukradne 3 magie, útoku a kamenů. Přímý úder za 18 na hrad soupeře (ignoruje hradby). Ukradne 5 HP hradu.",
+            R.drawable.art_darkmage, "Chaos",
+            artScale = 1.0f, artBiasY = 0.0f,
+            descriptionEn = "Steals 3 magic, attack, and stone. Deals 18 direct castle damage (ignores walls). Steals 5 castle HP.",
+            nameAccusative = "Temného mága"
+        ),
     )
 }
