@@ -365,12 +365,16 @@ fun aiChooseAction(
     }
 
     // Chytrý výběr karty k zahození:
-    // Preferuje zahazovat karty s největším shortfallem / rychlostí dolu
-    // (= karty, na které bychom čekali nejdéle)
-    fun bestDiscard(): Card? = ai.hand.maxByOrNull { card ->
-        val shortfall = (card.effectiveCost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
-        val mineRate  = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
-        shortfall * 10 / mineRate
+    // Zahodí kartu s nejnižší "hodnotou v ruce":
+    //   hodnotaVRuce = síla efektů × 2  −  táhla_do_dovolení × 3
+    // Silné karty (Démon, drak…) se drží i za cenu dlouhého čekání.
+    // Slabé karty, na které se navíc čeká, jsou první kandidáti na zahození.
+    fun bestDiscard(): Card? = ai.hand.minByOrNull { card ->
+        val effectScore   = card.effects.sumOf { scoreEffect(it) }.coerceAtLeast(0)
+        val shortfall     = (card.effectiveCost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
+        val mineRate      = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
+        val turnsToAfford = shortfall.toFloat() / mineRate
+        effectScore * 2 - turnsToAfford * 3
     }
 
     // =====================================================================
