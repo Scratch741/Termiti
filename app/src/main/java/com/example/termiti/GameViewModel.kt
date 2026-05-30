@@ -1536,6 +1536,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             transformShapeShifters(player.hand, allCards)
+            // Zrcadlo + Klon: refresh vizuálu na začátku každého hráčova tahu
+            updateMirrorCards(player.hand, ai.lastPlayedCard)
+            updateCloneCards(player.hand, player.lastPlayedCard)
 
             // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
             // Stává se, když hráč zahodí poslední kartu a AI nemá nic.

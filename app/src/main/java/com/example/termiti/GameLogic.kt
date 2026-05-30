@@ -272,18 +272,25 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
         if (!card.effects.any { it is CardEffect.Clone }) continue
         hand[i] = if (playerLastPlayed != null) {
             card.copy(
-                cost        = (playerLastPlayed.cost + 1).coerceAtLeast(0),
-                costType    = playerLastPlayed.costType,
-                artResId    = playerLastPlayed.artResId,
-                artBiasX    = playerLastPlayed.artBiasX,
-                artBiasY    = playerLastPlayed.artBiasY,
-                artScale    = playerLastPlayed.artScale,
-                description = "Klon: ${playerLastPlayed.name} (cena +1)"
+                // cost = originál, costModifier = +1 → effectiveCost = originál+1,
+                // CardView zobrazí modifikátor červeně automaticky (costModifier > 0)
+                cost         = playerLastPlayed.cost,
+                costModifier = 1,
+                costType     = playerLastPlayed.costType,
+                artResId     = playerLastPlayed.artResId,
+                artBiasX     = playerLastPlayed.artBiasX,
+                artBiasY     = playerLastPlayed.artBiasY,
+                artScale     = playerLastPlayed.artScale,
+                description  = playerLastPlayed.description,
+                type         = playerLastPlayed.type
             )
         } else {
             card.copy(
-                artResId    = null,
-                description = "Zkopíruje efekt poslední karty, co jsi zahrál, za cenu originálu +1. (Ještě nic nezahráno → +2 magie)"
+                cost         = 2,
+                costModifier = 0,
+                costType     = ResourceType.MAGIC,
+                artResId     = null,
+                description  = "Zkopíruje efekt poslední karty, co jsi zahrál (cena originálu +1). Zatím nic nehráno → +2 magie."
             )
         }
     }
@@ -304,7 +311,8 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
                 artBiasX    = opponentLastPlayed.artBiasX,
                 artBiasY    = opponentLastPlayed.artBiasY,
                 artScale    = opponentLastPlayed.artScale,
-                description = "Zkopíruje: ${opponentLastPlayed.name}"
+                description = opponentLastPlayed.description,
+                type        = opponentLastPlayed.type
             )
         } else {
             card.copy(

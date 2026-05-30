@@ -327,6 +327,7 @@ fun CardView(
 
     // ── Fialový glow: Shapeshifter karta (i po transformaci – trackovano přes ID prefix) ──
     val isShapeShifter = card.isShapeShifterInstance()
+        || card.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone }
     val purpleGlowAlpha by glowTransition.animateFloat(
         initialValue = 0.5f,
         targetValue  = 1.0f,
