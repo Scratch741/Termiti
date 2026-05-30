@@ -1101,7 +1101,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (card.costType == ResourceType.ATTACK) player.attackCardsThisTurn++
         // lastPlayedCard PO applyEffects – Klon nečte sám sebe; Mirror ji čte jen pro soupeře
         player.lastPlayedCard = card
-        updateCloneCards(player.hand, player.lastPlayedCard)
+        // Reset Mirror/Clone v discardPile → originální art, jinak by karta přes deck/Vzpomínku
+        // ukazovala cizí art místo art_zrcadlo / art_klon
+        resetMirrorCloneInPile(player.discardPile, card, allCards)
+        updateCloneCards(player.hand, player.lastPlayedCard, allCards)
 
         val decisionFx = card.effects.firstOrNull {
             it is CardEffect.DecisionBurnOpponent    ||
@@ -1431,8 +1434,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // lastPlayedCard PO applyEffects – Klon nečte sám sebe
                         if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
                         ai.lastPlayedCard = aiCard
-                        updateCloneCards(ai.hand, ai.lastPlayedCard)
-                        updateMirrorCards(player.hand, ai.lastPlayedCard)
+                        resetMirrorCloneInPile(ai.discardPile, aiCard, allCards)
+                        updateCloneCards(ai.hand, ai.lastPlayedCard, allCards)
+                        updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
                         addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
@@ -1537,8 +1541,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
             transformShapeShifters(player.hand, allCards)
             // Zrcadlo + Klon: refresh vizuálu na začátku každého hráčova tahu
-            updateMirrorCards(player.hand, ai.lastPlayedCard)
-            updateCloneCards(player.hand, player.lastPlayedCard)
+            updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
+            updateCloneCards(player.hand, player.lastPlayedCard, allCards)
 
             // Speciální případ: obě strany nemají vůbec nic (ruka + balíček prázdné).
             // Stává se, když hráč zahodí poslední kartu a AI nemá nic.

@@ -266,21 +266,17 @@ fun applyEffects(
  * Aktualizuje vizuální vzhled a cenu Klon karet v [hand] podle [playerLastPlayed].
  * Klon stojí o 1 více než originál a zobrazuje jeho art + popis.
  */
-fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
+fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards: List<Card>) {
     for (i in hand.indices) {
         val card = hand[i]
         if (!card.effects.any { it is CardEffect.Clone }) continue
         hand[i] = if (playerLastPlayed != null) {
-            // Předvyřeš lokalizovaný popis kopírované karty pro aktuální jazyk.
-            // localizationId = "__clone__" → LanguagePack lookup selže → displayDescription
-            // vrátí přímo card.description (= přednačtený lokalizovaný popis kopírované karty).
-            // displayName vrátí "Klon" (name pole beze změny).
             val srcId = playerLastPlayed.localizationId ?: playerLastPlayed.baseId
             val resolvedDesc = LanguageManager.cardDesc(srcId, playerLastPlayed.description)
             card.copy(
                 localizationId = "__clone__",
                 cost           = playerLastPlayed.cost,
-                costModifier   = 1,   // effectiveCost = originál+1, CardView zobrazí červeně
+                costModifier   = 1,
                 costType       = playerLastPlayed.costType,
                 artResId       = playerLastPlayed.artResId,
                 artBiasX       = playerLastPlayed.artBiasX,
@@ -290,16 +286,30 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
                 type           = playerLastPlayed.type
             )
         } else {
+            // Reset na originální art/popis Klonu (ne null)
+            val orig = allCards.find { it.baseId == card.baseId }
             card.copy(
                 localizationId = null,
-                cost           = 2,
+                cost           = orig?.cost     ?: card.cost,
                 costModifier   = 0,
-                costType       = ResourceType.MAGIC,
-                artResId       = null,
-                description    = "Zkopíruje efekt poslední karty, co jsi zahrál (cena originálu +1). Zatím nic nehráno → +2 magie."
+                costType       = orig?.costType ?: card.costType,
+                artResId       = orig?.artResId,
+                artBiasX       = orig?.artBiasX ?: 0f,
+                artBiasY       = orig?.artBiasY ?: 0f,
+                artScale       = orig?.artScale  ?: 1f,
+                description    = orig?.description ?: card.description,
+                type           = orig?.type     ?: card.type
             )
         }
     }
+}
+
+/** Resetuje Mirror/Clone kartu v [pile] (discardPile/deck) na originální data z [allCards]. */
+fun resetMirrorCloneInPile(pile: MutableList<Card>, card: Card, allCards: List<Card>) {
+    if (card.effects.none { it is CardEffect.Mirror || it is CardEffect.Clone }) return
+    val orig = allCards.find { it.baseId == card.baseId } ?: return
+    val idx  = pile.indexOfLast { it.id == card.id }
+    if (idx >= 0) pile[idx] = orig.copy(id = card.id, isGenerated = card.isGenerated)
 }
 
 /**
@@ -307,7 +317,7 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
  * Zachovává ID, cenu a efekty — mění pouze art a popis.
  * Volat po každém tahu soupeře (v GameViewModel).
  */
-fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
+fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCards: List<Card>) {
     for (i in hand.indices) {
         val card = hand[i]
         if (!card.effects.any { it is CardEffect.Mirror }) continue
@@ -315,7 +325,7 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
             val srcId = opponentLastPlayed.localizationId ?: opponentLastPlayed.baseId
             val resolvedDesc = LanguageManager.cardDesc(srcId, opponentLastPlayed.description)
             card.copy(
-                localizationId = "__mirror__",  // fallback → displayName = "Zrcadlo", displayDesc = resolvedDesc
+                localizationId = "__mirror__",
                 artResId       = opponentLastPlayed.artResId,
                 artBiasX       = opponentLastPlayed.artBiasX,
                 artBiasY       = opponentLastPlayed.artBiasY,
@@ -324,10 +334,16 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
                 type           = opponentLastPlayed.type
             )
         } else {
+            // Reset na originální art Zrcadla (ne null)
+            val orig = allCards.find { it.baseId == card.baseId }
             card.copy(
                 localizationId = null,
-                artResId       = null,
-                description    = "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie."
+                artResId       = orig?.artResId,
+                artBiasX       = orig?.artBiasX ?: 0f,
+                artBiasY       = orig?.artBiasY ?: 0f,
+                artScale       = orig?.artScale  ?: 1f,
+                description    = orig?.description ?: card.description,
+                type           = orig?.type     ?: card.type
             )
         }
     }
