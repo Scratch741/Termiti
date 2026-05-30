@@ -149,7 +149,7 @@ fun MenuScreen(
                     )
                     Spacer(modifier = Modifier.height(H * 0.01f))
                     MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         onClick = onPlay)
-                    MenuButton(s.multiplayer,  imageRes = R.drawable.button_2, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
+                    MenuButton(s.multiplayer,  imageRes = R.drawable.button_8, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
                     MenuButton(s.buildDeck,    imageRes = R.drawable.button_3, accent = Gold,              onClick = onBuildDeck)
                     MenuButton(s.profile,      imageRes = R.drawable.button_4, accent = Color(0xFF7EC8E3), onClick = onProfile)
                 }

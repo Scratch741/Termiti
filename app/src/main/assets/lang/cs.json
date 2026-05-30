@@ -898,7 +898,7 @@
     },
     "L01": {
       "name": "Temný mág",
-      "desc": "Ukradne 3 magie, útoku a kamenů. Přímý úder za 18 na hrad soupeře (ignoruje hradby). Ukradne 5 HP hradu."
+      "desc": "Ukradne 3 magie, útoku a kamenů. Hrad -18. Ukradne 5 životů hradu."
     }
   },
   "abilities": {

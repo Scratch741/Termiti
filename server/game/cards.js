@@ -277,6 +277,7 @@ const RAW = [
   ['123','Momentum',        3,'ATTACK',0,[mma(2,4)],           'EPIC'],
   ['C40','Zákeřný špeh',   4,'CHAOS', 0,[psh()],              'EPIC'],
   ['C41','Zrcadlo',        3,'MAGIC', 1,[{ type:'Mirror' }], 'EPIC'],
+  ['C42','Klon',           2,'MAGIC', 1,[{ type:'Clone'  }], 'LEGENDARY'],
 
   // ── Nové karty (2026) ─────────────────────────────────────────────────────
   ['124','Alchymistova volba', 2,'MAGIC', 1,[dcr([{resType:'MAGIC',amount:4},{resType:'ATTACK',amount:4},{resType:'STONES',amount:4}])], 'RARE'],

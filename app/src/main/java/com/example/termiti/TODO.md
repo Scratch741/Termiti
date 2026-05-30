@@ -44,14 +44,6 @@ Nové karty / mechaniky:
    - Aktivuje se AŽ po tom, co soupeř zahraje kartu (= zkopíruje její efekt)
    - Pokud soupeř ještě nic nezahrál, efekt je prázdný / slabý fallback
 
-2) Chaotická přeměna (chaos, rare)
-   - Znič vlastní důl magie a přetvoř ho na důl chaosu
-   - Nový efekt: ConvertMine(MAGIC → CHAOS)
-
-3) Dvojník (magic, rare, combo)
-   - Přidej kopii náhodné karty z vlastního odhazovacího balíčku do ruky
-   - Nový efekt: DrawFromDiscard(1)
-
 
 8) Anulace tahu (chaos, legendary)
    - Zruší všechny karty, které soupeř zahrál v předchozím kole
@@ -63,4 +55,4 @@ Nové karty / mechaniky:
      · Stavba dolu → důl se odebere
    - Potřeba: ukládat snapshot stavu před každým tahem soupeře (efekty karet, ne suroviny)
 
-9) Combo mechanika - za každou další kartu typu X se stane něcě (lízní kartu, dostaň suroviny, hrad, hradby, atd.)
+9) Combo mechanika - za každou další kartu typu X se stane něco (lízní kartu, dostaň suroviny, hrad, hradby, atd.)

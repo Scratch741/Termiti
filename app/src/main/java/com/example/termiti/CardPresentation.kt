@@ -627,6 +627,12 @@ object CardPresentation {
             descriptionEn = "**This turn:** for each additional card played, draw 1 and gain 1 Magic. [Combo]",
             nameAccusative = "Archmága"
         ),
+        "C42" to CardPres(
+            "Zkopíruje efekt poslední karty, co jsi zahrál. Cena = originál +1. [Combo]",
+            null, "Chaos",
+            descriptionEn = "Copies the effect of the last card you played. Cost = original +1. [Combo]",
+            nameAccusative = "Klon"
+        ),
         "C41" to CardPres(
             "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]",
             null, "Chaos",

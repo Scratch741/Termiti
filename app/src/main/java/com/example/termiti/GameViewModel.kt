@@ -1044,7 +1044,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
         // Nastav typ právě hrané karty – podmínka LastPlayedType to přečte uvnitř applyEffects
         player.lastPlayedType  = card.type
-        player.lastPlayedCard  = card   // Mirror karta soupeře toto přečte
+        // lastPlayedCard se nastavuje AŽ PO applyEffects (níže), aby Klon nečetl sám sebe
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
             if (!checkCondition(ce.condition, player, ai)) {
@@ -1099,6 +1099,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // ── Rozhodnutí: pauza tahu pro výběr hráče ──────────────────────────
         // Momentum: aktualizuj počítadlo za útočné karty (PŘED decision pausou, ale PO applyEffects)
         if (card.costType == ResourceType.ATTACK) player.attackCardsThisTurn++
+        // lastPlayedCard PO applyEffects – Klon nečte sám sebe; Mirror ji čte jen pro soupeře
+        player.lastPlayedCard = card
+        updateCloneCards(player.hand, player.lastPlayedCard)
 
         val decisionFx = card.effects.firstOrNull {
             it is CardEffect.DecisionBurnOpponent    ||
@@ -1290,9 +1293,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
-                        ai.lastPlayedCard = aiCard   // Mirror hráče toto přečte
-                        updateMirrorCards(player.hand, ai.lastPlayedCard)
-                        if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
+                        // lastPlayedCard se nastavuje AŽ PO applyEffects AI (viz níže)
                         // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
@@ -1427,6 +1428,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             }
                         }
                         ai.preCostResources = null
+                        // lastPlayedCard PO applyEffects – Klon nečte sám sebe
+                        if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
+                        ai.lastPlayedCard = aiCard
+                        updateCloneCards(ai.hand, ai.lastPlayedCard)
+                        updateMirrorCards(player.hand, ai.lastPlayedCard)
                         addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)

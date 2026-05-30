@@ -3643,6 +3643,23 @@
     "baseId": "C41"
   },
   {
+    "id": "C42",
+    "name": "Klon",
+    "cost": 2,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "Clone"
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "C42"
+  },
+  {
     "id": "124",
     "name": "Alchymistova volba",
     "cost": 2,

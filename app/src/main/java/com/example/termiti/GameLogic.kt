@@ -248,6 +248,44 @@ fun applyEffects(
                 self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)
             }
         }
+
+        is CardEffect.Clone -> {
+            val src = self.lastPlayedCard
+            if (src != null) {
+                // Kopíruj efekty vlastní poslední karty (cena byla zaplacena při zahraní Klonu)
+                applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
+            } else {
+                // Fallback: hráč ještě nic nezahrál → +2 magie
+                self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)
+            }
+        }
+    }
+}
+
+/**
+ * Aktualizuje vizuální vzhled a cenu Klon karet v [hand] podle [playerLastPlayed].
+ * Klon stojí o 1 více než originál a zobrazuje jeho art + popis.
+ */
+fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
+    for (i in hand.indices) {
+        val card = hand[i]
+        if (!card.effects.any { it is CardEffect.Clone }) continue
+        hand[i] = if (playerLastPlayed != null) {
+            card.copy(
+                cost        = (playerLastPlayed.cost + 1).coerceAtLeast(0),
+                costType    = playerLastPlayed.costType,
+                artResId    = playerLastPlayed.artResId,
+                artBiasX    = playerLastPlayed.artBiasX,
+                artBiasY    = playerLastPlayed.artBiasY,
+                artScale    = playerLastPlayed.artScale,
+                description = "Klon: ${playerLastPlayed.name} (cena +1)"
+            )
+        } else {
+            card.copy(
+                artResId    = null,
+                description = "Zkopíruje efekt poslední karty, co jsi zahrál, za cenu originálu +1. (Ještě nic nezahráno → +2 magie)"
+            )
+        }
     }
 }
 

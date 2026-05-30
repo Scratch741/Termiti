@@ -898,7 +898,7 @@
     },
     "L01": {
       "name": "Darkmage",
-      "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. Deals 18 direct castle damage (ignores walls). Steals 5 castle HP."
+      "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. -18 castle. Steals 5 castle HP."
     }
   },
   "abilities": {

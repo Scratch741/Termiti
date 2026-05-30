@@ -113,6 +113,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.PeekAndStealHand          -> "🕵️"
     is CardEffect.DecisionChooseResource    -> "⚗️"
     is CardEffect.Mirror                    -> "🪞"
+    is CardEffect.Clone                     -> "🧬"
     null                              -> "❓"
 }
 
@@ -136,6 +137,7 @@ private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.DecisionMine,
     is CardEffect.DecisionChooseResource -> "Rozhodnutí"
     is CardEffect.Mirror                 -> "Rozhodnutí"
+    is CardEffect.Clone                  -> "Rozhodnutí"
     else                            -> null
 }
 

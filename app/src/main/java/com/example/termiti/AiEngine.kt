@@ -230,9 +230,12 @@ fun aiChooseAction(
         is CardEffect.DecisionChooseResource ->
             fx.options.maxOfOrNull { it.amount } ?: 4
         is CardEffect.Mirror -> {
-            // Hodnota = efekty soupeřovy poslední karty; fallback = 2 (jen +2 magie)
             val src = opponent.lastPlayedCard
             if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 20) else 2
+        }
+        is CardEffect.Clone -> {
+            val src = ai.lastPlayedCard
+            if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25) else 1
         }
     }
 

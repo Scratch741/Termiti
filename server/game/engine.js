@@ -417,7 +417,16 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         if (src && src.effects && src.effects.length) {
           applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
         } else {
-          // Fallback: +2 magie
+          self.resources.MAGIC = Math.min(MAX_RESOURCE, (self.resources.MAGIC || 0) + 2);
+        }
+        break;
+      }
+
+      case 'Clone': {
+        const src = self.lastPlayedCard;
+        if (src && src.effects && src.effects.length) {
+          applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
+        } else {
           self.resources.MAGIC = Math.min(MAX_RESOURCE, (self.resources.MAGIC || 0) + 2);
         }
         break;

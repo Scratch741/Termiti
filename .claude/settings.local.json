@@ -73,7 +73,8 @@
       "Bash(grep -v \"//.*currentTurn\")",
       "PowerShell(Copy-Item \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_primy_zasah.png\" \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_momentum.png\")",
       "PowerShell(Copy-Item \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_spion.png\" \"app\\\\src\\\\main\\\\res\\\\drawable\\\\art_zakezny_speh.png\")",
-      "Bash(cd /mnt/c/Users/Scratch/AndroidStudioProjects/Termiti && ./gradlew assembleDebug 2>&1 | tail -50)"
+      "Bash(cd /mnt/c/Users/Scratch/AndroidStudioProjects/Termiti && ./gradlew assembleDebug 2>&1 | tail -50)",
+      "PowerShell(cd \"C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\"; $lines = Get-Content \"app\\\\src\\\\main\\\\java\\\\com\\\\example\\\\termiti\\\\deckbuilder.html\"; $si = \\($lines | Select-String -Pattern \"^<script>\" | Select-Object -First 1\\).LineNumber; $ei = \\($lines | Select-String -Pattern \"^</script>\" | Select-Object -First 1\\).LineNumber; $script = $lines[$si..\\($ei-2\\)] -join \"`n\"; Set-Content -Path \"$env:TEMP\\\\dbcheck.js\" -Value $script -Encoding utf8; node --check \"$env:TEMP\\\\dbcheck.js\"; if \\($?\\) { \"SYNTAX OK\" }; Remove-Item \"$env:TEMP\\\\dbcheck.js\")"
     ]
   }
 }

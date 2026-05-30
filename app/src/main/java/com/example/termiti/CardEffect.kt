@@ -140,6 +140,12 @@ sealed class CardEffect {
      */
     object Mirror : CardEffect()
     /**
+     * Zkopíruje efekty poslední karty zahrané SAMOTNÝM hráčem ([PlayerState.lastPlayedCard]).
+     * Cena = cena originálu +1 (stejný typ zdroje) — aktualizuje se dynamicky v [updateCloneCards].
+     * Pokud hráč ještě nic nezahrál, přidá 2 magie (fallback).
+     */
+    object Clone : CardEffect()
+    /**
      * Zobrazí 3 tlačítka volby zdroje; hráč si vybere jeden a obdrží daný počet surovin.
      * [options] = seznam možností (každá s typem zdroje a množstvím).
      */
