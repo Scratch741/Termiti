@@ -864,6 +864,14 @@
       "name": "Insidious Spy",
       "desc": "See the opponent's entire hand. Choose one card and steal it."
     },
+    "C41": {
+      "name": "Mirror",
+      "desc": "Copies the effect of the opponent's last played card. If none → +2 Magic. [Combo]"
+    },
+    "C42": {
+      "name": "Clone",
+      "desc": "Copies the effect of the last card you played. Cost = original +1. [Combo]"
+    },
     "124": {
       "name": "Alchemist's Choice",
       "desc": "**Decision:** gain 4 Magic, 4 Attack, 4 Stone, or 4 Chaos. [Combo]"

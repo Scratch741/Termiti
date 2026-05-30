@@ -864,6 +864,14 @@
       "name": "Zákeřný špeh",
       "desc": "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji."
     },
+    "C41": {
+      "name": "Zrcadlo",
+      "desc": "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]"
+    },
+    "C42": {
+      "name": "Klon",
+      "desc": "Zkopíruje efekt poslední karty, co jsi zahrál. Cena = originál +1. [Combo]"
+    },
     "124": {
       "name": "Alchymistova volba",
       "desc": "**Rozhodnutí:** získej 4 magie, 4 útok, 4 kameny, nebo 4 chaos. [Combo]"
