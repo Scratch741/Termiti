@@ -866,11 +866,11 @@
     },
     "C41": {
       "name": "Zrcadlo",
-      "desc": "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]"
+      "desc": "Zkopíruje efekt poslední soupeřovy karty. Jinak +2 magie. [Combo]"
     },
     "C42": {
       "name": "Klon",
-      "desc": "Zkopíruje efekt poslední karty, co jsi zahrál. Cena = originál +1. [Combo]"
+      "desc": "Zkopíruje efekt poslední karty, co jsi zahrál. Cena +1. [Combo]"
     },
     "124": {
       "name": "Alchymistova volba",

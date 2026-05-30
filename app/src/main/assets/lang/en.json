@@ -870,7 +870,7 @@
     },
     "C42": {
       "name": "Clone",
-      "desc": "Copies the effect of the last card you played. Cost = original +1. [Combo]"
+      "desc": "Copies the effect of the last card you played. Cost +1. [Combo]"
     },
     "124": {
       "name": "Alchemist's Choice",
