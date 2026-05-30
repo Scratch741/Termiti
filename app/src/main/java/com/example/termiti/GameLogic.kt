@@ -273,8 +273,11 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
         hand[i] = if (playerLastPlayed != null) {
             val srcId = playerLastPlayed.localizationId ?: playerLastPlayed.baseId
             val resolvedDesc = LanguageManager.cardDesc(srcId, playerLastPlayed.description)
+            // Předvyřeš i jméno – bez toho by fallback vrátil "Klon" (CS) i v EN
+            val resolvedName = LanguageManager.cardName(card.baseId, card.name)
             card.copy(
                 localizationId = "__clone__",
+                name           = resolvedName,
                 cost           = playerLastPlayed.cost,
                 costModifier   = 1,
                 costType       = playerLastPlayed.costType,
@@ -286,10 +289,11 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 type           = playerLastPlayed.type
             )
         } else {
-            // Reset na originální art/popis Klonu (ne null)
-            val orig = allCards.find { it.baseId == card.baseId }
+            val orig         = allCards.find { it.baseId == card.baseId }
+            val resolvedName = LanguageManager.cardName(card.baseId, card.name)
             card.copy(
                 localizationId = null,
+                name           = resolvedName,
                 cost           = orig?.cost     ?: card.cost,
                 costModifier   = 0,
                 costType       = orig?.costType ?: card.costType,
@@ -324,8 +328,10 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCar
         hand[i] = if (opponentLastPlayed != null) {
             val srcId = opponentLastPlayed.localizationId ?: opponentLastPlayed.baseId
             val resolvedDesc = LanguageManager.cardDesc(srcId, opponentLastPlayed.description)
+            val resolvedName = LanguageManager.cardName(card.baseId, card.name)
             card.copy(
                 localizationId = "__mirror__",
+                name           = resolvedName,
                 artResId       = opponentLastPlayed.artResId,
                 artBiasX       = opponentLastPlayed.artBiasX,
                 artBiasY       = opponentLastPlayed.artBiasY,
@@ -334,10 +340,11 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCar
                 type           = opponentLastPlayed.type
             )
         } else {
-            // Reset na originální art Zrcadla (ne null)
-            val orig = allCards.find { it.baseId == card.baseId }
+            val orig         = allCards.find { it.baseId == card.baseId }
+            val resolvedName = LanguageManager.cardName(card.baseId, card.name)
             card.copy(
                 localizationId = null,
+                name           = resolvedName,
                 artResId       = orig?.artResId,
                 artBiasX       = orig?.artBiasX ?: 0f,
                 artBiasY       = orig?.artBiasY ?: 0f,
