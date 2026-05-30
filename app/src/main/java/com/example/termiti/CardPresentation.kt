@@ -630,14 +630,14 @@ object CardPresentation {
         "C42" to CardPres(
             "Zkopíruje efekt poslední karty, co jsi zahrál. Cena = originál +1. [Combo]",
             R.drawable.art_klon, "Chaos",
-            artScale = 0.80f, artBiasY = -0.20f,
+            artScale = 0.75f, artBiasY = -0.75f,
             descriptionEn = "Copies the effect of the last card you played. Cost = original +1. [Combo]",
             nameAccusative = "Klon"
         ),
         "C41" to CardPres(
             "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]",
             R.drawable.art_zrcadlo, "Chaos",
-            artScale = 0.80f, artBiasY = 0.10f,
+            artScale = 0.75f, artBiasY = -0.20f,
             descriptionEn = "Copies the effect of the opponent's last played card. If none → +2 Magic. [Combo]",
             nameAccusative = "Zrcadlo"
         ),
