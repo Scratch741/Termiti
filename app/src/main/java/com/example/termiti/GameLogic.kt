@@ -271,26 +271,32 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?) {
         val card = hand[i]
         if (!card.effects.any { it is CardEffect.Clone }) continue
         hand[i] = if (playerLastPlayed != null) {
+            // Předvyřeš lokalizovaný popis kopírované karty pro aktuální jazyk.
+            // localizationId = "__clone__" → LanguagePack lookup selže → displayDescription
+            // vrátí přímo card.description (= přednačtený lokalizovaný popis kopírované karty).
+            // displayName vrátí "Klon" (name pole beze změny).
+            val srcId = playerLastPlayed.localizationId ?: playerLastPlayed.baseId
+            val resolvedDesc = LanguageManager.cardDesc(srcId, playerLastPlayed.description)
             card.copy(
-                // cost = originál, costModifier = +1 → effectiveCost = originál+1,
-                // CardView zobrazí modifikátor červeně automaticky (costModifier > 0)
-                cost         = playerLastPlayed.cost,
-                costModifier = 1,
-                costType     = playerLastPlayed.costType,
-                artResId     = playerLastPlayed.artResId,
-                artBiasX     = playerLastPlayed.artBiasX,
-                artBiasY     = playerLastPlayed.artBiasY,
-                artScale     = playerLastPlayed.artScale,
-                description  = playerLastPlayed.description,
-                type         = playerLastPlayed.type
+                localizationId = "__clone__",
+                cost           = playerLastPlayed.cost,
+                costModifier   = 1,   // effectiveCost = originál+1, CardView zobrazí červeně
+                costType       = playerLastPlayed.costType,
+                artResId       = playerLastPlayed.artResId,
+                artBiasX       = playerLastPlayed.artBiasX,
+                artBiasY       = playerLastPlayed.artBiasY,
+                artScale       = playerLastPlayed.artScale,
+                description    = resolvedDesc,
+                type           = playerLastPlayed.type
             )
         } else {
             card.copy(
-                cost         = 2,
-                costModifier = 0,
-                costType     = ResourceType.MAGIC,
-                artResId     = null,
-                description  = "Zkopíruje efekt poslední karty, co jsi zahrál (cena originálu +1). Zatím nic nehráno → +2 magie."
+                localizationId = null,
+                cost           = 2,
+                costModifier   = 0,
+                costType       = ResourceType.MAGIC,
+                artResId       = null,
+                description    = "Zkopíruje efekt poslední karty, co jsi zahrál (cena originálu +1). Zatím nic nehráno → +2 magie."
             )
         }
     }
@@ -306,18 +312,22 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
         val card = hand[i]
         if (!card.effects.any { it is CardEffect.Mirror }) continue
         hand[i] = if (opponentLastPlayed != null) {
+            val srcId = opponentLastPlayed.localizationId ?: opponentLastPlayed.baseId
+            val resolvedDesc = LanguageManager.cardDesc(srcId, opponentLastPlayed.description)
             card.copy(
-                artResId    = opponentLastPlayed.artResId,
-                artBiasX    = opponentLastPlayed.artBiasX,
-                artBiasY    = opponentLastPlayed.artBiasY,
-                artScale    = opponentLastPlayed.artScale,
-                description = opponentLastPlayed.description,
-                type        = opponentLastPlayed.type
+                localizationId = "__mirror__",  // fallback → displayName = "Zrcadlo", displayDesc = resolvedDesc
+                artResId       = opponentLastPlayed.artResId,
+                artBiasX       = opponentLastPlayed.artBiasX,
+                artBiasY       = opponentLastPlayed.artBiasY,
+                artScale       = opponentLastPlayed.artScale,
+                description    = resolvedDesc,
+                type           = opponentLastPlayed.type
             )
         } else {
             card.copy(
-                artResId    = null,
-                description = "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie."
+                localizationId = null,
+                artResId       = null,
+                description    = "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie."
             )
         }
     }
