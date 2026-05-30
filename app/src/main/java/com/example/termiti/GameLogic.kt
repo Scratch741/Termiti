@@ -241,12 +241,10 @@ fun applyEffects(
         is CardEffect.Mirror -> {
             val src = opponent.lastPlayedCard
             if (src != null) {
-                // Kopíruj efekty soupeřovy poslední karty (Decision efekty jsou no-op — ViewModel je nedetekuje z Mirror)
+                // Kopíruj efekty soupeřovy poslední karty
                 applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
-            } else {
-                // Fallback: soupeř ještě nehrál → +2 magie
-                self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)
             }
+            // Pokud soupeř ještě nic nezahrál → žádný efekt
         }
 
         is CardEffect.Clone -> {
@@ -302,7 +300,7 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 artBiasY       = orig?.artBiasY ?: 0f,
                 artScale       = orig?.artScale  ?: 1f,
                 description    = orig?.description ?: card.description,
-                type           = orig?.type     ?: card.type
+                type           = orig?.type        ?: card.type
             )
         }
     }

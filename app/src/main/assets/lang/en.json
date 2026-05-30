@@ -866,7 +866,7 @@
     },
     "C41": {
       "name": "Mirror",
-      "desc": "Copies the effect of the opponent's last played card. If none → +2 Magic. [Combo]"
+      "desc": "Copies the effect of the opponent's last played card. [Combo]"
     },
     "C42": {
       "name": "Clone",

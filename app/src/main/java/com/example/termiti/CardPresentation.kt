@@ -635,10 +635,10 @@ object CardPresentation {
             nameAccusative = "Klon"
         ),
         "C41" to CardPres(
-            "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]",
+            "Zkopíruje efekt poslední soupeřovy karty. [Combo]",
             R.drawable.art_zrcadlo, "Chaos",
             artScale = 0.75f, artBiasY = -0.20f,
-            descriptionEn = "Copies the effect of the opponent's last played card. If none → +2 Magic. [Combo]",
+            descriptionEn = "Copies the effect of the opponent's last played card. [Combo]",
             nameAccusative = "Zrcadlo"
         ),
         "C40" to CardPres(

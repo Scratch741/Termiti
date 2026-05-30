@@ -416,9 +416,8 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         const src = opponent.lastPlayedCard;
         if (src && src.effects && src.effects.length) {
           applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
-        } else {
-          self.resources.MAGIC = Math.min(MAX_RESOURCE, (self.resources.MAGIC || 0) + 2);
         }
+        // Pokud soupeř ještě nic nezahrál → žádný efekt
         break;
       }
 
