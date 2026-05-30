@@ -228,8 +228,12 @@ fun aiChooseAction(
         is CardEffect.PeekAndStealHand ->
             if (opponent.hand.isNotEmpty()) 8 + opponent.hand.size else 2
         is CardEffect.DecisionChooseResource ->
-            // Cena odpovídá nejlepší možnosti (surovině, které AI má nejméně)
             fx.options.maxOfOrNull { it.amount } ?: 4
+        is CardEffect.Mirror -> {
+            // Hodnota = efekty soupeřovy poslední karty; fallback = 2 (jen +2 magie)
+            val src = opponent.lastPlayedCard
+            if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 20) else 2
+        }
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

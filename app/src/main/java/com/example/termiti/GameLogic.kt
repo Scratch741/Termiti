@@ -237,6 +237,43 @@ fun applyEffects(
         is CardEffect.PeekAndStealHand      -> { /* řeší ViewModel */ }
         is CardEffect.SmartJoker            -> { /* řeší ViewModel */ }
         is CardEffect.DecisionChooseResource -> { /* řeší ViewModel */ }
+
+        is CardEffect.Mirror -> {
+            val src = opponent.lastPlayedCard
+            if (src != null) {
+                // Kopíruj efekty soupeřovy poslední karty (Decision efekty jsou no-op — ViewModel je nedetekuje z Mirror)
+                applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
+            } else {
+                // Fallback: soupeř ještě nehrál → +2 magie
+                self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)
+            }
+        }
+    }
+}
+
+/**
+ * Aktualizuje vizuální vzhled Mirror karet v [hand] podle [opponentLastPlayed].
+ * Zachovává ID, cenu a efekty — mění pouze art a popis.
+ * Volat po každém tahu soupeře (v GameViewModel).
+ */
+fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?) {
+    for (i in hand.indices) {
+        val card = hand[i]
+        if (!card.effects.any { it is CardEffect.Mirror }) continue
+        hand[i] = if (opponentLastPlayed != null) {
+            card.copy(
+                artResId    = opponentLastPlayed.artResId,
+                artBiasX    = opponentLastPlayed.artBiasX,
+                artBiasY    = opponentLastPlayed.artBiasY,
+                artScale    = opponentLastPlayed.artScale,
+                description = "Zkopíruje: ${opponentLastPlayed.name}"
+            )
+        } else {
+            card.copy(
+                artResId    = null,
+                description = "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie."
+            )
+        }
     }
 }
 

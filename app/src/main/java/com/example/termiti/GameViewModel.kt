@@ -1043,7 +1043,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
         // Nastav typ právě hrané karty – podmínka LastPlayedType to přečte uvnitř applyEffects
-        player.lastPlayedType = card.type
+        player.lastPlayedType  = card.type
+        player.lastPlayedCard  = card   // Mirror karta soupeře toto přečte
         // Před aplikací: zaznamenej nesplněné podmínky pro hráče
         card.effects.filterIsInstance<CardEffect.ConditionalEffect>().forEach { ce ->
             if (!checkCondition(ce.condition, player, ai)) {
@@ -1289,6 +1290,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.resources[aiCard.costType] = (ai.resources[aiCard.costType] ?: 0) - aiCard.effectiveCost
                         }
                         ai.lastPlayedType = aiCard.type
+                        ai.lastPlayedCard = aiCard   // Mirror hráče toto přečte
+                        updateMirrorCards(player.hand, ai.lastPlayedCard)
                         if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
                         // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
                         val aiCloneCount = ai.cloneNextPlayed

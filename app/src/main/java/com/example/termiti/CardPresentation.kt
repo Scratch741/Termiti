@@ -627,6 +627,12 @@ object CardPresentation {
             descriptionEn = "**This turn:** for each additional card played, draw 1 and gain 1 Magic. [Combo]",
             nameAccusative = "Archmága"
         ),
+        "C41" to CardPres(
+            "Zkopíruje efekt poslední soupeřovy karty. Soupeř ještě nehrál → +2 magie. [Combo]",
+            null, "Chaos",
+            descriptionEn = "Copies the effect of the opponent's last played card. If none → +2 Magic. [Combo]",
+            nameAccusative = "Zrcadlo"
+        ),
         "C40" to CardPres(
             "Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji.",
             R.drawable.art_zakerny_speh, "Chaos",

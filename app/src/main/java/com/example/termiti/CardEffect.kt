@@ -133,6 +133,13 @@ sealed class CardEffect {
      */
     object PeekAndStealHand : CardEffect()
     /**
+     * Zkopíruje efekty poslední karty zahrané soupeřem ([PlayerState.lastPlayedCard]).
+     * Pokud soupeř ještě nic nezahrál, přidá 2 magie (fallback).
+     * Vizuálně se karta v ruce přizpůsobuje naposledy zahrané soupeřově kartě
+     * (art, popis) prostřednictvím [updateMirrorCards].
+     */
+    object Mirror : CardEffect()
+    /**
      * Zobrazí 3 tlačítka volby zdroje; hráč si vybere jeden a obdrží daný počet surovin.
      * [options] = seznam možností (každá s typem zdroje a množstvím).
      */

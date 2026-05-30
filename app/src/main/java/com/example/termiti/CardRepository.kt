@@ -153,6 +153,7 @@ object CardRepository {
             bonusPerAttack = obj.optInt("bonusPerAttack", obj.optInt("bonusPerConsecutiveAttack", 4))
         )
         "PeekAndStealHand"      -> CardEffect.PeekAndStealHand
+        "Mirror"                -> CardEffect.Mirror
         "DecisionChooseResource" -> {
             val optsArr = obj.getJSONArray("options")
             val opts = (0 until optsArr.length()).map { i ->

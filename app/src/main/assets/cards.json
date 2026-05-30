@@ -3626,6 +3626,23 @@
     "baseId": "C40"
   },
   {
+    "id": "C41",
+    "name": "Zrcadlo",
+    "cost": 3,
+    "costType": "MAGIC",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "Mirror"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "C41"
+  },
+  {
     "id": "124",
     "name": "Alchymistova volba",
     "cost": 2,
@@ -3645,10 +3662,6 @@
           },
           {
             "resType": "STONES",
-            "amount": 4
-          },
-          {
-            "resType": "CHAOS",
             "amount": 4
           }
         ]
@@ -3749,6 +3762,43 @@
     "baseId": "128"
   },
   {
+    "id": "L01",
+    "name": "Temný mág",
+    "cost": 13,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "MAGIC",
+        "amount": 3
+      },
+      {
+        "type": "StealResource",
+        "resType": "ATTACK",
+        "amount": 3
+      },
+      {
+        "type": "StealResource",
+        "resType": "STONES",
+        "amount": 3
+      },
+      {
+        "type": "AttackCastle",
+        "amount": 18
+      },
+      {
+        "type": "StealCastle",
+        "amount": 5
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "L01"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,
@@ -3803,24 +3853,5 @@
     "isXCost": true,
     "isPlaceholder": false,
     "baseId": "103"
-  },
-  {
-    "id": "L01",
-    "name": "Temný mág",
-    "cost": 13,
-    "costType": "CHAOS",
-    "isCombo": false,
-    "effects": [
-      { "type": "StealResource", "resType": "MAGIC",  "amount": 3 },
-      { "type": "StealResource", "resType": "ATTACK", "amount": 3 },
-      { "type": "StealResource", "resType": "STONES", "amount": 3 },
-      { "type": "AttackCastle",  "amount": 18 },
-      { "type": "StealCastle",   "amount": 5 }
-    ],
-    "rarity": "LEGENDARY",
-    "maxCopies": 1,
-    "isXCost": false,
-    "isPlaceholder": false,
-    "baseId": "L01"
   }
 ]

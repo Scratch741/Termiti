@@ -412,6 +412,17 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         // Řeší GameSession._resolveDecision po výběru hráče – zde no-op
         break;
 
+      case 'Mirror': {
+        const src = opponent.lastPlayedCard;
+        if (src && src.effects && src.effects.length) {
+          applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
+        } else {
+          // Fallback: +2 magie
+          self.resources.MAGIC = Math.min(MAX_RESOURCE, (self.resources.MAGIC || 0) + 2);
+        }
+        break;
+      }
+
       // ── X-kost efekty ────────────────────────────────────────────────────────
       case 'XScaledAttackPlayer': {
         const dmg     = Math.floor(xValue / (fx.divisor || 2));

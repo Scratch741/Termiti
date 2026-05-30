@@ -79,6 +79,7 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.MomentumAttack            -> "⚡"
     is CardEffect.PeekAndStealHand          -> "🕵️"
     is CardEffect.DecisionChooseResource    -> "⚗️"
+    is CardEffect.Mirror                    -> "🪞"
     null                              -> "❓"
 }
 

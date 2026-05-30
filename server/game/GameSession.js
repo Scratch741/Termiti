@@ -652,6 +652,8 @@ class GameSession {
 
     // Momentum: sleduj útočné karty zahranné v tomto tahu
     if (card.costType === 'ATTACK') self.attackCardsThisTurn = (self.attackCardsThisTurn || 0) + 1;
+    // Mirror: zapamatuj si poslední zahranou kartu (soupeř ji může zkopírovat)
+    self.lastPlayedCard = card;
 
     // Loguj změnu velikosti balíčku po AddToOpponentDeck
     const hasAOD = card.effects && card.effects.some(fx => fx.type === 'AddToOpponentDeck');
