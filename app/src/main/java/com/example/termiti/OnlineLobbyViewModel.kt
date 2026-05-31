@@ -735,10 +735,15 @@ class OnlineLobbyViewModel(
                         val baseId = lpc.optString("baseId", "")
                         val template = allCards.find { it.id == baseId }
                         if (template != null) {
-                            val card = template.copy(
+                            val lpcCostTypeStr = lpc.optString("costType", "")
+                        val lpcCostType = ResourceType.entries.find { it.name == lpcCostTypeStr }
+                        val card = template.copy(
                                 id           = lpc.optString("id", baseId),
                                 isGenerated  = lpc.optBoolean("isGenerated",  false),
-                                costModifier = lpc.optInt("costModifier", 0)
+                                costModifier = lpc.optInt("costModifier", 0),
+                                // Zrcadlo/Klon: server posílá costType z reálné karty (MAGIC),
+                                // ale template je kopírovaná karta (ATTACK) → musíme přepsat
+                                costType     = lpcCostType ?: template.costType
                             )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
@@ -1027,16 +1032,21 @@ class OnlineLobbyViewModel(
                 (morph == "mirror" || morph == "clone") && !noSource -> {
                     val resolvedName = LanguageManager.cardName(realId, realTemplate.name)   // Zrcadlo / Klon
                     val resolvedDesc = LanguageManager.cardDesc(displayId, displayTemplate.description)
+                    val cloneSourceCost = obj.optInt("cloneSourceCost", -1)
                     displayTemplate.copy(
                         id             = instanceId,
                         name           = resolvedName,
                         description    = resolvedDesc,
                         effects        = realTemplate.effects,   // zachová Mirror/Clone → fialový glow
                         localizationId = if (morph == "clone") "__clone__" else "__mirror__",
-                        // Klon: cena originálu +1 (červeně); Mirror: ponech vlastní cenu
-                        cost           = if (morph == "clone") displayTemplate.cost else realTemplate.cost,
+                        // Klon: zohledni effectiveCost původní karty (sleva!) +1; Mirror: vlastní cena
+                        cost           = if (morph == "clone") {
+                            if (cloneSourceCost >= 0) cloneSourceCost else displayTemplate.cost
+                        } else realTemplate.cost,
                         costType       = if (morph == "clone") displayTemplate.costType else realTemplate.costType,
                         costModifier   = if (morph == "clone") 1 else 0,
+                        // Combo ikona: Zrcadlo/Klon jsou combo karty – berme z realTemplate, ne z kopírované karty
+                        isCombo        = realTemplate.isCombo,
                         isGenerated    = isGenerated
                     )
                 }

@@ -577,7 +577,8 @@ class GameSession {
     this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity,
                                 isGenerated: card.isGenerated || false,
-                                costModifier: card.costModifier || 0 };
+                                costModifier: card.costModifier || 0,
+                                playedAtTurn: this.turnNumber };
     this.lastPlayedAction  = 'PLAYED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
@@ -636,7 +637,26 @@ class GameSession {
 
     // ── Rozhodnutí: detekuj Decision efekt PŘED applyEffects ───────────────
     // Decision efekty jsou no-ops v engine.applyEffects; zpracováváme je zde.
-    const decisionFx = card.effects.find(fx => DECISION_TYPES.has(fx.type));
+    let decisionFx = card.effects.find(fx => DECISION_TYPES.has(fx.type));
+
+    // Mirror/Klon: pokud kopírovaná karta obsahuje Decision efekt, propaguj ho sem.
+    // Jinak by zůstal no-op a hráč by nedostal overlay na výběr.
+    if (!decisionFx) {
+      const mirrorFx = card.effects.find(fx => fx.type === 'Mirror');
+      if (mirrorFx) {
+        const mirrorSrc = opp.lastPlayedCard;
+        if (mirrorSrc && mirrorSrc.effects) {
+          decisionFx = mirrorSrc.effects.find(fx => DECISION_TYPES.has(fx.type)) || null;
+        }
+      }
+      const cloneFx = card.effects.find(fx => fx.type === 'Clone');
+      if (cloneFx) {
+        const cloneSrc = self.lastPlayedCard;
+        if (cloneSrc && cloneSrc.effects) {
+          decisionFx = cloneSrc.effects.find(fx => DECISION_TYPES.has(fx.type)) || null;
+        }
+      }
+    }
 
     const lostCards = [];
     applyEffects(
@@ -979,10 +999,15 @@ class GameSession {
               action: 'STOLEN', isGenerated: stolen.isGenerated || false };
             this._send(oppSide, payload);
             this._send(side, { ...payload, causedByMe: true });
+            // Shapeshifter: vlož čerstvou instanci C34 (bez displayBaseId) – bude se znovu transformovat
+            const stolenBase = stolen.baseId === 'C34'
+              ? { ...makeInstance(CARD_MAP.get('C34') || stolen) }
+              : { ...stolen, id: `${stolen.baseId || stolen.id}_stolen_${Date.now()}` };
+            stolenBase.isGenerated = true;
             if (self.hand.length < maxH) {
-              self.hand.push({ ...stolen, id: `${stolen.baseId || stolen.id}_stolen_${Date.now()}`, isGenerated: true });
+              self.hand.push(stolenBase);
             } else {
-              self.discardPile.push(stolen);
+              self.discardPile.push(stolenBase);
             }
             this._log(`${this.name[side]} ukradl ze soupeřovy ruky: ${stolen.name}.`);
           }
@@ -1036,7 +1061,8 @@ class GameSession {
     this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                cost: card.cost, costType: card.costType, rarity: card.rarity,
                                isGenerated: card.isGenerated || false,
-                               costModifier: card.costModifier || 0 };
+                               costModifier: card.costModifier || 0,
+                               playedAtTurn: this.turnNumber };
     this.lastPlayedAction  = 'DISCARDED';
     this.lastPlayedBySide  = side;
     this.lastPlayedCardIdx = cardIdx;
@@ -1125,8 +1151,13 @@ class GameSession {
       this.quickDrawApplied[this.activeSide] = true;
       extraDraw = 1;
     }
-    const deckBeforeDraw = next.deck.length;
+    const deckBeforeDraw  = next.deck.length;
+    const handSizeBefore  = next.hand.length;
     const { burned, traps } = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
+    // Stamp newly drawn cards – Zrcadlo líznuté v tomto tahu nesmí ihned zrcadlit starou kartu
+    for (let i = handSizeBefore; i < next.hand.length; i++) {
+      next.hand[i]._drawnAtTurn = this.turnNumber;
+    }
     if (traps.length > 0 || burned.length > 0) {
       console.log(`[DRAW] game=${this.gameId} side=${this.activeSide} deckBefore=${deckBeforeDraw} deckAfter=${next.deck.length} traps=${traps.length} burned=${burned.length}`);
     }
@@ -1256,7 +1287,10 @@ class GameSession {
       // realBaseId = skutečná identita karty (C34/C41/C42) – klient z ní bere jméno
       // (Zrcadlo/Klon zůstávají pojmenované, Shapeshifter dostane jméno transformace).
       realBaseId:   c.baseId,
-      morphKind:    c.morphKind || null,   // 'shape' | 'mirror' | 'clone' | null
+      morphKind:         c.morphKind || null,   // 'shape' | 'mirror' | 'clone' | null
+      // Klon: efektivní cena originální karty (se slevou), klient přidá +1
+      cloneSourceCost:   c.morphKind === 'clone' && c._cloneSourceEffectiveCost != null
+                           ? c._cloneSourceEffectiveCost : undefined,
       name:         c.name,
       cost:         c.cost,
       costType:     c.costType,
@@ -1278,12 +1312,21 @@ class GameSession {
       if (!c.effects) continue;
       if (c.effects.some(fx => fx.type === 'Mirror')) {
         const src = opp.lastPlayedCard;
-        c.displayBaseId = src ? (src.displayBaseId || src.baseId) : null;
+        // Nové Zrcadlo (líznuté v tomto tahu) nesmí ihned zrcadlit kartu z minulého kola.
+        // Zrcadlí jen tehdy, pokud bylo v ruce DŘ než soupeř zahrál, nebo pokud soupeř hraje NYNÍ.
+        const cardDrawnThisTurn = (c._drawnAtTurn != null) && (c._drawnAtTurn >= this.turnNumber);
+        const srcPlayedThisTurn = src && (src.playedAtTurn >= this.turnNumber);
+        const shouldStamp = src && (!cardDrawnThisTurn || srcPlayedThisTurn);
+        c.displayBaseId = shouldStamp ? (src.displayBaseId || src.baseId) : null;
         c.morphKind = 'mirror';
       } else if (c.effects.some(fx => fx.type === 'Clone')) {
         const src = self.lastPlayedCard;
         c.displayBaseId = src ? (src.displayBaseId || src.baseId) : null;
         c.morphKind = 'clone';
+        // Efektivní cena původní karty (zohledňuje slevy) – klient přidá +1
+        c._cloneSourceEffectiveCost = src
+          ? Math.min(99, Math.max(0, (src.cost || 0) + (src.costModifier || 0)))
+          : null;
       }
     }
   }

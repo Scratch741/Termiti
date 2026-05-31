@@ -1100,21 +1100,30 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Momentum: aktualizuj počítadlo za útočné karty (PŘED decision pausou, ale PO applyEffects)
         if (card.costType == ResourceType.ATTACK) player.attackCardsThisTurn++
         // lastPlayedCard PO applyEffects – Klon nečte sám sebe; Mirror ji čte jen pro soupeře
+        val prevPlayerLastPlayed = player.lastPlayedCard   // uložit před přepisem pro Klon+Decision
         player.lastPlayedCard = card
         // Reset Mirror/Clone v discardPile → originální art, jinak by karta přes deck/Vzpomínku
         // ukazovala cizí art místo art_zrcadlo / art_klon
         resetMirrorCloneInPile(player.discardPile, card, allCards)
         updateCloneCards(player.hand, player.lastPlayedCard, allCards)
 
-        val decisionFx = card.effects.firstOrNull {
-            it is CardEffect.DecisionBurnOpponent    ||
-            it is CardEffect.DecisionChooseType      ||
-            it is CardEffect.DecisionFromDiscard     ||
-            it is CardEffect.DecisionFromDeck        ||
-            it is CardEffect.DecisionMine            ||
-            it is CardEffect.SmartJoker              ||
-            it is CardEffect.PeekAndStealHand        ||
-            it is CardEffect.DecisionChooseResource
+        fun isDecisionFx(fx: CardEffect) =
+            fx is CardEffect.DecisionBurnOpponent || fx is CardEffect.DecisionChooseType  ||
+            fx is CardEffect.DecisionFromDiscard  || fx is CardEffect.DecisionFromDeck    ||
+            fx is CardEffect.DecisionMine         || fx is CardEffect.SmartJoker          ||
+            fx is CardEffect.PeekAndStealHand     || fx is CardEffect.DecisionChooseResource
+
+        var decisionFx: CardEffect? = card.effects.firstOrNull { isDecisionFx(it) }
+
+        // Mirror/Klon: pokud kopírovaná karta obsahuje Decision efekt, propaguj ho sem.
+        // Bez toho by zůstal no-op a hráč by nikdy nedostal výběrový overlay.
+        if (decisionFx == null) {
+            if (card.effects.any { it is CardEffect.Mirror }) {
+                decisionFx = ai.lastPlayedCard?.effects?.firstOrNull { isDecisionFx(it) }
+            }
+            if (decisionFx == null && card.effects.any { it is CardEffect.Clone }) {
+                decisionFx = prevPlayerLastPlayed?.effects?.firstOrNull { isDecisionFx(it) }
+            }
         }
         if (decisionFx != null) {
             val options = buildDecisionOptions(decisionFx, player, ai, excludeId = card.id)

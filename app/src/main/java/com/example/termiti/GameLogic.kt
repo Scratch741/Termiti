@@ -276,7 +276,8 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
             card.copy(
                 localizationId = "__clone__",
                 name           = resolvedName,
-                cost           = playerLastPlayed.cost,
+                // Klon stojí effectiveCost originálu +1 – zohledňuje případnou slevu na originálu
+                cost           = playerLastPlayed.effectiveCost,
                 costModifier   = 1,
                 costType       = playerLastPlayed.costType,
                 artResId       = playerLastPlayed.artResId,

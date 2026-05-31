@@ -395,18 +395,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
-      case 'PeekAndStealHand': {
-        // Server: AI ukradne nejdražší kartu z ruky hráče
-        if (opponent.hand.length > 0) {
-          const idx   = opponent.hand.reduce((best, c, i, arr) =>
-            (c.cost > arr[best].cost ? i : best), 0);
-          const [stolen] = opponent.hand.splice(idx, 1);
-          stolen.isGenerated = true;
-          if (self.hand.length < (self.maxHandSize || 7)) self.hand.push(stolen);
-          else self.discardPile.push(stolen);
-        }
+      case 'PeekAndStealHand':
+        // Řeší GameSession._resolveDecision po výběru hráče – zde no-op.
+        // (Dřívější auto-steal způsoboval dvojité ukradení karty.)
         break;
-      }
 
       case 'DecisionChooseResource':
         // Řeší GameSession._resolveDecision po výběru hráče – zde no-op
