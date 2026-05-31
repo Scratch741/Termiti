@@ -701,6 +701,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             else -> {}
         }
 
+        // Aktualizuj Klon/Zrcadlo karty v ruce po přidání nové karty přes Decision
+        // (updateCloneCards se volá při playCard, ale Klon může přijít do ruky až teď)
+        updateCloneCards(player.hand, player.lastPlayedCard, allCards)
+        updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
+
         // Vyčisti stav
         val pendingDrawCount     = decisionPendingDraws
         pendingDecision.value    = null
