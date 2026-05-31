@@ -408,6 +408,14 @@ private fun OnlineGameplay(
                 aiPassives       = opponentPassives
             )
 
+            // ── Separátor – dolní okraj top baru ─────────────────────────────
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale       = ContentScale.FillWidth
+            )
+
             // ── Hlavní řada: zdroje + bojiště ────────────────────────────────
             Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
 
@@ -487,10 +495,17 @@ private fun OnlineGameplay(
                 )
             }
 
+            // ── Separátor – horní okraj prostoru karet ───────────────────────
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale       = ContentScale.FillWidth
+            )
+
             // ── Ruka ──────────────────────────────────────────────────────────
             // V review módu: zobraz soupeřovu ruku (skryté karty – dummy); jinak moji
             val displayHand = if (isGameOver && showOppHand) oppPs.hand else myPs.hand
-            Box(Modifier.fillMaxWidth().height(2.dp).background(Color(0xFF6B3D12)))
             HandPanel(
                 hand             = displayHand,
                 isPlayerTurn     = gs.isMyTurn && !isGameOver,

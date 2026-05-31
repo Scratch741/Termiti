@@ -740,9 +740,10 @@ class OnlineLobbyViewModel(
                         val card = template.copy(
                                 id             = lpc.optString("id", baseId),
                                 isGenerated    = lpc.optBoolean("isGenerated",  false),
+                                // Zrcadlo/Klon: server posílá cost/costType z reálné karty;
+                                // template je kopírovaná karta (jiná cena/typ) → přepsat
+                                cost           = lpc.optInt("cost", template.cost),
                                 costModifier   = lpc.optInt("costModifier", 0),
-                                // Zrcadlo/Klon: server posílá costType z reálné karty (MAGIC),
-                                // ale template je kopírovaná karta (ATTACK) → musíme přepsat
                                 costType       = lpcCostType ?: template.costType,
                                 // isCombo ze serveru – Zrcadlo/Klon jsou combo; template (Intuice)
                                 // není → blesk by se bez toho nezobrazil
