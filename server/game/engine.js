@@ -550,7 +550,7 @@ function transformShapeShifters(hand, cardPool) {
       const tmpl = validPool[Math.floor(Math.random() * validPool.length)];
       // baseId = 'C34' zachováme → příští kolo se znovu transformuje
       // displayBaseId = ID šablony → klient zobrazí správnou kartu, ne původní Shapeshifter
-      hand[i] = { ...tmpl, id: hand[i].id, baseId: 'C34', displayBaseId: tmpl.id };
+      hand[i] = { ...tmpl, id: hand[i].id, baseId: 'C34', displayBaseId: tmpl.id, morphKind: 'shape' };
     }
   }
 }

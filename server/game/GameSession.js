@@ -1250,9 +1250,13 @@ class GameSession {
   _serializeHand(side) {
     return this.state[side].hand.map(c => ({
       id:          c.id,
-      // Transformovaný Shapeshifter: pošli displayBaseId (skutečná šablona) nikoli 'C34',
-      // aby klient zobrazil správnou kartu. Server sleduje Shapeshifter pomocí baseId: 'C34'.
+      // baseId = co se má VYKRESLIT (art/popis/efekty): pro Shapeshifter/Mirror/Klon
+      // je to displayBaseId (transformovaná/kopírovaná karta), jinak skutečné baseId.
       baseId:       c.displayBaseId || c.baseId,
+      // realBaseId = skutečná identita karty (C34/C41/C42) – klient z ní bere jméno
+      // (Zrcadlo/Klon zůstávají pojmenované, Shapeshifter dostane jméno transformace).
+      realBaseId:   c.baseId,
+      morphKind:    c.morphKind || null,   // 'shape' | 'mirror' | 'clone' | null
       name:         c.name,
       cost:         c.cost,
       costType:     c.costType,
@@ -1260,6 +1264,28 @@ class GameSession {
       isGenerated:  c.isGenerated  || false,
       costModifier: c.costModifier || 0
     }));
+  }
+
+  /**
+   * Doplní displayBaseId + morphKind na Mirror/Klon karty v ruce hráče [side]
+   * podle naposledy zahrané karty (Mirror = soupeřova, Klon = vlastní).
+   * Volá se v _buildStateFor před serializací ruky.
+   */
+  _stampMorphCards(side) {
+    const self = this.state[side];
+    const opp  = this.state[side === 'A' ? 'B' : 'A'];
+    for (const c of self.hand) {
+      if (!c.effects) continue;
+      if (c.effects.some(fx => fx.type === 'Mirror')) {
+        const src = opp.lastPlayedCard;
+        c.displayBaseId = src ? (src.displayBaseId || src.baseId) : null;
+        c.morphKind = 'mirror';
+      } else if (c.effects.some(fx => fx.type === 'Clone')) {
+        const src = self.lastPlayedCard;
+        c.displayBaseId = src ? (src.displayBaseId || src.baseId) : null;
+        c.morphKind = 'clone';
+      }
+    }
   }
 
   /**
@@ -1271,6 +1297,10 @@ class GameSession {
     const oppSide = side === 'A' ? 'B' : 'A';
     const my  = this.state[mySide];
     const opp = this.state[oppSide];
+
+    // Doplň display data na Mirror/Klon karty v ruce (a soupeřově ruce při reveal)
+    this._stampMorphCards(mySide);
+    if (revealOppHand) this._stampMorphCards(oppSide);
 
     const oppStatePayload = {
       castleHP:        opp.castleHP,

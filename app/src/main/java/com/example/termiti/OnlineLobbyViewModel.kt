@@ -1010,15 +1010,51 @@ class OnlineLobbyViewModel(
         for (i in 0 until arr.length()) {
             val obj        = arr.getJSONObject(i)
             val instanceId = obj.optString("id", "")
-            val baseId     = obj.optString("baseId", instanceId.substringBefore('_'))
+            val displayId  = obj.optString("baseId", instanceId.substringBefore('_'))
+            val realId     = obj.optString("realBaseId", displayId)
+            val morph      = obj.optString("morphKind", "")
             val isGenerated  = obj.optBoolean("isGenerated",  false)
             val costModifier = obj.optInt("costModifier", 0)
-            // Najdi plný Card objekt v allCards podle baseId
-            val template = allCards.find { it.id == baseId }
-            if (template != null) {
-                // Přetypuj s instančním ID + příznakem generování + modifikátorem ceny
-                result.add(template.copy(id = instanceId, isGenerated = isGenerated, costModifier = costModifier))
+
+            // displayTemplate = co se vykresluje (art/popis/typ); pro Shapeshifter/Mirror/Klon
+            // je to transformovaná/kopírovaná karta, jinak normální karta.
+            val displayTemplate = allCards.find { it.id == displayId } ?: continue
+            val realTemplate    = allCards.find { it.id == realId } ?: displayTemplate
+            val noSource        = displayId == realId  // morph bez zdroje → vykresli normální kartu
+
+            val card = when {
+                // ── Mirror / Klon se zdrojem: art+popis+typ z kopírované karty, jméno zůstává ──
+                (morph == "mirror" || morph == "clone") && !noSource -> {
+                    val resolvedName = LanguageManager.cardName(realId, realTemplate.name)   // Zrcadlo / Klon
+                    val resolvedDesc = LanguageManager.cardDesc(displayId, displayTemplate.description)
+                    displayTemplate.copy(
+                        id             = instanceId,
+                        name           = resolvedName,
+                        description    = resolvedDesc,
+                        effects        = realTemplate.effects,   // zachová Mirror/Clone → fialový glow
+                        localizationId = if (morph == "clone") "__clone__" else "__mirror__",
+                        // Klon: cena originálu +1 (červeně); Mirror: ponech vlastní cenu
+                        cost           = if (morph == "clone") displayTemplate.cost else realTemplate.cost,
+                        costType       = if (morph == "clone") displayTemplate.costType else realTemplate.costType,
+                        costModifier   = if (morph == "clone") 1 else 0,
+                        isGenerated    = isGenerated
+                    )
+                }
+                // ── Shapeshifter: plně transformovaná karta (jméno i text cílové karty) ──
+                morph == "shape" -> displayTemplate.copy(
+                    id             = instanceId,
+                    isGenerated    = isGenerated,
+                    costModifier   = costModifier,
+                    localizationId = displayId
+                )
+                // ── Normální karta (i Mirror/Klon bez zdroje) ──
+                else -> realTemplate.copy(
+                    id           = instanceId,
+                    isGenerated  = isGenerated,
+                    costModifier = costModifier
+                )
             }
+            result.add(card)
         }
         return result
     }
