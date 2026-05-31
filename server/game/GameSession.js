@@ -1167,12 +1167,7 @@ class GameSession {
       extraDraw = 1;
     }
     const deckBeforeDraw  = next.deck.length;
-    const handSizeBefore  = next.hand.length;
     const { burned, traps } = drawCards(next, TURN_HAND_DRAW + extraDraw, next.maxHandSize || 7);
-    // Stamp newly drawn cards – Zrcadlo líznuté v tomto tahu nesmí ihned zrcadlit starou kartu
-    for (let i = handSizeBefore; i < next.hand.length; i++) {
-      next.hand[i]._drawnAtTurn = this.turnNumber;
-    }
     if (traps.length > 0 || burned.length > 0) {
       console.log(`[DRAW] game=${this.gameId} side=${this.activeSide} deckBefore=${deckBeforeDraw} deckAfter=${next.deck.length} traps=${traps.length} burned=${burned.length}`);
     }
@@ -1327,12 +1322,7 @@ class GameSession {
       if (!c.effects) continue;
       if (c.effects.some(fx => fx.type === 'Mirror')) {
         const src = opp.lastPlayedCard;
-        // Nové Zrcadlo (líznuté v tomto tahu) nesmí ihned zrcadlit kartu z minulého kola.
-        // Zrcadlí jen tehdy, pokud bylo v ruce DŘ než soupeř zahrál, nebo pokud soupeř hraje NYNÍ.
-        const cardDrawnThisTurn = (c._drawnAtTurn != null) && (c._drawnAtTurn >= this.turnNumber);
-        const srcPlayedThisTurn = src && (src.playedAtTurn >= this.turnNumber);
-        const shouldStamp = src && (!cardDrawnThisTurn || srcPlayedThisTurn);
-        c.displayBaseId = shouldStamp ? (src.displayBaseId || src.baseId) : null;
+        c.displayBaseId = src ? (src.displayBaseId || src.baseId) : null;
         c.morphKind = 'mirror';
       } else if (c.effects.some(fx => fx.type === 'Clone')) {
         const src = self.lastPlayedCard;
