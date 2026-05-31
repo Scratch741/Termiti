@@ -813,26 +813,30 @@ class GameSession {
     switch (effect.type) {
       case 'DecisionBurnOpponent': {
         // N náhodných karet ze soupeřova balíčku (hráč si vybere, která shoří)
-        return [...opp.deck].sort(() => Math.random() - 0.5).slice(0, n);
+        return [...opp.deck]
+          .filter(c => !c.isPlaceholder)
+          .sort(() => Math.random() - 0.5).slice(0, n);
       }
       case 'DecisionChooseType': {
-        // N náhodných karet daného typu z celého poolu (šablony)
-        const pool = ALL_CARDS.filter(c => deriveCardType(c) === effect.cardType);
+        // N náhodných karet daného typu z celého poolu (šablony) – bez placeholderů
+        const pool = ALL_CARDS.filter(c => deriveCardType(c) === effect.cardType && !c.isPlaceholder);
         return [...pool].sort(() => Math.random() - 0.5).slice(0, n)
           .map(c => ({ ...c, id: c.id, baseId: c.id }));
       }
       case 'DecisionFromDiscard': {
-        // N náhodných karet z vlastního odhazovacího balíčku
+        // N náhodných karet z vlastního odhazovacího balíčku – bez placeholderů
         // Vyloučí právě zahranou kartu – ta sice fyzicky leží v discardu, ale efekt
         // Vzpomínky by měl proběhnout "před" zahozením (hráč si nemůže vzít sám sebe)
         return [...self.discardPile]
-          .filter(c => c.id !== playedCardId)
+          .filter(c => c.id !== playedCardId && !c.isPlaceholder)
           .sort(() => Math.random() - 0.5)
           .slice(0, n);
       }
       case 'DecisionFromDeck': {
-        // N náhodných karet z vlastního balíčku
-        return [...self.deck].sort(() => Math.random() - 0.5).slice(0, n);
+        // N náhodných karet z vlastního balíčku – bez placeholderů (Bomba/C37 přidaná přes C36)
+        return [...self.deck]
+          .filter(c => !c.isPlaceholder)
+          .sort(() => Math.random() - 0.5).slice(0, n);
       }
       case 'DecisionMine': {
         // Přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos)
