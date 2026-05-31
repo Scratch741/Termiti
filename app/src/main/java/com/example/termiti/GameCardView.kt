@@ -326,8 +326,11 @@ fun CardView(
     val GlowGreen = Color(0xFF4DB86E)
 
     // ── Fialový glow: Shapeshifter karta (i po transformaci – trackovano přes ID prefix) ──
+    // Sekundární check přes localizationId kryjí online morph karty, u nichž efekty
+    // nebyly zachovány kvůli fallbacku v parseCardArray.
     val isShapeShifter = card.isShapeShifterInstance()
         || card.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone }
+        || card.localizationId == "__mirror__" || card.localizationId == "__clone__"
     val purpleGlowAlpha by glowTransition.animateFloat(
         initialValue = 0.5f,
         targetValue  = 1.0f,

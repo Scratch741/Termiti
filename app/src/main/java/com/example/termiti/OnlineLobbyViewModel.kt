@@ -1022,7 +1022,7 @@ class OnlineLobbyViewModel(
             val realTemplate    = allCards.find { it.id == realId } ?: displayTemplate
             val noSource        = displayId == realId  // morph bez zdroje → vykresli normální kartu
 
-            val card = when {
+            val rawCard = when {
                 // ── Mirror / Klon se zdrojem: art+popis+typ z kopírované karty, jméno zůstává ──
                 (morph == "mirror" || morph == "clone") && !noSource -> {
                     val resolvedName = LanguageManager.cardName(realId, realTemplate.name)   // Zrcadlo / Klon
@@ -1053,6 +1053,16 @@ class OnlineLobbyViewModel(
                     isGenerated  = isGenerated,
                     costModifier = costModifier
                 )
+            }
+            // Defenzivní pojistka: morph karta musí vždy nést svůj efekt → fialový glow.
+            // Chrání před případem, kdy realTemplate lookup selže (fallback = displayTemplate),
+            // nebo kdy server nepošle morphKind a efekty se ztratí.
+            val card = when {
+                morph == "mirror" && rawCard.effects.none { it is CardEffect.Mirror } ->
+                    rawCard.copy(effects = rawCard.effects + CardEffect.Mirror)
+                morph == "clone"  && rawCard.effects.none { it is CardEffect.Clone } ->
+                    rawCard.copy(effects = rawCard.effects + CardEffect.Clone)
+                else -> rawCard
             }
             result.add(card)
         }
