@@ -377,8 +377,18 @@ fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
             val tmpl = validPool.random()
             // id stále začíná "C34_" → příští kolo se znovu transformuje
             // costModifier se zachová — sleva od Chaotického mudrce (DecisionChooseType) platí i po transformaci
-            // localizationId = tmpl.id → lokalizovaný text odpovídá kartě, na kterou se proměnil (ne C34)
-            hand[i] = tmpl.copy(id = prev.id, costModifier = prev.costModifier, localizationId = tmpl.id)
+            // Jméno zůstává "Shapeshifter" (jako Klon/Zrcadlo si drží vlastní jméno);
+            // popis je předvyřešen z transformované karty; sentinel "__shapeshifter__" zabraňuje
+            // lang lookupu přepsat jméno/popis při recompose.
+            val resolvedName = LanguageManager.cardName(prev.baseId, prev.name)
+            val resolvedDesc = LanguageManager.cardDesc(tmpl.baseId, tmpl.description)
+            hand[i] = tmpl.copy(
+                id             = prev.id,
+                costModifier   = prev.costModifier,
+                name           = resolvedName,
+                description    = resolvedDesc,
+                localizationId = "__shapeshifter__"
+            )
         }
     }
 }

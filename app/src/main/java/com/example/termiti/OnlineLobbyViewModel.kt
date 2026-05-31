@@ -1058,13 +1058,19 @@ class OnlineLobbyViewModel(
                         isGenerated    = isGenerated
                     )
                 }
-                // ── Shapeshifter: plně transformovaná karta (jméno i text cílové karty) ──
-                morph == "shape" -> displayTemplate.copy(
-                    id             = instanceId,
-                    isGenerated    = isGenerated,
-                    costModifier   = costModifier,
-                    localizationId = displayId
-                )
+                // ── Shapeshifter: art+popis z transformované karty, ale jméno zůstává "Shapeshifter" ──
+                morph == "shape" -> {
+                    val resolvedName = LanguageManager.cardName(realId, realTemplate.name)  // "Shapeshifter"
+                    val resolvedDesc = LanguageManager.cardDesc(displayId, displayTemplate.description)
+                    displayTemplate.copy(
+                        id             = instanceId,
+                        isGenerated    = isGenerated,
+                        costModifier   = costModifier,
+                        name           = resolvedName,
+                        description    = resolvedDesc,
+                        localizationId = "__shapeshifter__"
+                    )
+                }
                 // ── Normální karta (i Mirror/Klon bez zdroje) ──
                 else -> realTemplate.copy(
                     id           = instanceId,
