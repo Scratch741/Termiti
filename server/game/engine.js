@@ -415,7 +415,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'Mirror': {
         const src = opponent.lastPlayedCard;
         if (src && src.effects && src.effects.length) {
-          applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, xValue);
         }
         // Pokud soupeř ještě nic nezahrál → žádný efekt
         break;
@@ -424,10 +424,9 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'Clone': {
         const src = self.lastPlayedCard;
         if (src && src.effects && src.effects.length) {
-          applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard);
-        } else {
-          self.resources.MAGIC = Math.min(MAX_RESOURCE, (self.resources.MAGIC || 0) + 2);
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, xValue);
         }
+        // Pokud hráč ještě nic nezahrál → žádný efekt
         break;
       }
 
