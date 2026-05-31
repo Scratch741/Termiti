@@ -738,12 +738,16 @@ class OnlineLobbyViewModel(
                             val lpcCostTypeStr = lpc.optString("costType", "")
                         val lpcCostType = ResourceType.entries.find { it.name == lpcCostTypeStr }
                         val card = template.copy(
-                                id           = lpc.optString("id", baseId),
-                                isGenerated  = lpc.optBoolean("isGenerated",  false),
-                                costModifier = lpc.optInt("costModifier", 0),
+                                id             = lpc.optString("id", baseId),
+                                isGenerated    = lpc.optBoolean("isGenerated",  false),
+                                costModifier   = lpc.optInt("costModifier", 0),
                                 // Zrcadlo/Klon: server posílá costType z reálné karty (MAGIC),
                                 // ale template je kopírovaná karta (ATTACK) → musíme přepsat
-                                costType     = lpcCostType ?: template.costType
+                                costType       = lpcCostType ?: template.costType,
+                                // Nutné: id obsahuje suffix instance ("C41_5") → baseId = "C41".
+                                // displayDescription by pak hledalo v lang packu Zrcadlo místo
+                                // zobrazené karty (Intuice "111"). Explicitní localizationId fix.
+                                localizationId = baseId
                             )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
