@@ -672,8 +672,17 @@ class GameSession {
 
     // Momentum: sleduj útočné karty zahranné v tomto tahu
     if (card.costType === 'ATTACK') self.attackCardsThisTurn = (self.attackCardsThisTurn || 0) + 1;
-    // Mirror: zapamatuj si poslední zahranou kartu (soupeř ji může zkopírovat)
+    // Mirror/Clone: ulož předchozí lastPlayedCard pro Klon-po-Klonu
+    const prevSelfLastPlayed = self.lastPlayedCard;
+    // lastPlayedCard nastavit na zahranou kartu (soupeř může zkopírovat přes Zrcadlo)
     self.lastPlayedCard = card;
+    // Mirror/Klon: aktualizuj lastPlayedCard na efektivně kopírovanou kartu,
+    // aby příští Klon v ruce zkopíroval správnou kartu (Intuici), ne [Mirror]/[Clone] efekt.
+    if (card.effects.some(fx => fx.type === 'Mirror') && opp.lastPlayedCard) {
+      self.lastPlayedCard = opp.lastPlayedCard;
+    } else if (card.effects.some(fx => fx.type === 'Clone') && prevSelfLastPlayed) {
+      self.lastPlayedCard = prevSelfLastPlayed;
+    }
 
     // Loguj změnu velikosti balíčku po AddToOpponentDeck
     const hasAOD = card.effects && card.effects.some(fx => fx.type === 'AddToOpponentDeck');

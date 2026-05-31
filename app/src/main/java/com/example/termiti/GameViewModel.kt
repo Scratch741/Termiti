@@ -1102,6 +1102,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // lastPlayedCard PO applyEffects – Klon nečte sám sebe; Mirror ji čte jen pro soupeře
         val prevPlayerLastPlayed = player.lastPlayedCard   // uložit před přepisem pro Klon+Decision
         player.lastPlayedCard = card
+        // Mirror/Klon: aktualizuj lastPlayedCard na efektivně kopírovanou kartu,
+        // aby příští Klon v ruce zkopíroval správnou kartu (např. Intuici), ne [Mirror]/[Clone] efekt.
+        if (card.effects.any { it is CardEffect.Mirror } && ai.lastPlayedCard != null) {
+            player.lastPlayedCard = ai.lastPlayedCard
+        } else if (card.effects.any { it is CardEffect.Clone } && prevPlayerLastPlayed != null) {
+            player.lastPlayedCard = prevPlayerLastPlayed
+        }
         // Reset Mirror/Clone v discardPile → originální art, jinak by karta přes deck/Vzpomínku
         // ukazovala cizí art místo art_zrcadlo / art_klon
         resetMirrorCloneInPile(player.discardPile, card, allCards)
@@ -1442,7 +1449,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         ai.preCostResources = null
                         // lastPlayedCard PO applyEffects – Klon nečte sám sebe
                         if (aiCard.costType == ResourceType.ATTACK) ai.attackCardsThisTurn++
+                        val prevAiLastPlayed = ai.lastPlayedCard
                         ai.lastPlayedCard = aiCard
+                        // Mirror/Klon: aktualizuj na efektivně kopírovanou kartu (stejná logika jako u hráče)
+                        if (aiCard.effects.any { it is CardEffect.Mirror } && player.lastPlayedCard != null) {
+                            ai.lastPlayedCard = player.lastPlayedCard
+                        } else if (aiCard.effects.any { it is CardEffect.Clone } && prevAiLastPlayed != null) {
+                            ai.lastPlayedCard = prevAiLastPlayed
+                        }
                         resetMirrorCloneInPile(ai.discardPile, aiCard, allCards)
                         updateCloneCards(ai.hand, ai.lastPlayedCard, allCards)
                         updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
