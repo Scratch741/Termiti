@@ -535,7 +535,7 @@ function isShapeShifterInstance(card) {
 }
 
 function transformShapeShifters(hand, cardPool) {
-  const validPool = cardPool.filter(c => !c.effects.some(fx => fx.type === 'ShapeShift'));
+  const validPool = cardPool.filter(c => !c.effects.some(fx => fx.type === 'ShapeShift') && !c.isPlaceholder);
   if (validPool.length === 0) return;
   for (let i = 0; i < hand.length; i++) {
     if (isShapeShifterInstance(hand[i])) {
