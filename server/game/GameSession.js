@@ -576,6 +576,7 @@ class GameSession {
     // Shapeshifter: použij displayBaseId → klient zobrazí transformovanou kartu, ne C34
     this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity,
+                                isCombo: card.isCombo || false,
                                 isGenerated: card.isGenerated || false,
                                 costModifier: card.costModifier || 0,
                                 playedAtTurn: this.turnNumber };
@@ -1073,6 +1074,7 @@ class GameSession {
 
     this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
                                cost: card.cost, costType: card.costType, rarity: card.rarity,
+                               isCombo: card.isCombo || false,
                                isGenerated: card.isGenerated || false,
                                costModifier: card.costModifier || 0,
                                playedAtTurn: this.turnNumber };

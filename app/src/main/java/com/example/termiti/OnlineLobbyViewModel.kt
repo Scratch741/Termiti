@@ -744,6 +744,9 @@ class OnlineLobbyViewModel(
                                 // Zrcadlo/Klon: server posílá costType z reálné karty (MAGIC),
                                 // ale template je kopírovaná karta (ATTACK) → musíme přepsat
                                 costType       = lpcCostType ?: template.costType,
+                                // isCombo ze serveru – Zrcadlo/Klon jsou combo; template (Intuice)
+                                // není → blesk by se bez toho nezobrazil
+                                isCombo        = lpc.optBoolean("isCombo", template.isCombo),
                                 // Nutné: id obsahuje suffix instance ("C41_5") → baseId = "C41".
                                 // displayDescription by pak hledalo v lang packu Zrcadlo místo
                                 // zobrazené karty (Intuice "111"). Explicitní localizationId fix.
