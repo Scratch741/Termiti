@@ -627,6 +627,13 @@ object CardPresentation {
             descriptionEn = "**This turn:** for each additional card played, draw 1 and gain 1 Magic. [Combo]",
             nameAccusative = "Archmága"
         ),
+        "C43" to CardPres(
+            "Zaútočí za 2. Příští karta, kterou zahraješ, se chová jako [Combo]. [Combo]",
+            R.drawable.art_najezd, "Útok",
+            artScale = 0.80f, artBiasY = -0.5f,
+            descriptionEn = "Deal 2 damage. The next card you play acts as [Combo]. [Combo]",
+            nameAccusative = "Nájezd"
+        ),
         "C42" to CardPres(
             "Zkopíruje efekt poslední karty, co jsi zahrál. Cena = originál +1. [Combo]",
             R.drawable.art_klon, "Chaos",
