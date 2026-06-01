@@ -516,6 +516,10 @@
       "name": "Velkovýroba",
       "desc": "+2 každý důl."
     },
+    "130": {
+      "name": "Rabování",
+      "desc": "+2 útok, -2 kameny. [Combo]"
+    },
     "129": {
       "name": "Příprava",
       "desc": "Zeď +2 a hrad +2. Zlevní náhodnou **STAVBA** kartu v ruce o 2."

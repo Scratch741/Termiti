@@ -295,6 +295,9 @@ object CardPresentation {
             artScale = 0.80f),
 
         // ── Stavba – nové posily (STONES buff) ───────────────────────────────
+        "130" to CardPres("+2 útok, -2 kameny. [Combo]",
+            R.drawable.art_lupic, "Útok",
+            artScale = 0.85f, artBiasY = -0.15f),
         "129" to CardPres("Zeď +2 a hrad +2. Zlevní náhodnou **STAVBA** kartu v ruce o 2.",
             R.drawable.art_priprava, "Stavba",
             artScale = 0.85f, artBiasY = -0.20f),

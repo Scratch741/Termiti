@@ -20,7 +20,7 @@ fun applyEffects(
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
-            self.resources[effect.type] = ((self.resources[effect.type] ?: 0) + effect.amount).coerceAtMost(MAX_RESOURCE)
+            self.resources[effect.type] = ((self.resources[effect.type] ?: 0) + effect.amount).coerceIn(0, MAX_RESOURCE)
 
         is CardEffect.AddResourceDelayed ->
             self.pendingResources.add(PendingResource(effect.type, effect.amount, effect.turns))

@@ -3869,6 +3869,30 @@
     "baseId": "C43"
   },
   {
+    "id": "130",
+    "name": "Rabování",
+    "cost": 0,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 2
+      },
+      {
+        "type": "AddResource",
+        "resType": "STONES",
+        "amount": -2
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "130"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,

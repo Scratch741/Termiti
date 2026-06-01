@@ -516,6 +516,10 @@
       "name": "Mass Production",
       "desc": "+2 to every mine."
     },
+    "130": {
+      "name": "Plunder",
+      "desc": "+2 attack, -2 stones. [Combo]"
+    },
     "129": {
       "name": "Preparation",
       "desc": "Wall +2 and castle +2. Discounts a random **BUILD** card in hand by 2."
