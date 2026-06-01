@@ -141,6 +141,11 @@ fun applyEffects(
 
         is CardEffect.NextCardIsCombo -> self.nextCardIsCombo = true
 
+        is CardEffect.NextTurnDiscount ->
+            self.pendingHandDiscounts.add(
+                PendingHandDiscount(costType = effect.costType, delta = effect.delta, turnsLeft = 1)
+            )
+
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))
             opponent.castleHP -= stolen

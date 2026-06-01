@@ -238,6 +238,7 @@ fun aiChooseAction(
             if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25) else 1
         }
         is CardEffect.NextCardIsCombo -> 3  // dává příští kartě combo = slabý ale užitečný efekt
+        is CardEffect.NextTurnDiscount -> fx.delta * 2  // sleva příští tah; 1 sleva ≈ hodnota 2
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

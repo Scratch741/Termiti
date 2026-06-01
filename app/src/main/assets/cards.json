@@ -1811,6 +1811,33 @@
     "baseId": "080"
   },
   {
+    "id": "129",
+    "name": "Příprava",
+    "cost": 1,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 2
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 2
+      },
+      {
+        "type": "NextTurnDiscount",
+        "delta": 1,
+        "costType": "STONES"
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "129"
+  },
+  {
     "id": "081",
     "name": "Rychlá hradba",
     "cost": 2,
@@ -3818,6 +3845,27 @@
     "isXCost": false,
     "isPlaceholder": false,
     "baseId": "L01"
+  },
+  {
+    "id": "C43",
+    "name": "Nájezd",
+    "cost": 1,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 2
+      },
+      {
+        "type": "NextCardIsCombo"
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "C43"
   },
   {
     "id": "101",

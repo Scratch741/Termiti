@@ -82,6 +82,7 @@ private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.Mirror                    -> "🪞"
     is CardEffect.Clone                     -> "🧬"
     is CardEffect.NextCardIsCombo           -> "⚡"
+    is CardEffect.NextTurnDiscount          -> "🏷️"
     null                              -> "❓"
 }
 

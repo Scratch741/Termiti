@@ -516,6 +516,10 @@
       "name": "Velkovýroba",
       "desc": "+2 každý důl."
     },
+    "129": {
+      "name": "Příprava",
+      "desc": "Hradby +2 a hrad +2. Příští stavební karta v dalším tahu stojí o 1 méně."
+    },
     "081": {
       "name": "Rychlá hradba",
       "desc": "Postaví hradby +6. [Combo]"

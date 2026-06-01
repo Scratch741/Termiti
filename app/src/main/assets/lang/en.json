@@ -516,6 +516,10 @@
       "name": "Mass Production",
       "desc": "+2 to every mine."
     },
+    "129": {
+      "name": "Preparation",
+      "desc": "Walls +2 and castle +2. Next building card in your next turn costs 1 less."
+    },
     "081": {
       "name": "Quick Wall",
       "desc": "Build walls +6. [Combo]"

@@ -166,4 +166,10 @@ sealed class CardEffect {
      * Flag [PlayerState.nextCardIsCombo] se nastaví na true a po sehrání příští karty se spotřebuje.
      */
     object NextCardIsCombo : CardEffect()
+
+    /**
+     * Na začátku příštího tahu hráče sníží cenu karet v ruce odpovídajícího [costType]
+     * o [delta] (záporné = levnější). Pokud je [costType] null, platí pro všechny typy.
+     */
+    data class NextTurnDiscount(val delta: Int = 1, val costType: ResourceType? = null) : CardEffect()
 }

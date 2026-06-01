@@ -16,6 +16,16 @@ data class PendingResource(
 )
 
 /**
+ * Odložená sleva na karty v ruce — aplikuje se na začátku příštího tahu.
+ * [costType] = null znamená všechny typy; [delta] > 0 = zlevnění (přičte se záporně k costModifier).
+ */
+data class PendingHandDiscount(
+    val costType : ResourceType?,
+    val delta    : Int,
+    var turnsLeft: Int = 1
+)
+
+/**
  * Mutable třída (záměrně NE data class) — obsahuje mutable kolekce (MutableList, MutableMap).
  * Kotlin `data class copy()` vytvoří pouze plytkou kopii (stejné reference na kolekce),
  * což by způsobilo sdílení stavu mezi hráčem a AI. Proto existuje [deepCopy].
@@ -90,7 +100,12 @@ class PlayerState(
      * Nastaví ho efekt [CardEffect.NextCardIsCombo]. Spotřebuje se při sehrání příští karty.
      * Resetuje se také při přechodu na nový tah.
      */
-    var nextCardIsCombo: Boolean = false
+    var nextCardIsCombo: Boolean = false,
+    /**
+     * Seznam čekajících slev na karty v ruce — aplikují se na začátku příštího tahu.
+     * Přidává je efekt [CardEffect.NextTurnDiscount].
+     */
+    var pendingHandDiscounts: MutableList<PendingHandDiscount> = mutableListOf()
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -110,7 +125,8 @@ class PlayerState(
         cloneNextPlayed                 = cloneNextPlayed,
         attackCardsThisTurn             = attackCardsThisTurn,
         lastPlayedCard                  = lastPlayedCard,
-        nextCardIsCombo                 = nextCardIsCombo
+        nextCardIsCombo                 = nextCardIsCombo,
+        pendingHandDiscounts            = pendingHandDiscounts.map { it.copy() }.toMutableList()
     )
 
     /**
@@ -130,7 +146,23 @@ class PlayerState(
             }
         }
 
-        // 2. Produkce dolů (s kontrolou blokády)
+        // 2. Odložené slevy na karty v ruce (NextTurnDiscount)
+        val discIter = pendingHandDiscounts.iterator()
+        while (discIter.hasNext()) {
+            val d = discIter.next()
+            d.turnsLeft--
+            if (d.turnsLeft <= 0) {
+                for (i in hand.indices) {
+                    val card = hand[i]
+                    if (d.costType == null || card.costType == d.costType) {
+                        hand[i] = card.copy(costModifier = card.costModifier - d.delta)
+                    }
+                }
+                discIter.remove()
+            }
+        }
+
+        // 3. Produkce dolů (s kontrolou blokády)
         for ((type, amount) in mines) {
             val blocked = mineBlockedTurns[type] ?: 0
             if (blocked > 0) {

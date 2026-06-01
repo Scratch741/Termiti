@@ -69,7 +69,22 @@ function generateResources(state) {
     return true; // nechej v seznamu
   });
 
-  // 2. Produkce dolů (s kontrolou blokády)
+  // 2. Odložené slevy na karty v ruce (NextTurnDiscount)
+  state.pendingHandDiscounts = (state.pendingHandDiscounts || []).filter(d => {
+    d.turnsLeft--;
+    if (d.turnsLeft <= 0) {
+      for (let i = 0; i < state.hand.length; i++) {
+        const card = state.hand[i];
+        if (!d.costType || card.costType === d.costType) {
+          state.hand[i] = { ...card, costModifier: (card.costModifier || 0) - d.delta };
+        }
+      }
+      return false; // odeber ze seznamu
+    }
+    return true; // nechej v seznamu
+  });
+
+  // 3. Produkce dolů (s kontrolou blokády)
   for (const [type, amount] of Object.entries(state.mines)) {
     const blocked = state.mineBlockedTurns[type] || 0;
     if (blocked > 0) {
@@ -365,6 +380,16 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         for (let i = 0; i < target.hand.length; i++) {
           target.hand[i] = { ...target.hand[i], costModifier: (target.hand[i].costModifier || 0) + fx.delta };
         }
+        break;
+      }
+
+      case 'NextTurnDiscount': {
+        self.pendingHandDiscounts = self.pendingHandDiscounts || [];
+        self.pendingHandDiscounts.push({
+          costType : fx.costType || null,
+          delta    : fx.delta || 1,
+          turnsLeft: 1
+        });
         break;
       }
 
