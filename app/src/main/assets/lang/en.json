@@ -518,7 +518,7 @@
     },
     "129": {
       "name": "Preparation",
-      "desc": "Walls +2 and castle +2. Discounts a random building card in hand by 2."
+      "desc": "Wall +2 and castle +2. Discounts a random [BUILD] card in hand by 2."
     },
     "081": {
       "name": "Quick Wall",
