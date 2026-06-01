@@ -654,7 +654,7 @@ const ART_MAP = {
   '124':'art_alchymistova_volba','125':'art_valecny_zapal','126':'art_magicky_proud',
   '127':'art_pyroblast',        '128':'art_archmag',
   'L01':'art_darkmage',
-  'C40':'art_zakerny_speh',  'C41':'art_zrcadlo',  'C42':'art_klon',
+  'C40':'art_zakerny_speh',  'C41':'art_zrcadlo',  'C42':'art_klon',  'C43':'art_default',
   'C01':'art_chaoticka_jiskra','C02':'art_entropie',       'C03':'art_chaoticky_dul',
   'C04':'art_kradez_chaosu',  'C05':'art_chaoticky_vybuch','C06':'art_boure_chaosu',
   'C07':'art_chaoticky_stit', 'C08':'art_zazrak_chaosu',   'C09':'art_chaoticka_krize',
@@ -904,6 +904,7 @@ function convertJsonEffect(fx) {
     case 'PeekAndStealHand':         return { t:'PSH' };
     case 'DecisionChooseResource':   return { t:'DCR', opts:fx.options||[] };
     case 'CloneNextPlayed':          return { t:'CNP', n:fx.count||2 };
+    case 'NextCardIsCombo':          return { t:'NCC' };
     case 'DrawPerCardPlayed':        return { t:'DPC', ct:fx.cardType||null };
     case 'GainResourcePerCardPlayed':return { t:'GRP', r:fx.resType, a:fx.amount, ct:fx.cardType||null };
     case 'GainCastlePerCardPlayed':  return { t:'GCP', a:fx.amount,  ct:fx.cardType||null };
@@ -1467,6 +1468,7 @@ let CARD_EFFECTS_DB = {
   "C37":{ct:"CHAOS", fx:[{t:"Trap",e:{t:"AC",a:5}}]},
   "123":{ct:"ATTACK",fx:[{t:"MMA",b:2,bon:4}],combo:false},
   "C40":{ct:"CHAOS", fx:[{t:"PSH"}]},
+  "C43":{ct:"ATTACK",fx:[{t:"AP",a:2},{t:"NCC"}],combo:true},
   "L01":{ct:"CHAOS", fx:[{t:"SR",r:"MAGIC",a:3},{t:"SR",r:"ATTACK",a:3},{t:"SR",r:"STONES",a:3},{t:"AC",a:18},{t:"SC",a:5}]},
 };
 
@@ -2094,6 +2096,7 @@ function createSimState() {
     gcp: [],    // GainCastlePerCardPlayed aktivní efekty
     dpc: false, // DrawPerCardPlayed aktivní
     cnp: 0,     // CloneNextPlayed zbývající klony
+    ncc: false, // NextCardIsCombo: příští karta se chová jako combo
   };
 }
 
@@ -2189,6 +2192,7 @@ function simFx(fx, me, opp, xv) {
     case 'GCP': me.gcp.push(fx); break;
     case 'DPC': me.dpc = true; break;
     case 'CNP': me.cnp = (me.cnp||0) + (fx.n||2); break;
+    case 'NCC': me.ncc = true; break;
     // ── Decision efekty – auto-pick v simulátoru ──────────────────────────────────
     case 'DCT': {
       const typeFilter = SIM_CARD_TYPE[fx.ct];
@@ -2409,7 +2413,7 @@ function simOneGame(deckA, deckB, trackCards) {
     if(ssPool.length) simTransformShapeShifters(me.hand, ssPool);
     // Reset per-turn efektů
     me.attackCards = 0;
-    me.grp = []; me.gcp = []; me.dpc = false; me.cnp = 0;
+    me.grp = []; me.gcp = []; me.dpc = false; me.cnp = 0; me.ncc = false;
 
     let waited=false, go=true;
     while(go){
@@ -2421,6 +2425,9 @@ function simOneGame(deckA, deckB, trackCards) {
         me.discard.push(c);
         if(trackCards) played[c.id]=(played[c.id]||0)+1;
         // ── Triggery "toto kolo" PŘED applyEffects (nastavené předchozí kartou) ──
+        // NextCardIsCombo: spotřebuj flag nastaven předchozí kartou
+        const nccBoost = !!me.ncc;
+        if(nccBoost) me.ncc = false;
         for(const g of me.grp) if(!g.ct||SIM_CARD_TYPE[g.ct]===c.costType) me.res[g.r]=Math.min(999,(me.res[g.r]||0)+g.a);
         for(const g of me.gcp) if(!g.ct||SIM_CARD_TYPE[g.ct]===c.costType) me.castleHP=Math.min(100,me.castleHP+g.a);
         if(me.dpc) simDraw(me,1);
@@ -2435,7 +2442,7 @@ function simOneGame(deckA, deckB, trackCards) {
         if(c.costType==='ATTACK') me.attackCards=(me.attackCards||0)+1;
         const w=simWin(pA,pB);
         if(w!==null)return{winner:w,turns:t,playedA,playedB};
-        if(!c.isCombo)go=false;
+        if(!c.isCombo && !nccBoost)go=false;
       } else if(act.type==='discard'){
         const idx=me.hand.indexOf(act.card);
         if(idx!==-1)me.hand.splice(idx,1);

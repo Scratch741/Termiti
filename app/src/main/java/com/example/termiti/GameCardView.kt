@@ -130,6 +130,7 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.DecisionChooseResource    -> "⚗️"
     is CardEffect.Mirror                    -> "🪞"
     is CardEffect.Clone                     -> "🧬"
+    is CardEffect.NextCardIsCombo           -> "⚡"
     null                              -> "❓"
 }
 

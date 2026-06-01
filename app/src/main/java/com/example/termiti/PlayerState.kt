@@ -84,7 +84,13 @@ class PlayerState(
      * Poslední karta zahraná tímto hráčem — čte ji soupeřova karta [CardEffect.Mirror].
      * Aktualizuje se v GameViewModel těsně před [applyEffects].
      */
-    var lastPlayedCard: Card? = null
+    var lastPlayedCard: Card? = null,
+    /**
+     * true = příští karta sehraná v tomto kole se chová jako Combo (neukončí tah).
+     * Nastaví ho efekt [CardEffect.NextCardIsCombo]. Spotřebuje se při sehrání příští karty.
+     * Resetuje se také při přechodu na nový tah.
+     */
+    var nextCardIsCombo: Boolean = false
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -103,7 +109,8 @@ class PlayerState(
         gainCastlePerCardPlayed         = gainCastlePerCardPlayed.toMutableList(),
         cloneNextPlayed                 = cloneNextPlayed,
         attackCardsThisTurn             = attackCardsThisTurn,
-        lastPlayedCard                  = lastPlayedCard
+        lastPlayedCard                  = lastPlayedCard,
+        nextCardIsCombo                 = nextCardIsCombo
     )
 
     /**

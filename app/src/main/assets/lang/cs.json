@@ -872,6 +872,10 @@
       "name": "Klon",
       "desc": "Zkopíruje efekt poslední karty, co jsi zahrál. Cena +1. [Combo]"
     },
+    "C43": {
+      "name": "Rozjezd",
+      "desc": "Zaútočí za 2. Příští karta, kterou zahraješ, se chová jako [Combo]. [Combo]"
+    },
     "124": {
       "name": "Alchymistova volba",
       "desc": "**Rozhodnutí:** získej 4 magie, 4 útok, 4 kameny, nebo 4 chaos. [Combo]"

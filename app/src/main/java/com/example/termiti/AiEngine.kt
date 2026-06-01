@@ -237,6 +237,7 @@ fun aiChooseAction(
             val src = ai.lastPlayedCard
             if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25) else 1
         }
+        is CardEffect.NextCardIsCombo -> 3  // dává příští kartě combo = slabý ale užitečný efekt
     }
 
     // ── Detekce lethal: karta okamžitě vyhraje hru tento tah ──────────────

@@ -872,6 +872,10 @@
       "name": "Clone",
       "desc": "Copies the effect of the last card you played. Cost +1. [Combo]"
     },
+    "C43": {
+      "name": "Running Start",
+      "desc": "Deal 2 damage. The next card you play acts as [Combo]. [Combo]"
+    },
     "124": {
       "name": "Alchemist's Choice",
       "desc": "**Decision:** gain 4 Magic, 4 Attack, 4 Stone, or 4 Chaos. [Combo]"

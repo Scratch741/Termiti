@@ -588,6 +588,9 @@ class GameSession {
     // Nastav typ právě hrané karty před applyEffects – podmínka LastPlayedType to přečte
     self.lastPlayedType = deriveCardType(card);
 
+    // NextCardIsCombo: flag nastaven předchozí kartou → tato karta se chová jako combo (neukončí tah)
+    const nextComboBoost = !!self.nextCardIsCombo;
+    if (nextComboBoost) self.nextCardIsCombo = false;
     // CloneNextPlayed: flag nastaven předchozí kartou → přidej kopie právě zahrané karty do balíčku
     const cardType = deriveCardType(card);
     const cloneCount = self.cloneNextPlayed || 0;
@@ -796,10 +799,11 @@ class GameSession {
     }
 
     // Non-combo karta → automaticky ukončí tah (jako offline hra)
-    if (!card.isCombo) {
+    // nextComboBoost: flag nastaven předchozí kartou (NextCardIsCombo efekt) – tato karta se chová jako combo
+    if (!card.isCombo && !nextComboBoost) {
       this._advanceTurn();
     } else {
-      // Combo karta → hráč pokračuje v tahu, jen pošleme nový stav
+      // Combo karta (nebo boost z NextCardIsCombo) → hráč pokračuje v tahu
       this._sendStateBoth();
     }
   }
@@ -1149,6 +1153,7 @@ class GameSession {
     prevState.gainCastlePerCardPlayed = [];
     prevState.cloneNextPlayed = 0;
     prevState.attackCardsThisTurn = 0;
+    prevState.nextCardIsCombo = false;
 
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';

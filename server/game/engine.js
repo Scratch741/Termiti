@@ -31,7 +31,9 @@ function createPlayerState(deckCards) {
     /** Seznam aktivních GainResourcePerCardPlayed efektů pro toto kolo. */
     gainResourcePerCardPlayed: [],
     /** Seznam aktivních GainCastlePerCardPlayed efektů pro toto kolo. */
-    gainCastlePerCardPlayed: []
+    gainCastlePerCardPlayed: [],
+    /** true = příští karta se chová jako combo (neukončí tah). Spotřebuje se po zahraní příští karty. */
+    nextCardIsCombo: false
   };
 }
 
@@ -306,6 +308,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
 
       case 'CloneNextPlayed':
         self.cloneNextPlayed = fx.count;
+        break;
+
+      case 'NextCardIsCombo':
+        self.nextCardIsCombo = true;
         break;
 
       case 'StealCastle': {

@@ -160,4 +160,10 @@ sealed class CardEffect {
     data class XScaledBuildCastle(val divisor: Int = 2) : CardEffect()
     /** Přidá (X / divisor) k oběma zadaným zdrojům kde X = veškerý spotřebovaný zdroj. */
     data class XScaledDualResource(val typeA: ResourceType, val typeB: ResourceType, val divisor: Int = 2) : CardEffect()
+
+    /**
+     * Příští karta zahraná hráčem (nebo AI) se chová jako [Combo] – neukončí tah.
+     * Flag [PlayerState.nextCardIsCombo] se nastaví na true a po sehrání příští karty se spotřebuje.
+     */
+    object NextCardIsCombo : CardEffect()
 }

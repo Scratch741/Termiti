@@ -1061,6 +1061,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // DrawCard efekty se zpracují samostatně (postupný líz s animací a zvukem)
         var pendingDrawCount = 0
+        // NextCardIsCombo: flag nastaven předchozí kartou → tato karta se chová jako combo (neukončí tah).
+        val nextComboBoost = player.nextCardIsCombo
+        if (nextComboBoost) player.nextCardIsCombo = false
         // CloneNextPlayed: flag nastaven předchozí kartou → naklonuj tuto kartu do balíčku.
         // Klony se přidají hned (hráč vidí nárůst balíčku), UUID zaručuje unikátní ID každé kopie.
         val cloneCount = player.cloneNextPlayed
@@ -1143,7 +1146,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 decisionPlayer       = player
                 decisionAi           = ai
                 decisionOld          = old
-                decisionIsCombo      = card.isCombo
+                decisionIsCombo      = card.isCombo || nextComboBoost
                 decisionEffect       = decisionFx
                 // Uložíme pending lízy (DrawPerCardPlayed, DrawCard efekty) –
                 // provedeme je v resolveDecision po výběru karty hráčem.
@@ -1164,7 +1167,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         if (pendingDrawCount > 0) {
             // Postupný líz: každá karta dolízne zvlášť se zvukem + animací
-            val isComboCard = card.isCombo
+            val isComboCard = card.isCombo || nextComboBoost
             viewModelScope.launch(crashHandler) {
                 // Zamkni hráče během lízání
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
@@ -1207,7 +1210,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
-        if (card.isCombo) {
+        if (card.isCombo || nextComboBoost) {
             // Combo: neukončuj kolo, hráč může hrát dál
             isPlayerComboTurn.value = true
             gameState.value = s1
@@ -1318,6 +1321,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         }
                         ai.lastPlayedType = aiCard.type
                         // lastPlayedCard se nastavuje AŽ PO applyEffects AI (viz níže)
+                        // NextCardIsCombo: flag nastaven předchozí kartou AI
+                        val aiNextComboBoost = ai.nextCardIsCombo
+                        if (aiNextComboBoost) ai.nextCardIsCombo = false
                         // CloneNextPlayed: flag nastaven předchozí kartou AI → naklonuj tuto kartu do balíčku.
                         val aiCloneCount = ai.cloneNextPlayed
                         if (aiCloneCount != null && aiCloneCount > 0) {
@@ -1470,7 +1476,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
 
-                        if (aiCard.isCombo) {
+                        if (aiCard.isCombo || aiNextComboBoost) {
                             // Combo: krátká pauza + mezistate + pokračuj.
                             // activePlayer musí zůstat AI, aby hráč nemohl kliknout
                             // v okně delay a nespustil druhou souběžnou finishTurn coroutinu.
@@ -1596,6 +1602,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
             player.cloneNextPlayed = null;              ai.cloneNextPlayed = null
             player.attackCardsThisTurn = 0;  ai.attackCardsThisTurn = 0
+            player.nextCardIsCombo = false;  ai.nextCardIsCombo = false
 
             // Kontrola po lízu: balíčky mohly dojít právě teď
             val s3 = old.copy(
