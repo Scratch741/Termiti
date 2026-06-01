@@ -518,7 +518,7 @@
     },
     "129": {
       "name": "Příprava",
-      "desc": "Zeď +2 a hrad +2. Zlevní náhodnou [STAVBA] kartu v ruce o 2."
+      "desc": "Zeď +2 a hrad +2. Zlevní náhodnou **STAVBA** kartu v ruce o 2."
     },
     "081": {
       "name": "Rychlá hradba",
