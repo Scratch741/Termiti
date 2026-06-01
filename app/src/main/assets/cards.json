@@ -1827,8 +1827,9 @@
       },
       {
         "type": "NextTurnDiscount",
-        "delta": 1,
-        "costType": "STONES"
+        "delta": 2,
+        "costType": "STONES",
+        "count": 1
       }
     ],
     "rarity": "EPIC",

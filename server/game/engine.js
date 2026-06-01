@@ -73,11 +73,14 @@ function generateResources(state) {
   state.pendingHandDiscounts = (state.pendingHandDiscounts || []).filter(d => {
     d.turnsLeft--;
     if (d.turnsLeft <= 0) {
-      for (let i = 0; i < state.hand.length; i++) {
-        const card = state.hand[i];
-        if (!d.costType || card.costType === d.costType) {
-          state.hand[i] = { ...card, costModifier: (card.costModifier || 0) - d.delta };
-        }
+      const matching = state.hand
+        .map((c, i) => ({ c, i }))
+        .filter(({ c }) => !d.costType || c.costType === d.costType);
+      const targets = (d.count > 0)
+        ? matching.sort(() => Math.random() - 0.5).slice(0, d.count)
+        : matching;
+      for (const { i } of targets) {
+        state.hand[i] = { ...state.hand[i], costModifier: (state.hand[i].costModifier || 0) - d.delta };
       }
       return false; // odeber ze seznamu
     }
@@ -388,6 +391,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         self.pendingHandDiscounts.push({
           costType : fx.costType || null,
           delta    : fx.delta || 1,
+          count    : fx.count || 0,
           turnsLeft: 1
         });
         break;

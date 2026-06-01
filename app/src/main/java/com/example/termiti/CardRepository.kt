@@ -159,7 +159,8 @@ object CardRepository {
         "NextTurnDiscount"      -> CardEffect.NextTurnDiscount(
             delta    = obj.optInt("delta", 1),
             costType = obj.optString("costType").takeIf { it.isNotEmpty() }
-                           ?.let { ResourceType.valueOf(it) }
+                           ?.let { ResourceType.valueOf(it) },
+            count    = obj.optInt("count", 0)
         )
         "DecisionChooseResource" -> {
             val optsArr = obj.getJSONArray("options")

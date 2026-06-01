@@ -17,11 +17,13 @@ data class PendingResource(
 
 /**
  * Odložená sleva na karty v ruce — aplikuje se na začátku příštího tahu.
- * [costType] = null znamená všechny typy; [delta] > 0 = zlevnění (přičte se záporně k costModifier).
+ * [costType] = null znamená všechny typy; [delta] > 0 = zlevnění.
+ * [count] = 0 → všechny odpovídající karty; [count] > 0 → tolik náhodně vybraných karet.
  */
 data class PendingHandDiscount(
     val costType : ResourceType?,
     val delta    : Int,
+    val count    : Int = 0,
     var turnsLeft: Int = 1
 )
 
@@ -152,11 +154,10 @@ class PlayerState(
             val d = discIter.next()
             d.turnsLeft--
             if (d.turnsLeft <= 0) {
-                for (i in hand.indices) {
-                    val card = hand[i]
-                    if (d.costType == null || card.costType == d.costType) {
-                        hand[i] = card.copy(costModifier = card.costModifier - d.delta)
-                    }
+                val matching = hand.indices.filter { d.costType == null || hand[it].costType == d.costType }
+                val targets  = if (d.count > 0) matching.shuffled().take(d.count) else matching
+                targets.forEach { i ->
+                    hand[i] = hand[i].copy(costModifier = hand[i].costModifier - d.delta)
                 }
                 discIter.remove()
             }

@@ -170,7 +170,7 @@ const RAW = [
   ['080','Velkovýroba',   10,'MAGIC', 0,[am('MAGIC',2), am('ATTACK',2), am('STONES',2)], 'LEGENDARY'],
 
   // ── Stavba – nové posily (STONES buff) ─────────────────────────────────────
-  ['129','Příprava',       1,'STONES',0,[bw(2),bc(2),{ type:'NextTurnDiscount', delta:1, costType:'STONES' }], 'EPIC'],
+  ['129','Příprava',       1,'STONES',0,[bw(2),bc(2),{ type:'NextTurnDiscount', delta:2, costType:'STONES', count:1 }], 'EPIC'],
   ['081','Rychlá hradba',  2,'STONES',1,[bw(6)],               'RARE'],
   ['082','Masivní zeď',    6,'STONES',0,[bw(18)],              'RARE'],
   ['083','Nouzové opevnění',3,'STONES',0,[cd(wB(10), bw(14))], 'RARE'],

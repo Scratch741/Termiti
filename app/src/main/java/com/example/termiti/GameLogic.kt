@@ -143,7 +143,7 @@ fun applyEffects(
 
         is CardEffect.NextTurnDiscount ->
             self.pendingHandDiscounts.add(
-                PendingHandDiscount(costType = effect.costType, delta = effect.delta, turnsLeft = 1)
+                PendingHandDiscount(costType = effect.costType, delta = effect.delta, count = effect.count, turnsLeft = 1)
             )
 
         is CardEffect.StealCastle -> {

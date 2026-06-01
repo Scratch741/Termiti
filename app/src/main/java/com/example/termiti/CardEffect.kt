@@ -168,8 +168,8 @@ sealed class CardEffect {
     object NextCardIsCombo : CardEffect()
 
     /**
-     * Na začátku příštího tahu hráče sníží cenu karet v ruce odpovídajícího [costType]
-     * o [delta] (záporné = levnější). Pokud je [costType] null, platí pro všechny typy.
+     * Na začátku příštího tahu hráče sníží cenu [count] náhodně vybraných karet v ruce
+     * odpovídajícího [costType] o [delta]. [count] = 0 = všechny odpovídající karty.
      */
-    data class NextTurnDiscount(val delta: Int = 1, val costType: ResourceType? = null) : CardEffect()
+    data class NextTurnDiscount(val delta: Int = 1, val costType: ResourceType? = null, val count: Int = 0) : CardEffect()
 }
