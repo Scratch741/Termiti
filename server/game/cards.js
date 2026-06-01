@@ -289,8 +289,8 @@ const RAW = [
   // ── Temný mág – ikonická legenda ──────────────────────────────────────────
   ['L01','Temný mág',         13,'CHAOS', 0,[sr('MAGIC',3),sr('ATTACK',3),sr('STONES',3),ac(18),sca(5)], 'LEGENDARY'],
 
-  // ── Rozjezd ───────────────────────────────────────────────────────────────
-  ['C43','Rozjezd',            1,'ATTACK',1,[ap(2),{ type:'NextCardIsCombo' }], 'COMMON'],
+  // ── Nájezd ────────────────────────────────────────────────────────────────
+  ['C43','Nájezd',             1,'ATTACK',1,[ap(2),{ type:'NextCardIsCombo' }], 'RARE'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
