@@ -156,11 +156,11 @@ object CardRepository {
         "Mirror"                -> CardEffect.Mirror
         "Clone"                 -> CardEffect.Clone
         "NextCardIsCombo"       -> CardEffect.NextCardIsCombo
-        "NextTurnDiscount"      -> CardEffect.NextTurnDiscount(
-            delta    = obj.optInt("delta", 1),
+        "DiscountRandomCard"    -> CardEffect.DiscountRandomCard(
+            delta    = obj.optInt("delta", 2),
             costType = obj.optString("costType").takeIf { it.isNotEmpty() }
                            ?.let { ResourceType.valueOf(it) },
-            count    = obj.optInt("count", 0)
+            count    = obj.optInt("count", 1)
         )
         "DecisionChooseResource" -> {
             val optsArr = obj.getJSONArray("options")

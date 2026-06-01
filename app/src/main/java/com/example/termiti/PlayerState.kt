@@ -15,17 +15,6 @@ data class PendingResource(
     var turnsLeft: Int
 )
 
-/**
- * Odložená sleva na karty v ruce — aplikuje se na začátku příštího tahu.
- * [costType] = null znamená všechny typy; [delta] > 0 = zlevnění.
- * [count] = 0 → všechny odpovídající karty; [count] > 0 → tolik náhodně vybraných karet.
- */
-data class PendingHandDiscount(
-    val costType : ResourceType?,
-    val delta    : Int,
-    val count    : Int = 0,
-    var turnsLeft: Int = 1
-)
 
 /**
  * Mutable třída (záměrně NE data class) — obsahuje mutable kolekce (MutableList, MutableMap).
@@ -102,12 +91,7 @@ class PlayerState(
      * Nastaví ho efekt [CardEffect.NextCardIsCombo]. Spotřebuje se při sehrání příští karty.
      * Resetuje se také při přechodu na nový tah.
      */
-    var nextCardIsCombo: Boolean = false,
-    /**
-     * Seznam čekajících slev na karty v ruce — aplikují se na začátku příštího tahu.
-     * Přidává je efekt [CardEffect.NextTurnDiscount].
-     */
-    var pendingHandDiscounts: MutableList<PendingHandDiscount> = mutableListOf()
+    var nextCardIsCombo: Boolean = false
 ) {
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
@@ -127,8 +111,7 @@ class PlayerState(
         cloneNextPlayed                 = cloneNextPlayed,
         attackCardsThisTurn             = attackCardsThisTurn,
         lastPlayedCard                  = lastPlayedCard,
-        nextCardIsCombo                 = nextCardIsCombo,
-        pendingHandDiscounts            = pendingHandDiscounts.map { it.copy() }.toMutableList()
+        nextCardIsCombo                 = nextCardIsCombo
     )
 
     /**
@@ -148,22 +131,7 @@ class PlayerState(
             }
         }
 
-        // 2. Odložené slevy na karty v ruce (NextTurnDiscount)
-        val discIter = pendingHandDiscounts.iterator()
-        while (discIter.hasNext()) {
-            val d = discIter.next()
-            d.turnsLeft--
-            if (d.turnsLeft <= 0) {
-                val matching = hand.indices.filter { d.costType == null || hand[it].costType == d.costType }
-                val targets  = if (d.count > 0) matching.shuffled().take(d.count) else matching
-                targets.forEach { i ->
-                    hand[i] = hand[i].copy(costModifier = hand[i].costModifier - d.delta)
-                }
-                discIter.remove()
-            }
-        }
-
-        // 3. Produkce dolů (s kontrolou blokády)
+        // 2. Produkce dolů (s kontrolou blokády)
         for ((type, amount) in mines) {
             val blocked = mineBlockedTurns[type] ?: 0
             if (blocked > 0) {

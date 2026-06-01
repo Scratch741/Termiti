@@ -1826,7 +1826,7 @@
         "amount": 2
       },
       {
-        "type": "NextTurnDiscount",
+        "type": "DiscountRandomCard",
         "delta": 2,
         "costType": "STONES",
         "count": 1

@@ -141,10 +141,12 @@ fun applyEffects(
 
         is CardEffect.NextCardIsCombo -> self.nextCardIsCombo = true
 
-        is CardEffect.NextTurnDiscount ->
-            self.pendingHandDiscounts.add(
-                PendingHandDiscount(costType = effect.costType, delta = effect.delta, count = effect.count, turnsLeft = 1)
-            )
+        is CardEffect.DiscountRandomCard -> {
+            val matching = self.hand.indices.filter { effect.costType == null || self.hand[it].costType == effect.costType }
+            matching.shuffled().take(effect.count).forEach { i ->
+                self.hand[i] = self.hand[i].copy(costModifier = self.hand[i].costModifier - effect.delta)
+            }
+        }
 
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))

@@ -69,25 +69,7 @@ function generateResources(state) {
     return true; // nechej v seznamu
   });
 
-  // 2. Odložené slevy na karty v ruce (NextTurnDiscount)
-  state.pendingHandDiscounts = (state.pendingHandDiscounts || []).filter(d => {
-    d.turnsLeft--;
-    if (d.turnsLeft <= 0) {
-      const matching = state.hand
-        .map((c, i) => ({ c, i }))
-        .filter(({ c }) => !d.costType || c.costType === d.costType);
-      const targets = (d.count > 0)
-        ? matching.sort(() => Math.random() - 0.5).slice(0, d.count)
-        : matching;
-      for (const { i } of targets) {
-        state.hand[i] = { ...state.hand[i], costModifier: (state.hand[i].costModifier || 0) - d.delta };
-      }
-      return false; // odeber ze seznamu
-    }
-    return true; // nechej v seznamu
-  });
-
-  // 3. Produkce dolů (s kontrolou blokády)
+  // 2. Produkce dolů (s kontrolou blokády)
   for (const [type, amount] of Object.entries(state.mines)) {
     const blocked = state.mineBlockedTurns[type] || 0;
     if (blocked > 0) {
@@ -386,13 +368,13 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
       }
 
-      case 'NextTurnDiscount': {
-        self.pendingHandDiscounts = self.pendingHandDiscounts || [];
-        self.pendingHandDiscounts.push({
-          costType : fx.costType || null,
-          delta    : fx.delta || 1,
-          count    : fx.count || 0,
-          turnsLeft: 1
+      case 'DiscountRandomCard': {
+        const pool = self.hand
+          .map((c, i) => ({ c, i }))
+          .filter(({ c }) => !fx.costType || c.costType === fx.costType);
+        const count = fx.count || 1;
+        pool.sort(() => Math.random() - 0.5).slice(0, count).forEach(({ i }) => {
+          self.hand[i] = { ...self.hand[i], costModifier: (self.hand[i].costModifier || 0) - (fx.delta || 2) };
         });
         break;
       }

@@ -518,7 +518,7 @@
     },
     "129": {
       "name": "Preparation",
-      "desc": "Walls +2 and castle +2. At the start of your next turn, 1 random building card in hand costs 2 less."
+      "desc": "Walls +2 and castle +2. Discounts a random building card in hand by 2."
     },
     "081": {
       "name": "Quick Wall",
