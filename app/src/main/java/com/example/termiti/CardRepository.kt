@@ -155,6 +155,7 @@ object CardRepository {
         "PeekAndStealHand"      -> CardEffect.PeekAndStealHand
         "Mirror"                -> CardEffect.Mirror
         "Clone"                 -> CardEffect.Clone
+        "NextCardIsCombo"       -> CardEffect.NextCardIsCombo
         "DecisionChooseResource" -> {
             val optsArr = obj.getJSONArray("options")
             val opts = (0 until optsArr.length()).map { i ->
