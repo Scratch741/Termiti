@@ -520,6 +520,10 @@
       "name": "Rabování",
       "desc": "+2 útok, -2 kameny. [Combo]"
     },
+    "131": {
+      "name": "Katapult",
+      "desc": "Zaútočí za 6. Zničí 1 kamenný důl soupeře (min. 1)."
+    },
     "129": {
       "name": "Příprava",
       "desc": "Hradba +2 a hrad +2. Zlevní náhodnou **STAVBA** kartu v ruce o 2."

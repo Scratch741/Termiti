@@ -294,6 +294,9 @@ const RAW = [
   ['C43','Nájezd',             1,'ATTACK',1,[ap(2),{ type:'NextCardIsCombo' }], 'RARE'],
   ['130','Rabování',           0,'ATTACK',1,[ar('ATTACK',2), ar('STONES',-2)],  'RARE'],
 
+  // ── Katapult ──────────────────────────────────────────────────────────────
+  ['131','Katapult',           6,'ATTACK',0,[ap(6), dm('STONES',1)], 'RARE'],
+
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
   ['102','Kamenný příval',  0,'STONES',0,[xbc(2)],             'LEGENDARY', true],

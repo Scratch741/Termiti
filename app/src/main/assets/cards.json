@@ -3893,6 +3893,29 @@
     "baseId": "130"
   },
   {
+    "id": "131",
+    "name": "Katapult",
+    "cost": 6,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 6
+      },
+      {
+        "type": "DestroyMine",
+        "resType": "STONES",
+        "amount": 1
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "131"
+  },
+  {
     "id": "101",
     "name": "Náhlá smrt",
     "cost": 0,
