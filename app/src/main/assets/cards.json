@@ -3286,7 +3286,7 @@
     "name": "Válečný trénink",
     "cost": 4,
     "costType": "ATTACK",
-    "isCombo": true,
+    "isCombo": false,
     "effects": [
       {
         "type": "AttackPlayer",
