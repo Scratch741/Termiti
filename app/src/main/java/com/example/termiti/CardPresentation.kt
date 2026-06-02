@@ -299,7 +299,7 @@ object CardPresentation {
             R.drawable.art_default, "Útok",
             artScale = 0.80f, artBiasY = -0.50f,
             descriptionEn = "Attack for 6. Destroy 1 of the opponent's Stone mines (min. 1).",
-            nameAccusative = "Katapult"),
+            nameAccusative = "Invazi"),
         "130" to CardPres("+2 útok, -2 kameny. [Combo]",
             R.drawable.art_rabovani, "Útok",
             artScale = 0.80f, artBiasY = 0.10f),
