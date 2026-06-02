@@ -285,7 +285,7 @@ const RAW = [
   ['125','Válečný zápal',      2,'ATTACK',1,[ap(4),grp('CHAOS',1)], 'RARE'],
   ['126','Magický proud',      2,'MAGIC', 1,[grp('CHAOS',2,'Magie')],       'EPIC'],
   ['127','Pyroblast',          6,'MAGIC', 0,[ac(10),dr('MAGIC',2)],         'EPIC'],
-  ['128','Archmág',            6,'MAGIC', 1,[dpc(),grp('MAGIC',1)],         'LEGENDARY'],
+  ['128','Archmág',            9,'MAGIC', 1,[dpc(),grp('MAGIC',1)],         'LEGENDARY'],
 
   // ── Temný mág – ikonická legenda ──────────────────────────────────────────
   ['L01','Temný mág',         13,'CHAOS', 0,[sr('MAGIC',3),sr('ATTACK',3),sr('STONES',3),ac(18),sca(5)], 'LEGENDARY'],

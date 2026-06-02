@@ -3791,7 +3791,7 @@
   {
     "id": "128",
     "name": "Archmág",
-    "cost": 6,
+    "cost": 9,
     "costType": "MAGIC",
     "isCombo": true,
     "effects": [
