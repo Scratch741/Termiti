@@ -16,7 +16,8 @@ fun applyEffects(
     allCards: List<Card>,
     xValue:   Int = 0,
     onOpponentCardLost: ((Card, CardAction) -> Unit)? = null,
-    onDrawCard: ((PlayerState, Int) -> Unit)? = null
+    onDrawCard: ((PlayerState, Int) -> Unit)? = null,
+    maxHandSize: Int? = null
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
@@ -187,8 +188,13 @@ fun applyEffects(
         is CardEffect.GiveRandomCard -> {
             val pool = allCards.filter { it.costType == effect.costType && !it.isPlaceholder }
             if (pool.isNotEmpty()) {
-                val card = pool.random().copy(isGenerated = true)
-                if (self.hand.size < 7) self.hand.add(card)
+                val tmpl = pool.random()
+                val card = tmpl.copy(
+                    id          = "${tmpl.id}_${java.util.UUID.randomUUID()}",
+                    isGenerated = true
+                )
+                val maxHand = maxHandSize ?: 7
+                if (self.hand.size < maxHand) self.hand.add(card)
                 else self.discardPile.add(card)
             }
         }

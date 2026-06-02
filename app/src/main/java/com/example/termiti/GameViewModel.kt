@@ -1097,7 +1097,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 cardHistory.appendHistory(lostCard, action, isMine = false)
                 addCardLog("Hráč", lostCard, action, isMe = false)
             },
-            onDrawCard = { _, count -> pendingDrawCount += count })
+            onDrawCard = { _, count -> pendingDrawCount += count },
+            maxHandSize = old.playerMaxHand)
         // Quest: poškození hradu
         val castleDmg = (aiCastleHpBefore - ai.castleHP).coerceAtLeast(0)
         if (castleDmg > 0) QuestManager.onDamageDealt(castleDmg)
@@ -1368,7 +1369,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                         log.appendLog(trapLogMsg(trap, isPlayer = false))
                                     }
                                 }
-                            }
+                            },
+                            maxHandSize = old.aiMaxHand
                         )
                         // AI auto-pick pro Decision efekty
                         for (fx in aiCard.effects) {
