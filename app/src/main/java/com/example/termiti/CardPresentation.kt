@@ -267,7 +267,7 @@ object CardPresentation {
 
         // ── Zdroje + doly – Arcomage/Mravenci inspirace ───────────────────────
         "072" to CardPres("+2 útoku, trvale +1 důl útoku.",
-            R.drawable.art_zbrojnice, "Magie",
+            R.drawable.art_zbrojnice, "Doly",
             artScale = 0.80f, artBiasY = 0.60f),
         "073" to CardPres("+2 magie, trvale +1 důl magie.",
             R.drawable.art_skola_magie, "Důl",
@@ -296,9 +296,9 @@ object CardPresentation {
 
         // ── Stavba – nové posily (STONES buff) ───────────────────────────────
         "131" to CardPres("Zaútočí za 6. Zničí 1 kamenný důl soupeře (min. 1).",
-            R.drawable.art_default, "Útok",
-            artScale = 0.80f, artBiasY = -0.50f,
-            descriptionEn = "Attack for 6. Destroy 1 of the opponent's Stone mines (min. 1).",
+            R.drawable.art_invaze, "Útok",
+            artScale = 0.80f, artBiasY = 0.00f,
+            descriptionEn = "Attack for 8. Destroy 1 of the opponent's Stone mines (min. 1).",
             nameAccusative = "Invazi"),
         "130" to CardPres("+2 útok, -2 kameny. [Combo]",
             R.drawable.art_rabovani, "Útok",

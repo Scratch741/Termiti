@@ -295,7 +295,7 @@ const RAW = [
   ['130','Rabování',           0,'ATTACK',1,[ar('ATTACK',2), ar('STONES',-2)],  'RARE'],
 
   // ── Invaze ────────────────────────────────────────────────────────────────
-  ['131','Invaze',             6,'ATTACK',0,[ap(6), dm('STONES',1)], 'RARE'],
+  ['131','Invaze',             7,'ATTACK',0,[ap(8), dm('STONES',1)], 'EPIC'],
 
   // ── X-kost karty ──────────────────────────────────────────────────────────
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],

@@ -3895,13 +3895,13 @@
   {
     "id": "131",
     "name": "Invaze",
-    "cost": 6,
+    "cost": 7,
     "costType": "ATTACK",
     "isCombo": false,
     "effects": [
       {
         "type": "AttackPlayer",
-        "amount": 6
+        "amount": 8
       },
       {
         "type": "DestroyMine",
@@ -3909,7 +3909,7 @@
         "amount": 1
       }
     ],
-    "rarity": "RARE",
+    "rarity": "EPIC",
     "maxCopies": 2,
     "isXCost": false,
     "isPlaceholder": false,
