@@ -618,10 +618,10 @@ object CardPresentation {
             nameAccusative = "Válečný zápal"
         ),
         "126" to CardPres(
-            "**Toto kolo:** každá magická karta přidá 2 chaos. [Combo]",
+            "Chaos +2. **Toto kolo:** každá magická karta přidá 2 chaos. [Combo]",
             R.drawable.art_magicky_proud, "Magie",
             artScale = 0.80f, artBiasY = -0.60f,
-            descriptionEn = "**This turn:** each Magic card adds 2 chaos. [Combo]",
+            descriptionEn = "Chaos +2. **This turn:** each Magic card adds 2 chaos. [Combo]",
             nameAccusative = "Magický proud"
         ),
         "127" to CardPres(

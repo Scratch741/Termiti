@@ -3750,6 +3750,11 @@
     "isCombo": true,
     "effects": [
       {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      },
+      {
         "type": "GainResourcePerCardPlayed",
         "resType": "CHAOS",
         "amount": 2,
