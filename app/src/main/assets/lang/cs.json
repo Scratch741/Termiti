@@ -814,7 +814,7 @@
     },
     "109": {
       "name": "Rekrut",
-      "desc": "**Rozhodnutí:** Vyber si 1 útočnou kartu ze hry. Zlevni ji o 2. [Combo]"
+      "desc": "**Rozhodnutí:** Vyber si 1 kartu **ÚTOK** ze hry. Zlevni ji o 2. [Combo]"
     },
     "110": {
       "name": "Vzpomínka",
@@ -826,15 +826,15 @@
     },
     "112": {
       "name": "Stavitel",
-      "desc": "**Rozhodnutí:** Vyber si 1 stavební kartu ze hry. Zlevni ji o 2. [Combo]"
+      "desc": "**Rozhodnutí:** Vyber si 1 kartu **STAVBA** ze hry. Zlevni ji o 2. [Combo]"
     },
     "113": {
       "name": "Goblin šaman",
-      "desc": "**Rozhodnutí:** Vyber si 1 magickou kartu ze hry. Zlevni ji o 2. [Combo]"
+      "desc": "**Rozhodnutí:** Vyber si 1 kartu **MAGIE** ze hry. Zlevni ji o 2. [Combo]"
     },
     "114": {
       "name": "Chaotický mudrc",
-      "desc": "**Rozhodnutí:** Vyber si 1 chaotickou kartu ze hry. Zlevni ji o 2. [Combo]"
+      "desc": "**Rozhodnutí:** Vyber si 1 kartu **CHAOS** ze hry. Zlevni ji o 2. [Combo]"
     },
     "115": {
       "name": "Studna vědomostí",
@@ -854,7 +854,7 @@
     },
     "119": {
       "name": "Válečný pokřik",
-      "desc": "Zaútočí za 7. Dostaneš náhodnou útočnou kartu do ruky. [Combo]"
+      "desc": "Zaútočí za 7. Dostaneš náhodnou kartu **ÚTOK** do ruky. [Combo]"
     },
     "120": {
       "name": "Hromadná sleva",
@@ -866,11 +866,11 @@
     },
     "122": {
       "name": "Stavební posila",
-      "desc": "Postaví hrad o 7. Dostaneš náhodnou stavební kartu do ruky. [Combo]"
+      "desc": "Postaví hrad o 7. Dostaneš náhodnou kartu **STAVBA** do ruky. [Combo]"
     },
     "123": {
       "name": "Momentum",
-      "desc": "Zaútočí za 2 + 4 za každou útočnou kartu zahranou v tomto tahu."
+      "desc": "Zaútočí za 2 + 4 za každou kartu **ÚTOK** zahranou v tomto tahu."
     },
     "C40": {
       "name": "Zákeřný špeh",
@@ -898,7 +898,7 @@
     },
     "126": {
       "name": "Magický proud",
-      "desc": "**Toto kolo:** každá magická karta přidá 2 chaos. [Combo]"
+      "desc": "**Toto kolo:** každá karta **MAGIE** přidá 2 chaos. [Combo]"
     },
     "127": {
       "name": "Pyroblast",

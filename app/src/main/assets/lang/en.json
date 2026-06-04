@@ -814,7 +814,7 @@
     },
     "109": {
       "name": "Recruit",
-      "desc": "**Decision:** choose 1 Attack card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **ATTACK** card from the game. Make it 2 cheaper. [Combo]"
     },
     "110": {
       "name": "Recollection",
@@ -826,15 +826,15 @@
     },
     "112": {
       "name": "Builder",
-      "desc": "**Decision:** choose 1 Build card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **BUILD** card from the game. Make it 2 cheaper. [Combo]"
     },
     "113": {
       "name": "Goblin Shaman",
-      "desc": "**Decision:** choose 1 Magic card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **MAGIC** card from the game. Make it 2 cheaper. [Combo]"
     },
     "114": {
       "name": "Chaos Sage",
-      "desc": "**Decision:** choose 1 Chaos card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **CHAOS** card from the game. Make it 2 cheaper. [Combo]"
     },
     "115": {
       "name": "Well of Knowledge",
@@ -854,7 +854,7 @@
     },
     "119": {
       "name": "War Cry",
-      "desc": "Attack for 7. Get a random Attack card into your hand. [Combo]"
+      "desc": "Attack for 7. Get a random **ATTACK** card into your hand. [Combo]"
     },
     "120": {
       "name": "Bulk Discount",
@@ -866,11 +866,11 @@
     },
     "122": {
       "name": "Building Boost",
-      "desc": "Build castle for 7. Get a random Build card into your hand. [Combo]"
+      "desc": "Build castle for 7. Get a random **BUILD** card into your hand. [Combo]"
     },
     "123": {
       "name": "Momentum",
-      "desc": "Attack for 2 + 4 per Attack card played this turn."
+      "desc": "Attack for 2 + 4 per **ATTACK** card played this turn."
     },
     "C40": {
       "name": "Insidious Spy",
@@ -898,7 +898,7 @@
     },
     "126": {
       "name": "Magic Current",
-      "desc": "**This turn:** each Magic card adds 2 Chaos. [Combo]"
+      "desc": "**This turn:** each **MAGIC** card adds 2 Chaos. [Combo]"
     },
     "127": {
       "name": "Pyroblast",
