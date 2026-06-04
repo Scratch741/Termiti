@@ -389,7 +389,8 @@ fun NewResourceSection(
             )
             Box {
                 Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End, modifier = Modifier.width(24.dp))
+                    textAlign = TextAlign.End, maxLines = 1,
+                    modifier = Modifier.widthIn(min = 24.dp))
                 // delta se vykreslí VPRAVO za číslem (offset = šířka čísla), layout ho nezahrnuje
                 Box(Modifier.offset(x = 26.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
                     ResourceDelta(amount)
@@ -399,7 +400,8 @@ fun NewResourceSection(
             // AI – zrcadlo: zásoba (delta jako overlay vlevo) | název (roztažený) | ikona | mine#
             Box {
                 Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start, modifier = Modifier.width(24.dp))
+                    textAlign = TextAlign.Start, maxLines = 1,
+                    modifier = Modifier.widthIn(min = 24.dp))
                 // delta se vykreslí VLEVO před číslem (Alignment.End na 0-width = roste do záporných x)
                 Box(Modifier.width(0.dp).wrapContentWidth(align = Alignment.End, unbounded = true)) {
                     ResourceDelta(amount)
