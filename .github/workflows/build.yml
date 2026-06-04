@@ -1,9 +1,7 @@
 name: Build APK
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:   # umožní spustit ručně tlačítkem na GitHubu
+  workflow_dispatch:   # spustí se pouze ručně tlačítkem na GitHubu
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
