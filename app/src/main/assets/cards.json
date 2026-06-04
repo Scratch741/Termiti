@@ -2080,20 +2080,17 @@
   {
     "id": "092",
     "name": "Strategická výstavba",
-    "cost": 4,
+    "cost": 2,
     "costType": "STONES",
     "isCombo": false,
     "effects": [
       {
-        "type": "ConditionalEffect",
-        "condition": {
-          "type": "WallAbove",
-          "threshold": 15
-        },
-        "effect": {
-          "type": "BuildWall",
-          "amount": 14
-        }
+        "type": "BuildWall",
+        "amount": 5
+      },
+      {
+        "type": "DecisionDrawFromDeck",
+        "picks": 4
       }
     ],
     "rarity": "EPIC",

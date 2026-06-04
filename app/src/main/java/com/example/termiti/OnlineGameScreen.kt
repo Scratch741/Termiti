@@ -424,7 +424,7 @@ private fun OnlineGameplay(
                 NewResourcePanel(
                     playerState = myPs,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(130.dp),
+                    modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -463,7 +463,7 @@ private fun OnlineGameplay(
                 NewResourcePanel(
                     playerState = oppPs,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(130.dp),
+                    modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         if (isGameOver) {
                             // Review mód: toggle soupeřovy ruky

@@ -183,7 +183,7 @@ const RAW = [
   ['089','Architekt',      4,'STONES',0,[bw(5), am('STONES',1)],'RARE'],
   ['090','Rozšíření těžby', 7,'STONES',0,[am('STONES',2)],      'EPIC'],
   ['091','Barikády',       3,'STONES',0,[bw(9), dr('ATTACK',2)],'RARE'],
-  ['092','Strategická výstavba',4,'STONES',0,[cd(wA(15), bw(14))], 'EPIC'],
+  ['092','Strategická výstavba',2,'STONES',0,[bw(5), dfkd()], 'EPIC'],
   ['093','Cihla na cihlu', 3,'STONES',1,[bc(5), gcp(3,'Stavba')],'EPIC'],
   ['094','Sklad materiálu',3,'STONES',1,[bw(6), ar('STONES',2)],'RARE'],
   ['095','Obchod s kamenem',2,'STONES',0,[ar('STONES',5)],     'COMMON'],
@@ -432,7 +432,7 @@ function buildDeckCore(quota, totalTarget, rarityCaps) {
  */
 function balancedDeck() {
   return buildDeckCore(
-    { MAGIC: 9, ATTACK: 9, STONES: 9, CHAOS: 3 },
+    { CHAOS: 3, MAGIC: 9, ATTACK: 9, STONES: 9 },
     30,
     { LEGENDARY: 2, EPIC: 6, RARE: 12 }
   );
@@ -444,7 +444,7 @@ function balancedDeck() {
  */
 function superBalancedDeck() {
   return buildDeckCore(
-    { MAGIC: 15, ATTACK: 15, STONES: 15, CHAOS: 5 },
+    { CHAOS: 5, MAGIC: 15, ATTACK: 15, STONES: 15 },
     50,
     { LEGENDARY: 4, EPIC: 10, RARE: 20 }
   );

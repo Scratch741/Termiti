@@ -623,6 +623,23 @@ private fun CardViewTextured(
                     )
                 }
             }
+            if (isComboCard) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, ComboYellow.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "⚡",
+                        fontSize = 9.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 9.sp
+                    )
+                }
+            }
             if (conditionMet != null) {
                 val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
                 val condIcon  = if (conditionMet) "✓" else "✗"
@@ -639,23 +656,6 @@ private fun CardViewTextured(
                         color = condColor,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 9.sp
-                    )
-                }
-            }
-            if (isComboCard) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color.Black.copy(alpha = 0.65f))
-                        .border(1.dp, ComboYellow.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "⚡",
-                        fontSize = 9.sp,
                         textAlign = TextAlign.Center,
                         lineHeight = 9.sp
                     )

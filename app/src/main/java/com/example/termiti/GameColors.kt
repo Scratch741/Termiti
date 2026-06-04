@@ -13,7 +13,7 @@ internal fun rarityColor(rarity: Rarity) = when (rarity) {
 }
 
 internal fun resourceColor(type: ResourceType) = when (type) {
-    ResourceType.MAGIC  -> MagicPurple
+    ResourceType.MAGIC  -> MagicBlue
     ResourceType.ATTACK -> AttackRed
     ResourceType.STONES -> StoneColor
     ResourceType.CHAOS  -> ChaosOrange
@@ -59,7 +59,8 @@ internal val TextPrimary = Color(0xFFEDE0C4)   // hlavní text (béžová)
 internal val TextMuted   = Color(0xFF7A6E5F)   // sekundární / ztlumený text
 
 // ── Resource barvy ────────────────────────────────────────────────────────────
-internal val MagicPurple  = Color(0xFF9B59B6)  // resource MAGIC
+internal val MagicPurple  = Color(0xFF9B59B6)  // EPIC rarity (ponecháno pro zpětnou kompatibilitu)
+internal val MagicBlue    = Color(0xFF0D68BA)  // resource MAGIC – barva rámu karet magie
 internal val StoneColor   = Color(0xFFB8A898)  // resource STONES
 internal val ChaosOrange  = Color(0xFFE67E22)  // resource CHAOS
 internal val WallBlue     = Color(0xFF5C9BD6)  // hradby

@@ -70,6 +70,7 @@ private fun cardConditionMet(
     lastPlayedType: String? = null
 ): Boolean? {
     val conditionalEffects = card.effects.filterIsInstance<CardEffect.ConditionalEffect>()
+        .ifEmpty { card.overlayEffects.filterIsInstance<CardEffect.ConditionalEffect>() }
     if (conditionalEffects.isEmpty()) return null
 
     return conditionalEffects.all { ce ->
@@ -319,9 +320,9 @@ fun NewResourcePanel(
                 painterResource(R.drawable.bg_side_panels),
                 contentScale = ContentScale.Crop
             )
-            .padding(horizontal = 16.dp, vertical = 5.dp)
+            .padding(horizontal = 8.dp, vertical = 5.dp)
     ) {
-        NewResourceSection("✨", s.resMagic,  mineMagic, magic,  MagicPurple, isAi = isAi, blockedTurns = blkMagic)
+        NewResourceSection("✨", s.resMagic,  mineMagic, magic,  MagicBlue, isAi = isAi, blockedTurns = blkMagic)
         NewResourceSection("⚔️", s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
         NewResourceSection("🪨", s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
         NewResourceSection("🌀", s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
@@ -382,15 +383,15 @@ fun NewResourceSection(
             Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
             Spacer(Modifier.width(3.dp))
             Text(
-                name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                name, color = color, fontSize = 11.5.sp, fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
             Box {
                 Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End, modifier = Modifier.width(30.dp))
+                    textAlign = TextAlign.End, modifier = Modifier.width(24.dp))
                 // delta se vykreslí VPRAVO za číslem (offset = šířka čísla), layout ho nezahrnuje
-                Box(Modifier.offset(x = 32.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
+                Box(Modifier.offset(x = 26.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
                     ResourceDelta(amount)
                 }
             }
@@ -398,14 +399,14 @@ fun NewResourceSection(
             // AI – zrcadlo: zásoba (delta jako overlay vlevo) | název (roztažený) | ikona | mine#
             Box {
                 Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start, modifier = Modifier.width(30.dp))
+                    textAlign = TextAlign.Start, modifier = Modifier.width(24.dp))
                 // delta se vykreslí VLEVO před číslem (Alignment.End na 0-width = roste do záporných x)
                 Box(Modifier.width(0.dp).wrapContentWidth(align = Alignment.End, unbounded = true)) {
                     ResourceDelta(amount)
                 }
             }
             Text(
-                name, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                name, color = color, fontSize = 11.5.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.End,
                 maxLines = 1,
                 modifier = Modifier.weight(1f)
@@ -428,6 +429,7 @@ fun NewPanelButton(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 6.dp)
             .clip(RoundedCornerShape(5.dp))
             .background(color.copy(alpha = if (active) 0.12f else 0.05f))
             .border(1.dp, color.copy(alpha = if (active) 0.50f else 0.18f), RoundedCornerShape(5.dp))

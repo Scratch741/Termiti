@@ -301,7 +301,8 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 artBiasY       = playerLastPlayed.artBiasY,
                 artScale       = playerLastPlayed.artScale,
                 description    = resolvedDesc,
-                type           = playerLastPlayed.type
+                type           = playerLastPlayed.type,
+                overlayEffects = playerLastPlayed.effects.filterIsInstance<CardEffect.ConditionalEffect>()
             )
         } else {
             val orig         = allCards.find { it.baseId == card.baseId }
@@ -352,7 +353,8 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCar
                 artBiasY       = opponentLastPlayed.artBiasY,
                 artScale       = opponentLastPlayed.artScale,
                 description    = resolvedDesc,
-                type           = opponentLastPlayed.type
+                type           = opponentLastPlayed.type,
+                overlayEffects = opponentLastPlayed.effects.filterIsInstance<CardEffect.ConditionalEffect>()
             )
         } else {
             val orig         = allCards.find { it.baseId == card.baseId }

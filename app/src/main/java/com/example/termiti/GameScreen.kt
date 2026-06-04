@@ -162,7 +162,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.playerState,
                     isAi        = false,
-                    modifier    = Modifier.fillMaxHeight().width(130.dp),
+                    modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "📜 Log",
@@ -170,15 +170,6 @@ fun GameScreen(
                             active  = true,
                             onClick = { showLog = true }
                         )
-                        if (lostToOpponent.isNotEmpty()) {
-                            Spacer(Modifier.height(3.dp))
-                            NewPanelButton(
-                                label   = "🃏 ${lostToOpponent.size}",
-                                color   = Color(0xFF9B59B6),
-                                active  = true,
-                                onClick = { showLostCards = true }
-                            )
-                        }
                     }
                 )
 
@@ -203,7 +194,7 @@ fun GameScreen(
                 NewResourcePanel(
                     playerState = state.aiState,
                     isAi        = true,
-                    modifier    = Modifier.fillMaxHeight().width(130.dp),
+                    modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
@@ -355,7 +346,12 @@ fun GameScreen(
         }
 
         if (showLog) {
-            LogOverlay(log = log, onDismiss = { showLog = false })
+            LogOverlay(
+                log            = log,
+                onDismiss      = { showLog = false },
+                lostCards      = lostToOpponent,
+                onShowLostCards = { showLostCards = true }
+            )
         }
 
         if (showSettings) {

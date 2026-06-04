@@ -574,7 +574,7 @@
     },
     "092": {
       "name": "Strategic Construction",
-      "desc": "If you have >15 walls, build +14."
+      "desc": "Wall +5. Draw 1 card from the top 4 cards of your deck."
     },
     "093": {
       "name": "Brick by Brick",

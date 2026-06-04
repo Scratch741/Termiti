@@ -94,7 +94,12 @@ data class Card(
      * its localized text must resolve to the card it became — set to that
      * template's base id. Null = use [baseId].
      */
-    val localizationId: String? = null
+    val localizationId: String? = null,
+    /**
+     * Podmínkové efekty zkopírované ze zdrojové karty (Mirror/Clone).
+     * Slouží POUZE k zobrazení ✓/✗ indikátoru — při hraní karty se NESPOUŠTĚJÍ.
+     */
+    val overlayEffects: List<CardEffect> = emptyList()
 ) {
     /**
      * Skutečná cena, která se platí a zobrazuje.

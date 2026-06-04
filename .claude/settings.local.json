@@ -82,7 +82,8 @@
       "Bash(node -e ' *)",
       "Bash(./gradlew syncCards)",
       "Bash(./gradlew compileDebugKotlin)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(xargs -I{} basename {} .png)"
     ]
   }
 }
