@@ -45,6 +45,7 @@ const dbo= (n=4)         => ({ type:'DecisionBurnOpponent',  picks:n });
 const dct= (ct,n=4,cr=0) => ({ type:'DecisionChooseType',    cardType:ct, picks:n, ...(cr ? {costReduction:cr} : {}) });
 const dfd= (n=4)         => ({ type:'DecisionFromDiscard',   picks:n });
 const dfk= (n=4)         => ({ type:'DecisionFromDeck',      picks:n });
+const dfkd=(n=4)         => ({ type:'DecisionDrawFromDeck',  picks:n });
 const dmine= ()          => ({ type:'DecisionMine' });
 const sj   = ()          => ({ type:'SmartJoker' });
 const mma  = (b,bon)     => ({ type:'MomentumAttack', base:b, bonusPerAttack:bon });

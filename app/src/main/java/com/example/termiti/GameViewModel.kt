@@ -549,6 +549,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType && !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
+        is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionMine         -> listOf(
             ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
         ).mapNotNull { resType ->
@@ -603,6 +604,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionChooseType     -> DecisionState(ls.decisionTitle, ls.decisionChooseType.format(fx.cardType), options)
         is CardEffect.DecisionFromDiscard    -> DecisionState(ls.decisionTitle, ls.decisionFromDiscard, options)
         is CardEffect.DecisionFromDeck       -> DecisionState(ls.decisionTitle, ls.decisionFromDeck, options)
+        is CardEffect.DecisionDrawFromDeck   -> DecisionState(ls.decisionTitle, ls.decisionDrawFromDeck, options)
         is CardEffect.DecisionMine           -> DecisionState(ls.decisionTitle, ls.decisionMine, options)
         is CardEffect.SmartJoker             -> DecisionState(ls.decisionTitle, ls.decisionSmartJoker, options)
         is CardEffect.PeekAndStealHand       -> DecisionState(ls.decisionPeekTitle, ls.decisionPeekSubtitle, options)
@@ -661,10 +663,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 log.appendLog(ls.logTookFromDiscard.format(chosen.displayName))
             }
             is CardEffect.DecisionFromDeck -> {
+                // Kopie – originál zůstane v balíčku, do ruky jde kopie s novým ID
+                val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(copy) else player.discardPile.add(copy)
+                log.appendLog(ls.logCopiedFromDeck.format(chosen.displayName))
+            }
+            is CardEffect.DecisionDrawFromDeck -> {
                 // Pravý draw – karta se odstraní z balíčku a přijde do ruky
                 player.deck.remove(chosen)
                 if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
-                log.appendLog(ls.logCopiedFromDeck.format(chosen.displayName))
+                log.appendLog(ls.logDrewFromDeck.format(chosen.displayName))
             }
             is CardEffect.DecisionMine -> {
                 val newCard = chosen.copy(
@@ -1124,10 +1132,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         updateCloneCards(player.hand, player.lastPlayedCard, allCards)
 
         fun isDecisionFx(fx: CardEffect) =
-            fx is CardEffect.DecisionBurnOpponent || fx is CardEffect.DecisionChooseType  ||
-            fx is CardEffect.DecisionFromDiscard  || fx is CardEffect.DecisionFromDeck    ||
-            fx is CardEffect.DecisionMine         || fx is CardEffect.SmartJoker          ||
-            fx is CardEffect.PeekAndStealHand     || fx is CardEffect.DecisionChooseResource
+            fx is CardEffect.DecisionBurnOpponent || fx is CardEffect.DecisionChooseType    ||
+            fx is CardEffect.DecisionFromDiscard  || fx is CardEffect.DecisionFromDeck      ||
+            fx is CardEffect.DecisionDrawFromDeck || fx is CardEffect.DecisionMine          ||
+            fx is CardEffect.SmartJoker           || fx is CardEffect.PeekAndStealHand      ||
+            fx is CardEffect.DecisionChooseResource
 
         var decisionFx: CardEffect? = card.effects.firstOrNull { isDecisionFx(it) }
 
@@ -1401,6 +1410,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     }
                                 }
                                 is CardEffect.DecisionFromDeck -> {
+                                    // Kopie – originál zůstane v balíčku
+                                    val opts = buildDecisionOptions(fx, ai, player)
+                                    opts.firstOrNull()?.let { chosen ->
+                                        val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
+                                        if (ai.hand.size < old.aiMaxHand) ai.hand.add(copy)
+                                    }
+                                }
+                                is CardEffect.DecisionDrawFromDeck -> {
+                                    // Pravý draw – karta opustí balíček
                                     val opts = buildDecisionOptions(fx, ai, player)
                                     opts.firstOrNull()?.let { chosen ->
                                         ai.deck.remove(chosen)

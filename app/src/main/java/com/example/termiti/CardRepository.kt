@@ -146,6 +146,7 @@ object CardRepository {
         )
         "DecisionFromDiscard"   -> CardEffect.DecisionFromDiscard(obj.optInt("picks", 4))
         "DecisionFromDeck"      -> CardEffect.DecisionFromDeck(obj.optInt("picks", 4))
+        "DecisionDrawFromDeck"  -> CardEffect.DecisionDrawFromDeck(obj.optInt("picks", 4))
         "DecisionMine"          -> CardEffect.DecisionMine
         "SmartJoker"            -> CardEffect.SmartJoker
         "MomentumAttack"        -> CardEffect.MomentumAttack(

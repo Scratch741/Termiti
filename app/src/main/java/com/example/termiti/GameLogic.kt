@@ -248,6 +248,7 @@ fun applyEffects(
         is CardEffect.DecisionChooseType    -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDiscard   -> { /* řeší ViewModel */ }
         is CardEffect.DecisionFromDeck      -> { /* řeší ViewModel */ }
+        is CardEffect.DecisionDrawFromDeck  -> { /* řeší ViewModel */ }
         is CardEffect.DecisionMine          -> { /* řeší ViewModel */ }
         is CardEffect.PeekAndStealHand      -> { /* řeší ViewModel */ }
         is CardEffect.SmartJoker            -> { /* řeší ViewModel */ }

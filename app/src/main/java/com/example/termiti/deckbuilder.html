@@ -912,6 +912,7 @@ function convertJsonEffect(fx) {
     case 'DecisionBurnOpponent':     return { t:'DBO', pr:fx.picks||4 };
     case 'DecisionFromDiscard':      return { t:'DFD', pr:fx.picks||4 };
     case 'DecisionFromDeck':         return { t:'DFK', pr:fx.picks||4 };
+    case 'DecisionDrawFromDeck':     return { t:'DFKD', pr:fx.picks||4 };
     case 'SmartJoker':               return { t:'SJ' };
     default: return { t:'?', raw: fx.type };
   }
@@ -2201,8 +2202,11 @@ function simFx(fx, me, opp, xv) {
       break;
     }
     case 'DBO': { if(opp.deck.length)opp.deck.splice(Math.floor(Math.random()*opp.deck.length),1); break; }
-    case 'DFD': { if(me.discard.length&&me.hand.length<7){me.hand.push({...me.discard[Math.floor(Math.random()*me.discard.length)]});} break; }
-    case 'DFK': { if(me.deck.length&&me.hand.length<7){me.hand.push({...me.deck[Math.floor(Math.random()*me.deck.length)]});} break; }
+    case 'DFD':  { if(me.discard.length&&me.hand.length<7){me.hand.push({...me.discard[Math.floor(Math.random()*me.discard.length)]});} break; }
+    case 'DFK':  { if(me.deck.length&&me.hand.length<7){me.hand.push({...me.deck[Math.floor(Math.random()*me.deck.length)]});} break; }
+    case 'DFKD': { // pravý draw – karta opustí balíček
+      const idx=Math.floor(Math.random()*me.deck.length);
+      if(me.deck.length&&me.hand.length<7){me.hand.push(me.deck.splice(idx,1)[0]);} break; }
     case 'SJ': {
       const pool=Object.keys(CARD_EFFECTS_DB).filter(id=>CARD_EFFECTS_DB[id]&&!id.startsWith('T'));
       if(pool.length&&me.hand.length<7){const id=pool[Math.floor(Math.random()*pool.length)];const c=makeSimCard(id);if(c)me.hand.push(c);}
@@ -2281,9 +2285,10 @@ function simAI(ai, opp) {
       case 'DPC': { const comboLeft=ai.hand.filter(c=>c.isCombo&&(ai.res[c.costType]||0)>=effC(c)).length; return comboLeft===0?-2:5+comboLeft*4; }
       case 'CNP': { const canAff=ai.hand.filter(c=>c!==undefined&&(ai.res[c.costType]||0)>=effC(c)).length; return canAff>0?6:-5; }
       case 'DCT': return 5;
-      case 'DBO': return 6;
-      case 'DFD': return 4;
-      case 'DFK': return 5;
+      case 'DBO':  return 6;
+      case 'DFD':  return 4;
+      case 'DFK':  return 5;
+      case 'DFKD': return 5;
       case 'SJ':  return 8;
       case 'DCR': return (fx.opts&&fx.opts.length)?fx.opts.reduce((mx,o)=>Math.max(mx,o.amount||0),0):4;
       default: return 0;

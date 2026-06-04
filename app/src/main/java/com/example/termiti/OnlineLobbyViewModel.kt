@@ -931,6 +931,7 @@ class OnlineLobbyViewModel(
                         "DecisionChooseType"     -> ls.decisionTitle to ls.decisionChooseType.format(json.optString("cardType", ""))
                         "DecisionFromDiscard"    -> ls.decisionTitle to ls.decisionFromDiscard
                         "DecisionFromDeck"       -> ls.decisionTitle to ls.decisionFromDeck
+                        "DecisionDrawFromDeck"   -> ls.decisionTitle to ls.decisionDrawFromDeck
                         "DecisionMine"           -> ls.decisionTitle to ls.decisionMine
                         "DecisionChooseResource" -> ls.decisionAlchemyTitle to ls.decisionAlchemySubtitle
                         else                     -> ls.decisionTitle to ls.decisionTitle

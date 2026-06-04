@@ -110,8 +110,10 @@ sealed class CardEffect {
     data class DecisionChooseType(val cardType: String, val picks: Int = 4, val costReduction: Int = 0) : CardEffect()
     /** Zobrazí [picks] karet z vlastního odhazovacího balíčku; hráč přidá jednu do ruky. */
     data class DecisionFromDiscard(val picks: Int = 4) : CardEffect()
-    /** Zobrazí [picks] karet z vlastního balíčku; hráč přidá jednu do ruky. */
+    /** Zobrazí [picks] karet z vlastního balíčku; hráč přidá jednu do ruky jako KOPII. */
     data class DecisionFromDeck(val picks: Int = 4) : CardEffect()
+    /** Zobrazí [picks] karet z vlastního balíčku; hráč vybere jednu a ta je PŘESUNUTA do ruky (pravý draw). */
+    data class DecisionDrawFromDeck(val picks: Int = 4) : CardEffect()
     /**
      * Zobrazí přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos).
      * Hráč vybere jednu kartu a ta mu přijde do ruky.

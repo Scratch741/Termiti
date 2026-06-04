@@ -13,7 +13,7 @@ const {
   transformShapeShifters
 } = require('./engine');
 
-const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand', 'DecisionChooseResource']);
+const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionDrawFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand', 'DecisionChooseResource']);
 
 /**
  * Ohodnotí vhodnost karty pro aktuální herní situaci.
@@ -972,6 +972,20 @@ class GameSession {
         break;
       }
       case 'DecisionFromDeck': {
+        if (chosenId) {
+          const orig = self.deck.find(c => c.id === chosenId);
+          if (orig) {
+            // Kopie – originál zůstane v balíčku, do ruky přijde kopie s novým ID
+            const copy = { ...orig, id: `${orig.baseId || orig.id}_copy_${Date.now()}`, isGenerated: true };
+            if (self.hand.length < maxH) {
+              self.hand.push(copy);
+              this._log(`${this.name[side]} zkopíroval z balíčku: ${orig.name}.`);
+            }
+          }
+        }
+        break;
+      }
+      case 'DecisionDrawFromDeck': {
         if (chosenId) {
           const idx = self.deck.findIndex(c => c.id === chosenId);
           if (idx !== -1) {
