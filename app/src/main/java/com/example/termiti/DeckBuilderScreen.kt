@@ -138,8 +138,6 @@ private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.DecisionFromDeck,
     is CardEffect.DecisionMine,
     is CardEffect.DecisionChooseResource -> "Rozhodnutí"
-    is CardEffect.Mirror                 -> "Rozhodnutí"
-    is CardEffect.Clone                  -> "Rozhodnutí"
     else                            -> null
 }
 

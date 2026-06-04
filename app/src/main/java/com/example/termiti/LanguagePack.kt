@@ -263,7 +263,7 @@ data class LanguagePack(
                 logBurnedFromOppDeck = str("logBurnedFromOppDeck", "Hráč zahodil ze soupeřova balíku: %s"),
                 logChose             = str("logChose",             "Hráč si vybral: %s"),
                 logTookFromDiscard   = str("logTookFromDiscard",   "Hráč si vzal z odhazovacího balíčku: %s"),
-                logCopiedFromDeck    = str("logCopiedFromDeck",    "Hráč zkopíroval z balíčku: %s"),
+                logCopiedFromDeck    = str("logCopiedFromDeck",    "Hráč vytáhl z balíčku: %s"),
                 logChoseMine         = str("logChoseMine",         "Hráč si vybral důl: %s"),
                 logJoker             = str("logJoker",             "Magický žolík: hráč si zvolil %s"),
                 logStoleFromHand     = str("logStoleFromHand",     "Hráč ukradl ze soupeřovy ruky: %s"),

@@ -973,13 +973,14 @@ class GameSession {
       }
       case 'DecisionFromDeck': {
         if (chosenId) {
-          const orig = self.deck.find(c => c.id === chosenId);
-          if (orig) {
-            // Karta zůstane v balíčku – do ruky přijde kopie s novým ID
-            const copy = { ...orig, id: `${orig.baseId || orig.id}_copy_${Date.now()}`, isGenerated: true };
+          const idx = self.deck.findIndex(c => c.id === chosenId);
+          if (idx !== -1) {
+            const orig = self.deck.splice(idx, 1)[0]; // pravý draw – karta opustí balíček
             if (self.hand.length < maxH) {
-              self.hand.push(copy);
-              this._log(`${this.name[side]} zkopíroval z balíčku: ${orig.name}.`);
+              self.hand.push(orig);
+              this._log(`${this.name[side]} vytáhl z balíčku: ${orig.name}.`);
+            } else {
+              self.discardPile.push(orig);
             }
           }
         }

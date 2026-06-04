@@ -661,9 +661,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 log.appendLog(ls.logTookFromDiscard.format(chosen.displayName))
             }
             is CardEffect.DecisionFromDeck -> {
-                // Karta zůstane v balíčku – do ruky přijde kopie s novým ID
-                val copy = chosen.copy(id = "${chosen.id}_${java.util.UUID.randomUUID()}", isGenerated = true)
-                if (player.hand.size < old.playerMaxHand) player.hand.add(copy) else player.discardPile.add(copy)
+                // Pravý draw – karta se odstraní z balíčku a přijde do ruky
+                player.deck.remove(chosen)
+                if (player.hand.size < old.playerMaxHand) player.hand.add(chosen) else player.discardPile.add(chosen)
                 log.appendLog(ls.logCopiedFromDeck.format(chosen.displayName))
             }
             is CardEffect.DecisionMine -> {
