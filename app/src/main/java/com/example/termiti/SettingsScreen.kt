@@ -91,9 +91,6 @@ fun SettingsScreen(onBack: () -> Unit) {
         Column(
             modifier = Modifier
                 .width(260.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(StBgCard)
-                .border(1.dp, StGold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
