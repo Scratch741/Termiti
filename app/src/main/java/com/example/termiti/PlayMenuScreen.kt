@@ -113,12 +113,6 @@ fun PlayMenuScreen(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp
             )
-            Text(
-                "Zvol způsob boje",
-                color = PmMuted,
-                fontSize = 12.sp,
-                letterSpacing = 1.sp
-            )
             Spacer(Modifier.height(20.dp))
 
             // Buttony – stejná šířka sloupce jako v hlavním menu
