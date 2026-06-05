@@ -206,7 +206,7 @@
     },
     "003": {
       "name": "Fireball",
-      "desc": "Direct fire hit: castle -8."
+      "desc": "Hit castle -8."
     },
     "007": {
       "name": "Heavy Blow",
@@ -230,27 +230,27 @@
     },
     "005": {
       "name": "Castle Reinforcement",
-      "desc": "Repair castle by 5."
+      "desc": "Castle +5."
     },
     "009": {
       "name": "Solid Foundations",
-      "desc": "Repair castle by 8, refund 1 Stone."
+      "desc": "Castle +8, refund 1 Stone."
     },
     "018": {
       "name": "Mighty Tower",
-      "desc": "Build walls +15."
+      "desc": "Walls +15."
     },
     "004": {
       "name": "Magic",
-      "desc": "Instantly +2 Magic. [Combo]"
+      "desc": "+2 Magic. [Combo]"
     },
     "011": {
       "name": "Stone Stockpile",
-      "desc": "Instantly +3 Stone. [Combo]"
+      "desc": "+3 Stone. [Combo]"
     },
     "012": {
       "name": "Mobilization",
-      "desc": "Instantly +3 Attack. [Combo]"
+      "desc": "+3 Attack. [Combo]"
     },
     "013": {
       "name": "Mana Spring",
@@ -306,7 +306,7 @@
     },
     "028": {
       "name": "Patch",
-      "desc": "Repair castle by 3. [Combo]"
+      "desc": "Castle +3. [Combo]"
     },
     "029": {
       "name": "Fortification",
@@ -314,15 +314,15 @@
     },
     "030": {
       "name": "Stone Rampart",
-      "desc": "Build walls +13."
+      "desc": "Walls +13."
     },
     "031": {
       "name": "Renovation",
-      "desc": "Repair castle by 7."
+      "desc": "Castle +7."
     },
     "032": {
       "name": "Citadel",
-      "desc": "Repair castle by 13."
+      "desc": "Castle +13."
     },
     "033": {
       "name": "Earthen Rampart",
@@ -330,7 +330,7 @@
     },
     "034": {
       "name": "Repairman",
-      "desc": "If you have >15 walls, repair castle by 9."
+      "desc": "If you have >15 walls, castle +9."
     },
     "035": {
       "name": "Cornerstone",
@@ -342,15 +342,15 @@
     },
     "037": {
       "name": "Quick Magic",
-      "desc": "Instantly +4 Magic. [Combo]"
+      "desc": "+4 Magic. [Combo]"
     },
     "038": {
       "name": "Military Order",
-      "desc": "Instantly +6 Attack. [Combo]"
+      "desc": "+6 Attack. [Combo]"
     },
     "039": {
       "name": "Building Boom",
-      "desc": "Instantly +6 Stone. [Combo]"
+      "desc": "+6 Stone. [Combo]"
     },
     "040": {
       "name": "Alchemy",
@@ -450,7 +450,7 @@
     },
     "064": {
       "name": "Reserve",
-      "desc": "If castle <40, repair castle by 10."
+      "desc": "If castle <40, castle +10."
     },
     "065": {
       "name": "Robber",
@@ -518,7 +518,7 @@
     },
     "130": {
       "name": "Plunder",
-      "desc": "+2 attack, -2 stones. [Combo]"
+      "desc": "+2 Attack, -2 Stone. [Combo]"
     },
     "131": {
       "name": "Invasion",
@@ -526,15 +526,15 @@
     },
     "129": {
       "name": "Preparation",
-      "desc": "Wall +2 and castle +2. Discounts a random **BUILD** card in hand by 2."
+      "desc": "Walls +2 and castle +2. Discounts a random **BUILD** card in hand by 2."
     },
     "081": {
       "name": "Quick Wall",
-      "desc": "Build walls +6. [Combo]"
+      "desc": "Walls +6. [Combo]"
     },
     "082": {
       "name": "Massive Wall",
-      "desc": "Build walls +18."
+      "desc": "Walls +18."
     },
     "083": {
       "name": "Emergency Fortification",
@@ -546,7 +546,7 @@
     },
     "085": {
       "name": "Royal Restoration",
-      "desc": "Repair castle by 15."
+      "desc": "Castle +15."
     },
     "086": {
       "name": "Mason Company",
@@ -574,7 +574,7 @@
     },
     "092": {
       "name": "Strategic Construction",
-      "desc": "Wall +5. Draw 1 card from the top 4 cards of your deck."
+      "desc": "Walls +5. Draw 1 card from the top 4 cards of your deck."
     },
     "093": {
       "name": "Brick by Brick",
@@ -850,7 +850,7 @@
     },
     "118": {
       "name": "Magic Joker",
-      "desc": "**Decision:** choose a card that fits the situation - 1 best from each type (Magic, Attack, Build, Chaos). [Combo]"
+      "desc": "**Decision:** choose a card that fits the situation. [Combo]"
     },
     "119": {
       "name": "War Cry",
@@ -866,7 +866,7 @@
     },
     "122": {
       "name": "Building Boost",
-      "desc": "Build castle for 7. Get a random **BUILD** card into your hand. [Combo]"
+      "desc": "Castle +7. Get a random **BUILD** card into your hand. [Combo]"
     },
     "123": {
       "name": "Momentum",
