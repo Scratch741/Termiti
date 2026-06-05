@@ -1,7 +1,12 @@
 package com.example.termiti
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Text
@@ -71,6 +76,20 @@ fun PlayMenuScreen(
                 y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
             ), size = torchSize, seed = 1.7f
         )
+
+        // ── Zpět ─────────────────────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopStart)
+                .clip(RoundedCornerShape(8.dp))
+                .background(PmBgCard.copy(alpha = 0.75f))
+                .border(1.dp, PmMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .clickable { SoundManager.playMenuTap(); onBack() }
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text(s.back, color = PmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
 
         // ── Stejný 3-sloupcový layout jako hlavní menu ────────────────────────
         val centerW          = minOf(W * 0.46f, H * 1.0f)
