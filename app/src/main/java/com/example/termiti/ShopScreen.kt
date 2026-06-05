@@ -3,73 +3,43 @@ package com.example.termiti
 import androidx.compose.animation.core.*
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// ── Palette ───────────────────────────────────────────────────────────────────
-private val ShBgDeep  = Color(0xFF09070D)
-private val ShBgPanel = Color(0xFF13101A)
-private val ShBgCard  = Color(0xFF1A1320)
-private val ShGold    = Color(0xFFD4A843)
-private val ShTeal    = Color(0xFF3DBFAD)
-private val ShText    = Color(0xFFEDE0C4)
-private val ShMuted   = Color(0xFF7A6E5F)
-private val ShGreen   = Color(0xFF4CAF50)
-private val ShDust    = Color(0xFFB39DDB)
+private val ShGold  = Color(0xFFD4A843)
+private val ShText  = Color(0xFFEDE0C4)
+private val ShMuted = Color(0xFF7A6E5F)
+private val ShGreen = Color(0xFF4CAF50)
+private val ShDust  = Color(0xFFB39DDB)
+private val ShBgCard = Color(0xFF1A1320)
 
 private fun shRarityColor(r: Rarity) = when (r) {
     Rarity.COMMON    -> Color(0xFF9E9E9E)
     Rarity.RARE      -> Color(0xFF4A90D9)
     Rarity.EPIC      -> Color(0xFF9B59B6)
     Rarity.LEGENDARY -> Color(0xFFD4A843)
-}
-private fun shEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
-    is CardEffect.AttackPlayer,
-    is CardEffect.AttackCastle,
-    is CardEffect.AttackWall,
-    is CardEffect.XScaledAttackPlayer,
-    is CardEffect.XScaledAttackCastle  -> "⚔️"
-    is CardEffect.BuildCastle,
-    is CardEffect.XScaledBuildCastle   -> "🏰"
-    is CardEffect.BuildWall            -> "🧱"
-    is CardEffect.AddResource,
-    is CardEffect.XScaledDualResource  -> "💰"
-    is CardEffect.AddMine              -> "⛏️"
-    is CardEffect.StealResource        -> "🗡️"
-    is CardEffect.DrainResource        -> "☠️"
-    is CardEffect.DestroyMine          -> "💥"
-    is CardEffect.StealCard            -> "🃏"
-    is CardEffect.BurnCard             -> "🔥"
-    is CardEffect.DrawCard             -> "🎴"
-    is CardEffect.ConditionalEffect    -> "🔮"
-    is CardEffect.BlockMine            -> "🚫"
-    is CardEffect.StealCastle          -> "🧛"
-    is CardEffect.AddResourceDelayed   -> "⏳"
-    is CardEffect.AddCardsToDeck       -> "📦"
-    else                               -> "❓"
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,147 +53,149 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
     val dust      = profile?.dust ?: 0
     val canAfford = gold >= CardCollectionManager.PACK_COST_GOLD
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(ShBgDeep, ShBgPanel, ShBgDeep)))
-    ) {
-        Column(Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val W = maxWidth
+        val H = maxHeight
 
-            // ── Top bar ───────────────────────────────────────────────────────
-            Row(
-                Modifier.fillMaxWidth().background(ShBgPanel)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // ── Pozadí – stejné jako main menu ───────────────────────────────────
+        Image(
+            painter            = painterResource(R.drawable.menu_bg),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.Crop
+        )
+
+        // ── Pochodně ─────────────────────────────────────────────────────────
+        val imgAR  = 1791f / 975f
+        val dispAR = W.value / H.value.coerceAtLeast(1f)
+        val imgDispW: Dp
+        val imgDispH: Dp
+        val cropX: Dp
+        val cropY: Dp
+        if (dispAR >= imgAR) {
+            imgDispW = W; imgDispH = W / imgAR; cropX = 0.dp; cropY = (imgDispH - H) / 2f
+        } else {
+            imgDispW = H * imgAR; imgDispH = H; cropX = (imgDispW - W) / 2f; cropY = 0.dp
+        }
+        val torchSize = H * 0.15f
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.112f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ), size = torchSize, seed = 0f
+        )
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.898f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ), size = torchSize, seed = 1.7f
+        )
+
+        // ── Zpět (top-left) ───────────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopStart)
+                .clip(RoundedCornerShape(8.dp))
+                .background(ShBgCard.copy(alpha = 0.75f))
+                .border(1.dp, ShMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .clickable { SoundManager.playMenuTap(); onBack() }
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text(LocalStrings.current.back, color = ShMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+
+        // ── Měna (top-right) ─────────────────────────────────────────────────
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopEnd)
+                .clip(RoundedCornerShape(8.dp))
+                .background(ShBgCard.copy(alpha = 0.75f))
+                .border(1.dp, ShMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("🪙 $gold", color = ShGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("✨ $dust", color = ShDust, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+
+        // ── Centrovaný obsah ─────────────────────────────────────────────────
+        val centerW = minOf(W * 0.46f, H * 1.0f)
+        Box(
+            modifier         = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier            = Modifier.width(centerW),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(H * 0.012f)
             ) {
-                Box(
-                    Modifier.clip(RoundedCornerShape(7.dp)).background(ShBgCard)
-                        .border(1.dp, ShMuted.copy(alpha = 0.3f), RoundedCornerShape(7.dp))
-                        .clickable { SoundManager.playMenuTap(); onBack() }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text("← Zpět", color = ShMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
+                // Titulek
+                Text("📦", fontSize = 48.sp)
                 Text(
-                    "📦  BALÍČKY",
-                    color = ShGold, fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+                    "BALÍČKY",
+                    color = ShGold, fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 4.sp
                 )
-                Spacer(Modifier.weight(1f))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+
+                Spacer(Modifier.height(H * 0.01f))
+
+                // Info o balíčku – bez boxu
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("🪙 $gold", color = ShGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text("✨ $dust", color = ShDust, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
+                    Text("5 karet • 1× vzácná nebo lepší garantována",
+                        color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
 
-            HorizontalDivider(color = ShGold.copy(alpha = 0.12f))
-
-            // ── Obsah: info vlevo, nákup vpravo ──────────────────────────────
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                ) {
-                    // ── Levý panel: info o balíčku ────────────────────────────
-                    Column(
-                        Modifier
-                            .width(240.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(ShBgCard)
-                            .border(1.5.dp, ShGold.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    // Rarity šance
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment     = Alignment.CenterVertically
                     ) {
-                        Text("🃏", fontSize = 40.sp)
-                        Text(
-                            "BALÍČEK KARET",
-                            color = ShGold, fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                        )
-                        HorizontalDivider(color = ShGold.copy(alpha = 0.15f))
-                        PackInfoRow("🃏", "5 karet na balíček")
-                        PackInfoRow("⭐", "1× vzácná nebo lepší (garantovaná)")
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            "Šance z náhodných slotů",
-                            color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Rarity.entries.forEach { r ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
-                                    Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                    Text(r.label, color = ShMuted, fontSize = 7.sp)
-                                }
-                            }
-                        }
-                    }
-
-                    // ── Pravý panel: nákup ────────────────────────────────────
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (canAfford) ShGold.copy(alpha = 0.14f) else ShMuted.copy(alpha = 0.07f))
-                                .border(2.dp, if (canAfford) ShGold.copy(alpha = 0.75f) else ShMuted.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                                .then(
-                                    if (canAfford) Modifier.clickable {
-                                        SoundManager.playMenuTap()
-                                        val result = CardCollectionManager.openPack(allCards)
-                                        if (result != null) {
-                                            pendingPack = result
-                                            profile = PlayerProfileManager.profile
-                                        }
-                                    } else Modifier
-                                )
-                                .padding(vertical = 18.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        Rarity.entries.forEach { r ->
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Text(
-                                    "🪙 ${CardCollectionManager.PACK_COST_GOLD}",
-                                    color = if (canAfford) ShGold else ShMuted,
-                                    fontSize = 18.sp, fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    "KOUPIT BALÍČEK",
-                                    color = if (canAfford) ShText else ShMuted,
-                                    fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                )
+                                Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
+                                Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text(r.label, color = ShMuted, fontSize = 8.sp)
                             }
                         }
-                        Text(
-                            if (canAfford)
-                                "Můžeš si koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
-                            else
-                                "Zlato získáš vítězstvím v bitvě",
-                            color = ShMuted, fontSize = 9.sp,
-                            textAlign = TextAlign.Center
-                        )
                     }
                 }
+
+                Spacer(Modifier.height(H * 0.01f))
+
+                // Tlačítko koupit – stejný styl jako MenuButton
+                MenuButton(
+                    label    = "🪙 ${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
+                    accent   = if (canAfford) ShGold else ShMuted,
+                    imageRes = if (canAfford) R.drawable.button_1 else R.drawable.button_3,
+                    enabled  = canAfford,
+                    onClick  = {
+                        SoundManager.playMenuTap()
+                        val result = CardCollectionManager.openPack(allCards)
+                        if (result != null) {
+                            pendingPack = result
+                            profile = PlayerProfileManager.profile
+                        }
+                    }
+                )
+
+                // Pomocný text
+                Text(
+                    if (canAfford)
+                        "Můžeš koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
+                    else
+                        "Zlato získáš vítězstvím v bitvě",
+                    color = ShMuted, fontSize = 9.sp,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
@@ -275,11 +247,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                 }
             }
 
-            // Fixní výška spodní sekce — karty se při zobrazení tlačítka nehýbou
-            Box(
-                Modifier.height(80.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.height(80.dp), contentAlignment = Alignment.Center) {
                 if (!allRevealed) {
                     Text("Klepni na kartu pro odkrytí", color = ShMuted, fontSize = 11.sp)
                 } else {
@@ -336,14 +304,10 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
         label         = "cardFlip"
     )
 
-    // Podržení prstu odhalí záři rarity skryté karty ještě před otočením
     var isHolding by remember { mutableStateOf(false) }
+    val glowColor = if (gain.card.rarity == Rarity.COMMON) Color(0xFFCFCFCF) else shRarityColor(gain.card.rarity)
+    val showGlow  = isRevealed || isHolding
 
-    // Common karty mají také glow – světle šedivý; vzácnější dle barvy rarity
-    val glowColor  = if (gain.card.rarity == Rarity.COMMON) Color(0xFFCFCFCF) else shRarityColor(gain.card.rarity)
-    val showGlow   = isRevealed || isHolding
-
-    // Pulsující záře pro RARE+ karty po odhalení
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue  = 0.30f,
@@ -355,58 +319,27 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
         label = "glowAlpha"
     )
 
-    // Vnější Box: 130×170dp → 15dp prostoru pro záři na každé straně kolem karty 100×140
-    Box(
-        Modifier.size(width = 130.dp, height = 170.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // Tři vrstvené záře — každá vrstva je o 8dp větší než ta uvnitř,
-        // outermost nejsvětlejší okraj, innermost nejsytější těsně kolem karty
+    Box(Modifier.size(width = 130.dp, height = 170.dp), contentAlignment = Alignment.Center) {
         if (showGlow) {
-            Box(
-                Modifier
-                    .size(width = 124.dp, height = 164.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(glowColor.copy(alpha = glowAlpha * 0.18f))
-            )
-            Box(
-                Modifier
-                    .size(width = 116.dp, height = 156.dp)
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(glowColor.copy(alpha = glowAlpha * 0.35f))
-            )
-            Box(
-                Modifier
-                    .size(width = 108.dp, height = 148.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(glowColor.copy(alpha = glowAlpha * 0.55f))
-            )
+            Box(Modifier.size(width = 124.dp, height = 164.dp).clip(RoundedCornerShape(20.dp)).background(glowColor.copy(alpha = glowAlpha * 0.18f)))
+            Box(Modifier.size(width = 116.dp, height = 156.dp).clip(RoundedCornerShape(15.dp)).background(glowColor.copy(alpha = glowAlpha * 0.35f)))
+            Box(Modifier.size(width = 108.dp, height = 148.dp).clip(RoundedCornerShape(11.dp)).background(glowColor.copy(alpha = glowAlpha * 0.55f)))
         }
-
-        // Karta s flip animací
         Box(
             Modifier
                 .size(width = 100.dp, height = 140.dp)
-                .graphicsLayer {
-                    rotationY      = rotation
-                    cameraDistance = 8f * density
-                }
+                .graphicsLayer { rotationY = rotation; cameraDistance = 8f * density }
                 .pointerInput(isRevealed) {
                     if (!isRevealed) {
                         detectTapGestures(
-                            onPress = {
-                                isHolding = true
-                                tryAwaitRelease()
-                                isHolding = false
-                            },
-                            onTap = { onClick() }
+                            onPress = { isHolding = true; tryAwaitRelease(); isHolding = false },
+                            onTap   = { onClick() }
                         )
                     }
                 },
             contentAlignment = Alignment.Center
         ) {
             if (rotation <= 90f) {
-                // ── Rubová strana ──────────────────────────────────────────────
                 Image(
                     painter            = painterResource(playerCardBackResId()),
                     contentDescription = null,
@@ -414,13 +347,8 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                     contentScale       = ContentScale.FillBounds
                 )
             } else {
-                // ── Lícová strana — skutečná karta s grafikou ──────────────────
-                Box(
-                    Modifier.graphicsLayer { rotationY = 180f },
-                    contentAlignment = Alignment.TopCenter
-                ) {
+                Box(Modifier.graphicsLayer { rotationY = 180f }, contentAlignment = Alignment.TopCenter) {
                     CardPreview(card = gain.card)
-                    // Duplikát badge
                     if (gain.isDuplicate) {
                         Box(
                             Modifier
@@ -437,19 +365,5 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                 }
             }
         }
-    }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-@Composable
-private fun PackInfoRow(icon: String, text: String, color: Color = ShMuted) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(icon, fontSize = 11.sp)
-        Text(text, color = color, fontSize = 9.sp)
     }
 }
