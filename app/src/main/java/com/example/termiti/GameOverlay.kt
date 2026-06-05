@@ -484,13 +484,9 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
     }
     val isWin = result.isPlayerWin()
 
-    Dialog(
-        onDismissRequest = {},
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
+    Dialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.88f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(
                     if (isWin) listOf(Color(0xFF1A2A1A), BgPanel)
@@ -562,13 +558,9 @@ fun ArenaGameOverDialog(
         GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
     }
 
-    Dialog(
-        onDismissRequest = {},
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
+    Dialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
-                .fillMaxWidth(0.88f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(
                     if (isPlayerWin) listOf(Color(0xFF1A2A1A), BgPanel)
