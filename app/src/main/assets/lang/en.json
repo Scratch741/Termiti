@@ -198,11 +198,11 @@
   "cards": {
     "001": {
       "name": "Quick Strike",
-      "desc": "Attack the enemy for 5. [Combo]"
+      "desc": "Attack the enemy for 5.\n[Combo]"
     },
     "008": {
       "name": "Arrows",
-      "desc": "Attack the castle for 3. [Combo]"
+      "desc": "Attack the castle for 3.\n[Combo]"
     },
     "003": {
       "name": "Fireball",
@@ -242,15 +242,15 @@
     },
     "004": {
       "name": "Magic",
-      "desc": "+2 Magic. [Combo]"
+      "desc": "+2 Magic.\n[Combo]"
     },
     "011": {
       "name": "Stone Stockpile",
-      "desc": "+3 Stone. [Combo]"
+      "desc": "+3 Stone.\n[Combo]"
     },
     "012": {
       "name": "Mobilization",
-      "desc": "+3 Attack. [Combo]"
+      "desc": "+3 Attack.\n[Combo]"
     },
     "013": {
       "name": "Mana Spring",
@@ -270,11 +270,11 @@
     },
     "019": {
       "name": "Fire Arrows",
-      "desc": "Damage only walls by 5. [Combo]"
+      "desc": "Damage only walls by 5.\n[Combo]"
     },
     "020": {
       "name": "Battering Ram",
-      "desc": "Damage only walls by 12. [Combo]"
+      "desc": "Damage only walls by 12.\n[Combo]"
     },
     "021": {
       "name": "Artillery",
@@ -306,7 +306,7 @@
     },
     "028": {
       "name": "Patch",
-      "desc": "Castle +3. [Combo]"
+      "desc": "Castle +3.\n[Combo]"
     },
     "029": {
       "name": "Fortification",
@@ -342,15 +342,15 @@
     },
     "037": {
       "name": "Quick Magic",
-      "desc": "+4 Magic. [Combo]"
+      "desc": "+4 Magic.\n[Combo]"
     },
     "038": {
       "name": "Military Order",
-      "desc": "+6 Attack. [Combo]"
+      "desc": "+6 Attack.\n[Combo]"
     },
     "039": {
       "name": "Building Boom",
-      "desc": "+6 Stone. [Combo]"
+      "desc": "+6 Stone.\n[Combo]"
     },
     "040": {
       "name": "Alchemy",
@@ -358,7 +358,7 @@
     },
     "041": {
       "name": "Magic Trio",
-      "desc": "+2 Magic, +2 Attack, +2 Stone. [Combo]"
+      "desc": "+2 Magic, +2 Attack, +2 Stone.\n[Combo]"
     },
     "042": {
       "name": "Great Quarry",
@@ -386,7 +386,7 @@
     },
     "048": {
       "name": "Vampire",
-      "desc": "Attack for 6, gain +3 Magic. [Combo]"
+      "desc": "Attack for 6, gain +3 Magic.\n[Combo]"
     },
     "049": {
       "name": "Poison",
@@ -426,7 +426,7 @@
     },
     "058": {
       "name": "Defensive Rampart",
-      "desc": "Walls +4. [Combo]"
+      "desc": "Walls +4.\n[Combo]"
     },
     "059": {
       "name": "Fortress Castle",
@@ -490,7 +490,7 @@
     },
     "074": {
       "name": "Marketplace",
-      "desc": "+3 Magic, +3 Attack, +3 Stone. [Combo]"
+      "desc": "+3 Magic, +3 Attack, +3 Stone.\n[Combo]"
     },
     "075": {
       "name": "Mining Expansion",
@@ -518,7 +518,7 @@
     },
     "130": {
       "name": "Plunder",
-      "desc": "+2 Attack, -2 Stone. [Combo]"
+      "desc": "+2 Attack, -2 Stone.\n[Combo]"
     },
     "131": {
       "name": "Invasion",
@@ -530,7 +530,7 @@
     },
     "081": {
       "name": "Quick Wall",
-      "desc": "Walls +6. [Combo]"
+      "desc": "Walls +6.\n[Combo]"
     },
     "082": {
       "name": "Massive Wall",
@@ -582,7 +582,7 @@
     },
     "094": {
       "name": "Material Storehouse",
-      "desc": "Walls +6, gain +2 Stone. [Combo]"
+      "desc": "Walls +6, gain +2 Stone.\n[Combo]"
     },
     "095": {
       "name": "Stone Trade",
@@ -598,7 +598,7 @@
     },
     "C01": {
       "name": "Chaos Spark",
-      "desc": "+2 Chaos. [Combo]"
+      "desc": "+2 Chaos.\n[Combo]"
     },
     "C02": {
       "name": "Entropy",
@@ -610,7 +610,7 @@
     },
     "C04": {
       "name": "Chaos Theft",
-      "desc": "Steal 3 Chaos from the opponent. [Combo]"
+      "desc": "Steal 3 Chaos from the opponent.\n[Combo]"
     },
     "C05": {
       "name": "Chaos Blast",
@@ -718,15 +718,15 @@
     },
     "C24": {
       "name": "Dark Ritual",
-      "desc": "+5 Chaos. [Combo]"
+      "desc": "+5 Chaos.\n[Combo]"
     },
     "C25": {
       "name": "Unstable Vortex",
-      "desc": "+2 Chaos and +2 Magic. [Combo]"
+      "desc": "+2 Chaos and +2 Magic.\n[Combo]"
     },
     "C26": {
       "name": "Blood Sacrifice",
-      "desc": "+3 Chaos. [Combo]"
+      "desc": "+3 Chaos.\n[Combo]"
     },
     "C27": {
       "name": "Magic Reflection",
@@ -734,7 +734,7 @@
     },
     "C28": {
       "name": "Chaos Trophy",
-      "desc": "Steal 2 Attack, +3 Chaos. [Combo]"
+      "desc": "Steal 2 Attack, +3 Chaos.\n[Combo]"
     },
     "C29": {
       "name": "Stormy Mind",
@@ -754,7 +754,7 @@
     },
     "D01": {
       "name": "Scout",
-      "desc": "Draw 1 card. [Combo]"
+      "desc": "Draw 1 card.\n[Combo]"
     },
     "D02": {
       "name": "Prophecy",
@@ -770,7 +770,7 @@
     },
     "D05": {
       "name": "Building Plans",
-      "desc": "Walls +4. Draw 1 card. [Combo]"
+      "desc": "Walls +4. Draw 1 card.\n[Combo]"
     },
     "D06": {
       "name": "Elite Scout",
@@ -838,7 +838,7 @@
     },
     "115": {
       "name": "Well of Knowledge",
-      "desc": "Both players draw 2 cards. [Combo]"
+      "desc": "Both players draw 2 cards.\n[Combo]"
     },
     "116": {
       "name": "Chaotic Replication",
@@ -926,19 +926,61 @@
     }
   },
   "abilities": {
-    "extra_castle":    { "name": "Sturdy Castle",   "desc": "+5 starting castle, but the win target rises from 60 to 65." },
-    "extra_wall":      { "name": "Strong Walls",    "desc": "+5 starting wall." },
-    "extra_magic":     { "name": "Magic Talent",    "desc": "+1 Magic at the start of the game." },
-    "extra_attack":    { "name": "Combat Training", "desc": "+1 Attack at the start of the game." },
-    "extra_stones":    { "name": "Stone Foundation","desc": "+1 Stone at the start of the game." },
-    "extra_chaos":     { "name": "Chaotic Mind",    "desc": "+1 Chaos at the start of the game." },
-    "extra_hand_card": { "name": "Big Hand",        "desc": "Maximum hand size increases to 8 (instead of 7)." },
-    "iron_bastion":    { "name": "Iron Bastion",    "desc": "The opponent needs 75 castle points to win by building (instead of 70)." },
-    "quick_draw":      { "name": "Quick Draw",      "desc": "Draw 1 extra card at the start of the first turn." },
-    "boost_attack":    { "name": "Attack Boost",    "desc": "Adds 2 random Attack cards to your deck." },
-    "boost_build":     { "name": "Build Boost",     "desc": "Adds 2 random Build cards to your deck." },
-    "boost_magic":     { "name": "Magic Boost",     "desc": "Adds 2 random Magic cards to your deck." },
-    "boost_chaos":     { "name": "Chaos Boost",     "desc": "Adds 2 random Chaos cards to your deck." },
-    "boost_random":    { "name": "Random Boost",    "desc": "Adds 3 random cards of any type to your deck." }
+    "extra_castle": {
+      "name": "Sturdy Castle",
+      "desc": "+5 starting castle, but the win target rises from 60 to 65."
+    },
+    "extra_wall": {
+      "name": "Strong Walls",
+      "desc": "+5 starting wall."
+    },
+    "extra_magic": {
+      "name": "Magic Talent",
+      "desc": "+1 Magic at the start of the game."
+    },
+    "extra_attack": {
+      "name": "Combat Training",
+      "desc": "+1 Attack at the start of the game."
+    },
+    "extra_stones": {
+      "name": "Stone Foundation",
+      "desc": "+1 Stone at the start of the game."
+    },
+    "extra_chaos": {
+      "name": "Chaotic Mind",
+      "desc": "+1 Chaos at the start of the game."
+    },
+    "extra_hand_card": {
+      "name": "Big Hand",
+      "desc": "Maximum hand size increases to 8 (instead of 7)."
+    },
+    "iron_bastion": {
+      "name": "Iron Bastion",
+      "desc": "The opponent needs 75 castle points to win by building (instead of 70)."
+    },
+    "quick_draw": {
+      "name": "Quick Draw",
+      "desc": "Draw 1 extra card at the start of the first turn."
+    },
+    "boost_attack": {
+      "name": "Attack Boost",
+      "desc": "Adds 2 random Attack cards to your deck."
+    },
+    "boost_build": {
+      "name": "Build Boost",
+      "desc": "Adds 2 random Build cards to your deck."
+    },
+    "boost_magic": {
+      "name": "Magic Boost",
+      "desc": "Adds 2 random Magic cards to your deck."
+    },
+    "boost_chaos": {
+      "name": "Chaos Boost",
+      "desc": "Adds 2 random Chaos cards to your deck."
+    },
+    "boost_random": {
+      "name": "Random Boost",
+      "desc": "Adds 3 random cards of any type to your deck."
+    }
   }
 }
