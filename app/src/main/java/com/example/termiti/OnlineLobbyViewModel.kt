@@ -512,7 +512,7 @@ class OnlineLobbyViewModel(
                 put("type",             "JOIN")
                 put("protocolVersion",  PROTOCOL_VERSION)
                 put("name",             playerName.value.trim())
-                put("avatar",           PlayerProfileManager.profile?.avatar        ?: "⚔️")
+                put("avatar",           PlayerProfileManager.profile?.avatar ?: "player_icon_1")
                 put("cardBackSkin",     PlayerProfileManager.profile?.cardBackSkin  ?: "card_back_frame")
                 put("castleSkin",       PlayerProfileManager.profile?.castleSkin    ?: "castle_player")
                 put("level",            PlayerProfileManager.profile?.level  ?: 1)

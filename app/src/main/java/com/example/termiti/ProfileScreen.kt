@@ -34,13 +34,51 @@ private val PrMuted     = Color(0xFF7A6E5F)
 private val PrGems      = Color(0xFF7EC8E3)
 private val PrGreen     = Color(0xFF3DBFAD)
 
-/** Čtyři základní avatary — všechny odemčeny na levelu 1. */
+/** Devět hráčských ikon — všechny odemčeny na levelu 1. */
 private val AVATARS = listOf(
-    "⚔️" to 1,
-    "🧙" to 1,
-    "🛡️" to 1,
-    "💀" to 1
+    "player_icon_1" to 1,
+    "player_icon_2" to 1,
+    "player_icon_3" to 1,
+    "player_icon_4" to 1,
+    "player_icon_5" to 1,
+    "player_icon_6" to 1,
+    "player_icon_7" to 1,
+    "player_icon_8" to 1,
+    "player_icon_9" to 1
 )
+
+/** Vrátí drawable resource ID pro ikonky hráče, null pro emoji avatary (oponenti, AI). */
+fun avatarResId(avatar: String): Int? = when (avatar) {
+    "player_icon_1" -> R.drawable.player_icon_1
+    "player_icon_2" -> R.drawable.player_icon_2
+    "player_icon_3" -> R.drawable.player_icon_3
+    "player_icon_4" -> R.drawable.player_icon_4
+    "player_icon_5" -> R.drawable.player_icon_5
+    "player_icon_6" -> R.drawable.player_icon_6
+    "player_icon_7" -> R.drawable.player_icon_7
+    "player_icon_8" -> R.drawable.player_icon_8
+    "player_icon_9" -> R.drawable.player_icon_9
+    else            -> null
+}
+
+/**
+ * Zobrazí avatar hráče jako Image (player_icon_*) nebo Text (emoji pro oponenty/AI).
+ * Backward compatible — emoji avatary oponentů fungují beze změny.
+ */
+@Composable
+fun AvatarDisplay(avatar: String, sizeDp: Float, modifier: Modifier = Modifier) {
+    val resId = avatarResId(avatar)
+    if (resId != null) {
+        Image(
+            painter          = painterResource(resId),
+            contentDescription = null,
+            modifier         = modifier.size(sizeDp.dp),
+            contentScale     = ContentScale.Crop
+        )
+    } else {
+        Text(avatar, fontSize = (sizeDp * 0.65f).sp, modifier = modifier)
+    }
+}
 
 @Composable
 fun ProfileScreen(onBack: () -> Unit) {
@@ -95,7 +133,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                             .border(2.dp, PrGold.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(profile!!.avatar, fontSize = 24.sp)
+                        AvatarDisplay(profile!!.avatar, sizeDp = 36f)
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(profile!!.name, color = PrText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
@@ -438,9 +476,9 @@ private fun AvatarPicker(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AVATARS.forEach { (emoji, unlockLevel) ->
+        AVATARS.forEach { (avatarId, unlockLevel) ->
             val unlocked = level >= unlockLevel
-            val selected = emoji == current
+            val selected = avatarId == current
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -448,9 +486,9 @@ private fun AvatarPicker(
                     .clip(RoundedCornerShape(8.dp))
                     .background(
                         when {
-                            selected  -> PrGold.copy(alpha = 0.18f)
-                            unlocked  -> PrBgPanel
-                            else      -> PrBgCard
+                            selected -> PrGold.copy(alpha = 0.18f)
+                            unlocked -> PrBgPanel
+                            else     -> PrBgCard
                         }
                     )
                     .border(
@@ -465,13 +503,13 @@ private fun AvatarPicker(
                     .alpha(if (unlocked) 1f else 0.35f)
                     .clickable(enabled = unlocked && !selected) {
                         SoundManager.playMenuTap()
-                        val updated = PlayerProfileManager.profile!!.copy(avatar = emoji)
+                        val updated = PlayerProfileManager.profile!!.copy(avatar = avatarId)
                         PlayerProfileManager.save(updated)
                         onChanged(updated)
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text(emoji, fontSize = 20.sp)
+                AvatarDisplay(avatarId, sizeDp = 28f)
             }
         }
     }

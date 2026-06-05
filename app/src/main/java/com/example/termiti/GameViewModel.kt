@@ -1650,7 +1650,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         ReplayManager.lastReplay = GameReplay(
             frames          = replayFrames.toList(),
             playerName      = profile?.name   ?: ls.logActorPlayer,
-            playerAvatar    = profile?.avatar ?: "⚔️",
+            playerAvatar    = profile?.avatar ?: "player_icon_1",
             opponentName    = opp?.name       ?: ls.enemy,
             opponentAvatar  = opp?.avatar     ?: "👺",
             result          = result,

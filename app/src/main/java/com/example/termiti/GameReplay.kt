@@ -15,7 +15,7 @@ data class ReplayFrame(
 data class GameReplay(
     val frames          : List<ReplayFrame>,
     val playerName      : String     = "Hráč",
-    val playerAvatar    : String     = "⚔️",
+    val playerAvatar    : String     = "player_icon_1",
     val opponentName    : String     = "Nepřítel",
     val opponentAvatar  : String     = "👺",
     val result          : GameResult,

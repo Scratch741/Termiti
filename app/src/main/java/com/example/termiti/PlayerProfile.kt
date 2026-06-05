@@ -11,7 +11,7 @@ data class PlayerProfile(
     val name: String,
 
     // ── Avatar ────────────────────────────────────────────────────────────────
-    val avatar: String = "⚔️",  // emoji ID z PlayerAvatar
+    val avatar: String = "player_icon_1",
 
     // ── Skin hradu ────────────────────────────────────────────────────────────
     val castleSkin: String = "castle_player",      // ID drawablu hradu hráče

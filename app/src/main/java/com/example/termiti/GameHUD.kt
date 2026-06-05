@@ -97,7 +97,7 @@ fun NewTopBar(
     currentTurn: Int,
     arenaWins: Int = -1,
     playerLabel: String = "Hráč",
-    playerAvatar: String = "⚔️",
+    playerAvatar: String = "player_icon_1",
     playerLevel: Int = -1,
     opponentLabel: String = "Nepřítel",
     opponentAvatar: String = "👺",
@@ -147,7 +147,7 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A2010), Color(0xFF5C3010))))
                     .border(1.5.dp, Gold.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { Text(playerAvatar, fontSize = 13.sp) }
+            ) { AvatarDisplay(playerAvatar, sizeDp = 20f) }
 
             Text(playerLabel, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
@@ -285,7 +285,7 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A0A0A), Color(0xFF5C1010))))
                     .border(1.5.dp, Crimson.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { Text(opponentAvatar, fontSize = 13.sp) }
+            ) { AvatarDisplay(opponentAvatar, sizeDp = 20f) }
         }
     }
 }

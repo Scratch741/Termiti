@@ -395,7 +395,7 @@ private fun OnlineGameplay(
                 isComboTurn      = false,
                 currentTurn      = gs.turnNumber,
                 playerLabel      = PlayerProfileManager.profile?.name   ?: "Hráč",
-                playerAvatar     = PlayerProfileManager.profile?.avatar ?: "⚔️",
+                playerAvatar     = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel      = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel    = opponentName,
                 opponentAvatar   = matchInfo?.opponentAvatar ?: "👺",

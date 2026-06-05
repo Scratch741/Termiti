@@ -135,7 +135,7 @@ fun GameScreen(
                 currentTurn    = state.currentTurn,
                 arenaWins      = if (isArena) arenaWins else -1,
                 playerLabel    = PlayerProfileManager.profile?.name   ?: LocalStrings.current.logActorPlayer,
-                playerAvatar   = PlayerProfileManager.profile?.avatar ?: "⚔️",
+                playerAvatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.name   ?: LocalStrings.current.enemy,
                 opponentAvatar = campaignOpponent?.avatar ?: "👺",
