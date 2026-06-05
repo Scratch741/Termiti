@@ -115,7 +115,9 @@ fun PlayMenuScreen(
                     Image(
                         painter            = painterResource(R.drawable.logo_darkmage),
                         contentDescription = "DarkMage",
-                        modifier           = Modifier.requiredWidth(centerW * 1.1f),
+                        modifier           = Modifier
+                            .requiredWidth(centerW * 1.1f)
+                            .offset(y = -H * -0.01f),
                         contentScale       = ContentScale.FillWidth
                     )
                     Spacer(Modifier.height(H * 0.01f))
