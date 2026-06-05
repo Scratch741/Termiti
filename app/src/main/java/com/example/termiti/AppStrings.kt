@@ -94,6 +94,7 @@ data class AppStrings(
     val resultCastleDestroyedSelf: String,
     val resultHpWins: String,
     val resultHpLose: String,
+    val resultHpDraw: String,
     val resultHpWinsTurnLimit: String,
     val resultHpLoseTurnLimit: String,
     val resultBothDead: String,

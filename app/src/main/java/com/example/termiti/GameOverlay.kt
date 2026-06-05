@@ -478,7 +478,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
         GameResult.AI_HP_WINS              -> s.resultDefeat  to s.resultHpLose
         GameResult.PLAYER_HP_WINS_TURN_LIMIT -> s.resultVictory to s.resultHpWinsTurnLimit
         GameResult.AI_HP_WINS_TURN_LIMIT   -> s.resultDefeat  to s.resultHpLoseTurnLimit
-        GameResult.DRAW                    -> s.resultDraw    to s.resultHpWins
+        GameResult.DRAW                    -> s.resultDraw    to s.resultHpDraw
         GameResult.DRAW_BOTH_DEAD          -> s.resultDraw    to s.resultBothDead
     }
     val isWin = result.isPlayerWin()

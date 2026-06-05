@@ -145,6 +145,7 @@ data class LanguagePack(
                 resultCastleDestroyedSelf = str("resultCastleDestroyedSelf", "Tvůj hrad byl zničen."),
                 resultHpWins          = str("resultHpWins",          "Balíčky došly – tvůj hrad je vyšší!"),
                 resultHpLose          = str("resultHpLose",          "Balíčky došly – soupeř měl vyšší hrad."),
+                resultHpDraw          = str("resultHpDraw",          "Balíčky došly – oba hrady jsou stejně vysoké."),
                 resultHpWinsTurnLimit = str("resultHpWinsTurnLimit", "Limit 99 kol – tvůj hrad je vyšší!"),
                 resultHpLoseTurnLimit = str("resultHpLoseTurnLimit", "Limit 99 kol – soupeř měl vyšší hrad."),
                 resultBothDead        = str("resultBothDead",        "Oba hrady zničeny."),
