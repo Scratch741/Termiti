@@ -1,12 +1,7 @@
 package com.example.termiti
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Text
@@ -77,20 +72,6 @@ fun PlayMenuScreen(
             ), size = torchSize, seed = 1.7f
         )
 
-        // ── Zpět ─────────────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(8.dp))
-                .background(PmBgCard.copy(alpha = 0.75f))
-                .border(1.dp, PmMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onBack() }
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text(s.back, color = PmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-
         // ── Stejný 3-sloupcový layout jako hlavní menu ────────────────────────
         val centerW          = minOf(W * 0.46f, H * 1.0f)
         val iconSize         = H * 0.12f
@@ -157,7 +138,7 @@ fun PlayMenuScreen(
                 ) {
                     IconMenuButton(imageRes = R.drawable.button_7, label = s.shop,     size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
-                    IconMenuButton(imageRes = R.drawable.button_6, label = s.exit,     size = iconSize, onClick = { onBack() })
+                    IconMenuButton(imageRes = R.drawable.button_6, label = s.back,     size = iconSize, onClick = { onBack() })
                 }
             }
         }
