@@ -138,7 +138,7 @@ fun PlayMenuScreen(
                 ) {
                     IconMenuButton(imageRes = R.drawable.button_7, label = s.shop,     size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
-                    IconMenuButton(imageRes = R.drawable.button_6, label = s.back,     size = iconSize, onClick = { onBack() })
+                    IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
                 }
             }
         }
