@@ -118,7 +118,9 @@ class MainActivity : ComponentActivity() {
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onCampaign    = { screen = Screen.CAMPAIGN_MAP },
-                            onBack        = { screen = Screen.MENU }
+                            onBack        = { screen = Screen.MENU },
+                            onShop        = { screen = Screen.SHOP },
+                            onSettings    = { screen = Screen.SETTINGS }
                         )
 
                         Screen.SHOP -> ShopScreen(

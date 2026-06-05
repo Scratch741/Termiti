@@ -188,7 +188,7 @@ fun MenuScreen(
 // ── Profilový sloupec ─────────────────────────────────────────────────────────
 
 @Composable
-private fun ProfileInfo(profile: PlayerProfile, H: Dp) {
+fun ProfileInfo(profile: PlayerProfile, H: Dp) {
     val fs = (H.value * 0.035f).sp
     // Avatar
     Box(
@@ -257,7 +257,7 @@ private fun EmojiIconMenuButton(
 // ── Ikonkové tlačítko ─────────────────────────────────────────────────────────
 
 @Composable
-private fun IconMenuButton(
+fun IconMenuButton(
     @DrawableRes imageRes: Int,
     label: String,
     size: Dp,
