@@ -1904,11 +1904,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         replayFrames.clear()
         val ps = PlayerState().also {
             it.deck.addAll(arenaDraft.toList().withUniqueIds().shuffled())
-            it.drawCards(5)
+            it.drawCards(4)
         }
         val ai = PlayerState().also {
             it.deck.addAll(balancedDeck().withUniqueIds().shuffled())
-            it.drawCards(5)
+            it.drawCards(4)
         }
         gameState.value         = GameState(playerState = ps, aiState = ai)
         gameOver.value          = null
