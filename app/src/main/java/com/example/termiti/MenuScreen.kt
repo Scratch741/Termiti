@@ -199,7 +199,7 @@ private fun ProfileInfo(profile: PlayerProfile, H: Dp) {
             .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(H * 0.02f)),
         contentAlignment = Alignment.Center
     ) {
-        AvatarDisplay(profile.avatar, sizeDp = H.value * 0.065f)
+        AvatarDisplay(profile.avatar, sizeDp = H.value * 0.13f)
     }
     // Level pod avatarem
     Text("Lv. ${profile.level}", color = Gold, fontSize = fs, fontWeight = FontWeight.Bold)
