@@ -193,13 +193,13 @@ private fun ProfileInfo(profile: PlayerProfile, H: Dp) {
     // Avatar
     Box(
         modifier = Modifier
-            .size(H * 0.18f)
-            .clip(RoundedCornerShape(H * 0.04f))
+            .size(H * 0.162f)
+            .clip(RoundedCornerShape(H * 0.036f))
             .background(Gold.copy(alpha = 0.15f))
-            .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(H * 0.04f)),
+            .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(H * 0.036f)),
         contentAlignment = Alignment.Center
     ) {
-        AvatarDisplay(profile.avatar, sizeDp = H.value * 0.16f)
+        AvatarDisplay(profile.avatar, sizeDp = H.value * 0.144f)
     }
     // Level pod avatarem
     Text("Lv. ${profile.level}", color = Gold, fontSize = fs, fontWeight = FontWeight.Bold)
