@@ -95,33 +95,30 @@ fun PlayMenuScreen(
             Text(s.back, color = PmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
 
-        // ── Obsah ─────────────────────────────────────────────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        // ── Obsah – centrováno stejně jako hlavní menu ────────────────────────
+        val btnColW = minOf(W * 0.46f, H * 1.0f)
+        Box(
+            modifier         = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            // Titulek
-            Text("⚔️", fontSize = 40.sp)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "VÝBĚR MÓDU",
-                color = PmGold,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 4.sp
-            )
-            Spacer(Modifier.height(20.dp))
-
-            // Buttony – stejná šířka sloupce jako v hlavním menu
-            val btnColW = minOf(W * 0.46f, H * 1.0f)
             Column(
-                modifier = Modifier.width(btnColW),
+                modifier            = Modifier.width(btnColW),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(H * 0.010f)
             ) {
+                // Titulek
+                Text("⚔️", fontSize = 40.sp)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "VÝBĚR MÓDU",
+                    color = PmGold,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 4.sp
+                )
+                Spacer(Modifier.height(H * 0.02f))
+
+                // Buttony
                 MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         modifier = Modifier.fillMaxWidth(0.9f), onClick = onOwnDeck)
                 MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), modifier = Modifier.fillMaxWidth(0.9f), onClick = onSuperRandom)
                 MenuButton(s.arena,       imageRes = R.drawable.button_2, accent = Gold,              modifier = Modifier.fillMaxWidth(0.9f), onClick = onArena)
