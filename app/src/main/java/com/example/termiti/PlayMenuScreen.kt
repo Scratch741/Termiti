@@ -125,36 +125,12 @@ fun PlayMenuScreen(
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(H * 0.010f)
             ) {
-                FantasyButton(
-                    text     = s.ownDeck,
-                    subtitle = "Hraj se svým sestaveným balíčkem proti AI",
-                    modifier = Modifier.fillMaxWidth(0.55f),
-                    compact  = true,
-                    onClick  = onOwnDeck
-                )
-                FantasyButton(
-                    text     = s.superRandom,
-                    subtitle = "50 karet (15/15/15/5) – větší balíček, větší chaos",
-                    modifier = Modifier.fillMaxWidth(0.55f),
-                    compact  = true,
-                    onClick  = onSuperRandom
-                )
-                FantasyButton(
-                    text     = s.arena,
-                    subtitle = "Sestav balíček z nabídky a bojuj o výhry",
-                    modifier = Modifier.fillMaxWidth(0.55f),
-                    compact  = true,
-                    onClick  = onArena
-                )
-                FantasyButton(
-                    text     = s.campaign,
-                    subtitle = "Projdi lokacemi a poraž záporáky",
-                    modifier = Modifier.fillMaxWidth(0.55f),
-                    compact  = true,
-                    onClick  = onCampaign
-                )
+                MenuButton(s.ownDeck,    imageRes = R.drawable.button_1, accent = TealLight,         modifier = Modifier.fillMaxWidth(0.75f), onClick = onOwnDeck)
+                MenuButton(s.superRandom,imageRes = R.drawable.button_9, accent = Color(0xFFE57373),  modifier = Modifier.fillMaxWidth(0.75f), onClick = onSuperRandom)
+                MenuButton(s.arena,      imageRes = R.drawable.button_2, accent = Gold,              modifier = Modifier.fillMaxWidth(0.75f), onClick = onArena)
+                MenuButton(s.campaign,   imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), modifier = Modifier.fillMaxWidth(0.75f), onClick = onCampaign)
             }
         }
     }
