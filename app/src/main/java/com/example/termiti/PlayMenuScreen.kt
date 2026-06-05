@@ -121,16 +121,17 @@ fun PlayMenuScreen(
             )
             Spacer(Modifier.height(20.dp))
 
-            // Buttony
+            // Buttony – stejná šířka sloupce jako v hlavním menu
+            val btnColW = minOf(W * 0.46f, H * 1.0f)
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier.width(btnColW),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(H * 0.010f)
             ) {
-                MenuButton(s.ownDeck,    imageRes = R.drawable.button_1, accent = TealLight,         modifier = Modifier.fillMaxWidth(0.75f), onClick = onOwnDeck)
-                MenuButton(s.superRandom,imageRes = R.drawable.button_9, accent = Color(0xFFE57373),  modifier = Modifier.fillMaxWidth(0.75f), onClick = onSuperRandom)
-                MenuButton(s.arena,      imageRes = R.drawable.button_2, accent = Gold,              modifier = Modifier.fillMaxWidth(0.75f), onClick = onArena)
-                MenuButton(s.campaign,   imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), modifier = Modifier.fillMaxWidth(0.75f), onClick = onCampaign)
+                MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         modifier = Modifier.fillMaxWidth(0.9f), onClick = onOwnDeck)
+                MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), modifier = Modifier.fillMaxWidth(0.9f), onClick = onSuperRandom)
+                MenuButton(s.arena,       imageRes = R.drawable.button_2, accent = Gold,              modifier = Modifier.fillMaxWidth(0.9f), onClick = onArena)
+                MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), modifier = Modifier.fillMaxWidth(0.9f), onClick = onCampaign)
             }
         }
     }
