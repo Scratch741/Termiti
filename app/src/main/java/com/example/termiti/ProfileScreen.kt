@@ -42,9 +42,11 @@ private val AVATARS = listOf(
     "player_icon_4" to 1,
     "player_icon_5" to 1,
     "player_icon_6" to 1,
-    "player_icon_7" to 1,
-    "player_icon_8" to 1,
-    "player_icon_9" to 1
+    "player_icon_7"  to 1,
+    "player_icon_8"  to 1,
+    "player_icon_9"  to 1,
+    "player_icon_10" to 1,
+    "player_icon_11" to 1
 )
 
 /** Vrátí drawable resource ID pro ikonky hráče, null pro emoji avatary (oponenti, AI). */
@@ -57,8 +59,10 @@ fun avatarResId(avatar: String): Int? = when (avatar) {
     "player_icon_6" -> R.drawable.player_icon_6
     "player_icon_7" -> R.drawable.player_icon_7
     "player_icon_8" -> R.drawable.player_icon_8
-    "player_icon_9" -> R.drawable.player_icon_9
-    else            -> null
+    "player_icon_9"  -> R.drawable.player_icon_9
+    "player_icon_10" -> R.drawable.player_icon_10
+    "player_icon_11" -> R.drawable.player_icon_11
+    else             -> null
 }
 
 /**
