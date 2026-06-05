@@ -49,6 +49,7 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.roundToInt
@@ -483,9 +484,13 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
     }
     val isWin = result.isPlayerWin()
 
-    Dialog(onDismissRequest = {}) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth(0.88f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(
                     if (isWin) listOf(Color(0xFF1A2A1A), BgPanel)
@@ -557,9 +562,13 @@ fun ArenaGameOverDialog(
         GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
     }
 
-    Dialog(onDismissRequest = {}) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth(0.88f)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(
                     if (isPlayerWin) listOf(Color(0xFF1A2A1A), BgPanel)
