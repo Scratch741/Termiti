@@ -144,30 +144,3 @@ fun PlayMenuScreen(
         }
     }
 }
-
-@Composable
-private fun ModeCard(
-    icon: String,
-    title: String,
-    description: String,
-    accent: Color,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .clip(RoundedCornerShape(10.dp))
-            .background(accent.copy(alpha = 0.08f))
-            .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(10.dp))
-            .clickable { SoundManager.playMenuTap(); onClick() }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(icon, fontSize = 22.sp)
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(title, color = Color(0xFFEDE0C4), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text(description, color = PmMuted, fontSize = 10.sp, textAlign = TextAlign.Start)
-        }
-    }
-}
