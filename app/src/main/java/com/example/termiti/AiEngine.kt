@@ -232,11 +232,19 @@ fun aiChooseAction(
             fx.options.maxOfOrNull { it.amount } ?: 4
         is CardEffect.Mirror -> {
             val src = opponent.lastPlayedCard
-            if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 20) else 2
+            when {
+                src == null -> 0  // žádná zdrojová karta → nezrcadlená forma = žádný efekt, nehrát
+                src.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone } -> 2  // zabránit rekurzi
+                else -> src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 20)
+            }
         }
         is CardEffect.Clone -> {
             val src = ai.lastPlayedCard
-            if (src != null) src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25) else 1
+            when {
+                src == null -> 0  // žádná zdrojová karta → neklonovatelná forma = jen +2 magie, nehrát
+                src.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone } -> 2  // zabránit rekurzi
+                else -> src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25)
+            }
         }
         is CardEffect.NextCardIsCombo -> 3  // dává příští kartě combo = slabý ale užitečný efekt
         is CardEffect.DiscountRandomCard -> fx.delta * fx.count  // okamžitá sleva na náhodnou kartu
