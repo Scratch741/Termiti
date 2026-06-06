@@ -742,19 +742,23 @@ class OnlineLobbyViewModel(
                         if (realTemplate != null && visTemplate != null) {
                             val lpcCostTypeStr = lpc.optString("costType", "")
                         val lpcCostType = ResourceType.entries.find { it.name == lpcCostTypeStr }
+                        // Pre-resolve texty: jméno = skutečná karta, popis = kopírovaná karta.
+                        // localizationId = "__morph__" (neexistuje v lang packu) → fallback
+                        // na pole name/description, které jsou již přeložena.
+                        val resolvedName = LanguageManager.cardName(baseId, realTemplate.name)
+                        val resolvedDesc = LanguageManager.cardDesc(
+                            displayBaseId ?: baseId, visTemplate.description)
                         val card = visTemplate.copy(
-                                // Identita: skutečná karta (pro baseId výpočet)
                                 id             = lpc.optString("id", baseId),
                                 isGenerated    = lpc.optBoolean("isGenerated",  false),
-                                // Cena ze serveru (reálná cena Shapeshifteru/Zrcadla/Klonu)
                                 cost           = lpc.optInt("cost", realTemplate.cost),
                                 costModifier   = lpc.optInt("costModifier", 0),
                                 costType       = lpcCostType ?: realTemplate.costType,
                                 isCombo        = lpc.optBoolean("isCombo", realTemplate.isCombo),
-                                // Název: skutečná karta ("Shapeshifter" / "Zrcadlo" / "Klon")
-                                // Art, popis, typ, rarita: z visTemplate (kopírovaná karta)
-                                name           = realTemplate.name,
-                                localizationId = baseId
+                                // Pre-resolved texty (lang pack se nepoužije pro display)
+                                name           = resolvedName,
+                                description    = resolvedDesc,
+                                localizationId = "__morph__"
                             )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
