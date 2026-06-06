@@ -553,7 +553,7 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             modifier = Modifier
                 .clickable(enabled = false, onClick = {})
                 .clip(RoundedCornerShape(12.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A1520), BgPanel)))
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
                 .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
                 .padding(18.dp)
                 .widthIn(max = 360.dp)

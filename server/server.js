@@ -424,7 +424,7 @@ wss.on('connection', (ws, req) => {
               log('RECONNECT', `Path2 "${name}" – session=${!!session} phase=${session?.phase}`);
               if (session && session.phase !== 'ended') {
                 // Přepoj hráče do existující hry
-                players.set(ws, { id: p.id, name, avatar: p.avatar ?? '⚔️', level: p.level ?? 1, deviceId, inQueue: false,
+                players.set(ws, { id: p.id, name, avatar: p.avatar ?? 'player_icon_1', level: p.level ?? 1, deviceId, inQueue: false,
                                   gameId: p.gameId, side: p.side });
                 send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
                 session.resendStateTo(p.side, ws);
@@ -442,7 +442,10 @@ wss.on('connection', (ws, req) => {
           }
         }
 
-        const avatar = [...String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '')].slice(0, 2).join('') || '⚔️';
+        const rawAvatar = String(msg.avatar ?? '⚔️').replace(/[\x00-\x1F\x7F]/g, '').trim();
+        const avatar = /^player_icon_\d{1,2}$/.test(rawAvatar)
+            ? rawAvatar
+            : ([...rawAvatar].slice(0, 2).join('') || '⚔️');
         const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
         // Skin rubu karty – přijmi jen povolené hodnoty
         const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);

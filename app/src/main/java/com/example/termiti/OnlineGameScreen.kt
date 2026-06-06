@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.border
+import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -558,39 +560,40 @@ private fun OnlineGameplay(
 
     // ── Menu dialog ───────────────────────────────────────────────────────────
     if (showMenu) {
-        AlertDialog(
-            onDismissRequest  = { showMenu = false },
-            containerColor    = Color(0xFF1A1320),
-            titleContentColor = OgTextPrimary,
-            textContentColor  = OgTextMuted,
-            title = { Text("Menu", fontWeight = FontWeight.Bold) },
-            text  = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick  = { SoundManager.playMenuTap(); showMenu = false; showSettings = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("⚙️ Nastavení zvuku a jazyka", color = OgGold)
+        Dialog(onDismissRequest = { showMenu = false }) {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                    .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 28.dp, vertical = 22.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Menu", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "Vzdát se? Prohra bude zaznamenána a soupeř bude prohlášen vítězem.",
+                    color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center
+                )
+                HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
+                MenuButton(
+                    label    = LocalStrings.current.settings,
+                    imageRes = R.drawable.button_5,
+                    accent   = TextPrimary,
+                    onClick  = { SoundManager.playMenuTap(); showMenu = false; showSettings = true }
+                )
+                HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false }) {
+                        Text("Zůstat", color = TealLight, fontWeight = FontWeight.Bold)
                     }
-                    HorizontalDivider(color = OgTextMuted.copy(alpha = 0.3f))
-                    Text(
-                        "Vzdát se? Prohra bude zaznamenána a soupeř bude prohlášen vítězem.",
-                        color    = OgTextMuted,
-                        fontSize = 13.sp
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; vm.forfeit() }) {
-                    Text("Vzdát se", color = OgCrimson, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false }) {
-                    Text("Zůstat", color = OgTealLight, fontWeight = FontWeight.Bold)
+                    TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; vm.forfeit() }) {
+                        Text("Vzdát se", color = Crimson, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-        )
+        }
     }
 
     // ── Log overlay ───────────────────────────────────────────────────────────

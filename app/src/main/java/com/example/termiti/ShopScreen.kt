@@ -178,7 +178,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                     MenuButton(
                         label    = "🪙 ${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
                         accent   = if (canAfford) ShGold else ShMuted,
-                        imageRes = if (canAfford) R.drawable.button_1 else R.drawable.button_3,
+                        imageRes = R.drawable.button_7,
                         enabled  = canAfford,
                         onClick  = {
                             SoundManager.playMenuTap()

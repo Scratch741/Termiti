@@ -298,10 +298,12 @@ fun GameScreen(
                     Text("Opustit hru?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
                     Spacer(Modifier.height(2.dp))
                     Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?", color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
-                    HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
-                    TextButton(onClick = { showMenuConfirm = false; showSettings = true }, modifier = Modifier.fillMaxWidth()) {
-                        Text("⚙️ Nastavení", color = TextPrimary)
-                    }
+                    MenuButton(
+                        label    = LocalStrings.current.settings,
+                        imageRes = R.drawable.button_5,
+                        accent   = TextPrimary,
+                        onClick  = { showMenuConfirm = false; showSettings = true }
+                    )
                     HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         TextButton(onClick = { showMenuConfirm = false }) {
