@@ -283,7 +283,7 @@ const RAW = [
 
   // ── Nové karty (2026) ─────────────────────────────────────────────────────
   ['124','Alchymistova volba', 2,'MAGIC', 1,[dcr([{resType:'MAGIC',amount:4},{resType:'ATTACK',amount:4},{resType:'STONES',amount:4},{resType:'CHAOS',amount:4}])], 'RARE'],
-  ['125','Válečný zápal',      2,'ATTACK',1,[ap(4),grp('CHAOS',1)], 'RARE'],
+  ['125','Válečný zápal',      2,'ATTACK',1,[ap(4),grp('CHAOS',2,'Útok')], 'RARE'],
   ['126','Magický proud',      2,'MAGIC', 1,[ar('CHAOS',2), grp('CHAOS',2,'Magie')], 'EPIC'],
   ['127','Pyroblast',          6,'MAGIC', 0,[ac(10),dr('MAGIC',2)],         'EPIC'],
   ['128','Archmág',            9,'MAGIC', 1,[dpc(),grp('MAGIC',1)],         'LEGENDARY'],

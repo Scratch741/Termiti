@@ -611,10 +611,10 @@ object CardPresentation {
             nameAccusative = "Alchymistovu volbu"
         ),
         "125" to CardPres(
-            "Zaútočí za 4. **Toto kolo:** každá zahraná karta přidá 1 chaos. [Combo]",
+            "Zaútočí za 4. **Toto kolo:** každá zahraná **ÚTOK** karta přidá 2 chaos. [Combo]",
             R.drawable.art_valecny_zapal, "Útok",
             artScale = 0.80f, artBiasY = 0.15f,
-            descriptionEn = "Attack for 4. **This turn:** each card played adds 1 chaos. [Combo]",
+            descriptionEn = "Attack for 4. **This turn:** each **ATTACK**\ncard played adds 2 Chaos. [Combo]",
             nameAccusative = "Válečný zápal"
         ),
         "126" to CardPres(
