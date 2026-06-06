@@ -733,7 +733,7 @@ class OnlineLobbyViewModel(
                     // Zahraná karta pro animaci + log záznam
                     val lpc = json.optJSONObject("lastPlayedCard")
                     if (lpc != null) {
-                        val baseId = lpc.optString("baseId", "")
+                        val baseId   = lpc.optString("baseId", "")
                         val template = allCards.find { it.id == baseId }
                         if (template != null) {
                             val lpcCostTypeStr = lpc.optString("costType", "")
@@ -741,17 +741,12 @@ class OnlineLobbyViewModel(
                         val card = template.copy(
                                 id             = lpc.optString("id", baseId),
                                 isGenerated    = lpc.optBoolean("isGenerated",  false),
-                                // Zrcadlo/Klon: server posílá cost/costType z reálné karty;
-                                // template je kopírovaná karta (jiná cena/typ) → přepsat
                                 cost           = lpc.optInt("cost", template.cost),
                                 costModifier   = lpc.optInt("costModifier", 0),
                                 costType       = lpcCostType ?: template.costType,
-                                // isCombo ze serveru – Zrcadlo/Klon jsou combo; template (Intuice)
-                                // není → blesk by se bez toho nezobrazil
                                 isCombo        = lpc.optBoolean("isCombo", template.isCombo),
-                                // Nutné: id obsahuje suffix instance ("C41_5") → baseId = "C41".
-                                // displayDescription by pak hledalo v lang packu Zrcadlo místo
-                                // zobrazené karty (Intuice "111"). Explicitní localizationId fix.
+                                // localizationId = baseId → jméno/popis skutečné karty (Shapeshifter/Zrcadlo/Klon)
+                                // Server nyní posílá skutečný baseId, ne displayBaseId kopírované karty
                                 localizationId = baseId
                             )
                             lastPlayedCard.value   = card

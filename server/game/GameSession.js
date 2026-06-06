@@ -573,8 +573,10 @@ class GameSession {
     self.discardPile.push(card);
 
     // Zapamatuj si zahranou kartu + index v ruce (před splice) pro zobrazení soupeři
-    // Shapeshifter: použij displayBaseId → klient zobrazí transformovanou kartu, ne C34
-    this.lastPlayedCard    = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
+    // baseId = skutečná karta (Shapeshifter/Zrcadlo/Klon) – klient zobrazí její jméno
+    // displayBaseId = kopírovaná karta – klient může zobrazit její art (volitelně)
+    this.lastPlayedCard    = { id: card.id, baseId: card.baseId, name: card.name,
+                                displayBaseId: card.displayBaseId || null,
                                 cost: card.cost, costType: card.costType, rarity: card.rarity,
                                 isCombo: card.isCombo || false,
                                 isGenerated: card.isGenerated || false,
@@ -1091,7 +1093,8 @@ class GameSession {
     const card = self.hand.splice(cardIdx, 1)[0];
     self.discardPile.push(card);
 
-    this.lastPlayedCard   = { id: card.id, baseId: card.displayBaseId || card.baseId, name: card.name,
+    this.lastPlayedCard   = { id: card.id, baseId: card.baseId, name: card.name,
+                               displayBaseId: card.displayBaseId || null,
                                cost: card.cost, costType: card.costType, rarity: card.rarity,
                                isCombo: card.isCombo || false,
                                isGenerated: card.isGenerated || false,
