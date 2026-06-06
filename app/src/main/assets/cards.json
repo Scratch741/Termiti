@@ -3502,7 +3502,7 @@
   {
     "id": "117",
     "name": "Průzkum dolů",
-    "cost": 1,
+    "cost": 2,
     "costType": "MAGIC",
     "isCombo": true,
     "effects": [

@@ -270,7 +270,7 @@ const RAW = [
   ['114','Chaotický mudrc', 3,'CHAOS', 1,[dct('Chaos',4,2)],   'RARE'],
   ['115','Studna vědomostí',2,'MAGIC', 1,[dbb(2)],             'EPIC'],
   ['116','Chaotická replikace',2,'CHAOS',1,[cnp(2)],           'EPIC'],
-  ['117','Průzkum dolů',      1,'MAGIC',1,[dmine()],           'EPIC'],
+  ['117','Průzkum dolů',      2,'MAGIC',1,[dmine()],           'EPIC'],
   ['118','Magický žolík',    4,'MAGIC',1,[sj()],              'LEGENDARY'],
   ['119','Válečný pokřik',  4,'ATTACK',1,[ap(7),grc('ATTACK')],'EPIC'],
   ['120','Hromadná sleva',  2,'MAGIC', 0,[mhc(-1)],           'EPIC'],
