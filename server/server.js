@@ -385,8 +385,14 @@ function tryMatchFromQueue(q, mode) {
     send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode });
 
     const onGameEnd = (gid) => {
+      // Vyčisti přes přímou WS referenci (standard)
       if (players.get(wsA)) { players.get(wsA).gameId = null; players.get(wsA).side = null; }
       if (players.get(wsB)) { players.get(wsB).gameId = null; players.get(wsB).side = null; }
+      // Záchrana: pokud hráč reconnectoval s novou WS, stará reference je mrtvá →
+      // projdeme všechny hráče a vymažeme gameId pro ty, kteří patřili do téhle hry.
+      for (const [, p] of players) {
+        if (p.gameId === gid) { p.gameId = null; p.side = null; }
+      }
       games.delete(gid);
       log('GAME', `Session ${gid} ukončena a uvolněna`);
       broadcastCount();
@@ -598,6 +604,12 @@ wss.on('connection', (ws, req) => {
       // ── Matchmaking ───────────────────────────────────────────────────────────
       case 'QUEUE_JOIN': {
         if (!player) { send(ws, { type: 'ERROR', msg: 'Nejsi přihlášen' }); return; }
+        // Auto-cleanup: gameId je nastavené, ale hra už neexistuje (race condition / reconnect bug)
+        if (player.gameId && !games.has(player.gameId)) {
+          log('QUEUE', `${player.name}: stale gameId ${player.gameId} vymazán před vstupem do fronty`);
+          player.gameId = null;
+          player.side   = null;
+        }
         if (player.inQueue || player.gameId) return;
 
         const mode = msg.mode === 'super_random' ? 'super_random' : 'normal';
