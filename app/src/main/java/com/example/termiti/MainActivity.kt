@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        CrashReporter.init(this)
         SoundManager.initSounds(this)
         SoundManager.startBackgroundMusic(this)
         CardRepository.init(this)
@@ -89,6 +90,9 @@ class MainActivity : ComponentActivity() {
                     var campaignLocation by remember { mutableStateOf<CampaignLocation?>(null) }
                     val campaignOpponent by viewModel.activeCampaignOpponent
                     var campaignPlayerWon by remember { mutableStateOf(false) }
+
+                    // Sleduj aktuální obrazovku pro crash reporting
+                    CrashReporter.lastScreen = screen.name
 
                     when (screen) {
 

@@ -68,6 +68,13 @@ const PROTOCOL_VERSION = 1;
 
 // ── HTTP server (sdílený pro WS + REST + HTML) ────────────────────────────────
 
+// ── Crash log adresář ─────────────────────────────────────────────────────────
+const fs           = require('fs');
+const CRASH_LOG_DIR = require('path').join(__dirname, 'crash_logs');
+if (!fs.existsSync(CRASH_LOG_DIR)) fs.mkdirSync(CRASH_LOG_DIR, { recursive: true });
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const httpServer = http.createServer((req, res) => {
   const url   = new URL(req.url, `http://localhost:${PORT}`);
   const path  = url.pathname;
@@ -127,6 +134,116 @@ const httpServer = http.createServer((req, res) => {
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(JSON.stringify(events));
+    return;
+  }
+
+  // ── POST /crash-report → uloží crash log z Android klienta ─────────────
+  if (path === '/crash-report' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; if (body.length > 64_000) body = body.slice(0, 64_000); });
+    req.on('end', () => {
+      try {
+        const report   = JSON.parse(body);
+        const ts       = new Date().toISOString().replace(/[:.]/g, '-');
+        const type     = report.type === 'non_fatal' ? 'warn' : 'crash';
+        const filename = `${type}_${ts}.json`;
+        fs.writeFileSync(require('path').join(CRASH_LOG_DIR, filename), JSON.stringify(report, null, 2), 'utf8');
+        console.log(`[crash] Uložen ${filename} — ${report.screen || '?'} / ${report.lastAction || '?'}`);
+        res.setHeader('Content-Type', 'application/json');
+        res.end('{"ok":true}');
+      } catch (e) {
+        res.writeHead(400);
+        res.end('{"error":"bad json"}');
+      }
+    });
+    return;
+  }
+
+  // ── GET /crash-logs → HTML přehled crash logů ────────────────────────────
+  if (path === '/crash-logs') {
+    const files = fs.existsSync(CRASH_LOG_DIR)
+      ? fs.readdirSync(CRASH_LOG_DIR).filter(f => f.endsWith('.json')).sort().reverse()
+      : [];
+    const rows = files.map(f => {
+      let info = {};
+      try { info = JSON.parse(fs.readFileSync(require('path').join(CRASH_LOG_DIR, f), 'utf8')); } catch (_) {}
+      const isCrash = f.startsWith('crash_');
+      const color   = isCrash ? '#bf2d2d' : '#d4a843';
+      const badge   = isCrash ? '💥 CRASH' : '⚠️ warn';
+      return `<tr>
+        <td style="color:${color};font-weight:bold">${badge}</td>
+        <td>${esc(info.timestamp || f)}</td>
+        <td>${esc(info.version || '?')}</td>
+        <td>${esc(info.device || '?')}</td>
+        <td>${esc(info.screen || '?')}</td>
+        <td>${esc(info.lastAction || '?')}</td>
+        <td><a href="/crash-log?id=${encodeURIComponent(f)}" style="color:#3dbfad">detail</a></td>
+      </tr>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html lang="cs"><head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Termiti – Crash Logy</title>
+      <style>
+        body{background:#0d0a0e;color:#ede0c4;font-family:monospace;padding:24px;max-width:1100px;margin:0 auto}
+        h1{color:#d4a843;letter-spacing:3px}
+        table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+        th{background:#1a1320;color:#7a6e5f;padding:6px 10px;text-align:left;letter-spacing:1px}
+        td{padding:6px 10px;border-bottom:1px solid #1e1a2a;vertical-align:top}
+        tr:hover td{background:#13101a}
+        a{color:#3dbfad}
+        .empty{color:#7a6e5f;margin-top:32px}
+      </style></head><body>
+      <h1>🪲 TERMITI – CRASH LOGY</h1>
+      <p style="color:#7a6e5f">${files.length} záznam(ů) | <a href="/">← Žebříček</a></p>
+      ${files.length === 0 ? '<p class="empty">Žádné crash logy.</p>' : `
+      <table>
+        <tr><th>Typ</th><th>Čas</th><th>Verze</th><th>Zařízení</th><th>Obrazovka</th><th>Poslední akce</th><th></th></tr>
+        ${rows}
+      </table>`}
+      </body></html>`;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(html);
+    return;
+  }
+
+  // ── GET /crash-log?id=<filename> → detail jednoho logu ───────────────────
+  if (path === '/crash-log') {
+    const id       = url.searchParams.get('id') || '';
+    const filename = require('path').basename(id); // bezpečnostní sanitace
+    const filepath = require('path').join(CRASH_LOG_DIR, filename);
+    if (!filename.endsWith('.json') || !fs.existsSync(filepath)) {
+      res.writeHead(404); res.end('Not found'); return;
+    }
+    let report = {};
+    try { report = JSON.parse(fs.readFileSync(filepath, 'utf8')); } catch (_) {}
+    const stack = esc(report.stacktrace || '(žádný stacktrace)').replace(/\n/g, '<br>').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+    const html = `<!DOCTYPE html><html lang="cs"><head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Crash – ${esc(filename)}</title>
+      <style>
+        body{background:#0d0a0e;color:#ede0c4;font-family:monospace;padding:24px;max-width:900px;margin:0 auto}
+        h1{color:#bf2d2d;letter-spacing:2px}
+        .meta{background:#1a1320;border:1px solid #2a2030;border-radius:8px;padding:16px;margin:16px 0}
+        .meta b{color:#d4a843}
+        .stack{background:#0a080d;border:1px solid #2a2030;border-radius:8px;padding:16px;font-size:12px;line-height:1.6;overflow-x:auto;color:#ede0c4}
+        a{color:#3dbfad}
+      </style></head><body>
+      <h1>🪲 ${report.type === 'non_fatal' ? '⚠️ NON-FATAL' : '💥 CRASH'}</h1>
+      <p><a href="/crash-logs">← Zpět na seznam</a></p>
+      <div class="meta">
+        <b>Čas:</b> ${esc(report.timestamp || '?')}<br>
+        <b>Verze:</b> ${esc(report.version || '?')} (build ${esc(String(report.versionCode || '?'))})<br>
+        <b>Zařízení:</b> ${esc(report.device || '?')}<br>
+        <b>Android:</b> ${esc(report.android || '?')}<br>
+        <b>Vlákno:</b> ${esc(report.thread || '?')}<br>
+        <b>Obrazovka:</b> ${esc(report.screen || '?')}<br>
+        <b>Poslední akce:</b> ${esc(report.lastAction || '?')}
+        ${report.tag ? `<br><b>Tag:</b> ${esc(report.tag)} — ${esc(report.message || '')}` : ''}
+      </div>
+      <div class="stack">${stack}</div>
+      </body></html>`;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.end(html);
     return;
   }
 

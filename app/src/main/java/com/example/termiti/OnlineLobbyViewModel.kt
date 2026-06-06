@@ -482,6 +482,7 @@ class OnlineLobbyViewModel(
     }
 
     private fun sendAction(action: String, data: JSONObject) {
+        CrashReporter.lastAction = action
         val gameId = matchInfo.value?.gameId ?: return
         val json = JSONObject().apply {
             put("type", "GAME_ACTION")
