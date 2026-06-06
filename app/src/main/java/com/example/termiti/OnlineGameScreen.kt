@@ -659,7 +659,7 @@ private fun OnlineGameOverOverlay(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(max = 420.dp)
                 .padding(horizontal = 24.dp, vertical = 12.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
