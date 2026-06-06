@@ -35,7 +35,7 @@ object CardPresentation {
     val presentations: Map<String, CardPres> = mapOf(
 
         // ── Útok (platí ATTACK) ───────────────────────────────────────────────
-        "001" to CardPres("Zaútočí na nepřítele za 5.\n[Combo]",
+        "001" to CardPres("Zaútočí na nepřítele za 6.\n[Combo]",
             R.drawable.art_zakladni_utok, "Útok", isBasic = true),
         "008" to CardPres("Zaútočí na hrad za 3. [Combo]",
             R.drawable.art_sipy, "Útok",

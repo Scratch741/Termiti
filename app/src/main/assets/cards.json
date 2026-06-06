@@ -8,7 +8,7 @@
     "effects": [
       {
         "type": "AttackPlayer",
-        "amount": 5
+        "amount": 6
       }
     ],
     "rarity": "COMMON",

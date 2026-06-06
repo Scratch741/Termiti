@@ -67,7 +67,7 @@ const MAX_COPIES = { COMMON:3, RARE:2, EPIC:2, LEGENDARY:1 };
 // [id, name, cost, costType, isCombo, effects, rarity]
 const RAW = [
   // ── Útok (platí ATTACK) ──────────────────────────────────────────────────
-  ['001','Rychlý útok',    2,'ATTACK',1,[ap(5)],               'COMMON'],
+  ['001','Rychlý útok',    2,'ATTACK',1,[ap(6)],               'COMMON'],
   ['008','Šípy',           1,'ATTACK',1,[ac(3)],               'COMMON'],
   ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'RARE'],
   ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'COMMON'],
