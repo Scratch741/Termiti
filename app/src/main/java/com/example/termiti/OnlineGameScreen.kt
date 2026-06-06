@@ -660,13 +660,13 @@ private fun OnlineGameOverOverlay(
         Column(
             modifier = Modifier
                 .widthIn(max = 420.dp)
-                .padding(horizontal = 24.dp, vertical = 12.dp)
+                .padding(horizontal = 24.dp, vertical = 6.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
                 .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 28.dp, vertical = 20.dp),
+                .padding(horizontal = 28.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             val (emoji, headline, subline) = when {
                 result == null            -> Triple("⏳", "Konec hry", "")
@@ -676,19 +676,25 @@ private fun OnlineGameOverOverlay(
                 else                      -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
             }
 
-            Text(emoji, fontSize = 40.sp)
-            Text(
-                text       = headline,
-                color      = OgGold,
-                fontSize   = 22.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign  = TextAlign.Center
-            )
+            // Emoji + nadpis na jednom řádku → ušetří výšku
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                verticalAlignment     = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(emoji, fontSize = 26.sp)
+                Text(
+                    text       = headline,
+                    color      = OgGold,
+                    fontSize   = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center
+                )
+            }
             if (subline.isNotEmpty()) {
                 Text(
                     text      = subline,
                     color     = OgTextMuted,
-                    fontSize  = 13.sp,
+                    fontSize  = 12.sp,
                     textAlign = TextAlign.Center
                 )
             }
@@ -708,19 +714,17 @@ private fun OnlineGameOverOverlay(
                     Text(
                         "⭐ Rating: $newRating",
                         color    = OgGold,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                     )
                     Text(
                         "($deltaStr)",
                         color    = deltaColor,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                     )
                 }
             }
-
-            Spacer(Modifier.height(4.dp))
 
             MenuButton(
                 label    = "⚔️ Hrát znovu",
