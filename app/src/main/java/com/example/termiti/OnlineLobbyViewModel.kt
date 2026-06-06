@@ -360,7 +360,7 @@ class OnlineLobbyViewModel(
         if (opponentMulliganDone.value) startMulliganWatchdog()
     }
 
-    /** Spustí odpočet [seconds] sekund; po vypršení auto-skip bez výměn. */
+    /** Spustí odpočet [seconds] sekund; po vypršení odešle označené karty (nebo prázdno = žádná výměna). */
     private fun startMulliganTimer(seconds: Int) {
         cancelMulliganTimer()
         mulliganSecondsLeft.value = seconds
@@ -369,8 +369,8 @@ class OnlineLobbyViewModel(
                 delay(1_000)
                 mulliganSecondsLeft.value = remaining
             }
-            // Timeout – auto-skip (pokud už neodeslal hráč sám)
-            skipMulligan()
+            // Timeout – odešli aktuálně označené karty (pokud žádné, chová se jako skip)
+            confirmMulligan()
         }
     }
 
