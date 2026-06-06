@@ -678,7 +678,9 @@ class OnlineLobbyViewModel(
                     lastPlayedByMe.value       = false
                     cancelMulliganWatchdog()            // reset při reconnectu / novém mulliganu
                     phase.value = OnlinePhase.GAME_MULLIGAN
-                    startMulliganTimer((timeoutMs / 1_000).coerceAtLeast(5))
+                    // Klient dostane timer o 2s kratší než serverový deadline → stihne
+                    // poslat MULLIGAN_DONE dřív, než server auto-confirmuje s prázdným polem
+                    startMulliganTimer(((timeoutMs / 1_000) - 2).coerceAtLeast(3))
                     android.util.Log.d("MULLIGAN", "GAME_MULLIGAN přijato: hand=${mulliganHand.value.size} karet, timeout=${timeoutMs}ms")
                 }
 
