@@ -198,11 +198,11 @@
   "cards": {
     "001": {
       "name": "Quick Strike",
-      "desc": "Attack the enemy for 5.\n[Combo]"
+      "desc": "Attack the enemy\nfor 5.\n[Combo]"
     },
     "008": {
       "name": "Arrows",
-      "desc": "Attack the castle for 3.\n[Combo]"
+      "desc": "Attack the castle\nfor 3.\n[Combo]"
     },
     "003": {
       "name": "Fireball",
@@ -262,7 +262,7 @@
     },
     "015": {
       "name": "Training Camp",
-      "desc": "Permanently +1 Attack mine."
+      "desc": "Permanently\n+1 Attack mine."
     },
     "016": {
       "name": "Great Spring",
@@ -270,11 +270,11 @@
     },
     "019": {
       "name": "Fire Arrows",
-      "desc": "Damage only walls by 5.\n[Combo]"
+      "desc": "Damage walls by 5.\n[Combo]"
     },
     "020": {
       "name": "Battering Ram",
-      "desc": "Damage only walls by 12.\n[Combo]"
+      "desc": "Damage only walls\nby 12.\n[Combo]"
     },
     "021": {
       "name": "Artillery",
@@ -334,7 +334,7 @@
     },
     "035": {
       "name": "Cornerstone",
-      "desc": "Walls +5 and castle +4."
+      "desc": "Walls +5 and\ncastle +4."
     },
     "036": {
       "name": "Castle Moat",
@@ -378,19 +378,19 @@
     },
     "046": {
       "name": "Goblin",
-      "desc": "Attack for 2, steal 1 Magic, +1 Chaos."
+      "desc": "Attack for 2, steal\n1 Magic, +1 Chaos."
     },
     "047": {
       "name": "Ogre",
-      "desc": "Attack the enemy for 9."
+      "desc": "Attack the enemy\nfor 9."
     },
     "048": {
       "name": "Vampire",
-      "desc": "Attack for 6, gain +3 Magic.\n[Combo]"
+      "desc": "Attack for 6, gain\n+3 Magic.\n[Combo]"
     },
     "049": {
       "name": "Poison",
-      "desc": "Attack for 3, opponent loses 3 Magic, +1 Chaos."
+      "desc": "Attack for 3, opponent loses 3 Magic,\n+1 Chaos."
     },
     "050": {
       "name": "Undermining",
@@ -462,11 +462,11 @@
     },
     "067": {
       "name": "Saboteur",
-      "desc": "Opponent loses 5 Stone."
+      "desc": "Opponent loses\n5 Stone."
     },
     "068": {
       "name": "Demoralization",
-      "desc": "Opponent loses 5 Attack."
+      "desc": "Opponent loses\n5 Attack."
     },
     "069": {
       "name": "Double Agent",
@@ -582,7 +582,7 @@
     },
     "094": {
       "name": "Material Storehouse",
-      "desc": "Walls +6, gain +2 Stone.\n[Combo]"
+      "desc": "Walls +6, gain\n+2 Stone.\n[Combo]"
     },
     "095": {
       "name": "Stone Trade",
@@ -710,7 +710,7 @@
     },
     "C22": {
       "name": "Chaos Factory",
-      "desc": "Add 2 'Chaos Blast' to your deck."
+      "desc": "Add 2 'Chaos Blast'\nto your deck."
     },
     "C23": {
       "name": "Cloning",
@@ -734,7 +734,7 @@
     },
     "C28": {
       "name": "Chaos Trophy",
-      "desc": "Steal 2 Attack, +3 Chaos.\n[Combo]"
+      "desc": "Steal 2 Attack,\n+3 Chaos.\n[Combo]"
     },
     "C29": {
       "name": "Stormy Mind",
@@ -766,7 +766,7 @@
     },
     "D04": {
       "name": "Battle Tactics",
-      "desc": "Attack for 4. Draw 1 card."
+      "desc": "Attack for 4. Draw\n1 card."
     },
     "D05": {
       "name": "Building Plans",
@@ -790,7 +790,7 @@
     },
     "098": {
       "name": "Brick Throw",
-      "desc": "Your own walls -4, attack the enemy for 11."
+      "desc": "Your own walls -4, attack the enemy\nfor 11."
     },
     "099": {
       "name": "Dark Transfer",
@@ -806,7 +806,7 @@
     },
     "107": {
       "name": "Curse",
-      "desc": "Attack for 3, opponent loses 3 Attack and 3 Stone."
+      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone."
     },
     "108": {
       "name": "Disposal",
@@ -838,7 +838,7 @@
     },
     "115": {
       "name": "Well of Knowledge",
-      "desc": "Both players draw 2 cards.\n[Combo]"
+      "desc": "Both players draw\n2 cards.\n[Combo]"
     },
     "116": {
       "name": "Chaotic Replication",
@@ -846,7 +846,7 @@
     },
     "117": {
       "name": "Mine Exploration",
-      "desc": "**Decision:** choose 1 of 4 different mines. [Combo]"
+      "desc": "**Decision:** choose 1\nof 4 different mines. [Combo]"
     },
     "118": {
       "name": "Magic Joker",

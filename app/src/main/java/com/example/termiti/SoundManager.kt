@@ -67,7 +67,7 @@ object SoundManager {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         soundPool = SoundPool.Builder()
-            .setMaxStreams(8)
+            .setMaxStreams(16)
             .setAudioAttributes(attrs)
             .build()
         sndCardDraw1    = soundPool!!.load(context, R.raw.card_draw,            1)
@@ -87,6 +87,10 @@ object SoundManager {
     fun releaseSounds() {
         soundPool?.release()
         soundPool = null
+        synchronized(activePlayers) {
+            activePlayers.forEach { runCatching { it.release() } }
+            activePlayers.clear()
+        }
     }
 
     private val trackIds = listOf(
@@ -267,6 +271,8 @@ object SoundManager {
      * Přehraje libovolný zvukový soubor z res/raw (R.raw.xxx) jako one-shot.
      * Používá se pro karty s [Card.soundResId].
      */
+    private val activePlayers = mutableListOf<MediaPlayer>()
+
     fun playCustom(resId: Int) {
         if (!enabled) return
         val ctx = appContext ?: return
@@ -274,7 +280,11 @@ object SoundManager {
             runCatching {
                 val mp = MediaPlayer.create(ctx, resId) ?: return@runCatching
                 mp.setVolume(sfx(0.75f), sfx(0.75f))
-                mp.setOnCompletionListener { it.release() }
+                synchronized(activePlayers) { activePlayers.add(mp) }
+                mp.setOnCompletionListener {
+                    synchronized(activePlayers) { activePlayers.remove(it) }
+                    it.release()
+                }
                 mp.start()
             }
         }.start()

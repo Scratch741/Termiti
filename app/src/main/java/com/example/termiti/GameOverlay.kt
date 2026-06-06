@@ -488,13 +488,8 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(
-                    if (isWin) listOf(Color(0xFF1A2A1A), BgPanel)
-                    else listOf(Color(0xFF2A1010), BgPanel)
-                ))
-                .border(1.dp,
-                    if (isWin) TealLight.copy(alpha = 0.5f) else Crimson.copy(alpha = 0.5f),
-                    RoundedCornerShape(16.dp))
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -562,15 +557,8 @@ fun ArenaGameOverDialog(
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(
-                    if (isPlayerWin) listOf(Color(0xFF1A2A1A), BgPanel)
-                    else listOf(Color(0xFF2A1010), BgPanel)
-                ))
-                .border(
-                    1.dp,
-                    if (isPlayerWin) TealLight.copy(alpha = 0.5f) else Crimson.copy(alpha = 0.5f),
-                    RoundedCornerShape(16.dp)
-                )
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)

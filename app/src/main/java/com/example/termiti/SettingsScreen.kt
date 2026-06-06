@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,77 +86,92 @@ fun SettingsScreen(onBack: () -> Unit) {
             size = torchSize, seed = 1.7f
         )
 
-        // ── Panel uprostřed ───────────────────────────────────────────────────
-        Box(
-            modifier         = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        // ── Stejný 3-sloupcový layout jako hlavní menu ────────────────────────
+        val profile          = PlayerProfileManager.profile
+        val centerW          = minOf(W * 0.46f, H * 1.0f)
+        val iconSize         = H * 0.12f
+        val leftColShift     = -5.dp
+        val leftColVertShift = 30.dp
+        val rightColShift    = -25.dp
+        val rightColVertShift= 35.dp
+        val centerShift      = 9.dp
+
+        Row(
+            modifier          = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                                    .padding(vertical = H * 0.02f),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-        Column(
-            modifier = Modifier
-                .width(260.dp)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Nadpis
-            Text(
-                s.settings,
-                color = StGold,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-
-            // Hlasitost hudby
-            SettingsSlider(
-                label = s.music,
-                value = musicVol,
-                onValueChange = { v ->
-                    musicVol = v
-                    SoundManager.setMusicVolume(v)
-                }
-            )
-
-            // Hlasitost efektů
-            SettingsSlider(
-                label = s.soundEffects,
-                value = sfxVol,
-                onValueChange = { v ->
-                    sfxVol = v
-                    SoundManager.setSfxVolume(v)
-                }
-            )
-
-            // Jazyk
-            LanguageToggle(
-                label       = s.languageLabel,
-                currentPack = currentPack,
-                allPacks    = LanguageManager.availablePacks,
-                onSelect    = { pack -> LanguageManager.setLanguage(pack) }
-            )
-
-            // Zpět
+            // ── Levý sloupec – profil ─────────────────────────────────────────
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(StTealLight.copy(alpha = 0.12f))
-                    .border(1.dp, StTealLight.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                    .clickable { SoundManager.playMenuTap(); onBack() }
-                    .padding(vertical = 11.dp),
+                modifier         = Modifier.fillMaxHeight().weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    s.back,
-                    color = StTextPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
+                if (profile != null) {
+                    Column(
+                        modifier            = Modifier.offset(x = leftColShift, y = leftColVertShift),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(H * 0.025f)
+                    ) {
+                        ProfileInfo(profile, H)
+                    }
+                }
+            }
+
+            // ── Střed – nastavení ─────────────────────────────────────────────
+            Box(
+                modifier         = Modifier.fillMaxHeight().width(centerW).offset(x = centerShift),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier            = Modifier.width(centerW).padding(horizontal = 20.dp, vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        s.settings,
+                        color = StGold, fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+                    )
+                    SettingsSlider(
+                        label = s.music,
+                        value = musicVol,
+                        onValueChange = { v -> musicVol = v; SoundManager.setMusicVolume(v) }
+                    )
+                    SettingsSlider(
+                        label = s.soundEffects,
+                        value = sfxVol,
+                        onValueChange = { v -> sfxVol = v; SoundManager.setSfxVolume(v) }
+                    )
+                    LanguageToggle(
+                        label       = s.languageLabel,
+                        currentPack = currentPack,
+                        allPacks    = LanguageManager.availablePacks,
+                        onSelect    = { pack -> LanguageManager.setLanguage(pack) }
+                    )
+                }
+            }
+
+            // ── Pravý sloupec – zpět ──────────────────────────────────────────
+            Box(
+                modifier         = Modifier.fillMaxHeight().weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier            = Modifier.offset(x = -rightColShift, y = rightColVertShift),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(H * 0.005f)
+                ) {
+                    Box(Modifier.graphicsLayer { alpha = 0f }) {
+                        IconMenuButton(imageRes = R.drawable.button_7, label = s.shop, size = iconSize, onClick = {})
+                    }
+                    Box(Modifier.graphicsLayer { alpha = 0f }) {
+                        IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = {})
+                    }
+                    IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
+                }
             }
         }
-    } // konec středového Boxu
-} // konec BoxWithConstraints
+    } // konec BoxWithConstraints
 }
 
 @Composable

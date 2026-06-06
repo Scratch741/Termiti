@@ -285,35 +285,34 @@ fun GameScreen(
         }
 
         if (showMenuConfirm) {
-            AlertDialog(
-                onDismissRequest = { showMenuConfirm = false },
-                containerColor   = Color(0xFF1A1320),
-                titleContentColor = Color(0xFFEDE0C4),
-                textContentColor  = Color(0xFF7A6E5F),
-                title = { Text("Opustit hru?", fontWeight = FontWeight.Bold) },
-                text  = {
-                    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?")
-                        HorizontalDivider(color = Color(0xFF7A6E5F).copy(alpha = 0.3f))
-                        TextButton(
-                            onClick  = { showMenuConfirm = false; showSettings = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("⚙️ Nastavení", color = Color(0xFFEDE0C4))
+            Dialog(onDismissRequest = { showMenuConfirm = false }) {
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                        .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 28.dp, vertical = 22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Opustit hru?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                    Spacer(Modifier.height(2.dp))
+                    Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?", color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                    HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
+                    TextButton(onClick = { showMenuConfirm = false; showSettings = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("⚙️ Nastavení", color = TextPrimary)
+                    }
+                    HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TextButton(onClick = { showMenuConfirm = false }) {
+                            Text("Zůstat", color = TealLight, fontWeight = FontWeight.Bold)
+                        }
+                        TextButton(onClick = { viewModel.restartGame(); onBackToMenu() }) {
+                            Text("Odejít", color = Crimson, fontWeight = FontWeight.Bold)
                         }
                     }
-                },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.restartGame(); onBackToMenu() }) {
-                        Text("Odejít", color = Color(0xFFBF2D2D), fontWeight = FontWeight.Bold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showMenuConfirm = false }) {
-                        Text("Zůstat", color = Color(0xFF3DBFAD), fontWeight = FontWeight.Bold)
-                    }
                 }
-            )
+            }
         }
 
         if (isMulligan) {

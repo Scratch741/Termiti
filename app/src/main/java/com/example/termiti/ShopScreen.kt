@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -91,111 +90,136 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
             ), size = torchSize, seed = 1.7f
         )
 
-        // ── Zpět (top-left) ───────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(8.dp))
-                .background(ShBgCard.copy(alpha = 0.75f))
-                .border(1.dp, ShMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onBack() }
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text(LocalStrings.current.back, color = ShMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
+        // ── Stejný 3-sloupcový layout jako hlavní menu ────────────────────────
+        val centerW          = minOf(W * 0.46f, H * 1.0f)
+        val iconSize         = H * 0.12f
+        val leftColShift     = -5.dp
+        val leftColVertShift = 30.dp
+        val rightColShift    = -25.dp
+        val rightColVertShift= 35.dp
+        val centerShift      = 9.dp
 
-        // ── Měna (top-right) ─────────────────────────────────────────────────
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopEnd)
-                .clip(RoundedCornerShape(8.dp))
-                .background(ShBgCard.copy(alpha = 0.75f))
-                .border(1.dp, ShMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier          = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                                    .padding(vertical = H * 0.02f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🪙 $gold", color = ShGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("✨ $dust", color = ShDust, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-
-        // ── Centrovaný obsah ─────────────────────────────────────────────────
-        val centerW = minOf(W * 0.46f, H * 1.0f)
-        Box(
-            modifier         = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier            = Modifier.width(centerW),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(H * 0.012f)
+            // ── Levý sloupec – profil ─────────────────────────────────────────
+            Box(
+                modifier         = Modifier.fillMaxHeight().weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                // Titulek
-                Text("📦", fontSize = 48.sp)
-                Text(
-                    "BALÍČKY",
-                    color = ShGold, fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 4.sp
-                )
-
-                Spacer(Modifier.height(H * 0.01f))
-
-                // Info o balíčku – bez boxu
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text("5 karet • 1× vzácná nebo lepší garantována",
-                        color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
-
-                    // Rarity šance
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment     = Alignment.CenterVertically
+                if (profile != null) {
+                    Column(
+                        modifier            = Modifier.offset(x = leftColShift, y = leftColVertShift),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(H * 0.025f)
                     ) {
-                        Rarity.entries.forEach { r ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
-                                Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                Text(r.label, color = ShMuted, fontSize = 8.sp)
+                        ProfileInfo(profile!!, H)
+                    }
+                }
+            }
+
+            // ── Střed – obsah obchodu ─────────────────────────────────────────
+            Box(
+                modifier         = Modifier.fillMaxHeight().width(centerW).offset(x = centerShift),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier            = Modifier.width(centerW),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(H * 0.012f)
+                ) {
+                    // Titulek
+                    Image(
+                        painter            = painterResource(R.drawable.deck_logo),
+                        contentDescription = null,
+                        modifier           = Modifier.size(H * 0.12f),
+                        contentScale       = ContentScale.Fit
+                    )
+                    Text(
+                        "BALÍČKY",
+                        color = ShGold, fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold, letterSpacing = 4.sp
+                    )
+
+                    Spacer(Modifier.height(H * 0.01f))
+
+                    // Info o balíčku
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("5 karet • 1× vzácná nebo lepší garantována",
+                            color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
+
+                        // Rarity šance
+                        Row(
+                            modifier              = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Rarity.entries.forEach { r ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
+                                    Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    Text(r.label, color = ShMuted, fontSize = 8.sp)
+                                }
                             }
                         }
                     }
-                }
 
-                Spacer(Modifier.height(H * 0.01f))
+                    Spacer(Modifier.height(H * 0.01f))
 
-                // Tlačítko koupit – stejný styl jako MenuButton
-                MenuButton(
-                    label    = "🪙 ${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
-                    accent   = if (canAfford) ShGold else ShMuted,
-                    imageRes = if (canAfford) R.drawable.button_1 else R.drawable.button_3,
-                    enabled  = canAfford,
-                    onClick  = {
-                        SoundManager.playMenuTap()
-                        val result = CardCollectionManager.openPack(allCards)
-                        if (result != null) {
-                            pendingPack = result
-                            profile = PlayerProfileManager.profile
+                    // Tlačítko koupit
+                    MenuButton(
+                        label    = "🪙 ${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
+                        accent   = if (canAfford) ShGold else ShMuted,
+                        imageRes = if (canAfford) R.drawable.button_1 else R.drawable.button_3,
+                        enabled  = canAfford,
+                        onClick  = {
+                            SoundManager.playMenuTap()
+                            val result = CardCollectionManager.openPack(allCards)
+                            if (result != null) {
+                                pendingPack = result
+                                profile = PlayerProfileManager.profile
+                            }
                         }
-                    }
-                )
+                    )
 
-                // Pomocný text
-                Text(
-                    if (canAfford)
-                        "Můžeš koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
-                    else
-                        "Zlato získáš vítězstvím v bitvě",
-                    color = ShMuted, fontSize = 9.sp,
-                    textAlign = TextAlign.Center
-                )
+                    // Pomocný text
+                    Text(
+                        if (canAfford)
+                            "Můžeš koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
+                        else
+                            "Zlato získáš vítězstvím v bitvě",
+                        color = ShMuted, fontSize = 9.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // ── Pravý sloupec – ikony ─────────────────────────────────────────
+            Box(
+                modifier         = Modifier.fillMaxHeight().weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier            = Modifier.offset(x = -rightColShift, y = rightColVertShift),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(H * 0.005f)
+                ) {
+                    Box(Modifier.graphicsLayer { alpha = 0f }) {
+                        IconMenuButton(imageRes = R.drawable.button_7, label = LocalStrings.current.shop, size = iconSize, onClick = {})
+                    }
+                    Box(Modifier.graphicsLayer { alpha = 0f }) {
+                        IconMenuButton(imageRes = R.drawable.button_5, label = LocalStrings.current.settings, size = iconSize, onClick = {})
+                    }
+                    IconMenuButton(imageRes = R.drawable.button_6, label = LocalStrings.current.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
+                }
             }
         }
 

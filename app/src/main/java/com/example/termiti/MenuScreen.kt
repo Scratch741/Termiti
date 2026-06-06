@@ -265,7 +265,7 @@ fun IconMenuButton(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(size * 0.08f)
+        verticalArrangement = Arrangement.spacedBy(size * 0.03f)
     ) {
         // Obrázek 662×107 (AR=6.19), centroid ikony na x=12.5% šířky.
         // requiredHeight/Width obejde omezení Boxu → obraz se renderuje v plné šířce.

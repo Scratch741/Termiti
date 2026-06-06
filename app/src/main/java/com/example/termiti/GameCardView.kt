@@ -697,7 +697,7 @@ private fun CardViewTextured(
                 modifier = Modifier.fillMaxSize()
                     .background(DiscardRed.copy(alpha = (progress * 0.55f).coerceAtMost(0.55f))),
                 contentAlignment = Alignment.Center
-            ) { if (progress > 0.35f) Text("🗑️", fontSize = (12 + progress * 16).sp) }
+            ) { if (progress > 0.35f) Text("✕", fontSize = (12 + progress * 16).sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
         } else if (discardMode) {
             Box(
                 modifier = Modifier.fillMaxSize()
