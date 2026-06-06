@@ -733,20 +733,27 @@ class OnlineLobbyViewModel(
                     // Zahraná karta pro animaci + log záznam
                     val lpc = json.optJSONObject("lastPlayedCard")
                     if (lpc != null) {
-                        val baseId   = lpc.optString("baseId", "")
-                        val template = allCards.find { it.id == baseId }
-                        if (template != null) {
+                        val baseId      = lpc.optString("baseId", "")
+                        // displayBaseId: kopírovaná karta (Shapeshifter/Zrcadlo/Klon) – pro art + popis + typ
+                        val displayBaseId = lpc.optString("displayBaseId", "").takeIf { it.isNotEmpty() }
+                        val realTemplate  = allCards.find { it.id == baseId }
+                        // Vizuální template: kopírovaná karta (art, popis, typ, rarita), jinak vlastní
+                        val visTemplate   = displayBaseId?.let { did -> allCards.find { it.id == did } } ?: realTemplate
+                        if (realTemplate != null && visTemplate != null) {
                             val lpcCostTypeStr = lpc.optString("costType", "")
                         val lpcCostType = ResourceType.entries.find { it.name == lpcCostTypeStr }
-                        val card = template.copy(
+                        val card = visTemplate.copy(
+                                // Identita: skutečná karta (pro baseId výpočet)
                                 id             = lpc.optString("id", baseId),
                                 isGenerated    = lpc.optBoolean("isGenerated",  false),
-                                cost           = lpc.optInt("cost", template.cost),
+                                // Cena ze serveru (reálná cena Shapeshifteru/Zrcadla/Klonu)
+                                cost           = lpc.optInt("cost", realTemplate.cost),
                                 costModifier   = lpc.optInt("costModifier", 0),
-                                costType       = lpcCostType ?: template.costType,
-                                isCombo        = lpc.optBoolean("isCombo", template.isCombo),
-                                // localizationId = baseId → jméno/popis skutečné karty (Shapeshifter/Zrcadlo/Klon)
-                                // Server nyní posílá skutečný baseId, ne displayBaseId kopírované karty
+                                costType       = lpcCostType ?: realTemplate.costType,
+                                isCombo        = lpc.optBoolean("isCombo", realTemplate.isCombo),
+                                // Název: skutečná karta ("Shapeshifter" / "Zrcadlo" / "Klon")
+                                // Art, popis, typ, rarita: z visTemplate (kopírovaná karta)
+                                name           = realTemplate.name,
                                 localizationId = baseId
                             )
                             lastPlayedCard.value   = card
