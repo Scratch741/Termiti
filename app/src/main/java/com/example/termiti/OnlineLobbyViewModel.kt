@@ -791,9 +791,11 @@ class OnlineLobbyViewModel(
                     val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
 
                     val applyCardLost: suspend () -> Unit = {
-                        // C37 (Bomba): jen log, NE centrum odhazovacího slotu
-                        // C38 (Explodovaná bomba): aktualizuj centrum + log
-                        val updateCenter = baseId != "C37"
+                        // C37 (Bomba): nikdy neaktualizuj centrum
+                        // C38 (Explodovaná bomba): aktualizuj centrum jen pokud je to moje karta
+                        //   nebo jsem ji způsobil – jinak by C38 ze soupeřovy ruky přepsala mou zahranou kartu
+                        val isBomb = baseId == "C37" || baseId == "C38"
+                        val updateCenter = !isBomb || ownCard || causedByMe
                         when {
                             ownCard -> {
                                 // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed / past
