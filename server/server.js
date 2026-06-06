@@ -70,8 +70,14 @@ const PROTOCOL_VERSION = 1;
 
 // ── Crash log adresář ─────────────────────────────────────────────────────────
 const fs           = require('fs');
-const CRASH_LOG_DIR = require('path').join(__dirname, 'crash_logs');
-if (!fs.existsSync(CRASH_LOG_DIR)) fs.mkdirSync(CRASH_LOG_DIR, { recursive: true });
+const nodePath     = require('path');
+// Ukládáme do logs/crash_logs/ – tento adresář má ReadWritePaths v systemd (User=nobody)
+const CRASH_LOG_DIR = nodePath.join(__dirname, 'logs', 'crash_logs');
+try {
+  if (!fs.existsSync(CRASH_LOG_DIR)) fs.mkdirSync(CRASH_LOG_DIR, { recursive: true });
+} catch (e) {
+  console.warn('[crash] Nelze vytvořit adresář crash_logs:', e.message);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -147,7 +153,7 @@ const httpServer = http.createServer((req, res) => {
         const ts       = new Date().toISOString().replace(/[:.]/g, '-');
         const type     = report.type === 'non_fatal' ? 'warn' : 'crash';
         const filename = `${type}_${ts}.json`;
-        fs.writeFileSync(require('path').join(CRASH_LOG_DIR, filename), JSON.stringify(report, null, 2), 'utf8');
+        fs.writeFileSync(nodePath.join(CRASH_LOG_DIR, filename), JSON.stringify(report, null, 2), 'utf8');
         console.log(`[crash] Uložen ${filename} — ${report.screen || '?'} / ${report.lastAction || '?'}`);
         res.setHeader('Content-Type', 'application/json');
         res.end('{"ok":true}');
@@ -166,7 +172,7 @@ const httpServer = http.createServer((req, res) => {
       : [];
     const rows = files.map(f => {
       let info = {};
-      try { info = JSON.parse(fs.readFileSync(require('path').join(CRASH_LOG_DIR, f), 'utf8')); } catch (_) {}
+      try { info = JSON.parse(fs.readFileSync(nodePath.join(CRASH_LOG_DIR, f), 'utf8')); } catch (_) {}
       const isCrash = f.startsWith('crash_');
       const color   = isCrash ? '#bf2d2d' : '#d4a843';
       const badge   = isCrash ? '💥 CRASH' : '⚠️ warn';
@@ -209,8 +215,8 @@ const httpServer = http.createServer((req, res) => {
   // ── GET /crash-log?id=<filename> → detail jednoho logu ───────────────────
   if (path === '/crash-log') {
     const id       = url.searchParams.get('id') || '';
-    const filename = require('path').basename(id); // bezpečnostní sanitace
-    const filepath = require('path').join(CRASH_LOG_DIR, filename);
+    const filename = nodePath.basename(id); // bezpečnostní sanitace
+    const filepath = nodePath.join(CRASH_LOG_DIR, filename);
     if (!filename.endsWith('.json') || !fs.existsSync(filepath)) {
       res.writeHead(404); res.end('Not found'); return;
     }

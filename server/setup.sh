@@ -32,6 +32,7 @@ echo "[2/5] Kopíruji soubory do $APP_DIR..."
 mkdir -p "$APP_DIR/game"
 mkdir -p "$APP_DIR/data"
 mkdir -p "$APP_DIR/logs"
+mkdir -p "$APP_DIR/logs/crash_logs"
 
 # Kopíruj jen pokud zdroj != cíl (ochrana před spuštěním přímo z APP_DIR)
 copy_if_different() {
@@ -56,7 +57,7 @@ copy_if_different "$SRC/game/ReplayViewer.js" "$APP_DIR/game/ReplayViewer.js"
 chown -R nobody:nogroup "$APP_DIR/data"
 chmod 755 "$APP_DIR/data"
 chown -R nobody:nogroup "$APP_DIR/logs"
-chmod 755 "$APP_DIR/logs"
+chmod -R 755 "$APP_DIR/logs"
 
 cd "$APP_DIR"
 echo "[3/5] Instaluji npm závislosti..."
