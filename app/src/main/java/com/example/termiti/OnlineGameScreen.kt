@@ -17,7 +17,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.paint
@@ -649,6 +648,7 @@ private fun OnlineGameOverOverlay(
     val result       by vm.gameResult
     val ratingChange by vm.ratingChange
     val newRating    by vm.newRating
+    val wasSuperRandom = vm.isSuperRandom.value
 
     Box(
         modifier = Modifier
@@ -660,10 +660,9 @@ private fun OnlineGameOverOverlay(
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 12.dp)
-                .background(
-                    Brush.verticalGradient(listOf(Color(0xFF1A1320), Color(0xFF0D0A0E))),
-                    shape = RoundedCornerShape(16.dp)
-                )
+                .clip(RoundedCornerShape(16.dp))
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .padding(horizontal = 28.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -722,23 +721,30 @@ private fun OnlineGameOverOverlay(
 
             Spacer(Modifier.height(4.dp))
 
-            Button(
-                onClick  = { SoundManager.playMenuTap(); vm.returnToLobby() },
-                colors   = ButtonDefaults.buttonColors(containerColor = OgGold),
-                shape    = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.7f)
-            ) {
-                Text("Zpět do lobby", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
+            MenuButton(
+                label    = "⚔️ Hrát znovu",
+                imageRes = R.drawable.button_1,
+                accent   = TealLight,
+                onClick  = {
+                    SoundManager.playMenuTap()
+                    vm.returnToLobby()
+                    vm.joinQueue(superRandom = wasSuperRandom)
+                }
+            )
 
-            Button(
-                onClick  = { SoundManager.playMenuTap(); onReview() },
-                colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2A35)),
-                shape    = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(0.7f)
-            ) {
-                Text("📋 ${LocalStrings.current.inspectGame}", color = OgTextPrimary, fontWeight = FontWeight.Bold)
-            }
+            MenuButton(
+                label    = "Zpět do lobby",
+                imageRes = R.drawable.button_3,
+                accent   = OgGold,
+                onClick  = { SoundManager.playMenuTap(); vm.returnToLobby() }
+            )
+
+            MenuButton(
+                label    = "📋 ${LocalStrings.current.inspectGame}",
+                imageRes = R.drawable.button_9,
+                accent   = OgTextMuted,
+                onClick  = { SoundManager.playMenuTap(); onReview() }
+            )
 
             TextButton(onClick = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }) {
                 Text("Odejít", color = OgTextMuted, fontSize = 12.sp)
