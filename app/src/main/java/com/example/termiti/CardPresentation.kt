@@ -399,9 +399,9 @@ object CardPresentation {
             R.drawable.art_prokleti, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
 
-        // ── Chaos – generátory chaosu (platí MAGIC) ───────────────────────────
+        // ── Chaos – generátory chaosu ────────────────────────────────────────
         "C01" to CardPres("Chaos +2.\n[Combo]",
-            R.drawable.art_chaoticka_jiskra, "Magie",
+            R.drawable.art_chaoticka_jiskra, "Chaos",
             artScale = 0.80f, artBiasY = -1.00f),
         "C02" to CardPres("Chaos +5. Soupeř ztratí 2 magie.",
             R.drawable.art_entropie, "Magie",

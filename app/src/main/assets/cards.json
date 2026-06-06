@@ -2208,7 +2208,7 @@
     "id": "C01",
     "name": "Chaotická jiskra",
     "cost": 0,
-    "costType": "MAGIC",
+    "costType": "CHAOS",
     "isCombo": true,
     "effects": [
       {

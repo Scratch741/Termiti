@@ -191,7 +191,7 @@ const RAW = [
   ['097','Obnova království',14,'STONES',0,[bc(25)],           'LEGENDARY'],
 
   // ── Chaos (platí CHAOS) ──────────────────────────────────────────────────
-  ['C01','Chaotická jiskra',0,'MAGIC',1,[ar('CHAOS',2)],       'RARE'],
+  ['C01','Chaotická jiskra',0,'CHAOS',1,[ar('CHAOS',2)],       'RARE'],
   ['C02','Entropie',        3,'MAGIC',0,[ar('CHAOS',5), dr('MAGIC',2)], 'EPIC'],
   ['C03','Chaotický důl',   4,'MAGIC',0,[am('CHAOS',1)],       'LEGENDARY'],
   ['C04','Krádež chaosu',   2,'MAGIC',1,[sr('CHAOS',3)],       'RARE'],
