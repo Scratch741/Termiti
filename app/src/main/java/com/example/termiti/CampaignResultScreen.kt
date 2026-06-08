@@ -1,5 +1,7 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.res.painterResource
 
 private val CrBgDeep  = Color(0xFF09070D)
 private val CrBgPanel = Color(0xFF13101A)
@@ -62,9 +65,10 @@ fun CampaignResultScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // ── Výsledek ──────────────────────────────────────────────────────
-            Text(
-                if (playerWon) "🏆" else "💀",
-                fontSize = 56.sp
+            Image(
+                painterResource(if (playerWon) R.drawable.trophy_icon else R.drawable.skull_icon),
+                contentDescription = null,
+                modifier = Modifier.size(64.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -113,7 +117,7 @@ fun CampaignResultScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "✨ ODMĚNA ZA PRVNÍ PORAŽENÍ",
+                            "ODMĚNA ZA PRVNÍ PORAŽENÍ",
                             color = CrGold,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -123,10 +127,10 @@ fun CampaignResultScreen(
                             horizontalArrangement = Arrangement.spacedBy(20.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RewardBadge("⭐", "+${opponent.rewardXp} XP", Color(0xFF7EE8A2))
-                            RewardBadge("🪙", "${opponent.rewardGold}", CrGold)
+                            RewardBadge(R.drawable.star_icon,     "+${opponent.rewardXp} XP",  Color(0xFF7EE8A2))
+                            RewardBadge(R.drawable.goldcoin_icon, "${opponent.rewardGold}",    CrGold)
                             if (opponent.rewardGems > 0) {
-                                RewardBadge("💎", "${opponent.rewardGems}", CrTeal)
+                                RewardBadge(R.drawable.diamond_icon, "${opponent.rewardGems}", CrTeal)
                             }
                         }
                     }
@@ -172,12 +176,12 @@ fun CampaignResultScreen(
 }
 
 @Composable
-private fun RewardBadge(icon: String, value: String, color: Color) {
+private fun RewardBadge(@DrawableRes iconRes: Int, value: String, color: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Text(icon, fontSize = 20.sp)
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
         Text(value, color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
 }

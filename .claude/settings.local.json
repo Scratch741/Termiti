@@ -83,7 +83,12 @@
       "Bash(./gradlew syncCards)",
       "Bash(./gradlew compileDebugKotlin)",
       "Bash(grep -v \"^$\")",
-      "Bash(xargs -I{} basename {} .png)"
+      "Bash(xargs -I{} basename {} .png)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\Scratch\\\\AndroidStudioProjects\\\\Termiti\")",
+      "Bash(grep -v \"//\\\\|AiEngine\\\\|costModifier\")",
+      "Bash(grep -v \"//\\\\|CampaignData\\\\|AppStrings\\\\|DailyQuest\\\\|Card\\\\.kt\\\\|GameBattlefield.*BURNED\\\\|CardPresentation\\\\|AiEngine\")",
+      "Bash(grep -v \"//\\\\|effectIcon\\\\|draftEffectIcon\\\\|CampaignData\\\\|DailyQuest\\\\|AppStrings\\\\|Card\\\\.kt\\\\|GameColors\\\\.kt\")",
+      "Bash(grep -rn \"^import com.example.termiti.R\\\\|^import.*\\\\.R$\\\\|^import com.example\" /c/Users/Scratch/AndroidStudioProjects/Termiti/app/src/main/java/com/example/termiti/GameHUD.kt)"
     ]
   }
 }

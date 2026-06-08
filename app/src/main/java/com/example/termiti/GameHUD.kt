@@ -1,6 +1,7 @@
 ﻿package com.example.termiti
 
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -216,7 +217,12 @@ fun NewTopBar(
                         .background(Gold.copy(alpha = 0.07f))
                         .border(1.dp, Gold.copy(alpha = 0.28f), RoundedCornerShape(5.dp))
                         .padding(horizontal = 7.dp, vertical = 2.dp)
-                ) { Text("⚔️ $arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                        Text("$arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -322,10 +328,10 @@ fun NewResourcePanel(
             )
             .padding(horizontal = 8.dp, vertical = 5.dp)
     ) {
-        NewResourceSection("✨", s.resMagic,  mineMagic, magic,  MagicBlue, isAi = isAi, blockedTurns = blkMagic)
-        NewResourceSection("⚔️", s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
-        NewResourceSection("🪨", s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
-        NewResourceSection("🌀", s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
+        NewResourceSection(R.drawable.magie_icon,  s.resMagic,  mineMagic, magic,  MagicBlue,   isAi = isAi, blockedTurns = blkMagic)
+        NewResourceSection(R.drawable.utok_icon,   s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
+        NewResourceSection(R.drawable.kamen_icon2, s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
+        NewResourceSection(R.drawable.chaos_icon,  s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
         Spacer(Modifier.weight(1f))
         bottomSlot()
     }
@@ -333,7 +339,7 @@ fun NewResourcePanel(
 
 @Composable
 fun NewResourceSection(
-    icon: String,
+    @DrawableRes iconRes: Int,
     name: String,
     mine: Int,
     amount: Int,
@@ -380,7 +386,7 @@ fun NewResourceSection(
             // Hráč: mine# | ikona | název (roztažený) | zásoba  (+delta jako overlay vpravo)
             MineSlot(Alignment.Start)
             Spacer(Modifier.width(2.dp))
-            Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(3.dp))
             Text(
                 name, color = color, fontSize = 11.5.sp, fontWeight = FontWeight.Bold,
@@ -414,7 +420,7 @@ fun NewResourceSection(
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(3.dp))
-            Text(icon, fontSize = 9.sp, lineHeight = 10.sp)
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(2.dp))
             MineSlot(Alignment.End)
         }
@@ -555,7 +561,10 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, modifier: 
                 HpFloats(wallHp, sizeSp = 11f, startOffsetY = wallTopDp)
             }
             Spacer(Modifier.height(3.dp))
-            Text("🧱 $wallHp", color = WallBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                Text("$wallHp", color = WallBlue, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         // ── Hrad (castle tower) ───────────────────────────────────
@@ -602,7 +611,10 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, modifier: 
                 HpFloats(castleHp, sizeSp = 11f, startOffsetY = castleTopDp)
             }
             Spacer(Modifier.height(3.dp))
-            Text("🏰 $castleHp/$winTarget", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                Text("$castleHp/$winTarget", color = castleColor, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
@@ -620,20 +632,20 @@ fun ResourcesRow(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ResourceChip("✨", magic,  mineMagic, MagicPurple)
-        ResourceChip("⚔️", attack, mineAtk,  AttackRed)
-        ResourceChip("🪨", stones, mineSto,  StoneColor)
-        ResourceChip("🌀", chaos,  mineChaos, ChaosOrange)
+        ResourceChip(R.drawable.magie_icon,  magic,  mineMagic, MagicPurple)
+        ResourceChip(R.drawable.utok_icon,   attack, mineAtk,  AttackRed)
+        ResourceChip(R.drawable.kamen_icon2, stones, mineSto,  StoneColor)
+        ResourceChip(R.drawable.chaos_icon,  chaos,  mineChaos, ChaosOrange)
     }
 }
 
 @Composable
-private fun ResourceChip(icon: String, value: Int, mine: Int, color: Color) {
+private fun ResourceChip(@DrawableRes iconRes: Int, value: Int, mine: Int, color: Color) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        Text(icon, fontSize = 14.sp)
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
         Text("$value", color = color, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Text("+$mine", color = color.copy(alpha = 0.55f), fontSize = 9.sp)
     }

@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 
 private val ClBgDeep  = Color(0xFF09070D)
 private val ClBgPanel = Color(0xFF13101A)
@@ -201,27 +203,45 @@ private fun OpponentCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("🪙 ${opponent.rewardGold}", color = ClGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+                    Text("${opponent.rewardGold}", color = ClGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
                 if (opponent.rewardGems > 0) {
-                    Text("💎 ${opponent.rewardGems}", color = Color(0xFF7EC8E3), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Image(painterResource(R.drawable.diamond_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+                        Text("${opponent.rewardGems}", color = Color(0xFF7EC8E3), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
             // Status
-            Text(
-                when {
-                    defeated  -> "✅ Poražen"
-                    !unlocked -> "🔒 Zamčen"
-                    else      -> "⚔️ Bojuj!"
-                },
-                color = when {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val statusColor = when {
                     defeated  -> ClGreen
                     !unlocked -> ClMuted
                     else      -> ClTeal
-                },
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
+                }
+                Image(
+                    painterResource(when {
+                        defeated  -> R.drawable.check_icon
+                        !unlocked -> R.drawable.lock_icon
+                        else      -> R.drawable.utok_icon
+                    }),
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp)
+                )
+                Text(
+                    when {
+                        defeated  -> "Poražen"
+                        !unlocked -> "Zamčen"
+                        else      -> "Bojuj!"
+                    },
+                    color = statusColor,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

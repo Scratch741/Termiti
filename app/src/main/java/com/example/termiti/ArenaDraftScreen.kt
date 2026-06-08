@@ -2,6 +2,7 @@ package com.example.termiti
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -25,66 +26,6 @@ private fun resColor(type: ResourceType) = when (type) {
     ResourceType.ATTACK -> AttackRed
     ResourceType.STONES -> StoneColor
     ResourceType.CHAOS  -> ChaosOrange
-}
-
-private fun resIcon(type: ResourceType) = when (type) {
-    ResourceType.MAGIC  -> "✨"
-    ResourceType.ATTACK -> "⚔️"
-    ResourceType.STONES -> "🪨"
-    ResourceType.CHAOS  -> "🌀"
-}
-
-private fun draftEffectIcon(card: Card) = when (card.effects.firstOrNull()) {
-    is CardEffect.AttackPlayer      -> "⚔️"
-    is CardEffect.AttackCastle      -> "🎯"
-    is CardEffect.AttackWall        -> "💣"
-    is CardEffect.BuildCastle       -> "🏰"
-    is CardEffect.BuildWall         -> "🧱"
-    is CardEffect.AddResource       -> "💰"
-    is CardEffect.AddMine           -> "⛏️"
-    is CardEffect.StealResource     -> "🗡️"
-    is CardEffect.DrainResource     -> "☠️"
-    is CardEffect.ConditionalEffect -> "🔮"
-    is CardEffect.DestroyMine       -> "💥"
-    is CardEffect.StealCard         -> "🃏"
-    is CardEffect.BurnCard          -> "🔥"
-    is CardEffect.AddCardsToDeck    -> "📦"
-    is CardEffect.AddToOpponentDeck -> "💣"
-    is CardEffect.TrapOnDraw        -> "💥"
-    is CardEffect.DrawCard          -> "🎴"
-    is CardEffect.StealCastle        -> "🧛"
-    is CardEffect.AddResourceDelayed  -> "⏳"
-    is CardEffect.BlockMine           -> "🚫"
-    is CardEffect.XScaledAttackPlayer -> "⚔️"
-    is CardEffect.XScaledAttackCastle -> "🎯"
-    is CardEffect.XScaledBuildCastle  -> "🏰"
-    is CardEffect.XScaledDualResource -> "💰"
-    is CardEffect.SwapHands           -> "🔄"
-    is CardEffect.RandomizeHands      -> "🎲"
-    is CardEffect.GiveRandomCard      -> "🎴"
-    is CardEffect.ModifyHandCost      -> "🏷️"
-    is CardEffect.DrawPerCardPlayed        -> "🎴"
-    is CardEffect.GainResourcePerCardPlayed -> "⚡"
-    is CardEffect.GainCastlePerCardPlayed   -> "🏯"
-    is CardEffect.ShapeShift                -> "🎭"
-    is CardEffect.ConvertMine               -> "🔀"
-    is CardEffect.DecisionBurnOpponent      -> "🔥"
-    is CardEffect.DecisionChooseType        -> "🎯"
-    is CardEffect.DecisionFromDiscard       -> "♻️"
-    is CardEffect.DecisionFromDeck          -> "🔍"
-    is CardEffect.DecisionDrawFromDeck      -> "📥"
-    is CardEffect.DecisionMine              -> "⛏️"
-    is CardEffect.DrawBoth                  -> "🎴"
-    is CardEffect.CloneNextPlayed           -> "🔁"
-    is CardEffect.SmartJoker                -> "🃏"
-    is CardEffect.MomentumAttack            -> "⚡"
-    is CardEffect.PeekAndStealHand          -> "🕵️"
-    is CardEffect.DecisionChooseResource    -> "⚗️"
-    is CardEffect.Mirror                    -> "🪞"
-    is CardEffect.Clone                     -> "🧬"
-    is CardEffect.NextCardIsCombo           -> "⚡"
-    is CardEffect.DiscountRandomCard        -> "🏷️"
-    null                              -> "❓"
 }
 
 // ─── Draft Screen ─────────────────────────────────────────────────────────────
@@ -235,7 +176,7 @@ private fun DraftStatsPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(resIcon(type), fontSize = 8.sp, modifier = Modifier.width(14.dp))
+                Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(14.dp))
                 Box(
                     Modifier.weight(1f).height(5.dp)
                         .clip(RoundedCornerShape(3.dp))
@@ -305,7 +246,7 @@ private fun DraftStatsPanel(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    Text(draftEffectIcon(card), fontSize = 8.sp)
+                    EffectIconView(card, size = 10.dp, fontSizeSp = 8f)
                     Text(
                         card.displayName,
                         color = TextPrimary.copy(alpha = 0.7f),
@@ -313,11 +254,7 @@ private fun DraftStatsPanel(
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    Text(
-                        resIcon(card.costType),
-                        fontSize = 7.sp,
-                        modifier = Modifier.width(10.dp)
-                    )
+                    Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(10.dp))
                 }
             }
         }
@@ -385,7 +322,7 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("💀", fontSize = 32.sp)
+                Image(painterResource(R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(32.dp))
                 Text(
                     "ARÉNA UKONČENA",
                     color = Crimson, fontSize = 16.sp,
@@ -415,8 +352,9 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(28.dp))
                     Text(
-                        "⚔️ $wins",
+                        "$wins",
                         color = when {
                             wins >= 5 -> Gold
                             wins >= 3 -> TealLight

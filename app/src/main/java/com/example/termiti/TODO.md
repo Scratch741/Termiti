@@ -7,15 +7,10 @@ Přidání nového zdroje - Chaos - nebude na něj od začátku důl, speciáln�
 
 
 Více karet, nové mechaniky karet (lze se inspirovat z Hearthstone). Karty typu znič doly (chaos), přidej karty do balíku, znič karty (chaos), ukradni karty (chaos)
-Předpřipravené balíky s určitou tématikou na win condition (výhra na hrad, na útok, na krádeže, na počet karet...)
-Balancing karet
-Vytvořit nové karty na stavbu - chybí velké stavební karty pro výhru přes hrad
 Přetvořit většinu útočných karet - chybná myšlenka. Karty by měly z většiny útočit na hráče, ne na hradby/hrad. Pouze specializované karty útočí jen na hradbu/hrad
 Nové mechaniky karet - Karty reagují na to, co jsi zahrál předtím (if last card was ATTACK → +10 damage
 else → +4 damage) /  Silná karta s nevýhodou (chaos karty) / Znič nejvyšší surovinu/důl (cílený) / Deck manipulace - lízni 2, discardni 1. Podívej se na top 3 karty a vyber 1, co dáš navrch. / Swap resources s enemy (chaos) / Doomsday (chaos, -30 poškození, možnost remízy) / Ongoing/status efekty / Swap hand mezi soupeřem a hráčem
 Hezčí UI
-Character progress - level, kupování karet, hrdina, speciální pasivní schopnosti
-Předělat/lepší multiplayer - stabilní server na linuxu, kde se ověřují všechny činnosti - prevence cheatingu
 Simple animace - když zaútočíš, poběží panáček na hrad, atd.
 Online zápasy - pokud dlouho hráč nenajde soupeře, automaticky dostane proti sobě AI.
 Zvuky karet
@@ -34,9 +29,7 @@ Replay systém
 
 Nové karty / mechaniky:
 
-4) Nová mechanika: Nahlédnutí do balíčku — podívej se na top N karet svého nebo soupeřova balíčku, případně vyber pořadí
 5) Legendární chaos karta: Velký zmatek — vyměň všem hráčům celé ruce za náhodné karty (chaos efekt)
-6) Karty, co manipulují s cenou soupeře/své karty. Při změně costu bude číslovka červená/zelená.
 ── Nové karty a mechaniky (2. vlna) ─────────────────────────────────────────
 
 1) Zrcadlo (magic, rare)

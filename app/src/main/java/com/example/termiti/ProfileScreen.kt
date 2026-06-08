@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -175,8 +176,8 @@ fun ProfileScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CurrencyBadge("🪙", profile!!.gold, PrGold,           LocalStrings.current.profileGold, Modifier.weight(1f))
-                    CurrencyBadge("💎", profile!!.gems, PrGems,           LocalStrings.current.profileGems, Modifier.weight(1f))
+                    CurrencyBadge(R.drawable.goldcoin_icon, profile!!.gold, PrGold, LocalStrings.current.profileGold, Modifier.weight(1f))
+                    CurrencyBadge(R.drawable.diamond_icon, profile!!.gems, PrGems, LocalStrings.current.profileGems, Modifier.weight(1f))
                     CurrencyBadge("✨", profile!!.dust, Color(0xFFB39DDB), LocalStrings.current.shopDust,    Modifier.weight(1f))
                 }
 
@@ -185,7 +186,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StatBadge("⚔️", "${profile!!.winsOffline + profile!!.winsOnline}", LocalStrings.current.profileWins,   Modifier.weight(1f))
+                    StatBadge(R.drawable.utok_icon, "${profile!!.winsOffline + profile!!.winsOnline}", LocalStrings.current.profileWins, Modifier.weight(1f))
                     StatBadge("🎮", "${profile!!.totalGames}",                         LocalStrings.current.profilePlayed, Modifier.weight(1f))
                 }
 
@@ -414,12 +415,15 @@ private fun AbilityRow(
                         }
                         .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
-                    Text(
-                        "🪙 ${ability.goldCost}",
-                        color = if (canAfford) PrGold else PrMuted,
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                        Text(
+                            "${ability.goldCost}",
+                            color = if (canAfford) PrGold else PrMuted,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
             isActive -> {
@@ -679,7 +683,7 @@ private fun CardBackSkinPicker(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun CurrencyBadge(icon: String, amount: Int, color: Color, label: String, modifier: Modifier = Modifier) {
+private fun CurrencyBadge(@DrawableRes iconRes: Int, amount: Int, color: Color, label: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -689,14 +693,14 @@ private fun CurrencyBadge(icon: String, amount: Int, color: Color, label: String
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        Text(icon, fontSize = 14.sp)
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
         Text("$amount", color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Text(label, color = PrMuted, fontSize = 8.sp)
     }
 }
 
 @Composable
-private fun StatBadge(icon: String, value: String, label: String, modifier: Modifier = Modifier) {
+private fun StatBadge(@DrawableRes iconRes: Int, value: String, label: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -706,7 +710,7 @@ private fun StatBadge(icon: String, value: String, label: String, modifier: Modi
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        Text(icon, fontSize = 14.sp)
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
         Text(value, color = PrText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Text(label, color = PrMuted, fontSize = 8.sp)
     }
@@ -870,9 +874,18 @@ private fun QuestCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Odměny
-                if (quest.rewardXp   > 0) Text("⭐ ${quest.rewardXp} XP", color = Color(0xFF7EE8A2), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                if (quest.rewardGold > 0) Text("🪙 ${quest.rewardGold}",  color = questGold,         fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                if (quest.rewardGems > 0) Text("💎 ${quest.rewardGems}",  color = Color(0xFF6EE0F0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                if (quest.rewardXp > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(R.drawable.star_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Text("${quest.rewardXp} XP", color = Color(0xFF7EE8A2), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+                if (quest.rewardGold > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Text("${quest.rewardGold}", color = questGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
+                if (quest.rewardGems > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(R.drawable.diamond_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Text("${quest.rewardGems}", color = Color(0xFF6EE0F0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                }
 
                 // Claim tlačítko
                 if (quest.canClaim) {
@@ -904,7 +917,7 @@ private fun ComingSoonCard(description: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("🔒", fontSize = 13.sp)
+        Image(painterResource(R.drawable.lock_icon), contentDescription = null, modifier = Modifier.size(16.dp))
         Text(description, color = PrMuted, fontSize = 9.sp, lineHeight = 13.sp)
     }
 }

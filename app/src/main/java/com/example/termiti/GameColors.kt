@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 
 // ── Pomocné funkce závislé na herních datových typech ────────────────────────
@@ -24,6 +25,14 @@ internal fun resourceIcon(type: ResourceType) = when (type) {
     ResourceType.ATTACK -> "⚔️"
     ResourceType.STONES -> "🪨"
     ResourceType.CHAOS  -> "🌀"
+}
+
+@DrawableRes
+internal fun resourceIconRes(type: ResourceType): Int = when (type) {
+    ResourceType.MAGIC  -> R.drawable.magie_icon
+    ResourceType.ATTACK -> R.drawable.utok_icon
+    ResourceType.STONES -> R.drawable.kamen_icon2
+    ResourceType.CHAOS  -> R.drawable.chaos_icon
 }
 
 /**

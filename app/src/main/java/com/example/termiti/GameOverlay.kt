@@ -245,11 +245,16 @@ fun MulliganOverlay(
 
             // Badge: kdo jde první (jen pokud je znám)
             if (goesFirst != null) {
-                Text(
-                    if (goesFirst) "⚔️ ${s.mulliganYouFirst}" else "⏳ ${s.mulliganOpponentFirst}",
-                    color = if (goesFirst) Teal else TextMuted,
-                    fontSize = 10.sp, fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (goesFirst) {
+                        Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+                    }
+                    Text(
+                        if (goesFirst) s.mulliganYouFirst else "⏳ ${s.mulliganOpponentFirst}",
+                        color = if (goesFirst) Teal else TextMuted,
+                        fontSize = 10.sp, fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             // Podtitulek / čekání po odeslání
@@ -493,7 +498,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(if (isWin) "⚔️" else "💀", fontSize = 36.sp)
+            Image(painterResource(if (isWin) R.drawable.trophy_icon else R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(44.dp))
             Spacer(Modifier.height(10.dp))
             Text(title.uppercase(), color = if (isWin) TealLight else Crimson,
                 fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
@@ -563,7 +568,7 @@ fun ArenaGameOverDialog(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(if (isPlayerWin) "⚔️" else "💀", fontSize = 32.sp)
+            Image(painterResource(if (isPlayerWin) R.drawable.trophy_icon else R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(40.dp))
             Text(
                 title.uppercase(),
                 color = if (isPlayerWin) TealLight else Crimson,

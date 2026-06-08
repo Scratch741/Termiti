@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 
 private val CmBgDeep  = Color(0xFF09070D)
 private val CmBgPanel = Color(0xFF13101A)
@@ -167,20 +169,30 @@ private fun LocationCard(
             )
 
             // Status text
-            Text(
-                when {
-                    cleared  -> "✅ Vyčištěno"
-                    unlocked -> "$defeatedCount / ${location.opponents.size} soupeřů"
-                    else     -> "🔒 Zamčeno"
-                },
-                color = when {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val statusColor = when {
                     cleared  -> CmGreen
                     unlocked -> CmTeal
                     else     -> CmMuted
-                },
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
+                }
+                if (cleared || !unlocked) {
+                    Image(
+                        painterResource(if (cleared) R.drawable.check_icon else R.drawable.lock_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+                Text(
+                    when {
+                        cleared  -> "Vyčištěno"
+                        unlocked -> "$defeatedCount / ${location.opponents.size} soupeřů"
+                        else     -> "Zamčeno"
+                    },
+                    color = statusColor,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

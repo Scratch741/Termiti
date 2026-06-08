@@ -1,5 +1,6 @@
 ﻿package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -59,66 +60,6 @@ private fun resColor(type: ResourceType) = when (type) {
 }
 
 // rarityColor → GameColors.kt
-
-private fun resIcon(type: ResourceType) = when (type) {
-    ResourceType.MAGIC  -> "✨"
-    ResourceType.ATTACK -> "⚔️"
-    ResourceType.STONES -> "🪨"
-    ResourceType.CHAOS  -> "🌀"
-}
-
-private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
-    is CardEffect.AttackPlayer      -> "⚔️"
-    is CardEffect.AttackCastle      -> "🎯"
-    is CardEffect.AttackWall        -> "💣"
-    is CardEffect.BuildCastle       -> "🏰"
-    is CardEffect.BuildWall         -> "🧱"
-    is CardEffect.AddResource       -> "💰"
-    is CardEffect.AddMine           -> "⛏️"
-    is CardEffect.StealResource     -> "🗡️"
-    is CardEffect.DrainResource     -> "☠️"
-    is CardEffect.ConditionalEffect -> "🔮"
-    is CardEffect.DestroyMine       -> "💥"
-    is CardEffect.StealCard         -> "🃏"
-    is CardEffect.BurnCard          -> "🔥"
-    is CardEffect.AddCardsToDeck    -> "📦"
-    is CardEffect.AddToOpponentDeck -> "💣"
-    is CardEffect.TrapOnDraw        -> "💥"
-    is CardEffect.DrawCard          -> "🎴"
-    is CardEffect.StealCastle        -> "🧛"
-    is CardEffect.AddResourceDelayed  -> "⏳"
-    is CardEffect.BlockMine           -> "🚫"
-    is CardEffect.XScaledAttackPlayer -> "⚔️"
-    is CardEffect.XScaledAttackCastle -> "🎯"
-    is CardEffect.XScaledBuildCastle  -> "🏰"
-    is CardEffect.XScaledDualResource -> "💰"
-    is CardEffect.SwapHands           -> "🔄"
-    is CardEffect.RandomizeHands      -> "🎲"
-    is CardEffect.GiveRandomCard      -> "🎴"
-    is CardEffect.ModifyHandCost      -> "🏷️"
-    is CardEffect.DrawPerCardPlayed        -> "🎴"
-    is CardEffect.GainResourcePerCardPlayed -> "⚡"
-    is CardEffect.GainCastlePerCardPlayed   -> "🏯"
-    is CardEffect.ShapeShift                -> "🎭"
-    is CardEffect.ConvertMine               -> "🔀"
-    is CardEffect.DecisionBurnOpponent      -> "🔥"
-    is CardEffect.DecisionChooseType        -> "🎯"
-    is CardEffect.DecisionFromDiscard       -> "♻️"
-    is CardEffect.DecisionFromDeck          -> "🔍"
-    is CardEffect.DecisionDrawFromDeck      -> "📥"
-    is CardEffect.DecisionMine              -> "⛏️"
-    is CardEffect.DrawBoth                  -> "🎴"
-    is CardEffect.CloneNextPlayed           -> "🔁"
-    is CardEffect.SmartJoker                -> "🃏"
-    is CardEffect.MomentumAttack            -> "⚡"
-    is CardEffect.PeekAndStealHand          -> "🕵️"
-    is CardEffect.DecisionChooseResource    -> "⚗️"
-    is CardEffect.Mirror                    -> "🪞"
-    is CardEffect.Clone                     -> "🧬"
-    is CardEffect.NextCardIsCombo           -> "⚡"
-    is CardEffect.DiscountRandomCard        -> "🏷️"
-    null                              -> "❓"
-}
 
 private fun CardEffect.toCategory(): String? = when (this) {
     is CardEffect.AttackPlayer,
@@ -471,10 +412,10 @@ private fun FilterBar(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
-            FilterChip("✨ Magie",  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
-            FilterChip("⚔️ Útok",  filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
-            FilterChip("🪨 Kámen", filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
-            FilterChip("🌀 Chaos", filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
+            FilterChip(R.drawable.magie_icon,  LocalStrings.current.resMagic,  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
+            FilterChip(R.drawable.utok_icon,   LocalStrings.current.resAttack, filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
+            FilterChip(R.drawable.kamen_icon2, LocalStrings.current.resStone,  filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
+            FilterChip(R.drawable.chaos_icon,  LocalStrings.current.resChaos,  filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
             Spacer(Modifier.weight(1f))
             BasicTextField(
                 value         = searchQuery,
@@ -593,6 +534,11 @@ private fun ManaCostFilterBar(
 
 @Composable
 private fun FilterChip(label: String, active: Boolean, color: Color, onClick: () -> Unit) {
+    FilterChip(iconRes = null, label = label, active = active, color = color, onClick = onClick)
+}
+
+@Composable
+private fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolean, color: Color, onClick: () -> Unit) {
     Box(
         Modifier.clip(RoundedCornerShape(5.dp))
             .background(if (active) color.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.04f))
@@ -604,12 +550,17 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
             .clickable { onClick() }
             .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
-        Text(
-            label,
-            color  = if (active) color else TextMuted,
-            fontSize = 9.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (iconRes != null) {
+                Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
+            }
+            Text(
+                label,
+                color      = if (active) color else TextMuted,
+                fontSize   = 9.sp,
+                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+            )
+        }
     }
 }
 
@@ -818,14 +769,17 @@ private fun CardActionPanel(
                 Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
                 Text(card.rarity.label, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(4.dp))
-                Text(resIcon(card.costType), fontSize = 10.sp)
+                Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(13.dp))
                 Text(
                     if (card.isXCost) "X" else "${card.cost}",
                     color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
                 )
                 if (!isBasic && !allUnlocked) {
                     Spacer(Modifier.weight(1f))
-                    Text("✨ $dust", color = TextMuted, fontSize = 9.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                        Text("$dust", color = TextMuted, fontSize = 9.sp)
+                    }
                 }
             }
 
@@ -1174,7 +1128,7 @@ private fun CatalogCardItem(
                     Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.45f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🔒", fontSize = 18.sp)
+                    Image(painterResource(R.drawable.lock_icon), contentDescription = null, modifier = Modifier.size(22.dp))
                 }
             }
             // Badge "NOVÉ"
@@ -1421,7 +1375,7 @@ private fun DeckPanel(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(resIcon(type), fontSize = 9.sp)
+                        Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(12.dp))
                         Text(
                             when (type) {
                                 ResourceType.MAGIC  -> LocalStrings.current.resMagic
@@ -1525,7 +1479,7 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Text(effectIcon(card), fontSize = 10.sp)
+        EffectIconView(card, size = 13.dp, fontSizeSp = 10f)
         Text(
             card.displayName, color = TextPrimary,
             fontSize = 9.sp, fontWeight = FontWeight.Bold,
@@ -1562,7 +1516,7 @@ private fun DeckStats(deck: Deck, deckCards: List<Card>) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                Text(resIcon(type), fontSize = 9.sp, modifier = Modifier.width(14.dp))
+                Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(14.dp))
                 Box(
                     Modifier.weight(1f).height(4.dp)
                         .clip(RoundedCornerShape(2.dp))

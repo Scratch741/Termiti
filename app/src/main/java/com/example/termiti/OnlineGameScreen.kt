@@ -679,20 +679,20 @@ private fun OnlineGameOverOverlay(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val (emoji, headline, subline) = when {
-                result == null            -> Triple("⏳", "Konec hry", "")
-                result!!.winner == "DRAW_BOTH_DEAD" -> Triple("💥", "Remíza!", "Oba hrady byly zničeny současně")
-                result!!.winner == "DRAW" -> Triple("🤝", "Remíza!", "Obě strany mají stejný hrad")
-                result!!.youWin           -> Triple("🏆", "Vítězství!", "Porazil jsi ${vm.matchInfo.value?.opponentName ?: "soupeře"}")
-                else                      -> Triple("💀", "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
+            val (iconRes, headline, subline) = when {
+                result == null            -> Triple(R.drawable.clock_icon, "Konec hry", "")
+                result!!.winner == "DRAW_BOTH_DEAD" -> Triple(R.drawable.skull_icon, "Remíza!", "Oba hrady byly zničeny současně")
+                result!!.winner == "DRAW" -> Triple(R.drawable.shield_icon, "Remíza!", "Obě strany mají stejný hrad")
+                result!!.youWin           -> Triple(R.drawable.trophy_icon, "Vítězství!", "Porazil jsi ${vm.matchInfo.value?.opponentName ?: "soupeře"}")
+                else                      -> Triple(R.drawable.skull_icon, "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
             }
 
-            // Emoji + nadpis na jednom řádku → ušetří výšku
+            // Ikona + nadpis na jednom řádku → ušetří výšku
             androidx.compose.foundation.layout.Row(
                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                 verticalAlignment     = androidx.compose.ui.Alignment.CenterVertically
             ) {
-                Text(emoji, fontSize = 26.sp)
+                Image(painterResource(iconRes), contentDescription = null, modifier = androidx.compose.ui.Modifier.size(30.dp))
                 Text(
                     text       = headline,
                     color      = OgGold,
@@ -722,8 +722,9 @@ private fun OnlineGameOverOverlay(
                     horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
                     verticalAlignment     = androidx.compose.ui.Alignment.CenterVertically
                 ) {
+                    Image(painterResource(R.drawable.star_icon), contentDescription = null, modifier = androidx.compose.ui.Modifier.size(14.dp))
                     Text(
-                        "⭐ Rating: $newRating",
+                        "Rating: $newRating",
                         color    = OgGold,
                         fontSize = 12.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
@@ -738,7 +739,7 @@ private fun OnlineGameOverOverlay(
             }
 
             MenuButton(
-                label    = "⚔️ Hrát znovu",
+                label    = "Hrát znovu",
                 imageRes = R.drawable.button_1,
                 accent   = TealLight,
                 onClick  = {

@@ -517,18 +517,24 @@ private fun CastleHpBadge(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            if (winTarget >= 999) "🏰 $castleHp" else "🏰 $castleHp/$winTarget",
-            color      = accentLight,
-            fontSize   = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            "🧱 $wallHp",
-            color      = accentColor,
-            fontSize   = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+            Text(
+                if (winTarget >= 999) "$castleHp" else "$castleHp/$winTarget",
+                color      = accentLight,
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+            Text(
+                "$wallHp",
+                color      = accentColor,
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Text(
             "🃏 $handSize/$maxHandSize",
             color      = Color(0xFFCCBB88),
@@ -708,7 +714,10 @@ fun AiHandRow(
                         .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(5.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("⚔️ $arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(11.dp))
+                        Text("$arenaWins", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
             Box(

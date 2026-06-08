@@ -83,7 +83,7 @@ fun parseCardDesc(text: String): AnnotatedString = buildAnnotatedString {
     }
 }
 
-private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
+internal fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.AttackPlayer      -> "⚔️"
     is CardEffect.AttackCastle      -> "🎯"
     is CardEffect.AttackWall        -> "💣"
@@ -134,6 +134,22 @@ private fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.NextCardIsCombo           -> "⚡"
     is CardEffect.DiscountRandomCard        -> "🏷️"
     null                              -> "❓"
+}
+
+/** Zobrazí ikonu efektu karty — PNG pro efekty s ikonou, emoji pro ostatní. */
+@Composable
+internal fun EffectIconView(card: Card, size: androidx.compose.ui.unit.Dp, fontSizeSp: Float) {
+    val iconRes: Int? = when (card.effects.firstOrNull()) {
+        is CardEffect.AttackPlayer, is CardEffect.XScaledAttackPlayer, is CardEffect.MomentumAttack -> R.drawable.utok_icon
+        is CardEffect.BuildCastle, is CardEffect.XScaledBuildCastle  -> R.drawable.castle_icon
+        is CardEffect.BuildWall                                       -> R.drawable.stavba_icon
+        else -> null
+    }
+    if (iconRes != null) {
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(size))
+    } else {
+        Text(effectIcon(card), fontSize = fontSizeSp.sp)
+    }
 }
 
 /** Mapuje ID skinu rubu karty na drawable resource. */
@@ -230,7 +246,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
                     .border(0.5.dp, Color(0xFFB388FF).copy(alpha = 0.8f), RoundedCornerShape(2.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("✨", fontSize = 4.5.sp, lineHeight = 4.5.sp)
+                Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(5.dp))
             }
         }
         // Název karty ve spodní části mini karty
@@ -272,7 +288,7 @@ internal fun CardBackPlayed(card: Card) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(effectIcon(card), fontSize = 11.sp)
+        EffectIconView(card, size = 14.dp, fontSizeSp = 11f)
         Text(card.displayName, color = TextPrimary, fontSize = 5.sp,
             fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
@@ -282,7 +298,10 @@ internal fun CardBackPlayed(card: Card) {
             card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
             else                   -> costColor
         }
-        Text("${resourceIcon(card.costType)}${if (card.isXCost) "X" else "${card.effectiveCost}"}", color = modifiedCostColor, fontSize = 5.5.sp)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+            Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(7.dp))
+            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = modifiedCostColor, fontSize = 5.5.sp)
+        }
     }
 }
 
@@ -615,12 +634,7 @@ private fun CardViewTextured(
                         .border(1.dp, Color(0xFFB388FF).copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        "✨",
-                        fontSize = 9.sp,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 9.sp
-                    )
+                    Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
                 }
             }
             if (isComboCard) {

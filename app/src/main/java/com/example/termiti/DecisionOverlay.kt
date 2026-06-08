@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -142,11 +143,11 @@ fun DecisionOverlay(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         decision.resourceChoices.forEach { rc ->
-                            val (emoji, label, accent) = when (rc.type) {
-                                ResourceType.MAGIC  -> Triple("✨", "Magie",  Color(0xFF7EC8E3))
-                                ResourceType.ATTACK -> Triple("⚔️", "Útok",   Color(0xFFE07070))
-                                ResourceType.STONES -> Triple("🪨", "Kameny", Color(0xFFB39DDB))
-                                ResourceType.CHAOS  -> Triple("🌀", "Chaos",  Gold)
+                            val (iconRes, label, accent) = when (rc.type) {
+                                ResourceType.MAGIC  -> Triple(R.drawable.magie_icon,  "Magie",  Color(0xFF7EC8E3))
+                                ResourceType.ATTACK -> Triple(R.drawable.utok_icon,   "Útok",   Color(0xFFE07070))
+                                ResourceType.STONES -> Triple(R.drawable.kamen_icon2, "Kameny", Color(0xFFB39DDB))
+                                ResourceType.CHAOS  -> Triple(R.drawable.chaos_icon,  "Chaos",  Gold)
                             }
                             Box(
                                 modifier = Modifier
@@ -162,7 +163,7 @@ fun DecisionOverlay(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Text(emoji, fontSize = 26.sp)
+                                    Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(32.dp))
                                     Text(
                                         "+${rc.amount}",
                                         color      = accent,
