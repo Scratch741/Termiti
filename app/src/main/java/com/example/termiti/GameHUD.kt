@@ -491,7 +491,7 @@ fun PlayerPanel(
             Text(label.uppercase(), color = accent, fontSize = 10.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                DeckChip("🃏", playerState.deck.size, "bal.")
+                DeckChipWithBack(playerCardBackResId(), playerState.deck.size, "bal.")
                 DeckChip("🗑", playerState.discardPile.size, "odh.")
             }
         }
@@ -660,6 +660,23 @@ fun DeckChip(icon: String, count: Int, label: String) {
             .padding(horizontal = 5.dp, vertical = 2.dp)
     ) {
         Text(icon, fontSize = 10.sp)
+        Spacer(Modifier.width(2.dp))
+        Text("$count", color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(2.dp))
+        Text(label, color = TextMuted, fontSize = 8.sp)
+    }
+}
+
+@Composable
+fun DeckChipWithBack(@DrawableRes cardBackRes: Int, count: Int, label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clip(RoundedCornerShape(6.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .padding(horizontal = 5.dp, vertical = 2.dp)
+    ) {
+        Image(painterResource(cardBackRes), contentDescription = null,
+            modifier = Modifier.size(width = 8.dp, height = 12.dp))
         Spacer(Modifier.width(2.dp))
         Text("$count", color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.width(2.dp))

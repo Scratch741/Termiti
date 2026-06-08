@@ -535,12 +535,16 @@ private fun CastleHpBadge(
                 fontWeight = FontWeight.Bold
             )
         }
-        Text(
-            "🃏 $handSize/$maxHandSize",
-            color      = Color(0xFFCCBB88),
-            fontSize   = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Image(painterResource(playerCardBackResId()), contentDescription = null,
+                modifier = Modifier.size(width = 8.dp, height = 12.dp))
+            Text(
+                "$handSize/$maxHandSize",
+                color      = Color(0xFFCCBB88),
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 

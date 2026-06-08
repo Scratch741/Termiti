@@ -205,17 +205,17 @@ fun ProfileInfo(profile: PlayerProfile, H: Dp) {
     Text("Lv. ${profile.level}", color = Gold, fontSize = fs, fontWeight = FontWeight.Bold)
     // Gold
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(H * 0.015f)) {
-        Text("🪙", fontSize = fs)
+        Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(fs.value.dp))
         Text("${profile.gold}", color = Gold, fontSize = fs, fontWeight = FontWeight.Bold)
     }
     // Gems
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(H * 0.015f)) {
-        Text("💎", fontSize = fs)
+        Image(painterResource(R.drawable.diamond_icon), contentDescription = null, modifier = Modifier.size(fs.value.dp))
         Text("${profile.gems}", color = Color(0xFF7EC8E3), fontSize = fs, fontWeight = FontWeight.Bold)
     }
     // Dust
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(H * 0.015f)) {
-        Text("✨", fontSize = fs)
+        Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(fs.value.dp))
         Text("${profile.dust}", color = Color(0xFFB39DDB), fontSize = fs, fontWeight = FontWeight.Bold)
     }
 }
