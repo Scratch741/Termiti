@@ -740,6 +740,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(210L)
                     SoundManager.playCardDraw()
                     val drawResult = player.drawCards(1, old.playerMaxHand)
+                    drawResult.burned.forEach { b ->
+                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    }
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
                         aiState      = ai,
@@ -828,7 +832,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 repeat(pendingDrawCount) {
                     delay(210L)
                     SoundManager.playCardDraw()
-                    player.drawCards(1, old.playerMaxHand)
+                    val drawResR = player.drawCards(1, old.playerMaxHand)
+                    drawResR.burned.forEach { b ->
+                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    }
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                 }
                 delay(350L)
@@ -869,7 +877,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
                 if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
-                    player.drawCards(1, old.playerMaxHand)
+                    val qdr1 = player.drawCards(1, old.playerMaxHand)
+                    qdr1.burned.forEach { b ->
+                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    }
                 }
             }
             gameState.value = old.copy(playerState = player)
@@ -1185,6 +1197,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(210L)
                     SoundManager.playCardDraw()
                     val drawResult = player.drawCards(1, old.playerMaxHand)
+                    drawResult.burned.forEach { b ->
+                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    }
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
                         aiState      = ai,
@@ -1293,6 +1309,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (aiDrawsAtStart && ai.deck.isNotEmpty()) {
                 SoundManager.playCardDraw()
                 val drawResult = ai.drawCards(1, old.aiMaxHand)
+                drawResult.burned.forEach { b ->
+                    cardHistory.appendHistory(b, CardAction.BURNED, isMine = false)
+                    addCardLog("AI", b, CardAction.BURNED, isMe = false)
+                }
                 for (trap in drawResult.traps) {
                     cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
                     addCardLog("AI", trap, CardAction.BURNED, isMe = false)
@@ -1370,6 +1390,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 repeat(count) {
                                     val r = state.drawCards(1, old.aiMaxHand)
                                     SoundManager.playCardDraw()
+                                    r.burned.forEach { b ->
+                                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = false)
+                                        addCardLog("AI", b, CardAction.BURNED, isMe = false)
+                                    }
                                     r.traps.forEach { trap ->
                                         cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
                                         addCardLog("AI", trap, CardAction.BURNED, isMe = false)
@@ -1588,7 +1612,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
                 if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
-                    player.drawCards(1, old.playerMaxHand)
+                    val qdr2 = player.drawCards(1, old.playerMaxHand)
+                    qdr2.burned.forEach { b ->
+                        cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    }
                     SoundManager.playCardDraw()
                 }
             }

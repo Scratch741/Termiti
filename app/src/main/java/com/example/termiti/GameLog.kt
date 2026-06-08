@@ -202,9 +202,8 @@ fun LogPanel(
                     fontStyle = FontStyle.Italic)
             } else {
                 val recent = log.takeLast(5)
-                recent.forEachIndexed { i, entry ->
-                    val a = 0.35f + (i.toFloat() / recent.size) * 0.65f
-                    LogEntryRow(entry, a)
+                recent.forEach { entry ->
+                    LogEntryRow(entry, 1f)
                 }
             }
         }
@@ -224,8 +223,7 @@ fun LogPanel(
             reverseLayout       = false
         ) {
             itemsIndexed(reversed) { index, entry ->
-                val a = (1f - index * 0.08f).coerceAtLeast(0.30f)
-                LogEntryRow(entry, a)
+                LogEntryRow(entry, 1f)
                 if (index < reversed.lastIndex) {
                     HorizontalDivider(color = TextMuted.copy(alpha = 0.08f), thickness = 0.5.dp)
                 }
