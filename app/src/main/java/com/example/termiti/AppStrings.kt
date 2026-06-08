@@ -56,6 +56,7 @@ data class AppStrings(
     val opponentTurn: String,
     val endTurn: String,
     val endCombo: String,
+    val endGame: String,
     val waitingTurn: String,
     val inspectGame: String,
     val gameLog: String,

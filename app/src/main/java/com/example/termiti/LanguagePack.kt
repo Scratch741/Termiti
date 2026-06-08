@@ -109,6 +109,7 @@ data class LanguagePack(
                 opponentTurn  = str("opponentTurn",  "TAH SOUPEŘE"),
                 endTurn       = str("endTurn",       "Ukončit tah"),
                 endCombo      = str("endCombo",      "Konec combo"),
+                endGame       = str("endGame",       "Ukončení hry"),
                 waitingTurn   = str("waitingTurn",   "Čekám…"),
                 inspectGame   = str("inspectGame",   "Prohlédnout hru"),
                 gameLog       = str("gameLog",       "HERNÍ LOG"),
@@ -307,7 +308,8 @@ data class LanguagePack(
             "arena" -> fb.arena; "campaign" -> fb.campaign
             "yourTurn" -> fb.yourTurn; "opponentTurn" -> fb.opponentTurn
             "endTurn" -> fb.endTurn; "discard" -> fb.discard
-            "endCombo" -> fb.endCombo; "waitingTurn" -> fb.waitingTurn
+            "endCombo" -> fb.endCombo; "endGame" -> fb.endGame
+            "waitingTurn" -> fb.waitingTurn
             "inspectGame" -> fb.inspectGame
             "castle" -> fb.castle; "wall" -> fb.wall; "round" -> fb.round
             "decisionTitle" -> fb.decisionTitle

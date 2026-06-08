@@ -206,11 +206,19 @@ fun GameScreen(
                             )
                         } else {
                             val s = LocalStrings.current
-                            val btnLabel = if (isComboTurn) "⚡ ${s.endCombo}" else "⏩ ${s.endTurn}"
+                            val isGameEnding = active
+                                && state.playerState.hand.isEmpty() && state.playerState.deck.isEmpty()
+                                && state.aiState.hand.isEmpty()     && state.aiState.deck.isEmpty()
+                            val btnLabel = when {
+                                isComboTurn  -> "⚡ ${s.endCombo}"
+                                isGameEnding -> "🏁 ${s.endGame}"
+                                else         -> "⏩ ${s.endTurn}"
+                            }
                             val btnColor = when {
-                                isComboTurn -> Gold
-                                active      -> TealLight
-                                else        -> TextMuted.copy(alpha = 0.35f)
+                                isComboTurn  -> Gold
+                                isGameEnding -> ChaosOrange
+                                active       -> TealLight
+                                else         -> TextMuted.copy(alpha = 0.35f)
                             }
                             NewPanelButton(
                                 label   = btnLabel,

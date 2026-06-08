@@ -36,6 +36,7 @@ private val OgTextPrimary = Color(0xFFEDE0C4)
 private val OgTextMuted   = Color(0xFF7A6E5F)
 private val OgTealLight   = Color(0xFF3DBFAD)
 private val OgCrimson     = Color(0xFFBF2D2D)
+private val OgChaosOrange = Color(0xFFE67E22)
 
 // ─── Converter: OnlinePlayerState → PlayerState ───────────────────────────────
 
@@ -476,10 +477,20 @@ private fun OnlineGameplay(
                             )
                         } else {
                             val s = LocalStrings.current
-                            val btnColor = if (gs.isMyTurn) OgTealLight
-                                           else OgTextMuted.copy(alpha = 0.35f)
+                            val isGameEnding = gs.isMyTurn
+                                && myPs.hand.isEmpty() && myPs.deck.isEmpty()
+                                && oppPs.hand.isEmpty() && oppPs.deck.isEmpty()
+                            val btnColor = when {
+                                isGameEnding -> OgChaosOrange
+                                gs.isMyTurn  -> OgTealLight
+                                else         -> OgTextMuted.copy(alpha = 0.35f)
+                            }
                             NewPanelButton(
-                                label   = if (gs.isMyTurn) "⏩ ${s.endTurn}" else "⏳ ${s.waitingTurn}",
+                                label   = when {
+                                    isGameEnding -> "🏁 ${s.endGame}"
+                                    gs.isMyTurn  -> "⏩ ${s.endTurn}"
+                                    else         -> "⏳ ${s.waitingTurn}"
+                                },
                                 color   = btnColor,
                                 active  = gs.isMyTurn,
                                 onClick = if (gs.isMyTurn) {
