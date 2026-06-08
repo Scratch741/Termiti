@@ -178,7 +178,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                 ) {
                     CurrencyBadge(R.drawable.goldcoin_icon, profile!!.gold, PrGold, LocalStrings.current.profileGold, Modifier.weight(1f))
                     CurrencyBadge(R.drawable.diamond_icon, profile!!.gems, PrGems, LocalStrings.current.profileGems, Modifier.weight(1f))
-                    CurrencyBadge("✨", profile!!.dust, Color(0xFFB39DDB), LocalStrings.current.shopDust,    Modifier.weight(1f))
+                    CurrencyBadge(R.drawable.dust_icon, profile!!.dust, Color(0xFFB39DDB), LocalStrings.current.shopDust, Modifier.weight(1f))
                 }
 
                 // Statistiky
@@ -187,7 +187,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatBadge(R.drawable.utok_icon, "${profile!!.winsOffline + profile!!.winsOnline}", LocalStrings.current.profileWins, Modifier.weight(1f))
-                    StatBadge("🎮", "${profile!!.totalGames}",                         LocalStrings.current.profilePlayed, Modifier.weight(1f))
+                    StatBadge(R.drawable.card_icon, "${profile!!.totalGames}", LocalStrings.current.profilePlayed, Modifier.weight(1f))
                 }
 
                 // ── Denní questy ─────────────────────────────────────────────
