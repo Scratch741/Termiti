@@ -34,34 +34,39 @@ private val PrMuted     = Color(0xFF7A6E5F)
 private val PrGems      = Color(0xFF7EC8E3)
 private val PrGreen     = Color(0xFF3DBFAD)
 
-/** Devět hráčských ikon — všechny odemčeny na levelu 1. */
+/** Hráčské ikony — všechny odemčeny na levelu 1. */
 private val AVATARS = listOf(
-    "player_icon_1" to 1,
-    "player_icon_2" to 1,
-    "player_icon_3" to 1,
-    "player_icon_4" to 1,
-    "player_icon_5" to 1,
-    "player_icon_6" to 1,
+    "player_icon_1"  to 1,
+    "player_icon_2"  to 1,
+    "player_icon_3"  to 1,
+    "player_icon_4"  to 1,
+    "player_icon_5"  to 1,
+    "player_icon_6"  to 1,
     "player_icon_7"  to 1,
     "player_icon_8"  to 1,
     "player_icon_9"  to 1,
     "player_icon_10" to 1,
-    "player_icon_11" to 1
+    "player_icon_11" to 1,
+    "player_icon_12" to 1
 )
 
-/** Vrátí drawable resource ID pro ikonky hráče, null pro emoji avatary (oponenti, AI). */
+/** Vrátí drawable resource ID pro ikonky hráče i oponentů, null pro emoji avatary. */
 fun avatarResId(avatar: String): Int? = when (avatar) {
-    "player_icon_1" -> R.drawable.player_icon_1
-    "player_icon_2" -> R.drawable.player_icon_2
-    "player_icon_3" -> R.drawable.player_icon_3
-    "player_icon_4" -> R.drawable.player_icon_4
-    "player_icon_5" -> R.drawable.player_icon_5
-    "player_icon_6" -> R.drawable.player_icon_6
-    "player_icon_7" -> R.drawable.player_icon_7
-    "player_icon_8" -> R.drawable.player_icon_8
+    "player_icon_1"  -> R.drawable.player_icon_1
+    "player_icon_2"  -> R.drawable.player_icon_2
+    "player_icon_3"  -> R.drawable.player_icon_3
+    "player_icon_4"  -> R.drawable.player_icon_4
+    "player_icon_5"  -> R.drawable.player_icon_5
+    "player_icon_6"  -> R.drawable.player_icon_6
+    "player_icon_7"  -> R.drawable.player_icon_7
+    "player_icon_8"  -> R.drawable.player_icon_8
     "player_icon_9"  -> R.drawable.player_icon_9
     "player_icon_10" -> R.drawable.player_icon_10
     "player_icon_11" -> R.drawable.player_icon_11
+    "player_icon_12" -> R.drawable.player_icon_12
+    "enemy_icon_1"   -> R.drawable.enemy_icon_1
+    "enemy_icon_2"   -> R.drawable.enemy_icon_2
+    "enemy_icon_3"   -> R.drawable.enemy_icon_3
     else             -> null
 }
 
