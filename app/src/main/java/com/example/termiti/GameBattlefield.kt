@@ -123,54 +123,7 @@ fun NewBattlefield(
             }
         }
 
-        // ── Hrady – vlevo/vpravo dole (renderovány PŘED badge, aby badge byl vždy navrchu) ──
-        NewCastleStructure(
-            castleHp    = playerState.castleHP,
-            wallHp      = playerState.wallHP,
-            isPlayer    = true,
-            winTarget   = playerWinTarget,
-            castleResId = playerCastleResId,
-            modifier    = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 8.dp, bottom = 4.dp)
-        )
-        NewCastleStructure(
-            castleHp    = aiState.castleHP,
-            wallHp      = aiState.wallHP,
-            isPlayer    = false,
-            winTarget   = aiWinTarget,
-            castleResId = opponentCastleResId,
-            modifier    = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 8.dp, bottom = 4.dp)
-        )
-
-        // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
-        CastleHpBadge(
-            castleHp    = playerState.castleHP,
-            wallHp      = playerState.wallHP,
-            isPlayer    = true,
-            winTarget   = playerWinTarget,
-            handSize    = playerState.hand.size,
-            maxHandSize = playerMaxHand,
-            modifier    = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 8.dp, top = 4.dp)
-        )
-
-        // ── HP badge AI – vpravo nahoře ──────────────────────────────────────────
-        CastleHpBadge(
-            castleHp    = aiState.castleHP,
-            wallHp      = aiState.wallHP,
-            isPlayer    = false,
-            winTarget   = aiWinTarget,
-            handSize    = aiState.hand.size,
-            modifier    = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = 8.dp, top = 4.dp)
-        )
-
-        // ── Plameny na pochodeňových pozicích ────────────────────────────────────
+        // ── Plameny na pochodeňových pozicích (renderovány PŘED hrady → jsou za nimi) ──
         //
         //  x, y = procenta OBRÁZKU castle_background.png (1200×400 px).
         //  Měř přímo na obrázku: x=0 je levý kraj, x=100 pravý; y=0 vršek, y=100 spodek.
@@ -225,6 +178,53 @@ fun NewBattlefield(
                 seed = f.seed
             )
         }
+
+        // ── Hrady – vlevo/vpravo dole (renderovány PO plamenech → překrývají je) ──
+        NewCastleStructure(
+            castleHp    = playerState.castleHP,
+            wallHp      = playerState.wallHP,
+            isPlayer    = true,
+            winTarget   = playerWinTarget,
+            castleResId = playerCastleResId,
+            modifier    = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 8.dp, bottom = 4.dp)
+        )
+        NewCastleStructure(
+            castleHp    = aiState.castleHP,
+            wallHp      = aiState.wallHP,
+            isPlayer    = false,
+            winTarget   = aiWinTarget,
+            castleResId = opponentCastleResId,
+            modifier    = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 8.dp, bottom = 4.dp)
+        )
+
+        // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
+        CastleHpBadge(
+            castleHp    = playerState.castleHP,
+            wallHp      = playerState.wallHP,
+            isPlayer    = true,
+            winTarget   = playerWinTarget,
+            handSize    = playerState.hand.size,
+            maxHandSize = playerMaxHand,
+            modifier    = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 4.dp)
+        )
+
+        // ── HP badge AI – vpravo nahoře ──────────────────────────────────────────
+        CastleHpBadge(
+            castleHp    = aiState.castleHP,
+            wallHp      = aiState.wallHP,
+            isPlayer    = false,
+            winTarget   = aiWinTarget,
+            handSize    = aiState.hand.size,
+            modifier    = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 8.dp, top = 4.dp)
+        )
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
         val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
