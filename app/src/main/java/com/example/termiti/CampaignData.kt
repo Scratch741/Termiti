@@ -83,7 +83,7 @@ object CampaignData {
                 // Malý balíček + nízký winTarget = výstavba je nejjednodušší cesta.
                 CampaignOpponent(
                     id = "gob_scout", name = "Goblin Průzkumník", title = "Drzý rváč",
-                    avatar = "👺", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej.",
+                    avatar = "enemy_icon_1", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej.",
                     aiCastle = 20, aiWall = 5,
                     deckCardCounts = mapOf("001" to 6, "008" to 6, "004" to 6),
                     winTarget = 45,
@@ -264,7 +264,7 @@ object CampaignData {
                 // 4 ── 28 karet, winTarget 62 ───────────────────────────────
                 CampaignOpponent(
                     id = "dwf_smith", name = "Trpasličí Kovář", title = "Mistr kovadliny",
-                    avatar = "🔨", description = "Vyrábí zbraně i hradby. Útok a obrana najednou.",
+                    avatar = "hammer_icon", description = "Vyrábí zbraně i hradby. Útok a obrana najednou.",
                     aiCastle = 30, aiWall = 18,
                     deckCardCounts = mapOf(
                         "007" to 5, "001" to 4, "022" to 4, "002" to 5,

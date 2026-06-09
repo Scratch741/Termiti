@@ -101,7 +101,7 @@ fun NewTopBar(
     playerAvatar: String = "player_icon_1",
     playerLevel: Int = -1,
     opponentLabel: String = "Nepřítel",
-    opponentAvatar: String = "👺",
+    opponentAvatar: String = "enemy_icon_1",
     opponentLevel: Int = -1,
     onMenu: () -> Unit,
     playerTimerText: String? = null,
@@ -188,7 +188,7 @@ fun NewTopBar(
                                 .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
                                 .border(0.5.dp, Gold.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
                             contentAlignment = Alignment.Center
-                        ) { Text(ability.icon, fontSize = 11.sp) }
+                        ) { Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(13.dp)) }
                     }
                 }
             }
@@ -254,7 +254,7 @@ fun NewTopBar(
                                 .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
                                 .border(0.5.dp, Crimson.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
                             contentAlignment = Alignment.Center
-                        ) { Text(ability.icon, fontSize = 11.sp) }
+                        ) { Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(13.dp)) }
                     }
                 }
             }
@@ -432,7 +432,8 @@ fun NewPanelButton(
     label: String,
     color: Color,
     active: Boolean,
-    onClick: (() -> Unit)?
+    onClick: (() -> Unit)?,
+    @DrawableRes iconRes: Int? = null
 ) {
     Box(
         modifier = Modifier
@@ -445,14 +446,27 @@ fun NewPanelButton(
             .padding(vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            label,
-            color         = color.copy(alpha = if (active) 1f else 0.38f),
-            fontSize      = 9.sp,
-            fontWeight    = FontWeight.Bold,
-            letterSpacing = 0.8.sp,
-            textAlign     = TextAlign.Center
-        )
+        val textColor = color.copy(alpha = if (active) 1f else 0.38f)
+        if (iconRes != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Image(painterResource(iconRes), contentDescription = null,
+                    modifier = Modifier.size(10.dp).alpha(if (active) 1f else 0.38f))
+                Text(label, color = textColor, fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+            }
+        } else {
+            Text(
+                label,
+                color         = textColor,
+                fontSize      = 9.sp,
+                fontWeight    = FontWeight.Bold,
+                letterSpacing = 0.8.sp,
+                textAlign     = TextAlign.Center
+            )
+        }
     }
 }
 

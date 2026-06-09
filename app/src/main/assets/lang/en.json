@@ -82,7 +82,7 @@
     "catDecision": "Decision",
     "catOther": "Other",
     "dbFilterUnlocked": "🔓 Unlocked",
-    "dbDisassemble": "💥  Disenchant  +%d✨",
+    "dbDisassemble": "Disenchant  +%d✨",
     "dbDustGain": "+%d ✨ dust",
     "dbDustCost": "−%d ✨ dust",
     "dbBadgeNew": "NEW",

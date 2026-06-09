@@ -51,6 +51,11 @@ private val AVATARS = listOf(
     "player_icon_12" to 1
 )
 
+private val ENEMY_AVATARS = listOf("enemy_icon_1", "enemy_icon_2", "enemy_icon_3")
+
+/** Vrátí náhodnou enemy ikonu pro AI oponenta (bez kampáňového avataru). */
+fun randomEnemyAvatar(): String = ENEMY_AVATARS.random()
+
 /** Vrátí drawable resource ID pro ikonky hráče i oponentů, null pro emoji avatary. */
 fun avatarResId(avatar: String): Int? = when (avatar) {
     "player_icon_1"  -> R.drawable.player_icon_1
@@ -68,6 +73,7 @@ fun avatarResId(avatar: String): Int? = when (avatar) {
     "enemy_icon_1"   -> R.drawable.enemy_icon_1
     "enemy_icon_2"   -> R.drawable.enemy_icon_2
     "enemy_icon_3"   -> R.drawable.enemy_icon_3
+    "hammer_icon"    -> R.drawable.hammer_icon
     else             -> null
 }
 
@@ -366,10 +372,10 @@ private fun AbilityRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // icon
-        Text(
-            ability.icon,
-            fontSize = 14.sp,
-            modifier = Modifier.alpha(if (canUnlock) 1f else 0.35f)
+        Image(
+            painter            = painterResource(ability.iconRes),
+            contentDescription = null,
+            modifier           = Modifier.size(18.dp).alpha(if (canUnlock) 1f else 0.35f)
         )
         // name + description
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -828,7 +834,7 @@ private fun QuestCard(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text(quest.icon(), fontSize = 13.sp)
+                Image(painterResource(quest.iconRes()), contentDescription = null, modifier = Modifier.size(16.dp))
                 Text(
                     quest.label(),
                     color = if (quest.claimed) questMuted else PrText,

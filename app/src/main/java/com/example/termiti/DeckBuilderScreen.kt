@@ -789,7 +789,8 @@ private fun CardActionPanel(
                 // ── Vyrobit ──────────────────────────────────────────────────
                 val craftAccent = Color(0xFFB39DDB)
                 ActionCounter(
-                    label       = "🔨  Vyrobit  ✨${card.rarity.craftCost}",
+                    label       = "Vyrobit  ✨${card.rarity.craftCost}",
+                    iconRes     = R.drawable.hammer_icon,
                     accent      = craftAccent,
                     count       = pendingCraft,
                     maxCount    = maxCraft,
@@ -811,7 +812,8 @@ private fun CardActionPanel(
                     count       = pendingDismantle,
                     maxCount    = maxDismantle,
                     onDecrement = { pendingDismantle-- },
-                    onIncrement = { pendingDismantle++; pendingCraft = 0 }
+                    onIncrement = { pendingDismantle++; pendingCraft = 0 },
+                    iconRes     = R.drawable.explode_icon
                 )
                 if (pendingDismantle > 0) {
                     Text(
@@ -887,7 +889,8 @@ private fun ActionCounter(
     count      : Int,
     maxCount   : Int,
     onDecrement: () -> Unit,
-    onIncrement: () -> Unit
+    onIncrement: () -> Unit,
+    @DrawableRes iconRes: Int? = null
 ) {
     val active = count > 0
     Row(
@@ -900,6 +903,9 @@ private fun ActionCounter(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        if (iconRes != null) {
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
+        }
         Text(
             label,
             color    = if (active || maxCount > 0) accent else TextMuted,

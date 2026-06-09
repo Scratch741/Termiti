@@ -400,7 +400,7 @@ private fun OnlineGameplay(
                 playerAvatar     = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel      = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel    = opponentName,
-                opponentAvatar   = matchInfo?.opponentAvatar ?: "👺",
+                opponentAvatar   = matchInfo?.opponentAvatar ?: "enemy_icon_1",
                 opponentLevel    = matchInfo?.opponentLevel  ?: -1,
                 onMenu           = { if (reviewMode) onShowResult() else showMenu = true },
                 playerTimerText  = timerText(isMe = true),
@@ -429,7 +429,8 @@ private fun OnlineGameplay(
                     modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "📜 Log",
+                            label   = "Log",
+                            iconRes = R.drawable.scroll_icon,
                             color   = OgGold,
                             active  = true,
                             onClick = { SoundManager.playMenuTap(); showLog = !showLog }

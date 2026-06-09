@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -42,6 +43,15 @@ data class DailyQuest(
         QuestType.PLAY_CARDS   -> "🃏"
         QuestType.DEAL_DAMAGE  -> "💥"
         QuestType.WIN_CAMPAIGN -> "🏆"
+    }
+
+    @DrawableRes
+    fun iconRes(): Int = when (type) {
+        QuestType.WIN_GAMES    -> R.drawable.utok_icon
+        QuestType.WIN_ONLINE   -> R.drawable.trophy_icon
+        QuestType.PLAY_CARDS   -> R.drawable.card_icon
+        QuestType.DEAL_DAMAGE  -> R.drawable.explode_icon
+        QuestType.WIN_CAMPAIGN -> R.drawable.trophy_icon
     }
 }
 

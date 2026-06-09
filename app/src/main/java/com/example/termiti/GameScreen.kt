@@ -127,6 +127,7 @@ fun GameScreen(
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ── Top bar ───────────────────────────────────────────────────────
+            val defaultEnemyAvatar = remember { randomEnemyAvatar() }
             NewTopBar(
                 playerDeckSize = state.playerState.deck.size,
                 aiDeckSize     = state.aiState.deck.size,
@@ -138,7 +139,7 @@ fun GameScreen(
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.name   ?: LocalStrings.current.enemy,
-                opponentAvatar = campaignOpponent?.avatar ?: "👺",
+                opponentAvatar = campaignOpponent?.avatar ?: defaultEnemyAvatar,
                 onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true },
                 playerPassives = playerPassives,
                 aiPassives     = if (campaignOpponent == null) aiPassives else emptyList()
@@ -165,7 +166,8 @@ fun GameScreen(
                     modifier    = Modifier.fillMaxHeight().width(135.dp),
                     bottomSlot  = {
                         NewPanelButton(
-                            label   = "📜 Log",
+                            label   = "Log",
+                            iconRes = R.drawable.scroll_icon,
                             color   = Gold,
                             active  = true,
                             onClick = { showLog = true }

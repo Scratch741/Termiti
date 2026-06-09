@@ -44,7 +44,7 @@ enum class OnlinePhase {
 data class OnlineMatchInfo(
     val gameId                : String,
     val opponentName          : String,
-    val opponentAvatar        : String       = "👺",
+    val opponentAvatar        : String       = "enemy_icon_1",
     val opponentCardBackSkin  : String       = "card_back_frame",
     val opponentCastleSkin    : String       = "castle_player",
     val opponentLevel         : Int          = -1,
@@ -652,7 +652,7 @@ class OnlineLobbyViewModel(
                     matchInfo.value = OnlineMatchInfo(
                         gameId               = json.optString("gameId", ""),
                         opponentName         = json.optString("opponentName", "Soupeř"),
-                        opponentAvatar       = json.optString("opponentAvatar", "👺"),
+                        opponentAvatar       = json.optString("opponentAvatar", "enemy_icon_1"),
                         opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
                         opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
                         opponentLevel        = json.optInt("opponentLevel", -1),
@@ -715,7 +715,7 @@ class OnlineLobbyViewModel(
                             matchInfo.value = OnlineMatchInfo(
                                 gameId               = recoveredGameId,
                                 opponentName         = "Soupeř",
-                                opponentAvatar       = "👺",
+                                opponentAvatar       = "enemy_icon_1",
                                 opponentCardBackSkin = "card_back_frame",
                                 opponentCastleSkin   = "castle_player",
                                 opponentLevel        = -1,

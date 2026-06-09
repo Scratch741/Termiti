@@ -1680,7 +1680,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             playerName      = profile?.name   ?: ls.logActorPlayer,
             playerAvatar    = profile?.avatar ?: "player_icon_1",
             opponentName    = opp?.name       ?: ls.enemy,
-            opponentAvatar  = opp?.avatar     ?: "👺",
+            opponentAvatar  = opp?.avatar     ?: randomEnemyAvatar(),
             result          = result,
             playerWinTarget = snapshot.playerWinTarget,
             aiWinTarget     = snapshot.aiWinTarget
@@ -1732,7 +1732,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             is CardEffect.BuildCastle  -> "${ls.logTrapCastle} +${e.amount}"
             else                       -> ls.logTrapTriggered
         }
-        return "💥 $who $cardName! $dmgDesc"
+        return "$who $cardName! $dmgDesc"
     }
 
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {

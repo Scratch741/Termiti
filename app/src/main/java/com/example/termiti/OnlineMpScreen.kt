@@ -474,7 +474,7 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
             Text("VS", color = OnMuted, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             // Soupeř
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(match?.opponentAvatar ?: "👺", fontSize = 24.sp)
+                AvatarDisplay(match?.opponentAvatar ?: "enemy_icon_1", sizeDp = 32f)
                 Text(
                     match?.opponentName ?: "Soupeř",
                     color      = OnRed,

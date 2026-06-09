@@ -1,6 +1,8 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -90,30 +93,36 @@ private fun RewardToastCard(ev: RewardNotifier.RewardEvent) {
 
         // Level-up banner
         if (ev.levelUp) {
-            Text(
-                "🎉 LEVEL ${ev.newLevel}!",
-                color      = LevelColor,
-                fontSize   = 13.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Image(painterResource(R.drawable.trophy_icon), contentDescription = null, modifier = Modifier.size(14.dp))
+                Text(
+                    "LEVEL ${ev.newLevel}!",
+                    color      = LevelColor,
+                    fontSize   = 13.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         }
 
         // Odměny
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (ev.xp   > 0) RewardChip("⭐", "+${ev.xp} XP",  XpColor)
-            if (ev.gold > 0) RewardChip("🪙", "+${ev.gold}",    GoldColor)
-            if (ev.gems > 0) RewardChip("💎", "+${ev.gems}",    GemColor)
+            if (ev.xp   > 0) RewardChip(R.drawable.star_icon,      "+${ev.xp} XP",  XpColor)
+            if (ev.gold > 0) RewardChip(R.drawable.goldcoin_icon,   "+${ev.gold}",   GoldColor)
+            if (ev.gems > 0) RewardChip(R.drawable.diamond_icon,    "+${ev.gems}",   GemColor)
         }
     }
 }
 
 @Composable
-private fun RewardChip(icon: String, value: String, color: Color) {
+private fun RewardChip(@DrawableRes iconRes: Int, value: String, color: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        Text(icon,  fontSize = 12.sp)
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(13.dp))
         Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }

@@ -170,7 +170,7 @@ data class LanguagePack(
                 catDecision      = str("catDecision",      "Rozhodnutí"),
                 catOther         = str("catOther",         "Ostatní"),
                 dbFilterUnlocked = str("dbFilterUnlocked", "🔓 Odemčené"),
-                dbDisassemble    = str("dbDisassemble",    "💥  Rozebrat  +%d✨"),
+                dbDisassemble    = str("dbDisassemble",    "Rozebrat  +%d✨"),
                 dbDustGain       = str("dbDustGain",       "+%d ✨ prachu"),
                 dbDustCost       = str("dbDustCost",       "−%d ✨ prachu"),
                 dbBadgeNew       = str("dbBadgeNew",       "NOVÉ"),

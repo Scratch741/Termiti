@@ -17,7 +17,7 @@ data class GameReplay(
     val playerName      : String     = "Hráč",
     val playerAvatar    : String     = "player_icon_1",
     val opponentName    : String     = "Nepřítel",
-    val opponentAvatar  : String     = "👺",
+    val opponentAvatar  : String     = "enemy_icon_1",
     val result          : GameResult,
     val playerWinTarget : Int        = 70,
     val aiWinTarget     : Int        = 70

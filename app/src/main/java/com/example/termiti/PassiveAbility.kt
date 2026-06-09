@@ -1,5 +1,7 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
+
 /**
  * Definice všech pasivních schopností.
  * Efekty se aplikují v [GameViewModel.createInitialState] na startovní [PlayerState].
@@ -138,6 +140,25 @@ enum class PassiveAbility(
 
     /** Lokalizovaný popis → vestavěná čeština [description]. */
     fun localizedDescription(): String = LanguageManager.abilityDesc(id, description)
+
+    /** Drawable resource pro ikonu schopnosti. */
+    @get:DrawableRes
+    val iconRes: Int get() = when (this) {
+        EXTRA_CASTLE    -> R.drawable.castle_icon
+        EXTRA_WALL      -> R.drawable.wall_icon
+        EXTRA_MAGIC     -> R.drawable.magie_icon
+        EXTRA_ATTACK    -> R.drawable.utok_icon
+        EXTRA_STONES    -> R.drawable.kamen_icon2
+        EXTRA_CHAOS     -> R.drawable.chaos_icon
+        EXTRA_HAND_CARD -> R.drawable.card_icon
+        IRON_BASTION    -> R.drawable.shield_icon
+        QUICK_DRAW      -> R.drawable.card_icon
+        BOOST_ATTACK    -> R.drawable.utok_icon
+        BOOST_BUILD     -> R.drawable.stavba_icon
+        BOOST_MAGIC     -> R.drawable.magie_icon
+        BOOST_CHAOS     -> R.drawable.chaos_icon
+        BOOST_RANDOM    -> R.drawable.star_icon
+    }
 
     companion object {
         fun fromId(id: String): PassiveAbility? = entries.find { it.id == id }
