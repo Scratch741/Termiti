@@ -845,6 +845,12 @@ class GameSession {
           .filter(c => !c.isPlaceholder)
           .sort(() => Math.random() - 0.5).slice(0, n);
       }
+      case 'DecisionDrawFromDeck': {
+        // Horních N karet z vlastního balíčku (pravý draw – bez shuffle, pořadí balíčku zachováno)
+        return self.deck
+          .filter(c => !c.isPlaceholder)
+          .slice(0, n);
+      }
       case 'DecisionMine': {
         // Přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos)
         const mineTypes = ['MAGIC', 'ATTACK', 'STONES', 'CHAOS'];

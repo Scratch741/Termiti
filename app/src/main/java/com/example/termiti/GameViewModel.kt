@@ -549,7 +549,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType && !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
-        is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
+        is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPlaceholder }.take(fx.picks)
         is CardEffect.DecisionMine         -> listOf(
             ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
         ).mapNotNull { resType ->
