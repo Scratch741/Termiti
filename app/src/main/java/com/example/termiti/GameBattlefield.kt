@@ -319,22 +319,18 @@ fun NewBattlefield(
                     ) {
                         CardView(card = shown, canPlay = false, discardMode = false, showFade = false, onClick = {})
                         // Overlay: ikona akce přesně uprostřed karty
-                        val overlayIcon = when (displayAction) {
-                            CardAction.DISCARDED -> "✕"
-                            CardAction.BURNED    -> "🔥"
-                            else                 -> null
-                        }
-                        if (overlayIcon != null) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text      = overlayIcon,
-                                    fontSize  = 38.sp,
-                                    color     = if (displayAction == CardAction.DISCARDED) Color(0xFFE53935) else Color.Unspecified,
-                                    textAlign = TextAlign.Center
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (displayAction) {
+                                CardAction.DISCARDED -> Image(
+                                    painterResource(R.drawable.cross_icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp)
                                 )
+                                CardAction.BURNED -> Text("🔥", fontSize = 38.sp, textAlign = TextAlign.Center)
+                                else -> Unit
                             }
                         }
                     }
@@ -630,7 +626,7 @@ private fun OfflineMiniHistoryCard(
     val overlayIcon = when (action) {
         CardAction.BURNED    -> "🔥"
         CardAction.STOLEN    -> "🃏"
-        CardAction.DISCARDED -> "✕"
+        CardAction.DISCARDED -> null   // cross_icon se vykreslí samostatně níže
         CardAction.PLAYED    -> null
     }
     Box(
@@ -654,6 +650,20 @@ private fun OfflineMiniHistoryCard(
                     color      = borderColor.copy(alpha = 0.95f),
                     fontSize   = if (action == CardAction.BURNED) 9.sp else 10.sp,
                     fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        if (action == CardAction.DISCARDED) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painterResource(R.drawable.cross_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp)
                 )
             }
         }

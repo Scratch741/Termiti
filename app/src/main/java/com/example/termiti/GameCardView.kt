@@ -236,7 +236,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
             }
             Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
         }
-        // ✨ odznak – vygenerovaná karta (vpravo nahoře)
+        // 🔨 odznak – vygenerovaná karta (vpravo nahoře)
         if (card.isGenerated) {
             Box(
                 modifier = Modifier
@@ -245,10 +245,10 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
                     .size(8.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(Color.Black.copy(alpha = 0.65f))
-                    .border(0.5.dp, Color(0xFFB388FF).copy(alpha = 0.8f), RoundedCornerShape(2.dp)),
+                    .border(0.5.dp, Color(0xFFFFD54F).copy(alpha = 0.8f), RoundedCornerShape(2.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(5.dp))
+                Image(painterResource(R.drawable.hammer_icon), contentDescription = null, modifier = Modifier.size(5.dp))
             }
         }
         // Název karty ve spodní části mini karty
@@ -633,10 +633,10 @@ private fun CardViewTextured(
                         .size(16.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(Color.Black.copy(alpha = 0.65f))
-                        .border(1.dp, Color(0xFFB388FF).copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
+                        .border(1.dp, Color(0xFFFFD54F).copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Image(painterResource(R.drawable.hammer_icon), contentDescription = null, modifier = Modifier.size(10.dp))
                 }
             }
             if (isComboCard) {
@@ -658,7 +658,6 @@ private fun CardViewTextured(
             }
             if (conditionMet != null) {
                 val condColor = if (conditionMet) Color(0xFF4DB86E) else Color(0xFF888888)
-                val condIcon  = if (conditionMet) "✓" else "✗"
                 Box(
                     modifier = Modifier
                         .size(16.dp)
@@ -667,13 +666,10 @@ private fun CardViewTextured(
                         .border(1.dp, condColor.copy(alpha = 0.7f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        condIcon,
-                        color = condColor,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 9.sp
+                    Image(
+                        painterResource(if (conditionMet) R.drawable.check_icon else R.drawable.cross_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(10.dp)
                     )
                 }
             }
@@ -713,7 +709,7 @@ private fun CardViewTextured(
                 modifier = Modifier.fillMaxSize()
                     .background(DiscardRed.copy(alpha = (progress * 0.55f).coerceAtMost(0.55f))),
                 contentAlignment = Alignment.Center
-            ) { if (progress > 0.35f) Text("✕", fontSize = (12 + progress * 16).sp, color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+            ) { if (progress > 0.35f) Image(painterResource(R.drawable.cross_icon), contentDescription = null, modifier = Modifier.size((12 + progress * 16).dp)) }
         } else if (discardMode) {
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -725,7 +721,7 @@ private fun CardViewTextured(
                         .clip(RoundedCornerShape(8.dp))
                         .background(DiscardRed.copy(alpha = 0.7f))
                         .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) { Text("✕", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold) }
+                ) { Image(painterResource(R.drawable.cross_icon), contentDescription = null, modifier = Modifier.size(8.dp)) }
             }
         }
     }
