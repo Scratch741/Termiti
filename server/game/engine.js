@@ -541,8 +541,13 @@ function resolveByHp(stateA, stateB) {
 }
 
 /**
- * Transformuje všechny ShapeShift karty v ruce v náhodné karty z pool.
- * Volá se na začátku každého tahu (po lízu) v GameSession._advanceTurn().
+ * Transformuje ShapeShift karty v ruce v náhodné karty z pool.
+ *
+ * @param {boolean} [onlyNew=false]  true  = transformuj POUZE netransformované karty
+ *                                          (mají stále ShapeShift efekt; vhodné pro líz uprostřed tahu).
+ *                                   false = transformuj VŠECHNY instance (normální použití na začátku tahu).
+ *
+ * Volá se na začátku každého tahu (onlyNew=false) a po každém lízu uprostřed tahu (onlyNew=true).
  * Původní instance ID je zachováno, aby klientský stav nerekrekoval slot.
  */
 /** true = karta je (nebo byla) Shapeshifter – trackovano přes baseId i efekty */
@@ -551,11 +556,14 @@ function isShapeShifterInstance(card) {
          (card.effects && card.effects.some(fx => fx.type === 'ShapeShift'));
 }
 
-function transformShapeShifters(hand, cardPool) {
+function transformShapeShifters(hand, cardPool, onlyNew = false) {
   const validPool = cardPool.filter(c => !c.effects.some(fx => fx.type === 'ShapeShift') && !c.isPlaceholder);
   if (validPool.length === 0) return;
   for (let i = 0; i < hand.length; i++) {
-    if (isShapeShifterInstance(hand[i])) {
+    const shouldTransform = onlyNew
+      ? (hand[i].effects && hand[i].effects.some(fx => fx.type === 'ShapeShift'))  // jen nové
+      : isShapeShifterInstance(hand[i]);                                             // všechny
+    if (shouldTransform) {
       const tmpl = validPool[Math.floor(Math.random() * validPool.length)];
       // baseId = 'C34' zachováme → příští kolo se znovu transformuje
       // displayBaseId = ID šablony → klient zobrazí správnou kartu, ne původní Shapeshifter

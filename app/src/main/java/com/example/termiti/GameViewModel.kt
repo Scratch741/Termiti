@@ -400,6 +400,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var lastCard           = androidx.compose.runtime.mutableStateOf<Card?>(null);          private set
     var lastCardAction     = androidx.compose.runtime.mutableStateOf(CardAction.PLAYED);   private set
     var lastCardIsPlayer   = androidx.compose.runtime.mutableStateOf(true);                private set
+    /** Karta zahrána AI – zobrazena v řadě AI ruky, maže se při konci hráčova tahu. */
+    var revealedAiCard     = androidx.compose.runtime.mutableStateOf<Card?>(null);         private set
+    var revealedAiCardIdx  = androidx.compose.runtime.mutableStateOf<Int?>(null);          private set
     var cardHistory        = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard AI (celá hra). */
     var lostToOpponent     = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
@@ -711,6 +714,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         // Aktualizuj Klon/Zrcadlo karty v ruce po přidání nové karty přes Decision
         // (updateCloneCards se volá při playCard, ale Klon může přijít do ruky až teď)
+        // Transformuj Shapeshifter, pokud byl přidán do ruky přes Decision efekt
+        transformShapeShifters(player.hand, allCards, onlyNew = true)
         updateCloneCards(player.hand, player.lastPlayedCard, allCards)
         updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
 
@@ -740,6 +745,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(210L)
                     SoundManager.playCardDraw()
                     val drawResult = player.drawCards(1, old.playerMaxHand)
+                    transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
@@ -833,6 +839,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(210L)
                     SoundManager.playCardDraw()
                     val drawResR = player.drawCards(1, old.playerMaxHand)
+                    transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResR.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
@@ -1197,6 +1204,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(210L)
                     SoundManager.playCardDraw()
                     val drawResult = player.drawCards(1, old.playerMaxHand)
+                    transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
@@ -1293,6 +1301,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         playerDrawsAtEnd: Boolean = true,
         playerWaited: Boolean = false
     ) {
+        // Konec tahu hráče → smaž odhalení AI karty z ruky (ne discard slot uprostřed)
+        revealedAiCard.value    = null
+        revealedAiCardIdx.value = null
+
         // Zablokuj hráče – AI je na tahu
         gameState.value = old.copy(
             playerState  = player,
@@ -1335,6 +1347,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true
             while (aiContinues) {
+                // Transformuj Shapeshiftery líznuté uprostřed tahu (DrawCard, Decision apod.)
+                // onlyNew = true → nemění formu již transformovaných instancí
+                transformShapeShifters(ai.hand, allCards, onlyNew = true)
                 val aiChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
                 when (aiChoice) {
                     is AiAction.Play -> {
@@ -1381,6 +1396,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // Odeber kartu z ruky PŘED efekty – stejně jako hráčův playCard.
                         // Bez tohoto pořadí by SwapHands viděl zahrávanou kartu v ruce AI
                         // a předal ji hráči místo do discardu.
+                        val aiCardHandIdx = ai.hand.indexOf(aiCard)
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
                         applyEffects(
@@ -1517,6 +1533,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
                         addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
+                        revealedAiCard.value    = aiCard
+                        revealedAiCardIdx.value = aiCardHandIdx.takeIf { it >= 0 }
                         addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
 
@@ -1767,6 +1785,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lastCard.value          = null
         lastCardAction.value    = CardAction.PLAYED
         lastCardIsPlayer.value  = true
+        revealedAiCard.value    = null
+        revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
@@ -1793,6 +1813,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lastCard.value          = null
         lastCardAction.value    = CardAction.PLAYED
         lastCardIsPlayer.value  = true
+        revealedAiCard.value    = null
+        revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
@@ -1943,6 +1965,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lastCard.value          = null
         lastCardAction.value    = CardAction.PLAYED
         lastCardIsPlayer.value  = true
+        revealedAiCard.value    = null
+        revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false

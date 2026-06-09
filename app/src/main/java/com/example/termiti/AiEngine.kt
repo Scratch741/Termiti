@@ -233,7 +233,7 @@ fun aiChooseAction(
         is CardEffect.Mirror -> {
             val src = opponent.lastPlayedCard
             when {
-                src == null -> 0  // žádná zdrojová karta → nezrcadlená forma = žádný efekt, nehrát
+                src == null -> -100  // žádná zdrojová karta → zcela bez efektu, nikdy nehrát
                 src.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone } -> 2  // zabránit rekurzi
                 else -> src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 20)
             }
@@ -241,7 +241,7 @@ fun aiChooseAction(
         is CardEffect.Clone -> {
             val src = ai.lastPlayedCard
             when {
-                src == null -> 0  // žádná zdrojová karta → neklonovatelná forma = jen +2 magie, nehrát
+                src == null -> -100  // žádná zdrojová karta → pouze +2 magie = nevýhodné, nikdy nehrát
                 src.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone } -> 2  // zabránit rekurzi
                 else -> src.effects.sumOf { scoreEffect(it) }.coerceIn(2, 25)
             }

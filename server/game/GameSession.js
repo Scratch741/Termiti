@@ -675,6 +675,9 @@ class GameSession {
     );
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
+    // DrawCard efekt mohl přidat Shapeshifter do ruky – ihned ho transformuj,
+    // aby hráč neviděl (a nepřehrál) netransformovanou kartu jako no-op
+    transformShapeShifters(self.hand, ALL_CARDS, true);
 
     // Momentum: sleduj útočné karty zahranné v tomto tahu
     if (card.costType === 'ATTACK') self.attackCardsThisTurn = (self.attackCardsThisTurn || 0) + 1;

@@ -382,15 +382,24 @@ fun Card.isShapeShifterInstance(): Boolean =
     effects.any { it is CardEffect.ShapeShift } || id.substringBefore("_") == "C34"
 
 /**
- * Transformuje všechny Shapeshifter karty v ruce v náhodné karty z [pool].
- * Volá se na ZAČÁTKU každého tahu (po lízu) — karta se mění každé kolo.
+ * Transformuje Shapeshifter karty v ruce v náhodné karty z [pool].
+ *
+ * @param onlyNew  true  → transformuj POUZE netransformované karty (mají stále `ShapeShift` efekt);
+ *                        vhodné pro líz uprostřed tahu, aby se již transformované instance nemenily.
+ *                 false → transformuj VŠECHNY instance (normální použití na začátku tahu).
+ *
+ * Volá se na ZAČÁTKU každého tahu (onlyNew = false) i po každém lízu uprostřed tahu (onlyNew = true).
  * Původní instance ID je zachováno, aby Compose LazyRow nerekrekoval slot.
  */
-fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>) {
+fun transformShapeShifters(hand: MutableList<Card>, pool: List<Card>, onlyNew: Boolean = false) {
     val validPool = pool.filter { tmpl -> tmpl.effects.none { it is CardEffect.ShapeShift } && !tmpl.isPlaceholder }
     if (validPool.isEmpty()) return
     for (i in hand.indices) {
-        if (hand[i].isShapeShifterInstance()) {
+        val shouldTransform = if (onlyNew)
+            hand[i].effects.any { it is CardEffect.ShapeShift }   // jen nové, netransformované
+        else
+            hand[i].isShapeShifterInstance()                       // všechny instance
+        if (shouldTransform) {
             val prev = hand[i]
             val tmpl = validPool.random()
             // id stále začíná "C34_" → příští kolo se znovu transformuje
