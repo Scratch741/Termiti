@@ -234,7 +234,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
                 card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
                 else                   -> Color.White
             }
-            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold, fontFamily = CinzelExtraBold)
+            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
         }
         // 🔨 odznak – vygenerovaná karta (vpravo nahoře)
         if (card.isGenerated) {
@@ -556,7 +556,6 @@ private fun CardViewTextured(
             val costStyle = TextStyle(
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,
-                fontFamily = CinzelExtraBold,
                 textAlign = TextAlign.Center,
                 platformStyle = PlatformTextStyle(includeFontPadding = false),
                 lineHeightStyle = LineHeightStyle(
@@ -602,20 +601,14 @@ private fun CardViewTextured(
         ) {
             Text(
                 parseCardDesc(card.displayDescription),
-                color = Color(0xFFD8CCB0),
+                color = Color(0xFFDDD0B0),
                 fontSize = 7.sp,
-                fontFamily = MerriweatherSemiBold,
                 textAlign = TextAlign.Center,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(
                     TextStyle(
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color  = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.65f),
-                            offset = androidx.compose.ui.geometry.Offset(0.5f, 1f),
-                            blurRadius = 3f
-                        ),
                         platformStyle = PlatformTextStyle(includeFontPadding = false),
                         lineHeightStyle = LineHeightStyle(
                             alignment = LineHeightStyle.Alignment.Center,
@@ -827,7 +820,6 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                 val costStyle = TextStyle(
                     fontSize        = 20.sp,
                     fontWeight      = FontWeight.ExtraBold,
-                    fontFamily      = CinzelExtraBold,
                     textAlign       = TextAlign.Center,
                     platformStyle   = PlatformTextStyle(includeFontPadding = false),
                     lineHeightStyle = LineHeightStyle(
@@ -869,20 +861,14 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
             ) {
                 Text(
                     parseCardDesc(card.displayDescription),
-                    color     = Color(0xFFD8CCB0),
+                    color     = Color(0xFFDDD0B0),
                     fontSize  = 16.sp,
-                    fontFamily = MerriweatherSemiBold,
                     textAlign = TextAlign.Center,
                     maxLines  = 4,
                     overflow  = TextOverflow.Ellipsis,
                     lineHeight = 20.sp,
                     style     = LocalTextStyle.current.merge(
                         TextStyle(
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color  = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.65f),
-                                offset = androidx.compose.ui.geometry.Offset(1f, 2f),
-                                blurRadius = 6f
-                            ),
                             platformStyle   = PlatformTextStyle(includeFontPadding = false),
                             lineHeightStyle = LineHeightStyle(
                                 alignment = LineHeightStyle.Alignment.Center,
