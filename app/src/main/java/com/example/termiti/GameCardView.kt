@@ -602,15 +602,20 @@ private fun CardViewTextured(
         ) {
             Text(
                 parseCardDesc(card.displayDescription),
-                color = Color(0xFFDDD0B0),
+                color = Color(0xFFD8CCB0),
                 fontSize = 7.sp,
-                fontFamily = EbGaramond,
+                fontFamily = MerriweatherSemiBold,
                 textAlign = TextAlign.Center,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(
                     TextStyle(
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color  = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.65f),
+                            offset = androidx.compose.ui.geometry.Offset(0.5f, 1f),
+                            blurRadius = 3f
+                        ),
                         platformStyle = PlatformTextStyle(includeFontPadding = false),
                         lineHeightStyle = LineHeightStyle(
                             alignment = LineHeightStyle.Alignment.Center,
@@ -864,15 +869,20 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
             ) {
                 Text(
                     parseCardDesc(card.displayDescription),
-                    color     = Color(0xFFDDD0B0),
+                    color     = Color(0xFFD8CCB0),
                     fontSize  = 16.sp,
-                    fontFamily = EbGaramond,
+                    fontFamily = MerriweatherSemiBold,
                     textAlign = TextAlign.Center,
                     maxLines  = 4,
                     overflow  = TextOverflow.Ellipsis,
                     lineHeight = 20.sp,
                     style     = LocalTextStyle.current.merge(
                         TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color  = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.65f),
+                                offset = androidx.compose.ui.geometry.Offset(1f, 2f),
+                                blurRadius = 6f
+                            ),
                             platformStyle   = PlatformTextStyle(includeFontPadding = false),
                             lineHeightStyle = LineHeightStyle(
                                 alignment = LineHeightStyle.Alignment.Center,

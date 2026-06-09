@@ -168,17 +168,19 @@ fun ArcCardName(
                 textSize     = fontPx
                 textAlign    = android.graphics.Paint.Align.CENTER
             }
-            // Obrys (stroke)
+            // Obrys (stroke) – černý 80 %
             paint.style       = android.graphics.Paint.Style.STROKE
-            paint.strokeWidth = fontPx * 0.28f
+            paint.strokeWidth = fontPx * 0.30f
             paint.strokeJoin  = android.graphics.Paint.Join.ROUND
             paint.strokeCap   = android.graphics.Paint.Cap.ROUND
-            paint.color       = android.graphics.Color.BLACK
+            paint.color       = android.graphics.Color.argb(204, 0, 0, 0)
             c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
-            // Výplň (fill)
+            // Výplň (slonovinová #F2E6C9) + jemný stín
             paint.style = android.graphics.Paint.Style.FILL
-            paint.color = android.graphics.Color.WHITE
+            paint.color = android.graphics.Color.parseColor("#F2E6C9")
+            paint.setShadowLayer(fontPx * 0.5f, 0f, fontPx * 0.2f, android.graphics.Color.argb(178, 0, 0, 0))
             c.nativeCanvas.drawTextOnPath(name, path, 0f, 0f, paint)
+            paint.clearShadowLayer()
         }
     }
 }
