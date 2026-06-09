@@ -234,7 +234,7 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
                 card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
                 else                   -> Color.White
             }
-            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold, fontFamily = CinzelExtraBold)
         }
         // 🔨 odznak – vygenerovaná karta (vpravo nahoře)
         if (card.isGenerated) {
@@ -556,6 +556,7 @@ private fun CardViewTextured(
             val costStyle = TextStyle(
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,
+                fontFamily = CinzelExtraBold,
                 textAlign = TextAlign.Center,
                 platformStyle = PlatformTextStyle(includeFontPadding = false),
                 lineHeightStyle = LineHeightStyle(
@@ -603,6 +604,7 @@ private fun CardViewTextured(
                 parseCardDesc(card.displayDescription),
                 color = Color(0xFFDDD0B0),
                 fontSize = 7.sp,
+                fontFamily = EbGaramond,
                 textAlign = TextAlign.Center,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
@@ -820,6 +822,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                 val costStyle = TextStyle(
                     fontSize        = 20.sp,
                     fontWeight      = FontWeight.ExtraBold,
+                    fontFamily      = CinzelExtraBold,
                     textAlign       = TextAlign.Center,
                     platformStyle   = PlatformTextStyle(includeFontPadding = false),
                     lineHeightStyle = LineHeightStyle(
@@ -863,6 +866,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                     parseCardDesc(card.displayDescription),
                     color     = Color(0xFFDDD0B0),
                     fontSize  = 16.sp,
+                    fontFamily = EbGaramond,
                     textAlign = TextAlign.Center,
                     maxLines  = 4,
                     overflow  = TextOverflow.Ellipsis,

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  ArtDefaults.kt
@@ -127,6 +128,14 @@ fun ArcCardName(
     val sign      = if (arcRadiusDp >= 0f) 1f else -1f
     val absRadius = kotlin.math.abs(arcRadiusDp)
 
+    val context = LocalContext.current
+    val typeface = remember {
+        ResourcesCompat.getFont(context, R.font.cinzel_bold)
+            ?: android.graphics.Typeface.create(
+                android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD
+            )
+    }
+
     Canvas(modifier = modifier) {
         val fontPx   = fontSizeSp.sp.toPx()
         val radiusPx = absRadius.dp.toPx()
@@ -154,12 +163,10 @@ fun ArcCardName(
 
         drawIntoCanvas { c ->
             val paint = android.graphics.Paint().apply {
-                isAntiAlias = true
-                typeface    = android.graphics.Typeface.create(
-                    android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD
-                )
-                textSize  = fontPx
-                textAlign = android.graphics.Paint.Align.CENTER
+                isAntiAlias  = true
+                this.typeface = typeface
+                textSize     = fontPx
+                textAlign    = android.graphics.Paint.Align.CENTER
             }
             // Obrys (stroke)
             paint.style       = android.graphics.Paint.Style.STROKE
