@@ -389,6 +389,55 @@
     margin-top: 10px;
   }
 
+  .font-select {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 4px 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Crimson Pro', serif;
+  }
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .color-row label {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex: 1;
+  }
+  .color-row input[type=color] {
+    width: 36px;
+    height: 24px;
+    border: 1px solid var(--border);
+    background: none;
+    cursor: pointer;
+    padding: 1px;
+  }
+  .color-row .color-hex {
+    font-size: 10px;
+    color: var(--gold);
+    font-family: monospace;
+    width: 56px;
+  }
+  .seg-btn {
+    flex: 1;
+    padding: 3px 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 10px;
+    font-family: 'Cinzel', serif;
+    transition: all .12s;
+  }
+  .seg-btn.active { background: rgba(201,150,58,.18); border-color: var(--gold-dim); color: var(--gold); }
+  .seg-group { display: flex; gap: 3px; margin-bottom: 8px; }
+
   /* ── Deck Builder View ── */
   #deck-view { display: none; height: 100%; flex-direction: column; }
   #designer-view { display: none; height: 100%; flex-direction: column; }
@@ -424,6 +473,8 @@
       🖼 Nahrát obrázky
     </button>
     <span class="card-source-info" id="sourceInfo">výchozí karty</span>
+    <span class="card-source-info loaded" id="artCacheInfo" style="display:none"></span>
+    <button class="btn-load-src" onclick="clearArtCache()" style="font-size:10px;padding:2px 7px;opacity:0.5" title="Vymazat cache obrázků">✕ art</button>
   </div>
 </header>
 
@@ -581,9 +632,109 @@
           <button class="btn-action" style="width:100%;margin-top:10px" onclick="resetCardBias()">RESETOVAT KARTU</button>
         </div>
 
+        <!-- ── FONT / TEXT TESTER ── -->
+        <div class="control-group">
+          <h3>Název karty – font &amp; text</h3>
+          <div class="slider-row">
+            <div class="slider-label"><span>Font</span></div>
+            <select class="font-select" id="name-font" onchange="updateText()">
+              <option value="'Cinzel', serif">Cinzel (výchozí)</option>
+              <option value="'Crimson Pro', serif">Crimson Pro</option>
+              <option value="'Georgia', serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Palatino Linotype', serif">Palatino</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+              <option value="'Arial', sans-serif">Arial</option>
+              <option value="monospace">Monospace</option>
+            </select>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Velikost</span><span id="v-name-size">17px</span></div>
+            <input type="range" id="name-size" min="8" max="36" step="1" value="17" oninput="updateText()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Letter spacing</span><span id="v-name-ls">1.5px</span></div>
+            <input type="range" id="name-ls" min="-2" max="8" step="0.5" value="1.5" oninput="updateText()">
+          </div>
+          <div class="color-row">
+            <label>Barva</label>
+            <input type="color" id="name-color" value="#ffffff" oninput="updateText()">
+            <span class="color-hex" id="v-name-color">#ffffff</span>
+          </div>
+          <div class="slider-row" style="margin-bottom:4px">
+            <div class="slider-label" style="margin-bottom:6px"><span>Transformace</span></div>
+            <div class="seg-group">
+              <button class="seg-btn active" id="tt-upper" onclick="setTextTransform('uppercase')">UPPER</button>
+              <button class="seg-btn" id="tt-none"  onclick="setTextTransform('none')">Normal</button>
+              <button class="seg-btn" id="tt-cap"   onclick="setTextTransform('capitalize')">Capitalize</button>
+            </div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Tučnost</span></div>
+            <div class="seg-group">
+              <button class="seg-btn" id="fw-400" onclick="setNameWeight(400)">400</button>
+              <button class="seg-btn active" id="fw-700" onclick="setNameWeight(700)">700</button>
+              <button class="seg-btn" id="fw-900" onclick="setNameWeight(900)">900</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Popis karty – font &amp; text</h3>
+          <div class="slider-row">
+            <div class="slider-label"><span>Font</span></div>
+            <select class="font-select" id="desc-font" onchange="updateText()">
+              <option value="'Crimson Pro', serif">Crimson Pro (výchozí)</option>
+              <option value="'Cinzel', serif">Cinzel</option>
+              <option value="'Georgia', serif">Georgia</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Palatino Linotype', serif">Palatino</option>
+              <option value="'Arial', sans-serif">Arial</option>
+              <option value="monospace">Monospace</option>
+            </select>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Velikost</span><span id="v-desc-size">13px</span></div>
+            <input type="range" id="desc-size" min="8" max="26" step="1" value="13" oninput="updateText()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Řádkování (line-height)</span><span id="v-desc-lh">1.2</span></div>
+            <input type="range" id="desc-lh" min="0.8" max="2.5" step="0.05" value="1.2" oninput="updateText()">
+          </div>
+          <div class="color-row">
+            <label>Barva</label>
+            <input type="color" id="desc-color" value="#ede0c4" oninput="updateText()">
+            <span class="color-hex" id="v-desc-color">#ede0c4</span>
+          </div>
+          <div class="slider-row" style="margin-bottom:4px">
+            <div class="slider-label" style="margin-bottom:6px"><span>Styl</span></div>
+            <div class="seg-group">
+              <button class="seg-btn active" id="fs-italic" onclick="setDescStyle('italic')">Italic</button>
+              <button class="seg-btn" id="fs-normal" onclick="setDescStyle('normal')">Normal</button>
+            </div>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Max šířka (%)</span><span id="v-desc-mw">80%</span></div>
+            <input type="range" id="desc-mw" min="40" max="100" step="5" value="80" oninput="updateText()">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Pozice textového bloku</h3>
+          <div class="slider-row">
+            <div class="slider-label"><span>Posun od vrchu (top px)</span><span id="v-overlay-top">245px</span></div>
+            <input type="range" id="overlay-top" min="100" max="380" step="1" value="245" oninput="updateText()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Text shadow síla</span><span id="v-shadow-str">4</span></div>
+            <input type="range" id="shadow-str" min="0" max="20" step="1" value="4" oninput="updateText()">
+          </div>
+        </div>
+
         <button class="btn-action" onclick="document.getElementById('artInput').click()">🖼 NAHRÁT OBRÁZKY (art_XXX.jpg)</button>
         <button class="btn-action" onclick="document.getElementById('frameInput').click()">🖼 NAHRÁT RÁM (card_frame.png)</button>
-        <button class="btn-action" onclick="exportBiasData()">EXPORTOVAT VŠECHNY ZMĚNY</button>
+        <button class="btn-action" onclick="exportBiasData()">EXPORTOVAT NASTAVENÍ ARTU</button>
+        <button class="btn-action" onclick="exportTextData()">EXPORTOVAT NASTAVENÍ TEXTU</button>
 
         <div id="designer-output" class="output-box" style="height:180px">—</div>
       </div>
@@ -680,8 +831,17 @@ let globalScale = 1.1;
 let globalBX = 0.0;
 let globalBY = 0.25;
 
-function init() {
+async function init() {
   restoreFromStorage();
+  try {
+    const n = await restoreArtFromDB();
+    if (n > 0) {
+      document.getElementById('artCacheInfo').textContent = `🖼 ${n} obrázků v cache`;
+      document.getElementById('artCacheInfo').style.display = 'inline';
+      updateArt();
+      renderDeck();
+    }
+  } catch(e) { /* IndexedDB nedostupné, pokračuj bez cache */ }
   renderBrowser();
   renderDeck();
 }
@@ -943,19 +1103,25 @@ function updateGlobalSliders() {
 function loadArtFiles(event) {
   const files = event.target.files;
   let loaded = 0;
+  const newEntries = [];
   for (let f of files) {
     const name = f.name.toLowerCase();
-    // Match filenames like art_vize.jpg or art_001.jpg
     const match = name.match(/(art_\w+)/);
     if (match) {
       const artKey = match[1];
       const reader = new FileReader();
       reader.onload = (e) => {
         artFiles[artKey] = e.target.result;
+        newEntries.push([artKey, e.target.result]);
         loaded++;
         if (loaded === files.length) {
-          alert('Načteno ' + loaded + ' obrázků.');
+          saveArtToDB(newEntries).catch(console.error);
+          const total = Object.keys(artFiles).length;
+          const info = document.getElementById('artCacheInfo');
+          info.textContent = `🖼 ${total} obrázků v cache`;
+          info.style.display = 'inline';
           updateArt();
+          renderDeck();
         }
       };
       reader.readAsDataURL(f);
@@ -1130,30 +1296,226 @@ function resetCardBias() {
   updateArt();
 }
 
+// ── Text / Font tester ──────────────────────────────────────────────────────
+
+let nameWeight = 700;
+let nameTextTransform = 'uppercase';
+let descFontStyle = 'italic';
+
+function updateText() {
+  const nameEl = document.getElementById('preview-name');
+  const descEl = document.getElementById('preview-desc');
+  const overlayEl = document.querySelector('.card-info-overlay');
+
+  // Name
+  const nameSize = parseInt(document.getElementById('name-size').value);
+  const nameLs   = parseFloat(document.getElementById('name-ls').value);
+  const nameColor = document.getElementById('name-color').value;
+  const nameFont  = document.getElementById('name-font').value;
+  document.getElementById('v-name-size').textContent  = nameSize + 'px';
+  document.getElementById('v-name-ls').textContent    = nameLs.toFixed(1) + 'px';
+  document.getElementById('v-name-color').textContent = nameColor;
+
+  const shadowStr = parseInt(document.getElementById('shadow-str').value);
+  document.getElementById('v-shadow-str').textContent = shadowStr;
+
+  nameEl.style.fontFamily      = nameFont;
+  nameEl.style.fontSize        = nameSize + 'px';
+  nameEl.style.letterSpacing   = nameLs + 'px';
+  nameEl.style.color           = nameColor;
+  nameEl.style.fontWeight      = nameWeight;
+  nameEl.style.textTransform   = nameTextTransform;
+  nameEl.style.textShadow      = `0 2px ${shadowStr}px rgba(0,0,0,1)`;
+
+  // Desc
+  const descSize  = parseInt(document.getElementById('desc-size').value);
+  const descLh    = parseFloat(document.getElementById('desc-lh').value);
+  const descColor = document.getElementById('desc-color').value;
+  const descFont  = document.getElementById('desc-font').value;
+  const descMw    = parseInt(document.getElementById('desc-mw').value);
+  document.getElementById('v-desc-size').textContent  = descSize + 'px';
+  document.getElementById('v-desc-lh').textContent    = descLh.toFixed(2);
+  document.getElementById('v-desc-color').textContent = descColor;
+  document.getElementById('v-desc-mw').textContent    = descMw + '%';
+
+  descEl.style.fontFamily  = descFont;
+  descEl.style.fontSize    = descSize + 'px';
+  descEl.style.lineHeight  = descLh;
+  descEl.style.color       = descColor;
+  descEl.style.fontStyle   = descFontStyle;
+  descEl.style.maxWidth    = descMw + '%';
+  descEl.style.textShadow  = `0 1px ${Math.max(1, Math.round(shadowStr * 0.75))}px rgba(0,0,0,1)`;
+
+  // Overlay position
+  const overlayTop = parseInt(document.getElementById('overlay-top').value);
+  document.getElementById('v-overlay-top').textContent = overlayTop + 'px';
+  overlayEl.style.top = overlayTop + 'px';
+}
+
+function setTextTransform(val) {
+  nameTextTransform = val;
+  document.getElementById('tt-upper').classList.toggle('active', val === 'uppercase');
+  document.getElementById('tt-none').classList.toggle('active',  val === 'none');
+  document.getElementById('tt-cap').classList.toggle('active',   val === 'capitalize');
+  updateText();
+}
+
+function setNameWeight(w) {
+  nameWeight = w;
+  document.getElementById('fw-400').classList.toggle('active', w === 400);
+  document.getElementById('fw-700').classList.toggle('active', w === 700);
+  document.getElementById('fw-900').classList.toggle('active', w === 900);
+  updateText();
+}
+
+function setDescStyle(s) {
+  descFontStyle = s;
+  document.getElementById('fs-italic').classList.toggle('active', s === 'italic');
+  document.getElementById('fs-normal').classList.toggle('active', s === 'normal');
+  updateText();
+}
+
+function exportTextData() {
+  const nameSize   = document.getElementById('name-size').value;
+  const nameLs     = parseFloat(document.getElementById('name-ls').value).toFixed(1);
+  const nameColor  = document.getElementById('name-color').value;
+  const nameFont   = document.getElementById('name-font').value;
+  const descSize   = document.getElementById('desc-size').value;
+  const descLh     = parseFloat(document.getElementById('desc-lh').value).toFixed(2);
+  const descColor  = document.getElementById('desc-color').value;
+  const descFont   = document.getElementById('desc-font').value;
+  const descMw     = document.getElementById('desc-mw').value;
+  const overlayTop = document.getElementById('overlay-top').value;
+  const shadowStr  = document.getElementById('shadow-str').value;
+
+  const hexToArgb = hex => {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `Color(0xFF${hex.slice(1).toUpperCase()})  // rgb(${r},${g},${b})`;
+  };
+
+  let output = '// ── Nastavení textu z deckbuilder.html ──\n\n';
+  output += `// Název karty\n`;
+  output += `// font:           ${nameFont}\n`;
+  output += `// fontSize:       ${nameSize}.sp\n`;
+  output += `// fontWeight:     FontWeight(${nameWeight})\n`;
+  output += `// letterSpacing:  ${nameLs}.sp\n`;
+  output += `// textTransform:  ${nameTextTransform}\n`;
+  output += `// color:          ${hexToArgb(nameColor)}\n`;
+  output += `// textShadow:     0 2 ${shadowStr}dp\n\n`;
+  output += `// Popis karty\n`;
+  output += `// font:           ${descFont}\n`;
+  output += `// fontSize:       ${descSize}.sp\n`;
+  output += `// fontStyle:      ${descFontStyle}\n`;
+  output += `// lineHeight:     ${descLh}\n`;
+  output += `// color:          ${hexToArgb(descColor)}\n`;
+  output += `// maxWidth:       ${descMw}% of card width\n\n`;
+  output += `// Textový blok\n`;
+  output += `// overlayTop:     ${overlayTop}px (na 300×420 náhledu = ${(overlayTop/420*100).toFixed(1)}% výšky)\n`;
+
+  document.getElementById('designer-output').textContent = output;
+
+  const ta = document.createElement('textarea');
+  ta.value = output;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); alert('Nastavení textu zkopírováno do schránky.'); }
+  catch(e) { alert('Viz výstupní pole níže.'); }
+  document.body.removeChild(ta);
+}
+
+// Hex barvy resource typů (kopie z CSS :root proměnných)
+const TYPE_HEX = { ATTACK:'#c0392b', STONES:'#5d8a3c', MAGIC:'#6a4fa8', CHAOS:'#c06030' };
+
+function hexRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function renderDeck() {
   const list = document.getElementById('deck-list');
   const entries = Object.entries(DECK).filter(e => e[1] > 0);
   let total = 0;
-  const rarityColor = { COMMON: 'var(--common)', RARE: 'var(--rare)', EPIC: 'var(--epic)', LEGENDARY: 'var(--legendary)' };
+
+  // Seřadit jako v DeckBuilderScreen: cost → typ → název
+  const typeOrder = { ATTACK:0, STONES:1, MAGIC:2, CHAOS:3 };
+  entries.sort(([aId],[bId]) => {
+    const a = CARD_MAP[aId], b = CARD_MAP[bId];
+    if (!a||!b) return 0;
+    return (a.cost - b.cost)
+      || ((typeOrder[a.type]??9) - (typeOrder[b.type]??9))
+      || a.name.localeCompare(b.name, 'cs');
+  });
+
+  list.style.padding = '6px 6px 0';
+
   list.innerHTML = entries.map(([id, count]) => {
-    const c = CARD_MAP[id];
+    const c   = CARD_MAP[id];
     total += count;
     const cap = maxCopies(c?.rarity || 'COMMON');
-    const col = rarityColor[c?.rarity] || 'var(--common)';
-    const atMax = count >= cap;
+    const hex = TYPE_HEX[c?.type] || '#8a7a60';
+
+    const costLabel = c?.isXCost ? 'X' : (c?.cost ?? '?');
+    const badgeBg   = hexRgba(hex, 0.88);
+    const border    = hexRgba(hex, 0.50);
+
+    // Art peek – použij načtené artFiles pokud jsou dostupné
+    const artKey = (c && c.artRes) ? c.artRes : ('art_' + id);
+    const artUrl  = artFiles[artKey];
+    let artHtml   = '';
+    if (artUrl) {
+      const adj  = cardAdjustments[id] || {scale:1.0, bx:0.0, by:0.0};
+      const s    = Math.abs(globalScale * adj.scale);
+      const posX = ((globalBX + adj.bx) + 1) * 50;
+      const posY = ((globalBY + adj.by) + 1) * 50;
+      artHtml = `
+        <div style="position:absolute;right:0;top:0;width:72px;height:100%;overflow:hidden;pointer-events:none">
+          <img src="${artUrl}" style="position:absolute;inset:0;width:100%;height:100%;
+            object-fit:cover;object-position:${posX}% ${posY}%;
+            transform:scale(${s});transform-origin:${posX}% ${posY}%;">
+          <div style="position:absolute;inset:0;background:linear-gradient(to right,#18121E 0%,transparent 100%)"></div>
+        </div>`;
+    }
+
     return `
-      <div style="display:flex;align-items:center;margin-bottom:4px;font-size:13px">
-        <div style="width:4px;height:28px;background:${col};margin-right:6px;flex-shrink:0;border-radius:1px"></div>
-        <div style="width:20px;color:var(--gold)">${c ? c.cost : '?'}</div>
-        <div style="flex:1">${c ? c.name : id}</div>
-        <button onclick="changeDeckCount('${id}', -1)" style="padding:0 5px">-</button>
-        <div style="width:30px;text-align:center;color:${atMax ? col : 'var(--text)'}">${count}/${cap}</div>
-        <button onclick="changeDeckCount('${id}', 1)" style="padding:0 5px" ${atMax ? 'disabled' : ''}>+</button>
-      </div>
-    `;
+      <div style="position:relative;height:28px;margin-bottom:3px;border-radius:4px;
+                  background:#18121E;border:1px solid ${border};overflow:hidden;cursor:pointer"
+           onclick="changeDeckCount('${id}',-1)"
+           oncontextmenu="event.preventDefault();changeDeckCount('${id}',1)">
+        ${artHtml}
+        <!-- cost badge + název -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 4px;gap:5px">
+          <div style="flex-shrink:0;width:20px;height:20px;border-radius:5px;
+                      background:${badgeBg};border:1px solid rgba(255,255,255,0.25);
+                      display:flex;align-items:center;justify-content:center;
+                      color:#fff;font-size:9px;font-weight:800;font-family:'Cinzel',serif;
+                      line-height:1">
+            ${costLabel}
+          </div>
+          <div style="flex:1;min-width:0;color:#fff;font-size:9px;font-weight:600;
+                      font-family:'Cinzel',serif;line-height:1;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${c ? c.name : id}
+          </div>
+        </div>
+        <!-- count badge -->
+        <div style="position:absolute;right:3px;top:50%;transform:translateY(-50%);
+                    width:16px;height:16px;border-radius:3px;
+                    background:#0D0A0E;border:1px solid rgba(201,150,58,0.70);
+                    display:flex;align-items:center;justify-content:center;
+                    color:var(--gold);font-size:8px;font-weight:800;font-family:monospace;
+                    pointer-events:none">
+          ${count}
+        </div>
+      </div>`;
   }).join('');
+
   document.getElementById('deck-count').textContent = total;
   renderManaCurve();
+  saveToStorage();
 }
 
 function renderManaCurve() {
@@ -2739,6 +3101,7 @@ function saveToStorage() {
   localStorage.setItem('termiti_effects_db', JSON.stringify(CARD_EFFECTS_DB));
   localStorage.setItem('termiti_adjustments', JSON.stringify(cardAdjustments));
   localStorage.setItem('termiti_globals', JSON.stringify({s: globalScale, x: globalBX, y: globalBY}));
+  localStorage.setItem('termiti_deck', JSON.stringify(DECK));
 }
 
 function restoreFromStorage() {
@@ -2746,6 +3109,9 @@ function restoreFromStorage() {
   if (c) {
     CARDS = JSON.parse(c);
     CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
+    const info = document.getElementById('sourceInfo');
+    info.textContent = `cache (${CARDS.length} karet)`;
+    info.classList.add('loaded');
   }
   const e = localStorage.getItem('termiti_effects_db');
   if (e) CARD_EFFECTS_DB = Object.assign(CARD_EFFECTS_DB, JSON.parse(e));
@@ -2759,6 +3125,65 @@ function restoreFromStorage() {
     globalBY = parsedG.y;
     updateGlobalSliders();
   }
+  const d = localStorage.getItem('termiti_deck');
+  if (d) DECK = JSON.parse(d);
+}
+
+// ── IndexedDB – perzistence obrázků ────────────────────────────────────────
+
+let _artDB = null;
+
+function openArtDB() {
+  if (_artDB) return Promise.resolve(_artDB);
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('termiti_art_v1', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('art');
+    req.onsuccess  = e => { _artDB = e.target.result; resolve(_artDB); };
+    req.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function saveArtToDB(newEntries) {
+  const db = await openArtDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('art', 'readwrite');
+    const store = tx.objectStore('art');
+    newEntries.forEach(([k, v]) => store.put(v, k));
+    tx.oncomplete = resolve;
+    tx.onerror    = reject;
+  });
+}
+
+async function restoreArtFromDB() {
+  const db = await openArtDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('art', 'readonly');
+    const store = tx.objectStore('art');
+    const keysReq = store.getAllKeys();
+    const valsReq = store.getAll();
+    let keys, vals;
+    function done() {
+      keys.forEach((k, i) => { artFiles[k] = vals[i]; });
+      resolve(keys.length);
+    }
+    keysReq.onsuccess = e => { keys = e.target.result; if (vals) done(); };
+    valsReq.onsuccess = e => { vals = e.target.result; if (keys) done(); };
+    tx.onerror = reject;
+  });
+}
+
+async function clearArtCache() {
+  const db = await openArtDB();
+  await new Promise((res, rej) => {
+    const tx = db.transaction('art', 'readwrite');
+    tx.objectStore('art').clear();
+    tx.oncomplete = res; tx.onerror = rej;
+  });
+  artFiles = {};
+  document.getElementById('artCacheInfo').style.display = 'none';
+  updateArt();
+  renderDeck();
+  alert('Art cache vymazána.');
 }
 </script>
 </body>
