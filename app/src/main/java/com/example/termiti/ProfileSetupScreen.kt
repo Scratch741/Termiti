@@ -104,7 +104,7 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
                 modifier           = Modifier
                     .width(220.dp)
                     .wrapContentHeight(),
-                contentScale       = ContentScale.FitWidth
+                contentScale       = ContentScale.FillWidth
             )
 
             Text(
