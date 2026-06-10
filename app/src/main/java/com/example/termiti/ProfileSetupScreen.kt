@@ -98,18 +98,15 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("⚔️", fontSize = 42.sp)
-
-            Text(
-                "Vítej v Termiti!",
-                color      = PsGold,
-                fontSize   = 22.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp,
-                style = TextStyle(
-                    shadow = Shadow(Color.Black, Offset(0f, 3f), blurRadius = 10f)
-                )
+            Image(
+                painter            = painterResource(R.drawable.logo_darkmage),
+                contentDescription = "DarkMage",
+                modifier           = Modifier
+                    .width(220.dp)
+                    .wrapContentHeight(),
+                contentScale       = ContentScale.FitWidth
             )
+
             Text(
                 "Zadej své jméno hrdiny",
                 color    = PsTextPrimary.copy(alpha = 0.85f),
@@ -203,7 +200,7 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "VSTOUPIT DO BITVY",
+                    "VSTOUPIT DO HRY",
                     color      = if (canConfirm) PsTextPrimary else PsTextMuted.copy(alpha = 0.40f),
                     fontSize   = 13.sp,
                     fontWeight = FontWeight.Bold,
