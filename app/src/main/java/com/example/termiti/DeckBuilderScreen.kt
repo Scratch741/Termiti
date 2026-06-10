@@ -31,6 +31,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -1477,32 +1479,95 @@ private fun DeckPanel(
 @Composable
 private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     val costColor = resColor(card.costType)
-    Row(
-        Modifier.fillMaxWidth()
+    val artResId  = card.effectiveArtResId()
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(28.dp)
             .clip(RoundedCornerShape(4.dp))
-            .background(costColor.copy(alpha = 0.05f))
-            .padding(horizontal = 6.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
+            .background(Color(0xFF18121E))
+            .border(1.dp, costColor.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .clickable { onRemove() }
     ) {
-        EffectIconView(card, size = 13.dp, fontSizeSp = 10f)
-        Text(
-            card.displayName, color = TextPrimary,
-            fontSize = 9.sp, fontWeight = FontWeight.Bold,
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-        Text("×$count", color = costColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        // Remove one
+        // ── Art peek: pravá strana, fade doleva ───────────────────────────────
         Box(
-            Modifier.size(18.dp)
+            Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .width(72.dp)
+                .clipToBounds()
+        ) {
+            Image(
+                painter      = painterResource(artResId),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier     = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val s = ArtDefaults.SCALE * card.artScale
+                        scaleX = s; scaleY = s
+                        transformOrigin = TransformOrigin(
+                            ((ArtDefaults.BIAS_X + card.artBiasX + 1f) / 2f).coerceIn(0f, 1f),
+                            ((ArtDefaults.BIAS_Y + card.artBiasY + 1f) / 2f).coerceIn(0f, 1f)
+                        )
+                    }
+            )
+            // Gradient: art mizí doleva
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF18121E), Color.Transparent)))
+            )
+        }
+
+        // ── Cost badge + název ────────────────────────────────────────────────
+        Row(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp),
+            verticalAlignment    = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Box(
+                Modifier
+                    .size(20.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(costColor.copy(alpha = 0.88f))
+                    .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(5.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    if (card.isXCost) "X" else "${card.effectiveCost}",
+                    color      = Color.White,
+                    fontSize   = 9.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign  = TextAlign.Center
+                )
+            }
+            Text(
+                card.displayName,
+                color    = Color.White,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // ── Count badge vpravo, nebo tlačítko odebrat ─────────────────────────
+        Box(
+            Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 3.dp)
+                .size(16.dp)
                 .clip(RoundedCornerShape(3.dp))
-                .background(AttackRed.copy(alpha = 0.1f))
-                .border(1.dp, AttackRed.copy(alpha = 0.3f), RoundedCornerShape(3.dp))
-                .clickable { onRemove() },
+                .background(Color(0xFF0D0A0E))
+                .border(1.dp, Gold.copy(alpha = 0.7f), RoundedCornerShape(3.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text("−", color = AttackRed.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("$count", color = Gold, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
