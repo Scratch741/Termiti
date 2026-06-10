@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -55,7 +56,7 @@ private fun cardFrameName(costType: ResourceType) = when (costType) {
 }
 
 private fun resColor(type: ResourceType) = when (type) {
-    ResourceType.MAGIC  -> MagicPurple
+    ResourceType.MAGIC  -> MagicBlue
     ResourceType.ATTACK -> AttackRed
     ResourceType.STONES -> StoneColor
     ResourceType.CHAOS  -> ChaosOrange
@@ -152,11 +153,10 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     filterRes      = filterRes,
                     filterCat      = filterCat,
                     filterUnlocked = filterUnlocked,
-                    searchQuery    = searchQuery,
                     onResFilter    = { filterRes = if (filterRes == it) null else it },
                     onCatFilter    = { filterCat = if (filterCat == it) null else it },
                     onUnlocked     = { filterUnlocked = !filterUnlocked },
-                    onSearchChange = { searchQuery = it }
+                    onBack         = onBack
                 )
                 HorizontalDivider(color = Gold.copy(alpha = 0.1f))
                 LazyVerticalGrid(
@@ -207,10 +207,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 }
                 // ── Spodní lišta: počet + filtr dle mana costu ───────────────
                 ManaCostFilterBar(
-                    showing      = filteredCards.size,
-                    total        = viewModel.allCards.count { !it.isPlaceholder && it.effects.none { e -> e is CardEffect.TrapOnDraw } },
-                    filterCost   = filterCost,
-                    onCostFilter = { filterCost = if (filterCost == it) null else it }
+                    showing        = filteredCards.size,
+                    total          = viewModel.allCards.count { !it.isPlaceholder && it.effects.none { e -> e is CardEffect.TrapOnDraw } },
+                    filterCost     = filterCost,
+                    onCostFilter   = { filterCost = if (filterCost == it) null else it },
+                    searchQuery    = searchQuery,
+                    onSearchChange = { searchQuery = it }
                 )
             }
 
@@ -222,11 +224,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     decks         = decks,
                     activeDeckIdx = activeDeckIdx,
                     editingIdx    = editingIdx,
+                    editingDeck   = editingDeck,
                     onSelectDeck  = { idx ->
                         editingIdx = idx
                         if (decks[idx].isValid) viewModel.setActiveDeck(idx)
                     },
-                    onBack        = onBack
+                    onRename      = { viewModel.renameDeck(editingIdx, it) }
                 )
                 HorizontalDivider(color = Gold.copy(alpha = 0.2f))
                 DeckPanel(
@@ -237,7 +240,6 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     onLoadPreset    = { viewModel.loadPreset(editingIdx, it) },
                     onClear         = { viewModel.clearDeck(editingIdx) },
                     onSetActive     = { viewModel.setActiveDeck(editingIdx) },
-                    onRename        = { viewModel.renameDeck(editingIdx, it) },
                     onRemove        = { cardId ->
                         val c = editingDeck.cardCounts[cardId] ?: 0
                         if (c > 0) viewModel.setCardCount(editingIdx, cardId, c - 1)
@@ -298,48 +300,102 @@ private fun TopBar(
     decks: List<Deck>,
     activeDeckIdx: Int,
     editingIdx: Int,
+    editingDeck: Deck,
     onSelectDeck: (Int) -> Unit,
-    onBack: () -> Unit
+    onRename: (String) -> Unit
 ) {
-    Column(
+    var isEditingName  by remember(editingDeck.id) { mutableStateOf(false) }
+    var nameInput      by remember(editingDeck.name) { mutableStateOf(editingDeck.name) }
+    val focusRequester = remember { FocusRequester() }
+
+    val validColor = when {
+        editingDeck.isValid         -> HpGreen
+        editingDeck.totalCards > 30 -> AttackRed
+        else                        -> Gold.copy(alpha = 0.7f)
+    }
+
+    Row(
         Modifier.fillMaxWidth().background(BgPanel)
             .padding(horizontal = 10.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Row 1: back + title
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                Modifier.clip(RoundedCornerShape(6.dp))
-                    .background(Color.White.copy(alpha = 0.07f))
-                    .clickable { onBack() }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(LocalStrings.current.back, color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            }
-            Text(
-                LocalStrings.current.deckBuilder, color = Gold,
-                fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp
+        // Slot chipy
+        decks.forEachIndexed { index, deck ->
+            DeckSlotChip(
+                deck      = deck,
+                isActive  = index == activeDeckIdx,
+                isEditing = index == editingIdx,
+                index     = index,
+                onClick   = { onSelectDeck(index) }
             )
         }
-        // Row 2: deck slots
-        Row(
-            Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Sloty:", color = TextMuted, fontSize = 8.sp)
-            decks.forEachIndexed { index, deck ->
-                DeckSlotChip(
-                    deck      = deck,
-                    isActive  = index == activeDeckIdx,
-                    isEditing = index == editingIdx,
-                    onClick   = { onSelectDeck(index) }
-                )
+
+        // Název decku (editovatelný)
+        if (isEditingName) {
+            BasicTextField(
+                value           = nameInput,
+                onValueChange   = { if (it.length <= 20) nameInput = it },
+                singleLine      = true,
+                textStyle       = TextStyle(
+                    color      = TextPrimary,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    onRename(nameInput); isEditingName = false
+                }),
+                modifier = Modifier
+                    .width(120.dp)
+                    .focusRequester(focusRequester)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.07f))
+                    .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 6.dp, vertical = 3.dp)
+            )
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Gold.copy(alpha = 0.15f))
+                    .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                    .clickable { onRename(nameInput); isEditingName = false }
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            ) {
+                Text("✓", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Text(
+                localizedDeckName(editingDeck.name),
+                color      = TextPrimary,
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+                modifier   = Modifier.widthIn(max = 130.dp)
+            )
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.04f))
+                    .border(1.dp, TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .clickable { nameInput = editingDeck.name; isEditingName = true }
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text("✎", color = TextMuted, fontSize = 9.sp)
             }
         }
+
+        Spacer(Modifier.weight(1f))
+
+        // Počet karet
+        Text(
+            "${editingDeck.totalCards} / 30",
+            color      = validColor,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -348,45 +404,38 @@ private fun DeckSlotChip(
     deck: Deck,
     isActive: Boolean,
     isEditing: Boolean,
+    index: Int,
     onClick: () -> Unit
 ) {
     val borderColor = when {
-        isActive && isEditing -> Gold
-        isActive              -> TealLight
-        isEditing             -> TextPrimary.copy(alpha = 0.35f)
-        else                  -> TextMuted.copy(alpha = 0.2f)
+        isEditing && isActive -> Gold
+        isEditing             -> TextPrimary.copy(alpha = 0.55f)
+        isActive              -> TealLight.copy(alpha = 0.60f)
+        else                  -> TextMuted.copy(alpha = 0.20f)
     }
-    val bg = if (isEditing) Color.White.copy(alpha = 0.07f) else Color.White.copy(alpha = 0.02f)
+    val bg = if (isEditing) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.02f)
+    val textColor = when {
+        isEditing && isActive -> Gold
+        isEditing             -> TextPrimary
+        isActive              -> TealLight
+        else                  -> TextMuted.copy(alpha = 0.50f)
+    }
 
-    Row(
-        Modifier.clip(RoundedCornerShape(8.dp))
+    Box(
+        Modifier
+            .size(30.dp)
+            .clip(RoundedCornerShape(7.dp))
             .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .border(1.dp, borderColor, RoundedCornerShape(7.dp))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(
-                localizedDeckName(deck.name),
-                color = if (isEditing) TextPrimary else TextMuted,
-                fontSize = 10.sp, fontWeight = FontWeight.Bold
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "${deck.totalCards}/30",
-                    color = if (deck.isValid) HpGreen else TextMuted.copy(alpha = 0.6f),
-                    fontSize = 8.sp
-                )
-                if (isActive) {
-                    Text(LocalStrings.current.dbActiveShort, color = TealLight, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
+        Text(
+            "${index + 1}",
+            color      = textColor,
+            fontSize   = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -396,17 +445,16 @@ private fun FilterBar(
     filterRes: ResourceType?,
     filterCat: String?,
     filterUnlocked: Boolean,
-    searchQuery: String,
     onResFilter: (ResourceType) -> Unit,
     onCatFilter: (String) -> Unit,
     onUnlocked: () -> Unit,
-    onSearchChange: (String) -> Unit
+    onBack: () -> Unit
 ) {
     Column(
         Modifier.fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.6f))
     ) {
-        // ── Řádek 1: zdroj + hledání ─────────────────────────────────────────
+        // ── Řádek 1: zdroj + zpět ────────────────────────────────────────────
         Row(
             Modifier.fillMaxWidth()
                 .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 2.dp),
@@ -414,47 +462,18 @@ private fun FilterBar(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
-            FilterChip(R.drawable.magie_icon,  LocalStrings.current.resMagic,  filterRes == ResourceType.MAGIC,  MagicPurple) { onResFilter(ResourceType.MAGIC)  }
+            FilterChip(R.drawable.magie_icon,  LocalStrings.current.resMagic,  filterRes == ResourceType.MAGIC,  MagicBlue)   { onResFilter(ResourceType.MAGIC)  }
             FilterChip(R.drawable.utok_icon,   LocalStrings.current.resAttack, filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
             FilterChip(R.drawable.kamen_icon2, LocalStrings.current.resStone,  filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
             FilterChip(R.drawable.chaos_icon,  LocalStrings.current.resChaos,  filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
             Spacer(Modifier.weight(1f))
-            BasicTextField(
-                value         = searchQuery,
-                onValueChange = onSearchChange,
-                singleLine    = true,
-                textStyle     = TextStyle(color = TextPrimary, fontSize = 10.sp),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                modifier      = Modifier
-                    .width(150.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(Color.White.copy(alpha = 0.06f))
-                    .border(
-                        1.dp,
-                        if (searchQuery.isNotBlank()) Gold.copy(alpha = 0.5f)
-                        else Color.White.copy(alpha = 0.10f),
-                        RoundedCornerShape(5.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                decorationBox = { inner ->
-                    Box {
-                        if (searchQuery.isBlank()) {
-                            Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
-                        }
-                        inner()
-                    }
-                }
-            )
-            if (searchQuery.isNotBlank()) {
-                Box(
-                    Modifier.size(20.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color.White.copy(alpha = 0.07f))
-                        .clickable { onSearchChange("") },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("×", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
+            Box(
+                Modifier.clip(RoundedCornerShape(6.dp))
+                    .background(Color.White.copy(alpha = 0.07f))
+                    .clickable { onBack() }
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(LocalStrings.current.back, color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
         }
         // ── Řádek 2: efekt + kombo + odemčené ────────────────────────────────
@@ -484,51 +503,88 @@ private fun ManaCostFilterBar(
     showing: Int,
     total: Int,
     filterCost: Int?,
-    onCostFilter: (Int) -> Unit
+    onCostFilter: (Int) -> Unit,
+    searchQuery: String,
+    onSearchChange: (String) -> Unit
 ) {
-    Box(
+    Row(
         Modifier
             .fillMaxWidth()
             .background(BgPanel.copy(alpha = 0.8f))
-            .padding(horizontal = 8.dp, vertical = 5.dp)
+            .padding(horizontal = 8.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Počet karet – zarovnán vlevo
+        // Počet karet
         Text(
             "$showing/$total",
             color = TextMuted,
             fontSize = 8.sp,
-            letterSpacing = 0.3.sp,
-            modifier = Modifier.align(Alignment.CenterStart)
+            letterSpacing = 0.3.sp
         )
-        // Chipy – vycentrované
-        Row(
-            Modifier.align(Alignment.Center),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(3.dp)
-        ) {
-            (0..7).forEach { cost ->
-                val label  = if (cost == 7) "7+" else "$cost"
-                val active = filterCost == cost
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(if (active) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
-                        .border(
-                            1.dp,
-                            if (active) Gold.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .clickable { onCostFilter(cost) }
-                        .padding(horizontal = 13.dp, vertical = 3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        label,
-                        color      = if (active) Gold else TextMuted,
-                        fontSize   = 8.sp,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+        // Chipy ceny
+        (0..7).forEach { cost ->
+            val label  = if (cost == 7) "7+" else "$cost"
+            val active = filterCost == cost
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(if (active) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
+                    .border(
+                        1.dp,
+                        if (active) Gold.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
+                        RoundedCornerShape(4.dp)
                     )
+                    .clickable { onCostFilter(cost) }
+                    .width(30.dp)
+                    .padding(vertical = 3.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    label,
+                    color      = if (active) Gold else TextMuted,
+                    fontSize   = 8.sp,
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        // Hledání
+        BasicTextField(
+            value           = searchQuery,
+            onValueChange   = onSearchChange,
+            singleLine      = true,
+            textStyle       = TextStyle(color = TextPrimary, fontSize = 10.sp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            modifier        = Modifier
+                .width(130.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+                .border(
+                    1.dp,
+                    if (searchQuery.isNotBlank()) Gold.copy(alpha = 0.5f)
+                    else Color.White.copy(alpha = 0.10f),
+                    RoundedCornerShape(5.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            decorationBox   = { inner ->
+                Box {
+                    if (searchQuery.isBlank()) {
+                        Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
+                    }
+                    inner()
                 }
+            }
+        )
+        if (searchQuery.isNotBlank()) {
+            Box(
+                Modifier.size(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.07f))
+                    .clickable { onSearchChange("") },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("×", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -1250,26 +1306,16 @@ private fun DeckPanel(
     onLoadPreset: (Int) -> Unit,
     onClear: () -> Unit,
     onSetActive: () -> Unit,
-    onRename: (String) -> Unit,
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val s          = LocalStrings.current
-    val validColor = when {
-        deck.isValid         -> HpGreen
-        deck.totalCards > 30 -> AttackRed
-        else                 -> Gold.copy(alpha = 0.7f)
-    }
+    val s = LocalStrings.current
 
     val deckCards = remember(deck.cardCounts) {
         allCards
             .filter { (deck.cardCounts[it.id] ?: 0) > 0 }
             .sortedWith(compareBy({ it.costType.ordinal }, { it.cost }, { it.displayName }))
     }
-
-    var isEditingName by remember(deck.id) { mutableStateOf(false) }
-    var nameInput     by remember(deck.name) { mutableStateOf(deck.name) }
-    val focusRequester = remember { FocusRequester() }
 
     // Group by resource type (calculate outside LazyColumn scope)
     val groups = remember(deckCards) { deckCards.groupBy { it.costType } }
@@ -1280,90 +1326,30 @@ private fun DeckPanel(
         ).padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        // Header
+        // Složení + Mana křivka
         Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            Modifier.fillMaxWidth().padding(top = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (isEditingName) {
-                BasicTextField(
-                    value         = nameInput,
-                    onValueChange = { if (it.length <= 20) nameInput = it },
-                    singleLine    = true,
-                    textStyle     = androidx.compose.ui.text.TextStyle(
-                        color      = TextPrimary,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = {
-                        onRename(nameInput)
-                        isEditingName = false
-                    }),
-                    modifier = Modifier
-                        .weight(1f)
-                        .focusRequester(focusRequester)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color.White.copy(alpha = 0.07f))
-                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 6.dp, vertical = 3.dp)
-                )
-                LaunchedEffect(Unit) { focusRequester.requestFocus() }
-                Spacer(Modifier.width(6.dp))
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Gold.copy(alpha = 0.15f))
-                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .clickable { onRename(nameInput); isEditingName = false }
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text("✓", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
-            } else {
-                Row(
-                    Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(localizedDeckName(deck.name), color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Box(
-                        Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color.White.copy(alpha = 0.04f))
-                            .border(1.dp, TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                            .clickable { nameInput = deck.name; isEditingName = true }
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text("✎", color = TextMuted, fontSize = 9.sp)
-                    }
-                }
-            }
-            Text(
-                "${deck.totalCards} / 30",
-                color = validColor, fontSize = 13.sp, fontWeight = FontWeight.Bold
-            )
+            DeckStats(deck, deckCards, Modifier.weight(1f))
+            ManaCurveChart(deck, deckCards, Modifier.weight(1f))
         }
 
         // Šablony
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(LocalStrings.current.dbTemplates, color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                presetTemplates.forEachIndexed { i, (name, _) ->
-                    Box(
-                        Modifier
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(Gold.copy(alpha = 0.07f))
-                            .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
-                            .clickable { onLoadPreset(i) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(name, color = Gold.copy(alpha = 0.85f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    }
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            presetTemplates.forEachIndexed { i, (name, _) ->
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(Gold.copy(alpha = 0.07f))
+                        .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
+                        .clickable { onLoadPreset(i) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(name, color = Gold.copy(alpha = 0.85f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1384,13 +1370,14 @@ private fun DeckPanel(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(12.dp))
+                        val groupCount = cards.sumOf { deck.cardCounts[it.id] ?: 0 }
                         Text(
-                            when (type) {
+                            "${when (type) {
                                 ResourceType.MAGIC  -> LocalStrings.current.resMagic
                                 ResourceType.ATTACK -> LocalStrings.current.resAttack
                                 ResourceType.STONES -> LocalStrings.current.resStone
                                 ResourceType.CHAOS  -> LocalStrings.current.resChaos
-                            },
+                            }.uppercase()} ($groupCount)",
                             color = resColor(type).copy(alpha = 0.7f),
                             fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                         )
@@ -1398,8 +1385,6 @@ private fun DeckPanel(
                             Modifier.weight(1f).height(1.dp)
                                 .background(resColor(type).copy(alpha = 0.15f))
                         )
-                        val groupCount = cards.sumOf { deck.cardCounts[it.id] ?: 0 }
-                        Text("$groupCount", color = resColor(type).copy(alpha = 0.5f), fontSize = 8.sp)
                     }
                 }
                 items(cards, key = { it.id }) { card ->
@@ -1409,14 +1394,6 @@ private fun DeckPanel(
                         onRemove = { onRemove(card.id) }
                     )
                 }
-            }
-
-            // Stats footer
-            item(key = "stats_divider") {
-                HorizontalDivider(color = Gold.copy(alpha = 0.1f), modifier = Modifier.padding(top = 4.dp))
-            }
-            item(key = "stats") {
-                DeckStats(deck, deckCards)
             }
 
             // Action buttons footer
@@ -1490,10 +1467,11 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             .border(1.dp, costColor.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
             .clickable { onRemove() }
     ) {
-        // ── Art peek: pravá strana, fade doleva ───────────────────────────────
+        // ── Art peek: uprostřed vpravo, fade doleva ──────────────────────────
         Box(
             Modifier
                 .align(Alignment.CenterEnd)
+                .padding(end = 32.dp)
                 .fillMaxHeight()
                 .width(72.dp)
                 .clipToBounds()
@@ -1532,9 +1510,9 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             Box(
                 Modifier
                     .size(20.dp)
-                    .clip(RoundedCornerShape(5.dp))
+                    .clip(CircleShape)
                     .background(costColor.copy(alpha = 0.88f))
-                    .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(5.dp)),
+                    .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -1542,7 +1520,14 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
                     color      = Color.White,
                     fontSize   = 9.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    textAlign  = TextAlign.Center
+                    textAlign  = TextAlign.Center,
+                    style = TextStyle(
+                        platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim      = LineHeightStyle.Trim.Both
+                        )
+                    )
                 )
             }
             Text(
@@ -1556,50 +1541,144 @@ private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             )
         }
 
-        // ── Count badge vpravo, nebo tlačítko odebrat ─────────────────────────
+        // ── Count badge vpravo ────────────────────────────────────────────────
         Box(
             Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 3.dp)
-                .size(16.dp)
+                .height(16.dp)
+                .widthIn(min = 26.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(Color(0xFF0D0A0E))
-                .border(1.dp, Gold.copy(alpha = 0.7f), RoundedCornerShape(3.dp)),
+                .border(1.dp, Gold.copy(alpha = 0.7f), RoundedCornerShape(3.dp))
+                .padding(horizontal = 3.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("$count", color = Gold, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                "x$count",
+                color      = Gold,
+                fontSize   = 8.sp,
+                fontWeight = FontWeight.ExtraBold,
+                style = TextStyle(
+                    platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim      = LineHeightStyle.Trim.Both
+                    )
+                )
+            )
         }
     }
 }
 
 @Composable
-private fun DeckStats(deck: Deck, deckCards: List<Card>) {
+private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier = Modifier) {
+    // Bucket cards by cost: 0,1,2,3,4,5,6,7+
+    val buckets = (0..7).map { bucket ->
+        deckCards.filter { card ->
+            if (bucket < 7) card.effectiveCost == bucket else card.effectiveCost >= 7
+        }.sumOf { deck.cardCounts[it.id] ?: 0 }
+    }
+    val maxCount = buckets.maxOrNull()?.coerceAtLeast(1) ?: 1
+
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text("Mana křivka", color = TextMuted, fontSize = 7.sp, letterSpacing = 0.8.sp)
+        // Bars
+        Row(
+            Modifier.fillMaxWidth().height(22.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            buckets.forEach { count ->
+                val fillFraction = if (maxCount > 0) count.toFloat() / maxCount.toFloat() else 0f
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .fillMaxHeight(fillFraction.coerceAtLeast(if (count > 0) 0.04f else 0f))
+                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Gold.copy(alpha = 0.90f),
+                                        Gold.copy(alpha = 0.45f)
+                                    )
+                                )
+                            )
+                    )
+                }
+            }
+        }
+        // X-axis labels
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            (0..7).forEach { i ->
+                Text(
+                    if (i < 7) "$i" else "7+",
+                    modifier  = Modifier.weight(1f),
+                    color     = TextMuted.copy(alpha = 0.45f),
+                    fontSize  = 6.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeckStats(deck: Deck, deckCards: List<Card>, modifier: Modifier = Modifier) {
     val byType = ResourceType.entries.associateWith { type ->
         deckCards.filter { it.costType == type }.sumOf { deck.cardCounts[it.id] ?: 0 }
     }
     val total = deck.totalCards.coerceAtLeast(1).toFloat()
 
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(LocalStrings.current.dbComposition, color = TextMuted, fontSize = 8.sp, letterSpacing = 1.sp)
-        ResourceType.entries.forEach { type ->
-            val count = byType[type] ?: 0
+    // 2×2 grid: pair resource types side by side
+    val pairs = ResourceType.entries.chunked(2)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        pairs.forEach { row ->
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(14.dp))
-                Box(
-                    Modifier.weight(1f).height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White.copy(alpha = 0.05f))
-                ) {
-                    Box(
-                        Modifier.fillMaxWidth(count / total).fillMaxHeight()
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(resColor(type).copy(alpha = 0.65f))
-                    )
+                row.forEach { type ->
+                    val count = byType[type] ?: 0
+                    Row(
+                        Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Image(
+                            painterResource(resourceIconRes(type)),
+                            contentDescription = null,
+                            modifier = Modifier.size(10.dp)
+                        )
+                        Box(
+                            Modifier.weight(1f).height(3.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Color.White.copy(alpha = 0.06f))
+                        ) {
+                            Box(
+                                Modifier.fillMaxWidth(count / total).fillMaxHeight()
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(resColor(type).copy(alpha = 0.70f))
+                            )
+                        }
+                        Text(
+                            "$count",
+                            color    = resColor(type),
+                            fontSize = 7.sp,
+                            modifier = Modifier.width(12.dp),
+                            textAlign = TextAlign.End
+                        )
+                    }
                 }
-                Text("$count", color = resColor(type), fontSize = 8.sp, modifier = Modifier.width(16.dp), textAlign = TextAlign.End)
             }
         }
     }

@@ -74,6 +74,8 @@ fun GameScreen(
     val lastCard         by viewModel.lastCard
     val lastCardAction   by viewModel.lastCardAction
     val lastCardIsPlayer by viewModel.lastCardIsPlayer
+    val revealedAiCard    by viewModel.revealedAiCard
+    val revealedAiCardIdx by viewModel.revealedAiCardIdx
     val lostToOpponent   by viewModel.lostToOpponent
     val isMulligan           by viewModel.isMulligan
     val mulliganSelected     by viewModel.mulliganSelected
@@ -182,6 +184,8 @@ fun GameScreen(
                     lastCard          = lastCard,
                     lastCardAction    = lastCardAction,
                     lastCardIsPlayer  = lastCardIsPlayer,
+                    revealedAiCard    = revealedAiCard,
+                    revealedAiCardIdx = revealedAiCardIdx,
                     modifier          = Modifier.fillMaxHeight().weight(1f),
                     playerWinTarget   = state.playerWinTarget,
                     aiWinTarget       = state.aiWinTarget,

@@ -697,7 +697,14 @@ class OnlineLobbyViewModel(
                 }
 
                 "GAME_STATE" -> {
+                    val prevIsMyTurn = gameState.value.isMyTurn
                     gameState.value = parseGameState(json)
+                    // Konec mého tahu → smaž ukázku zahrané karty
+                    if (prevIsMyTurn && !gameState.value.isMyTurn) {
+                        lastPlayedCard.value   = null
+                        lastPlayedByMe.value   = false
+                        lastPlayedAction.value = null
+                    }
                     // Nepřepisuj fázi pokud hra právě končí nebo skončila –
                     // zabrání zaseknutí způsobenému GAME_STATE dorazivším po GAME_OVER
                     if (!gameEndPending.value && gameResult.value == null) {
