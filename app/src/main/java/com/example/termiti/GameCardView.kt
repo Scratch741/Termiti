@@ -234,9 +234,8 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .offset(x = 1.dp, y = 1.dp)
-                .size(9.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(Color.Black.copy(alpha = 0.65f)),
+                .background(Color.Black.copy(alpha = 0.65f), RoundedCornerShape(2.dp))
+                .padding(horizontal = 1.5.dp, vertical = 0.5.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 6.sp, fontWeight = FontWeight.ExtraBold)
