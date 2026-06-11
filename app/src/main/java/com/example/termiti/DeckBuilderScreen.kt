@@ -48,6 +48,17 @@ import androidx.compose.ui.unit.sp
 // Paleta barev → GameColors.kt
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SectionSeparator(modifier: Modifier = Modifier) {
+    Image(
+        painter      = painterResource(R.drawable.bg_separator),
+        contentDescription = null,
+        modifier     = modifier.fillMaxWidth(),
+        contentScale = ContentScale.FillWidth
+    )
+}
+
 private fun cardFrameName(costType: ResourceType) = when (costType) {
     ResourceType.MAGIC  -> "card_frame_magic"
     ResourceType.ATTACK -> "card_frame_attack"
@@ -158,7 +169,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     onUnlocked     = { filterUnlocked = !filterUnlocked },
                     onBack         = onBack
                 )
-                HorizontalDivider(color = Gold.copy(alpha = 0.1f))
+                SectionSeparator()
                 LazyVerticalGrid(
                     columns               = GridCells.Fixed(4),
                     contentPadding        = PaddingValues(8.dp),
@@ -231,7 +242,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     },
                     onRename      = { viewModel.renameDeck(editingIdx, it) }
                 )
-                HorizontalDivider(color = Gold.copy(alpha = 0.2f))
+                SectionSeparator()
                 DeckPanel(
                     deck            = editingDeck,
                     allCards        = viewModel.allCards,
@@ -1354,7 +1365,7 @@ private fun DeckPanel(
             }
         }
 
-        HorizontalDivider(color = Gold.copy(alpha = 0.1f))
+        SectionSeparator()
 
         // Card list + stats + buttons all inside one scrollable LazyColumn
         LazyColumn(
@@ -1364,6 +1375,7 @@ private fun DeckPanel(
             ResourceType.entries.forEach { type ->
                 val cards = groups[type] ?: return@forEach
                 item(key = "header_$type") {
+                    val typeColor = resColor(type)
                     Row(
                         Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 1.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -1378,12 +1390,17 @@ private fun DeckPanel(
                                 ResourceType.STONES -> LocalStrings.current.resStone
                                 ResourceType.CHAOS  -> LocalStrings.current.resChaos
                             }.uppercase()} ($groupCount)",
-                            color = resColor(type).copy(alpha = 0.7f),
+                            color = typeColor.copy(alpha = 0.85f),
                             fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                         )
+                        // Gradient fade line — od barvy typu do průhledna
                         Box(
                             Modifier.weight(1f).height(1.dp)
-                                .background(resColor(type).copy(alpha = 0.15f))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(typeColor.copy(alpha = 0.45f), Color.Transparent)
+                                    )
+                                )
                         )
                     }
                 }
@@ -1398,7 +1415,7 @@ private fun DeckPanel(
 
             // Action buttons footer
             item(key = "actions_divider") {
-                HorizontalDivider(color = Gold.copy(alpha = 0.1f))
+                SectionSeparator()
             }
             item(key = "actions") {
                 Row(
