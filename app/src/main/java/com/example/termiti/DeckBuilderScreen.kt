@@ -35,6 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +58,41 @@ private fun SectionSeparator(modifier: Modifier = Modifier) {
         contentDescription = null,
         modifier     = modifier.fillMaxWidth(),
         contentScale = ContentScale.FillWidth
+    )
+}
+
+/**
+ * Horizontální separátor otočený o 90° pomocí layout+placeWithLayer.
+ * Layout modifier swapuje width↔height constraints → Image si myslí, že je
+ * horizontální, ale výsledek zabere správnou výšku a šířku jako vertikální pruh.
+ */
+@Composable
+private fun VerticalSeparatorImage() {
+    Image(
+        painter      = painterResource(R.drawable.bg_separator),
+        contentDescription = null,
+        contentScale = ContentScale.FillWidth,
+        modifier     = Modifier
+            .fillMaxHeight()
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(
+                    Constraints(
+                        minWidth  = constraints.minHeight,
+                        maxWidth  = constraints.maxHeight,
+                        minHeight = 0,
+                        maxHeight = if (constraints.maxWidth != Constraints.Infinity)
+                            constraints.maxWidth else constraints.maxHeight
+                    )
+                )
+                layout(placeable.height, placeable.width) {
+                    placeable.placeWithLayer(
+                        x = -(placeable.width  - placeable.height) / 2,
+                        y = -(placeable.height - placeable.width)  / 2
+                    ) {
+                        rotationZ = 90f
+                    }
+                }
+            }
     )
 }
 
@@ -155,7 +192,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.displayName }))
     }
 
-    Box(Modifier.fillMaxSize().background(BgDeep)) {
+    Box(Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.deckbuild_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
         Row(Modifier.fillMaxSize()) {
 
             // ── Left: catalog ─────────────────────────────────────────────────
@@ -227,7 +270,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 )
             }
 
-            VerticalDivider(color = Gold.copy(alpha = 0.2f))
+            VerticalSeparatorImage()
 
             // ── Right: top bar + deck panel ───────────────────────────
             Column(Modifier.weight(2f).fillMaxHeight()) {
@@ -1331,12 +1374,17 @@ private fun DeckPanel(
     // Group by resource type (calculate outside LazyColumn scope)
     val groups = remember(deckCards) { deckCards.groupBy { it.costType } }
 
-    Column(
-        modifier.background(
-            Brush.verticalGradient(listOf(BgPanel, BgDeep))
-        ).padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
+    Box(modifier) {
+        Image(
+            painter = painterResource(R.drawable.deckbuild_bg2),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Column(
+            Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
         // Složení + Mana křivka
         Row(
             Modifier.fillMaxWidth().padding(top = 2.dp),
@@ -1466,6 +1514,7 @@ private fun DeckPanel(
             }
             // bottom padding so last item isn't right at the edge
             item(key = "bottom_pad") { Spacer(Modifier.height(6.dp)) }
+        }
         }
     }
 }
