@@ -224,17 +224,22 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
             )
         }
         // Cena v levém horním rohu
+        val miniCostColor = when {
+            card.isXCost           -> Color.White
+            card.costModifier < 0  -> Color(0xFF00E676)
+            card.costModifier > 0  -> Color(0xFFFF5252)
+            else                   -> Color.White
+        }
         Box(
-            Modifier.align(Alignment.TopStart).padding(1.dp),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 1.dp, y = 1.dp)
+                .size(9.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color.Black.copy(alpha = 0.65f)),
             contentAlignment = Alignment.Center
         ) {
-            val miniCostColor = when {
-                card.isXCost           -> Color.White
-                card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
-                card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
-                else                   -> Color.White
-            }
-            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 4.sp, fontWeight = FontWeight.ExtraBold)
+            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = miniCostColor, fontSize = 6.sp, fontWeight = FontWeight.ExtraBold)
         }
         // 🔨 odznak – vygenerovaná karta (vpravo nahoře)
         if (card.isGenerated) {
