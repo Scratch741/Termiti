@@ -15,6 +15,21 @@ import java.util.concurrent.TimeUnit
 // ─── Adresa lobby serveru ─────────────────────────────────────────────────────
 private const val LOBBY_WS_URL = "ws://138.2.136.49:8765/lobby"
 
+private fun Throwable.czMessage(): String {
+    val m = message ?: return "neznámá chyba"
+    return when {
+        m.contains("Software caused connection abort", ignoreCase = true) -> "spojení přerušeno sítí"
+        m.contains("Connection refused",               ignoreCase = true) -> "server nepřijímá spojení"
+        m.contains("Unable to resolve host",           ignoreCase = true) -> "nelze najít server"
+        m.contains("No address associated",            ignoreCase = true) -> "server nenalezen"
+        m.contains("timed out",                        ignoreCase = true) -> "vypršel čas připojení"
+        m.contains("ECONNRESET",                       ignoreCase = true) -> "spojení resetováno"
+        m.contains("Network is unreachable",           ignoreCase = true) -> "síť nedostupná"
+        m.contains("ECONNREFUSED",                     ignoreCase = true) -> "server odmítl spojení"
+        else                                                               -> "neznámá chyba připojení"
+    }
+}
+
 /**
  * Verze síťového protokolu klient↔server. Posílá se v JOIN; server odmítne
  * připojení při neshodě (→ VERSION_MISMATCH = "aktualizuj aplikaci").
@@ -537,7 +552,7 @@ class OnlineLobbyViewModel(
                     scheduleReconnect()
                 } else {
                     phase.value    = OnlinePhase.ERROR
-                    errorMsg.value = "Nepodařilo se připojit: ${t.message ?: "neznámá chyba"}"
+                    errorMsg.value = "Nepodařilo se připojit: ${t.czMessage()}"
                     isReconnecting.value = false
                 }
             }

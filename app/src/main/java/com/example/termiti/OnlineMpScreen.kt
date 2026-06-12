@@ -607,33 +607,39 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
 private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
     val error by vm.errorMsg
 
-    CenteredCard {
-        Text(
-            "CHYBA PŘIPOJENÍ",
-            color         = OnRed,
-            fontSize      = 16.sp,
-            fontWeight    = FontWeight.Bold,
-            letterSpacing = 2.sp
-        )
-        Spacer(Modifier.height(4.dp))
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.width(220.dp),
-            contentScale       = ContentScale.FillWidth
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            error,
-            color     = OnMuted,
-            fontSize  = 10.sp,
-            textAlign = TextAlign.Center,
-            modifier  = Modifier.widthIn(max = 260.dp)
-        )
-        Spacer(Modifier.height(20.dp))
-        OnBtn("Zkusit znovu", OnTeal, Modifier.width(220.dp)) { vm.retryConnect() }
-        Spacer(Modifier.height(8.dp))
-        OnBtn("← Zpět", OnMuted, Modifier.width(220.dp)) { vm.disconnect(); onBack() }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.padding(horizontal = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            Text(
+                "CHYBA PŘIPOJENÍ",
+                color         = OnRed,
+                fontSize      = 18.sp,
+                fontWeight    = FontWeight.Bold,
+                letterSpacing = 2.sp
+            )
+            Spacer(Modifier.height(4.dp))
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.width(240.dp),
+                contentScale       = ContentScale.FillWidth
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                error,
+                color     = OnMuted,
+                fontSize  = 11.sp,
+                textAlign = TextAlign.Center,
+                modifier  = Modifier.widthIn(max = 280.dp)
+            )
+            Spacer(Modifier.height(28.dp))
+            FantasyButton("ZKUSIT ZNOVU", Modifier.width(240.dp)) { vm.retryConnect() }
+            Spacer(Modifier.height(10.dp))
+            FantasyButton("← ZPĚT", Modifier.width(240.dp)) { vm.disconnect(); onBack() }
+        }
     }
 }
 
