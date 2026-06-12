@@ -52,6 +52,7 @@ fun aiChooseAction(
     // Situační příznaky
     val aiLowHp        = ai.castleHP < 15
     val aiLowWall      = ai.wallHP   < 5
+    val aiWallRoom     = (MAX_WALL - ai.wallHP).coerceAtLeast(0)  // kolik hradeb ještě lze postavit
     val oppLowHp       = opponent.castleHP < 20
     val oppCloseToWin  = opponent.castleHP >= (playerWinTarget - 20) // soupeř je blízko výhry hradem
     val aiCloseToWin   = ai.castleHP       >= (aiWinTarget - 20)    // AI je blízko výhry hradem
@@ -103,7 +104,13 @@ fun aiChooseAction(
         }
         // Záporný amount = obětování vlastních hradeb (penalta)
         is CardEffect.BuildWall      -> if (fx.amount >= 0) {
-            if (aiLowWall) 16 else 5
+            val effectiveGain = fx.amount.coerceAtMost(aiWallRoom)
+            when {
+                effectiveGain == 0 -> -5           // zeď je plná, efekt přijde vniveč
+                aiLowWall          -> 16            // urgentní obrana
+                effectiveGain < fx.amount -> 2 + effectiveGain / 3  // blízko capu – jen částečný zisk
+                else               -> 5            // plná hodnota
+            }
         } else {
             fx.amount  // záporné skóre za ztrátu hradeb
         }
