@@ -7,6 +7,7 @@ import java.util.UUID
 
 const val MAX_RESOURCE = 999
 const val MAX_MINES    = 99
+const val MAX_WALL     = 50
 
 /** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */
 data class PendingResource(

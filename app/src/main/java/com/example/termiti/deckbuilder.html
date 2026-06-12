@@ -2519,7 +2519,7 @@ function simFx(fx, me, opp, xv) {
     case 'AC': opp.castleHP -= fx.a; break;
     case 'AW': opp.wallHP = Math.max(0, opp.wallHP - fx.a); break;
     case 'BC': me.castleHP = Math.min(100, me.castleHP + fx.a); break;
-    case 'BW': me.wallHP = Math.max(0, Math.min(100, me.wallHP + fx.a)); break;
+    case 'BW': me.wallHP = Math.max(0, Math.min(50, me.wallHP + fx.a)); break;
     case 'AR': me.res[fx.r] = (me.res[fx.r]||0) + fx.a; break;
     case 'AM': me.mines[fx.r] = (me.mines[fx.r]||0) + fx.a; break;
     case 'SR': { const tk=Math.min(fx.a,opp.res[fx.r]||0); opp.res[fx.r]=(opp.res[fx.r]||0)-tk; me.res[fx.r]=(me.res[fx.r]||0)+tk; break; }

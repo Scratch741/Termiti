@@ -179,7 +179,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
 
       case 'BuildWall':
-        self.wallHP = Math.min(100, Math.max(0, self.wallHP + fx.amount));
+        self.wallHP = Math.min(50, Math.max(0, self.wallHP + fx.amount));
         break;
 
       case 'BuildCastle':
