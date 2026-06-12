@@ -525,7 +525,7 @@ private fun CastleHpBadge(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
             Text(
-                "$wallHp",
+                "$wallHp/$MAX_WALL",
                 color      = accentColor,
                 fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold
