@@ -284,29 +284,49 @@ fun MiniCardFront(card: Card, modifier: Modifier = Modifier, borderColor: Color?
 @Composable
 internal fun CardBackPlayed(card: Card) {
     val costColor = resourceColor(card.costType)
-    Column(
+    val modifiedCostColor = when {
+        card.isXCost           -> costColor
+        card.costModifier < 0  -> Color(0xFF00E676)
+        card.costModifier > 0  -> Color(0xFFFF5252)
+        else                   -> costColor
+    }
+    Box(
         modifier = Modifier
             .size(width = 36.dp, height = 48.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(BgCard)
             .border(1.5.dp, Crimson, RoundedCornerShape(4.dp))
-            .padding(3.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        EffectIconView(card, size = 14.dp, fontSizeSp = 11f)
-        Text(card.displayName, color = TextPrimary, fontSize = 5.sp,
-            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-            maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
-        val modifiedCostColor = when {
-            card.isXCost           -> costColor
-            card.costModifier < 0  -> Color(0xFF00E676)  // zelená – sleva
-            card.costModifier > 0  -> Color(0xFFFF5252)  // červená – zdražení
-            else                   -> costColor
+        // Efektová ikona – nahoře uprostřed
+        Box(Modifier.align(Alignment.TopCenter).padding(top = 5.dp)) {
+            EffectIconView(card, size = 14.dp, fontSizeSp = 11f)
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(1.dp)) {
-            Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(7.dp))
-            Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = modifiedCostColor, fontSize = 5.5.sp)
+        // Název karty – dole
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.45f))
+                .padding(horizontal = 2.dp, vertical = 1.5.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(card.displayName, color = TextPrimary, fontSize = 5.sp,
+                fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 6.sp)
+        }
+        // Cena – nahoře vlevo
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 2.dp, y = 2.dp)
+                .background(Color.Black.copy(alpha = 0.65f), RoundedCornerShape(2.dp))
+                .padding(horizontal = 2.dp, vertical = 1.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+                Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(7.dp))
+                Text(if (card.isXCost) "X" else "${card.effectiveCost}", color = modifiedCostColor, fontSize = 5.5.sp)
+            }
         }
     }
 }
