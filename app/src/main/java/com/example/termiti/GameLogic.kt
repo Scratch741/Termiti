@@ -257,17 +257,26 @@ fun applyEffects(
         is CardEffect.Mirror -> {
             val src = opponent.lastPlayedCard
             if (src != null) {
-                // Kopíruj efekty soupeřovy poslední karty
-                applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
+                // X-kost karta: spotřebuj vlastní zdroje jako X, pak kopíruj efekty
+                val mirrorX = if (src.isXCost) {
+                    val x = self.resources[src.costType] ?: 0
+                    self.resources[src.costType] = 0
+                    x
+                } else xValue
+                applyEffects(src.effects, self, opponent, allCards, mirrorX, onOpponentCardLost, onDrawCard)
             }
-            // Pokud soupeř ještě nic nezahrál → žádný efekt
         }
 
         is CardEffect.Clone -> {
             val src = self.lastPlayedCard
             if (src != null) {
-                // Kopíruj efekty vlastní poslední karty (cena byla zaplacena při zahraní Klonu)
-                applyEffects(src.effects, self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
+                // X-kost karta: spotřebuj zbývající zdroje jako X, pak kopíruj efekty
+                val cloneX = if (src.isXCost) {
+                    val x = self.resources[src.costType] ?: 0
+                    self.resources[src.costType] = 0
+                    x
+                } else xValue
+                applyEffects(src.effects, self, opponent, allCards, cloneX, onOpponentCardLost, onDrawCard)
             } else {
                 // Fallback: hráč ještě nic nezahrál → +2 magie
                 self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)

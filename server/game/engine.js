@@ -424,18 +424,28 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'Mirror': {
         const src = opponent.lastPlayedCard;
         if (src && src.effects && src.effects.length) {
-          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, xValue);
+          // X-kost karta: spotřebuj vlastní zdroje jako X
+          let mirrorX = xValue;
+          if (src.isXCost) {
+            mirrorX = self.resources[src.costType] || 0;
+            self.resources[src.costType] = 0;
+          }
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, mirrorX);
         }
-        // Pokud soupeř ještě nic nezahrál → žádný efekt
         break;
       }
 
       case 'Clone': {
         const src = self.lastPlayedCard;
         if (src && src.effects && src.effects.length) {
-          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, xValue);
+          // X-kost karta: spotřebuj zbývající zdroje jako X
+          let cloneX = xValue;
+          if (src.isXCost) {
+            cloneX = self.resources[src.costType] || 0;
+            self.resources[src.costType] = 0;
+          }
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, cloneX);
         }
-        // Pokud hráč ještě nic nezahrál → žádný efekt
         break;
       }
 
