@@ -486,15 +486,21 @@ private fun OnlineGameplay(
                                 gs.isMyTurn  -> OgTealLight
                                 else         -> OgTextMuted.copy(alpha = 0.35f)
                             }
+                            val btnGlow = when {
+                                !gs.isMyTurn -> null
+                                isGameEnding -> Crimson
+                                else         -> HpGreen
+                            }
                             NewPanelButton(
-                                label   = when {
+                                label     = when {
                                     isGameEnding -> "🏁 ${s.endGame}"
                                     gs.isMyTurn  -> "⏩ ${s.endTurn}"
                                     else         -> "⏳ ${s.waitingTurn}"
                                 },
-                                color   = btnColor,
-                                active  = gs.isMyTurn,
-                                onClick = if (gs.isMyTurn) {
+                                color     = btnColor,
+                                active    = gs.isMyTurn,
+                                glowColor = btnGlow,
+                                onClick   = if (gs.isMyTurn) {
                                     {
                                         SoundManager.playMenuTap()
                                         if (gs.myState.deckSize == 0 && gs.oppState.deckSize == 0)

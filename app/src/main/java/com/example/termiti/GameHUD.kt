@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -433,13 +434,38 @@ fun NewPanelButton(
     color: Color,
     active: Boolean,
     onClick: (() -> Unit)?,
-    @DrawableRes iconRes: Int? = null
+    @DrawableRes iconRes: Int? = null,
+    glowColor: Color? = null
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "btn_glow")
+    val glowElev by infiniteTransition.animateFloat(
+        initialValue = 4f,
+        targetValue  = 18f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(850, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glow_elev"
+    )
+
+    val effectiveGlow = if (glowColor != null && active) glowColor else null
+    val glowMod = effectiveGlow?.let {
+        Modifier.shadow(
+            elevation    = glowElev.dp,
+            shape        = RoundedCornerShape(4.dp),
+            clip         = false,
+            spotColor    = it,
+            ambientColor = it
+        )
+    } ?: Modifier
+
+    val btnMod = Modifier.fillMaxWidth().padding(horizontal = 6.dp).then(glowMod)
+
     if (iconRes != null) {
         PlainButtonWithIcon(
             text      = label,
             iconRes   = iconRes,
-            modifier  = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            modifier  = btnMod,
             textColor = color.copy(alpha = if (active) 1f else 0.38f),
             fontSize  = 9.sp,
             enabled   = active && onClick != null,
@@ -449,7 +475,7 @@ fun NewPanelButton(
     } else {
         PlainButton(
             text      = label,
-            modifier  = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            modifier  = btnMod,
             textColor = color.copy(alpha = if (active) 1f else 0.38f),
             fontSize  = 9.sp,
             enabled   = active && onClick != null,

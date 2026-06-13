@@ -226,11 +226,18 @@ fun GameScreen(
                                 active       -> TealLight
                                 else         -> TextMuted.copy(alpha = 0.35f)
                             }
+                            val btnGlow = when {
+                                !active      -> null
+                                isComboTurn  -> ChaosOrange
+                                isGameEnding -> Crimson
+                                else         -> HpGreen
+                            }
                             NewPanelButton(
-                                label   = btnLabel,
-                                color   = btnColor,
-                                active  = active,
-                                onClick = if (active) {
+                                label     = btnLabel,
+                                color     = btnColor,
+                                active    = active,
+                                glowColor = btnGlow,
+                                onClick   = if (active) {
                                     { if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn() }
                                 } else null
                             )
