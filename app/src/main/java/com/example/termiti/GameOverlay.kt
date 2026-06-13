@@ -316,48 +316,25 @@ fun MulliganOverlay(
 
             // Tlačítka — skrytá po odeslání
             if (!submitted) {
+                val canConfirm = selectedIds.isNotEmpty()
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Přeskočit
-                    Box(
-                        Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Gold.copy(alpha = 0.18f))
-                            .border(1.5.dp, Gold.copy(alpha = 0.70f), RoundedCornerShape(8.dp))
-                            .clickable { onSkip() }
-                            .padding(horizontal = 22.dp, vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            s.mulliganPlayNoSwap,
-                            color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    // Vyměnit
-                    val canConfirm = selectedIds.isNotEmpty()
-                    Box(
-                        Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (canConfirm) Teal.copy(alpha = 0.2f)
-                                else Color.White.copy(alpha = 0.03f)
-                            )
-                            .border(
-                                1.dp,
-                                if (canConfirm) TealLight.copy(alpha = 0.55f)
-                                else TextMuted.copy(alpha = 0.1f),
-                                RoundedCornerShape(8.dp)
-                            )
-                            .then(if (canConfirm) Modifier.clickable { onConfirm() } else Modifier)
-                            .padding(horizontal = 22.dp, vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
-                            color = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
-                            fontSize = 11.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
+                    PlainButton(
+                        text      = s.mulliganPlayNoSwap,
+                        textColor = Gold,
+                        fontSize  = 11.sp,
+                        paddingH  = 22.dp,
+                        paddingV  = 10.dp,
+                        onClick   = onSkip
+                    )
+                    PlainButton(
+                        text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
+                        textColor = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
+                        fontSize  = 11.sp,
+                        enabled   = canConfirm,
+                        paddingH  = 22.dp,
+                        paddingV  = 10.dp,
+                        onClick   = onConfirm
+                    )
                 }
             }
         }
@@ -443,29 +420,23 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
             // Tlačítka
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (onMenu != null) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Crimson.copy(alpha = 0.08f))
-                            .border(1.dp, Crimson.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
-                            .clickable(onClick = onMenu)
-                            .padding(horizontal = 20.dp, vertical = 9.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("☰ Menu", color = Crimson, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
+                    PlainButton(
+                        text      = "☰ Menu",
+                        textColor = Crimson,
+                        fontSize  = 11.sp,
+                        paddingH  = 20.dp,
+                        paddingV  = 9.dp,
+                        onClick   = onMenu
+                    )
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.06f))
-                        .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
-                        .clickable(onClick = onDismiss)
-                        .padding(horizontal = 28.dp, vertical = 9.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
+                PlainButton(
+                    text      = "Zavřít",
+                    textColor = TextMuted,
+                    fontSize  = 11.sp,
+                    paddingH  = 28.dp,
+                    paddingV  = 9.dp,
+                    onClick   = onDismiss
+                )
             }
         }
     }
@@ -505,33 +476,35 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
             Spacer(Modifier.height(8.dp))
             Text(sub, color = TextPrimary, fontSize = 13.sp, textAlign = TextAlign.Center)
             Spacer(Modifier.height(20.dp))
-            Button(
-                onClick = onRestart,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isWin) Teal else CrimsonDark),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(s.resultPlayAgain.uppercase(), color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-            }
+            PlainButton(
+                text      = s.resultPlayAgain.uppercase(),
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = if (isWin) TealLight else Crimson,
+                fontSize  = 12.sp,
+                paddingH  = 0.dp,
+                paddingV  = 10.dp,
+                onClick   = onRestart
+            )
             Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onReview,
-                colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E2A35)),
-                shape   = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("📋 PROHLÉDNOUT HRU", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            }
+            PlainButton(
+                text      = "📋 PROHLÉDNOUT HRU",
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = TextPrimary,
+                fontSize  = 12.sp,
+                paddingH  = 0.dp,
+                paddingV  = 10.dp,
+                onClick   = onReview
+            )
             Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onMenu,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A2030)),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(s.resultBackToMenu.uppercase(), color = TextMuted, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-            }
+            PlainButton(
+                text      = s.resultBackToMenu.uppercase(),
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = TextMuted,
+                fontSize  = 12.sp,
+                paddingH  = 0.dp,
+                paddingV  = 10.dp,
+                onClick   = onMenu
+            )
         }
     }
 }
@@ -592,23 +565,25 @@ fun ArenaGameOverDialog(
             Spacer(Modifier.height(8.dp))
 
             if (isPlayerWin) {
-                Button(
-                    onClick = onNextBattle,
-                    colors = ButtonDefaults.buttonColors(containerColor = Teal),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("DALŠÍ BITVA", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                }
+                PlainButton(
+                    text      = "DALŠÍ BITVA",
+                    modifier  = Modifier.fillMaxWidth(),
+                    textColor = TealLight,
+                    fontSize  = 12.sp,
+                    paddingH  = 0.dp,
+                    paddingV  = 10.dp,
+                    onClick   = onNextBattle
+                )
             } else {
-                Button(
-                    onClick = onEndArena,
-                    colors = ButtonDefaults.buttonColors(containerColor = CrimsonDark),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("UKONČIT ARÉNU", color = TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                }
+                PlainButton(
+                    text      = "UKONČIT ARÉNU",
+                    modifier  = Modifier.fillMaxWidth(),
+                    textColor = Crimson,
+                    fontSize  = 12.sp,
+                    paddingH  = 0.dp,
+                    paddingV  = 10.dp,
+                    onClick   = onEndArena
+                )
             }
         }
     }
