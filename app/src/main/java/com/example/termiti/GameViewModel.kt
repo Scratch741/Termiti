@@ -1331,12 +1331,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     val ph = injectExplosionPlaceholder(ai)
                     if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = false)
                     log.appendLog(trapLogMsg(trap, isPlayer = false))
-                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
                     delay(1000L)
                 }
                 // Zkontroluj výhru ihned po výbuchu — AI mohla zemřít před prvním tahem
                 if (drawResult.traps.isNotEmpty()) {
-                    val afterTrap = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    val afterTrap = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
                     afterTrap.checkWinCondition()?.let { result ->
                         scheduleGameEnd(result, afterTrap); return@launch
                     }

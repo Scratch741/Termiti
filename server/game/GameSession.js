@@ -157,8 +157,9 @@ class GameSession {
     this.turnNumber = 0;
 
     // Mulligan tracking
-    this.mulliganDone   = { A: false, B: false };
+    this.mulliganDone    = { A: false, B: false };
     this._mulliganTimers = { A: null, B: null };
+    this._mulliganStartedAt = null;   // pro výpočet zbývajícího času při reconnectu
 
     // Quick-draw tracking (1 extra card on first turn, not in mulligan)
     this.quickDrawApplied = { A: false, B: false };
@@ -231,6 +232,7 @@ class GameSession {
     this.activeSide = 'A';
 
     // Notify both clients
+    this._mulliganStartedAt = Date.now();
     this._send('A', { type: 'GAME_MULLIGAN', hand: this._serializeHand('A'), timeoutMs: MULLIGAN_TIMEOUT_MS });
     this._send('B', { type: 'GAME_MULLIGAN', hand: this._serializeHand('B'), timeoutMs: MULLIGAN_TIMEOUT_MS });
 
@@ -429,7 +431,9 @@ class GameSession {
       // Resetuj mulliganDone pro reconnectujícího hráče – klient dostane GAME_MULLIGAN
       // znovu a musí mít možnost znovu odeslat svůj výběr.
       this.mulliganDone[side] = false;
-      this._send(side, { type: 'GAME_MULLIGAN', hand: this._serializeHand(side) });
+      const mulliganElapsed   = this._mulliganStartedAt ? (Date.now() - this._mulliganStartedAt) : MULLIGAN_TIMEOUT_MS;
+      const mulliganRemaining = Math.max(3000, MULLIGAN_TIMEOUT_MS - mulliganElapsed);
+      this._send(side, { type: 'GAME_MULLIGAN', hand: this._serializeHand(side), timeoutMs: mulliganRemaining });
       // Pokud soupeř už svůj mulligan dokončil, informuj reconnectujícího hráče,
       // aby věděl, že stačí jen potvrdit svůj vlastní výběr.
       const other = side === 'A' ? 'B' : 'A';
@@ -607,9 +611,12 @@ class GameSession {
     const drawFilter = self.drawCardOnPlay;
     if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
       const { burned: drawBurned, traps: drawTraps } = drawCards(self, 1, self.maxHandSize || 7);
+      const oppSideForDrawBurn = side === 'A' ? 'B' : 'A';
       for (const bc of drawBurned) {
         this._send(side, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
           action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+        this._send(oppSideForDrawBurn, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
+          action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
       }
       const _drawTrapOppSide = side === 'A' ? 'B' : 'A';
       for (const trap of drawTraps) {
@@ -1205,9 +1212,12 @@ class GameSession {
     }
     transformShapeShifters(next.hand, ALL_CARDS);
 
+    const oppSideForOverdraw = this.activeSide === 'A' ? 'B' : 'A';
     for (const bc of burned) {
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
         action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+      this._send(oppSideForOverdraw, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
+        action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
     }
     // Pasty: injektuj placeholder C38, reportuj klientovi (oběma stranám), zkontroluj výhru
     const oppSideForTrap = this.activeSide === 'A' ? 'B' : 'A';

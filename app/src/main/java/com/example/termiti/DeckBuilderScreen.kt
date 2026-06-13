@@ -393,7 +393,7 @@ private fun TopBar(
                 singleLine      = true,
                 textStyle       = TextStyle(
                     color      = TextPrimary,
-                    fontSize   = 11.sp,
+                    fontSize   = 10.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -401,19 +401,20 @@ private fun TopBar(
                     onRename(nameInput); isEditingName = false
                 }),
                 modifier = Modifier
-                    .width(120.dp)
+                    .width(90.dp)
                     .focusRequester(focusRequester)
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color.White.copy(alpha = 0.07f))
                     .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 6.dp, vertical = 3.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
             )
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
             PlainButton(
                 text      = "✓",
+                modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 30.dp),
                 textColor = Gold,
-                fontSize  = 11.sp,
-                paddingH  = 8.dp,
+                fontSize  = 10.sp,
+                paddingH  = 4.dp,
                 paddingV  = 3.dp,
                 onClick   = { onRename(nameInput); isEditingName = false }
             )
@@ -429,10 +430,11 @@ private fun TopBar(
             )
             PlainButton(
                 text      = "✎",
+                modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 28.dp),
                 textColor = TextMuted,
                 fontSize  = 9.sp,
-                paddingH  = 6.dp,
-                paddingV  = 2.dp,
+                paddingH  = 4.dp,
+                paddingV  = 3.dp,
                 onClick   = { nameInput = editingDeck.name; isEditingName = true }
             )
         }
@@ -503,7 +505,7 @@ private fun FilterBar(
             Modifier.fillMaxWidth()
                 .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
             FilterChip(R.drawable.magie_icon,  LocalStrings.current.resMagic,  filterRes == ResourceType.MAGIC,  MagicBlue)   { onResFilter(ResourceType.MAGIC)  }
@@ -513,10 +515,11 @@ private fun FilterBar(
             Spacer(Modifier.weight(1f))
             PlainButton(
                 text      = LocalStrings.current.back,
+                modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 58.dp),
                 textColor = TextMuted,
                 fontSize  = 8.sp,
-                paddingH  = 6.dp,
-                paddingV  = 2.dp,
+                paddingH  = 5.dp,
+                paddingV  = 3.dp,
                 onClick   = onBack
             )
         }
@@ -525,7 +528,7 @@ private fun FilterBar(
             Modifier.fillMaxWidth()
                 .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             val s = LocalStrings.current
             Text(s.dbEffectLabel, color = TextMuted, fontSize = 9.sp)
@@ -571,15 +574,16 @@ private fun ManaCostFilterBar(
             val label  = if (cost == 7) "7+" else "$cost"
             val active = filterCost == cost
             PlainButton(
-                text      = label,
-                modifier  = Modifier.width(24.dp),
-                textColor = if (active) Gold else TextMuted,
-                fontSize  = 8.sp,
-                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                selected  = active,
-                paddingH  = 0.dp,
-                paddingV  = 2.dp,
-                onClick   = { onCostFilter(cost) }
+                text         = label,
+                modifier     = Modifier.width(31.dp).heightIn(max = 22.dp),
+                textColor    = if (active) Gold else TextMuted,
+                fontSize     = 9.sp,
+                fontWeight   = if (active) FontWeight.Bold else FontWeight.Normal,
+                selected     = active,
+                outlineColor = ChaosOrange,
+                paddingH     = 0.dp,
+                paddingV     = 2.dp,
+                onClick      = { onCostFilter(cost) }
             )
         }
         Spacer(Modifier.weight(1f))
@@ -633,25 +637,29 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
 private fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolean, color: Color, onClick: () -> Unit) {
     if (iconRes != null) {
         PlainButtonWithIcon(
-            text      = label,
-            iconRes   = iconRes,
-            textColor = if (active) color else TextMuted,
-            fontSize  = 8.sp,
-            selected  = active,
-            paddingH  = 5.dp,
-            paddingV  = 2.dp,
-            onClick   = onClick
+            text         = label,
+            iconRes      = iconRes,
+            modifier     = Modifier.heightIn(max = 22.dp).widthIn(max = 58.dp),
+            textColor    = if (active) color else TextMuted,
+            fontSize     = 8.sp,
+            selected     = active,
+            outlineColor = ChaosOrange,
+            paddingH     = 5.dp,
+            paddingV     = 3.dp,
+            onClick      = onClick
         )
     } else {
         PlainButton(
-            text      = label,
-            textColor = if (active) color else TextMuted,
-            fontSize  = 8.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            selected  = active,
-            paddingH  = 5.dp,
-            paddingV  = 2.dp,
-            onClick   = onClick
+            text         = label,
+            modifier     = Modifier.heightIn(max = 22.dp).widthIn(max = 55.dp),
+            textColor    = if (active) color else TextMuted,
+            fontSize     = 7.sp,
+            fontWeight   = if (active) FontWeight.Bold else FontWeight.Normal,
+            selected     = active,
+            outlineColor = ChaosOrange,
+            paddingH     = 4.dp,
+            paddingV     = 3.dp,
+            onClick      = onClick
         )
     }
 }

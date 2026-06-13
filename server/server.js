@@ -318,7 +318,9 @@ const games = new Map();
 
 // ── Reconnect ─────────────────────────────────────────────────────────────────
 // Hráči, kteří se odpojili uprostřed hry a čekají na reconnect
-// Map<name, { id, name, avatar, level, deviceId, gameId, side }>
+// Map<name, { id, name, avatar, level, deviceId, gameId, side, reconnectDeadline }>
+// reconnectDeadline = absolutní ms timestamp – prochází disconnect→reconnect→disconnect
+// beze změny, takže při opakovaných odpojeních se čas neobnovuje.
 const disconnectedPlayers = new Map();
 // Aktivní reconnect timery: Map<name, timeoutHandle>
 const reconnectTimers = new Map();
@@ -515,7 +517,8 @@ wss.on('connection', (ws, req) => {
             // Přepojit hráče
             players.set(ws, { id: dp.id, name, avatar: dp.avatar, level: dp.level,
                               deviceId, activeAbilities: dp.activeAbilities ?? [],
-                              inQueue: false, gameId: dp.gameId, side: dp.side });
+                              inQueue: false, gameId: dp.gameId, side: dp.side,
+                              reconnectDeadline: dp.reconnectDeadline });  // ← deadline přežije další disconnect
             send(ws, { type: 'WELCOME', online: players.size, queue: queue.length });
             session.resendStateTo(dp.side, ws);
             // Informovat soupeře
@@ -706,34 +709,47 @@ wss.on('connection', (ws, req) => {
         if (session && session.phase !== 'ended') {
           const opponent = player.side === 'A' ? 'B' : 'A';
 
-          // Ulož hráče pro případný reconnect
-          disconnectedPlayers.set(player.name, {
-            id: player.id, name: player.name, avatar: player.avatar,
-            level: player.level, deviceId: player.deviceId,
-            activeAbilities: player.activeAbilities ?? [],
-            gameId: player.gameId, side: player.side
-          });
+          // code 1000 = úmyslné odpojení (hráč klikl Vzdát se / Odejít)
+          // → hru okamžitě ukonči, žádný reconnect
+          if (code === 1000) {
+            session._endGame(opponent);
+            session._send(opponent, { type: 'OPPONENT_LEFT' });
+            games.delete(player.gameId);
+            log('RECONNECT', `"${player.name}" se úmyslně odpojil (1000) – hra ${player.gameId} ukončena`);
+          } else {
+            // Výpadek sítě / crash → ulož hráče a dej mu čas na reconnect.
+            // reconnectDeadline přežívá cyklus disconnect→reconnect→disconnect:
+            // bereme ho z player.reconnectDeadline (nastavené při posledním reconnectu),
+            // nebo vytváříme nový pro první odpojení.
+            const reconnectDeadline = player.reconnectDeadline
+              ?? (Date.now() + RECONNECT_TIMEOUT_SEC * 1000);
+            const remainingMs = Math.max(5000, reconnectDeadline - Date.now());
+            const timeoutSec  = Math.ceil(remainingMs / 1000);
 
-          // Informuj soupeře – má čas RECONNECT_TIMEOUT_SEC sekund
-          session._send(opponent, {
-            type: 'OPPONENT_DISCONNECTED',
-            timeoutSec: RECONNECT_TIMEOUT_SEC
-          });
+            disconnectedPlayers.set(player.name, {
+              id: player.id, name: player.name, avatar: player.avatar,
+              level: player.level, deviceId: player.deviceId,
+              activeAbilities: player.activeAbilities ?? [],
+              gameId: player.gameId, side: player.side,
+              reconnectDeadline,    // ← přenášíme deadline dál
+            });
 
-          // Spusť odpočet – po vypršení ukončíme hru
-          const timer = setTimeout(() => {
-            disconnectedPlayers.delete(player.name);
-            reconnectTimers.delete(player.name);
-            const s = games.get(player.gameId);
-            if (s && s.phase !== 'ended') {
-              s._endGame(opponent);
-              s._send(opponent, { type: 'OPPONENT_LEFT' });
-              games.delete(player.gameId);
-            }
-            log('RECONNECT', `"${player.name}" se nepřipojil včas – hra ${player.gameId} ukončena`);
-          }, RECONNECT_TIMEOUT_SEC * 1000);
-          reconnectTimers.set(player.name, timer);
+            session._send(opponent, { type: 'OPPONENT_DISCONNECTED', timeoutSec });
+            log('RECONNECT', `"${player.name}" odpojen – zbývá ${timeoutSec}s do konce grace period`);
 
+            const timer = setTimeout(() => {
+              disconnectedPlayers.delete(player.name);
+              reconnectTimers.delete(player.name);
+              const s = games.get(player.gameId);
+              if (s && s.phase !== 'ended') {
+                s._endGame(opponent);
+                s._send(opponent, { type: 'OPPONENT_LEFT' });
+                games.delete(player.gameId);
+              }
+              log('RECONNECT', `"${player.name}" se nepřipojil včas – hra ${player.gameId} ukončena`);
+            }, remainingMs);
+            reconnectTimers.set(player.name, timer);
+          }
         } else {
           games.delete(player.gameId);
         }

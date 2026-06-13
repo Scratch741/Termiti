@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,8 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Herní tlačítko s texturou plain_button.png.
- * Nahrazuje plain clip+background+border boxy všude v UI.
+ * Herní tlačítko s texturou plain_button.png (nebo plain_button_longer.png pro širší variantu).
  *
- * @param selected  Pokud true → plná opacity; false → snížená opacity (pro toggle chipy).
+ * @param selected     false → 50 % alpha (toggle stav). Ignorováno pokud outlineColor != null.
+ * @param outlineColor Pokud nastaveno: tlačítko je vždy plně opaque; při selected=true se
+ *                     vykreslí oranžový (nebo jiný) obrys. selected=false → jen bez obrysu.
+ * @param buttonRes    Textura; výchozí plain_button, pro delší boxy plain_button_longer.
  */
 @Composable
 fun PlainButton(
@@ -34,18 +40,33 @@ fun PlainButton(
     fontWeight: FontWeight = FontWeight.Bold,
     enabled: Boolean = true,
     selected: Boolean = true,
+    outlineColor: Color? = null,
     paddingH: Dp = 10.dp,
     paddingV: Dp = 5.dp,
+    @DrawableRes buttonRes: Int = R.drawable.plain_button,
     onClick: () -> Unit = {}
 ) {
+    val alpha = when {
+        !enabled          -> 0.35f
+        outlineColor != null -> 1f       // režim obrysu → vždy plná opacita
+        !selected         -> 0.50f
+        else              -> 1f
+    }
+    val outlineMod = if (outlineColor != null && selected && enabled) {
+        Modifier.drawBehind {
+            drawRoundRect(
+                color        = outlineColor,
+                style        = Stroke(width = 1.5.dp.toPx()),
+                cornerRadius = CornerRadius(4.dp.toPx())
+            )
+        }
+    } else Modifier
+
     Box(
         modifier = modifier
-            .alpha(when {
-                !enabled -> 0.35f
-                !selected -> 0.50f
-                else -> 1f
-            })
-            .paint(painterResource(R.drawable.plain_button), contentScale = ContentScale.FillBounds)
+            .alpha(alpha)
+            .then(outlineMod)
+            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center
@@ -71,23 +92,42 @@ fun PlainButtonWithIcon(
     fontSize: TextUnit = 11.sp,
     enabled: Boolean = true,
     selected: Boolean = true,
+    outlineColor: Color? = null,
     paddingH: Dp = 10.dp,
     paddingV: Dp = 5.dp,
+    @DrawableRes buttonRes: Int = R.drawable.plain_button,
     onClick: () -> Unit = {}
 ) {
+    val alpha = when {
+        !enabled             -> 0.35f
+        outlineColor != null -> 1f
+        !selected            -> 0.50f
+        else                 -> 1f
+    }
+    val outlineMod = if (outlineColor != null && selected && enabled) {
+        Modifier.drawBehind {
+            drawRoundRect(
+                color        = outlineColor,
+                style        = Stroke(width = 1.5.dp.toPx()),
+                cornerRadius = CornerRadius(4.dp.toPx())
+            )
+        }
+    } else Modifier
+
     Box(
         modifier = modifier
-            .alpha(when { !enabled -> 0.35f; !selected -> 0.50f; else -> 1f })
-            .paint(painterResource(R.drawable.plain_button), contentScale = ContentScale.FillBounds)
+            .alpha(alpha)
+            .then(outlineMod)
+            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(10.dp))
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(9.dp))
             Text(text, color = textColor, fontSize = fontSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
     }

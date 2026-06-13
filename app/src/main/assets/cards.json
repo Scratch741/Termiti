@@ -1828,7 +1828,7 @@
       {
         "type": "DiscountRandomCard",
         "delta": 2,
-        "costType": "STONES",
+        "cardType": "Stavba",
         "count": 1
       }
     ],

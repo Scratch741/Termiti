@@ -218,8 +218,10 @@ fun aiChooseAction(
         is CardEffect.DecisionMine          -> 6
         // Konverze vlastního dolu: hodnotné pokud AI má chaos strategii
         is CardEffect.ConvertMine -> {
-            val chaosMin = ai.mines[ResourceType.CHAOS] ?: 0
-            if (fx.from == ResourceType.MAGIC && (ai.mines[fx.from] ?: 0) > 1) 4 + chaosMin else 0
+            val chaosMin  = ai.mines[ResourceType.CHAOS] ?: 0
+            val sourceMines = ai.mines[fx.from] ?: 0
+            // Efekt nelze snížit pod 1 → hrát lze i s přesně 1 dolem (důl zůstane zachován)
+            if (fx.from == ResourceType.MAGIC && sourceMines >= 1) 4 + chaosMin else 0
         }
         // Líz pro oba hráče: hodnotný jen pokud AI má místo v ruce; soupeřův líz penalizujeme
         is CardEffect.DrawBoth -> {
@@ -328,12 +330,19 @@ fun aiChooseAction(
         }
         val selfDmg = selfCastleDamage(card.effects)
         if (selfDmg > 0 && selfDmg >= ai.castleHP) {
-            // Karta by zničila vlastní hrad – povolíme pouze pro remízu:
-            // AI je v jisté ztrátě = soupeřův hrad je nízký (mohl by příštím tahem vyhrát)
-            // NEBO AI nemá žádnou šanci na obnovu a soupeř je téměř na výhře
-            val couldTieKill = opponent.castleHP <= selfDmg  // i soupeř by zahynul (remíza)
-            val certainLoss  = ai.castleHP <= 10 && (oppCloseToWin || opponent.castleHP < 15)
-            if (!couldTieKill && !certainLoss) return -100 + (-2..2).random()
+            // Karta by zničila vlastní hrad – povolíme pouze pokud jde o remízu
+            // (útočné efekty karty zároveň sníží soupeřův hrad na ≤ 0).
+            val oppDmg = card.effects.sumOf { fx ->
+                when (fx) {
+                    is CardEffect.AttackCastle        -> fx.amount
+                    is CardEffect.AttackPlayer        -> (fx.amount - opponent.wallHP).coerceAtLeast(0)
+                    is CardEffect.XScaledAttackCastle -> xVal / fx.divisor
+                    is CardEffect.XScaledAttackPlayer -> ((xVal / fx.divisor) - opponent.wallHP).coerceAtLeast(0)
+                    else                              -> 0
+                }
+            }
+            val isActualDraw = opponent.castleHP - oppDmg <= 0
+            if (!isActualDraw) return -500 + (-2..2).random()
         }
 
         val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
@@ -398,8 +407,12 @@ fun aiChooseAction(
         val effectScore   = card.effects.sumOf { scoreEffect(it) }.coerceAtLeast(0)
         val shortfall     = (card.effectiveCost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
         val mineRate      = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
-        val turnsToAfford = shortfall.toFloat() / mineRate
-        effectScore * 2 - turnsToAfford * 3
+        // Penalizace za nedostupnost je stropována na 4 tahy — drahé late-game karty
+        // se nesmí zahazovat jen proto, že jsou teď nedostupné.
+        val turnsToAfford = (shortfall.toFloat() / mineRate).coerceAtMost(4f)
+        // Malý bonus za cenu: dražší karta = silnější late-game potenciál.
+        val costBonus     = card.effectiveCost / 2
+        effectScore * 2 - turnsToAfford * 2 + costBonus
     }
 
     // ── Combo-chain lethal (1 krok dopředu) ───────────────────────────────────

@@ -161,7 +161,8 @@ object CardRepository {
             delta    = obj.optInt("delta", 2),
             costType = obj.optString("costType").takeIf { it.isNotEmpty() }
                            ?.let { ResourceType.valueOf(it) },
-            count    = obj.optInt("count", 1)
+            count    = obj.optInt("count", 1),
+            cardType = obj.optString("cardType").takeIf { it.isNotEmpty() }
         )
         "DecisionChooseResource" -> {
             val optsArr = obj.getJSONArray("options")

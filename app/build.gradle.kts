@@ -18,10 +18,23 @@ android {
         targetSdk = 36
         // Verzování: versionName = SemVer (MAJOR.MINOR.PATCH), hra je v beta fázi (0.x).
         // versionCode MUSÍ růst o 1 při každém vydaném buildu (požadavek Androidu pro update).
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    val props = java.util.Properties().also { p ->
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { p.load(it) }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile     = file(props["KEYSTORE_PATH"] as? String ?: "")
+            storePassword = props["KEYSTORE_PASSWORD"] as? String ?: ""
+            keyAlias      = props["KEY_ALIAS"]         as? String ?: ""
+            keyPassword   = props["KEY_PASSWORD"]      as? String ?: ""
+        }
     }
 
     buildTypes {
@@ -31,6 +44,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+    }
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "darkmage-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
     compileOptions {

@@ -205,7 +205,7 @@ fun GameScreen(
                         if (gameOver != null) {
                             // Review mód: toggle soupeřovy ruky
                             NewPanelButton(
-                                label   = if (showOppHand) "🃏 ${LocalStrings.current.viewMyHand}" else "👁 ${LocalStrings.current.viewOpponentHand}",
+                                label   = if (showOppHand) LocalStrings.current.viewMyHand else LocalStrings.current.viewOpponentHand,
                                 color   = if (showOppHand) TealLight else Gold,
                                 active  = true,
                                 onClick = { showOppHand = !showOppHand }
@@ -216,9 +216,9 @@ fun GameScreen(
                                 && state.playerState.hand.isEmpty() && state.playerState.deck.isEmpty()
                                 && state.aiState.hand.isEmpty()     && state.aiState.deck.isEmpty()
                             val btnLabel = when {
-                                isComboTurn  -> "⚡ ${s.endCombo}"
-                                isGameEnding -> "🏁 ${s.endGame}"
-                                else         -> "⏩ ${s.endTurn}"
+                                isComboTurn  -> s.endCombo
+                                isGameEnding -> s.endGame
+                                else         -> s.endTurn
                             }
                             val btnColor = when {
                                 isComboTurn  -> Gold
@@ -327,12 +327,22 @@ fun GameScreen(
                     )
                     HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TextButton(onClick = { showMenuConfirm = false }) {
-                            Text("Zůstat", color = TealLight, fontWeight = FontWeight.Bold)
-                        }
-                        TextButton(onClick = { viewModel.restartGame(); onBackToMenu() }) {
-                            Text("Odejít", color = Crimson, fontWeight = FontWeight.Bold)
-                        }
+                        PlainButton(
+                            text      = "Zůstat",
+                            textColor = TealLight,
+                            fontSize  = 13.sp,
+                            paddingH  = 20.dp,
+                            paddingV  = 8.dp,
+                            onClick   = { showMenuConfirm = false }
+                        )
+                        PlainButton(
+                            text      = "Odejít",
+                            textColor = Crimson,
+                            fontSize  = 13.sp,
+                            paddingH  = 20.dp,
+                            paddingV  = 8.dp,
+                            onClick   = { viewModel.restartGame(); onBackToMenu() }
+                        )
                     }
                 }
             }

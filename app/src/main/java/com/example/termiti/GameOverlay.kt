@@ -353,19 +353,21 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
     ) {
         Column(
             modifier = Modifier
-                .clickable(enabled = false, onClick = {})   // zamezí průchodu kliknutí
+                .offset(y = (-18).dp)
+                .clickable(enabled = false, onClick = {})
+                .widthIn(max = 420.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A1020), BgPanel)))
-                .border(1.dp, Color(0xFF9B59B6).copy(alpha = 0.45f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 24.dp, vertical = 20.dp)
-                .widthIn(max = 420.dp),
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Nadpis
+            Spacer(Modifier.height(4.dp))
             Text(
                 "SPÁLENÉ & UKRADENÉ KARTY",
-                color = Color(0xFF9B59B6), fontSize = 14.sp,
+                color = Gold, fontSize = 14.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 3.sp
             )
             Text(
@@ -391,7 +393,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                     lostCards.forEach { entry ->
                         val badgeColor = if (entry.action == CardAction.STOLEN)
                             Color(0xFF9B59B6) else Color(0xFFE07B39)
-                        val badgeText  = if (entry.action == CardAction.STOLEN) "🃏 UKRADENO" else "🔥 SPÁLENO"
+                        val badgeText  = if (entry.action == CardAction.STOLEN) "UKRADENO" else "SPÁLENO"
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -403,15 +405,14 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                             ) {
                                 CardView(card = entry.card, canPlay = false, discardMode = false, onClick = {})
                             }
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(badgeColor.copy(alpha = 0.15f))
-                                    .border(0.5.dp, badgeColor.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(badgeText, color = badgeColor, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-                            }
+                            PlainButton(
+                                text      = badgeText,
+                                textColor = badgeColor,
+                                fontSize  = 7.sp,
+                                paddingH  = 6.dp,
+                                paddingV  = 2.dp,
+                                onClick   = {}
+                            )
                         }
                     }
                 }
@@ -421,11 +422,12 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (onMenu != null) {
                     PlainButton(
-                        text      = "☰ Menu",
+                        text      = "Menu",
                         textColor = Crimson,
                         fontSize  = 11.sp,
                         paddingH  = 20.dp,
                         paddingV  = 9.dp,
+                        buttonRes = R.drawable.plain_button_longer,
                         onClick   = onMenu
                     )
                 }
@@ -435,6 +437,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                     fontSize  = 11.sp,
                     paddingH  = 28.dp,
                     paddingV  = 9.dp,
+                    buttonRes = R.drawable.plain_button_longer,
                     onClick   = onDismiss
                 )
             }
@@ -475,7 +478,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
             Spacer(Modifier.height(8.dp))
             Text(sub, color = TextPrimary, fontSize = 13.sp, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(12.dp))
             PlainButton(
                 text      = s.resultPlayAgain.uppercase(),
                 modifier  = Modifier.fillMaxWidth(),
@@ -483,6 +486,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 fontSize  = 12.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
+                buttonRes = R.drawable.plain_button_longer,
                 onClick   = onRestart
             )
             Spacer(Modifier.height(8.dp))
@@ -493,6 +497,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 fontSize  = 12.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
+                buttonRes = R.drawable.plain_button_longer,
                 onClick   = onReview
             )
             Spacer(Modifier.height(8.dp))
@@ -503,6 +508,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 fontSize  = 12.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
+                buttonRes = R.drawable.plain_button_longer,
                 onClick   = onMenu
             )
         }
@@ -572,6 +578,7 @@ fun ArenaGameOverDialog(
                     fontSize  = 12.sp,
                     paddingH  = 0.dp,
                     paddingV  = 10.dp,
+                    buttonRes = R.drawable.plain_button_longer,
                     onClick   = onNextBattle
                 )
             } else {
@@ -582,6 +589,7 @@ fun ArenaGameOverDialog(
                     fontSize  = 12.sp,
                     paddingH  = 0.dp,
                     paddingV  = 10.dp,
+                    buttonRes = R.drawable.plain_button_longer,
                     onClick   = onEndArena
                 )
             }

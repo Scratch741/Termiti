@@ -189,6 +189,7 @@ class OnlineLobbyViewModel(
     /** true po dobu 1s po rozhodující kartě – blokuje vstup, aby bylo vidět co rozhodlo */
     var gameEndPending   = mutableStateOf(false); private set
     var gameLog          = mutableStateOf<List<LogEntry>>(emptyList()); private set
+    var lostToOpponent   = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
@@ -712,14 +713,7 @@ class OnlineLobbyViewModel(
                 }
 
                 "GAME_STATE" -> {
-                    val prevIsMyTurn = gameState.value.isMyTurn
                     gameState.value = parseGameState(json)
-                    // Konec mého tahu → smaž ukázku zahrané karty
-                    if (prevIsMyTurn && !gameState.value.isMyTurn) {
-                        lastPlayedCard.value   = null
-                        lastPlayedByMe.value   = false
-                        lastPlayedAction.value = null
-                    }
                     // Nepřepisuj fázi pokud hra právě končí nebo skončila –
                     // zabrání zaseknutí způsobenému GAME_STATE dorazivším po GAME_OVER
                     if (!gameEndPending.value && gameResult.value == null) {
@@ -814,6 +808,7 @@ class OnlineLobbyViewModel(
                     val isGenerated = json.optBoolean("isGenerated", false)
                     val causedByMe  = json.optBoolean("causedByMe", false)
                     val ownCard     = json.optBoolean("ownCard", false)
+                    val causedBySelf = json.optBoolean("causedBySelf", false)
                     val template    = allCards.find { it.id == baseId } ?: return@launch
                     val card        = template.copy(id = cardId, isGenerated = isGenerated)
                     val turn        = gameState.value.turnNumber
@@ -821,36 +816,38 @@ class OnlineLobbyViewModel(
                     val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
 
                     val applyCardLost: suspend () -> Unit = {
-                        // C37 (Bomba): nikdy neaktualizuj centrum
-                        // C38 (Explodovaná bomba): aktualizuj centrum jen pokud je to moje karta
-                        //   nebo jsem ji způsobil – jinak by C38 ze soupeřovy ruky přepsala mou zahranou kartu
                         val isBomb = baseId == "C37" || baseId == "C38"
-                        val updateCenter = !isBomb || ownCard || causedByMe
                         when {
                             ownCard -> {
                                 // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed / past
-                                if (updateCenter) {
-                                    lastPlayedCard.value   = card
-                                    lastPlayedAction.value = action
-                                    lastPlayedByMe.value   = true
-                                }
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = true
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                            }
+                            causedBySelf -> {
+                                // Soupeř si sám spálil kartu přetažením (overdraw) – jen log, není moje ztráta
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = false
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
                             }
                             causedByMe -> {
                                 // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
-                                if (updateCenter) {
-                                    lastPlayedCard.value   = card
-                                    lastPlayedAction.value = action
-                                    lastPlayedByMe.value   = false  // soupeřova karta
-                                }
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = false
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
                             }
                             else -> {
-                                // Soupeř způsobil ztrátu mé karty
-                                if (updateCenter) {
-                                    lastPlayedCard.value   = card
-                                    lastPlayedAction.value = action
-                                    lastPlayedByMe.value   = true
+                                // Soupeřova karta ztracena (včetně bomby explodující soupeři)
+                                // Bomby C37/C38 = explodovaly v soupeřově balíčku → vždy zobraz v centru
+                                lastPlayedCard.value   = card
+                                lastPlayedAction.value = action
+                                lastPlayedByMe.value   = false  // soupeřova karta
+                                // Bomby nejsou "moje ztracené karty" – nepřidávat do lostToOpponent
+                                if (!isBomb) {
+                                    lostToOpponent.value = listOf(CardHistoryEntry(card, action, isMine = true)) + lostToOpponent.value
                                 }
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
                             }
@@ -1233,6 +1230,7 @@ class OnlineLobbyViewModel(
         gameState.value            = OnlineGameState()
         gameResult.value           = null
         gameLog.value              = emptyList()
+        lostToOpponent.value       = emptyList()
         lastPlayedCard.value       = null
         lastPlayedByMe.value       = false
         lastPlayedAction.value     = null

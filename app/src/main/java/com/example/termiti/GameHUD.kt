@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -116,7 +115,7 @@ fun NewTopBar(
     val activeTurn = isPlayerTurn || isComboTurn
     val dotColor = if (activeTurn) TealLight else Crimson
     val turnText = when {
-        isComboTurn   -> "⚡ COMBO"
+        isComboTurn   -> "COMBO"
         isPlayerTurn  -> s.yourTurn
         else          -> s.opponentTurn
     }
@@ -135,10 +134,11 @@ fun NewTopBar(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             PlainButton(
                 text      = "☰",
+                modifier  = Modifier.width(28.dp),
                 textColor = TextMuted,
                 fontSize  = 11.sp,
-                paddingH  = 7.dp,
-                paddingV  = 3.dp,
+                paddingH  = 0.dp,
+                paddingV  = 4.dp,
                 onClick   = onMenu
             )
 
@@ -194,8 +194,10 @@ fun NewTopBar(
                 }
             }
             if (playerTimerText != null) {
-                Text(playerTimerText, color = playerTimerColor,
-                    fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(R.drawable.clock_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Text(playerTimerText, color = playerTimerColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
 
@@ -239,8 +241,10 @@ fun NewTopBar(
         // ── AI vpravo ────────────────────────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             if (oppTimerText != null) {
-                Text(oppTimerText, color = oppTimerColor,
-                    fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(oppTimerText, color = oppTimerColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Image(painterResource(R.drawable.clock_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                }
             }
             if (aiPassives.isNotEmpty()) {
                 Row(
@@ -438,25 +442,32 @@ fun NewPanelButton(
     glowColor: Color? = null
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "btn_glow")
-    val glowElev by infiniteTransition.animateFloat(
-        initialValue = 4f,
-        targetValue  = 18f,
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.12f,
+        targetValue  = 0.38f,
         animationSpec = infiniteRepeatable(
             animation  = tween(850, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "glow_elev"
+        label = "glow_alpha"
     )
 
     val effectiveGlow = if (glowColor != null && active) glowColor else null
-    val glowMod = effectiveGlow?.let {
-        Modifier.shadow(
-            elevation    = glowElev.dp,
-            shape        = RoundedCornerShape(4.dp),
-            clip         = false,
-            spotColor    = it,
-            ambientColor = it
-        )
+    val glowMod: Modifier = effectiveGlow?.let { gc ->
+        Modifier.drawBehind {
+            val maxExpand = 8.dp.toPx()
+            val steps = 5
+            for (i in 1..steps) {
+                val expand = maxExpand * i / steps
+                val a = glowAlpha * (steps - i + 1f) / steps * 0.55f
+                drawRoundRect(
+                    color        = gc.copy(alpha = a),
+                    topLeft      = Offset(-expand, -expand),
+                    size         = Size(size.width + expand * 2, size.height + expand * 2),
+                    cornerRadius = CornerRadius(6.dp.toPx() + expand * 0.5f)
+                )
+            }
+        }
     } ?: Modifier
 
     val btnMod = Modifier.fillMaxWidth().padding(horizontal = 6.dp).then(glowMod)

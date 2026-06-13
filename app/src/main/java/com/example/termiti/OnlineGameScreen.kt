@@ -270,9 +270,10 @@ private fun OnlineGameplay(
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
 
-    var showLog      by remember { mutableStateOf(false) }
-    var showMenu     by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
+    var showLog        by remember { mutableStateOf(false) }
+    var showLostCards  by remember { mutableStateOf(false) }
+    var showMenu       by remember { mutableStateOf(false) }
+    var showSettings   by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
     var cardPreview by remember { mutableStateOf<Card?>(null) }
     val playerPassives = remember {
@@ -285,7 +286,8 @@ private fun OnlineGameplay(
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
     }
-    val gameLog     by vm.gameLog
+    val gameLog        by vm.gameLog
+    val lostToOpponent by vm.lostToOpponent
     val phase       by vm.phase
     val isGameOver  = phase == OnlinePhase.GAME_OVER
     // Resetuj pohled na soupeřovu ruku při zavření review módu
@@ -313,16 +315,14 @@ private fun OnlineGameplay(
 
     fun timerText(isMe: Boolean): String {
         return if (gs.isMyTurn == isMe) {
-            // Aktivní hráč – odpočítávej
             if (turnLeftMs > 0L) "${(turnLeftMs / 1000L)}s"
             else {
                 val bankLeft = if (isMe) myBankLeftMs else oppBankLeftMs
-                "⏳${(bankLeft / 1000L)}s"
+                "${(bankLeft / 1000L)}s"
             }
         } else {
-            // Mimo tah – zobraz zbývající timebank staticky
             val bankMs = if (isMe) gs.timebankMeMs else gs.timebankOppMs
-            "📦${(bankMs / 1000L)}s"
+            "${(bankMs / 1000L)}s"
         }
     }
 
@@ -430,7 +430,6 @@ private fun OnlineGameplay(
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "Log",
-                            iconRes = R.drawable.scroll_icon,
                             color   = OgGold,
                             active  = true,
                             onClick = { SoundManager.playMenuTap(); showLog = !showLog }
@@ -471,7 +470,7 @@ private fun OnlineGameplay(
                         if (isGameOver) {
                             // Review mód: toggle soupeřovy ruky
                             NewPanelButton(
-                                label   = if (showOppHand) "🃏 ${LocalStrings.current.viewMyHand}" else "👁 ${LocalStrings.current.viewOpponentHand}",
+                                label   = if (showOppHand) LocalStrings.current.viewMyHand else LocalStrings.current.viewOpponentHand,
                                 color   = if (showOppHand) OgTealLight else OgGold,
                                 active  = true,
                                 onClick = { SoundManager.playMenuTap(); showOppHand = !showOppHand }
@@ -479,8 +478,7 @@ private fun OnlineGameplay(
                         } else {
                             val s = LocalStrings.current
                             val isGameEnding = gs.isMyTurn
-                                && myPs.hand.isEmpty() && myPs.deck.isEmpty()
-                                && oppPs.hand.isEmpty() && oppPs.deck.isEmpty()
+                                && gs.myState.deckSize == 0 && gs.oppState.deckSize == 0
                             val btnColor = when {
                                 isGameEnding -> OgChaosOrange
                                 gs.isMyTurn  -> OgTealLight
@@ -493,9 +491,9 @@ private fun OnlineGameplay(
                             }
                             NewPanelButton(
                                 label     = when {
-                                    isGameEnding -> "🏁 ${s.endGame}"
-                                    gs.isMyTurn  -> "⏩ ${s.endTurn}"
-                                    else         -> "⏳ ${s.waitingTurn}"
+                                    isGameEnding -> s.endGame
+                                    gs.isMyTurn  -> s.endTurn
+                                    else         -> s.waitingTurn
                                 },
                                 color     = btnColor,
                                 active    = gs.isMyTurn,
@@ -602,12 +600,22 @@ private fun OnlineGameplay(
                 )
                 HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false }) {
-                        Text("Zůstat", color = TealLight, fontWeight = FontWeight.Bold)
-                    }
-                    TextButton(onClick = { SoundManager.playMenuTap(); showMenu = false; vm.forfeit() }) {
-                        Text("Vzdát se", color = Crimson, fontWeight = FontWeight.Bold)
-                    }
+                    PlainButton(
+                        text      = "Zůstat",
+                        textColor = TealLight,
+                        fontSize  = 13.sp,
+                        paddingH  = 20.dp,
+                        paddingV  = 8.dp,
+                        onClick   = { SoundManager.playMenuTap(); showMenu = false }
+                    )
+                    PlainButton(
+                        text      = "Vzdát se",
+                        textColor = Crimson,
+                        fontSize  = 13.sp,
+                        paddingH  = 20.dp,
+                        paddingV  = 8.dp,
+                        onClick   = { SoundManager.playMenuTap(); showMenu = false; vm.forfeit() }
+                    )
                 }
             }
         }
@@ -615,7 +623,20 @@ private fun OnlineGameplay(
 
     // ── Log overlay ───────────────────────────────────────────────────────────
     if (showLog) {
-        LogOverlay(log = gameLog, onDismiss = { showLog = false })
+        LogOverlay(
+            log             = gameLog,
+            onDismiss       = { showLog = false },
+            lostCards       = lostToOpponent,
+            onShowLostCards = { showLostCards = true }
+        )
+    }
+
+    // ── Spálené & ukradené karty ──────────────────────────────────────────────
+    if (showLostCards) {
+        LostCardsOverlay(
+            lostCards = lostToOpponent,
+            onDismiss = { showLostCards = false }
+        )
     }
 
     // ── Nastavení overlay ─────────────────────────────────────────────────────
@@ -764,15 +785,20 @@ private fun OnlineGameOverOverlay(
             )
 
             MenuButton(
-                label    = "📋 ${LocalStrings.current.inspectGame}",
+                label    = LocalStrings.current.inspectGame,
                 imageRes = R.drawable.button_9,
                 accent   = OgTextMuted,
                 onClick  = { SoundManager.playMenuTap(); onReview() }
             )
 
-            TextButton(onClick = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }) {
-                Text("Odejít", color = OgTextMuted, fontSize = 12.sp)
-            }
+            PlainButton(
+                text      = "Odejít",
+                textColor = OgTextMuted,
+                fontSize  = 12.sp,
+                paddingH  = 20.dp,
+                paddingV  = 8.dp,
+                onClick   = { SoundManager.playMenuTap(); vm.disconnect(); onBack() }
+            )
         }
     }
 }

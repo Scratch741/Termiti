@@ -143,7 +143,11 @@ fun applyEffects(
         is CardEffect.NextCardIsCombo -> self.nextCardIsCombo = true
 
         is CardEffect.DiscountRandomCard -> {
-            val matching = self.hand.indices.filter { effect.costType == null || self.hand[it].costType == effect.costType }
+            val matching = self.hand.indices.filter { i ->
+                val card = self.hand[i]
+                (effect.costType == null || card.costType == effect.costType) &&
+                (effect.cardType == null || card.type == effect.cardType)
+            }
             matching.shuffled().take(effect.count).forEach { i ->
                 self.hand[i] = self.hand[i].copy(costModifier = self.hand[i].costModifier - effect.delta)
             }

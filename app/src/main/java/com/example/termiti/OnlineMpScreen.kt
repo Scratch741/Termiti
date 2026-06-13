@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -17,8 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -49,6 +46,13 @@ fun OnlineMpScreen(
     onLeaderboard: () -> Unit = {}
 ) {
     val phase by vm.phase
+
+    // Odpojit WS vždy, když OnlineMpScreen opustí composici (navigace do menu,
+    // LEADERBOARD, sleep/wake s jiným screenem atd.). Bez toho by ViewModel
+    // mohl auto-reconnectnout na server i když uživatel vidí hlavní menu.
+    DisposableEffect(Unit) {
+        onDispose { vm.disconnect() }
+    }
 
     // Auto-connect: použij nick z profilu, přeskoč NAME_INPUT obrazovku
     LaunchedEffect(Unit) {
@@ -365,74 +369,78 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
     val name  by vm.playerName
     val error by vm.errorMsg
 
-    CenteredCard {
-        Text(
-            "ONLINE MULTIPLAYER",
-            color         = OnGold,
-            fontSize      = 18.sp,
-            fontWeight    = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-        Spacer(Modifier.height(4.dp))
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.width(260.dp),
-            contentScale       = ContentScale.FillWidth
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Připoj se k lobby serveru a najdi soupeře",
-            color     = OnMuted,
-            fontSize  = 10.sp,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        OutlinedTextField(
-            value         = name,
-            onValueChange = { vm.setName(it) },
-            label         = { Text("Přezdívka", color = OnMuted, fontSize = 11.sp) },
-            singleLine    = true,
-            modifier      = Modifier.width(260.dp),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { vm.connect() }),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor   = OnTeal,
-                unfocusedBorderColor = OnMuted.copy(alpha = 0.4f),
-                focusedTextColor     = OnText,
-                unfocusedTextColor   = OnText,
-                cursorColor          = OnTeal
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                "ONLINE MULTIPLAYER",
+                color         = OnGold,
+                fontSize      = 18.sp,
+                fontWeight    = FontWeight.Bold,
+                letterSpacing = 3.sp
             )
-        )
+            Spacer(Modifier.height(4.dp))
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.width(260.dp),
+                contentScale       = ContentScale.FillWidth
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Připoj se k lobby serveru a najdi soupeře",
+                color     = OnMuted,
+                fontSize  = 10.sp,
+                textAlign = TextAlign.Center
+            )
 
-        if (error.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            Text(error, color = OnRed, fontSize = 10.sp, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(20.dp))
+
+            OutlinedTextField(
+                value         = name,
+                onValueChange = { vm.setName(it) },
+                label         = { Text("Přezdívka", color = OnMuted, fontSize = 11.sp) },
+                singleLine    = true,
+                modifier      = Modifier.width(260.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { vm.connect() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor   = OnTeal,
+                    unfocusedBorderColor = OnMuted.copy(alpha = 0.4f),
+                    focusedTextColor     = OnText,
+                    unfocusedTextColor   = OnText,
+                    cursorColor          = OnTeal
+                )
+            )
+
+            if (error.isNotBlank()) {
+                Spacer(Modifier.height(6.dp))
+                Text(error, color = OnRed, fontSize = 10.sp, textAlign = TextAlign.Center)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            OnBtn("Připojit se", OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
+            Spacer(Modifier.height(8.dp))
+            OnBtn("← Zpět", OnMuted, Modifier.width(260.dp)) { onBack() }
         }
-
-        Spacer(Modifier.height(16.dp))
-
-        OnBtn("Připojit se", OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
-        Spacer(Modifier.height(8.dp))
-        OnBtn("← Zpět", OnMuted, Modifier.width(260.dp)) { onBack() }
     }
 }
 
 // ─── Připojování ─────────────────────────────────────────────────────────────
 @Composable
 private fun ConnectingPanel(onCancel: (() -> Unit)? = null) {
-    CenteredCard {
-        CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(52.dp), strokeWidth = 3.dp)
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Připojuji k serveru…",
-            color = OnText, fontSize = 13.sp, fontWeight = FontWeight.Bold
-        )
-        if (onCancel != null) {
-            Spacer(Modifier.height(20.dp))
-            OnBtn("← Zrušit", OnMuted, Modifier.width(200.dp)) { onCancel() }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(52.dp), strokeWidth = 3.dp)
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "Připojuji k serveru…",
+                color = OnText, fontSize = 13.sp, fontWeight = FontWeight.Bold
+            )
+            if (onCancel != null) {
+                Spacer(Modifier.height(20.dp))
+                OnBtn("← Zrušit", OnMuted, Modifier.width(200.dp)) { onCancel() }
+            }
         }
     }
 }
@@ -445,6 +453,15 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 
     val accentColor = if (isSuperRandom) OnPurple else OnTeal
     val modeLabel   = if (isSuperRandom) "Super Náhodný" else "Rychlý zápas"
+
+    var elapsedSec by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(1000L)
+            elapsedSec++
+        }
+    }
+    val queueTime = "%d:%02d".format(elapsedSec / 60, elapsedSec % 60)
 
     BoxWithConstraints(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
@@ -503,6 +520,11 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                         "Hledám soupeře…",
                         color = OnText, fontSize = 18.sp, fontWeight = FontWeight.Bold
                     )
+                    Text(
+                        queueTime,
+                        color = accentColor.copy(alpha = 0.75f),
+                        fontSize = 13.sp, fontWeight = FontWeight.Bold
+                    )
                     if (queueSize > 1) {
                         Text("Ve frontě: $queueSize hráčů", color = OnMuted, fontSize = 11.sp)
                     }
@@ -546,59 +568,61 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
     val opponentRating by vm.opponentRating
     val playerName     by vm.playerName
 
-    CenteredCard {
-        Text(
-            "SOUPEŘ NALEZEN!",
-            color         = OnGreen,
-            fontSize      = 20.sp,
-            fontWeight    = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-        Spacer(Modifier.height(4.dp))
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.width(260.dp),
-            contentScale       = ContentScale.FillWidth
-        )
-        Spacer(Modifier.height(12.dp))
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                "SOUPEŘ NALEZEN!",
+                color         = OnGreen,
+                fontSize      = 20.sp,
+                fontWeight    = FontWeight.Bold,
+                letterSpacing = 3.sp
+            )
+            Spacer(Modifier.height(4.dp))
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.width(260.dp),
+                contentScale       = ContentScale.FillWidth
+            )
+            Spacer(Modifier.height(12.dp))
 
-        // Rating srovnání
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val profile = PlayerProfileManager.profile
-                AvatarDisplay(avatar = profile?.avatar ?: "player_icon_1", sizeDp = 36f)
-                Spacer(Modifier.height(4.dp))
-                Text(playerName, color = OnTeal, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                if (myRating != null) Text("$myRating", color = OnGold, fontSize = 10.sp)
+            // Rating srovnání
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val profile = PlayerProfileManager.profile
+                    AvatarDisplay(avatar = profile?.avatar ?: "player_icon_1", sizeDp = 36f)
+                    Spacer(Modifier.height(4.dp))
+                    Text(playerName, color = OnTeal, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    if (myRating != null) Text("$myRating", color = OnGold, fontSize = 10.sp)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("VS", color = OnMuted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AvatarDisplay(match?.opponentAvatar ?: "enemy_icon_1", sizeDp = 36f)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        match?.opponentName ?: "Soupeř",
+                        color = OnRed, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                    )
+                    if (opponentRating != null) Text("$opponentRating", color = OnGold, fontSize = 10.sp)
+                }
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("VS", color = OnMuted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                AvatarDisplay(match?.opponentAvatar ?: "enemy_icon_1", sizeDp = 36f)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    match?.opponentName ?: "Soupeř",
-                    color = OnRed, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                )
-                if (opponentRating != null) Text("$opponentRating", color = OnGold, fontSize = 10.sp)
-            }
+
+            Spacer(Modifier.height(10.dp))
+            Text(
+                if (match?.side == "A") "Ty začínáš první" else "Soupeř začíná první",
+                color    = if (match?.side == "A") OnTeal else OnMuted,
+                fontSize = 11.sp
+            )
+            Spacer(Modifier.height(16.dp))
+            CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
+            Spacer(Modifier.height(6.dp))
+            Text("Připravuji hru…", color = OnMuted, fontSize = 10.sp)
         }
-
-        Spacer(Modifier.height(10.dp))
-        Text(
-            if (match?.side == "A") "Ty začínáš první" else "Soupeř začíná první",
-            color    = if (match?.side == "A") OnTeal else OnMuted,
-            fontSize = 11.sp
-        )
-        Spacer(Modifier.height(16.dp))
-        CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
-        Spacer(Modifier.height(6.dp))
-        Text("Připravuji hru…", color = OnMuted, fontSize = 10.sp)
     }
 }
 
@@ -644,23 +668,6 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 }
 
 // ─── Sdílené komponenty ───────────────────────────────────────────────────────
-
-/** Modální karta – texturované pozadí (deckbuild_bg2) + tmavý overlay */
-@Composable
-private fun CenteredCard(content: @Composable ColumnScope.() -> Unit) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .paint(painterResource(R.drawable.deckbuild_bg2), contentScale = ContentScale.Crop)
-                .background(Color(0xBB0A0D14))
-                .border(1.dp, OnGold.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 32.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            content = content
-        )
-    }
-}
 
 /** Horizontální textured separátor uvnitř panelu */
 @Composable

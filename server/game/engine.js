@@ -371,7 +371,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'DiscountRandomCard': {
         const pool = self.hand
           .map((c, i) => ({ c, i }))
-          .filter(({ c }) => !fx.costType || c.costType === fx.costType);
+          .filter(({ c }) => (!fx.costType || c.costType === fx.costType) && (!fx.cardType || c.type === fx.cardType));
         const count = fx.count || 1;
         pool.sort(() => Math.random() - 0.5).slice(0, count).forEach(({ i }) => {
           self.hand[i] = { ...self.hand[i], costModifier: (self.hand[i].costModifier || 0) - (fx.delta || 2) };

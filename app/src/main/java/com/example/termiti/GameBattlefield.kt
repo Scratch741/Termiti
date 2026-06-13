@@ -573,8 +573,9 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
             if (lostCards.isNotEmpty() && onShowLostCards != null) {
                 PlainButton(
-                    text      = "🃏 Spálené & ukradené (${lostCards.size})",
+                    text      = "Spálené & ukradené (${lostCards.size})",
                     modifier  = Modifier.fillMaxWidth(),
+                    buttonRes = R.drawable.plain_button_longer,
                     textColor = Color(0xFF9B59B6),
                     fontSize  = 11.sp,
                     paddingH  = 12.dp,

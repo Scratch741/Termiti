@@ -201,26 +201,15 @@ fun DecisionOverlay(
                     }
                 }
 
-                // Tlačítko náhledu – vycentrované (Column centruje, panel se nerozšiřuje na celou šířku)
-                Box(
-                    contentAlignment  = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Gold.copy(alpha = 0.15f))
-                            .border(1.dp, Gold.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
-                            .clickable { peeking = true }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            s.decisionPreviewGame,
-                            color      = Gold,
-                            fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                // Tlačítko náhledu
+                PlainButton(
+                    text      = s.decisionPreviewGame,
+                    textColor = Gold,
+                    fontSize  = 10.sp,
+                    paddingH  = 12.dp,
+                    paddingV  = 6.dp,
+                    onClick   = { peeking = true }
+                )
             }
         }
     }

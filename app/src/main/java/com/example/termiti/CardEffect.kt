@@ -173,5 +173,5 @@ sealed class CardEffect {
      * Okamžitě sníží cenu [count] náhodně vybraných karet v ruce hráče odpovídajícího [costType]
      * o [delta]. Aplikuje se ihned při zahrání karty.
      */
-    data class DiscountRandomCard(val delta: Int = 2, val costType: ResourceType? = null, val count: Int = 1) : CardEffect()
+    data class DiscountRandomCard(val delta: Int = 2, val costType: ResourceType? = null, val count: Int = 1, val cardType: String? = null) : CardEffect()
 }
