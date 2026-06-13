@@ -332,7 +332,7 @@ private fun LobbyPanel(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             decks.forEachIndexed { idx, deck ->
                                 DeckChip(
@@ -721,19 +721,18 @@ private fun DeckChip(
         valid              -> OnMuted
         else               -> OnRed.copy(alpha = 0.6f)
     }
-    Box(modifier = Modifier.fillMaxWidth()) {
-        PlainButton(
-            text      = if (cardCount != 30) "$label  ($cardCount/30)" else label,
-            modifier  = Modifier.fillMaxWidth(),
-            textColor = textColor,
-            fontSize  = 10.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            selected  = selected,
-            paddingH  = 10.dp,
-            paddingV  = 7.dp,
-            onClick   = onClick
-        )
-    }
+    val countSuffix = if (cardCount != 30) " ($cardCount/30)" else ""
+    PlainButton(
+        text       = "$label$countSuffix",
+        modifier   = Modifier.fillMaxWidth(),
+        textColor  = textColor,
+        fontSize   = 9.sp,
+        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+        selected   = selected,
+        paddingH   = 8.dp,
+        paddingV   = 4.dp,
+        onClick    = onClick
+    )
 }
 
 @Composable
