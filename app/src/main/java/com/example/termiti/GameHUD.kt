@@ -132,14 +132,14 @@ fun NewTopBar(
     ) {
         // ── Hráč vlevo ────────────────────────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .border(1.dp, Gold.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                    .clickable { onMenu() }
-                    .padding(horizontal = 7.dp, vertical = 3.dp)
-            ) { Text("☰", color = TextMuted, fontSize = 11.sp) }
+            PlainButton(
+                text      = "☰",
+                textColor = TextMuted,
+                fontSize  = 11.sp,
+                paddingH  = 7.dp,
+                paddingV  = 3.dp,
+                onClick   = onMenu
+            )
 
             Box(
                 Modifier
@@ -724,7 +724,7 @@ fun HandPanel(
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
                 if (isPlayerTurn || isComboTurn) {
-                    ActionChip(label = "⏳ Čekat", color = TealLight, onClick = onWait)
+                    ActionChip(label = "Čekat", color = TealLight, onClick = onWait)
                 }
             }
         }

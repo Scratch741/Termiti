@@ -487,7 +487,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
             )
             Spacer(Modifier.height(8.dp))
             PlainButton(
-                text      = "📋 PROHLÉDNOUT HRU",
+                text      = "PROHLÉDNOUT HRU",
                 modifier  = Modifier.fillMaxWidth(),
                 textColor = TextPrimary,
                 fontSize  = 12.sp,

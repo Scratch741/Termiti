@@ -296,21 +296,14 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                                 )
                             }
                         }
-                        Box(
-                            Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(ShGreen.copy(alpha = 0.12f))
-                                .border(1.dp, ShGreen.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-                                .clickable { SoundManager.playMenuTap(); onDismiss() }
-                                .padding(horizontal = 28.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "✓  DOKONČIT",
-                                color = ShGreen, fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                            )
-                        }
+                        PlainButton(
+                            text      = "DOKONČIT",
+                            textColor = ShGreen,
+                            fontSize  = 13.sp,
+                            paddingH  = 28.dp,
+                            paddingV  = 8.dp,
+                            onClick   = onDismiss
+                        )
                     }
                 }
             }

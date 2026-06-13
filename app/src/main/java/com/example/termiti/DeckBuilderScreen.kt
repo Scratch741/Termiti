@@ -514,9 +514,9 @@ private fun FilterBar(
             PlainButton(
                 text      = LocalStrings.current.back,
                 textColor = TextMuted,
-                fontSize  = 9.sp,
-                paddingH  = 8.dp,
-                paddingV  = 4.dp,
+                fontSize  = 8.sp,
+                paddingH  = 6.dp,
+                paddingV  = 2.dp,
                 onClick   = onBack
             )
         }
@@ -572,13 +572,13 @@ private fun ManaCostFilterBar(
             val active = filterCost == cost
             PlainButton(
                 text      = label,
-                modifier  = Modifier.width(30.dp),
+                modifier  = Modifier.width(24.dp),
                 textColor = if (active) Gold else TextMuted,
                 fontSize  = 8.sp,
                 fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                 selected  = active,
                 paddingH  = 0.dp,
-                paddingV  = 3.dp,
+                paddingV  = 2.dp,
                 onClick   = { onCostFilter(cost) }
             )
         }
@@ -636,21 +636,21 @@ private fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolea
             text      = label,
             iconRes   = iconRes,
             textColor = if (active) color else TextMuted,
-            fontSize  = 9.sp,
+            fontSize  = 8.sp,
             selected  = active,
-            paddingH  = 8.dp,
-            paddingV  = 3.dp,
+            paddingH  = 5.dp,
+            paddingV  = 2.dp,
             onClick   = onClick
         )
     } else {
         PlainButton(
             text      = label,
             textColor = if (active) color else TextMuted,
-            fontSize  = 9.sp,
+            fontSize  = 8.sp,
             fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
             selected  = active,
-            paddingH  = 8.dp,
-            paddingV  = 3.dp,
+            paddingH  = 5.dp,
+            paddingV  = 2.dp,
             onClick   = onClick
         )
     }

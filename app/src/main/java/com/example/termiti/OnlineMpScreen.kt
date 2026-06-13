@@ -715,32 +715,24 @@ private fun DeckChip(
     cardCount : Int = 30,
     onClick   : () -> Unit
 ) {
-    val accent = when {
+    val textColor = when {
         selected && valid  -> OnTeal
         selected && !valid -> OnRed
         valid              -> OnMuted
         else               -> OnRed.copy(alpha = 0.6f)
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(accent.copy(alpha = if (selected) 0.18f else 0.07f))
-            .border(1.dp, accent.copy(alpha = if (selected) 0.8f else 0.3f), RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 7.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            label,
-            color      = if (selected) OnText else OnMuted,
-            fontSize   = 10.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+    Box(modifier = Modifier.fillMaxWidth()) {
+        PlainButton(
+            text      = if (cardCount != 30) "$label  ($cardCount/30)" else label,
+            modifier  = Modifier.fillMaxWidth(),
+            textColor = textColor,
+            fontSize  = 10.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            selected  = selected,
+            paddingH  = 10.dp,
+            paddingV  = 7.dp,
+            onClick   = onClick
         )
-        if (cardCount != 30) {
-            Text("$cardCount/30", color = OnRed.copy(alpha = 0.8f), fontSize = 8.sp)
-        }
     }
 }
 
@@ -752,21 +744,14 @@ private fun OnBtn(
     enabled : Boolean  = true,
     onClick : () -> Unit
 ) {
-    Box(
-        modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(accent.copy(alpha = if (enabled) 0.12f else 0.04f))
-            .border(1.dp, accent.copy(alpha = if (enabled) 0.5f else 0.15f), RoundedCornerShape(8.dp))
-            .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            label,
-            color         = if (enabled) OnText else OnMuted,
-            fontSize      = 13.sp,
-            fontWeight    = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
-    }
+    PlainButton(
+        text      = label,
+        modifier  = modifier,
+        textColor = if (enabled) OnText else OnMuted,
+        fontSize  = 13.sp,
+        enabled   = enabled,
+        paddingH  = 0.dp,
+        paddingV  = 8.dp,
+        onClick   = onClick
+    )
 }
