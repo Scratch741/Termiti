@@ -409,16 +409,14 @@ private fun TopBar(
                     .padding(horizontal = 6.dp, vertical = 3.dp)
             )
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Gold.copy(alpha = 0.15f))
-                    .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                    .clickable { onRename(nameInput); isEditingName = false }
-                    .padding(horizontal = 8.dp, vertical = 3.dp)
-            ) {
-                Text("✓", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButton(
+                text      = "✓",
+                textColor = Gold,
+                fontSize  = 11.sp,
+                paddingH  = 8.dp,
+                paddingV  = 3.dp,
+                onClick   = { onRename(nameInput); isEditingName = false }
+            )
         } else {
             Text(
                 localizedDeckName(editingDeck.name),
@@ -429,16 +427,14 @@ private fun TopBar(
                 overflow   = TextOverflow.Ellipsis,
                 modifier   = Modifier.widthIn(max = 130.dp)
             )
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.04f))
-                    .border(1.dp, TextMuted.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-                    .clickable { nameInput = editingDeck.name; isEditingName = true }
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text("✎", color = TextMuted, fontSize = 9.sp)
-            }
+            PlainButton(
+                text      = "✎",
+                textColor = TextMuted,
+                fontSize  = 9.sp,
+                paddingH  = 6.dp,
+                paddingV  = 2.dp,
+                onClick   = { nameInput = editingDeck.name; isEditingName = true }
+            )
         }
 
         Spacer(Modifier.weight(1f))
@@ -475,22 +471,16 @@ private fun DeckSlotChip(
         else                  -> TextMuted.copy(alpha = 0.50f)
     }
 
-    Box(
-        Modifier
-            .size(30.dp)
-            .clip(RoundedCornerShape(7.dp))
-            .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(7.dp))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            "${index + 1}",
-            color      = textColor,
-            fontSize   = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    PlainButton(
+        text      = "${index + 1}",
+        modifier  = Modifier.size(30.dp),
+        textColor = textColor,
+        fontSize  = 12.sp,
+        selected  = isEditing || isActive,
+        paddingH  = 0.dp,
+        paddingV  = 0.dp,
+        onClick   = onClick
+    )
 }
 
 // ─── Filter Bar ───────────────────────────────────────────────────────────────
@@ -521,14 +511,14 @@ private fun FilterBar(
             FilterChip(R.drawable.kamen_icon2, LocalStrings.current.resStone,  filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
             FilterChip(R.drawable.chaos_icon,  LocalStrings.current.resChaos,  filterRes == ResourceType.CHAOS,  ChaosOrange) { onResFilter(ResourceType.CHAOS)  }
             Spacer(Modifier.weight(1f))
-            Box(
-                Modifier.clip(RoundedCornerShape(6.dp))
-                    .background(Color.White.copy(alpha = 0.07f))
-                    .clickable { onBack() }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(LocalStrings.current.back, color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButton(
+                text      = LocalStrings.current.back,
+                textColor = TextMuted,
+                fontSize  = 9.sp,
+                paddingH  = 8.dp,
+                paddingV  = 4.dp,
+                onClick   = onBack
+            )
         }
         // ── Řádek 2: efekt + kombo + odemčené ────────────────────────────────
         Row(
@@ -580,27 +570,17 @@ private fun ManaCostFilterBar(
         (0..7).forEach { cost ->
             val label  = if (cost == 7) "7+" else "$cost"
             val active = filterCost == cost
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(if (active) Gold.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.05f))
-                    .border(
-                        1.dp,
-                        if (active) Gold.copy(alpha = 0.75f) else Color.White.copy(alpha = 0.10f),
-                        RoundedCornerShape(4.dp)
-                    )
-                    .clickable { onCostFilter(cost) }
-                    .width(30.dp)
-                    .padding(vertical = 3.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    label,
-                    color      = if (active) Gold else TextMuted,
-                    fontSize   = 8.sp,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-                )
-            }
+            PlainButton(
+                text      = label,
+                modifier  = Modifier.width(30.dp),
+                textColor = if (active) Gold else TextMuted,
+                fontSize  = 8.sp,
+                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                selected  = active,
+                paddingH  = 0.dp,
+                paddingV  = 3.dp,
+                onClick   = { onCostFilter(cost) }
+            )
         }
         Spacer(Modifier.weight(1f))
         // Hledání
@@ -631,15 +611,15 @@ private fun ManaCostFilterBar(
             }
         )
         if (searchQuery.isNotBlank()) {
-            Box(
-                Modifier.size(20.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.07f))
-                    .clickable { onSearchChange("") },
-                contentAlignment = Alignment.Center
-            ) {
-                Text("×", color = TextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButton(
+                text      = "×",
+                modifier  = Modifier.size(20.dp),
+                textColor = TextMuted,
+                fontSize  = 12.sp,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+                onClick   = { onSearchChange("") }
+            )
         }
     }
 }
@@ -651,28 +631,28 @@ private fun FilterChip(label: String, active: Boolean, color: Color, onClick: ()
 
 @Composable
 private fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolean, color: Color, onClick: () -> Unit) {
-    Box(
-        Modifier.clip(RoundedCornerShape(5.dp))
-            .background(if (active) color.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.04f))
-            .border(
-                1.dp,
-                if (active) color.copy(alpha = 0.65f) else Color.White.copy(alpha = 0.09f),
-                RoundedCornerShape(5.dp)
-            )
-            .clickable { onClick() }
-            .padding(horizontal = 8.dp, vertical = 3.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (iconRes != null) {
-                Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
-            }
-            Text(
-                label,
-                color      = if (active) color else TextMuted,
-                fontSize   = 9.sp,
-                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-            )
-        }
+    if (iconRes != null) {
+        PlainButtonWithIcon(
+            text      = label,
+            iconRes   = iconRes,
+            textColor = if (active) color else TextMuted,
+            fontSize  = 9.sp,
+            selected  = active,
+            paddingH  = 8.dp,
+            paddingV  = 3.dp,
+            onClick   = onClick
+        )
+    } else {
+        PlainButton(
+            text      = label,
+            textColor = if (active) color else TextMuted,
+            fontSize  = 9.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+            selected  = active,
+            paddingH  = 8.dp,
+            paddingV  = 3.dp,
+            onClick   = onClick
+        )
     }
 }
 
@@ -938,26 +918,19 @@ private fun CardActionPanel(
             Spacer(Modifier.height(2.dp))
 
             // ── Hotovo – aplikuje pending akci a zavře panel ─────────────────
-            Box(
-                Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (hasPending) Gold.copy(alpha = 0.22f) else Gold.copy(alpha = 0.12f))
-                    .border(1.dp, if (hasPending) Gold.copy(alpha = 0.9f) else Gold.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                    .clickable {
-                        SoundManager.playMenuTap()
-                        repeat(pendingCraft) { onCraft() }
-                        repeat(pendingDismantle) { onDismantle() }
-                        onClose()
-                    }
-                    .padding(vertical = 9.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
-                    color = Gold, fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 1.sp
-                )
-            }
+            PlainButton(
+                text      = if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = Gold,
+                fontSize  = 11.sp,
+                paddingH  = 0.dp,
+                paddingV  = 9.dp,
+                onClick   = {
+                    repeat(pendingCraft) { onCraft() }
+                    repeat(pendingDismantle) { onDismantle() }
+                    onClose()
+                }
+            )
         }
     }
 }
@@ -968,29 +941,17 @@ private fun PanelActionBtn(
     selected: Boolean = false,
     onClick: () -> Unit
 ) {
-    Box(
-        Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .background(when {
-                selected -> accent.copy(alpha = 0.28f)
-                enabled  -> accent.copy(alpha = 0.12f)
-                else     -> Color.White.copy(alpha = 0.04f)
-            })
-            .border(1.dp, when {
-                selected -> accent.copy(alpha = 0.9f)
-                enabled  -> accent.copy(alpha = 0.5f)
-                else     -> Color.White.copy(alpha = 0.08f)
-            }, RoundedCornerShape(6.dp))
-            .then(if (enabled || selected) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
-            .padding(vertical = 7.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            label,
-            color = if (enabled) accent else TextMuted.copy(alpha = 0.4f),
-            fontSize = 9.sp, fontWeight = FontWeight.Bold
-        )
-    }
+    PlainButton(
+        text      = label,
+        modifier  = Modifier.fillMaxWidth(),
+        textColor = if (enabled || selected) accent else TextMuted.copy(alpha = 0.4f),
+        fontSize  = 9.sp,
+        enabled   = enabled || selected,
+        selected  = selected,
+        paddingH  = 0.dp,
+        paddingV  = 7.dp,
+        onClick   = onClick
+    )
 }
 
 // ─── Action Counter (−  N  + řádek pro craft/dismantle) ──────────────────────
@@ -1330,24 +1291,16 @@ private fun CopyDots(
 
 @Composable
 private fun CountBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier.size(22.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(if (enabled) Color.White.copy(alpha = 0.08f) else Color.Transparent)
-            .border(
-                1.dp,
-                if (enabled) Color.White.copy(alpha = 0.14f) else Color.Transparent,
-                RoundedCornerShape(4.dp)
-            )
-            .then(if (enabled) Modifier.clickable { SoundManager.playDeckSelect(); onClick() } else Modifier),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            label,
-            color = if (enabled) TextPrimary else TextMuted.copy(alpha = 0.25f),
-            fontSize = 13.sp, fontWeight = FontWeight.Bold
-        )
-    }
+    PlainButton(
+        text      = label,
+        modifier  = Modifier.size(22.dp),
+        textColor = if (enabled) TextPrimary else TextMuted.copy(alpha = 0.25f),
+        fontSize  = 13.sp,
+        enabled   = enabled,
+        paddingH  = 0.dp,
+        paddingV  = 0.dp,
+        onClick   = onClick
+    )
 }
 
 // ─── Deck Panel ───────────────────────────────────────────────────────────────
@@ -1400,16 +1353,14 @@ private fun DeckPanel(
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             presetTemplates.forEachIndexed { i, (name, _) ->
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(Gold.copy(alpha = 0.07f))
-                        .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(5.dp))
-                        .clickable { onLoadPreset(i) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(name, color = Gold.copy(alpha = 0.85f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
+                PlainButton(
+                    text      = name,
+                    textColor = Gold.copy(alpha = 0.85f),
+                    fontSize  = 8.sp,
+                    paddingH  = 8.dp,
+                    paddingV  = 4.dp,
+                    onClick   = { onLoadPreset(i) }
+                )
             }
         }
 
@@ -1470,46 +1421,26 @@ private fun DeckPanel(
                     Modifier.fillMaxWidth().height(36.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Box(
-                        Modifier.weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(7.dp))
-                            .background(
-                                if (isActive) TealLight.copy(alpha = 0.08f)
-                                else if (deck.isValid) Teal.copy(alpha = 0.15f)
-                                else Color.White.copy(alpha = 0.03f)
-                            )
-                            .border(
-                                1.dp,
-                                if (isActive) TealLight.copy(alpha = 0.4f)
-                                else if (deck.isValid) TealLight.copy(alpha = 0.45f)
-                                else TextMuted.copy(alpha = 0.15f),
-                                RoundedCornerShape(7.dp)
-                            )
-                            .then(
-                                if (!isActive && deck.isValid) Modifier.clickable { onSetActive() }
-                                else Modifier
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            if (isActive) LocalStrings.current.dbActiveDeck else LocalStrings.current.dbSetActive,
-                            color = if (isActive) TealLight else if (deck.isValid) TealLight else TextMuted,
-                            fontSize = 10.sp, fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Box(
-                        Modifier
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(7.dp))
-                            .background(AttackRed.copy(alpha = 0.08f))
-                            .border(1.dp, AttackRed.copy(alpha = 0.3f), RoundedCornerShape(7.dp))
-                            .clickable { onClear() }
-                            .padding(horizontal = 14.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(s.deckClear, color = AttackRed.copy(alpha = 0.75f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
+                    PlainButton(
+                        text      = if (isActive) LocalStrings.current.dbActiveDeck else LocalStrings.current.dbSetActive,
+                        modifier  = Modifier.weight(1f).fillMaxHeight(),
+                        textColor = if (isActive || deck.isValid) TealLight else TextMuted,
+                        fontSize  = 10.sp,
+                        enabled   = !isActive && deck.isValid,
+                        selected  = isActive,
+                        paddingH  = 0.dp,
+                        paddingV  = 0.dp,
+                        onClick   = onSetActive
+                    )
+                    PlainButton(
+                        text      = s.deckClear,
+                        modifier  = Modifier.fillMaxHeight(),
+                        textColor = AttackRed.copy(alpha = 0.75f),
+                        fontSize  = 10.sp,
+                        paddingH  = 14.dp,
+                        paddingV  = 0.dp,
+                        onClick   = onClear
+                    )
                 }
             }
             // bottom padding so last item isn't right at the edge

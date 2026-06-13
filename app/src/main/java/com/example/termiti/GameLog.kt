@@ -234,14 +234,13 @@ fun LogPanel(
 
 @Composable
 internal fun ActionChip(label: String, color: Color, filled: Boolean = false, onClick: () -> Unit) {
-    Box(
-        Modifier.clip(RoundedCornerShape(6.dp))
-            .background(color.copy(alpha = if (filled) 0.2f else 0.08f))
-            .border(1.dp, color.copy(alpha = if (filled) 0.6f else 0.4f), RoundedCornerShape(6.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 3.dp)
-    ) {
-        Text(label, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-    }
+    PlainButton(
+        text     = label,
+        textColor = color,
+        fontSize  = 10.sp,
+        paddingH  = 10.dp,
+        paddingV  = 3.dp,
+        onClick   = onClick
+    )
 }
 

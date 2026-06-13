@@ -572,34 +572,25 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
             if (lostCards.isNotEmpty() && onShowLostCards != null) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF9B59B6).copy(alpha = 0.12f))
-                        .border(1.dp, Color(0xFF9B59B6).copy(alpha = 0.45f), RoundedCornerShape(6.dp))
-                        .clickable { onDismiss(); onShowLostCards() }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "🃏 Spálené & ukradené (${lostCards.size})",
-                        color = Color(0xFF9B59B6),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                PlainButton(
+                    text      = "🃏 Spálené & ukradené (${lostCards.size})",
+                    modifier  = Modifier.fillMaxWidth(),
+                    textColor = Color(0xFF9B59B6),
+                    fontSize  = 11.sp,
+                    paddingH  = 12.dp,
+                    paddingV  = 8.dp,
+                    onClick   = { onDismiss(); onShowLostCards() }
+                )
             }
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
-                    .clickable(onClick = onDismiss)
-                    .padding(horizontal = 28.dp, vertical = 8.dp)
-            ) {
-                Text("Zavřít", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButton(
+                text      = "Zavřít",
+                modifier  = Modifier.align(Alignment.CenterHorizontally),
+                textColor = TextMuted,
+                fontSize  = 11.sp,
+                paddingH  = 28.dp,
+                paddingV  = 8.dp,
+                onClick   = onDismiss
+            )
         }
     }
 }

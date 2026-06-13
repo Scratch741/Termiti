@@ -2,19 +2,16 @@ package com.example.termiti
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -192,29 +189,17 @@ private fun LanguageToggle(
         ) {
             allPacks.forEach { pack ->
                 val selected = currentPack?.language?.code == pack.language.code
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (selected) StGold.copy(alpha = 0.18f) else StBgCard
-                        )
-                        .border(
-                            1.dp,
-                            if (selected) StGold else StTextMuted.copy(alpha = 0.4f),
-                            RoundedCornerShape(8.dp)
-                        )
-                        .clickable { SoundManager.playMenuTap(); onSelect(pack) }
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "${pack.language.flag}  ${pack.language.name}",
-                        color      = if (selected) StGold else StTextMuted,
-                        fontSize   = 12.sp,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
+                PlainButton(
+                    text      = "${pack.language.flag}  ${pack.language.name}",
+                    modifier  = Modifier.weight(1f),
+                    textColor = if (selected) StGold else StTextMuted,
+                    fontSize  = 12.sp,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    selected  = selected,
+                    paddingH  = 0.dp,
+                    paddingV  = 8.dp,
+                    onClick   = { onSelect(pack) }
+                )
             }
         }
     }

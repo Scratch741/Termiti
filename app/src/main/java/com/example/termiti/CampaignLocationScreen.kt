@@ -44,18 +44,15 @@ fun CampaignLocationScreen(
             .background(Brush.verticalGradient(listOf(ClBgDeep, ClBgPanel, ClBgDeep)))
     ) {
         // ── Zpět ─────────────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(8.dp))
-                .background(ClBgPanel)
-                .border(1.dp, ClMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onBack() }
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text("← Zpět", color = ClMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
+        PlainButton(
+            text      = "← Zpět",
+            modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
+            textColor = ClMuted,
+            fontSize  = 12.sp,
+            paddingH  = 14.dp,
+            paddingV  = 8.dp,
+            onClick   = onBack
+        )
 
         // ── Obsah: Row – vlevo titulek, vpravo soupeři ────────────────────────
         Row(

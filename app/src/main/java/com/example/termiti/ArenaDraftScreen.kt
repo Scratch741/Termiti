@@ -52,14 +52,14 @@ fun ArenaDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    Modifier.clip(RoundedCornerShape(6.dp))
-                        .background(Color.White.copy(alpha = 0.07f))
-                        .clickable { onBack() }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text("← Zpět", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                PlainButton(
+                    text      = "← Zpět",
+                    textColor = TextMuted,
+                    fontSize  = 10.sp,
+                    paddingH  = 10.dp,
+                    paddingV  = 5.dp,
+                    onClick   = onBack
+                )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -283,18 +283,15 @@ private fun DraftCardChoice(card: Card, onClick: () -> Unit) {
         Spacer(Modifier.height(36.dp))
 
         // Tlačítko Vybrat pod kartou
-        Box(
-            Modifier
-                .width(110.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Brush.horizontalGradient(listOf(Teal.copy(alpha = 0.3f), Gold.copy(alpha = 0.2f))))
-                .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onClick() }
-                .padding(vertical = 7.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("VYBRAT", color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        }
+        PlainButton(
+            text      = "VYBRAT",
+            modifier  = Modifier.width(110.dp),
+            textColor = TextPrimary,
+            fontSize  = 10.sp,
+            paddingH  = 0.dp,
+            paddingV  = 7.dp,
+            onClick   = onClick
+        )
     }
 }
 
@@ -378,21 +375,15 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
             )
 
             Spacer(Modifier.height(4.dp))
-            Box(
-                Modifier.fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Teal.copy(alpha = 0.15f))
-                    .border(1.dp, TealLight.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                    .clickable { onBack() }
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "ZPĚT DO MENU",
-                    color = TealLight, fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                )
-            }
+            PlainButton(
+                text      = "ZPĚT DO MENU",
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = TealLight,
+                fontSize  = 11.sp,
+                paddingH  = 0.dp,
+                paddingV  = 10.dp,
+                onClick   = onBack
+            )
         }
     }
 }

@@ -435,38 +435,27 @@ fun NewPanelButton(
     onClick: (() -> Unit)?,
     @DrawableRes iconRes: Int? = null
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 6.dp)
-            .clip(RoundedCornerShape(5.dp))
-            .background(color.copy(alpha = if (active) 0.12f else 0.05f))
-            .border(1.dp, color.copy(alpha = if (active) 0.50f else 0.18f), RoundedCornerShape(5.dp))
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .padding(vertical = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        val textColor = color.copy(alpha = if (active) 1f else 0.38f)
-        if (iconRes != null) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Image(painterResource(iconRes), contentDescription = null,
-                    modifier = Modifier.size(10.dp).alpha(if (active) 1f else 0.38f))
-                Text(label, color = textColor, fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-            }
-        } else {
-            Text(
-                label,
-                color         = textColor,
-                fontSize      = 9.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 0.8.sp,
-                textAlign     = TextAlign.Center
-            )
-        }
+    if (iconRes != null) {
+        PlainButtonWithIcon(
+            text      = label,
+            iconRes   = iconRes,
+            modifier  = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            textColor = color.copy(alpha = if (active) 1f else 0.38f),
+            fontSize  = 9.sp,
+            enabled   = active && onClick != null,
+            paddingV  = 6.dp,
+            onClick   = { onClick?.invoke() }
+        )
+    } else {
+        PlainButton(
+            text      = label,
+            modifier  = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            textColor = color.copy(alpha = if (active) 1f else 0.38f),
+            fontSize  = 9.sp,
+            enabled   = active && onClick != null,
+            paddingV  = 6.dp,
+            onClick   = { onClick?.invoke() }
+        )
     }
 }
 

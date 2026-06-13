@@ -1,18 +1,15 @@
 package com.example.termiti
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -93,15 +90,14 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color.White.copy(alpha = 0.07f))
-                        .clickable { onBack() }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text("← Zpět", color = LbMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+                PlainButton(
+                    text      = "← Zpět",
+                    textColor = LbMuted,
+                    fontSize  = 10.sp,
+                    paddingH  = 10.dp,
+                    paddingV  = 5.dp,
+                    onClick   = onBack
+                )
                 Text(
                     "🏆 ŽEBŘÍČEK",
                     color         = LbGold,
@@ -118,16 +114,14 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                     )
                 }
                 // Refresh
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(LbTeal.copy(alpha = 0.1f))
-                        .border(1.dp, LbTeal.copy(alpha = 0.35f), RoundedCornerShape(6.dp))
-                        .clickable { refreshTick++ }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text("🔄", fontSize = 12.sp)
-                }
+                PlainButton(
+                    text     = "🔄",
+                    textColor = LbTeal,
+                    fontSize  = 12.sp,
+                    paddingH  = 10.dp,
+                    paddingV  = 5.dp,
+                    onClick   = { refreshTick++ }
+                )
             }
 
             // ── Přepínač módů ─────────────────────────────────────────────────
@@ -167,16 +161,14 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                                 textAlign = TextAlign.Center
                             )
                             Spacer(Modifier.height(16.dp))
-                            Box(
-                                Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(LbTeal.copy(alpha = 0.12f))
-                                    .border(1.dp, LbTeal.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                    .clickable { refreshTick++ }
-                                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                            ) {
-                                Text("🔄 Zkusit znovu", color = LbTeal, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
+                            PlainButton(
+                                text      = "🔄 Zkusit znovu",
+                                textColor = LbTeal,
+                                fontSize  = 11.sp,
+                                paddingH  = 20.dp,
+                                paddingV  = 8.dp,
+                                onClick   = { refreshTick++ }
+                            )
                         }
                     }
                 }
@@ -308,21 +300,16 @@ private fun PlayerRow(player: LeaderboardPlayer) {
 @Composable
 private fun ModeChip(label: String, mode: String, selected: String, onClick: (String) -> Unit) {
     val active = mode == selected
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (active) LbTeal.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.04f))
-            .border(1.dp, if (active) LbTeal.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
-            .clickable { onClick(mode) }
-            .padding(horizontal = 14.dp, vertical = 5.dp)
-    ) {
-        Text(
-            label,
-            color      = if (active) LbTeal else LbMuted,
-            fontSize   = 10.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-        )
-    }
+    PlainButton(
+        text      = label,
+        textColor = if (active) LbTeal else LbMuted,
+        fontSize  = 10.sp,
+        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+        selected  = active,
+        paddingH  = 14.dp,
+        paddingV  = 5.dp,
+        onClick   = { onClick(mode) }
+    )
 }
 
 // ─── HTTP fetch ───────────────────────────────────────────────────────────────

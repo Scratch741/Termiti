@@ -193,22 +193,13 @@ private fun ResultButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(accent.copy(alpha = 0.10f))
-            .border(1.dp, accent.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
-            .clickable { SoundManager.playMenuTap(); onClick() }
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            label,
-            color = CrText,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            textAlign = TextAlign.Center
-        )
-    }
+    PlainButton(
+        text      = label,
+        modifier  = modifier,
+        textColor = CrText,
+        fontSize  = 13.sp,
+        paddingH  = 20.dp,
+        paddingV  = 14.dp,
+        onClick   = onClick
+    )
 }

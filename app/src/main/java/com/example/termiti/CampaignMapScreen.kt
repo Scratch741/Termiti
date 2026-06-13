@@ -42,18 +42,15 @@ fun CampaignMapScreen(
             .background(Brush.verticalGradient(listOf(CmBgDeep, CmBgPanel, CmBgDeep)))
     ) {
         // ── Zpět ─────────────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clip(RoundedCornerShape(8.dp))
-                .background(CmBgPanel)
-                .border(1.dp, CmMuted.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { SoundManager.playMenuTap(); onBack() }
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text("← Zpět", color = CmMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
+        PlainButton(
+            text      = "← Zpět",
+            modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
+            textColor = CmMuted,
+            fontSize  = 12.sp,
+            paddingH  = 14.dp,
+            paddingV  = 8.dp,
+            onClick   = onBack
+        )
 
         // ── Obsah ─────────────────────────────────────────────────────────────
         Row(
