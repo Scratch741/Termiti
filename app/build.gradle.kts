@@ -29,13 +29,16 @@ android {
     val props = Properties().apply {
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
     }
+    val keystorePath = props["KEYSTORE_PATH"] as? String
 
-    signingConfigs {
-        create("release") {
-            storeFile     = file(props["KEYSTORE_PATH"] as? String ?: "")
-            storePassword = props["KEYSTORE_PASSWORD"] as? String ?: ""
-            keyAlias      = props["KEY_ALIAS"]         as? String ?: ""
-            keyPassword   = props["KEY_PASSWORD"]      as? String ?: ""
+    if (keystorePath != null) {
+        signingConfigs {
+            create("release") {
+                storeFile     = file(keystorePath)
+                storePassword = props["KEYSTORE_PASSWORD"] as? String ?: ""
+                keyAlias      = props["KEY_ALIAS"]         as? String ?: ""
+                keyPassword   = props["KEY_PASSWORD"]      as? String ?: ""
+            }
         }
     }
 
@@ -46,7 +49,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             applicationIdSuffix = ".debug"
