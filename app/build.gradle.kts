@@ -62,12 +62,15 @@ android {
     }
 }
 
-afterEvaluate {
-    (android as com.android.build.gradle.AppExtension).applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
-                .outputFileName = "darkmage-${variant.versionName}-${variant.buildType.name}.apk"
-        }
+tasks.withType<com.android.build.gradle.tasks.PackageApplication>().configureEach {
+    val buildTypeName = if (name.endsWith("Release")) "release" else "debug"
+    doLast {
+        val ver = android.defaultConfig.versionName ?: "0.0.0"
+        outputDirectory.get().asFile
+            .listFiles { f -> f.extension == "apk" }
+            ?.forEach { apk ->
+                apk.renameTo(File(apk.parent, "darkmage-$ver-$buildTypeName.apk"))
+            }
     }
 }
 
