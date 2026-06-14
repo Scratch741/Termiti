@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -24,8 +26,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    val props = java.util.Properties().also { p ->
-        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { p.load(it) }
+    val props = Properties().apply {
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
     }
 
     signingConfigs {
@@ -50,13 +52,6 @@ android {
             applicationIdSuffix = ".debug"
         }
     }
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.all {
-            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "darkmage-${variant.versionName}-${variant.buildType.name}.apk"
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -64,6 +59,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val ver = output.versionName.orNull ?: "0.0.0"
+            output.outputFileName.set("darkmage-$ver-${variant.buildType}.apk")
+        }
     }
 }
 
