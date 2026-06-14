@@ -62,11 +62,11 @@ android {
     }
 }
 
-androidComponents {
-    onVariants { variant ->
+afterEvaluate {
+    android.applicationVariants.forEach { variant ->
         variant.outputs.forEach { output ->
-            val ver = output.versionName.orNull ?: "0.0.0"
-            output.outputFileName.set("darkmage-$ver-${variant.buildType}.apk")
+            (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
+                .outputFileName = "darkmage-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 }
