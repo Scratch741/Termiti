@@ -63,8 +63,8 @@ android {
 }
 
 afterEvaluate {
-    android.applicationVariants.forEach { variant ->
-        variant.outputs.forEach { output ->
+    (android as com.android.build.gradle.AppExtension).applicationVariants.all { variant ->
+        variant.outputs.all { output ->
             (output as com.android.build.gradle.internal.api.BaseVariantOutputImpl)
                 .outputFileName = "darkmage-${variant.versionName}-${variant.buildType.name}.apk"
         }
