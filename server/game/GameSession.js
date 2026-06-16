@@ -181,6 +181,8 @@ class GameSession {
 
     // Log of last actions (sent to both clients each state push)
     this.lastLog = [];
+    // Per-side private log (sent only to that player – hides decision choices from opponent)
+    this.privateLog = { A: [], B: [] };
 
     // Strukturovaný server-side log (soubor na disk)
     this._logger = new GameLogger(gameId);
@@ -971,7 +973,7 @@ class GameSession {
             if (costReduction > 0) newCard.costModifier = -costReduction;
             self.hand.push(newCard);
             const discountStr = costReduction > 0 ? ` (−${costReduction})` : '';
-            this._log(`${this.name[side]} přidal ${tmpl.name}${discountStr} do ruky.`);
+            this._logFor(side, `${this.name[side]} přidal ${tmpl.name}${discountStr} do ruky.`);
           }
         }
         break;
@@ -983,7 +985,7 @@ class GameSession {
             const [card] = self.discardPile.splice(idx, 1);
             if (self.hand.length < maxH) {
               self.hand.push({ ...card, isGenerated: true });
-              this._log(`${this.name[side]} vrátil ${card.name} z odhazovacího balíčku.`);
+              this._logFor(side, `${this.name[side]} vrátil ${card.name} z odhazovacího balíčku.`);
             }
           }
         }
@@ -997,7 +999,7 @@ class GameSession {
             const copy = { ...orig, id: `${orig.baseId || orig.id}_copy_${Date.now()}`, isGenerated: true };
             if (self.hand.length < maxH) {
               self.hand.push(copy);
-              this._log(`${this.name[side]} zkopíroval z balíčku: ${orig.name}.`);
+              this._logFor(side, `${this.name[side]} zkopíroval z balíčku: ${orig.name}.`);
             }
           }
         }
@@ -1010,7 +1012,7 @@ class GameSession {
             const orig = self.deck.splice(idx, 1)[0]; // pravý draw – karta opustí balíček
             if (self.hand.length < maxH) {
               self.hand.push(orig);
-              this._log(`${this.name[side]} vytáhl z balíčku: ${orig.name}.`);
+              this._logFor(side, `${this.name[side]} vytáhl z balíčku: ${orig.name}.`);
             } else {
               self.discardPile.push(orig);
             }
@@ -1024,7 +1026,7 @@ class GameSession {
           if (tmpl && self.hand.length < maxH) {
             const newCard = { ...makeInstance(tmpl), isGenerated: true };
             self.hand.push(newCard);
-            this._log(`${this.name[side]} si vybral důl: ${tmpl.name}.`);
+            this._logFor(side, `${this.name[side]} si vybral důl: ${tmpl.name}.`);
           }
         }
         break;
@@ -1035,7 +1037,7 @@ class GameSession {
           if (tmpl && self.hand.length < maxH) {
             const newCard = { ...makeInstance(tmpl), isGenerated: true };
             self.hand.push(newCard);
-            this._log(`${this.name[side]} si zvolil Magického žolíka: ${tmpl.name}.`);
+            this._logFor(side, `${this.name[side]} si zvolil Magického žolíka: ${tmpl.name}.`);
           }
         }
         break;
@@ -1070,7 +1072,7 @@ class GameSession {
         const chosen = (effect.options || []).find(o => o.resType === chosenId);
         if (chosen) {
           self.resources[chosen.resType] = Math.min(999, (self.resources[chosen.resType] || 0) + chosen.amount);
-          this._log(`${this.name[side]} si vybral ${chosen.amount}× ${chosen.resType.toLowerCase()}.`);
+          this._logFor(side, `${this.name[side]} si vybral ${chosen.amount}× ${chosen.resType.toLowerCase()}.`);
         }
         break;
       }
@@ -1431,7 +1433,7 @@ class GameSession {
       oppState:     oppStatePayload,
       myWinTarget:  this.winTarget[mySide],
       oppWinTarget: this.winTarget[oppSide],
-      log:              [...this.lastLog],
+      log:              [...this.lastLog, ...this.privateLog[side]],
       lastPlayedCard:   this.lastPlayedCard,
       lastPlayedAction: this.lastPlayedAction,
       lastPlayedByMe:   this.lastPlayedBySide === side,
@@ -1489,11 +1491,17 @@ class GameSession {
     this._send('A', stateA);
     this._send('B', stateB);
     this.lastLog = [];
+    this.privateLog = { A: [], B: [] };
     // lastPlayedCard se NEresetuje – zůstane viditelný, dokud ho nenahradí nová karta
   }
 
   _log(msg) {
     this.lastLog.push(msg);
+  }
+
+  // Přidá zprávu pouze do logu daného hráče – soupeř ji nevidí
+  _logFor(side, msg) {
+    this.privateLog[side].push(msg);
   }
 
   _send(side, obj) {
