@@ -1,6 +1,6 @@
 ﻿package com.example.termiti
 
-
+import com.example.termiti.R
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -726,14 +726,16 @@ fun AiHandRow(
                     }
                 }
             }
-            Box(
-                Modifier.clip(RoundedCornerShape(5.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .border(1.dp, Gold.copy(alpha = 0.2f), RoundedCornerShape(5.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text("Kolo $currentTurn", color = Gold.copy(alpha = 0.7f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButton(
+                text      = "Kolo $currentTurn",
+                buttonRes = R.drawable.plain_button,
+                modifier  = Modifier.size(width = 72.dp, height = 34.dp),
+                textColor = Gold.copy(alpha = 0.85f),
+                fontSize  = 11.sp,
+                lighten   = 0.05f,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+            )
         }
     }
 }

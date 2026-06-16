@@ -13,6 +13,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -44,6 +46,7 @@ fun PlainButton(
     paddingH: Dp = 10.dp,
     paddingV: Dp = 5.dp,
     @DrawableRes buttonRes: Int = R.drawable.plain_button,
+    lighten: Float = 0f,
     onClick: () -> Unit = {}
 ) {
     val alpha = when {
@@ -62,11 +65,12 @@ fun PlainButton(
         }
     } else Modifier
 
+    val cf = if (lighten > 0f) ColorFilter.tint(Color.White.copy(alpha = lighten), BlendMode.Screen) else null
     Box(
         modifier = modifier
             .alpha(alpha)
             .then(outlineMod)
-            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds)
+            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds, colorFilter = cf)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center
@@ -96,6 +100,7 @@ fun PlainButtonWithIcon(
     paddingH: Dp = 10.dp,
     paddingV: Dp = 5.dp,
     @DrawableRes buttonRes: Int = R.drawable.plain_button,
+    lighten: Float = 0f,
     onClick: () -> Unit = {}
 ) {
     val alpha = when {
@@ -114,11 +119,12 @@ fun PlainButtonWithIcon(
         }
     } else Modifier
 
+    val cf = if (lighten > 0f) ColorFilter.tint(Color.White.copy(alpha = lighten), BlendMode.Screen) else null
     Box(
         modifier = modifier
             .alpha(alpha)
             .then(outlineMod)
-            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds)
+            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds, colorFilter = cf)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center

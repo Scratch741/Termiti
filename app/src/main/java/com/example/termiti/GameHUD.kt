@@ -1,6 +1,6 @@
 ﻿package com.example.termiti
 
-
+import com.example.termiti.R
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -155,27 +155,29 @@ fun NewTopBar(
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
 
             if (playerLevel >= 0) {
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Gold.copy(alpha = 0.15f))
-                        .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) { Text("Lv.$playerLevel", color = Gold, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                PlainButton(
+                    text      = "Lv.$playerLevel",
+                    buttonRes = R.drawable.plain_button,
+                    modifier  = Modifier.size(width = 52.dp, height = 34.dp),
+                    textColor = Gold,
+                    fontSize  = 11.sp,
+                    lighten   = 0.05f,
+                    paddingH  = 0.dp,
+                    paddingV  = 0.dp,
+                )
             }
 
-            Row(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.Black.copy(alpha = 0.35f))
-                    .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 5.dp, vertical = 2.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text("🂠", fontSize = 11.sp)
-                Text("$playerDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
+            PlainButtonWithIcon(
+                text      = "$playerDeckSize",
+                iconRes   = R.drawable.card_icon,
+                buttonRes = R.drawable.plain_button,
+                modifier  = Modifier.size(width = 52.dp, height = 34.dp),
+                textColor = TextPrimary,
+                fontSize  = 11.sp,
+                lighten   = 0.05f,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+            )
             if (playerPassives.isNotEmpty()) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -203,15 +205,16 @@ fun NewTopBar(
 
         // ── Střed ─────────────────────────────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(Gold.copy(alpha = 0.10f))
-                    .border(1.dp, Gold.copy(alpha = 0.35f), RoundedCornerShape(5.dp))
-                    .padding(horizontal = 9.dp, vertical = 2.dp)
-            ) {
-                Text("${s.round} $currentTurn", color = Gold, fontSize = 10.sp, letterSpacing = 1.sp)
-            }
+            PlainButton(
+                text      = "${s.round} $currentTurn",
+                buttonRes = R.drawable.plain_button,
+                modifier  = Modifier.size(width = 72.dp, height = 34.dp),
+                textColor = Gold,
+                fontSize  = 11.sp,
+                lighten   = 0.05f,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+            )
 
             if (arenaWins >= 0) {
                 Box(
@@ -263,27 +266,29 @@ fun NewTopBar(
                     }
                 }
             }
-            Row(
-                Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.Black.copy(alpha = 0.35f))
-                    .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 5.dp, vertical = 2.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text("$aiDeckSize", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text("🂠", fontSize = 11.sp)
-            }
+            PlainButtonWithIcon(
+                text      = "$aiDeckSize",
+                iconRes   = R.drawable.card_icon,
+                buttonRes = R.drawable.plain_button,
+                modifier  = Modifier.size(width = 52.dp, height = 34.dp),
+                textColor = TextPrimary,
+                fontSize  = 11.sp,
+                lighten   = 0.05f,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+            )
 
             if (opponentLevel >= 0) {
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Crimson.copy(alpha = 0.15f))
-                        .border(1.dp, Crimson.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) { Text("Lv.$opponentLevel", color = Crimson, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                PlainButton(
+                    text      = "Lv.$opponentLevel",
+                    buttonRes = R.drawable.plain_button,
+                    modifier  = Modifier.size(width = 52.dp, height = 34.dp),
+                    textColor = Crimson,
+                    fontSize  = 11.sp,
+                    lighten   = 0.05f,
+                    paddingH  = 0.dp,
+                    paddingV  = 0.dp,
+                )
             }
 
             Text(opponentLabel, color = TextPrimary, fontSize = 13.sp,

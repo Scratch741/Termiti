@@ -934,10 +934,26 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val sharedSuperDeck: List<Card>? = if (superRandom) superRandomDeck() else null
 
         val playerCards = when {
-            superRandom              -> sharedSuperDeck!!
-            randomDeck               -> balancedDeck()
-            activeDeck.isValid       -> activeDeck.toCardList(allCards)
-            else                     -> balancedDeck()
+            superRandom  -> sharedSuperDeck!!
+            randomDeck   -> balancedDeck()
+            else         -> {
+                val base = activeDeck.toCardList(allCards)
+                val missing = 30 - base.size
+                if (missing <= 0) base
+                else {
+                    // Doplň chybějící karty náhodnými vlastněnými kartami.
+                    // canAdd = maxCopies − kopie už v balíčku, aby se nepřekročil rarity limit.
+                    val baseCounts = base.groupingBy { it.id }.eachCount()
+                    val ownedPool = allCards
+                        .filter { !it.isPlaceholder && CardCollectionManager.usableCopies(it) > 0 }
+                        .flatMap { card ->
+                            val canAdd = card.rarity.maxCopies - (baseCounts[card.id] ?: 0)
+                            if (canAdd > 0) List(canAdd) { card } else emptyList()
+                        }
+                        .shuffled()
+                    base + ownedPool.take(missing)
+                }
+            }
         }.withUniqueIds()   // ještě NEZAMÍCHÁNO – shuffle se provede uvnitř also{} níže
 
         // ── Pasivní schopnosti hráče ──────────────────────────────────────────

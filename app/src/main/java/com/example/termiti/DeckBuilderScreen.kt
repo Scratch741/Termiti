@@ -473,15 +473,10 @@ private fun DeckSlotChip(
         else                  -> TextMuted.copy(alpha = 0.50f)
     }
 
-    PlainButton(
-        text      = "${index + 1}",
-        modifier  = Modifier.size(30.dp),
-        textColor = textColor,
-        fontSize  = 12.sp,
-        selected  = isEditing || isActive,
-        paddingH  = 0.dp,
-        paddingV  = 0.dp,
-        onClick   = onClick
+    CostChip(
+        label  = "${index + 1}",
+        active = isEditing || isActive,
+        onClick = onClick
     )
 }
 
@@ -544,6 +539,44 @@ private fun FilterBar(
     }
 }
 
+// ─── Cost Chip ────────────────────────────────────────────────────────────────
+@Composable
+private fun CostChip(label: String, active: Boolean, width: androidx.compose.ui.unit.Dp = 31.dp, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(width = width, height = width)
+            .alpha(if (active) 1f else 0.5f)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { SoundManager.playMenuTap(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter      = painterResource(R.drawable.plain_button_mini),
+            contentDescription = null,
+            modifier     = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+        Text(
+            text       = label,
+            color      = if (active) Gold else TextMuted,
+            fontSize   = 9.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+            textAlign  = TextAlign.Center
+        )
+        if (active) {
+            androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                drawRoundRect(
+                    color        = ChaosOrange,
+                    style        = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+                )
+            }
+        }
+    }
+}
+
 // ─── Mana Cost Filter Bar ─────────────────────────────────────────────────────
 @Composable
 private fun ManaCostFilterBar(
@@ -573,18 +606,7 @@ private fun ManaCostFilterBar(
         (0..7).forEach { cost ->
             val label  = if (cost == 7) "7+" else "$cost"
             val active = filterCost == cost
-            PlainButton(
-                text         = label,
-                modifier     = Modifier.width(31.dp).heightIn(max = 22.dp),
-                textColor    = if (active) Gold else TextMuted,
-                fontSize     = 9.sp,
-                fontWeight   = if (active) FontWeight.Bold else FontWeight.Normal,
-                selected     = active,
-                outlineColor = ChaosOrange,
-                paddingH     = 0.dp,
-                paddingV     = 2.dp,
-                onClick      = { onCostFilter(cost) }
-            )
+            CostChip(label = label, active = active) { onCostFilter(cost) }
         }
         Spacer(Modifier.weight(1f))
         // Hledání
@@ -1182,7 +1204,7 @@ private fun CatalogCardItem(
         .clickable { onPreview() }
 
         // ── Texturovaná karta ─────────────────────────────────────────────────
-        Box(itemModifier.alpha(if (isLocked) 0.35f else 1f)) {
+        Box(itemModifier) {
             Column(
                 Modifier
                     .background(Color(0xFF0F0C14))
@@ -1212,7 +1234,7 @@ private fun CatalogCardItem(
             // Zámek overlay
             if (isLocked) {
                 Box(
-                    Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.45f)),
+                    Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.65f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(painterResource(R.drawable.lock_icon), contentDescription = null, modifier = Modifier.size(22.dp))
@@ -1299,16 +1321,7 @@ private fun CopyDots(
 
 @Composable
 private fun CountBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
-    PlainButton(
-        text      = label,
-        modifier  = Modifier.size(22.dp),
-        textColor = if (enabled) TextPrimary else TextMuted.copy(alpha = 0.25f),
-        fontSize  = 13.sp,
-        enabled   = enabled,
-        paddingH  = 0.dp,
-        paddingV  = 0.dp,
-        onClick   = onClick
-    )
+    CostChip(label = label, active = enabled, width = 26.dp, onClick = { if (enabled) onClick() })
 }
 
 // ─── Deck Panel ───────────────────────────────────────────────────────────────
