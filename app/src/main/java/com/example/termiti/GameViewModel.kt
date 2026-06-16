@@ -1086,7 +1086,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.hand.remove(card)
         player.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isPlayer = true)
-        addCardLog("Hráč", card, CardAction.PLAYED, isMe = true)
         playSoundForCard(card)
 
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
@@ -1551,7 +1550,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
                         revealedAiCard.value    = aiCard
                         revealedAiCardIdx.value = aiCardHandIdx.takeIf { it >= 0 }
-                        addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
                         playSoundForCard(aiCard)
 
                         if (aiCard.isCombo || aiNextComboBoost) {

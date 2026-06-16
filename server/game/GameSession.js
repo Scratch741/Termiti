@@ -619,6 +619,7 @@ class GameSession {
           action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
         this._send(oppSideForDrawBurn, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
           action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
+        this._log(`${this.name[side]} přetáhl – ${bc.name} shořela.`);
       }
       const _drawTrapOppSide = side === 'A' ? 'B' : 'A';
       for (const trap of drawTraps) {
@@ -707,8 +708,6 @@ class GameSession {
     if (hasAOD) {
       console.log(`[AOD] game=${this.gameId} card=${card.baseId} side=${side} oppDeckSize=${opp.deck.length}`);
     }
-
-    this._log(`${this.name[side]} zahrál ${card.name}`);
 
     // Zaloguj akci na disk
     this._logger.logAction({
@@ -1220,6 +1219,7 @@ class GameSession {
         action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
       this._send(oppSideForOverdraw, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
         action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
+      this._log(`${this.name[this.activeSide]} přetáhl – ${bc.name} shořela.`);
     }
     // Pasty: injektuj placeholder C38, reportuj klientovi (oběma stranám), zkontroluj výhru
     const oppSideForTrap = this.activeSide === 'A' ? 'B' : 'A';
@@ -1250,7 +1250,7 @@ class GameSession {
       if (winner !== null) { this._endGame(winner); return; }
     }
 
-    this._log(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
+    this._logFirst(`Tah ${this.turnNumber}: ${this.name[this.activeSide]}`);
 
     // Limit kol: po dosažení 99. kola rozhoduje výška hradu
     if (this.turnNumber >= 99) {
@@ -1497,6 +1497,11 @@ class GameSession {
 
   _log(msg) {
     this.lastLog.push(msg);
+  }
+
+  // Prepends msg so it always appears at the bottom in the client's reversed (newest-first) display
+  _logFirst(msg) {
+    this.lastLog.unshift(msg);
   }
 
   // Přidá zprávu pouze do logu daného hráče – soupeř ji nevidí
