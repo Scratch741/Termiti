@@ -555,17 +555,17 @@ function renderEnd() {
 function renderCard(fr) {
   // Restore action-sec if end screen replaced it
   if (!$('pc-wrap')) {
-    $('action-sec').innerHTML = `
-      <div class="played-card" id="pc-wrap">
-        <img id="pc-img" src="" alt="">
-        <div class="card-overlay"><div class="cn" id="pc-name"></div><div class="cc" id="pc-cost"></div></div>
-        <div class="rarity-badge" id="pc-rarity"></div>
-      </div>
-      <div class="ev-info">
-        <div class="ev-actor" id="ev-actor"></div>
-        <div id="ev-action"></div>
-        <div class="extras" id="ev-ext"></div>
-      </div>`;
+    $('action-sec').innerHTML =
+      '<div class="played-card" id="pc-wrap">'
+      + '<img id="pc-img" src="" alt="">'
+      + '<div class="card-overlay"><div class="cn" id="pc-name"></div><div class="cc" id="pc-cost"></div></div>'
+      + '<div class="rarity-badge" id="pc-rarity"></div>'
+      + '</div>'
+      + '<div class="ev-info">'
+      + '<div class="ev-actor" id="ev-actor"></div>'
+      + '<div id="ev-action"></div>'
+      + '<div class="extras" id="ev-ext"></div>'
+      + '</div>';
   }
   $('pc-wrap').style.display = '';
   const cid   = fr.cardBaseId || fr.cardId || '';
