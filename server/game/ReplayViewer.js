@@ -168,143 +168,167 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
      height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
-#hdr{background:#13101a;border-bottom:1px solid #251f30;padding:8px 16px;
-     display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
-#hdr h1{font-size:12px;color:#d4a843;letter-spacing:2px}
-.hname{font-size:12px;font-weight:bold;padding:3px 10px;border-radius:5px;
-       border:1px solid #2a2430;background:#1a1320}
-.hname-a{color:#3dbfad;border-color:#3dbfad44}
-.hname-b{color:#e8784d;border-color:#e8784d44}
-.vs{color:#7a6e5f;font-size:11px}
-.badge{padding:2px 9px;border-radius:10px;font-size:11px;border:1px solid;font-weight:600}
+#hdr{background:#13101a;border-bottom:1px solid #251f30;padding:6px 16px;
+     display:flex;align-items:center;gap:10px;flex-shrink:0}
+#hdr h1{font-size:11px;color:#d4a843;letter-spacing:2px;white-space:nowrap}
+.hname{font-size:13px;font-weight:bold;padding:3px 10px;border-radius:5px;
+       border:1px solid #2a2430;background:#1a1320;white-space:nowrap}
+.hname-a{color:#3dbfad;border-color:#3dbfad55}
+.hname-b{color:#e8784d;border-color:#e8784d55}
+.hvs{color:#5a5060;font-size:11px;flex-shrink:0}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid;font-weight:600}
 .badge-win{background:#d4a84322;border-color:#d4a84355;color:#d4a843}
-.badge-mode{background:#3dbfad22;border-color:#3dbfad55;color:#3dbfad}
+.badge-mode{background:#2a2430;border-color:#3a3440;color:#9a8ea0;font-size:10px}
 .flex1{flex:1}
-.dur{font-size:11px;color:#7a6e5f}
-#back{color:#3dbfad;text-decoration:none;font-size:11px}#back:hover{text-decoration:underline}
+.dur{font-size:11px;color:#6a6070;white-space:nowrap}
+#back{color:#3dbfad;text-decoration:none;font-size:11px;white-space:nowrap}
+#back:hover{text-decoration:underline}
 
 /* ── Main layout ─────────────────────────────────────────────────────────── */
-#main{display:flex;flex:1;overflow:hidden}
+#main{display:flex;flex:1;overflow:hidden;min-height:0}
 
 /* ── Side panels ─────────────────────────────────────────────────────────── */
-.panel{width:195px;flex-shrink:0;background:#0f0c14;overflow-y:auto;
+.panel{width:210px;flex-shrink:0;background:#0d0b12;overflow-y:auto;
        display:flex;flex-direction:column}
-.panel-a{border-right:1px solid #1e1a2a}
-.panel-b{border-left:1px solid #1e1a2a}
-.panel-hdr{padding:8px 10px;background:#13101a;border-bottom:1px solid #1e1a2a;
-           font-size:12px;font-weight:bold;text-align:center;
-           overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.panel-hdr-a{color:#3dbfad}.panel-hdr-b{color:#e8784d}
+.panel-a{border-right:2px solid #1a1625}
+.panel-b{border-left:2px solid #1a1625}
 
-.stats-block{padding:8px 10px;border-bottom:1px solid #1a1625;display:flex;flex-direction:column;gap:5px}
-.stat-row{display:flex;align-items:center;gap:5px}
-.stat-ico{font-size:12px;width:18px;text-align:center;flex-shrink:0}
-.bar-bg{flex:1;height:6px;background:#1e1a2a;border-radius:3px;overflow:hidden}
-.bar{height:100%;border-radius:3px;transition:width .3s,background .3s}
-.stat-val{font-size:10px;color:#c8b89a;width:44px;text-align:right;flex-shrink:0}
+/* Player header */
+.p-name{padding:10px 12px 8px;font-size:14px;font-weight:700;
+        border-bottom:1px solid #1a1625;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-name-a{color:#3dbfad}.p-name-b{color:#e8784d}
 
-.res-block{padding:6px 10px;border-bottom:1px solid #1a1625}
-.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
-.res-item{display:flex;align-items:center;gap:3px;background:#13101a;border-radius:4px;padding:3px 5px}
-.ri{font-size:11px;width:15px;text-align:center}
-.rv{font-size:11px;font-weight:bold}
-.rm{font-size:9px;color:#5a5060;margin-left:1px}
-.res-MAGIC .rv{color:#a855f7}.res-ATTACK .rv{color:#ef4444}
-.res-STONES .rv{color:#94a3b8}.res-CHAOS .rv{color:#d4a843}
+/* Castle HP – big display */
+.hp-block{padding:10px 12px 8px;border-bottom:1px solid #1a1625}
+.hp-row{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.hp-icon{font-size:16px}
+.hp-num{font-size:26px;font-weight:800;line-height:1}
+.hp-num-a{color:#3dbfad}.hp-num-b{color:#e8784d}
+.hp-frac{font-size:12px;color:#5a5060}
+.bar-bg{height:5px;background:#1a1625;border-radius:3px;overflow:hidden;margin-bottom:5px}
+.bar{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.wall-row{display:flex;align-items:center;gap:6px}
+.wall-lbl{font-size:11px;color:#7a7090}
+.wall-num{font-size:13px;font-weight:600;color:#8aa8cc}
 
-.hand-block{padding:6px 10px;flex:1}
-.sect-lbl{font-size:9px;color:#7a6e5f;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
-.deck-badges{display:flex;gap:4px;margin-bottom:6px}
-.dbadge{background:#1a1320;border:1px solid #2a2430;border-radius:3px;padding:1px 5px;font-size:9px;color:#7a6e5f}
-.hand-cards{display:flex;flex-direction:column;gap:3px}
-.hcard{display:flex;align-items:center;gap:5px;background:#13101a;border-radius:5px;
-       padding:4px 6px;border-left:2px solid #2a2430;overflow:hidden}
-.hcard.MAGIC{border-left-color:#a855f7}.hcard.ATTACK{border-left-color:#ef4444}
-.hcard.STONES{border-left-color:#94a3b8}.hcard.CHAOS{border-left-color:#d4a843}
-.hcard-art{width:22px;height:30px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#1e1a2a}
-.hcard-name{font-size:9px;color:#ede0c4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hcard-cost{font-size:8px;color:#c8b89a}
+/* Resources */
+.res-block{padding:8px 12px;border-bottom:1px solid #1a1625}
+.res-title{font-size:9px;color:#5a5060;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.res-item{display:flex;align-items:center;gap:4px;border-radius:5px;padding:4px 6px;border:1px solid}
+.res-MAGIC{background:#1a0e28;border-color:#4a2070}
+.res-ATTACK{background:#1e0c0c;border-color:#6a2020}
+.res-STONES{background:#0e1420;border-color:#2a3a50}
+.res-CHAOS{background:#1a1400;border-color:#4a3a00}
+.ri{font-size:13px;flex-shrink:0}
+.rv{font-size:14px;font-weight:700}
+.res-MAGIC .rv{color:#c084fc}
+.res-ATTACK .rv{color:#f87171}
+.res-STONES .rv{color:#93c5fd}
+.res-CHAOS .rv{color:#fbbf24}
+.rm{font-size:10px;color:#6a6070;margin-left:auto}
+
+/* Hand */
+.hand-block{padding:8px 12px;flex:1;display:flex;flex-direction:column;min-height:0}
+.hand-meta{display:flex;gap:6px;margin-bottom:7px}
+.hmeta-badge{background:#13101a;border:1px solid #252030;border-radius:4px;
+             padding:2px 7px;font-size:10px;color:#8a8090}
+.hand-title{font-size:9px;color:#5a5060;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.hand-cards{display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.hcard{display:flex;align-items:center;gap:6px;border-radius:6px;padding:4px 7px;
+       border-left:3px solid #2a2430;background:#13101a;overflow:hidden}
+.hcard.MAGIC{border-left-color:#a855f7;background:#140d20}
+.hcard.ATTACK{border-left-color:#ef4444;background:#180c0c}
+.hcard.STONES{border-left-color:#6b89a8;background:#0d1218}
+.hcard.CHAOS{border-left-color:#d4a843;background:#141000}
+.hcard-art{width:24px;height:34px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#1e1a2a}
+.hcard-name{font-size:10px;color:#d0c0a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.hcard-cost{font-size:10px;color:#8a8090;flex-shrink:0}
 
 /* ── Center ──────────────────────────────────────────────────────────────── */
-#ctr{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px;overflow-y:auto;min-width:0}
+#ctr{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 
-#played-area{display:flex;gap:14px;align-items:flex-start;flex-shrink:0}
+/* Card + action section */
+#action-sec{display:flex;gap:14px;padding:14px;align-items:flex-start;flex-shrink:0}
 
-/* Card visual */
-.played-card{position:relative;width:115px;flex-shrink:0}
-.played-card img{width:115px;height:161px;border-radius:9px;object-fit:cover;
+.played-card{position:relative;width:126px;flex-shrink:0}
+.played-card img{width:126px;height:176px;border-radius:10px;object-fit:cover;
                  border:2px solid #3a3040;display:block;background:#1e1a2a;
-                 transition:border-color .3s}
+                 transition:border-color .3s,box-shadow .3s}
+.played-card img.glow-MAGIC{border-color:#a855f7;box-shadow:0 0 12px #a855f755}
+.played-card img.glow-ATTACK{border-color:#ef4444;box-shadow:0 0 12px #ef444455}
+.played-card img.glow-STONES{border-color:#6b89a8;box-shadow:0 0 12px #6b89a855}
+.played-card img.glow-CHAOS{border-color:#d4a843;box-shadow:0 0 12px #d4a84355}
 .card-overlay{position:absolute;bottom:0;left:0;right:0;
-              background:linear-gradient(transparent 30%,rgba(0,0,0,.9));
-              border-radius:0 0 8px 8px;padding:22px 7px 7px}
-.cn{font-size:11px;font-weight:bold;color:#fff;text-align:center;
-    text-shadow:0 1px 4px #000;line-height:1.2}
-.cc{display:flex;justify-content:center;margin-top:3px}
-.cost-badge{font-size:10px;padding:1px 8px;border-radius:6px;border:1px solid;font-weight:bold}
-.cost-MAGIC{background:#a855f722;border-color:#a855f766;color:#c084fc}
-.cost-ATTACK{background:#ef444422;border-color:#ef444466;color:#f87171}
-.cost-STONES{background:#94a3b822;border-color:#94a3b866;color:#cbd5e1}
-.cost-CHAOS{background:#d4a84322;border-color:#d4a84366;color:#fbbf24}
-.cost-NONE{background:#1e1a2a;border-color:#2a2430;color:#7a6e5f}
-.rarity-badge{position:absolute;top:6px;right:6px;font-size:8px;letter-spacing:.5px;
-              padding:1px 5px;border-radius:3px;font-weight:bold}
-.r-LEGENDARY{background:#d4a84399;color:#fff7e0}.r-EPIC{background:#a855f799;color:#f3e8ff}
-.r-RARE{background:#3b82f699;color:#dbeafe}.r-COMMON{display:none}
+              background:linear-gradient(transparent 25%,rgba(0,0,0,.92));
+              border-radius:0 0 9px 9px;padding:24px 8px 8px}
+.cn{font-size:12px;font-weight:700;color:#fff;text-align:center;
+    text-shadow:0 1px 6px #000;line-height:1.2}
+.cc{display:flex;justify-content:center;margin-top:4px}
+.cost-badge{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid;font-weight:700}
+.cost-MAGIC{background:#a855f733;border-color:#a855f788;color:#d8aaff}
+.cost-ATTACK{background:#ef444433;border-color:#ef444488;color:#fca5a5}
+.cost-STONES{background:#6b89a833;border-color:#6b89a888;color:#bfdbfe}
+.cost-CHAOS{background:#d4a84333;border-color:#d4a84388;color:#fde68a}
+.rarity-badge{position:absolute;top:7px;left:7px;font-size:8px;letter-spacing:.5px;
+              padding:2px 6px;border-radius:4px;font-weight:700}
+.r-LEGENDARY{background:#d4a843cc;color:#fff7e0}
+.r-EPIC{background:#a855f7cc;color:#f3e8ff}
+.r-RARE{background:#3b82f6cc;color:#dbeafe}
+.r-COMMON{display:none}
 
-/* Actor / action info */
-.ev-info{flex:1;min-width:0}
-.ev-actor{font-size:15px;font-weight:bold;margin-bottom:6px;color:#ede0c4}
-.ev-action-badge{display:inline-block;padding:4px 12px;border-radius:5px;
-                 font-size:12px;border:1px solid;margin-bottom:12px;font-weight:600}
-.action-play{background:#3dbfad33;border-color:#3dbfad88;color:#3dffd0}
-.action-discard{background:#7a6e5f33;border-color:#7a6e5f88;color:#c8b89a}
+/* Action info panel */
+.ev-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.ev-actor{font-size:18px;font-weight:800;color:#ede0c4}
+.ev-action-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;
+                 border-radius:6px;font-size:13px;border:1px solid;font-weight:600;
+                 align-self:flex-start}
+.action-play{background:#0d2520;border-color:#3dbfad88;color:#3dffd0}
+.action-discard{background:#1a1a20;border-color:#6a6070;color:#b0a090}
 
 .extras{display:flex;flex-direction:column;gap:5px}
-.ex{font-size:11px;padding:6px 10px;border-radius:6px;border:1px solid}
-.ex-lost{color:#f87171;background:#1a0d0d;border-color:#ef444433}
-.ex-decision{color:#c084fc;background:#110d18;border-color:#a855f733}
+.ex{font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid;line-height:1.4}
+.ex-lost{color:#fca5a5;background:#1a0a0a;border-color:#ef444444}
+.ex-decision{color:#d8aaff;background:#0e0a18;border-color:#a855f744}
 
-.end-card{background:#16120a;border:1px solid #d4a84333;border-radius:10px;
-          padding:32px;text-align:center;flex-shrink:0}
-.end-title{font-size:24px;font-weight:bold;color:#d4a843;margin-bottom:8px}
-.end-sub{color:#7a6e5f;font-size:13px}
+/* End screen */
+.end-card{margin:14px;background:#16120a;border:2px solid #d4a84333;border-radius:12px;
+          padding:36px;text-align:center}
+.end-title{font-size:28px;font-weight:800;color:#d4a843;margin-bottom:8px}
+.end-sub{color:#7a6e5f;font-size:14px}
 
-/* Mini log */
-#logbox{background:#111118;border:1px solid #2a2438;border-radius:8px;flex-shrink:0;
-        display:flex;flex-direction:column}
-#log-hdr{font-size:10px;font-weight:700;color:#d4a843;letter-spacing:1px;text-transform:uppercase;
-         padding:8px 12px 6px;border-bottom:1px solid #2a2438;flex-shrink:0}
-#loglist{flex:1;overflow-y:auto;max-height:150px}
-.li{display:block;font-size:12px;line-height:1.5;padding:4px 12px 4px 10px;
-    cursor:pointer;border-left:3px solid #333;color:#ddd;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li:hover{background:#1e1a2e;color:#fff}
-.li.cur{background:#1e1a2e;color:#fff;font-weight:700;border-left-width:4px}
-.li.liA{border-left-color:#3dbfad;color:#b8ffe8}
-.li.liB{border-left-color:#e8784d;color:#ffd0b8}
-.li.liE{border-left-color:#d4a843;color:#ffe8a0}
-.li.liA.cur,.li.liA:hover{color:#fff}
-.li.liB.cur,.li.liB:hover{color:#fff}
-.li.liE.cur,.li.liE:hover{color:#fff}
+/* ── Log panel ───────────────────────────────────────────────────────────── */
+#logbox{flex:1;background:#0a0810;border-top:2px solid #1a1625;
+        display:flex;flex-direction:column;min-height:0}
+#log-hdr{font-size:10px;font-weight:700;color:#d4a843;letter-spacing:1.5px;
+         text-transform:uppercase;padding:7px 14px 6px;border-bottom:1px solid #1a1625;
+         flex-shrink:0;background:#0d0b12}
+#loglist{flex:1;overflow-y:auto;padding:2px 0}
+.li{display:block;font-size:12px;line-height:1.5;padding:4px 14px;
+    cursor:pointer;border-left:3px solid #222;color:#bbb}
+.li:hover{background:#111120;color:#fff}
+.li.cur{background:#111120;color:#fff;font-weight:700}
+.li.liA{border-left-color:#3dbfad;color:#a0f0d8}
+.li.liB{border-left-color:#e8784d;color:#f0c0a0}
+.li.liE{border-left-color:#d4a843;color:#f0d880}
 
 /* ── Nav bar ─────────────────────────────────────────────────────────────── */
-#nav{background:#13101a;border-top:1px solid #251f30;padding:8px 14px;
+#nav{background:#0d0b12;border-top:2px solid #1a1625;padding:8px 14px;
      display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nb{background:#1a1320;border:1px solid #2a2430;color:#ede0c4;border-radius:5px;
+.nb{background:#13101a;border:1px solid #252030;color:#ede0c4;border-radius:5px;
     padding:5px 10px;cursor:pointer;font-size:13px;transition:background .1s;line-height:1}
-.nb:hover{background:#2a2430}.nb:disabled{opacity:.3;cursor:default}
-#pbtn{background:#3dbfad22;border-color:#3dbfad55;color:#3dbfad;font-size:14px}
-#pbtn:hover{background:#3dbfad44}
+.nb:hover{background:#1e1a2e}.nb:disabled{opacity:.3;cursor:default}
+#pbtn{background:#0d2520;border-color:#3dbfad66;color:#3dbfad;font-size:14px}
+#pbtn:hover{background:#133530}
 #prog{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
-      background:#1e1a2a;cursor:pointer;outline:none}
-#prog::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+      background:#1a1625;cursor:pointer;outline:none}
+#prog::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;
       border-radius:50%;background:#d4a843;cursor:pointer}
-#prog::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#d4a843;border:none}
-#fc{font-size:11px;color:#7a6e5f;white-space:nowrap;min-width:56px;text-align:center}
-#ti{font-size:11px;background:#1a1320;border:1px solid #2a2430;border-radius:4px;
-    padding:3px 9px;color:#d4a843;white-space:nowrap}
-.spd{background:#1a1320;border:1px solid #2a2430;color:#7a6e5f;border-radius:4px;
+#prog::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#d4a843;border:none}
+#fc{font-size:11px;color:#6a6070;white-space:nowrap;min-width:60px;text-align:center}
+#ti{font-size:12px;font-weight:600;background:#13101a;border:1px solid #252030;
+    border-radius:4px;padding:3px 10px;color:#d4a843;white-space:nowrap}
+.spd{background:#13101a;border:1px solid #252030;color:#8a8090;border-radius:4px;
      padding:3px 5px;font-size:10px;cursor:pointer}
 </style>
 </head><body>
@@ -324,30 +348,33 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 <div id="main">
   <!-- Panel A -->
   <div class="panel panel-a">
-    <div class="panel-hdr panel-hdr-a" id="na"></div>
-    <div class="stats-block">
-      <div class="stat-row">
-        <span class="stat-ico">🏰</span>
-        <div class="bar-bg"><div class="bar" id="bca"></div></div>
-        <span class="stat-val" id="vca"></span>
+    <div class="p-name p-name-a" id="na"></div>
+    <div class="hp-block">
+      <div class="hp-row">
+        <span class="hp-icon">🏰</span>
+        <span class="hp-num hp-num-a" id="hpa">—</span>
+        <span class="hp-frac" id="hpfa"></span>
       </div>
-      <div class="stat-row">
-        <span class="stat-ico">🧱</span>
-        <div class="bar-bg"><div class="bar" id="bwa" style="background:#5b7faa"></div></div>
-        <span class="stat-val" id="vwa"></span>
+      <div class="bar-bg"><div class="bar" id="bca"></div></div>
+      <div class="wall-row">
+        <span class="wall-lbl">🧱 Hradby</span>
+        <span class="wall-num" id="vwa">—</span>
       </div>
     </div>
-    <div class="res-block"><div class="res-grid" id="ra"></div></div>
+    <div class="res-block">
+      <div class="res-title">Suroviny</div>
+      <div class="res-grid" id="ra"></div>
+    </div>
     <div class="hand-block">
-      <div class="deck-badges" id="da"></div>
-      <div class="sect-lbl">Ruka</div>
+      <div class="hand-meta" id="da"></div>
+      <div class="hand-title">Ruka</div>
       <div class="hand-cards" id="ha"></div>
     </div>
   </div>
 
   <!-- Center -->
   <div id="ctr">
-    <div id="played-area">
+    <div id="action-sec">
       <div class="played-card" id="pc-wrap">
         <img id="pc-img" src="" alt="">
         <div class="card-overlay">
@@ -370,23 +397,26 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 
   <!-- Panel B -->
   <div class="panel panel-b">
-    <div class="panel-hdr panel-hdr-b" id="nb"></div>
-    <div class="stats-block">
-      <div class="stat-row">
-        <span class="stat-ico">🏰</span>
-        <div class="bar-bg"><div class="bar" id="bcb"></div></div>
-        <span class="stat-val" id="vcb"></span>
+    <div class="p-name p-name-b" id="nb"></div>
+    <div class="hp-block">
+      <div class="hp-row">
+        <span class="hp-icon">🏰</span>
+        <span class="hp-num hp-num-b" id="hpb">—</span>
+        <span class="hp-frac" id="hpfb"></span>
       </div>
-      <div class="stat-row">
-        <span class="stat-ico">🧱</span>
-        <div class="bar-bg"><div class="bar" id="bwb" style="background:#5b7faa"></div></div>
-        <span class="stat-val" id="vwb"></span>
+      <div class="bar-bg"><div class="bar" id="bcb"></div></div>
+      <div class="wall-row">
+        <span class="wall-lbl">🧱 Hradby</span>
+        <span class="wall-num" id="vwb">—</span>
       </div>
     </div>
-    <div class="res-block"><div class="res-grid" id="rb"></div></div>
+    <div class="res-block">
+      <div class="res-title">Suroviny</div>
+      <div class="res-grid" id="rb"></div>
+    </div>
     <div class="hand-block">
-      <div class="deck-badges" id="db"></div>
-      <div class="sect-lbl">Ruka</div>
+      <div class="hand-meta" id="db"></div>
+      <div class="hand-title">Ruka</div>
       <div class="hand-cards" id="hb"></div>
     </div>
   </div>
@@ -503,29 +533,40 @@ function goto(idx) {
 function render(fr) {
   if (fr.event === 'game_end') { renderEnd(); return; }
   $('ti').textContent = 'Tah '+fr.turn;
-  renderPanel('a', fr.state?.A, fr.side==='A');
-  renderPanel('b', fr.state?.B, fr.side==='B');
+  renderPanel('a', fr.state?.A);
+  renderPanel('b', fr.state?.B);
   renderCard(fr);
 }
 
 function renderEnd() {
   $('ti').textContent = 'Konec';
-  $('pc-wrap').style.display = 'none';
-  $('ev-actor').innerHTML = '';
-  $('ev-action').innerHTML = '';
-  const ext = $('ev-ext');
-  ext.innerHTML = '';
+  const sec = $('action-sec');
+  sec.innerHTML = '';
   const d = document.createElement('div');
   d.className = 'end-card';
   const title = META.winner==='A' ? '🏆 '+META.nameA+' vítězí!'
               : META.winner==='B' ? '🏆 '+META.nameB+' vítězí!' : '🤝 Remíza';
   const dur = META.durationSec
     ? Math.floor(META.durationSec/60)+':'+String(META.durationSec%60).padStart(2,'0') : '';
-  d.innerHTML = '<div class="end-title">'+he(title)+'</div>'+(dur?'<div class="end-sub">Délka: '+dur+'</div>':'');
-  ext.appendChild(d);
+  d.innerHTML = '<div class="end-title">'+he(title)+'</div>'+(dur?'<div class="end-sub">Délka hry: '+dur+'</div>':'');
+  sec.appendChild(d);
 }
 
 function renderCard(fr) {
+  // Restore action-sec if end screen replaced it
+  if (!$('pc-wrap')) {
+    $('action-sec').innerHTML = `
+      <div class="played-card" id="pc-wrap">
+        <img id="pc-img" src="" alt="">
+        <div class="card-overlay"><div class="cn" id="pc-name"></div><div class="cc" id="pc-cost"></div></div>
+        <div class="rarity-badge" id="pc-rarity"></div>
+      </div>
+      <div class="ev-info">
+        <div class="ev-actor" id="ev-actor"></div>
+        <div id="ev-action"></div>
+        <div class="extras" id="ev-ext"></div>
+      </div>`;
+  }
   $('pc-wrap').style.display = '';
   const cid   = fr.cardBaseId || fr.cardId || '';
   const cd    = CARDS[cid] || {};
@@ -538,8 +579,8 @@ function renderCard(fr) {
   $('pc-rarity').textContent = {LEGENDARY:'★ Legenda',EPIC:'◆ Epic',RARE:'◇ Rare',COMMON:''}[rarity]||'';
   $('pc-rarity').className = 'rarity-badge r-'+rarity;
 
-  const borderColor = {MAGIC:'#a855f7',ATTACK:'#ef4444',STONES:'#94a3b8',CHAOS:'#d4a843'}[ct]||'#3a3040';
-  $('pc-img').style.borderColor = borderColor;
+  $('pc-img').className = ct ? 'glow-'+ct : '';
+  $('pc-img').style.borderColor = '';
 
   const costNum = fr.costPaid!=null ? fr.costPaid : (cd.cost!=null?cd.cost:'?');
   const costStr = (fr.isXCost?'X=':'')+costNum+(RI[ct]||'')+' '+ct;
@@ -570,25 +611,23 @@ function renderCard(fr) {
   }
 }
 
-function renderPanel(s, st, isActive) {
+function renderPanel(s, st) {
   if (!st) return;
   const isA = s==='a';
   const wt  = isA ? META.winTargetA : META.winTargetB;
-  const nm  = isA ? META.nameA : META.nameB;
-  const cls = isA ? 'panel-hdr panel-hdr-a' : 'panel-hdr panel-hdr-b';
-  $(s==='a'?'na':'nb').textContent = nm;
-  $(s==='a'?'na':'nb').className = cls;
 
+  // HP
   const cpct = Math.max(0,Math.min(100,(st.hp/wt)*100));
   const bc = $(s==='a'?'bca':'bcb');
   bc.style.width = cpct+'%';
   bc.style.background = cpct>60?'#3dbfad':cpct>30?'#d4a843':'#ef4444';
-  $(s==='a'?'vca':'vcb').textContent = st.hp+'/'+wt;
+  $(s==='a'?'hpa':'hpb').textContent = st.hp;
+  $(s==='a'?'hpfa':'hpfb').textContent = '/ '+wt;
 
-  const bw = $(s==='a'?'bwa':'bwb');
-  bw.style.width = Math.min(100,st.wall||0)+'%';
+  // Wall
   $(s==='a'?'vwa':'vwb').textContent = st.wall||0;
 
+  // Resources
   const resEl = $(s==='a'?'ra':'rb');
   resEl.innerHTML = '';
   const mines = st.mines||{};
@@ -601,15 +640,17 @@ function renderPanel(s, st, isActive) {
     resEl.appendChild(d);
   }
 
+  // Deck meta
   $(s==='a'?'da':'db').innerHTML =
-    '<span class="dbadge">🂠 '+(st.deck||0)+'</span>'
-    +'<span class="dbadge">🗑 '+(st.discard||0)+'</span>';
+    '<span class="hmeta-badge">🂠 Balíček: '+(st.deck||0)+'</span>'
+    +'<span class="hmeta-badge">🗑 Odhoz: '+(st.discard||0)+'</span>';
 
+  // Hand
   const handEl = $(s==='a'?'ha':'hb');
   handEl.innerHTML = '';
   const hand = st.hand||[];
   if (!hand.length) {
-    handEl.innerHTML = '<div style="color:#5a5060;font-size:9px">Prázdná ruka</div>';
+    handEl.innerHTML = '<div style="color:#5a5060;font-size:10px;padding:4px 0">Prázdná ruka</div>';
   } else {
     for (const c of hand) {
       const cd2 = CARDS[c.id]||{};
@@ -619,7 +660,7 @@ function renderPanel(s, st, isActive) {
       const d = document.createElement('div');
       d.className = 'hcard '+(ct2||'');
       d.innerHTML = '<img class="hcard-art" src="/art/'+he(art)+'.webp" loading="lazy">'
-        +'<div><div class="hcard-name">'+he(c.name||cd2.name||c.id)+'</div>'
+        +'<div style="flex:1;min-width:0"><div class="hcard-name">'+he(c.name||cd2.name||c.id)+'</div>'
         +'<div class="hcard-cost">'+he(cost)+'</div></div>';
       handEl.appendChild(d);
     }
