@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -81,7 +83,11 @@ fun PlainButton(
             fontSize   = fontSize,
             fontWeight = fontWeight,
             textAlign  = TextAlign.Center,
-            maxLines   = 1
+            maxLines   = 1,
+            style      = TextStyle(
+                lineHeight     = fontSize,
+                platformStyle  = PlatformTextStyle(includeFontPadding = false)
+            )
         )
     }
 }
@@ -134,7 +140,18 @@ fun PlainButtonWithIcon(
             horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(9.dp))
-            Text(text, color = textColor, fontSize = fontSize, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(
+                text      = text,
+                color     = textColor,
+                fontSize  = fontSize,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines  = 1,
+                style     = TextStyle(
+                    lineHeight    = fontSize,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
         }
     }
 }
