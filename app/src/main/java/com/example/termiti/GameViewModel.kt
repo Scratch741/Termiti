@@ -1450,8 +1450,30 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             },
                             maxHandSize = old.aiMaxHand
                         )
-                        // AI auto-pick pro Decision efekty
-                        for (fx in aiCard.effects) {
+                        // AI auto-pick pro Decision efekty.
+                        // Mirror/Clone: Decision efekty kopírované karty nejsou v aiCard.effects
+                        // a applyEffects je záměrně přeskakuje (/* řeší ViewModel */). Musíme je
+                        // přidat ručně, jinak AI nikdy nespustí ukradení karty / výběr z balíčku.
+                        val aiDecisionSrcEffects: List<CardEffect> = when {
+                            aiCard.effects.any { it is CardEffect.Mirror } ->
+                                player.lastPlayedCard?.effects
+                                    ?.filter { it is CardEffect.DecisionBurnOpponent || it is CardEffect.DecisionChooseType  ||
+                                               it is CardEffect.DecisionFromDiscard  || it is CardEffect.DecisionFromDeck    ||
+                                               it is CardEffect.DecisionDrawFromDeck || it is CardEffect.DecisionMine        ||
+                                               it is CardEffect.SmartJoker           || it is CardEffect.PeekAndStealHand   ||
+                                               it is CardEffect.DecisionChooseResource }
+                                    ?: emptyList()
+                            aiCard.effects.any { it is CardEffect.Clone } ->
+                                ai.lastPlayedCard?.effects
+                                    ?.filter { it is CardEffect.DecisionBurnOpponent || it is CardEffect.DecisionChooseType  ||
+                                               it is CardEffect.DecisionFromDiscard  || it is CardEffect.DecisionFromDeck    ||
+                                               it is CardEffect.DecisionDrawFromDeck || it is CardEffect.DecisionMine        ||
+                                               it is CardEffect.SmartJoker           || it is CardEffect.PeekAndStealHand   ||
+                                               it is CardEffect.DecisionChooseResource }
+                                    ?: emptyList()
+                            else -> emptyList()
+                        }
+                        for (fx in aiCard.effects + aiDecisionSrcEffects) {
                             when (fx) {
                                 is CardEffect.DecisionBurnOpponent -> {
                                     val opts = buildDecisionOptions(fx, ai, player)
