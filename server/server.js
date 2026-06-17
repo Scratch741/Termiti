@@ -71,6 +71,7 @@ const PROTOCOL_VERSION = 1;
 // ── Crash log adresář ─────────────────────────────────────────────────────────
 const fs           = require('fs');
 const nodePath     = require('path');
+const ART_DIR      = nodePath.join(__dirname, 'art');
 // Ukládáme do logs/crash_logs/ – tento adresář má ReadWritePaths v systemd (User=nobody)
 const CRASH_LOG_DIR = nodePath.join(__dirname, 'logs', 'crash_logs');
 try {
@@ -95,6 +96,18 @@ const httpServer = http.createServer((req, res) => {
     const data  = ratingSystem.getLeaderboard(mode, limit);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(JSON.stringify({ mode, players: data, total: ratingSystem.getTotalPlayers() }));
+    return;
+  }
+
+  // ── GET /art/<name>.webp → card art thumbnails ──────────────────────────
+  if (path.startsWith('/art/')) {
+    const name = nodePath.basename(path);
+    if (!/^art_[\w]+\.webp$/.test(name)) { res.writeHead(400); res.end('bad'); return; }
+    const full = nodePath.join(ART_DIR, name);
+    if (!fs.existsSync(full)) { res.writeHead(404); res.end('not found'); return; }
+    res.setHeader('Content-Type', 'image/webp');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    fs.createReadStream(full).pipe(res);
     return;
   }
 
