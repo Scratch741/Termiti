@@ -463,15 +463,20 @@ fun aiChooseAction(
             // AI prohrává a nemá výhodnou kartu → poslední pokus:
             // zahraj cokoli, co útočí nebo staví hrad (čekání = jistá prohra)
             if (aiIsLosing) {
-                val lastChance = affordable.firstOrNull { card ->
-                    card.effects.any { fx ->
-                        fx is CardEffect.AttackPlayer ||
-                        fx is CardEffect.AttackCastle ||
-                        fx is CardEffect.BuildCastle  ||
-                        fx is CardEffect.StealCastle
+                val lastChance = scored
+                    .filter { (card, _) ->
+                        card.effects.any { fx ->
+                            fx is CardEffect.AttackPlayer ||
+                            fx is CardEffect.AttackCastle ||
+                            (fx is CardEffect.BuildCastle && fx.amount > 0) ||
+                            fx is CardEffect.StealCastle
+                        }
                     }
-                }
+                    .maxByOrNull { it.second }
+                    ?.first
                 if (lastChance != null) return AiAction.Play(lastChance)
+                // Žádná přímá útočná/stavební karta → zahraj alespoň nejlépe ohodnocenou
+                return AiAction.Play(best)
             }
         }
         return AiAction.Wait
