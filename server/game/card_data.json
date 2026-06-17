@@ -1,0 +1,1276 @@
+{
+  "001": {
+    "name": "Rychlý útok",
+    "cost": 2,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_zakladni_utok"
+  },
+  "008": {
+    "name": "Šípy",
+    "cost": 1,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_sipy"
+  },
+  "003": {
+    "name": "Ohnivá koule",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_ohniva_koule"
+  },
+  "007": {
+    "name": "Silný úder",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_silny_uder"
+  },
+  "006": {
+    "name": "Převaha síly",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "017": {
+    "name": "Válečný sekyrník",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_default"
+  },
+  "002": {
+    "name": "Kamenná zeď",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_default"
+  },
+  "010": {
+    "name": "Palisáda",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_default"
+  },
+  "005": {
+    "name": "Posila hradu",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_posila_hradu"
+  },
+  "009": {
+    "name": "Pevné základy",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_default"
+  },
+  "018": {
+    "name": "Mohutná věž",
+    "cost": 5,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_mohutna_vez"
+  },
+  "004": {
+    "name": "Magie",
+    "cost": 0,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_magie"
+  },
+  "011": {
+    "name": "Zásoby kamene",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_zasoby_kamene"
+  },
+  "012": {
+    "name": "Mobilizace",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_mobilizace"
+  },
+  "013": {
+    "name": "Magický pramen",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_magicky_pramen"
+  },
+  "014": {
+    "name": "Kamenolom",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_kamenolom"
+  },
+  "015": {
+    "name": "Výcvikový tábor",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_vycvikovy_tabor"
+  },
+  "016": {
+    "name": "Velký pramen",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_velky_pramen"
+  },
+  "019": {
+    "name": "Zápalné šípy",
+    "cost": 1,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_zapalne_sipy"
+  },
+  "020": {
+    "name": "Beranidlo",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_beranidlo"
+  },
+  "021": {
+    "name": "Dělostřelectvo",
+    "cost": 6,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_delostrelectvo"
+  },
+  "022": {
+    "name": "Přímý zásah",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_primy_zasah"
+  },
+  "023": {
+    "name": "Dvojitý úder",
+    "cost": 5,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_dvojity_utok"
+  },
+  "024": {
+    "name": "Berserk",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "025": {
+    "name": "Protiútok",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "026": {
+    "name": "Ostřelovač",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "027": {
+    "name": "Válečné bubny",
+    "cost": 2,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_valecne_bubny"
+  },
+  "028": {
+    "name": "Záplata",
+    "cost": 1,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_zaplata"
+  },
+  "029": {
+    "name": "Opevnění",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_default"
+  },
+  "030": {
+    "name": "Kamenný val",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_kamenny_val"
+  },
+  "031": {
+    "name": "Renovace",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_renovace"
+  },
+  "032": {
+    "name": "Citadela",
+    "cost": 6,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_citadela"
+  },
+  "033": {
+    "name": "Zemní val",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "034": {
+    "name": "Opravář",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "035": {
+    "name": "Základní kámen",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_zakladni_kamen"
+  },
+  "036": {
+    "name": "Hradní příkop",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "037": {
+    "name": "Rychlá magie",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_rychla_magie"
+  },
+  "038": {
+    "name": "Vojenský rozkaz",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_vojensky_rozkaz"
+  },
+  "039": {
+    "name": "Stavební boom",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_stavebni_boom"
+  },
+  "040": {
+    "name": "Alchymie",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "041": {
+    "name": "Magické trio",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "042": {
+    "name": "Velký kamenolom",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_velky_kamenolom"
+  },
+  "043": {
+    "name": "Výcvikové centrum",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_vycvikove_centrum"
+  },
+  "044": {
+    "name": "Trifekta dolů",
+    "cost": 6,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "045": {
+    "name": "Očarované doly",
+    "cost": 7,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_ocarovane_doly"
+  },
+  "046": {
+    "name": "Goblin",
+    "cost": 1,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "047": {
+    "name": "Ogr",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_ogr"
+  },
+  "048": {
+    "name": "Upír",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "049": {
+    "name": "Jed",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "050": {
+    "name": "Podkopání hradeb",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "051": {
+    "name": "Drak",
+    "cost": 11,
+    "costType": "ATTACK",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "052": {
+    "name": "Démon",
+    "cost": 14,
+    "costType": "ATTACK",
+    "rarity": "LEGENDARY",
+    "art": "art_demon"
+  },
+  "053": {
+    "name": "Plamenomet",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "054": {
+    "name": "Válečný pochod",
+    "cost": 5,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "055": {
+    "name": "Poslední vzdor",
+    "cost": 2,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "056": {
+    "name": "Nájezdník",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "057": {
+    "name": "Bašta",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "058": {
+    "name": "Obranný val",
+    "cost": 0,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_obranny_val"
+  },
+  "059": {
+    "name": "Pevnostní hrad",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "060": {
+    "name": "Chrám",
+    "cost": 10,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_chram"
+  },
+  "061": {
+    "name": "Tunely",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_tunely"
+  },
+  "062": {
+    "name": "Obranná aliance",
+    "cost": 5,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "063": {
+    "name": "Věž strážní",
+    "cost": 5,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "064": {
+    "name": "Zásobník",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "065": {
+    "name": "Lupič",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "COMMON",
+    "art": "art_lupic"
+  },
+  "066": {
+    "name": "Kamenná daň",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "COMMON",
+    "art": "art_kamenna_dan"
+  },
+  "067": {
+    "name": "Sabotér",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_saboter"
+  },
+  "068": {
+    "name": "Demoralizace",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_demoralizace"
+  },
+  "069": {
+    "name": "Dvojitý agent",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "070": {
+    "name": "Krize zásobování",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_krize_zasobovani"
+  },
+  "071": {
+    "name": "Špión",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "072": {
+    "name": "Zbrojnice",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "073": {
+    "name": "Škola magie",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "074": {
+    "name": "Tržiště",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "075": {
+    "name": "Rozmach těžby",
+    "cost": 6,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "076": {
+    "name": "Vojenská základna",
+    "cost": 6,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "077": {
+    "name": "Přeměna magie",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "078": {
+    "name": "Upíří drak",
+    "cost": 10,
+    "costType": "ATTACK",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "079": {
+    "name": "Obléhání",
+    "cost": 5,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "080": {
+    "name": "Velkovýroba",
+    "cost": 10,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_velkovyroba"
+  },
+  "129": {
+    "name": "Příprava",
+    "cost": 1,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_priprava"
+  },
+  "081": {
+    "name": "Rychlá hradba",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_rychla_hradba"
+  },
+  "082": {
+    "name": "Masivní zeď",
+    "cost": 6,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_masivni_zed"
+  },
+  "083": {
+    "name": "Nouzové opevnění",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "084": {
+    "name": "Velká oprava",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_velka_oprava"
+  },
+  "085": {
+    "name": "Královská obnova",
+    "cost": 7,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_kralovska_obnova"
+  },
+  "086": {
+    "name": "Zednická rota",
+    "cost": 5,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_zednicka_rota"
+  },
+  "087": {
+    "name": "Pevnost",
+    "cost": 6,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_pevnost"
+  },
+  "088": {
+    "name": "Zesílené hradby",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "089": {
+    "name": "Architekt",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "090": {
+    "name": "Rozšíření těžby",
+    "cost": 7,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_rozsireni_tezby"
+  },
+  "091": {
+    "name": "Barikády",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_barikady"
+  },
+  "092": {
+    "name": "Strategická výstavba",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_strategicka_vystavba"
+  },
+  "093": {
+    "name": "Cihla na cihlu",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_cihla_na_cihlu"
+  },
+  "094": {
+    "name": "Sklad materiálu",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "095": {
+    "name": "Obchod s kamenem",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "COMMON",
+    "art": "art_obchod_s_kamenem"
+  },
+  "096": {
+    "name": "Nedobytná pevnost",
+    "cost": 10,
+    "costType": "STONES",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "097": {
+    "name": "Obnova království",
+    "cost": 14,
+    "costType": "STONES",
+    "rarity": "LEGENDARY",
+    "art": "art_obnova_kralovstvi"
+  },
+  "C01": {
+    "name": "Chaotická jiskra",
+    "cost": 0,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_chaoticka_jiskra"
+  },
+  "C02": {
+    "name": "Entropie",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_entropie"
+  },
+  "C03": {
+    "name": "Chaotický důl",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_chaoticky_dul"
+  },
+  "C04": {
+    "name": "Krádež chaosu",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_kradez_chaosu"
+  },
+  "C05": {
+    "name": "Chaotický výbuch",
+    "cost": 7,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_chaoticky_vybuch"
+  },
+  "C06": {
+    "name": "Bouře chaosu",
+    "cost": 6,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_boure_chaosu"
+  },
+  "C07": {
+    "name": "Chaotický štít",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_chaoticky_stit"
+  },
+  "C08": {
+    "name": "Zázrak chaosu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_zazrak_chaosu"
+  },
+  "C09": {
+    "name": "Chaotická krize",
+    "cost": 7,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_chaoticka_krize"
+  },
+  "C10": {
+    "name": "Chaotický drak",
+    "cost": 11,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "C11": {
+    "name": "Chaos a řád",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_chaos_a_rad"
+  },
+  "C12": {
+    "name": "Anarchie",
+    "cost": 9,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_anarchie"
+  },
+  "C13": {
+    "name": "Sabotáž",
+    "cost": 5,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_sabotaz"
+  },
+  "C14": {
+    "name": "Ničení kamenolomu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_niceni_kamenolomu"
+  },
+  "C15": {
+    "name": "Zákeřnost",
+    "cost": 5,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_zakernost"
+  },
+  "C16": {
+    "name": "Velká sabotáž",
+    "cost": 7,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_velka_sabotaz"
+  },
+  "C17": {
+    "name": "Telekineze",
+    "cost": 3,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_telekineze"
+  },
+  "C18": {
+    "name": "Krádež osudu",
+    "cost": 5,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_kradez_osudu"
+  },
+  "C33": {
+    "name": "Krádež identity",
+    "cost": 8,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_kradez_identity"
+  },
+  "C34": {
+    "name": "Shapeshifter",
+    "cost": 0,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_shapeshifter"
+  },
+  "C35": {
+    "name": "Chaotická přeměna",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_chaoticka_premena"
+  },
+  "C36": {
+    "name": "Skrytá bomba",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_skryta_bomba"
+  },
+  "C37": {
+    "name": "Bomba",
+    "cost": 0,
+    "costType": "CHAOS",
+    "rarity": "COMMON",
+    "art": "art_skryta_bomba"
+  },
+  "C38": {
+    "name": "Explodovaná bomba",
+    "cost": 0,
+    "costType": "CHAOS",
+    "rarity": "COMMON",
+    "art": "art_explodovana_bomba"
+  },
+  "C39": {
+    "name": "Velký zmatek",
+    "cost": 7,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_velky_zmatek"
+  },
+  "C19": {
+    "name": "Spálená knihovna",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_spalena_knihovna"
+  },
+  "C20": {
+    "name": "Prázdná mysl",
+    "cost": 7,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_prazdna_mysl"
+  },
+  "C21": {
+    "name": "Replikace",
+    "cost": 1,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_replikace"
+  },
+  "C22": {
+    "name": "Chaos manufaktura",
+    "cost": 2,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_chaos_manufaktura"
+  },
+  "C23": {
+    "name": "Klonování",
+    "cost": 1,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_klonovani"
+  },
+  "C24": {
+    "name": "Temný rituál",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_temny_ritual"
+  },
+  "C25": {
+    "name": "Nestabilní vír",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "C26": {
+    "name": "Krvavá oběť",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_krvava_obet"
+  },
+  "C27": {
+    "name": "Odraz magie",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "C28": {
+    "name": "Chaotická trofej",
+    "cost": 1,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "C29": {
+    "name": "Bouřlivá mysl",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "C30": {
+    "name": "Chrám chaosu",
+    "cost": 7,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_chram_chaosu"
+  },
+  "C31": {
+    "name": "Chaotický výměník",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "C32": {
+    "name": "Vzájemná zkáza",
+    "cost": 3,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "D01": {
+    "name": "Průzkumník",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_pruzkumnik"
+  },
+  "D02": {
+    "name": "Věštba",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_vestba"
+  },
+  "D03": {
+    "name": "Kronika",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_kronika"
+  },
+  "D04": {
+    "name": "Bojová taktika",
+    "cost": 2,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_bojova_taktika"
+  },
+  "D05": {
+    "name": "Stavební plány",
+    "cost": 2,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_stavebni_plany"
+  },
+  "D06": {
+    "name": "Elitní zvěd",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "COMMON",
+    "art": "art_elitni_zved"
+  },
+  "D07": {
+    "name": "Tajná knihovna",
+    "cost": 5,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_tajna_knihovna"
+  },
+  "D08": {
+    "name": "Vize",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "D09": {
+    "name": "Inspirace",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_inspirace"
+  },
+  "098": {
+    "name": "Hod cihlou",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "099": {
+    "name": "Temný přenos",
+    "cost": 8,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_temny_prenos"
+  },
+  "100": {
+    "name": "Krvavý úder",
+    "cost": 6,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "104": {
+    "name": "Válečný trénink",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "107": {
+    "name": "Prokletí",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "108": {
+    "name": "Likvidace",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_likvidace"
+  },
+  "109": {
+    "name": "Rekrut",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_rekrut"
+  },
+  "110": {
+    "name": "Vzpomínka",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_vzpominka"
+  },
+  "111": {
+    "name": "Intuice",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_intuice"
+  },
+  "112": {
+    "name": "Stavitel",
+    "cost": 3,
+    "costType": "STONES",
+    "rarity": "RARE",
+    "art": "art_stavitel"
+  },
+  "113": {
+    "name": "Goblin šaman",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_goblin_saman"
+  },
+  "114": {
+    "name": "Chaotický mudrc",
+    "cost": 3,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_chaoticky_mudrc"
+  },
+  "115": {
+    "name": "Studna vědomostí",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_studna_vedomosti"
+  },
+  "116": {
+    "name": "Chaotická replikace",
+    "cost": 2,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "117": {
+    "name": "Průzkum dolů",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_pruzkum_dolu"
+  },
+  "118": {
+    "name": "Magický žolík",
+    "cost": 4,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "119": {
+    "name": "Válečný pokřik",
+    "cost": 4,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_valecny_pokrik"
+  },
+  "120": {
+    "name": "Hromadná sleva",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_hromadna_sleva"
+  },
+  "121": {
+    "name": "Kletba cen",
+    "cost": 3,
+    "costType": "CHAOS",
+    "rarity": "RARE",
+    "art": "art_kletba_cen"
+  },
+  "122": {
+    "name": "Stavební posila",
+    "cost": 4,
+    "costType": "STONES",
+    "rarity": "EPIC",
+    "art": "art_stavebni_posila"
+  },
+  "123": {
+    "name": "Momentum",
+    "cost": 3,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_momentum"
+  },
+  "C40": {
+    "name": "Zákeřný špeh",
+    "cost": 4,
+    "costType": "CHAOS",
+    "rarity": "EPIC",
+    "art": "art_zakerny_speh"
+  },
+  "C41": {
+    "name": "Zrcadlo",
+    "cost": 3,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_zrcadlo"
+  },
+  "C42": {
+    "name": "Klon",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "124": {
+    "name": "Alchymistova volba",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "125": {
+    "name": "Válečný zápal",
+    "cost": 2,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_valecny_zapal"
+  },
+  "126": {
+    "name": "Magický proud",
+    "cost": 2,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_magicky_proud"
+  },
+  "127": {
+    "name": "Pyroblast",
+    "cost": 6,
+    "costType": "MAGIC",
+    "rarity": "EPIC",
+    "art": "art_default"
+  },
+  "128": {
+    "name": "Archmág",
+    "cost": 9,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_archmag"
+  },
+  "L01": {
+    "name": "Temný mág",
+    "cost": 13,
+    "costType": "CHAOS",
+    "rarity": "LEGENDARY",
+    "art": "art_default"
+  },
+  "C43": {
+    "name": "Nájezd",
+    "cost": 1,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "130": {
+    "name": "Rabování",
+    "cost": 0,
+    "costType": "ATTACK",
+    "rarity": "RARE",
+    "art": "art_default"
+  },
+  "131": {
+    "name": "Invaze",
+    "cost": 7,
+    "costType": "ATTACK",
+    "rarity": "EPIC",
+    "art": "art_invaze"
+  },
+  "101": {
+    "name": "Náhlá smrt",
+    "cost": 0,
+    "costType": "ATTACK",
+    "rarity": "LEGENDARY",
+    "art": "art_nahla_smrt"
+  },
+  "102": {
+    "name": "Kamenný příval",
+    "cost": 0,
+    "costType": "STONES",
+    "rarity": "LEGENDARY",
+    "art": "art_kamenny_prival"
+  },
+  "103": {
+    "name": "Magické rozdělení",
+    "cost": 0,
+    "costType": "MAGIC",
+    "rarity": "LEGENDARY",
+    "art": "art_magicke_rozdeleni"
+  }
+}
