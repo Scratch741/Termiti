@@ -201,7 +201,7 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 .stat-ico{font-size:12px;width:18px;text-align:center;flex-shrink:0}
 .bar-bg{flex:1;height:6px;background:#1e1a2a;border-radius:3px;overflow:hidden}
 .bar{height:100%;border-radius:3px;transition:width .3s,background .3s}
-.stat-val{font-size:10px;color:#7a6e5f;width:44px;text-align:right;flex-shrink:0}
+.stat-val{font-size:10px;color:#c8b89a;width:44px;text-align:right;flex-shrink:0}
 
 .res-block{padding:6px 10px;border-bottom:1px solid #1a1625}
 .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
@@ -223,7 +223,7 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 .hcard.STONES{border-left-color:#94a3b8}.hcard.CHAOS{border-left-color:#d4a843}
 .hcard-art{width:22px;height:30px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#1e1a2a}
 .hcard-name{font-size:9px;color:#ede0c4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hcard-cost{font-size:8px;color:#7a6e5f}
+.hcard-cost{font-size:8px;color:#c8b89a}
 
 /* ── Center ──────────────────────────────────────────────────────────────── */
 #ctr{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px;overflow-y:auto;min-width:0}
@@ -254,11 +254,11 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 
 /* Actor / action info */
 .ev-info{flex:1;min-width:0}
-.ev-actor{font-size:13px;font-weight:bold;margin-bottom:4px}
-.ev-action-badge{display:inline-block;padding:3px 10px;border-radius:5px;
-                 font-size:11px;border:1px solid;margin-bottom:10px}
-.action-play{background:#3dbfad22;border-color:#3dbfad55;color:#3dbfad}
-.action-discard{background:#7a6e5f22;border-color:#7a6e5f55;color:#7a6e5f}
+.ev-actor{font-size:15px;font-weight:bold;margin-bottom:6px;color:#ede0c4}
+.ev-action-badge{display:inline-block;padding:4px 12px;border-radius:5px;
+                 font-size:12px;border:1px solid;margin-bottom:12px;font-weight:600}
+.action-play{background:#3dbfad33;border-color:#3dbfad88;color:#3dffd0}
+.action-discard{background:#7a6e5f33;border-color:#7a6e5f88;color:#c8b89a}
 
 .extras{display:flex;flex-direction:column;gap:5px}
 .ex{font-size:11px;padding:6px 10px;border-radius:6px;border:1px solid}
@@ -272,14 +272,14 @@ body{background:#0d0a0e;color:#ede0c4;font-family:'Segoe UI',system-ui,sans-seri
 
 /* Mini log */
 #logbox{background:#0f0c14;border:1px solid #1e1a2a;border-radius:8px;flex-shrink:0}
-#log-hdr{font-size:9px;color:#7a6e5f;letter-spacing:1px;text-transform:uppercase;
-         padding:7px 10px 5px;border-bottom:1px solid #1a1625}
-#loglist{max-height:100px;overflow-y:auto;display:flex;flex-direction:column}
-.li{font-size:10px;padding:4px 10px;cursor:pointer;border-left:3px solid transparent;
-    color:#7a6e5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.li:hover{background:#13101a;color:#ede0c4}
-.li.cur{background:#1a1625;color:#ede0c4}
-.li.liA{border-left-color:#3dbfad55}.li.liB{border-left-color:#e8784d55}.li.liE{border-left-color:#d4a84355}
+#log-hdr{font-size:9px;color:#a09080;letter-spacing:1px;text-transform:uppercase;
+         padding:7px 10px 5px;border-bottom:1px solid #2a2430}
+#loglist{max-height:130px;overflow-y:auto;display:flex;flex-direction:column}
+.li{font-size:11px;padding:5px 10px;cursor:pointer;border-left:3px solid transparent;
+    color:#c8b89a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.li:hover{background:#1e1a2a;color:#ede0c4}
+.li.cur{background:#1e1a2a;color:#ede0c4;font-weight:600}
+.li.liA{border-left-color:#3dbfad}.li.liB{border-left-color:#e8784d}.li.liE{border-left-color:#d4a843}
 
 /* ── Nav bar ─────────────────────────────────────────────────────────────── */
 #nav{background:#13101a;border-top:1px solid #251f30;padding:8px 14px;
