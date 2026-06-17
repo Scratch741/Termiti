@@ -1517,8 +1517,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                             val stolen = chosen.copy(id = "${chosen.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true)
                                             if (ai.hand.size < old.aiMaxHand) ai.hand.add(stolen)
                                             log.appendLog(ls.logAiStoleFromHand.format(chosen.displayName))
-                                            cardHistory.appendHistory(chosen, CardAction.STOLEN, isMine = true)
-                                            addCardLog("AI", chosen, CardAction.STOLEN, isMe = true)
+                                            recordOpponentLoss(chosen, CardAction.STOLEN)
                                         }
                                 }
                                 is CardEffect.DecisionChooseResource -> {
