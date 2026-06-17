@@ -270,24 +270,67 @@ const httpServer = http.createServer((req, res) => {
       }
       rows += '</table>';
     }
+    const recentReplays = listReplays().slice(0, 5);
+    const replayRows = recentReplays.map(r => {
+      const winnerStr = r.winner === 'A' ? '🏆 ' + esc(r.nameA)
+                      : r.winner === 'B' ? '🏆 ' + esc(r.nameB)
+                      : r.winner === 'DRAW' ? '🤝 Remíza' : '—';
+      const dur = r.durationSec
+        ? Math.floor(r.durationSec/60) + ':' + String(r.durationSec%60).padStart(2,'0') : '?';
+      return `<tr>
+        <td class="ts">${esc(r.date)}</td>
+        <td><b>${esc(r.nameA)}</b> <span style="color:#7a6e5f">vs</span> <b>${esc(r.nameB)}</b></td>
+        <td>${winnerStr}</td>
+        <td class="ts">${dur}</td>
+        <td><a class="rlink" href="/replay?id=${esc(r.gameId)}">▶ Přehrát</a></td>
+      </tr>`;
+    }).join('');
+
     const html = `<!DOCTYPE html><html lang="cs"><head>
       <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
       <title>Termiti – Žebříček</title>
       <style>
         body{background:#0d0a0e;color:#ede0c4;font-family:sans-serif;padding:24px;max-width:900px;margin:0 auto}
-        h1{color:#d4a843;letter-spacing:3px}h2{color:#3dbfad;margin-top:32px;letter-spacing:1px}
+        h1{color:#d4a843;letter-spacing:3px}h2{color:#3dbfad;margin-top:32px;letter-spacing:1px;font-size:15px}
         table{width:100%;border-collapse:collapse;margin-top:8px}
         th{background:#1a1320;color:#7a6e5f;font-size:11px;letter-spacing:1px;padding:6px 10px;text-align:left}
         td{padding:6px 10px;border-bottom:1px solid #1e1a2a}
         tr:hover td{background:#13101a}
         td:nth-child(3){color:#d4a843;font-weight:bold}
         .badge{background:#3dbfad22;border:1px solid #3dbfad55;color:#3dbfad;padding:2px 8px;border-radius:4px;font-size:12px}
-        .ts{color:#7a6e5f;font-size:11px;margin-top:16px}
+        .ts{color:#7a6e5f;font-size:11px}
+        .nav{display:flex;gap:8px;margin:14px 0 24px}
+        .btn{display:inline-block;padding:7px 16px;border-radius:6px;font-size:13px;text-decoration:none;
+             border:1px solid;transition:background .15s;cursor:pointer}
+        .btn-teal{background:#3dbfad22;border-color:#3dbfad55;color:#3dbfad}
+        .btn-teal:hover{background:#3dbfad44}
+        .btn-gold{background:#d4a84322;border-color:#d4a84355;color:#d4a843}
+        .btn-gold:hover{background:#d4a84344}
+        .btn-muted{background:#1a1320;border-color:#2a2430;color:#7a6e5f}
+        .btn-muted:hover{background:#2a2430;color:#ede0c4}
+        .rlink{color:#3dbfad;text-decoration:none;font-size:12px}
+        .rlink:hover{text-decoration:underline}
+        .more{display:inline-block;margin-top:8px;font-size:12px;color:#3dbfad;text-decoration:none}
+        .more:hover{text-decoration:underline}
       </style></head><body>
-      <h1>🏆 TERMITI – ŽEBŘÍČEK</h1>
+      <h1>🏆 TERMITI</h1>
+      <div class="nav">
+        <a class="btn btn-gold" href="/">🏆 Žebříček</a>
+        <a class="btn btn-teal" href="/replays">🎬 Replaye</a>
+        <a class="btn btn-muted" href="/crash-logs">🐛 Crash logy</a>
+      </div>
       <p><span class="badge">🟢 ${players ? players.size : 0} online</span></p>
+      ${replayRows ? `
+        <h2>🎬 Poslední hry</h2>
+        <table>
+          <tr><th>Datum</th><th>Hráči</th><th>Výsledek</th><th>Délka</th><th></th></tr>
+          ${replayRows}
+        </table>
+        <a class="more" href="/replays">Zobrazit všechny replaye →</a>
+      ` : ''}
+      <h2>📊 Žebříček</h2>
       ${rows || '<p>Žádná data.</p>'}
-      <p class="ts">Aktualizováno: ${new Date().toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })}</p>
+      <p class="ts" style="margin-top:16px">Aktualizováno: ${new Date().toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })}</p>
       </body></html>`;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(html);
