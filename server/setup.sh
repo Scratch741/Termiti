@@ -33,6 +33,7 @@ mkdir -p "$APP_DIR/game"
 mkdir -p "$APP_DIR/data"
 mkdir -p "$APP_DIR/logs"
 mkdir -p "$APP_DIR/logs/crash_logs"
+mkdir -p "$APP_DIR/art"
 
 # Kopíruj jen pokud zdroj != cíl (ochrana před spuštěním přímo z APP_DIR)
 copy_if_different() {
@@ -52,6 +53,13 @@ copy_if_different "$SRC/game/GameSession.js"  "$APP_DIR/game/GameSession.js"
 copy_if_different "$SRC/game/RatingSystem.js" "$APP_DIR/game/RatingSystem.js"
 copy_if_different "$SRC/game/GameLogger.js"   "$APP_DIR/game/GameLogger.js"
 copy_if_different "$SRC/game/ReplayViewer.js" "$APP_DIR/game/ReplayViewer.js"
+copy_if_different "$SRC/game/card_data.json"  "$APP_DIR/game/card_data.json"
+
+# Art thumbnails (WebP, 80×112px)
+if [ -d "$SRC/art" ]; then
+  cp "$SRC/art/"*.webp "$APP_DIR/art/" 2>/dev/null || true
+  echo "      Zkopírováno $(ls "$APP_DIR/art/"*.webp 2>/dev/null | wc -l) art souborů."
+fi
 
 # Oprávnění pro data/ a logs/ – nobody musí moci zapisovat
 chown -R nobody:nogroup "$APP_DIR/data"
