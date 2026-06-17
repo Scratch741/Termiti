@@ -435,6 +435,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private var decisionEffect       : CardEffect?  = null
     private var decisionPendingDraws : Int          = 0
     private var decisionTimerJob     : kotlinx.coroutines.Job? = null
+    // Příznak: karta s Rozhodnutím je ve vzduchu (animace letu), overlay se teprve zobrazí.
+    // Blokuje playCard, aby hráč nemohl zahrát další kartu v tomto 330ms okně.
+    private var awaitingDecisionOverlay : Boolean   = false
 
     fun toggleMulliganCard(cardId: String) {
         val cur = mulliganSelected.value
@@ -1061,6 +1064,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun playCard(card: Card) {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.PLAYER) return
+        if (awaitingDecisionOverlay) return
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
@@ -1195,8 +1199,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // Uložíme pending lízy (DrawPerCardPlayed, DrawCard efekty) –
                 // provedeme je v resolveDecision po výběru karty hráčem.
                 decisionPendingDraws = pendingDrawCount
+                val decisionState = buildDecisionState(decisionFx, options)
                 gameState.value = old.copy(playerState = player, aiState = ai)
-                pendingDecision.value = buildDecisionState(decisionFx, options)
+                // Overlay zobrazíme až po dokončení animace letu karty (300ms).
+                // Synchronní nastavení by způsobilo, že Compose musí recomposit
+                // celý herní screen + vyrenderovat DecisionOverlay se 4+ kartami
+                // ve stejném framu → animace sekala, lag ~1 s.
+                awaitingDecisionOverlay = true
+                viewModelScope.launch(crashHandler) {
+                    delay(330L)
+                    pendingDecision.value = decisionState
+                    awaitingDecisionOverlay = false
+                }
                 // Timer jen pro online (offline = bez limitu)
                 return
             }
@@ -1803,6 +1817,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        awaitingDecisionOverlay = false
         replayFrames.clear()
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
