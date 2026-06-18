@@ -395,7 +395,7 @@ object CardPresentation {
         "104" to CardPres("Zaútočí za 5, důl útoku +1. [Combo]",
             R.drawable.art_valecny_trenink, "Důl",
             artScale = 0.80f, artBiasY = -1.00f),
-        "107" to CardPres("Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů.",
+        "107" to CardPres("Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů. Chaos +1.",
             R.drawable.art_prokleti, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
 

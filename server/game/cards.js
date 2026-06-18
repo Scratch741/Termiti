@@ -259,7 +259,7 @@ const RAW = [
   ['099','Temný přenos',   8,'MAGIC', 0,[sca(10)],             'EPIC'],
   ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
   ['104','Válečný trénink',4,'ATTACK',0,[ap(5), am('ATTACK',1)],'EPIC'],
-  ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3)], 'EPIC'],
+  ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3), am('CHAOS',1)], 'EPIC'],
   ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
   ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
   ['110','Vzpomínka',      2,'MAGIC', 0,[dfd()],               'EPIC'],

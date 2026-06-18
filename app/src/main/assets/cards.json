@@ -3321,6 +3321,11 @@
         "type": "DrainResource",
         "resType": "STONES",
         "amount": 3
+      },
+      {
+        "type": "AddMine",
+        "resType": "CHAOS",
+        "amount": 1
       }
     ],
     "rarity": "EPIC",

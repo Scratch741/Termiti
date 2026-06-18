@@ -806,7 +806,7 @@
     },
     "107": {
       "name": "Curse",
-      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone."
+      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone. +1 Chaos."
     },
     "108": {
       "name": "Disposal",
