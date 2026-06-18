@@ -1372,6 +1372,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             transformShapeShifters(ai.hand, allCards)
+            // Vizuální update Mirror karet v AI ruce – stejná logika jako u hráče.
+            // Bez toho AI ruka vždy ukazuje plain Mirror art místo hráčovy poslední karty.
+            updateMirrorCards(ai.hand, player.lastPlayedCard, allCards)
+            updateCloneCards(ai.hand, ai.lastPlayedCard, allCards)
 
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true

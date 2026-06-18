@@ -475,7 +475,9 @@ fun aiChooseAction(
                     .maxByOrNull { it.second }
                     ?.first
                 if (lastChance != null) return AiAction.Play(lastChance)
-                // Žádná přímá útočná/stavební karta → zahraj alespoň nejlépe ohodnocenou
+                // Žádná přímá útočná/stavební karta → zahraj alespoň nejlépe ohodnocenou,
+                // ale nikdy Mirror/Clone bez zdrojové karty (score -100 = čisté nic)
+                if (bestScore <= -50) return AiAction.Wait
                 return AiAction.Play(best)
             }
         }
