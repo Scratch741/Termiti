@@ -204,12 +204,14 @@ fun applyEffects(
         }
 
         is CardEffect.RandomizeHands -> {
-            val selfCount = self.hand.size
-            val oppCount  = opponent.hand.size
+            val selfCount    = self.hand.size
+            val oppCount     = opponent.hand.size
             self.discardPile.addAll(self.hand)
             self.hand.clear()
+            val oppSnapshot  = opponent.hand.toList()
             opponent.discardPile.addAll(opponent.hand)
             opponent.hand.clear()
+            oppSnapshot.forEach { onOpponentCardLost?.invoke(it, CardAction.BURNED) }
             if (onDrawCard != null) onDrawCard(self, selfCount)
             else self.drawCards(selfCount)
             opponent.drawCards(oppCount)
