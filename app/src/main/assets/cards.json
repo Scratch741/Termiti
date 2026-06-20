@@ -3323,7 +3323,7 @@
         "amount": 3
       },
       {
-        "type": "AddMine",
+        "type": "AddResource",
         "resType": "CHAOS",
         "amount": 1
       }
