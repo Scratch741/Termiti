@@ -753,7 +753,7 @@ class GameSession {
         console.log(`[Decision ${this.gameId}] Žádné options pro ${decisionFx.type} – přeskakuji`);
         // (pokračuje pod blokem if decisionFx)
       } else {
-      this.pendingDecision = { side, effect: decisionFx, isCombo: card.isCombo, options };
+      this.pendingDecision = { side, effect: decisionFx, isCombo: card.isCombo || nextComboBoost, options };
 
       // Pošli aktuální stav oběma (suroviny odečteny, karta v discardu)
       this._sendStateBoth();
