@@ -251,7 +251,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
           if (opponent.hand.length > 0) {
             const idx = Math.floor(Math.random() * opponent.hand.length);
             const stolen = opponent.hand.splice(idx, 1)[0];
-            if (self.hand.length < 7) {
+            if (self.hand.length < (self.maxHandSize || 7)) {
               self.hand.push({ ...stolen, isGenerated: true });
             } else {
               self.discardPile.push(stolen);  // ruka plná → ukradená karta shoří
@@ -354,7 +354,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         self.hand.push(...opponentOldHand.map(c => ({ ...c, isGenerated: true })));
         opponent.hand.push(...selfOldHand.map(c => ({ ...c, isGenerated: true })));
         // Zaloguj každou kartu z původní soupeřovy ruky jako ukradenou
-        for (const card of selfOldHand) {
+        for (const card of opponentOldHand) {
           onOpponentLoss && onOpponentLoss(card, 'STOLEN');
         }
         break;
@@ -371,7 +371,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'DiscountRandomCard': {
         const pool = self.hand
           .map((c, i) => ({ c, i }))
-          .filter(({ c }) => (!fx.costType || c.costType === fx.costType) && (!fx.cardType || c.type === fx.cardType));
+          .filter(({ c }) => (!fx.costType || c.costType === fx.costType) && (!fx.cardType || deriveCardType(c) === fx.cardType));
         const count = fx.count || 1;
         pool.sort(() => Math.random() - 0.5).slice(0, count).forEach(({ i }) => {
           self.hand[i] = { ...self.hand[i], costModifier: (self.hand[i].costModifier || 0) - (fx.delta || 2) };
@@ -392,14 +392,16 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'RandomizeHands': {
-        const selfCount = self.hand.length;
-        const oppCount  = opponent.hand.length;
+        const selfCount  = self.hand.length;
+        const oppCount   = opponent.hand.length;
         self.discardPile.push(...self.hand);
         self.hand.length = 0;
+        const oppSnapshot = [...opponent.hand];
         opponent.discardPile.push(...opponent.hand);
         opponent.hand.length = 0;
-        drawCards(self, selfCount);
-        drawCards(opponent, oppCount);
+        oppSnapshot.forEach(c => onOpponentLoss && onOpponentLoss(c, 'BURNED'));
+        drawCards(self, selfCount, self.maxHandSize || 7);
+        drawCards(opponent, oppCount, opponent.maxHandSize || 7);
         break;
       }
 
@@ -445,6 +447,9 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
             self.resources[src.costType] = 0;
           }
           applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, cloneX);
+        } else {
+          // Fallback: hráč ještě nic nezahrál → +2 magie (shodné s offline GameLogic.kt)
+          self.resources['MAGIC'] = Math.min(MAX_RESOURCE, (self.resources['MAGIC'] || 0) + 2);
         }
         break;
       }

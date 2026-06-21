@@ -87,7 +87,7 @@ fun applyEffects(
             if (opponent.hand.isNotEmpty()) {
                 val stolen = opponent.hand.random()
                 opponent.hand.remove(stolen)
-                if (self.hand.size < 7) {
+                if (self.hand.size < (maxHandSize ?: 7)) {
                     self.hand.add(stolen.copy(isGenerated = true))
                 } else {
                     self.discardPile.add(stolen)   // ruka plná → ukradená karta shoří
