@@ -1,0 +1,22 @@
+name: Deploy server
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key:      ${{ secrets.DEPLOY_KEY }}
+          script: |
+            rm -rf /tmp/termiti
+            git clone https://github.com/Scratch741/Termiti.git /tmp/termiti
+            sudo bash /tmp/termiti/server/setup.sh
+            rm -rf /tmp/termiti
