@@ -29,21 +29,6 @@ Replay systém
 
 Nové karty / mechaniky:
 
-5) Legendární chaos karta: Velký zmatek — vyměň všem hráčům celé ruce za náhodné karty (chaos efekt)
-── Nové karty a mechaniky (2. vlna) ─────────────────────────────────────────
-
-1) Zrcadlo (magic, rare)
-   - Karta se vizuálně mění podle toho, co bylo naposledy zahráno soupeřem
-   - Aktivuje se AŽ po tom, co soupeř zahraje kartu (= zkopíruje její efekt)
-   - Pokud soupeř ještě nic nezahrál, efekt je prázdný / slabý fallback
-- BUG: pokud zahraji v online i offline hře kartu Klon nebo zrcadlo, který naklonoval kartu Chaotický mudrc (či jinou rozhodovací kartu), tak jen zaplatím zdroje a nic se nestane.
-- BUG: Pokud mám v ruce Shapeshifter a zahraji "Krádež identity", tak se soupeři nedá do ruky karta Shapeshifter, ale karta, která byla "shapeshiftnuta" a dále se nemění jako shapeshifter.
-- BUG: Pokud mám v ruce kartu zrcadlo, tak má správně modrý rámeček. Pokud se ale transformovala třeba na útočnou kartu s červeným rámečkem, kartu zrcadlo zahraji, tak má špatně 2 věci. Má červený rámeček a text zrcadla, místo zrcadlené karty. (online)
-- BUG: Pokud zahraji kartu, která byla zlevněna, klon toto nerespektuje a je stále dražší o 1 než originál (online).
-- BUG: Na zrcadlu není "combo" efekt vidět (ten blesk) - ale combu funguje (Online)
-- BUG: Zákeřný špeh - po zahrání ukradne kartu, poté spustí výběr pro ukradení karty. Takže vlastně ukradne 2 karty (zaregistrováno v online)
-- BUG: Protihráč zahraje jakoukoliv kartu. Já líznu kartu zrcadlo. V tuto chvíli bych měl mít kartu Zrcadlo v základním provedení, ale už zrcadlí kartu, co zahrál protihráč v minulém kole.
-- 
 8) Anulace tahu (chaos, legendary)
    - Zruší všechny karty, které soupeř zahrál v předchozím kole
    - Soupeři se NEVRACÍ suroviny zaplacené za karty

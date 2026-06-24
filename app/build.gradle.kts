@@ -66,14 +66,13 @@ android {
 }
 
 tasks.withType<com.android.build.gradle.tasks.PackageApplication>().configureEach {
-    val buildTypeName = if (name.endsWith("Release")) "release" else "debug"
-    doLast {
-        val ver = android.defaultConfig.versionName ?: "0.0.0"
-        outputDirectory.get().asFile
-            .listFiles { f -> f.extension == "apk" }
-            ?.forEach { apk ->
-                apk.renameTo(File(apk.parent, "darkmage-$ver-$buildTypeName.apk"))
-            }
+    if (name.endsWith("Release")) {
+        doLast {
+            val ver = android.defaultConfig.versionName ?: "0.0.0"
+            outputDirectory.get().asFile
+                .listFiles { f -> f.extension == "apk" }
+                ?.forEach { apk -> apk.renameTo(File(apk.parent, "darkmage-$ver-release.apk")) }
+        }
     }
 }
 
