@@ -17,7 +17,8 @@ fun applyEffects(
     xValue:   Int = 0,
     onOpponentCardLost: ((Card, CardAction) -> Unit)? = null,
     onDrawCard: ((PlayerState, Int) -> Unit)? = null,
-    maxHandSize: Int? = null
+    maxHandSize: Int? = null,
+    onSelfCardLost: ((Card, CardAction) -> Unit)? = null
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
@@ -206,8 +207,10 @@ fun applyEffects(
         is CardEffect.RandomizeHands -> {
             val selfCount    = self.hand.size
             val oppCount     = opponent.hand.size
+            val selfSnapshot = self.hand.toList()
             self.discardPile.addAll(self.hand)
             self.hand.clear()
+            selfSnapshot.forEach { onSelfCardLost?.invoke(it, CardAction.BURNED) }
             val oppSnapshot  = opponent.hand.toList()
             opponent.discardPile.addAll(opponent.hand)
             opponent.hand.clear()

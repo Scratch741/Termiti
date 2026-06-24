@@ -159,8 +159,9 @@ function checkCondition(cond, player, opponent) {
  * @param {Map}      cardMap        – CARD_MAP pro AddCardsToDeck
  * @param {Function} onOpponentLoss – (card, action) => void, volá se, když soupeř přijde o kartu
  * @param {number}   xValue         – hodnota X pro X-kost efekty (spotřebovaný zdroj)
+ * @param {Function} onSelfLoss     – (card, action) => void, volá se, když self přijde o kartu (RandomizeHands)
  */
-function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue = 0) {
+function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue = 0, onSelfLoss = null) {
   for (const fx of effects) {
     switch (fx.type) {
 
@@ -217,7 +218,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
 
       case 'ConditionalEffect':
         if (checkCondition(fx.condition, self, opponent))
-          applyEffects([fx.effect], self, opponent, cardMap, onOpponentLoss, xValue);
+          applyEffects([fx.effect], self, opponent, cardMap, onOpponentLoss, xValue, onSelfLoss);
         break;
 
       case 'DestroyMine': {
@@ -394,8 +395,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'RandomizeHands': {
         const selfCount  = self.hand.length;
         const oppCount   = opponent.hand.length;
+        const selfSnapshot = [...self.hand];
         self.discardPile.push(...self.hand);
         self.hand.length = 0;
+        selfSnapshot.forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED'));
         const oppSnapshot = [...opponent.hand];
         opponent.discardPile.push(...opponent.hand);
         opponent.hand.length = 0;
@@ -432,7 +435,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
             mirrorX = self.resources[src.costType] || 0;
             self.resources[src.costType] = 0;
           }
-          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, mirrorX);
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, mirrorX, onSelfLoss);
         }
         break;
       }
@@ -446,7 +449,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
             cloneX = self.resources[src.costType] || 0;
             self.resources[src.costType] = 0;
           }
-          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, cloneX);
+          applyEffects(src.effects, self, opponent, cardMap, onOpponentLoss, cloneX, onSelfLoss);
         } else {
           // Fallback: hráč ještě nic nezahrál → +2 magie (shodné s offline GameLogic.kt)
           self.resources['MAGIC'] = Math.min(MAX_RESOURCE, (self.resources['MAGIC'] || 0) + 2);

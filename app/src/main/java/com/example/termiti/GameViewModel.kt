@@ -562,7 +562,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             allCards.filter { card ->
                 card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
             }.shuffled().firstOrNull()
-        }
+        }.distinctBy { it.baseId }
         is CardEffect.SmartJoker           -> listOf("Magie", "Útok", "Stavba", "Chaos").mapNotNull { typeName ->
             // Z každého typu nejdřív filtr na karty, které si hráč může PRÁVĚ dovolit;
             // teprve z nich vybere situačně nejlepší. Jen pokud žádná dostupná není,
@@ -1139,12 +1139,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val aiCastleHpBefore = ai.castleHP
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
             onOpponentCardLost = { lostCard, action ->
-                // Loguj kartu AI, kterou hráč spálil nebo ukradl
                 cardHistory.appendHistory(lostCard, action, isMine = false)
                 addCardLog("Hráč", lostCard, action, isMe = false)
             },
             onDrawCard = { _, count -> pendingDrawCount += count },
-            maxHandSize = old.playerMaxHand)
+            maxHandSize = old.playerMaxHand,
+            onSelfCardLost = { lostCard, action ->
+                // Hráčovy vlastní zahozené karty (např. Velký zmatek)
+                cardHistory.appendHistory(lostCard, action, isMine = true)
+                addCardLog("Hráč", lostCard, action, isMe = true)
+            })
         // Quest: poškození hradu
         val castleDmg = (aiCastleHpBefore - ai.castleHP).coerceAtLeast(0)
         if (castleDmg > 0) QuestManager.onDamageDealt(castleDmg)
@@ -1452,7 +1456,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     }
                                 }
                             },
-                            maxHandSize = old.aiMaxHand
+                            maxHandSize = old.aiMaxHand,
+                            onSelfCardLost = { lostCard, action ->
+                                // AI vlastní zahozené karty (např. Velký zmatek zahrané AI)
+                                cardHistory.appendHistory(lostCard, action, isMine = false)
+                                addCardLog("AI", lostCard, action, isMe = false)
+                            }
                         )
                         // AI auto-pick pro Decision efekty.
                         // Mirror/Clone: Decision efekty kopírované karty nejsou v aiCard.effects

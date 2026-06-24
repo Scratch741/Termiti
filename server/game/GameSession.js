@@ -674,14 +674,16 @@ class GameSession {
       }
     }
 
-    const lostCards = [];
+    const lostCards     = [];
+    const selfLostCards = [];
     applyEffects(
       card.effects,
       self,
       opp,
       CARD_MAP,
       (c, action) => lostCards.push({ card: c, action }),
-      xValue
+      xValue,
+      (c, action) => selfLostCards.push({ card: c, action })
     );
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
@@ -735,6 +737,20 @@ class GameSession {
       };
       this._send(victimSide, payload);                            // oběť – jejich karta
       this._send(side,       { ...payload, causedByMe: true });   // útočník – způsobil ztrátu
+      this._logger.logCardLost(side, action, lc.name || lc.id);
+    }
+    // Vlastní zahozené karty (RandomizeHands / Velký zmatek) – jde o hráčovy vlastní karty
+    for (const { card: lc, action } of selfLostCards) {
+      const payload = {
+        type:        'CARD_LOST',
+        cardId:      lc.id,
+        baseId:      lc.baseId || lc.id,
+        action,
+        isGenerated: lc.isGenerated || false,
+        ownCard:     true   // příznak: hráč přišel o vlastní kartu (ne soupeřovu)
+      };
+      this._send(side,       payload);          // hráč, který Velký zmatek zahrál
+      this._send(victimSide, { ...payload, causedByMe: true });
       this._logger.logCardLost(side, action, lc.name || lc.id);
     }
 
@@ -863,15 +879,20 @@ class GameSession {
           .slice(0, n);
       }
       case 'DecisionMine': {
-        // Přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos)
+        // Přesně 4 možnosti: 1 náhodný důl každého typu (Magie, Útok, Kámen, Chaos).
+        // Deduplikace přes baseId – karta s více AddMine efekty (Trifekta dolů) by se
+        // jinak mohla objevit vícekrát pro různé typy.
         const mineTypes = ['MAGIC', 'ATTACK', 'STONES', 'CHAOS'];
+        const seen = new Set();
         return mineTypes
           .map(resType => {
             const pool = ALL_CARDS.filter(c =>
+              !seen.has(c.id) &&
               c.effects.some(e => e.type === 'AddMine' && e.resType === resType)
             );
             if (pool.length === 0) return null;
             const tmpl = pool[Math.floor(Math.random() * pool.length)];
+            seen.add(tmpl.id);
             return { ...tmpl, id: tmpl.id, baseId: tmpl.id };
           })
           .filter(Boolean);
