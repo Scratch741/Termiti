@@ -1853,6 +1853,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         awaitingDecisionOverlay = false
+        // Zruš případně čekající Decision overlay ze staré hry (např. telefon se uspal
+        // uprostřed výběru karty, uživatel spustil novou hru a stará Decision přežila).
+        cancelDecisionTimer()
+        pendingDecision.value   = null
+        decisionPlayer          = null
+        decisionAi              = null
+        decisionOld             = null
+        decisionEffect          = null
+        decisionIsCombo         = false
+        decisionPendingDraws    = 0
         replayFrames.clear()
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
@@ -1881,7 +1891,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        awaitingDecisionOverlay = false
         quickDrawUsed           = false
+        cancelDecisionTimer()
+        pendingDecision.value   = null
+        decisionPlayer          = null
+        decisionAi              = null
+        decisionOld             = null
+        decisionEffect          = null
+        decisionIsCombo         = false
+        decisionPendingDraws    = 0
         replayFrames.clear()
         gameState.value         = createCampaignState(opponent)
         isMulligan.value        = true
@@ -2033,6 +2052,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        awaitingDecisionOverlay = false
+        cancelDecisionTimer()
+        pendingDecision.value   = null
+        decisionPlayer          = null
+        decisionAi              = null
+        decisionOld             = null
+        decisionEffect          = null
+        decisionIsCombo         = false
+        decisionPendingDraws    = 0
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
         log.value               = emptyList()
