@@ -1211,9 +1211,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // ve stejném framu → animace sekala, lag ~1 s.
                 awaitingDecisionOverlay = true
                 viewModelScope.launch(crashHandler) {
-                    delay(330L)
-                    pendingDecision.value = decisionState
-                    awaitingDecisionOverlay = false
+                    try {
+                        delay(330L)
+                        pendingDecision.value = decisionState
+                    } finally {
+                        awaitingDecisionOverlay = false
+                    }
                 }
                 // Timer jen pro online (offline = bez limitu)
                 return
@@ -1853,6 +1856,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         awaitingDecisionOverlay = false
+        quickDrawUsed           = false
         // Zruš případně čekající Decision overlay ze staré hry (např. telefon se uspal
         // uprostřed výběru karty, uživatel spustil novou hru a stará Decision přežila).
         cancelDecisionTimer()
@@ -2053,6 +2057,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
         awaitingDecisionOverlay = false
+        quickDrawUsed           = false
         cancelDecisionTimer()
         pendingDecision.value   = null
         decisionPlayer          = null
