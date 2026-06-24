@@ -214,7 +214,7 @@ fun GameScreen(
                             val s = LocalStrings.current
                             val isGameEnding = active
                                 && state.playerState.hand.isEmpty() && state.playerState.deck.isEmpty()
-                                && state.aiState.hand.isEmpty()     && state.aiState.deck.isEmpty()
+                                && state.aiState.deck.isEmpty()
                             val btnLabel = when {
                                 isComboTurn  -> s.endCombo
                                 isGameEnding -> s.endGame

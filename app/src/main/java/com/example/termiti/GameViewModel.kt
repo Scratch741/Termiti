@@ -1747,6 +1747,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             gameState.value = s3
+
+            // Auto-pass: hráč nemá žádné karty (ruka + balíček prázdné) a nemůže nic dělat.
+            // Po krátké pauze (aby hráč viděl stav) automaticky přeskočíme jeho tah.
+            if (player.hand.isEmpty() && player.deck.isEmpty()) {
+                delay(700L)
+                log.appendLog(ls.logPlayerSkip)
+                val autoPlayer = s3.playerState.deepCopy()
+                val autoAi     = s3.aiState.deepCopy()
+                finishTurn(s3, autoPlayer, autoAi, playerWaited = true)
+            }
         }
     }
 
