@@ -2039,7 +2039,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun generateArenaOffers() {
-        arenaOffers.value = allCards.shuffled().take(3)
+        arenaOffers.value = allCards.filter { !it.isPlaceholder && !it.isGenerated }.shuffled().take(3)
     }
 
     fun pickArenaCard(card: Card) {
