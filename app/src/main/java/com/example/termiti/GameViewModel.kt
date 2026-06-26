@@ -752,6 +752,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
@@ -846,6 +847,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     drawResR.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                 }
@@ -891,6 +893,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     qdr1.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                 }
             }
@@ -1245,6 +1248,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(
                         playerState  = player.deepCopy(),
@@ -1701,6 +1705,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     qdr2.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     SoundManager.playCardDraw()
                 }
