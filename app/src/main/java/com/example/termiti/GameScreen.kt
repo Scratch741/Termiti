@@ -169,7 +169,6 @@ fun GameScreen(
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "Log",
-                            iconRes = R.drawable.scroll_icon,
                             color   = Gold,
                             active  = true,
                             onClick = { showLog = true }
