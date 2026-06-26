@@ -99,6 +99,13 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  // ── GET /time → autoritativní server čas (anti-cheat pro denní questy) ──
+  if (path === '/time') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({ serverTimeMs: Date.now() }));
+    return;
+  }
+
   // ── GET /art/<name>.webp → card art thumbnails ──────────────────────────
   if (path.startsWith('/art/')) {
     const name = nodePath.basename(path);
