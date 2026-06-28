@@ -6,10 +6,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -54,6 +62,7 @@ class MainActivity : ComponentActivity() {
 
                 androidx.compose.runtime.CompositionLocalProvider(LocalStrings provides strings) {
                 Surface(modifier = Modifier.fillMaxSize()) {
+                  DesignFrame {
                     val initialScreen = if (PlayerProfileManager.isFirstLaunch())
                         Screen.PROFILE_SETUP else Screen.MENU
                     var screen      by remember { mutableStateOf(initialScreen) }
@@ -242,6 +251,7 @@ class MainActivity : ComponentActivity() {
                     }
                     // Toast overlay – musí být poslední, aby byl nad vším ostatním
                     RewardToastOverlay()
+                  } // konec DesignFrame
                 }
                 } // konec CompositionLocalProvider
             }
@@ -262,5 +272,28 @@ class MainActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+    }
+}
+
+// ── Designový rám ─────────────────────────────────────────────────────────────
+// Celé UI je laděné na poměr stran telefonu na šířku (Samsung S23 = 2340×1080,
+// 19,5:9). Layout míchá prvky škálované podle výšky i šířky, takže na zařízeních
+// s jiným poměrem stran (tablety ~16:10) se proporce rozjedou – textury se roztáhnou
+// a tlačítka nesedí. Tento rám omezí obsah na referenční poměr stran a na ostatních
+// zařízeních ho vycentruje (tenké pruhy nahoře/dole), čímž zachová identické rozložení.
+@Composable
+private fun DesignFrame(content: @Composable () -> Unit) {
+    val designAR = 2340f / 1080f   // referenční poměr stran (S23 na šířku)
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        val screenAR = maxWidth / maxHeight
+        val frameMod =
+            if (screenAR > designAR) Modifier.fillMaxHeight().aspectRatio(designAR)
+            else                     Modifier.fillMaxWidth().aspectRatio(designAR)
+        Box(modifier = frameMod) { content() }
     }
 }

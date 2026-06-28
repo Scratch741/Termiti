@@ -154,7 +154,7 @@ class PlayerState(
         val traps  = mutableListOf<Card>()
         var remaining = count
         while (remaining > 0 && deck.isNotEmpty()) {
-            val card = deck.removeFirst()
+            val card = deck.removeAt(0)
             val trap = card.effects.filterIsInstance<CardEffect.TrapOnDraw>().firstOrNull()
             if (trap != null) {
                 // Pasca: spustí efekt ihned na hráče, který lízl, karta jde do odhodiště.
