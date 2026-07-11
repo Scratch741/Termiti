@@ -556,13 +556,20 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
         is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPlaceholder }.take(fx.picks)
-        is CardEffect.DecisionMine         -> listOf(
-            ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
-        ).mapNotNull { resType ->
-            allCards.filter { card ->
-                card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
-            }.shuffled().firstOrNull()
-        }.distinctBy { it.baseId }
+        is CardEffect.DecisionMine         -> {
+            // Vždy 4 možnosti (1 důl od každého typu). Dedup karet s více AddMine
+            // efekty (Trifekta dolů, Velkovýroba…) musí probíhat BĚHEM výběru –
+            // dodatečný distinctBy by po náhodné kolizi srazil nabídku na 3 karty.
+            val seen = mutableSetOf<String>()
+            listOf(
+                ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
+            ).mapNotNull { resType ->
+                allCards.filter { card ->
+                    card.baseId !in seen &&
+                        card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
+                }.shuffled().firstOrNull()?.also { seen.add(it.baseId) }
+            }
+        }
         is CardEffect.SmartJoker           -> listOf("Magie", "Útok", "Stavba", "Chaos").mapNotNull { typeName ->
             // Z každého typu nejdřív filtr na karty, které si hráč může PRÁVĚ dovolit;
             // teprve z nich vybere situačně nejlepší. Jen pokud žádná dostupná není,

@@ -575,7 +575,7 @@ private fun OnlineGameplay(
 
     // ── Menu dialog ───────────────────────────────────────────────────────────
     if (showMenu) {
-        Dialog(onDismissRequest = { showMenu = false }) {
+        GameDialog(onDismissRequest = { showMenu = false }) {
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))

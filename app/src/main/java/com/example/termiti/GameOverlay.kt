@@ -298,7 +298,11 @@ fun MulliganOverlay(
                                     .background(DiscardRed.copy(alpha = 0.25f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("↩", fontSize = 26.sp, color = Color.White)
+                                Image(
+                                    painter            = painterResource(R.drawable.cross_icon),
+                                    contentDescription = null,
+                                    modifier           = Modifier.size(28.dp)
+                                )
                             }
                         }
                         // Ztmavení karet po odeslání
@@ -463,7 +467,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
     }
     val isWin = result.isPlayerWin()
 
-    Dialog(onDismissRequest = {}) {
+    GameDialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
@@ -537,7 +541,7 @@ fun ArenaGameOverDialog(
         GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
     }
 
-    Dialog(onDismissRequest = {}) {
+    GameDialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))

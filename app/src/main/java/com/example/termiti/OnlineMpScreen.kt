@@ -660,9 +660,9 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                 modifier  = Modifier.widthIn(max = 280.dp)
             )
             Spacer(Modifier.height(28.dp))
-            FantasyButton("ZKUSIT ZNOVU", Modifier.width(240.dp)) { vm.retryConnect() }
+            OnBtn("Zkusit znovu", OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
             Spacer(Modifier.height(10.dp))
-            FantasyButton("← ZPĚT", Modifier.width(240.dp)) { vm.disconnect(); onBack() }
+            OnBtn("← Zpět", OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
         }
     }
 }

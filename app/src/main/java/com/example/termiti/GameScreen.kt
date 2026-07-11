@@ -305,7 +305,7 @@ fun GameScreen(
         }
 
         if (showMenuConfirm) {
-            Dialog(onDismissRequest = { showMenuConfirm = false }) {
+            GameDialog(onDismissRequest = { showMenuConfirm = false }) {
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))

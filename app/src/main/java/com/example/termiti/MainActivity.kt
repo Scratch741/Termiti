@@ -18,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -276,14 +278,23 @@ class MainActivity : ComponentActivity() {
 }
 
 // ── Designový rám ─────────────────────────────────────────────────────────────
-// Celé UI je laděné na poměr stran telefonu na šířku (Samsung S23 = 2340×1080,
-// 19,5:9). Layout míchá prvky škálované podle výšky i šířky, takže na zařízeních
-// s jiným poměrem stran (tablety ~16:10) se proporce rozjedou – textury se roztáhnou
-// a tlačítka nesedí. Tento rám omezí obsah na referenční poměr stran a na ostatních
-// zařízeních ho vycentruje (tenké pruhy nahoře/dole), čímž zachová identické rozložení.
+// Celé UI je laděné na telefon na šířku (Samsung S23 = 2340×1080, 19,5:9).
+// Rám dělá dvě věci:
+//
+// 1. POMĚR STRAN – obsah drží referenční poměr 19,5:9; na zařízeních s jiným
+//    poměrem (tablety ~16:10) se vycentruje s pruhy → rozložení je identické.
+//
+// 2. MĚŘÍTKO (virtuální rozlišení) – uvnitř rámu se přepíše LocalDensity tak,
+//    aby výška rámu byla vždy DESIGN_HEIGHT_DP (výška S23 na šířku v dp).
+//    Bez toho by na tabletu byl rám v dp jednotkách větší (nižší density
+//    vůči fyzické velikosti) a všechny prvky s pevnou dp velikostí (karty,
+//    hrad, mulligan dialog, texty v sp) by vypadaly zmenšené. Takto se každý
+//    dp/sp prvek škáluje přesně úměrně = hra vypadá na tabletu jako zvětšený
+//    telefon. Na S23 vychází škála 1:1 (žádná změna).
 @Composable
 private fun DesignFrame(content: @Composable () -> Unit) {
     val designAR = 2340f / 1080f   // referenční poměr stran (S23 na šířku)
+    val designHeightDp = 411.4f    // 1080 px / density 2.625 = výška S23 v dp
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -294,6 +305,24 @@ private fun DesignFrame(content: @Composable () -> Unit) {
         val frameMod =
             if (screenAR > designAR) Modifier.fillMaxHeight().aspectRatio(designAR)
             else                     Modifier.fillMaxWidth().aspectRatio(designAR)
-        Box(modifier = frameMod) { content() }
+        val density = LocalDensity.current
+        val frameHeightPx = with(density) {
+            (if (screenAR > designAR) maxHeight else maxWidth / designAR).toPx()
+        }
+        // fontScale = 1f: zamkne i velikost písma. Systémové nastavení "větší písmo"
+        // by jinak zvětšilo sp texty vůči dp kartám → texty přetečou (na kartách se
+        // 4 řádky popisu vejdou jen při referenčním měřítku písma).
+        val scaledDensity = Density(
+            density   = frameHeightPx / designHeightDp,
+            fontScale = 1f
+        )
+        // LocalGameDensity: dialogy (vlastní okna) si LocalDensity resetují na
+        // systémovou → GameDialog si z něj herní škálování obnoví.
+        CompositionLocalProvider(
+            LocalDensity     provides scaledDensity,
+            LocalGameDensity provides scaledDensity
+        ) {
+            Box(modifier = frameMod) { content() }
+        }
     }
 }
