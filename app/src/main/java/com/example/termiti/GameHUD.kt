@@ -775,12 +775,26 @@ fun HandPanel(
         // Díky tomu se LazyRow nezmenšuje při ubrání karty a animateItem()
         // animuje pohyb všech karet (vlevo i vpravo) v jednom systému
         // – žádné "teleportování" levé poloviny.
+        //
+        // Klíče musí být unikátní. Za normálních okolností je card.id unikátní,
+        // ale online server může (např. po restartu / vynulování čítače instancí)
+        // poslat dvě karty se stejným id → duplicitní klíč = pád UI. Přidáme suffix
+        // pouze skutečným duplicitám, takže běžný případ (klíč = id) i jeho animace
+        // zůstávají beze změny.
+        val handKeys = run {
+            val seen = HashMap<String, Int>()
+            hand.map { card ->
+                val n = seen.getOrDefault(card.id, 0)
+                seen[card.id] = n + 1
+                if (n == 0) card.id else "${card.id}#dup$n"
+            }
+        }
         LazyRow(
             modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             contentPadding        = PaddingValues(horizontal = 10.dp)
         ) {
-            items(hand, key = { it.id }) { card ->
+            itemsIndexed(hand, key = { index, _ -> handKeys[index] }) { _, card ->
                 val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.effectiveCost
                 Box(
                     Modifier

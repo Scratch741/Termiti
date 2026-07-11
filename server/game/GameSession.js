@@ -200,10 +200,19 @@ class GameSession {
     // Build decks – vlastní balíček pokud poslaný, jinak náhodný
     console.log(`[GameSession] ${this.name.A} deckIds: ${this.deckIds.A ? `${this.deckIds.A.length} karet` : 'náhodný'}`);
     console.log(`[GameSession] ${this.name.B} deckIds: ${this.deckIds.B ? `${this.deckIds.B.length} karet` : 'náhodný'}`);
-    // super_random: oba hráči sdílí stejný balíček, každý jen jinak zamíchaný
+    // super_random: oba hráči mají STEJNÉ složení balíčku, ale KAŽDÝ své vlastní
+    // nezávislé instance karet s unikátním id.
+    // Dřív se sdílel jeden balíček přes [...sharedSuperDeck] – to je jen MĚLKÁ kopie
+    // pole, takže oba hráči drželi TYTÉŽ objekty karet se stejným id. Když pak jeden
+    // ukradl kartu druhému (Telekineze/StealCard), dostaly se do jedné ruky dvě karty
+    // se stejným id → duplicitní klíč v LazyRow ruky = pád UI. (Navíc by se sdílené
+    // objekty navzájem mutovaly – costModifier, morph, isGenerated…)
     const sharedSuperDeck = this.mode === 'super_random' ? superBalancedDeck() : null;
     const buildDeck = (ids) => {
-      if (sharedSuperDeck) return shuffle([...sharedSuperDeck]); // kopie s vlastním zamícháním
+      if (sharedSuperDeck) {
+        // Re-instancuj stejné složení → každý hráč vlastní karty s unikátním id.
+        return shuffle(sharedSuperDeck.map(c => makeInstance(CARD_MAP.get(c.baseId) || c)));
+      }
       return ids ? buildDeckFromIds(ids) : balancedDeck();
     };
     const deckA = buildDeck(this.deckIds.A);
