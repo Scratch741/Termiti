@@ -170,6 +170,8 @@ class GameSession {
     // pasivní přeskočení (klient posílá SKIP_TURN vždy, když jsou balíčky prázdné,
     // i po zahrání combo karet – bez tohoto by hra skončila předčasně).
     this.actedThisTurn = { A: false, B: false };
+    // Zahození karty NEukončuje tah, ale je povolené jen 1× za kolo.
+    this.discardUsedThisTurn = { A: false, B: false };
 
     // Last played/discarded card (sent to both clients so they can animate it)
     this.lastPlayedCard    = null;
@@ -1143,6 +1145,12 @@ class GameSession {
   // ── Discard card ───────────────────────────────────────────────────────────
 
   _handleDiscardCard(side, { cardId }) {
+    // Zahození je povolené jen 1× za kolo
+    if (this.discardUsedThisTurn[side]) {
+      this._sendError(side, 'Zahodit lze jen jednu kartu za kolo.');
+      return;
+    }
+
     // Hráč odhodil kartu → resetuj příznak prázdného přeskočení
     this.skippedEmptyDeck[side] = false;
     this.actedThisTurn[side]    = true;
@@ -1154,6 +1162,7 @@ class GameSession {
       this._sendError(side, 'Karta není v ruce.');
       return;
     }
+    this.discardUsedThisTurn[side] = true;
 
     const card = self.hand.splice(cardIdx, 1)[0];
     self.discardPile.push(card);
@@ -1180,7 +1189,9 @@ class GameSession {
       costPaid:   null,
       isXCost:    false
     }, compactState(this.state.A, this.state.B));
-    this._advanceTurn();
+    // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje, stejně jako po combo kartě
+    this._startTurnTimer();
+    this._sendStateBoth();
   }
 
   // ── End turn ───────────────────────────────────────────────────────────────
@@ -1252,6 +1263,8 @@ class GameSession {
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';
     // Nový tah = hráč zatím nejednal (pro rozlišení SKIP_TURN vs. konec tahu po combu)
     this.actedThisTurn[this.activeSide] = false;
+    // Nový tah = zahození opět k dispozici
+    this.discardUsedThisTurn[this.activeSide] = false;
     // Increment round counter only when A's turn starts (= one full round completed)
     if (this.activeSide === 'A') {
       this.turnNumber++;
@@ -1488,7 +1501,8 @@ class GameSession {
         hand:            this._serializeHand(mySide),
         deckSize:        my.deck.length,
         discardSize:     my.discardPile.length,
-        maxHandSize:     my.maxHandSize || 7
+        maxHandSize:     my.maxHandSize || 7,
+        discardUsed:     this.discardUsedThisTurn[mySide]
       },
       oppState:     oppStatePayload,
       myWinTarget:  this.winTarget[mySide],

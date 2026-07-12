@@ -183,6 +183,7 @@ fun ReplayOverlay(
                 showHeader      = false,
                 playerWallHp    = state.playerState.wallHP,
                 playerCastleHp  = state.playerState.castleHP,
+                animateDraws    = false,   // replay: skoky mezi snímky nemají „přilétat"
                 modifier        = Modifier
                     .fillMaxWidth()
                     .height(152.dp)

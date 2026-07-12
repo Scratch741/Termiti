@@ -15,9 +15,17 @@ Start of round (currentTurn++)
         │     ├── Decision effect? → show overlay → wait
         │     ├── Combo card? → player continues turn
         │     └── Non-combo? → finishTurn → switch to opponent
-        └── Player discards a card
-              └── finishTurn → switch to opponent
+        └── Player discards a card (max 1× per turn)
+              └── turn CONTINUES — player may still play cards / end turn
 ```
+
+## Discard rule (1× per turn)
+
+Discarding a card does **not** end the turn, but is allowed only **once per turn**. After using it, the drag-to-discard gesture is disabled for the rest of the turn (UI) and the server rejects further `DISCARD_CARD` (authoritative — `discardUsedThisTurn`, sent to the client as `myState.discardUsed`). The flag resets when the player's next turn starts.
+
+- Offline: `GameViewModel.discardCard` + `playerDiscardUsed` flag (reset in `finishTurn` / game start)
+- Online: `GameSession._handleDiscardCard` keeps the turn running (restarts the turn timer, like combo cards)
+- AI: unchanged — the AI only discards when it cannot play anything with a full hand, so ending its turn right after is equivalent
 
 ## `playCard()` — key function (Gameviewmodel.kt)
 
@@ -62,3 +70,4 @@ Implemented in `GameState.checkWinCondition()` and `GameSession.js` (server).
 
 ## Changelog
 - 2026-05-21: Page created
+- 2026-07-12: Discard rule changed — discarding no longer ends the turn; allowed 1× per turn (offline + online server-authoritative)

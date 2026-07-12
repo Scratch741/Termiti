@@ -411,6 +411,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // Combo: hráč zahrál combo kartu – kolo nepokračuje automaticky
     var isPlayerComboTurn = androidx.compose.runtime.mutableStateOf(false)
         private set
+    // Zahození karty NEukončuje tah, ale je povolené jen 1× za kolo
+    var playerDiscardUsed = androidx.compose.runtime.mutableStateOf(false)
+        private set
 
     // ── Kampaň ───────────────────────────────────────────────────────────────
     /** Aktuálně hraný soupeř v kampani (null = normální hra / aréna). */
@@ -752,8 +755,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             viewModelScope.launch(crashHandler) {
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
-                    delay(210L)
-                    SoundManager.playCardDraw()
+                    // Odstup mezi líznutími; zvuk hraje animace příletu karty (HandPanel)
+                    delay(500L)
                     val drawResult = player.drawCards(1, old.playerMaxHand)
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
@@ -847,8 +850,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             viewModelScope.launch(crashHandler) {
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
-                    delay(210L)
-                    SoundManager.playCardDraw()
+                    // Odstup mezi líznutími; zvuk hraje animace příletu karty (HandPanel)
+                    delay(500L)
                     val drawResR = player.drawCards(1, old.playerMaxHand)
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResR.burned.forEach { b ->
@@ -1248,8 +1251,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // Zamkni hráče během lízání
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
-                    delay(210L)
-                    SoundManager.playCardDraw()
+                    // Odstup mezi líznutími; zvuk hraje animace příletu karty (HandPanel)
+                    delay(500L)
                     val drawResult = player.drawCards(1, old.playerMaxHand)
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
@@ -1329,6 +1332,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun discardCard(card: Card) {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.PLAYER) return
+        if (playerDiscardUsed.value) return   // zahození jen 1× za kolo
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
@@ -1338,9 +1342,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         addCardLog("Hráč", card, CardAction.DISCARDED, isMe = true)
         SoundManager.playDiscard()
 
-        isPlayerComboTurn.value = false
+        playerDiscardUsed.value = true
         addReplayFrame(old.copy(playerState = player, aiState = ai), card, isPlayer = true, action = CardAction.DISCARDED)
-        finishTurn(old, player, ai)
+        // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje; combo stav se nemění
+        gameState.value = old.copy(playerState = player, aiState = ai)
     }
 
     private fun finishTurn(
@@ -1352,6 +1357,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Konec tahu hráče → smaž odhalení AI karty z ruky (ne discard slot uprostřed)
         revealedAiCard.value    = null
         revealedAiCardIdx.value = null
+        // Nové kolo = zahození opět k dispozici
+        playerDiscardUsed.value = false
 
         // Zablokuj hráče – AI je na tahu
         gameState.value = old.copy(
@@ -1686,7 +1693,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // ── Konec kola: příprava hráčova tahu ────────────────────────────
             player.generateResources()
             if (playerDrawsAtEnd && player.deck.isNotEmpty()) {
-                SoundManager.playCardDraw()
+                // zvuk líznutí hraje animace příletu karty (HandPanel)
                 val drawResult = player.drawCards(1, old.playerMaxHand)
                 drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
@@ -1714,7 +1721,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
-                    SoundManager.playCardDraw()
+                    // zvuk líznutí hraje animace příletu karty (HandPanel)
                 }
             }
 
@@ -1879,6 +1886,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
         quickDrawUsed           = false
         // Zruš případně čekající Decision overlay ze staré hry (např. telefon se uspal
@@ -1919,6 +1927,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
         quickDrawUsed           = false
         cancelDecisionTimer()
@@ -2080,6 +2089,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
         isPlayerComboTurn.value = false
+        playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
         quickDrawUsed           = false
         cancelDecisionTimer()

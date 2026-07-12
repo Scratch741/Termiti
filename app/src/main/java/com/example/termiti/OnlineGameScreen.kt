@@ -354,12 +354,8 @@ private fun OnlineGameplay(
         }
     }
 
-    // ── Zvuk: začátek mého tahu (= soupeř právě skončil) ─────────────────────
-    val prevIsMyTurn = remember { mutableStateOf(gs.isMyTurn) }
-    LaunchedEffect(gs.isMyTurn) {
-        if (gs.isMyTurn && !prevIsMyTurn.value) SoundManager.playCardDraw()
-        prevIsMyTurn.value = gs.isMyTurn
-    }
+    // Zvuk začátku tahu: dřívější playCardDraw() při přepnutí tahu nahradila
+    // animace příletu líznuté karty (HandPanel), která hraje zvuk per karta.
 
     // ── Flight overlay state (animace "karta letí z ruky do discardu") ──────
     val flight = remember { FlightOverlayState() }
@@ -388,6 +384,14 @@ private fun OnlineGameplay(
         Box(Modifier.fillMaxSize().background(Color(0x88000000)))
 
         Column(modifier = Modifier.fillMaxSize()) {
+
+            // ── Separátor – horní okraj obrazovky (oddělení od letterbox pruhu) ──
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale       = ContentScale.FillWidth
+            )
 
             // ── Top bar ───────────────────────────────────────────────────────
             NewTopBar(
@@ -538,6 +542,8 @@ private fun OnlineGameplay(
                 playerCastleHp   = myPs.castleHP,
                 oppResources     = oppPs.resources,
                 onLongPressCard  = { card -> if (card.id != "__dummy__") cardPreview = card },
+                animateDraws     = !isGameOver,   // review mód: přepínání rukou bez příletu
+                canDiscard       = !gs.myState.discardUsed,   // zahození jen 1× za kolo (server autoritativní)
                 // Pevná výška ruky – zabrání posunu lišty, když je ruka prázdná
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(

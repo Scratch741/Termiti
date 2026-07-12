@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -330,21 +331,28 @@ fun NewResourcePanel(
     val blkChaos  = playerState.mineBlockedTurns[ResourceType.CHAOS]  ?: 0
     val s         = LocalStrings.current
 
-    Column(
-        modifier = modifier
-            .clipToBounds()
-            .paint(
-                painterResource(R.drawable.bg_side_panels),
-                contentScale = ContentScale.Crop
-            )
-            .padding(horizontal = 8.dp, vertical = 5.dp)
-    ) {
-        NewResourceSection(R.drawable.magie_icon,  s.resMagic,  mineMagic, magic,  MagicBlue,   isAi = isAi, blockedTurns = blkMagic)
-        NewResourceSection(R.drawable.utok_icon,   s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
-        NewResourceSection(R.drawable.kamen_icon2, s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
-        NewResourceSection(R.drawable.chaos_icon,  s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
-        Spacer(Modifier.weight(1f))
-        bottomSlot()
+    // zIndex: floating delta čísla (+N/−N) přesahují okraj panelu směrem k bojišti;
+    // bez zvednutí by je překreslilo bojiště (kreslí se v Row později).
+    // Ořez (clipToBounds) patří jen textuře pozadí (Crop přesahuje bounds) –
+    // obsah panelu se neořezává, aby delta čísla zůstala viditelná.
+    Box(modifier = modifier.zIndex(1f)) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .clipToBounds()
+                .paint(
+                    painterResource(R.drawable.bg_side_panels),
+                    contentScale = ContentScale.Crop
+                )
+        )
+        Column(Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 5.dp)) {
+            NewResourceSection(R.drawable.magie_icon,  s.resMagic,  mineMagic, magic,  MagicBlue,   isAi = isAi, blockedTurns = blkMagic)
+            NewResourceSection(R.drawable.utok_icon,   s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
+            NewResourceSection(R.drawable.kamen_icon2, s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
+            NewResourceSection(R.drawable.chaos_icon,  s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
+            Spacer(Modifier.weight(1f))
+            bottomSlot()
+        }
     }
 }
 
@@ -356,15 +364,21 @@ fun NewResourcePanel(
 fun rememberChangeFlashColor(value: Int, baseColor: Color): Color {
     val flash = remember { Animatable(baseColor) }
     var prev  by remember { mutableIntStateOf(value) }
+    var holding by remember { mutableStateOf(false) }
     LaunchedEffect(value) {
         val old = prev
         prev = value
         if (value != old) {
+            // Podrž plnou flash barvu 550 ms, pak lineární návrat 950 ms
+            // (celkem 1,5 s viditelného pulzu).
             flash.snapTo(if (value > old) Color(0xFF4DE07A) else Color(0xFFFF5252))
-            flash.animateTo(baseColor, tween(durationMillis = 1200, easing = FastOutSlowInEasing))
+            holding = true
+            kotlinx.coroutines.delay(550)
+            holding = false
+            flash.animateTo(baseColor, tween(durationMillis = 950, easing = LinearEasing))
         }
     }
-    return if (flash.isRunning) flash.value else baseColor
+    return if (holding || flash.isRunning) flash.value else baseColor
 }
 
 @Composable
@@ -428,8 +442,8 @@ fun NewResourceSection(
                 Text("$amount", color = amountColor, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End, maxLines = 1,
                     modifier = Modifier.widthIn(min = 24.dp))
-                // delta se vykreslí VPRAVO za číslem (offset = šířka čísla), layout ho nezahrnuje
-                Box(Modifier.offset(x = 26.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
+                // delta se vykreslí VPRAVO za číslem (offset = šířka čísla + odstup), layout ho nezahrnuje
+                Box(Modifier.offset(x = 34.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
                     ResourceDelta(amount)
                 }
             }
@@ -440,7 +454,7 @@ fun NewResourceSection(
                     textAlign = TextAlign.Start, maxLines = 1,
                     modifier = Modifier.widthIn(min = 24.dp))
                 // delta se vykreslí VLEVO před číslem (Alignment.End na 0-width = roste do záporných x)
-                Box(Modifier.width(0.dp).wrapContentWidth(align = Alignment.End, unbounded = true)) {
+                Box(Modifier.offset(x = (-8).dp).width(0.dp).wrapContentWidth(align = Alignment.End, unbounded = true)) {
                     ResourceDelta(amount)
                 }
             }
@@ -770,7 +784,9 @@ fun HandPanel(
     playerCastleHp: Int = 0,
     oppResources: Map<ResourceType, Int> = emptyMap(),
     lastPlayedType: String? = null,
-    onLongPressCard: ((Card) -> Unit)? = null
+    onLongPressCard: ((Card) -> Unit)? = null,
+    animateDraws: Boolean = true,    // false = review mód (přepínání rukou nemá „přilétat")
+    canDiscard: Boolean = true       // false = zahození už v tomto kole použito (1× za kolo)
 ) {
     Column(modifier = modifier.padding(vertical = 6.dp)) {
 
@@ -810,6 +826,14 @@ fun HandPanel(
                 if (n == 0) card.id else "${card.id}#dup$n"
             }
         }
+        // ── Animace lízání ───────────────────────────────────────────────────
+        // Nově příchozí karty „přiletí" zprava (od balíčku) do ruky; při více
+        // kartách najednou s odstupem 0,5 s a zvukem líznutí pro každou.
+        // Úvodní ruka (první kompozice) se neanimuje – jen nové přírůstky.
+        val dealtIds = remember { mutableStateOf(hand.map { it.id }.toSet()) }
+        val newIds   = if (animateDraws) hand.map { it.id }.filter { it !in dealtIds.value }
+                       else emptyList()
+        LaunchedEffect(handKeys) { dealtIds.value = hand.map { it.id }.toSet() }
         LazyRow(
             modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -817,10 +841,25 @@ fun HandPanel(
         ) {
             itemsIndexed(hand, key = { index, _ -> handKeys[index] }) { _, card ->
                 val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.effectiveCost
+                // Pořadí mezi nově líznutými (latch při vstupu do kompozice); -1 = stará karta
+                val appearIdx = remember(card.id) { newIds.indexOf(card.id) }
+                val flyIn     = remember(card.id) { Animatable(if (appearIdx >= 0) 1f else 0f) }
+                if (appearIdx >= 0) LaunchedEffect(card.id) {
+                    kotlinx.coroutines.delay(500L * appearIdx)
+                    SoundManager.playCardDraw()
+                    flyIn.animateTo(0f, tween(durationMillis = 450, easing = FastOutSlowInEasing))
+                }
                 Box(
                     Modifier
                         .animateItem()
                         .trackFlightSource(card.id)
+                        .graphicsLayer {
+                            val p = flyIn.value
+                            translationX = p * 700.dp.toPx()   // přílet zprava (od balíčku)
+                            translationY = -p * 30.dp.toPx()   // lehce shora
+                            rotationZ    = p * 8f
+                            alpha        = if (p > 0.98f) 0f else 1f  // skrytá, dokud čeká na svůj delay
+                        }
                 ) {
                     CardView(
                         card          = card,
@@ -828,7 +867,7 @@ fun HandPanel(
                         isComboCard   = card.isCombo,
                         discardMode   = false,
                         onClick       = { onPlayCard(card) },
-                        onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
+                        onDiscard     = if (isPlayerTurn && canDiscard) { { onDiscardCard(card) } } else null,
                         onLongPress   = if (onLongPressCard != null) { { onLongPressCard(card) } } else null,
                         xPreview      = if (card.isXCost) (playerResources[card.costType] ?: 0) else null,
                         conditionMet  = cardConditionMet(

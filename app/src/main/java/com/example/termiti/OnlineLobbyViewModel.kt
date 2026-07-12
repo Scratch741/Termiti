@@ -87,7 +87,8 @@ data class OnlinePlayerState(
     val deckSize         : Int                       = 0,
     val discardSize      : Int                       = 0,
     val maxHandSize      : Int                       = 7,             // jen myState: max velikost ruky (7 nebo 8 s extra_hand_card)
-    val lastPlayedIdx    : Int?                      = null           // jen oppState: index zahrané karty
+    val lastPlayedIdx    : Int?                      = null,          // jen oppState: index zahrané karty
+    val discardUsed      : Boolean                   = false          // jen myState: zahození už použito v tomto kole (1× za kolo)
 )
 
 // ─── Herní stav (pro GAME_STATE zprávy) ──────────────────────────────────────
@@ -1183,7 +1184,8 @@ class OnlineLobbyViewModel(
             deckSize         = obj.optInt("deckSize",    0),
             discardSize      = obj.optInt("discardSize", 0),
             maxHandSize      = if (isMe) obj.optInt("maxHandSize", 7) else 7,
-            lastPlayedIdx    = lastPlayedIdx
+            lastPlayedIdx    = lastPlayedIdx,
+            discardUsed      = if (isMe) obj.optBoolean("discardUsed", false) else false
         )
     }
 

@@ -128,6 +128,14 @@ fun GameScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
 
+            // ── Separátor – horní okraj obrazovky (oddělení od letterbox pruhu) ──
+            Image(
+                painter = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth().zIndex(1f),
+                contentScale = ContentScale.FillWidth
+            )
+
             // ── Top bar ───────────────────────────────────────────────────────
             val defaultEnemyAvatar = remember { randomEnemyAvatar() }
             NewTopBar(
@@ -271,6 +279,8 @@ fun GameScreen(
                 oppResources     = state.aiState.resources,
                 lastPlayedType   = state.playerState.lastPlayedType,
                 onLongPressCard  = { cardPreview = it },
+                animateDraws     = gameOver == null,   // review mód: přepínání rukou bez příletu
+                canDiscard       = !viewModel.playerDiscardUsed.value,
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
                                                painterResource(R.drawable.hand_background),
