@@ -338,6 +338,25 @@ internal fun PlayedCardSlot(card: Card) {
 }
 
 
+/**
+ * Pro X-kost kartu vrátí suffix popisu " (= N)" s hodnotou, kterou efekt PRÁVĚ TEĎ
+ * vyprodukuje (dmg / suroviny / hrad) podle dostupných surovin [available].
+ * Pro ostatní karty (nebo bez známých surovin) vrátí prázdný řetězec.
+ */
+fun xPreviewSuffix(card: Card, available: Int?): String {
+    if (available == null || !card.isXCost) return ""
+    val n = card.effects.firstNotNullOfOrNull { fx ->
+        when (fx) {
+            is CardEffect.XScaledAttackPlayer -> available / fx.divisor
+            is CardEffect.XScaledAttackCastle -> available / fx.divisor
+            is CardEffect.XScaledBuildCastle  -> available / fx.divisor
+            is CardEffect.XScaledDualResource -> available / fx.divisor
+            else -> null
+        }
+    } ?: return ""
+    return " (= $n)"
+}
+
 // ─── Card ─────────────────────────────────────────────────────────────────────
 @Composable
 fun CardView(
@@ -350,7 +369,8 @@ fun CardView(
     isComboCard: Boolean = card.isCombo,
     conditionMet: Boolean? = null,  // null = karta nemá podmínku
     showFade: Boolean = true,       // false = vždy plná opacity (např. zahraná karta uprostřed)
-    showGlow: Boolean = true
+    showGlow: Boolean = true,
+    xPreview: Int? = null           // X-kost: dostupné suroviny → náhled hodnoty v popisu
 ) {
     val offsetY   = remember { Animatable(0f) }
     val scope     = rememberCoroutineScope()
@@ -422,7 +442,8 @@ fun CardView(
         showPurpleGlow = isShapeShifter,
         purpleGlowAlpha = purpleGlowAlpha,
         onClick        = onClick,
-        onLongPress    = onLongPress
+        onLongPress    = onLongPress,
+        xPreview       = xPreview
     )
 }
 
@@ -445,7 +466,8 @@ private fun CardViewTextured(
     showPurpleGlow: Boolean = false,
     purpleGlowAlpha: Float = 0f,
     onClick: () -> Unit,
-    onLongPress: (() -> Unit)? = null
+    onLongPress: (() -> Unit)? = null,
+    xPreview: Int? = null
 ) {
     val context = LocalContext.current
     // Načtení rámu karty dynamicky podle costType (card_frame_magic/attack/chaos/stones).
@@ -624,7 +646,7 @@ private fun CardViewTextured(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                parseCardDesc(card.displayDescription),
+                parseCardDesc(card.displayDescription + xPreviewSuffix(card, xPreview)),
                 color = Color(0xFFDDD0B0),
                 fontSize = 7.sp,
                 textAlign = TextAlign.Center,
@@ -760,7 +782,7 @@ private fun CardViewTextured(
  * Rozměry 220×308 dp (2.2× základní 100×140 dp) – vhodné i pro landscape.
  */
 @Composable
-fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
+fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit, xPreview: Int? = null) {
     val context = LocalContext.current
     val frameResId = remember(card.costType) {
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
@@ -884,7 +906,7 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    parseCardDesc(card.displayDescription),
+                    parseCardDesc(card.displayDescription + xPreviewSuffix(card, xPreview)),
                     color     = Color(0xFFDDD0B0),
                     fontSize  = 16.sp,
                     textAlign = TextAlign.Center,

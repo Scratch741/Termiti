@@ -1083,7 +1083,10 @@ class OnlineLobbyViewModel(
                             if (cloneSourceCost >= 0) cloneSourceCost else displayTemplate.cost
                         } else realTemplate.cost,
                         costType       = if (morph == "clone") displayTemplate.costType else realTemplate.costType,
-                        costModifier   = if (morph == "clone") 1 else 0,
+                        // costModifier ze serveru = Kletba cen/slevy (ModifyHandCost) na kartě
+                        // v ruce; server podle něj účtuje. Klon má navíc +1 přirážku za kopii.
+                        // Zahodit modifier ("0"/"1" natvrdo) = vizuál nesedí se skutečnou cenou.
+                        costModifier   = if (morph == "clone") 1 + costModifier else costModifier,
                         // Combo ikona: Zrcadlo/Klon jsou combo karty – berme z realTemplate, ne z kopírované karty
                         isCombo        = realTemplate.isCombo,
                         isGenerated    = isGenerated

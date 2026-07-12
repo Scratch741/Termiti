@@ -166,6 +166,10 @@ class GameSession {
 
     // Empty-deck skip tracking: hra skončí až oba hráči přeskočí tah s prázdnými balíčky
     this.skippedEmptyDeck = { A: false, B: false };
+    // Hráč v tomto tahu zahrál/odhodil kartu → jeho SKIP_TURN se nepočítá jako
+    // pasivní přeskočení (klient posílá SKIP_TURN vždy, když jsou balíčky prázdné,
+    // i po zahrání combo karet – bez tohoto by hra skončila předčasně).
+    this.actedThisTurn = { A: false, B: false };
 
     // Last played/discarded card (sent to both clients so they can animate it)
     this.lastPlayedCard    = null;
@@ -546,6 +550,7 @@ class GameSession {
   _handlePlayCard(side, { cardId }) {
     // Hráč zahrál kartu → resetuj příznak prázdného přeskočení (není to skip)
     this.skippedEmptyDeck[side] = false;
+    this.actedThisTurn[side]    = true;
 
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
@@ -560,11 +565,23 @@ class GameSession {
 
     // Check resources – všechny typy (MAGIC, ATTACK, STONES, CHAOS) fungují stejně
     // X-kost karty spotřebují veškerý dostupný zdroj
-    const res = card.costType;
+    //
+    // Klon (parita s offline updateCloneCards): platí se v surovině KOPÍROVANÉ
+    // karty a cena = efektivní cena originálu +1 (+ případný costModifier na
+    // Klonu samotném, např. Kletba cen). Bez zdroje (hráč ještě nic nezahrál)
+    // platí Klon svou vlastní cenu. self.lastPlayedCard je tady ještě předchozí
+    // vlastní karta – nastavuje se až po zahrání, tedy přesně zdroj kopie.
+    const cloneSrc = (!card.isXCost
+      && Array.isArray(card.effects) && card.effects.some(fx => fx.type === 'Clone'))
+      ? self.lastPlayedCard : null;
+    const res = cloneSrc ? cloneSrc.costType : card.costType;
     let xValue = 0;
     // effectiveCost = základní cena + costModifier, omezeno na 0–99
+    const baseCost = cloneSrc
+      ? Math.min(99, Math.max(0, (cloneSrc.cost || 0) + (cloneSrc.costModifier || 0))) + 1
+      : (card.cost || 0);
     const effectiveCost = card.isXCost ? 0
-      : Math.min(99, Math.max(0, (card.cost || 0) + (card.costModifier || 0)));
+      : Math.min(99, Math.max(0, baseCost + (card.costModifier || 0)));
     if (card.isXCost) {
       xValue = self.resources[res] || 0;
     } else {
@@ -1128,6 +1145,7 @@ class GameSession {
   _handleDiscardCard(side, { cardId }) {
     // Hráč odhodil kartu → resetuj příznak prázdného přeskočení
     this.skippedEmptyDeck[side] = false;
+    this.actedThisTurn[side]    = true;
 
     const self = this.state[side];
 
@@ -1184,6 +1202,16 @@ class GameSession {
     this.lastPlayedCard   = null;
     this.lastPlayedAction = null;
 
+    // Hráč tento tah zahrál/odhodil kartu (např. combo řetěz) → nejde o pasivní
+    // přeskočení, ale o normální ukončení tahu. Klient posílá SKIP_TURN vždy,
+    // když jsou oba balíčky prázdné – bez této kontroly by hra skončila hned,
+    // jakmile soupeř předtím skutečně přeskočil.
+    if (this.actedThisTurn[side]) {
+      this.skippedEmptyDeck[side] = false;
+      this._advanceTurn();
+      return;
+    }
+
     const self = this.state[side];
     const opp  = this.state[side === 'A' ? 'B' : 'A'];
 
@@ -1222,6 +1250,8 @@ class GameSession {
 
     // Switch active side
     this.activeSide = this.activeSide === 'A' ? 'B' : 'A';
+    // Nový tah = hráč zatím nejednal (pro rozlišení SKIP_TURN vs. konec tahu po combu)
+    this.actedThisTurn[this.activeSide] = false;
     // Increment round counter only when A's turn starts (= one full round completed)
     if (this.activeSide === 'A') {
       this.turnNumber++;

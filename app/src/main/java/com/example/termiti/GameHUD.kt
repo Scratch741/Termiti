@@ -2,6 +2,7 @@
 
 import com.example.termiti.R
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -347,6 +348,25 @@ fun NewResourcePanel(
     }
 }
 
+/**
+ * Barva čísla, která při změně [value] krátce zezelená (nárůst) / zčervená (pokles)
+ * a plynule se vrátí na [baseColor]. Mimo animaci vrací vždy aktuální [baseColor].
+ */
+@Composable
+fun rememberChangeFlashColor(value: Int, baseColor: Color): Color {
+    val flash = remember { Animatable(baseColor) }
+    var prev  by remember { mutableIntStateOf(value) }
+    LaunchedEffect(value) {
+        val old = prev
+        prev = value
+        if (value != old) {
+            flash.snapTo(if (value > old) Color(0xFF4DE07A) else Color(0xFFFF5252))
+            flash.animateTo(baseColor, tween(durationMillis = 1200, easing = FastOutSlowInEasing))
+        }
+    }
+    return if (flash.isRunning) flash.value else baseColor
+}
+
 @Composable
 fun NewResourceSection(
     @DrawableRes iconRes: Int,
@@ -359,7 +379,8 @@ fun NewResourceSection(
     blockedTurns: Int = 0
 ) {
     val blocked = blockedTurns > 0
-    val mineColor = if (blocked) Color(0xFFE53935) else Gold
+    val mineColor = rememberChangeFlashColor(mine, if (blocked) Color(0xFFE53935) else Gold)
+    val amountColor = rememberChangeFlashColor(amount, TextPrimary)
 
     // Pomocný slot pro počet dolů + indikátor blokace (vždy jeden řádek)
     @Composable
@@ -404,7 +425,7 @@ fun NewResourceSection(
                 modifier = Modifier.weight(1f)
             )
             Box {
-                Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                Text("$amount", color = amountColor, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End, maxLines = 1,
                     modifier = Modifier.widthIn(min = 24.dp))
                 // delta se vykreslí VPRAVO za číslem (offset = šířka čísla), layout ho nezahrnuje
@@ -415,7 +436,7 @@ fun NewResourceSection(
         } else {
             // AI – zrcadlo: zásoba (delta jako overlay vlevo) | název (roztažený) | ikona | mine#
             Box {
-                Text("$amount", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                Text("$amount", color = amountColor, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Start, maxLines = 1,
                     modifier = Modifier.widthIn(min = 24.dp))
                 // delta se vykreslí VLEVO před číslem (Alignment.End na 0-width = roste do záporných x)
@@ -809,6 +830,7 @@ fun HandPanel(
                         onClick       = { onPlayCard(card) },
                         onDiscard     = if (isPlayerTurn) { { onDiscardCard(card) } } else null,
                         onLongPress   = if (onLongPressCard != null) { { onLongPressCard(card) } } else null,
+                        xPreview      = if (card.isXCost) (playerResources[card.costType] ?: 0) else null,
                         conditionMet  = cardConditionMet(
                             card,
                             playerResources,

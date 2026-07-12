@@ -493,10 +493,10 @@ fun aiChooseAction(
         if (handFull && ai.deck.isNotEmpty()) {
             return bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
         }
-        // Volné místo v ruce + balíček má karty → čekej, příště lízneš novou kartu
-        if (ai.deck.isNotEmpty()) return AiAction.Wait
-        // Balíček prázdný → zahoď nejméně hodnotnou kartu
-        return bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
+        // Jinak čekej. Zahození je čistá ztráta karty: s volným místem v ruce
+        // nic neblokuje líz a s prázdným balíčkem není co lízat – suroviny
+        // každé kolo rostou, takže se karty časem stanou dostupnými.
+        return AiAction.Wait
     }
 
     // =====================================================================

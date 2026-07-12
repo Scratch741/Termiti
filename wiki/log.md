@@ -97,3 +97,6 @@ Added language switching (Czech / English) preparation:
 Migration status: SettingsScreen strings migrated. All other screens still use hardcoded Czech strings — migrate by replacing literals with `LocalStrings.current.*`.
 
 All pages rewritten in English for token efficiency. `overview.md` kept in Czech as a human-readable overview.
+## [2026-07-12] ingest | AI discard fix: discards only with a full hand + non-empty deck (previously discarded even with an empty deck = pure card loss); Discard rules section added to systems/ai.md
+## [2026-07-12] ingest | Mirror/Clone cost parity: online server charges Klon as source effectiveCost+1 in source costType (was: own cost 2 + modifier); ModifyHandCost costModifier preserved on morph cards (online client no longer hardcodes it, offline updateCloneCards keeps curse idempotently); Morph cards section added to cards/effects.md
+## [2026-07-12] ingest | Online empty-deck fix: SKIP_TURN from a player who played/discarded this turn (combo) is treated as normal end-turn via actedThisTurn tracking; game no longer ends prematurely. Documented in mechanics/win-conditions.md

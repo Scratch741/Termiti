@@ -566,7 +566,11 @@ private fun OnlineGameplay(
 
         // Náhled karty (long press) – kreslí se nad hrou, ale pod letem
         cardPreview?.let { card ->
-            CardFullPreviewOverlay(card = card, onDismiss = { cardPreview = null })
+            CardFullPreviewOverlay(
+                card      = card,
+                onDismiss = { cardPreview = null },
+                xPreview  = if (card.isXCost) (myPs.resources[card.costType] ?: 0) else null
+            )
         }
 
         // Letící karta (hráčova) – nad vším ostatním v Boxu

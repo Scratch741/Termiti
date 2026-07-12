@@ -86,6 +86,16 @@ val best = opts.minByOrNull { card ->
 
 > Example: `Vojenský rozkaz` (+6 ATTACK) → `Démon` becomes affordable and lethal. Without this lookahead the AI only saw single-step lethals and missed the win.
 
+## Discard rules
+
+The AI discards (`AiAction.Discard`) **only** when the hand is full (7) **and** its deck still has cards — freeing a slot for the next draw (a draw into a full hand would burn the card). In every other "stuck" situation it waits:
+
+- hand not full → waiting costs nothing, next turn draws a new card
+- own deck empty → discarding is a pure card loss (nothing to draw into the freed slot); resources grow every round, so unaffordable cards become affordable over time
+- both decks empty → separate ENDGAME branch: never discard, otherwise the "both waiting with empty decks" draw condition (`resolveByHp`) could never trigger
+
+`bestDiscard()` picks the card with the lowest hand value: `effectScore × 2 − turnsToAfford × 2 + costBonus` (strong/expensive cards are kept even if currently unaffordable; the affordability penalty is capped at 4 turns).
+
 ## AI and Combo vs. Non-combo
 
 Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-combo card ends the AI's turn.
@@ -100,3 +110,4 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 ## Changelog
 - 2026-05-21: Page created; DecisionMine AI logic added
 - 2026-05-29: Documented lethal detection + combo-chain lethal lookahead (`comboSetupForLethal`); DecisionChooseResource AI picks least-held resource; smarter discard (keep strong cards)
+- 2026-07-12: Discard rules documented + fix: AI no longer discards with an empty deck (was a pure card loss — e.g. threw away Nedobytná pevnost instead of waiting); discard now only with a full hand + non-empty deck

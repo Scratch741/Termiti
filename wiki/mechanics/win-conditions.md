@@ -46,6 +46,12 @@ if (this.turnNumber >= 99) {
 }
 ```
 
+## Empty-deck skip rule (online)
+
+With **both decks empty**, the game ends by `resolveByHp` only after **both players passively skip** their turn in a row (`skippedEmptyDeck.A && skippedEmptyDeck.B` in `GameSession`).
+
+A skip counts as *passive* only when the player did nothing that turn. The client sends `SKIP_TURN` whenever both decks are empty — even after the player played combo cards — so the server tracks `actedThisTurn` (set by `PLAY_CARD`/`DISCARD_CARD`, reset when the player's turn starts): a `SKIP_TURN` from a player who acted is treated as a normal end-turn and clears their skip flag. Any play/discard also clears the player's own flag; the offline ENDGAME AI branch never discards for the same reason (would prevent the draw condition from ever triggering).
+
 ## Related pages
 - [[overview]] — game overview
 - [[mechanics/game-flow]] — turn flow
@@ -53,3 +59,4 @@ if (this.turnNumber >= 99) {
 
 ## Changelog
 - 2026-05-21: Page created; 99-round limit added
+- 2026-07-12: Empty-deck skip rule documented + fix: SKIP_TURN after playing cards (combo) no longer counts as a passive skip — game ended prematurely instead of starting the next turn

@@ -34,20 +34,39 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      # Release APK se musí podepsat. Keystore je uložený v GitHub Secrets jako
+      # base64 (RELEASE_KEYSTORE_BASE64) – zde se dekóduje a vygeneruje se
+      # local.properties, ze kterého build.gradle.kts čte signing config.
+      - name: Decode keystore + create local.properties
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          cat > local.properties <<EOF
+          KEYSTORE_PATH=$RUNNER_TEMP/release.keystore
+          KEYSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}
+          EOF
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      # Gradle task v app/build.gradle.kts přejmenuje výstup na
+      # darkmage-<versionName>-release.apk
+      - name: Read version name
+        id: version
+        run: echo "ver=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Termiti-debug-${{ github.run_number }}
-          path: app/build/outputs/apk/debug/*.apk
+          name: darkmage-${{ steps.version.outputs.ver }}-release
+          path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Build #${{ github.run_number }}"
-          body: "Automatický debug build z commitu ${{ github.sha }}"
-          files: app/build/outputs/apk/debug/*.apk
+          tag_name: release-${{ steps.version.outputs.ver }}-build${{ github.run_number }}
+          name: "DarkMage ${{ steps.version.outputs.ver }} (build #${{ github.run_number }})"
+          body: "Release build z commitu ${{ github.sha }}"
+          files: app/build/outputs/apk/release/*.apk

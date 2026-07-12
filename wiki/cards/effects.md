@@ -85,6 +85,20 @@ Card costs 0 but consumes ALL available resources of the given type on play (X =
 |--------|--------|-------------|
 | `MomentumAttack` | base, bonusPerAttack | Attacks for `base + bonusPerAttack × attackCardsThisTurn` |
 
+## Morph cards (Mirror / Clone)
+
+| Effect | Card | Description |
+|--------|------|-------------|
+| `Mirror` | `"C41"` Zrcadlo | On play, copies the effects of the **opponent's** last played card |
+| `Clone` | `"C42"` Klon | On play, copies the effects of the **own** last played card |
+
+**Cost rules** (identical offline and online — parity fixed 2026-07-12):
+- **Zrcadlo** pays its own cost (3 MAGIC) + its own `costModifier` (Kletba cen / discounts).
+- **Klon** pays in the **copied card's** resource type; cost = copied card's *effective* cost (incl. its discounts) **+1** + Klon's own `costModifier`. With no source (nothing played yet) it pays its own base cost and its effect falls back to +2 MAGIC.
+- `costModifier` from `ModifyHandCost` must survive the morph re-stamp: offline `updateCloneCards` re-runs each turn and subtracts its previous +1 surcharge before re-applying; the online client takes `costModifier` from the server instead of hardcoding it.
+
+Implementation: server charges in `GameSession._handlePlayCard` (cloneSrc branch), offline in `GameLogic.updateCloneCards`; the online client renders morph cards in `OnlineLobbyViewModel.parseCardArray`.
+
 ## Related pages
 - [[cards/types]] — card types
 - [[cards/decisions]] — Decision mechanic in detail
@@ -95,4 +109,5 @@ Card costs 0 but consumes ALL available resources of the given type on play (X =
 - 2026-05-21: Page created
 - 2026-05-26: Added missing effects: GiveRandomCard, TrapOnDraw, AddToOpponentDeck, ModifyHandCost, RandomizeHands, SmartJoker
 - 2026-05-28: Documented DecisionChooseResource, PeekAndStealHand, MomentumAttack
+- 2026-07-12: Morph cards section (Mirror/Clone) + cost rules; fixed online/offline parity: online server now charges Klon as source+1 in source's resource type; Kletba cen (`ModifyHandCost`) no longer visually lost on Zrcadlo/Klon
 - 2026-05-29: DecisionChooseResource now shown as placeholder cards (not buttons)

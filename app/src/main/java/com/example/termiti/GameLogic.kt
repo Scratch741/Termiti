@@ -302,6 +302,10 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
     for (i in hand.indices) {
         val card = hand[i]
         if (!card.effects.any { it is CardEffect.Clone }) continue
+        // Zachovej Kletbu cen / slevy (ModifyHandCost) na Klonu samotném:
+        // costModifier karty už může obsahovat +1 přirážku z předchozího běhu
+        // této funkce (poznáme podle localizationId) – odečti ji, zbytek je kletba.
+        val curse = card.costModifier - (if (card.localizationId == "__clone__") 1 else 0)
         hand[i] = if (playerLastPlayed != null) {
             val srcId = playerLastPlayed.localizationId ?: playerLastPlayed.baseId
             val resolvedDesc = LanguageManager.cardDesc(srcId, playerLastPlayed.description)
@@ -312,7 +316,7 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 name           = resolvedName,
                 // Klon stojí effectiveCost originálu +1 – zohledňuje případnou slevu na originálu
                 cost           = playerLastPlayed.effectiveCost,
-                costModifier   = 1,
+                costModifier   = 1 + curse,
                 costType       = playerLastPlayed.costType,
                 artResId       = playerLastPlayed.artResId,
                 artBiasX       = playerLastPlayed.artBiasX,
@@ -329,7 +333,7 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 localizationId = null,
                 name           = resolvedName,
                 cost           = orig?.cost     ?: card.cost,
-                costModifier   = 0,
+                costModifier   = curse,
                 costType       = orig?.costType ?: card.costType,
                 artResId       = orig?.artResId,
                 artBiasX       = orig?.artBiasX ?: 0f,
