@@ -39,7 +39,23 @@ jobs:
       # local.properties, ze kterého build.gradle.kts čte signing config.
       - name: Decode keystore + create local.properties
         run: |
+          # Fail-fast: chybějící secrets by jinak vytvořily prázdný keystore
+          # a build by spadl až u podpisu s kryptickou chybou.
+          if [ -z "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] || \
+             [ -z "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" ] || \
+             [ -z "${{ secrets.RELEASE_KEY_ALIAS }}" ] || \
+             [ -z "${{ secrets.RELEASE_KEY_PASSWORD }}" ]; then
+            echo "::error::Chybí GitHub Secrets pro podpis (RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD). Nastav je v Settings → Secrets and variables → Actions."
+            exit 1
+          fi
           echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          # Sanity check dekódovaného keystore (bez vyzrazení obsahu)
+          SIZE=$(stat -c%s "$RUNNER_TEMP/release.keystore")
+          echo "keystore size: $SIZE bytes"
+          if [ "$SIZE" -lt 100 ]; then
+            echo "::error::Dekódovaný keystore je podezřele malý ($SIZE B) – RELEASE_KEYSTORE_BASE64 je nejspíš poškozený/neúplný."
+            exit 1
+          fi
           cat > local.properties <<EOF
           KEYSTORE_PATH=$RUNNER_TEMP/release.keystore
           KEYSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
