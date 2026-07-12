@@ -339,9 +339,9 @@ internal fun PlayedCardSlot(card: Card) {
 
 
 /**
- * Pro X-kost kartu vrátí suffix popisu " (= N)" s hodnotou, kterou efekt PRÁVĚ TEĎ
- * vyprodukuje (dmg / suroviny / hrad) podle dostupných surovin [available].
- * Pro ostatní karty (nebo bez známých surovin) vrátí prázdný řetězec.
+ * Pro X-kost kartu vrátí suffix popisu " **(N)**" (tučně, parseCardDesc) s hodnotou,
+ * kterou efekt PRÁVĚ TEĎ vyprodukuje (dmg / suroviny / hrad) podle dostupných
+ * surovin [available]. Pro ostatní karty (nebo bez známých surovin) vrátí "".
  */
 fun xPreviewSuffix(card: Card, available: Int?): String {
     if (available == null || !card.isXCost) return ""
@@ -354,7 +354,7 @@ fun xPreviewSuffix(card: Card, available: Int?): String {
             else -> null
         }
     } ?: return ""
-    return " (= $n)"
+    return " **($n)**"
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────

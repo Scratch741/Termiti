@@ -35,6 +35,9 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -844,6 +847,9 @@ fun HandPanel(
                 // Pořadí mezi nově líznutými (latch při vstupu do kompozice); -1 = stará karta
                 val appearIdx = remember(card.id) { newIds.indexOf(card.id) }
                 val flyIn     = remember(card.id) { Animatable(if (appearIdx >= 0) 1f else 0f) }
+                // Vzdálenost karty od PRAVÉHO okraje obrazovky → let vždy startuje
+                // za krajem („z voidu"), nezávisle na počtu karet v ruce.
+                var flyStartPx by remember(card.id) { mutableFloatStateOf(0f) }
                 if (appearIdx >= 0) LaunchedEffect(card.id) {
                     kotlinx.coroutines.delay(500L * appearIdx)
                     SoundManager.playCardDraw()
@@ -851,11 +857,17 @@ fun HandPanel(
                 }
                 Box(
                     Modifier
-                        .animateItem()
+                        // fadeInSpec = null: výchozí fade-in nových položek by maskoval
+                        // začátek příletu (karta by byla průhledná až skoro do ruky)
+                        .animateItem(fadeInSpec = null)
                         .trackFlightSource(card.id)
+                        .onGloballyPositioned { c ->
+                            flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
+                        }
                         .graphicsLayer {
                             val p = flyIn.value
-                            translationX = p * 700.dp.toPx()   // přílet zprava (od balíčku)
+                            val startX = if (flyStartPx > 0f) flyStartPx else 700.dp.toPx()
+                            translationX = p * startX          // přílet z pravého kraje obrazovky
                             translationY = -p * 30.dp.toPx()   // lehce shora
                             rotationZ    = p * 8f
                             alpha        = if (p > 0.98f) 0f else 1f  // skrytá, dokud čeká na svůj delay
