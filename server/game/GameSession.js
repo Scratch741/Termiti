@@ -1476,6 +1476,7 @@ class GameSession {
       handSize:        opp.hand.length,
       deckSize:        opp.deck.length,
       discardSize:     opp.discardPile.length,
+      maxHandSize:     opp.maxHandSize || 7,
       lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
     };
 

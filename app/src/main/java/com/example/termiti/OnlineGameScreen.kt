@@ -454,6 +454,7 @@ private fun OnlineGameplay(
                     playerWinTarget       = gs.myWinTarget,
                     aiWinTarget           = gs.oppWinTarget,
                     playerMaxHand         = gs.myState.maxHandSize,
+                    aiMaxHand             = gs.oppState.maxHandSize,
                     opponentCardBackResId = cardBackSkinDrawable(
                         matchInfo?.opponentCardBackSkin ?: "card_back_frame"
                     ),

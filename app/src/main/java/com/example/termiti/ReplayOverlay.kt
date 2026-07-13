@@ -159,7 +159,8 @@ fun ReplayOverlay(
                         modifier         = Modifier.fillMaxHeight().weight(1f),
                         playerWinTarget  = state.playerWinTarget,
                         aiWinTarget      = state.aiWinTarget,
-                        playerMaxHand    = state.playerMaxHand
+                        playerMaxHand    = state.playerMaxHand,
+                        aiMaxHand        = state.aiMaxHand
                     )
                     NewResourcePanel(
                         playerState = state.aiState,

@@ -197,6 +197,7 @@ fun GameScreen(
                     playerWinTarget   = state.playerWinTarget,
                     aiWinTarget       = state.aiWinTarget,
                     playerMaxHand     = state.playerMaxHand,
+                    aiMaxHand         = state.aiMaxHand,
                     playerCastleResId = castleSkinDrawable(
                         PlayerProfileManager.profile?.castleSkin ?: "castle_player"
                     )

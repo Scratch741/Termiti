@@ -70,6 +70,7 @@ fun NewBattlefield(
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
     aiWinTarget: Int = 60,            // win target soupeře / AI
     playerMaxHand: Int = 7,           // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
+    aiMaxHand: Int = 7,               // max. velikost ruky soupeře/AI (7 nebo 8 s extra_hand_card)
     opponentCardBackResId: Int = R.drawable.card_back_frame,  // skin rubu karet soupeře/AI
     playerCastleResId: Int = R.drawable.castle_player,        // skin hradu hráče
     opponentCastleResId: Int = R.drawable.castle_player       // skin hradu soupeře/AI
@@ -221,6 +222,7 @@ fun NewBattlefield(
             isPlayer    = false,
             winTarget   = aiWinTarget,
             handSize    = aiState.hand.size,
+            maxHandSize = aiMaxHand,
             modifier    = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
