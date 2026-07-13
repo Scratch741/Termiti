@@ -33,6 +33,9 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -96,12 +99,54 @@ fun NewBattlefield(
         val scaledH    = cardNatH * cardScale
         val scaledW    = cardNatW * cardScale
 
-        // ── AI ruka (nahoře) – fixní výška, zahraná karta na správné pozici ──
+        // ── AI ruka (nahoře) – animovaná: nové ruby přilétají, po zahrání se sesune ──
         val aiStripH = 46.dp
-        // Celkový počet slotů: zbývající ruka + 1 zahraná karta (pokud víme index)
         val showReveal = revealedAiCard != null && revealedAiCardIdx != null
-        val totalSlots = if (showReveal) aiState.hand.size + 1 else aiState.hand.size
-        Row(
+        val aiHandSize = aiState.hand.size
+
+        // Ruby karet nemají identitu → syntetické stabilní klíče slotů. Bez nich
+        // nelze animovat přílet nové karty ani plynulé sesunutí po zahrání.
+        // Init na aktuální velikost ruky = úvodní ruka se neanimuje (jako u hráče).
+        val aiSlotIds    = remember { mutableStateListOf<Int>().apply { repeat(aiHandSize) { add(it) } } }
+        var aiNextSlotId by remember { mutableIntStateOf(aiHandSize) }
+        var aiNewSlotIds by remember { mutableStateOf(emptySet<Int>()) }
+
+        LaunchedEffect(aiHandSize) {
+            if (aiSlotIds.size < aiHandSize) {
+                // Líznutí: přidej nové klíče na konec a označ je pro fly-in animaci
+                val added = mutableSetOf<Int>()
+                while (aiSlotIds.size < aiHandSize) {
+                    aiSlotIds.add(aiNextSlotId)
+                    added.add(aiNextSlotId)
+                    aiNextSlotId++
+                }
+                aiNewSlotIds = added
+            } else if (aiSlotIds.size > aiHandSize) {
+                // Zahrání/zahození/spálení: odeber klíč na pozici zahrané karty
+                // (zbytek se přes animateItem plynule sesune), jinak z konce
+                while (aiSlotIds.size > aiHandSize) {
+                    val removeAt = revealedAiCardIdx?.takeIf { it < aiSlotIds.size }
+                        ?: (aiSlotIds.size - 1)
+                    aiSlotIds.removeAt(removeAt)
+                }
+            }
+        }
+
+        // Položky stripu: ruby + odhalená zahraná karta na své původní pozici.
+        // Klíč obsahuje id karty → při combo sérii (více karet za sebou) se pop
+        // animace spustí pro každou novou odhalenou kartu.
+        val revealKey = "revealed:${revealedAiCard?.id}"
+        val stripItems: List<Pair<Any, Boolean>> = buildList {
+            val total = aiSlotIds.size + if (showReveal) 1 else 0
+            var back = 0
+            for (slot in 0 until total) {
+                if (showReveal && slot == revealedAiCardIdx) add(revealKey as Any to true)
+                else if (back < aiSlotIds.size) add(aiSlotIds[back++] as Any to false)
+            }
+            if (showReveal && none { it.second }) add(revealKey as Any to true)
+        }
+
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
@@ -111,15 +156,44 @@ fun NewBattlefield(
                 )
                 .padding(horizontal = 8.dp),
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
         ) {
-            for (slot in 0 until totalSlots) {
-                if (slot > 0) Spacer(Modifier.width(4.dp))
-                if (showReveal && slot == revealedAiCardIdx) {
-                    // Odhalená zahraná karta – na své původní pozici v ruce
-                    PlayedCardSlot(revealedAiCard!!)
+            items(stripItems, key = { it.first }) { item ->
+                if (item.second) {
+                    // Odhalená zahraná karta – jemný pop na své původní pozici v ruce
+                    val pop = remember { Animatable(0.6f) }
+                    LaunchedEffect(Unit) { pop.animateTo(1f, tween(260, easing = FastOutSlowInEasing)) }
+                    Box(
+                        Modifier
+                            .animateItem()
+                            .graphicsLayer { scaleX = pop.value; scaleY = pop.value }
+                    ) { PlayedCardSlot(revealedAiCard!!) }
                 } else {
-                    CardBack(skinResId = opponentCardBackResId)
+                    // Nově líznutý rub přilétá zprava (od balíčku) – zrcadlí animaci hráče
+                    val slotKey   = item.first as Int
+                    val appearIdx = remember(slotKey) {
+                        if (slotKey in aiNewSlotIds) aiNewSlotIds.sorted().indexOf(slotKey) else -1
+                    }
+                    val flyIn = remember(slotKey) { Animatable(if (appearIdx >= 0) 1f else 0f) }
+                    var flyStartPx by remember(slotKey) { mutableFloatStateOf(0f) }
+                    if (appearIdx >= 0) LaunchedEffect(slotKey) {
+                        delay(200L * appearIdx)
+                        flyIn.animateTo(0f, tween(400, easing = FastOutSlowInEasing))
+                    }
+                    Box(
+                        Modifier
+                            // fadeInSpec = null: výchozí fade-in by maskoval začátek příletu
+                            .animateItem(fadeInSpec = null)
+                            .onGloballyPositioned { c ->
+                                flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
+                            }
+                            .graphicsLayer {
+                                val p = flyIn.value
+                                val startX = if (flyStartPx > 0f) flyStartPx else 600.dp.toPx()
+                                translationX = p * startX
+                                rotationZ    = p * 10f
+                            }
+                    ) { CardBack(skinResId = opponentCardBackResId) }
                 }
             }
         }
