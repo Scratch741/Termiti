@@ -368,12 +368,23 @@ class GameSession {
   // v timebank fázi (elapsed - TURN_SECONDS).
 
   _startTurnTimer() {
+    this._resumeTurnTimer(TURN_SECONDS * 1000);
+  }
+
+  /**
+   * Spustí odpočet tahu se zadaným ZBÝVAJÍCÍM časem fáze tahu (ms).
+   * _startTurnTimer() = plných TURN_SECONDS (začátek nového tahu).
+   * Menší hodnota se používá při POKRAČOVÁNÍ tahu (combo karta, zahození,
+   * vyřešené Rozhodnutí) – hráč nesmí dostat nových 15 s navíc.
+   */
+  _resumeTurnTimer(remainingTurnMs) {
     this._clearTurnTimer();
     const side             = this.activeSide;
-    this.turnStartedAt     = Date.now();
+    // turnStartedAt posunutý dozadu tak, aby _buildTimerFor hlásil přesně remainingTurnMs
+    this.turnStartedAt     = Date.now() - (TURN_SECONDS * 1000 - remainingTurnMs);
     this.timebankStartedAt = null;   // začínáme ve fázi tahu
 
-    // Fáze 1: timer kola (TURN_SECONDS)
+    // Fáze 1: zbytek času kola
     this._turnTimer = setTimeout(() => {
       if (this.activeSide !== side || this.phase !== 'playing') return;
 
@@ -396,7 +407,7 @@ class GameSession {
         this._advanceTurn();
       }, bank * 1000);
 
-    }, TURN_SECONDS * 1000);
+    }, remainingTurnMs);
   }
 
   _clearTurnTimer() {
@@ -861,6 +872,9 @@ class GameSession {
       this._advanceTurn();
     } else {
       // Combo karta (nebo boost z NextCardIsCombo) → hráč pokračuje v tahu
+      // se ZBÝVAJÍCÍM časem (žádných +15 s navíc). Bez resume by serverový
+      // timer zůstal vypnutý (handleAction ho vymazal) a hráče by nikdy nepřeskočil.
+      this._resumeTurnTimer(this._remainingTurnMsAtAction ?? 0);
       this._sendStateBoth();
     }
   }
@@ -982,9 +996,13 @@ class GameSession {
     this.pendingDecision = null;
 
     // Spotřebuj timebank hráče za dobu strávenou výběrem (pokud hráč odpověděl sám, ne timeout)
+    // a zapamatuj si zbývající čas fáze tahu – u combo karet v něm hráč pokračuje
+    // (timeout = _decisionStartedAt je null → zbývá 0).
+    let remainingTurnMs = 0;
     if (this._decisionStartedAt !== null) {
       const decisionElapsed  = Date.now() - this._decisionStartedAt;
       const turnPhaseMs      = this._decisionTurnPhaseMs || 0;
+      remainingTurnMs        = Math.max(0, turnPhaseMs - decisionElapsed);
       const timebankUsedMs   = Math.max(0, decisionElapsed - turnPhaseMs);
       const timebankUsedSec  = Math.ceil(timebankUsedMs / 1000);
       this.timebank[side]    = Math.max(0, this.timebank[side] - timebankUsedSec);
@@ -1136,8 +1154,9 @@ class GameSession {
     if (!isCombo) {
       this._advanceTurn();
     } else {
-      // Combo: hráč pokračuje v tahu – restart timeru, pošli stav
-      this._startTurnTimer();
+      // Combo: hráč pokračuje v tahu – POUZE se zbývajícím časem.
+      // Dřív se restartoval plných 15 s → hráč získal čas navíc za každé Rozhodnutí.
+      this._resumeTurnTimer(remainingTurnMs);
       this._sendStateBoth();
     }
   }
@@ -1189,8 +1208,9 @@ class GameSession {
       costPaid:   null,
       isXCost:    false
     }, compactState(this.state.A, this.state.B));
-    // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje, stejně jako po combo kartě
-    this._startTurnTimer();
+    // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje, stejně jako po combo
+    // kartě, tj. se ZBÝVAJÍCÍM časem tahu (žádných +15 s navíc)
+    this._resumeTurnTimer(this._remainingTurnMsAtAction ?? 0);
     this._sendStateBoth();
   }
 
