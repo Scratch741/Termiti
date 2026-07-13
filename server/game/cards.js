@@ -194,7 +194,7 @@ const RAW = [
   ['C01','Chaotická jiskra',0,'CHAOS',1,[ar('CHAOS',2)],       'RARE'],
   ['C02','Entropie',        3,'MAGIC',0,[ar('CHAOS',5), dr('MAGIC',2)], 'EPIC'],
   ['C03','Chaotický důl',   4,'MAGIC',0,[am('CHAOS',1)],       'LEGENDARY'],
-  ['C04','Krádež chaosu',   2,'MAGIC',1,[sr('CHAOS',3)],       'RARE'],
+  ['C04','Krádež chaosu',   1,'MAGIC',1,[sr('CHAOS',3)],       'RARE'],
 
   // Karty platící Chaosem – silné efekty
   ['C05','Chaotický výbuch',7,'CHAOS',0,[ac(14)],              'EPIC'],

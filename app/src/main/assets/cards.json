@@ -2269,7 +2269,7 @@
   {
     "id": "C04",
     "name": "Krádež chaosu",
-    "cost": 2,
+    "cost": 1,
     "costType": "MAGIC",
     "isCombo": true,
     "effects": [
