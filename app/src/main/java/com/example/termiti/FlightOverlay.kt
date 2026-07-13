@@ -7,30 +7,40 @@ package com.example.termiti
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
@@ -43,6 +53,19 @@ data class FlightJob(
     val fromRect: Rect,   // zdrojová pozice (karta v ruce, okenní souřadnice)
     val toRect  : Rect,   // cílová pozice (discard slot v bojišti)
     val id      : Long
+)
+
+/**
+ * Ghost efekt karty mizící z ruky – spálená (oranžová) / ukradená (fialová).
+ * Karta se na své pozici rozplyne s barevným nádechem, aby bylo vidět,
+ * CO se stalo a KTERÉ karty se to týkalo.
+ */
+data class LossGhost(
+    val card      : Card?,        // karta (moje ruka); null = rub (soupeřova ruka)
+    val backResId : Int?,         // skin rubu pro card == null
+    val action    : CardAction,   // BURNED | STOLEN → barva efektu
+    val rect      : Rect,         // poslední známá pozice karty (okenní souřadnice)
+    val id        : Long
 )
 
 class FlightOverlayState {
@@ -64,11 +87,19 @@ class FlightOverlayState {
      */
     var flightProgress: Float by mutableFloatStateOf(0f)
 
+    /** Běžící ghost efekty ztracených karet (spálení / krádež). */
+    val lossGhosts: SnapshotStateList<LossGhost> = mutableStateListOf()
+
     private var _counter: Long = 0L
     fun nextId(): Long = ++_counter
 
     /** True, pokud pro tuto kartu právě běží letová animace. */
     fun isFlying(cardId: String): Boolean = flying?.card?.id == cardId
+
+    /** Spustí ghost efekt na dané pozici. [card] = líc (moje ruka), null = rub soupeře. */
+    fun spawnLoss(card: Card?, backResId: Int?, action: CardAction, rect: Rect) {
+        lossGhosts.add(LossGhost(card, backResId, action, rect, nextId()))
+    }
 }
 
 val LocalFlightOverlay = compositionLocalOf<FlightOverlayState?> { null }
@@ -95,6 +126,10 @@ fun Modifier.trackFlightTarget(): Modifier = composed {
 
 @Composable
 fun FlightOverlayBox(flight: FlightOverlayState) {
+    // Ghost efekty ztracených karet (spálení / krádež) – nezávislé na letu
+    flight.lossGhosts.forEach { ghost ->
+        key(ghost.id) { LossGhostView(flight, ghost) }
+    }
     val job = flight.flying ?: return
     val progress = remember(job.id) { Animatable(0f) }
 
@@ -151,6 +186,90 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
                 }
         ) {
             CardView(card = job.card, canPlay = false, discardMode = false, onClick = {})
+        }
+    }
+}
+
+// ─── Ghost efekt ztracené karty (spálená / ukradená) ─────────────────────────
+
+@Composable
+private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
+    val progress = remember(ghost.id) { Animatable(0f) }
+    LaunchedEffect(ghost.id) {
+        progress.animateTo(1f, tween(durationMillis = 850, easing = FastOutSlowInEasing))
+        flight.lossGhosts.remove(ghost)
+    }
+    val p    = progress.value
+    val tint = if (ghost.action == CardAction.STOLEN) Color(0xFF9B59B6)   // fialová = ukradeno
+               else                                    Color(0xFFE07B39)  // oranžová = spáleno
+
+    val density = LocalDensity.current
+    val risePx  = with(density) { 34.dp.toPx() }
+
+    Box(Modifier.fillMaxSize()) {
+        if (ghost.card != null) {
+            // ── Moje karta: líc na pozici v ruce, stoupá a rozplývá se ──
+            val natW = with(density) { 100.dp.toPx() }
+            val natH = with(density) { 140.dp.toPx() }
+            val baseScale = (ghost.rect.width / natW).coerceAtLeast(0.1f)
+            Box(
+                Modifier
+                    .offset {
+                        IntOffset(
+                            x = (ghost.rect.center.x - natW / 2f).roundToInt(),
+                            y = (ghost.rect.center.y - natH / 2f - risePx * p).roundToInt()
+                        )
+                    }
+                    .requiredSize(100.dp, 140.dp)
+                    .graphicsLayer {
+                        val s = baseScale * (1f + 0.12f * p)
+                        scaleX = s; scaleY = s
+                        alpha  = 1f - p
+                        transformOrigin = TransformOrigin(0.5f, 0.5f)
+                    }
+            ) {
+                CardView(card = ghost.card, canPlay = false, discardMode = false, onClick = {})
+                // Barevný nádech: silný na začátku, slábne s rozpouštěním
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(tint.copy(alpha = 0.45f * (1f - 0.5f * p)))
+                )
+            }
+        } else if (ghost.backResId != null) {
+            // ── Soupeřův rub: mizí přímo na své pozici ve stripu ──
+            val w = with(density) { ghost.rect.width.toDp() }
+            val h = with(density) { ghost.rect.height.toDp() }
+            Box(
+                Modifier
+                    .offset {
+                        IntOffset(
+                            x = ghost.rect.left.roundToInt(),
+                            y = (ghost.rect.top - risePx * 0.6f * p).roundToInt()
+                        )
+                    }
+                    .requiredSize(w, h)
+                    .graphicsLayer {
+                        val s = 1f + 0.20f * p
+                        scaleX = s; scaleY = s
+                        alpha  = 1f - p
+                        transformOrigin = TransformOrigin(0.5f, 0.5f)
+                    }
+            ) {
+                Image(
+                    painter            = painterResource(ghost.backResId),
+                    contentDescription = null,
+                    modifier           = Modifier.matchParentSize(),
+                    contentScale       = ContentScale.Fit
+                )
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(tint.copy(alpha = 0.55f * (1f - 0.5f * p)))
+                )
+            }
         }
     }
 }

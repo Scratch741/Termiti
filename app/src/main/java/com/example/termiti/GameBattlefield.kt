@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -110,6 +112,9 @@ fun NewBattlefield(
         val aiSlotIds    = remember { mutableStateListOf<Int>().apply { repeat(aiHandSize) { add(it) } } }
         var aiNextSlotId by remember { mutableIntStateOf(aiHandSize) }
         var aiNewSlotIds by remember { mutableStateOf(emptySet<Int>()) }
+        // Poslední známé pozice rubů + overlay pro ghost efekt spálené/ukradené karty
+        val aiSlotRects = remember { mutableMapOf<Int, Rect>() }
+        val lossFx      = LocalFlightOverlay.current
 
         LaunchedEffect(aiHandSize) {
             if (aiSlotIds.size < aiHandSize) {
@@ -127,7 +132,20 @@ fun NewBattlefield(
                 while (aiSlotIds.size > aiHandSize) {
                     val removeAt = revealedAiCardIdx?.takeIf { it < aiSlotIds.size }
                         ?: (aiSlotIds.size - 1)
+                    val removedKey = aiSlotIds[removeAt]
                     aiSlotIds.removeAt(removeAt)
+                    // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
+                    // ghost efekt na pozici rubu (oranžová/fialová), aby bylo vidět,
+                    // že soupeř přišel o kartu z ruky a jak
+                    val act = lastCardAction
+                    if (!showReveal && lossFx != null &&
+                        (act == CardAction.BURNED || act == CardAction.STOLEN)
+                    ) {
+                        aiSlotRects[removedKey]?.let { rect ->
+                            lossFx.spawnLoss(null, opponentCardBackResId, act, rect)
+                        }
+                    }
+                    aiSlotRects.remove(removedKey)
                 }
             }
         }
@@ -186,6 +204,7 @@ fun NewBattlefield(
                             .animateItem(fadeInSpec = null)
                             .onGloballyPositioned { c ->
                                 flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
+                                aiSlotRects[slotKey] = c.boundsInRoot()
                             }
                             .graphicsLayer {
                                 val p = flyIn.value

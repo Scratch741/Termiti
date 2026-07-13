@@ -371,6 +371,20 @@ private fun OnlineGameplay(
         flight.flying = FlightJob(c, from, to, flight.nextId())
     }
 
+    // ── Ghost efekt: moje karta spálená/ukradená soupeřem se rozplyne v ruce ──
+    // (pozice z flight.sources – jen karty, které byly vidět v ruce, ne z balíčku)
+    var lastLossSeen by remember { mutableStateOf(lostToOpponent.firstOrNull()) }
+    LaunchedEffect(lostToOpponent.firstOrNull()) {
+        val entry = lostToOpponent.firstOrNull() ?: return@LaunchedEffect
+        if (entry === lastLossSeen) return@LaunchedEffect
+        lastLossSeen = entry
+        if (entry.action == CardAction.BURNED || entry.action == CardAction.STOLEN) {
+            flight.sources[entry.card.id]?.let { rect ->
+                flight.spawnLoss(entry.card, null, entry.action, rect)
+            }
+        }
+    }
+
     CompositionLocalProvider(LocalFlightOverlay provides flight) {
     Box(modifier = Modifier.fillMaxSize()) {
 
