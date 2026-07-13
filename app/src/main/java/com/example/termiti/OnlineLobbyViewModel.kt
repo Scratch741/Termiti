@@ -777,7 +777,13 @@ class OnlineLobbyViewModel(
                                 // Pre-resolved texty (lang pack se nepoužije pro display)
                                 name           = resolvedName,
                                 description    = resolvedDesc,
-                                localizationId = "__morph__"
+                                // "__morph__" zmrazí texty na parse-time hodnotách – nutné jen pro
+                                // morph karty (jméno z reálné karty + popis z kopírované = dva různé
+                                // klíče, jeden localizationId je nepokryje). Normální karty se musí
+                                // překládat živě při vykreslení (stejně jako karty v ruce), jinak se
+                                // text ve slotu rozjede s textem v ruce, když se mezi parsováním
+                                // a vykreslením změní stav jazykového packu.
+                                localizationId = if (displayBaseId != null) "__morph__" else null
                             )
                             lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
