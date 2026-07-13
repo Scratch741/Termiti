@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -88,13 +89,15 @@ fun DecisionOverlay(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xE5000000))
+                .background(Color(0x73000000))
                 .pointerInput(Unit) { detectTapGestures {} },
             contentAlignment = Alignment.Center
         ) {
-            val maxPanelW = maxWidth * 0.96f
+            // Šířka před zvětšením: po scale(1.15) nesmí přesáhnout 96 % obrazovky
+            val maxPanelW = maxWidth * 0.96f / 1.15f
             Column(
                 modifier = Modifier
+                    .scale(1.15f)
                     .widthIn(max = maxPanelW)
                     .clip(RoundedCornerShape(16.dp))
                     .then(

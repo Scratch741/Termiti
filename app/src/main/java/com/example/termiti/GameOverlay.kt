@@ -200,7 +200,7 @@ fun MulliganOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xE5000000))
+            .background(Color(0x73000000))
             // Blokuje dotyky pod overlayem na pozadí (ne na kartách/tlačítkách).
             // detectTapGestures čeká jen na NEkonsumovaný DOWN — pokud karta DOWN
             // pohltí dřív (child = Main pass dříve), outer Box čeká dál a gesto
@@ -211,6 +211,7 @@ fun MulliganOverlay(
     ) {
         Column(
             modifier = Modifier
+                .scale(1.15f)
                 .clip(RoundedCornerShape(16.dp))
                 .then(
                     Modifier.paint(
