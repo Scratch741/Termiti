@@ -455,9 +455,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val returned = player.hand.filter { it.id in ids }
         player.hand.removeAll { it.id in ids }
+        // Lízni náhrady DŘÍV, než vrácené karty zamícháš zpět do balíčku
+        // → hráč nemůže dolíznout tytéž karty, které právě vyměnil
+        // (stejné pravidlo jako online server v handleMulligan)
+        player.drawCards(returned.size)
         player.deck.addAll(returned)
         player.deck.shuffle()
-        player.drawCards(returned.size)
 
         gameState.value        = old.copy(playerState = player)
         isMulligan.value       = false
