@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -195,20 +196,30 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
 @Composable
 private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
     val progress = remember(ghost.id) { Animatable(0f) }
+    // Krádež je výrazně pomalejší (2,5×), aby šlo stihnout přečíst, KTERÁ karta zmizela
+    val durationMs = if (ghost.action == CardAction.STOLEN) 2100 else 850
     LaunchedEffect(ghost.id) {
-        progress.animateTo(1f, tween(durationMillis = 850, easing = FastOutSlowInEasing))
+        progress.animateTo(1f, tween(durationMillis = durationMs, easing = FastOutSlowInEasing))
         flight.lossGhosts.remove(ghost)
     }
-    val p    = progress.value
-    val tint = if (ghost.action == CardAction.STOLEN) Color(0xFF9B59B6)   // fialová = ukradeno
-               else                                    Color(0xFFE07B39)  // oranžová = spáleno
+    val p      = progress.value
+    val stolen = ghost.action == CardAction.STOLEN
+    val tint   = if (stolen) Color(0xFF9B59B6)   // fialová = ukradeno
+                 else        Color(0xFFE07B39)   // oranžová = spáleno
+
+    // Fáze (STOLEN): pop (rychlé zvětšení + zvýraznění) → hold (karta drží plně
+    // viditelná, jde přečíst) → fade (stoupá a rozplývá se).
+    // BURNED zůstává u původního průběhu (fade od začátku).
+    val hold = if (stolen) 0.40f else 0f
+    val fade = ((p - hold) / (1f - hold)).coerceIn(0f, 1f)  // 0 během holdu, pak 0→1
+    val pop  = if (stolen) (p / 0.12f).coerceIn(0f, 1f) else p
 
     val density = LocalDensity.current
-    val risePx  = with(density) { 34.dp.toPx() }
+    val risePx  = with(density) { (if (stolen) 56.dp else 34.dp).toPx() }
 
     Box(Modifier.fillMaxSize()) {
         if (ghost.card != null) {
-            // ── Moje karta: líc na pozici v ruce, stoupá a rozplývá se ──
+            // ── Moje karta: líc na pozici v ruce, podrží se, pak stoupá a mizí ──
             val natW = with(density) { 100.dp.toPx() }
             val natH = with(density) { 140.dp.toPx() }
             val baseScale = (ghost.rect.width / natW).coerceAtLeast(0.1f)
@@ -217,28 +228,34 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     .offset {
                         IntOffset(
                             x = (ghost.rect.center.x - natW / 2f).roundToInt(),
-                            y = (ghost.rect.center.y - natH / 2f - risePx * p).roundToInt()
+                            y = (ghost.rect.center.y - natH / 2f - risePx * fade).roundToInt()
                         )
                     }
                     .requiredSize(100.dp, 140.dp)
                     .graphicsLayer {
-                        val s = baseScale * (1f + 0.12f * p)
+                        val s = baseScale * (1f + (if (stolen) 0.22f else 0.12f) * pop)
                         scaleX = s; scaleY = s
-                        alpha  = 1f - p
+                        alpha  = 1f - fade
                         transformOrigin = TransformOrigin(0.5f, 0.5f)
                     }
             ) {
                 CardView(card = ghost.card, canPlay = false, discardMode = false, onClick = {})
-                // Barevný nádech: silný na začátku, slábne s rozpouštěním
+                // Barevný nádech: nastoupí s popem, slábne s rozpouštěním
                 Box(
                     Modifier
                         .matchParentSize()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(tint.copy(alpha = 0.45f * (1f - 0.5f * p)))
+                        .background(tint.copy(alpha = 0.45f * pop * (1f - 0.5f * fade)))
+                )
+                // Výrazný barevný obrys – hlavní vodítko, komu/co zmizelo
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .border(2.5.dp, tint.copy(alpha = 0.95f * pop * (1f - fade)), RoundedCornerShape(8.dp))
                 )
             }
         } else if (ghost.backResId != null) {
-            // ── Soupeřův rub: mizí přímo na své pozici ve stripu ──
+            // ── Soupeřův rub: podrží se na pozici ve stripu, pak mizí ──
             val w = with(density) { ghost.rect.width.toDp() }
             val h = with(density) { ghost.rect.height.toDp() }
             Box(
@@ -246,14 +263,14 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     .offset {
                         IntOffset(
                             x = ghost.rect.left.roundToInt(),
-                            y = (ghost.rect.top - risePx * 0.6f * p).roundToInt()
+                            y = (ghost.rect.top - risePx * 0.6f * fade).roundToInt()
                         )
                     }
                     .requiredSize(w, h)
                     .graphicsLayer {
-                        val s = 1f + 0.20f * p
+                        val s = 1f + (if (stolen) 0.30f else 0.20f) * pop
                         scaleX = s; scaleY = s
-                        alpha  = 1f - p
+                        alpha  = 1f - fade
                         transformOrigin = TransformOrigin(0.5f, 0.5f)
                     }
             ) {
@@ -267,7 +284,12 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     Modifier
                         .matchParentSize()
                         .clip(RoundedCornerShape(3.dp))
-                        .background(tint.copy(alpha = 0.55f * (1f - 0.5f * p)))
+                        .background(tint.copy(alpha = 0.55f * pop * (1f - 0.5f * fade)))
+                )
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .border(2.dp, tint.copy(alpha = 0.95f * pop * (1f - fade)), RoundedCornerShape(3.dp))
                 )
             }
         }
