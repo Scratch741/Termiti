@@ -462,7 +462,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value        = old.copy(playerState = player)
         isMulligan.value       = false
         mulliganSelected.value = emptySet()
-        maybeStartAiFirstTurn()
+        // Dolíznuté karty přilétají s odstupem 0,5 s (HandPanel). Kdyby první kolo
+        // (tah AI + hráčův líz) začalo hned, druhé lízání se spustí uprostřed
+        // animace a karty v ruce přeskakují. Počkej, až všechny přílety doběhnou.
+        val redrawAnimMs = (returned.size - 1) * 500L + 450L + 250L
+        maybeStartAiFirstTurn(startDelayMs = redrawAnimMs)
     }
 
     fun skipMulligan() {
@@ -886,8 +890,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      * Pokud AI začíná jako první hráč, spustí její tah automaticky po mulliganu.
      * Počáteční hráč (AI) nelíže první kartu – pravidlo stejné jako u hráče.
      * Hráč (druhý hráč) taktéž nelíže bonusovou kartu – oba začínají se 5 z mulliganu.
+     *
+     * [startDelayMs] > 0 odloží tah AI (hráč je mezitím zablokovaný, activePlayer = AI)
+     * – používá se po mulligan výměně, aby se lízání prvního kola nepralo s animací
+     * dolízávání. Větev "hráč první" běží vždy synchronně (hráč hraje hned, potřebuje zdroje).
      */
-    private fun maybeStartAiFirstTurn() {
+    private fun maybeStartAiFirstTurn(startDelayMs: Long = 0L) {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.AI) {
             // Hráč začíná jako první → vygeneruj mu zdroje pro první tah
@@ -914,11 +922,21 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         log.appendLog(ls.logAiFirst)
 
-        val player = old.playerState.deepCopy()
-        val ai     = old.aiState.deepCopy()
         // AI je počáteční hráč → nesmí lízat první kartu (aiDrawsAtStart = false)
         // Hráč jako druhý hráč si lízne 1 kartu před svým prvním tahem (playerDrawsAtEnd = true)
-        finishTurn(old, player, ai, aiDrawsAtStart = false, playerDrawsAtEnd = true)
+        if (startDelayMs > 0) {
+            viewModelScope.launch(crashHandler) {
+                delay(startDelayMs)
+                // Hráč mohl mezitím hru restartovat / opustit → stará reference by
+                // přepsala nový stav (stejná třída bugů jako stale Decision overlay)
+                if (gameState.value !== old || isMulligan.value) return@launch
+                finishTurn(old, old.playerState.deepCopy(), old.aiState.deepCopy(),
+                           aiDrawsAtStart = false, playerDrawsAtEnd = true)
+            }
+        } else {
+            finishTurn(old, old.playerState.deepCopy(), old.aiState.deepCopy(),
+                       aiDrawsAtStart = false, playerDrawsAtEnd = true)
+        }
     }
 
     // ── Vyvážený náhodný balíček 30 karet (9/9/9/3, respektuje rarity) ─────────
