@@ -406,6 +406,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var cardHistory        = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Karty ztracené hráčem kvůli BurnCard / StealCard AI (celá hra). */
     var lostToOpponent     = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
+    /**
+     * Ordered log karet, které AI ztratila ze své ruky (spálené/ukradené hráčovou kartou –
+     * BurnCard, StealCard, RandomizeHands, SwapHands…). Konzumuje NewBattlefield pro ghost
+     * efekt v AI stripu. Bez fronty by více ztrát v JEDNÉ akci (např. Spálená knihovna,
+     * BurnCard(2)) ukázalo tutéž (poslední) kartu 2× – ghost mechanika dřív četla jen
+     * jedinou proměnnou `lastCard`, kterou dvě synchronní volání přepsaly dřív, než proběhla
+     * rekompozice mezi nimi.
+     */
+    var aiHandLossLog      = androidx.compose.runtime.mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     /** Snímky pro replay aktuální hry. */
     private val replayFrames = mutableListOf<ReplayFrame>()
     // Combo: hráč zahrál combo kartu – kolo nepokračuje automaticky
@@ -1179,6 +1188,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // Ukaž ztracenou kartu v discard slotu (prstenec BURNED/STOLEN)
                 // + spusť ghost efekt v AI stripu – stejné chování jako online CARD_LOST
                 recordCard(lostCard, action, isPlayer = false)
+                recordAiHandLoss(lostCard, action)
             },
             onDrawCard = { _, count -> pendingDrawCount += count },
             maxHandSize = old.playerMaxHand,
@@ -1885,6 +1895,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         cardHistory.appendHistory(card, action, isMine = isPlayer)
     }
 
+    /** Zaznamená kartu ztracenou z AI ruky – viz [aiHandLossLog]. */
+    private fun recordAiHandLoss(card: Card, action: CardAction) {
+        aiHandLossLog.value = aiHandLossLog.value + CardHistoryEntry(card, action, isMine = false)
+    }
+
     /** Přidá snímek do replay záznamu aktuální hry. */
     private fun addReplayFrame(state: GameState, card: Card?, isPlayer: Boolean, action: CardAction) {
         replayFrames.add(ReplayFrame(
@@ -1909,6 +1924,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
+        aiHandLossLog.value     = emptyList()
         isPlayerComboTurn.value = false
         playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
@@ -1950,6 +1966,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
+        aiHandLossLog.value     = emptyList()
         isPlayerComboTurn.value = false
         playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
@@ -2112,6 +2129,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         revealedAiCardIdx.value = null
         cardHistory.value       = emptyList()
         lostToOpponent.value    = emptyList()
+        aiHandLossLog.value     = emptyList()
         isPlayerComboTurn.value = false
         playerDiscardUsed.value = false
         awaitingDecisionOverlay = false
@@ -2148,25 +2166,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 }
 
 /**
- * Top-level funkce pro přehrání zvuku karty – sdílena mezi offline i online hrou.
- * Priorita: soundResId > card.sound > auto-detekce z efektů.
+ * Určí zvuk karty BEZ přehrání: explicitní card.sound, jinak auto-detekce z efektů.
+ * Používá se i k „zapečení" zvuku zdrojové karty do Klonu/Zrcadla (jejich vlastní
+ * efekty [Clone]/[Mirror] by se auto-detekcí vyhodnotily na generický zvuk).
  */
-fun playSoundForCardGlobal(card: Card) {
-    if (card.soundResId != null) {
-        SoundManager.playCustom(card.soundResId)
-        return
-    }
-    if (card.sound != null) {
-        when (card.sound) {
-            CardSound.ATTACK       -> SoundManager.playAttack()
-            CardSound.MINE_DESTROY -> SoundManager.playMineDestroy()
-            CardSound.BUILD        -> SoundManager.playBuild()
-            CardSound.RESOURCE     -> SoundManager.playResource()
-            CardSound.DRAW         -> SoundManager.playCardDraw()
-            CardSound.CARD_PLAY    -> SoundManager.playCardPlay()
-        }
-        return
-    }
+fun detectCardSound(card: Card): CardSound {
+    card.sound?.let { return it }
     fun CardEffect.flatten(): List<CardEffect> =
         if (this is CardEffect.ConditionalEffect) listOf(this) + effect.flatten()
         else listOf(this)
@@ -2189,12 +2194,31 @@ fun playSoundForCardGlobal(card: Card) {
         e is CardEffect.AddCardsToDeck     || e is CardEffect.XScaledDualResource ||
         e is CardEffect.DrawCard
     }
-    when {
-        hasMineDestroy -> SoundManager.playMineDestroy()
-        hasAttack      -> SoundManager.playAttack()
-        hasBuild       -> SoundManager.playBuild()
-        hasResource    -> SoundManager.playResource()
-        else           -> SoundManager.playCardPlay()
+    return when {
+        hasMineDestroy -> CardSound.MINE_DESTROY
+        hasAttack      -> CardSound.ATTACK
+        hasBuild       -> CardSound.BUILD
+        hasResource    -> CardSound.RESOURCE
+        else           -> CardSound.CARD_PLAY
+    }
+}
+
+/**
+ * Top-level funkce pro přehrání zvuku karty – sdílena mezi offline i online hrou.
+ * Priorita: soundResId > card.sound > auto-detekce z efektů.
+ */
+fun playSoundForCardGlobal(card: Card) {
+    if (card.soundResId != null) {
+        SoundManager.playCustom(card.soundResId)
+        return
+    }
+    when (detectCardSound(card)) {
+        CardSound.ATTACK       -> SoundManager.playAttack()
+        CardSound.MINE_DESTROY -> SoundManager.playMineDestroy()
+        CardSound.BUILD        -> SoundManager.playBuild()
+        CardSound.RESOURCE     -> SoundManager.playResource()
+        CardSound.DRAW         -> SoundManager.playCardDraw()
+        CardSound.CARD_PLAY    -> SoundManager.playCardPlay()
     }
 }
 

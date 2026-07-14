@@ -298,14 +298,23 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'TrapOnDraw':
         break; // no-op při zahraní – efekt se spustí až při líznutí v drawCards()
 
-      case 'DrawCard':
-        drawCards(self, fx.count, self.maxHandSize || 7);
+      case 'DrawCard': {
+        // Reportuj spálené overdraw karty a pasti – jinak se neukážou
+        // v odhazovacím balíčku ani v logu
+        const r = drawCards(self, fx.count, self.maxHandSize || 7);
+        [...r.burned, ...r.traps].forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED'));
         break;
+      }
 
-      case 'DrawBoth':
-        drawCards(self,     fx.count, self.maxHandSize     || 7);
-        drawCards(opponent, fx.count, opponent.maxHandSize || 7);
+      case 'DrawBoth': {
+        // Studna vědomostí apod.: lížou OBA hráči – spálené overdraw karty
+        // a pasti obou stran se musí reportovat (odhazovací balíček + log)
+        const rs = drawCards(self, fx.count, self.maxHandSize || 7);
+        [...rs.burned, ...rs.traps].forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED'));
+        const ro = drawCards(opponent, fx.count, opponent.maxHandSize || 7);
+        [...ro.burned, ...ro.traps].forEach(c => onOpponentLoss && onOpponentLoss(c, 'BURNED'));
         break;
+      }
 
       case 'CloneNextPlayed':
         self.cloneNextPlayed = fx.count;

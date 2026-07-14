@@ -72,6 +72,9 @@ fun NewBattlefield(
     modifier: Modifier = Modifier,
     revealedAiCard: Card? = null,     // karta zahrána soupeřem
     revealedAiCardIdx: Int? = null,   // původní index v ruce (před zahráním)
+    // Ordered fronta karet ztracených z AI ruky (spálené/ukradené hráčem) – viz
+    // GameViewModel.aiHandLossLog. Prázdné online (fallback na lastCard, viz níže).
+    oppLossQueue: List<CardHistoryEntry> = emptyList(),
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
     aiWinTarget: Int = 60,            // win target soupeře / AI
     playerMaxHand: Int = 7,           // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
@@ -115,8 +118,12 @@ fun NewBattlefield(
         // Poslední známé pozice rubů + overlay pro ghost efekt spálené/ukradené karty
         val aiSlotRects = remember { mutableMapOf<Int, Rect>() }
         val lossFx      = LocalFlightOverlay.current
+        // Kurzor do oppLossQueue – konzumováno FIFO, jedna položka na jeden odebraný slot.
+        var oppLossCursor by remember { mutableIntStateOf(0) }
 
         LaunchedEffect(aiHandSize) {
+            // Fronta se resetovala (nová hra) → kurzor taky, jinak by zůstal za koncem
+            if (oppLossQueue.size < oppLossCursor) oppLossCursor = 0
             if (aiSlotIds.size < aiHandSize) {
                 // Líznutí: přidej nové klíče na konec a označ je pro fly-in animaci
                 val added = mutableSetOf<Int>()
@@ -136,15 +143,29 @@ fun NewBattlefield(
                     aiSlotIds.removeAt(removeAt)
                     // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
                     // ghost efekt (oranžová/fialová), aby bylo vidět, že soupeř
-                    // přišel o kartu z ruky a jak. Pokud známe konkrétní kartu
-                    // (lastCard patří soupeři), ukaž její líc – stejný efekt jako
-                    // u hráčovy ruky; jinak fallback na rub.
-                    val act = lastCardAction
-                    if (!showReveal && lossFx != null &&
-                        (act == CardAction.BURNED || act == CardAction.STOLEN)
-                    ) {
+                    // přišel o kartu z ruky a jak. Pokud známe konkrétní kartu,
+                    // ukaž její líc – stejný efekt jako u hráčovy ruky; jinak
+                    // fallback na rub.
+                    if (!showReveal && lossFx != null) {
                         aiSlotRects[removedKey]?.let { rect ->
-                            val face = lastCard?.takeIf { !lastCardIsPlayer }
+                            // Přednostně konkrétní událost z fronty (správná karta i při
+                            // více simultánních ztrátách za jednu akci – Spálená
+                            // knihovna/BurnCard(2) apod.). Fallback na lastCard: online
+                            // zatím frontu neplní, jednotlivé CARD_LOST zprávy ale
+                            // přichází s odstupem, takže singulární hodnota tam stačí.
+                            val queued = oppLossQueue.getOrNull(oppLossCursor)
+                            val act: CardAction
+                            val face: Card?
+                            if (queued != null) {
+                                oppLossCursor++
+                                act  = queued.action
+                                face = queued.card
+                            } else if (lastCardAction == CardAction.BURNED || lastCardAction == CardAction.STOLEN) {
+                                act  = lastCardAction
+                                face = lastCard?.takeIf { !lastCardIsPlayer }
+                            } else {
+                                return@let
+                            }
                             if (face != null) {
                                 // Líc ve velikosti odhalené karty (31×44) na pozici rubu (22×32)
                                 val w = rect.width  * (31f / 22f)
@@ -192,9 +213,12 @@ fun NewBattlefield(
         ) {
             items(stripItems, key = { it.first }) { item ->
                 if (item.second) {
-                    // Odhalená zahraná karta – jemný pop na své původní pozici v ruce
+                    // Odhalená zahraná karta – pop na své původní pozici v ruce, klidový
+                    // stav 1.3× (o 30 % větší než okolní ruby) → jasně vyčnívá jako
+                    // "právě zahraná". Vizuální scale (graphicsLayer) – nemění layout
+                    // box, takže nezasahuje do ghost/pozičního počítání jinde.
                     val pop = remember { Animatable(0.6f) }
-                    LaunchedEffect(Unit) { pop.animateTo(1f, tween(260, easing = FastOutSlowInEasing)) }
+                    LaunchedEffect(Unit) { pop.animateTo(1.3f, tween(260, easing = FastOutSlowInEasing)) }
                     Box(
                         Modifier
                             .animateItem()

@@ -131,12 +131,25 @@ fun applyEffects(
 
         is CardEffect.DrawCard ->
             if (onDrawCard != null) onDrawCard(self, effect.count)
-            else self.drawCards(effect.count)   // přebytečné karty shoří (hand full → discardPile)
+            else {
+                // Reportuj spálené overdraw karty a pasti – jinak se neukážou
+                // v odhazovacím balíčku ani v logu
+                val r = self.drawCards(effect.count)
+                (r.burned + r.traps).forEach { onSelfCardLost?.invoke(it, CardAction.BURNED) }
+            }
 
         is CardEffect.DrawBoth -> {
             if (onDrawCard != null) onDrawCard(self, effect.count)
-            else self.drawCards(effect.count)
-            opponent.drawCards(effect.count)
+            else {
+                val r = self.drawCards(effect.count)
+                (r.burned + r.traps).forEach { onSelfCardLost?.invoke(it, CardAction.BURNED) }
+            }
+            // Studna vědomostí apod.: líže i SOUPEŘ – jeho spálené overdraw karty
+            // a pasti se musí reportovat (odhazovací balíček + log)
+            val oppResult = opponent.drawCards(effect.count)
+            (oppResult.burned + oppResult.traps).forEach {
+                onOpponentCardLost?.invoke(it, CardAction.BURNED)
+            }
         }
 
         is CardEffect.CloneNextPlayed -> self.cloneNextPlayed = effect.count
@@ -324,6 +337,10 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 artScale       = playerLastPlayed.artScale,
                 description    = resolvedDesc,
                 type           = playerLastPlayed.type,
+                // Zvuk kopírované karty: efekty Klonu ([Clone]) by auto-detekce
+                // vyhodnotila na generický zvuk → zapeč zvuk zdroje explicitně
+                soundResId     = playerLastPlayed.soundResId,
+                sound          = playerLastPlayed.sound ?: detectCardSound(playerLastPlayed),
                 overlayEffects = playerLastPlayed.effects.filterIsInstance<CardEffect.ConditionalEffect>()
             )
         } else {
@@ -340,7 +357,9 @@ fun updateCloneCards(hand: MutableList<Card>, playerLastPlayed: Card?, allCards:
                 artBiasY       = orig?.artBiasY ?: 0f,
                 artScale       = orig?.artScale  ?: 1f,
                 description    = orig?.description ?: card.description,
-                type           = orig?.type        ?: card.type
+                type           = orig?.type        ?: card.type,
+                soundResId     = orig?.soundResId,
+                sound          = orig?.sound
             )
         }
     }
@@ -376,6 +395,9 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCar
                 artScale       = opponentLastPlayed.artScale,
                 description    = resolvedDesc,
                 type           = opponentLastPlayed.type,
+                // Zvuk kopírované karty (efekty Zrcadla by daly generický zvuk)
+                soundResId     = opponentLastPlayed.soundResId,
+                sound          = opponentLastPlayed.sound ?: detectCardSound(opponentLastPlayed),
                 overlayEffects = opponentLastPlayed.effects.filterIsInstance<CardEffect.ConditionalEffect>()
             )
         } else {
@@ -389,7 +411,9 @@ fun updateMirrorCards(hand: MutableList<Card>, opponentLastPlayed: Card?, allCar
                 artBiasY       = orig?.artBiasY ?: 0f,
                 artScale       = orig?.artScale  ?: 1f,
                 description    = orig?.description ?: card.description,
-                type           = orig?.type     ?: card.type
+                type           = orig?.type     ?: card.type,
+                soundResId     = orig?.soundResId,
+                sound          = orig?.sound
             )
         }
     }

@@ -1096,7 +1096,10 @@ class OnlineLobbyViewModel(
                         costModifier   = if (morph == "clone") 1 + costModifier else costModifier,
                         // Combo ikona: Zrcadlo/Klon jsou combo karty – berme z realTemplate, ne z kopírované karty
                         isCombo        = realTemplate.isCombo,
-                        isGenerated    = isGenerated
+                        isGenerated    = isGenerated,
+                        // Zvuk kopírované karty: effects výše jsou [Mirror]/[Clone] → auto-detekce
+                        // by dala generický zvuk; zapeč zvuk displayTemplate explicitně
+                        sound          = displayTemplate.sound ?: detectCardSound(displayTemplate)
                     )
                 }
                 // ── Shapeshifter: art+popis z transformované karty, ale jméno zůstává "Shapeshifter" ──

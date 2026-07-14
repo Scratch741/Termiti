@@ -197,16 +197,18 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
 private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
     val stolen = ghost.action == CardAction.STOLEN
     // Explicitní fáze místo jedné easing křivky – jediný způsob, jak zaručit
-    // skutečný "hold" čas s plnou viditelností:
+    // skutečný "hold" čas s plnou viditelností. Spálení i krádež mají STEJNÉ
+    // časování (dřív spálení bledlo mnohem rychleji – 450/650 ms – takže
+    // nešlo v klidu přečíst, KTERÁ karta shořela):
     //   pop  (200 ms)  – rychlé zvětšení + barevné zvýraznění
-    //   hold (1600/450)– karta drží plně viditelná, jde v klidu přečíst
-    //   fade (900/650) – stoupá a rozplývá se
+    //   hold (1600 ms) – karta drží plně viditelná, jde v klidu přečíst
+    //   fade (900 ms)  – stoupá a rozplývá se
     val popAnim  = remember(ghost.id) { Animatable(0f) }
     val fadeAnim = remember(ghost.id) { Animatable(0f) }
     LaunchedEffect(ghost.id) {
         popAnim.animateTo(1f, tween(200, easing = FastOutSlowInEasing))
-        kotlinx.coroutines.delay(if (stolen) 1600L else 450L)
-        fadeAnim.animateTo(1f, tween(if (stolen) 900 else 650, easing = FastOutSlowInEasing))
+        kotlinx.coroutines.delay(1600L)
+        fadeAnim.animateTo(1f, tween(900, easing = FastOutSlowInEasing))
         flight.lossGhosts.remove(ghost)
     }
     val pop  = popAnim.value
@@ -215,7 +217,7 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                else        Color(0xFFE07B39)   // oranžová = spáleno
 
     val density = LocalDensity.current
-    val risePx  = with(density) { (if (stolen) 56.dp else 34.dp).toPx() }
+    val risePx  = with(density) { 56.dp.toPx() }
 
     Box(Modifier.fillMaxSize()) {
         if (ghost.card != null) {
