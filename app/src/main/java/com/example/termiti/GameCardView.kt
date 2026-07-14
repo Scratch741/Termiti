@@ -369,12 +369,12 @@ internal fun PlayedCardSlot(card: Card) {
                 )
             )
         )
-        // Název karty – dole na gradientu
+        // Název karty – dole na gradientu (lehce nadzvednutý od spodní hrany)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 2.dp, vertical = 2.dp),
+                .padding(start = 2.dp, end = 2.dp, top = 2.dp, bottom = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -389,7 +389,7 @@ internal fun PlayedCardSlot(card: Card) {
                 style      = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
         }
-        // Cena – kulatý odznak vpravo nahoře, prstenec v barvě typu suroviny
+        // Cena – kulatý odznak vlevo nahoře (jako u velké karty), prstenec v barvě typu suroviny
         val costFill = when {
             card.isXCost           -> Color.White
             card.costModifier < 0  -> Color(0xFF00E676)   // zelená – sleva
@@ -398,8 +398,8 @@ internal fun PlayedCardSlot(card: Card) {
         }
         Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = (-1.5).dp, y = 1.5.dp)
+                .align(Alignment.TopStart)
+                .offset(x = 1.5.dp, y = 1.5.dp)
                 .size(12.dp)
                 .clip(CircleShape)
                 .background(Color.Black.copy(alpha = 0.80f))
