@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -331,10 +332,95 @@ internal fun CardBackPlayed(card: Card) {
     }
 }
 
-/** Slot zahrané karty soupeře v pruhu ruky – miniatura artu s červeným okrajem. */
+/**
+ * Slot zahrané karty soupeře v pruhu ruky.
+ * Větší než ruby (31×44 vs. 22×32) → jasně vyční jako "právě zahraná".
+ * Art přes celou plochu (na mini velikosti čitelnější než art + rám),
+ * jméno dole na gradientu, cena jako kulatý odznak vpravo nahoře
+ * s prstencem v barvě typu suroviny.
+ */
 @Composable
 internal fun PlayedCardSlot(card: Card) {
-    MiniCardFront(card = card, borderColor = Crimson)
+    Box(
+        modifier = Modifier
+            .size(width = 31.dp, height = 44.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(BgCard)
+            .border(1.5.dp, Crimson, RoundedCornerShape(4.dp))
+    ) {
+        // Art přes celou kartu (respektuje per-karta bias/scale)
+        Box(Modifier.fillMaxSize().clipToBounds()) {
+            Image(
+                painter            = painterResource(card.effectiveArtResId()),
+                contentDescription = null,
+                modifier           = artModifier(card),
+                contentScale       = ContentScale.Crop,
+                alignment          = artAlignment(card)
+            )
+        }
+        // Gradient: jemné ztmavení nahoře (kontrast ceny) + silnější dole (jméno)
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(
+                    0.00f to Color.Black.copy(alpha = 0.30f),
+                    0.30f to Color.Transparent,
+                    0.58f to Color.Transparent,
+                    1.00f to Color.Black.copy(alpha = 0.82f)
+                )
+            )
+        )
+        // Název karty – dole na gradientu
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp, vertical = 2.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                card.displayName,
+                color      = Color.White,
+                fontSize   = 5.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign  = TextAlign.Center,
+                maxLines   = 2,
+                overflow   = TextOverflow.Ellipsis,
+                lineHeight = 5.5.sp,
+                style      = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            )
+        }
+        // Cena – kulatý odznak vpravo nahoře, prstenec v barvě typu suroviny
+        val costFill = when {
+            card.isXCost           -> Color.White
+            card.costModifier < 0  -> Color(0xFF00E676)   // zelená – sleva
+            card.costModifier > 0  -> Color(0xFFFF5252)   // červená – zdražení
+            else                   -> Color.White
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-1.5).dp, y = 1.5.dp)
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.80f))
+                .border(1.dp, resourceColor(card.costType), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                if (card.isXCost) "X" else "${card.effectiveCost}",
+                color      = costFill,
+                fontSize   = 6.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+                style      = TextStyle(
+                    platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim      = LineHeightStyle.Trim.Both
+                    )
+                )
+            )
+        }
+    }
 }
 
 
