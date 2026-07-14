@@ -214,11 +214,11 @@ fun NewBattlefield(
             items(stripItems, key = { it.first }) { item ->
                 if (item.second) {
                     // Odhalená zahraná karta – pop na své původní pozici v ruce, klidový
-                    // stav 1.3× (o 30 % větší než okolní ruby) → jasně vyčnívá jako
+                    // stav 1.15× (o 15 % větší než okolní ruby) → jasně vyčnívá jako
                     // "právě zahraná". Vizuální scale (graphicsLayer) – nemění layout
                     // box, takže nezasahuje do ghost/pozičního počítání jinde.
                     val pop = remember { Animatable(0.6f) }
-                    LaunchedEffect(Unit) { pop.animateTo(1.3f, tween(260, easing = FastOutSlowInEasing)) }
+                    LaunchedEffect(Unit) { pop.animateTo(1.15f, tween(260, easing = FastOutSlowInEasing)) }
                     Box(
                         Modifier
                             .animateItem()
