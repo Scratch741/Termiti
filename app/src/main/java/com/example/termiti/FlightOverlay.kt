@@ -233,8 +233,8 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     }
                     .requiredSize(100.dp, 140.dp)
                     .graphicsLayer {
-                        // Krádež: zvětšení na ~1.4× ruky, aby se karta dala v klidu přečíst
-                        val s = baseScale * (1f + (if (stolen) 0.40f else 0.12f) * pop)
+                        // Jemné zvětšení (+5 %) – jen naznačí, že se s kartou něco děje
+                        val s = baseScale * (1f + 0.05f * pop)
                         scaleX = s; scaleY = s
                         alpha  = 1f - fade
                         transformOrigin = TransformOrigin(0.5f, 0.5f)
@@ -269,7 +269,7 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     }
                     .requiredSize(w, h)
                     .graphicsLayer {
-                        val s = 1f + (if (stolen) 0.30f else 0.20f) * pop
+                        val s = 1f + 0.05f * pop
                         scaleX = s; scaleY = s
                         alpha  = 1f - fade
                         transformOrigin = TransformOrigin(0.5f, 0.5f)
