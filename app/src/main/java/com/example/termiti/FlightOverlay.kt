@@ -195,24 +195,24 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
 
 @Composable
 private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
-    val progress = remember(ghost.id) { Animatable(0f) }
-    // Krádež je výrazně pomalejší (2,5×), aby šlo stihnout přečíst, KTERÁ karta zmizela
-    val durationMs = if (ghost.action == CardAction.STOLEN) 2100 else 850
+    val stolen = ghost.action == CardAction.STOLEN
+    // Explicitní fáze místo jedné easing křivky – jediný způsob, jak zaručit
+    // skutečný "hold" čas s plnou viditelností:
+    //   pop  (200 ms)  – rychlé zvětšení + barevné zvýraznění
+    //   hold (1600/450)– karta drží plně viditelná, jde v klidu přečíst
+    //   fade (900/650) – stoupá a rozplývá se
+    val popAnim  = remember(ghost.id) { Animatable(0f) }
+    val fadeAnim = remember(ghost.id) { Animatable(0f) }
     LaunchedEffect(ghost.id) {
-        progress.animateTo(1f, tween(durationMillis = durationMs, easing = FastOutSlowInEasing))
+        popAnim.animateTo(1f, tween(200, easing = FastOutSlowInEasing))
+        kotlinx.coroutines.delay(if (stolen) 1600L else 450L)
+        fadeAnim.animateTo(1f, tween(if (stolen) 900 else 650, easing = FastOutSlowInEasing))
         flight.lossGhosts.remove(ghost)
     }
-    val p      = progress.value
-    val stolen = ghost.action == CardAction.STOLEN
-    val tint   = if (stolen) Color(0xFF9B59B6)   // fialová = ukradeno
-                 else        Color(0xFFE07B39)   // oranžová = spáleno
-
-    // Fáze (STOLEN): pop (rychlé zvětšení + zvýraznění) → hold (karta drží plně
-    // viditelná, jde přečíst) → fade (stoupá a rozplývá se).
-    // BURNED zůstává u původního průběhu (fade od začátku).
-    val hold = if (stolen) 0.40f else 0f
-    val fade = ((p - hold) / (1f - hold)).coerceIn(0f, 1f)  // 0 během holdu, pak 0→1
-    val pop  = if (stolen) (p / 0.12f).coerceIn(0f, 1f) else p
+    val pop  = popAnim.value
+    val fade = fadeAnim.value
+    val tint = if (stolen) Color(0xFF9B59B6)   // fialová = ukradeno
+               else        Color(0xFFE07B39)   // oranžová = spáleno
 
     val density = LocalDensity.current
     val risePx  = with(density) { (if (stolen) 56.dp else 34.dp).toPx() }
@@ -233,7 +233,8 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                     }
                     .requiredSize(100.dp, 140.dp)
                     .graphicsLayer {
-                        val s = baseScale * (1f + (if (stolen) 0.22f else 0.12f) * pop)
+                        // Krádež: zvětšení na ~1.4× ruky, aby se karta dala v klidu přečíst
+                        val s = baseScale * (1f + (if (stolen) 0.40f else 0.12f) * pop)
                         scaleX = s; scaleY = s
                         alpha  = 1f - fade
                         transformOrigin = TransformOrigin(0.5f, 0.5f)
