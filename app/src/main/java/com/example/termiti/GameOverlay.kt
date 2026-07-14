@@ -266,10 +266,12 @@ fun MulliganOverlay(
                 )
             } else {
                 Text(
-                    if (selectedIds.isEmpty())
-                        s.mulliganInstruction
-                    else
-                        s.mulliganSelected.format(selectedIds.size),
+                    parseCardDesc(
+                        if (selectedIds.isEmpty())
+                            s.mulliganInstruction
+                        else
+                            s.mulliganSelected.format(selectedIds.size)
+                    ),
                     color = TextMuted, fontSize = 10.sp, textAlign = TextAlign.Center
                 )
             }
