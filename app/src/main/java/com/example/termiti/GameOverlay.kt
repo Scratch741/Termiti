@@ -270,9 +270,10 @@ fun MulliganOverlay(
                         if (selectedIds.isEmpty())
                             s.mulliganInstruction
                         else
-                            s.mulliganSelected.format(selectedIds.size)
+                            s.mulliganSelected.format(selectedIds.size),
+                        boldColor = Gold
                     ),
-                    color = TextMuted, fontSize = 10.sp, textAlign = TextAlign.Center
+                    color = TextPrimary, fontSize = 10.sp, textAlign = TextAlign.Center
                 )
             }
 

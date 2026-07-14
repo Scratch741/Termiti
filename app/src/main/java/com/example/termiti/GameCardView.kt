@@ -70,14 +70,16 @@ import kotlinx.coroutines.launch
  *  • ručního zalomení řádku symbolem `|` (nebo literálem `\n`) → nový řádek
  * Příklad: "Zaútočí za 5.|**Toto kolo:** +2 útok." se zalomí za první větou.
  */
-fun parseCardDesc(text: String): AnnotatedString = buildAnnotatedString {
+fun parseCardDesc(text: String, boldColor: Color = Color.Unspecified): AnnotatedString = buildAnnotatedString {
     // Zalomení řádku: '|' i literál "\n" převedeme na skutečný nový řádek
     val normalized = text.replace("\\n", "\n").replace('|', '\n')
     val parts = normalized.split("**")
     parts.forEachIndexed { i, part ->
         if (i % 2 == 0) append(part)
         else {
-            pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+            // boldColor = Unspecified → tučný text dědí barvu okolí (karty);
+            // overlaye (Rozhodnutí/mulligan) předávají zvýrazňovací barvu
+            pushStyle(SpanStyle(fontWeight = FontWeight.Bold, color = boldColor))
             append(part)
             pop()
         }

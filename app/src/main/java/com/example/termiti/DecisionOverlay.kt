@@ -131,10 +131,10 @@ fun DecisionOverlay(
                     }
                 }
 
-                // Podnapis – **tučná** klíčová slova (spálí, ukradne, získáš…)
+                // Podnapis – **tučná** klíčová slova zlatě (spálí, ukradne, získáš…)
                 Text(
-                    parseCardDesc(decision.subtitle),
-                    color = TextMuted, fontSize = 10.sp,
+                    parseCardDesc(decision.subtitle, boldColor = Gold),
+                    color = TextPrimary, fontSize = 10.sp,
                     textAlign = TextAlign.Center
                 )
 
