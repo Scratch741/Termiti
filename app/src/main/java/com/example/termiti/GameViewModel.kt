@@ -1176,6 +1176,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             onOpponentCardLost = { lostCard, action ->
                 cardHistory.appendHistory(lostCard, action, isMine = false)
                 addCardLog("Hráč", lostCard, action, isMe = false)
+                // Ukaž ztracenou kartu v discard slotu (prstenec BURNED/STOLEN)
+                // + spusť ghost efekt v AI stripu – stejné chování jako online CARD_LOST
+                recordCard(lostCard, action, isPlayer = false)
             },
             onDrawCard = { _, count -> pendingDrawCount += count },
             maxHandSize = old.playerMaxHand,

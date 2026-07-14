@@ -135,14 +135,28 @@ fun NewBattlefield(
                     val removedKey = aiSlotIds[removeAt]
                     aiSlotIds.removeAt(removeAt)
                     // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
-                    // ghost efekt na pozici rubu (oranžová/fialová), aby bylo vidět,
-                    // že soupeř přišel o kartu z ruky a jak
+                    // ghost efekt (oranžová/fialová), aby bylo vidět, že soupeř
+                    // přišel o kartu z ruky a jak. Pokud známe konkrétní kartu
+                    // (lastCard patří soupeři), ukaž její líc – stejný efekt jako
+                    // u hráčovy ruky; jinak fallback na rub.
                     val act = lastCardAction
                     if (!showReveal && lossFx != null &&
                         (act == CardAction.BURNED || act == CardAction.STOLEN)
                     ) {
                         aiSlotRects[removedKey]?.let { rect ->
-                            lossFx.spawnLoss(null, opponentCardBackResId, act, rect)
+                            val face = lastCard?.takeIf { !lastCardIsPlayer }
+                            if (face != null) {
+                                // Líc ve velikosti odhalené karty (31×44) na pozici rubu (22×32)
+                                val w = rect.width  * (31f / 22f)
+                                val h = rect.height * (44f / 32f)
+                                val inflated = Rect(
+                                    rect.center.x - w / 2f, rect.center.y - h / 2f,
+                                    rect.center.x + w / 2f, rect.center.y + h / 2f
+                                )
+                                lossFx.spawnLoss(face, null, act, inflated)
+                            } else {
+                                lossFx.spawnLoss(null, opponentCardBackResId, act, rect)
+                            }
                         }
                     }
                     aiSlotRects.remove(removedKey)
