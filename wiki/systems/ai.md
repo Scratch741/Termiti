@@ -86,6 +86,13 @@ val best = opts.minByOrNull { card ->
 
 > Example: `Vojenský rozkaz` (+6 ATTACK) → `Démon` becomes affordable and lethal. Without this lookahead the AI only saw single-step lethals and missed the win.
 
+## Endgame last-chance fallback (both decks empty, AI losing)
+
+In the `bothDecksEmpty` branch, if no card scores > 0 and the AI is losing, it tries a "last chance" play rather than passively waiting (waiting when losing risks the empty-deck draw resolution locking in a loss). Two safeguards, both fixed 2026-07-12:
+
+1. **`realizedAttackOrBuild()`** — the candidate search recurses into `ConditionalEffect` and calls `checkCondition` before counting a card as "attacks/builds now". A shallow top-level check would miss cards like `Zásobník` (`ConditionalEffect(CastleBelow(40), BuildCastle(10))` — top-level effect is `ConditionalEffect`, not `BuildCastle`).
+2. **Absolute fallback gate** — if no card matches (1), the AI plays the highest-scored card ONLY if `card.effects.sumOf { scoreEffect(it) } > 0` (it does *something* right now). Without this, a conditional card with an unmet condition (effectScore = 0) still had a mildly-negative-but-not-catastrophic total score (`0 − cost + noise`, e.g. ≈ −3) — well above the `≤ −50` no-op threshold reserved for Mirror/Clone-without-source (`-100`) — so it slipped through and got force-played for **zero effect**, just wasting the cost.
+
 ## Discard rules
 
 The AI discards (`AiAction.Discard`) **only** when the hand is full (7) **and** its deck still has cards — freeing a slot for the next draw (a draw into a full hand would burn the card). In every other "stuck" situation it waits:
@@ -111,3 +118,4 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 - 2026-05-21: Page created; DecisionMine AI logic added
 - 2026-05-29: Documented lethal detection + combo-chain lethal lookahead (`comboSetupForLethal`); DecisionChooseResource AI picks least-held resource; smarter discard (keep strong cards)
 - 2026-07-12: Discard rules documented + fix: AI no longer discards with an empty deck (was a pure card loss — e.g. threw away Nedobytná pevnost instead of waiting); discard now only with a full hand + non-empty deck
+- 2026-07-12: Endgame last-chance fallback fix: AI no longer force-plays a zero-effect conditional card (e.g. Zásobník with unmet CastleBelow condition) as a "last chance" when losing with empty decks — `realizedAttackOrBuild()` now condition-aware, absolute fallback requires effectScore > 0

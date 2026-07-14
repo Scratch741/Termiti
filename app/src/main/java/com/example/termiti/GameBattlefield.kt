@@ -217,12 +217,18 @@ fun NewBattlefield(
                     // stav 1.15× (o 15 % větší než okolní ruby) → jasně vyčnívá jako
                     // "právě zahraná". Vizuální scale (graphicsLayer) – nemění layout
                     // box, takže nezasahuje do ghost/pozičního počítání jinde.
+                    // transformOrigin = horní hrana: růst jde jen DOLŮ do bojiště,
+                    // ne nahoru – jinak by karta přesahovala nad AI strip do separátoru
+                    // pod horní lištou (ten má zIndex(1f) → schovával by horní část karty).
                     val pop = remember { Animatable(0.6f) }
                     LaunchedEffect(Unit) { pop.animateTo(1.15f, tween(260, easing = FastOutSlowInEasing)) }
                     Box(
                         Modifier
                             .animateItem()
-                            .graphicsLayer { scaleX = pop.value; scaleY = pop.value }
+                            .graphicsLayer {
+                                scaleX = pop.value; scaleY = pop.value
+                                transformOrigin = TransformOrigin(0.5f, 0f)
+                            }
                     ) { PlayedCardSlot(revealedAiCard!!) }
                 } else {
                     // Nově líznutý rub přilétá zprava (od balíčku) – zrcadlí animaci hráče

@@ -463,21 +463,32 @@ fun aiChooseAction(
             // AI prohrává a nemá výhodnou kartu → poslední pokus:
             // zahraj cokoli, co útočí nebo staví hrad (čekání = jistá prohra)
             if (aiIsLosing) {
-                val lastChance = scored
-                    .filter { (card, _) ->
-                        card.effects.any { fx ->
-                            fx is CardEffect.AttackPlayer ||
-                            fx is CardEffect.AttackCastle ||
-                            (fx is CardEffect.BuildCastle && fx.amount > 0) ||
-                            fx is CardEffect.StealCastle
-                        }
+                // Nahlíží i dovnitř ConditionalEffect – jinak by unikly karty jako
+                // Zásobník (staví hrad JEN pod 40 HP): top-level efekt je
+                // ConditionalEffect, ne BuildCastle, takže by plochý filtr kartu
+                // vyloučil, a ta by pak spadla do fallbacku níže, který ji zahrál
+                // i s NESPLNĚNOU podmínkou = vyhozené suroviny bez jakéhokoli efektu.
+                fun realizedAttackOrBuild(effects: List<CardEffect>): Boolean = effects.any { fx ->
+                    when (fx) {
+                        is CardEffect.AttackPlayer, is CardEffect.AttackCastle, is CardEffect.StealCastle -> true
+                        is CardEffect.BuildCastle       -> fx.amount > 0
+                        is CardEffect.ConditionalEffect ->
+                            checkCondition(fx.condition, ai, opponent) && realizedAttackOrBuild(listOf(fx.effect))
+                        else -> false
                     }
+                }
+                val lastChance = scored
+                    .filter { (card, _) -> realizedAttackOrBuild(card.effects) }
                     .maxByOrNull { it.second }
                     ?.first
                 if (lastChance != null) return AiAction.Play(lastChance)
-                // Žádná přímá útočná/stavební karta → zahraj alespoň nejlépe ohodnocenou,
-                // ale nikdy Mirror/Clone bez zdrojové karty (score -100 = čisté nic)
-                if (bestScore <= -50) return AiAction.Wait
+                // Žádná karta TEĎ neútočí ani nestaví hrad → poslední pokus zahraj JEN
+                // pokud karta udělá aspoň NĚCO (effectScore > 0) – jinak (Zásobník
+                // s nesplněnou podmínkou, Mirror/Clone bez zdroje = score -100 atd.)
+                // by šlo jen o vyhozené suroviny bez jakéhokoli efektu, což je vždy
+                // horší než počkat.
+                val bestHasEffect = best.effects.sumOf { scoreEffect(it) } > 0
+                if (bestScore <= -50 || !bestHasEffect) return AiAction.Wait
                 return AiAction.Play(best)
             }
         }
