@@ -380,12 +380,12 @@ internal fun PlayedCardSlot(card: Card) {
             Text(
                 card.displayName,
                 color      = Color.White,
-                fontSize   = 5.sp,
+                fontSize   = 6.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign  = TextAlign.Center,
                 maxLines   = 2,
                 overflow   = TextOverflow.Ellipsis,
-                lineHeight = 5.5.sp,
+                lineHeight = 6.5.sp,
                 style      = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
         }
