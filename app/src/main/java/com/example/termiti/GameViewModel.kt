@@ -1743,6 +1743,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
                     addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    // Overdraw: ukaž spálenou kartu v discard slotu (oranžový prstenec)
+                    recordCard(b, CardAction.BURNED, isPlayer = true)
                 }
                 for (trap in drawResult.traps) {
                     cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
