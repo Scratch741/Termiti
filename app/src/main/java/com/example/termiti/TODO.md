@@ -22,6 +22,9 @@ Sestavit balík - filtr na karty, které mám. Celkově rework filtry a sestaven
 
 ── Nové návrhy ──────────────────────────────────────────────────────────────
 
+Live log v battlefield - jako v hearhstone, posledních X zahraných karet
+
+
 Replay systém
 - Uložení průběhu hry (každý tah, zahraná karta, stav po tahu)
 - Možnost přehrát replay po skončení hry

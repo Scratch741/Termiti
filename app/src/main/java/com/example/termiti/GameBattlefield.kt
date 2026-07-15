@@ -137,8 +137,12 @@ fun NewBattlefield(
                 // Zahrání/zahození/spálení: odeber klíč na pozici zahrané karty
                 // (zbytek se přes animateItem plynule sesune), jinak z konce
                 while (aiSlotIds.size > aiHandSize) {
+                    // Zahraná karta (reveal) mizí ze své ZNÁMÉ pozice. Spálení/krádež/
+                    // zahození nemá známou pozici (herní logika vybírá kartu náhodně
+                    // podle identity, ne podle slotu ve stripu) → NÁHODNÝ slot, jinak
+                    // by vizuálně vždy mizela ta úplně poslední (nejvíc vpravo) karta.
                     val removeAt = revealedAiCardIdx?.takeIf { it < aiSlotIds.size }
-                        ?: (aiSlotIds.size - 1)
+                        ?: aiSlotIds.indices.random()
                     val removedKey = aiSlotIds[removeAt]
                     aiSlotIds.removeAt(removeAt)
                     // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
