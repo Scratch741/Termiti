@@ -73,7 +73,7 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         break;
       }
       case 'BuildWall':
-        score += (fx.amount || 0) * 2;
+        score += (fx.amount || 0) * 1.5;
         break;
       case 'AddMine': {
         const mine = Math.max(1, mines[fx.resType] || 1);

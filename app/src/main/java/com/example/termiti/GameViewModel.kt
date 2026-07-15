@@ -536,7 +536,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     if (fx.amount >= selfHpMissing) 200.0
                     else fx.amount * 10.0 / selfHpMissing
                 }
-                is CardEffect.BuildWall     -> fx.amount * 2.0
+                is CardEffect.BuildWall     -> fx.amount * 1.5
                 is CardEffect.AddMine       -> {
                     val mine = (self.mines[fx.type] ?: 1).coerceAtLeast(1)
                     20.0 / mine
