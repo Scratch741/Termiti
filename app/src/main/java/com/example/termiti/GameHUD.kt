@@ -484,18 +484,20 @@ fun NewPanelButton(
     @DrawableRes iconRes: Int? = null,
     glowColor: Color? = null
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "btn_glow")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.12f,
-        targetValue  = 0.38f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(850, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glow_alpha"
-    )
-
+    // Nekonečné pulzování běží JEN když je glow skutečně vidět – bezpodmínečná
+    // infinite transition by překreslovala tlačítko každý frame (výkon)
     val effectiveGlow = if (glowColor != null && active) glowColor else null
+    val glowAlpha = if (effectiveGlow != null) {
+        rememberInfiniteTransition(label = "btn_glow").animateFloat(
+            initialValue = 0.12f,
+            targetValue  = 0.38f,
+            animationSpec = infiniteRepeatable(
+                animation  = tween(850, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "glow_alpha"
+        ).value
+    } else 0f
     val glowMod: Modifier = effectiveGlow?.let { gc ->
         Modifier.drawBehind {
             val maxExpand = 8.dp.toPx()

@@ -468,17 +468,21 @@ fun CardView(
     val isDragging = offsetY.value < -6f
 
     // ── Zelený glow: zahratelná karta se splněnou podmínkou ───────────────────
+    // POZOR NA VÝKON: nekonečné pulzování běží JEN u karet, které glow skutečně
+    // zobrazují. Bezpodmínečná infinite transition na každé kartě v ruce
+    // znamenala rekompozici všech karet každý frame → trvalý drop FPS.
     val showGreenGlow = showGlow && canPlay && conditionMet == true
-    val glowTransition = rememberInfiniteTransition(label = "cardGlow")
-    val glowAlpha by glowTransition.animateFloat(
-        initialValue = 0.35f,
-        targetValue  = 0.75f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(700, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glowAlpha"
-    )
+    val glowAlpha = if (showGreenGlow) {
+        rememberInfiniteTransition(label = "cardGlow").animateFloat(
+            initialValue = 0.35f,
+            targetValue  = 0.75f,
+            animationSpec = infiniteRepeatable(
+                animation  = tween(700, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "glowAlpha"
+        ).value
+    } else 0f
     val GlowGreen = Color(0xFF4DB86E)
 
     // ── Fialový glow: Shapeshifter karta (i po transformaci – trackovano přes ID prefix) ──
@@ -487,15 +491,17 @@ fun CardView(
     val isShapeShifter = card.isShapeShifterInstance()
         || card.effects.any { it is CardEffect.Mirror || it is CardEffect.Clone }
         || card.localizationId == "__mirror__" || card.localizationId == "__clone__"
-    val purpleGlowAlpha by glowTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue  = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(900, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "purpleGlowAlpha"
-    )
+    val purpleGlowAlpha = if (isShapeShifter) {
+        rememberInfiniteTransition(label = "morphGlow").animateFloat(
+            initialValue = 0.5f,
+            targetValue  = 1.0f,
+            animationSpec = infiniteRepeatable(
+                animation  = tween(900, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "purpleGlowAlpha"
+        ).value
+    } else 0f
 
     val dragModifier = if (onDiscard != null) Modifier.pointerInput(card.id) {
         detectVerticalDragGestures(
