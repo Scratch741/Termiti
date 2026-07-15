@@ -1419,6 +1419,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = false)
                     addCardLog("AI", b, CardAction.BURNED, isMe = false)
+                    // Overdraw: ukaž spálenou kartu v discard slotu (oranžový prstenec)
+                    // a dej hráči 0,75 s na zaregistrování, že AI přetáhla
+                    recordCard(b, CardAction.BURNED, isPlayer = false)
+                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
+                    delay(750L)
                 }
                 for (trap in drawResult.traps) {
                     cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
