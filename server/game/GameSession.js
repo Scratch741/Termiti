@@ -72,9 +72,14 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
         break;
       }
-      case 'BuildWall':
-        score += (fx.amount || 0) * 1.5;
+      case 'BuildWall': {
+        // Zeď nad cap (50) nemá hodnotu – počítej jen to, co se vejde
+        const effective = Math.max(0, Math.min(fx.amount || 0, 50 - (self.wallHP || 0)));
+        // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)
+        const danger = 1 + Math.max(0, 30 - self.castleHP) / 30;
+        score += effective * 1.5 * danger;
         break;
+      }
       case 'AddMine': {
         const mine = Math.max(1, mines[fx.resType] || 1);
         score += 20 / mine;

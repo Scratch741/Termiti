@@ -536,7 +536,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     if (fx.amount >= selfHpMissing) 200.0
                     else fx.amount * 10.0 / selfHpMissing
                 }
-                is CardEffect.BuildWall     -> fx.amount * 1.5
+                is CardEffect.BuildWall     -> {
+                    // Zeď nad cap (MAX_WALL) nemá hodnotu – počítej jen to, co se vejde
+                    val effective = fx.amount.coerceAtMost(MAX_WALL - self.wallHP).coerceAtLeast(0)
+                    // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)
+                    val danger = 1.0 + (30 - self.castleHP).coerceAtLeast(0) / 30.0
+                    effective * 1.5 * danger
+                }
                 is CardEffect.AddMine       -> {
                     val mine = (self.mines[fx.type] ?: 1).coerceAtLeast(1)
                     20.0 / mine
