@@ -371,16 +371,25 @@ private fun OnlineGameplay(
         flight.flying = FlightJob(c, from, to, flight.nextId())
     }
 
-    // ── Ghost efekt: moje karta spálená/ukradená soupeřem se rozplyne v ruce ──
+    // ── Ghost efekt: moje karty spálené/ukradené soupeřem se rozplynou v ruce ──
     // (pozice z flight.sources – jen karty, které byly vidět v ruce, ne z balíčku)
-    var lastLossSeen by remember { mutableStateOf(lostToOpponent.firstOrNull()) }
-    LaunchedEffect(lostToOpponent.firstOrNull()) {
-        val entry = lostToOpponent.firstOrNull() ?: return@LaunchedEffect
-        if (entry === lastLossSeen) return@LaunchedEffect
-        lastLossSeen = entry
-        if (entry.action == CardAction.BURNED || entry.action == CardAction.STOLEN) {
-            flight.sources[entry.card.id]?.let { rect ->
-                flight.spawnLoss(entry.card, null, entry.action, rect)
+    // Zpracovávají se VŠECHNY nové záznamy najednou – více ztrát v jednom framu
+    // (Spálená knihovna = 2 spálení) by jinak ukázalo jen poslední ghost.
+    var lossSeenCount by remember { mutableStateOf(lostToOpponent.size) }
+    LaunchedEffect(lostToOpponent) {
+        if (lostToOpponent.size < lossSeenCount) {
+            // Nová hra vyprázdnila seznam → resetuj počítadlo
+            lossSeenCount = lostToOpponent.size
+            return@LaunchedEffect
+        }
+        val newEntries = lostToOpponent.take(lostToOpponent.size - lossSeenCount)
+        lossSeenCount = lostToOpponent.size
+        // Nejstarší první, ať ghosty naskočí ve stejném pořadí jako ztráty
+        for (entry in newEntries.asReversed()) {
+            if (entry.action == CardAction.BURNED || entry.action == CardAction.STOLEN) {
+                flight.sources[entry.card.id]?.let { rect ->
+                    flight.spawnLoss(entry.card, null, entry.action, rect)
+                }
             }
         }
     }
