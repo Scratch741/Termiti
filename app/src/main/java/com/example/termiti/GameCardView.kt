@@ -345,7 +345,7 @@ internal fun CardBackPlayed(card: Card) {
 internal fun PlayedCardSlot(card: Card) {
     Box(
         modifier = Modifier
-            .size(width = 31.dp, height = 44.dp)
+            .size(width = 29.5.dp, height = 42.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(BgCard)
             .border(1.5.dp, Crimson, RoundedCornerShape(4.dp))
