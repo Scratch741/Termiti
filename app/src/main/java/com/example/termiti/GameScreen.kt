@@ -288,22 +288,26 @@ fun GameScreen(
             )
 
             // ── Ruka hráče – přes celou šířku dole ───────────────────
-            val displayHand = if (gameOver != null && showOppHand)
-                state.aiState.hand else state.playerState.hand
+            val viewingOppHand = gameOver != null && showOppHand
+            val displayHand = if (viewingOppHand) state.aiState.hand else state.playerState.hand
+            // Review soupeřovy ruky: podmínky (✓/✗), dostupnost i X-náhled se musí
+            // vyhodnocovat z pohledu VLASTNÍKA ruky (soupeře), ne hráče
+            val handOwner = if (viewingOppHand) state.aiState else state.playerState
+            val handOpp   = if (viewingOppHand) state.playerState else state.aiState
             HandPanel(
                 hand             = displayHand,
                 isPlayerTurn     = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
                 isComboTurn      = if (gameOver != null) false else isComboTurn,
-                playerResources  = state.playerState.resources,
+                playerResources  = handOwner.resources,
                 onPlayCard       = { viewModel.playCard(it) },
                 onDiscardCard    = { viewModel.discardCard(it) },
                 onWait           = { viewModel.waitTurn() },
                 onEndTurn        = { viewModel.endPlayerTurn() },
                 showHeader       = false,
-                playerWallHp     = state.playerState.wallHP,
-                playerCastleHp   = state.playerState.castleHP,
-                oppResources     = state.aiState.resources,
-                lastPlayedType   = state.playerState.lastPlayedType,
+                playerWallHp     = handOwner.wallHP,
+                playerCastleHp   = handOwner.castleHP,
+                oppResources     = handOpp.resources,
+                lastPlayedType   = handOwner.lastPlayedType,
                 onLongPressCard  = { cardPreview = it },
                 animateDraws     = gameOver == null,   // review mód: přepínání rukou bez příletu
                 canDiscard       = !viewModel.playerDiscardUsed.value,

@@ -551,20 +551,25 @@ private fun OnlineGameplay(
 
             // ── Ruka ──────────────────────────────────────────────────────────
             // V review módu: zobraz soupeřovu ruku (skryté karty – dummy); jinak moji
-            val displayHand = if (isGameOver && showOppHand) oppPs.hand else myPs.hand
+            val viewingOppHand = isGameOver && showOppHand
+            val displayHand = if (viewingOppHand) oppPs.hand else myPs.hand
+            // Review soupeřovy ruky: podmínky (✓/✗), dostupnost i X-náhled se musí
+            // vyhodnocovat z pohledu VLASTNÍKA ruky (soupeře), ne hráče
+            val handOwner = if (viewingOppHand) oppPs else myPs
+            val handOpp   = if (viewingOppHand) myPs else oppPs
             HandPanel(
                 hand             = displayHand,
                 isPlayerTurn     = gs.isMyTurn && !isGameOver,
                 isComboTurn      = false,
-                playerResources  = myPs.resources,
+                playerResources  = handOwner.resources,
                 onPlayCard       = { card -> vm.playCard(card.id) },
                 onDiscardCard    = { card -> vm.discardCard(card.id) },
                 onWait           = { /* noop */ },
                 onEndTurn        = { vm.endTurn() },
                 showHeader       = false,
-                playerWallHp     = myPs.wallHP,
-                playerCastleHp   = myPs.castleHP,
-                oppResources     = oppPs.resources,
+                playerWallHp     = handOwner.wallHP,
+                playerCastleHp   = handOwner.castleHP,
+                oppResources     = handOpp.resources,
                 onLongPressCard  = { card -> if (card.id != "__dummy__") cardPreview = card },
                 animateDraws     = !isGameOver,   // review mód: přepínání rukou bez příletu
                 canDiscard       = !gs.myState.discardUsed,   // zahození jen 1× za kolo (server autoritativní)
