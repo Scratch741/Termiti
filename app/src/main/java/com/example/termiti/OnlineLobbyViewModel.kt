@@ -80,7 +80,7 @@ data class OnlinePendingResource(
 // ─── Stav hráče přijatý ze serveru ───────────────────────────────────────────
 data class OnlinePlayerState(
     val castleHP         : Int                       = 30,
-    val wallHP           : Int                       = 10,
+    val wallHP           : Int                       = 15,   // musí sedět se serverem (engine.js)
     val resources        : Map<String, Int>          = emptyMap(),
     val mines            : Map<String, Int>          = emptyMap(),
     val mineBlockedTurns : Map<String, Int>          = emptyMap(),
