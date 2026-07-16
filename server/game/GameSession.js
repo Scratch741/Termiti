@@ -127,7 +127,7 @@ const { ratingSystem } = require('./RatingSystem');
 const { GameLogger, compactState } = require('./GameLogger');
 
 const MULLIGAN_HAND_SIZE    = 4;
-const MULLIGAN_TIMEOUT_MS   = 30_000;   // 30 s na mulligan; po vypršení auto-skip
+const MULLIGAN_TIMEOUT_MS   = 35_000;   // 35 s na mulligan (VS intro ukusuje ~4 s); po vypršení auto-skip
 const TURN_HAND_DRAW        = 1;
 const TURN_SECONDS          = 15;
 const TIMEBANK_SECONDS      = 120;
