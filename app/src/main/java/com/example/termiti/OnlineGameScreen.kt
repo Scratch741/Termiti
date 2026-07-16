@@ -1,7 +1,11 @@
 package com.example.termiti
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,7 +22,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.zIndex
@@ -246,6 +252,135 @@ fun OnlineGameScreen(
                         "Připojuji se zpět…",
                         color = OgTextMuted,
                         fontSize = 14.sp
+                    )
+                }
+            }
+        }
+
+        // ── VS intro (jako Hearthstone): pár vteřin před mulliganem ──────────
+        // Zobrazí se jen při vstupu do hry přes mulligan (ne při reconnectu
+        // do rozehrané hry). Kreslí se NAD mulligan overlayem.
+        var showVsIntro by remember { mutableStateOf(phase == OnlinePhase.GAME_MULLIGAN) }
+        if (showVsIntro && phase == OnlinePhase.GAME_MULLIGAN) {
+            OnlineVersusIntro(vm, onDone = { showVsIntro = false })
+        }
+    }
+}
+
+// ─── VS intro: Hráč vs Soupeř tabulka před mulliganem ────────────────────────
+
+@Composable
+private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
+    val match      by vm.matchInfo
+    val myRating   by vm.myRating
+    val oppRating  by vm.opponentRating
+    val playerName by vm.playerName
+    val profile    = PlayerProfileManager.profile
+
+    val enter = remember { Animatable(0f) }   // slide-in stran + pop "VS"
+    val exit  = remember { Animatable(0f) }   // závěrečný fade-out
+    LaunchedEffect(Unit) {
+        enter.animateTo(1f, tween(450, easing = FastOutSlowInEasing))
+        delay(2800L)
+        exit.animateTo(1f, tween(400))
+        onDone()
+    }
+    val density = LocalDensity.current
+    val slidePx = with(density) { 220.dp.toPx() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = 1f - exit.value }
+            .background(Color(0xF20D0A14))
+            .pointerInput(Unit) { detectTapGestures {} },   // blokuje vstup pod introm
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(30.dp)
+        ) {
+            // Já – přilétá zleva
+            Box(Modifier.graphicsLayer { translationX = -(1f - enter.value) * slidePx }) {
+                VsSideColumn(
+                    name      = playerName.ifBlank { profile?.name ?: "Hráč" },
+                    avatar    = profile?.avatar ?: "player_icon_1",
+                    level     = profile?.level ?: -1,
+                    rating    = myRating,
+                    abilities = profile?.activeAbilities
+                        ?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList(),
+                    accent    = OgTealLight
+                )
+            }
+            // VS – pop uprostřed
+            Text(
+                "VS",
+                color         = OgGold,
+                fontSize      = 34.sp,
+                fontWeight    = FontWeight.ExtraBold,
+                letterSpacing = 2.sp,
+                modifier      = Modifier.graphicsLayer {
+                    scaleX = 0.4f + 0.6f * enter.value
+                    scaleY = 0.4f + 0.6f * enter.value
+                    alpha  = enter.value
+                }
+            )
+            // Soupeř – přilétá zprava
+            Box(Modifier.graphicsLayer { translationX = (1f - enter.value) * slidePx }) {
+                VsSideColumn(
+                    name      = match?.opponentName ?: "Soupeř",
+                    avatar    = match?.opponentAvatar ?: "enemy_icon_1",
+                    level     = match?.opponentLevel ?: -1,
+                    rating    = oppRating,
+                    abilities = match?.opponentAbilities
+                        ?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList(),
+                    accent    = OgCrimson
+                )
+            }
+        }
+        // Kdo začíná – dole
+        Text(
+            if (match?.side == "A") "Ty začínáš první" else "Soupeř začíná první",
+            color      = if (match?.side == "A") OgTealLight else OgTextMuted,
+            fontSize   = 12.sp,
+            fontWeight = FontWeight.Bold,
+            modifier   = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 26.dp)
+                .graphicsLayer { alpha = enter.value }
+        )
+    }
+}
+
+@Composable
+private fun VsSideColumn(
+    name: String,
+    avatar: String,
+    level: Int,
+    rating: Int?,
+    abilities: List<PassiveAbility>,
+    accent: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        AvatarDisplay(avatar = avatar, sizeDp = 68f)
+        Text(name, color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        if (level >= 0) Text("Level $level", color = OgTextMuted, fontSize = 11.sp)
+        if (rating != null) {
+            Text("🏆 $rating", color = OgGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        if (abilities.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                abilities.take(3).forEach { ab ->
+                    Image(
+                        painterResource(ab.iconRes),
+                        contentDescription = ab.title,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
