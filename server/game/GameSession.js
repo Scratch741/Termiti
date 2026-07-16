@@ -229,8 +229,11 @@ class GameSession {
     const deckA = buildDeck(this.deckIds.A);
     const deckB = buildDeck(this.deckIds.B);
 
-    this.state.A = createPlayerState(deckA);
-    this.state.B = createPlayerState(deckB);
+    // Constructed ('normal'): start hradu 35 – vyrovnává asymetrii kill (−30)
+    // vs build (+40). super_random zůstává na 30 (kvótovaný balíček, ověřená balance).
+    const startCastle = this.mode === 'super_random' ? 30 : 35;
+    this.state.A = createPlayerState(deckA, startCastle);
+    this.state.B = createPlayerState(deckB, startCastle);
 
     // Aplikuj pasivní schopnosti na startovní stav (před rozdáním karet)
     applyPassiveAbilities(this.state.A, this.abilities.A);

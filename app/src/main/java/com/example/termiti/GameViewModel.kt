@@ -1014,7 +1014,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
 
-        val startCastle      = 30 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
+        // Constructed (vlastní balíček): start hradu 35 – vyrovnává asymetrii
+        // kill (−30) vs build (+40), kde destrukce byla numericky blíž.
+        // Náhodné módy zůstávají na 30 (kvótované balíčky, ověřená balance).
+        val baseCastle       = if (!randomDeck && !superRandom) 35 else 30
+        val startCastle      = baseCastle + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
         val startWall        = 15 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
         val extraMagic       =       if (PassiveAbility.EXTRA_MAGIC      in actives) 1 else 0
         val extraAttack      =       if (PassiveAbility.EXTRA_ATTACK     in actives) 1 else 0
@@ -1030,7 +1034,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             .take(2)
         aiPassiveAbilities.value = aiPassives
 
-        val aiStartCastle    = 30 + if (PassiveAbility.EXTRA_CASTLE     in aiPassives) 5 else 0
+        val aiStartCastle    = baseCastle + if (PassiveAbility.EXTRA_CASTLE in aiPassives) 5 else 0
         val aiStartWall      = 15 + if (PassiveAbility.EXTRA_WALL       in aiPassives) 5 else 0
         val aiExtraMagic     =       if (PassiveAbility.EXTRA_MAGIC      in aiPassives) 1 else 0
         val aiExtraAttack    =       if (PassiveAbility.EXTRA_ATTACK     in aiPassives) 1 else 0

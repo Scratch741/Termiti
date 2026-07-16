@@ -10,9 +10,9 @@ const MAX_MINES    = 99;
 
 // ── PlayerState ───────────────────────────────────────────────────────────────
 
-function createPlayerState(deckCards) {
+function createPlayerState(deckCards, startCastle = 30) {
   return {
-    castleHP: 30,
+    castleHP: startCastle,
     wallHP:   15,
     resources: { MAGIC: 0, ATTACK: 0, STONES: 0, CHAOS: 0 },
     mines:     { MAGIC: 1, ATTACK: 1, STONES: 1 },
@@ -507,7 +507,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
 function applyPassiveAbilities(state, abilities) {
   for (const id of (abilities || [])) {
     switch (id) {
-      case 'extra_castle':  state.castleHP          += 5; break; // 30 → 35
+      case 'extra_castle':  state.castleHP          += 5; break; // +5 ke startu (35→40 constructed, 30→35 super_random)
       case 'extra_wall':    state.wallHP             += 5; break; // 10 → 15
       case 'extra_magic':   state.resources.MAGIC   += 1; break;
       case 'extra_attack':  state.resources.ATTACK  += 1; break;
