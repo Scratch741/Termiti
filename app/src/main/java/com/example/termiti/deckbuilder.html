@@ -987,6 +987,19 @@ function _descEffect(fx) {
     case 'MomentumAttack':           return `Zaútočí za ${fx.base} + ${fx.bonusPerAttack} za každou útočnou kartu zahranou v tomto tahu.`;
     case 'PeekAndStealHand':         return `Vidí soupeřovu ruku a ukradne kartu`;
     case 'DecisionChooseResource':   return `Rozhodnutí: vyber jeden zdroj (${(fx.options||[]).map(o=>`${o.amount}× ${o.resType}`).join(', ')})`;
+    case 'Mirror':                   return `Zrcadlí poslední kartu soupeře`;
+    case 'Clone':                    return `Zkopíruje tvou poslední zahranou kartu`;
+    case 'DiscountRandomCard':       return `Zlevní ${fx.count||1}× náhodnou kartu${fx.cardType ? ` (${fx.cardType})` : ''} v ruce o ${fx.delta||2}`;
+    case 'DrawBoth':                 return `Oba hráči líznou ${fx.count||1}`;
+    case 'CloneNextPlayed':          return `Příští zahraná karta se ${fx.count||2}× zkopíruje do balíčku`;
+    case 'NextCardIsCombo':          return `Příští karta se chová jako combo`;
+    case 'DecisionChooseType':       return `Rozhodnutí: vyber kartu typu ${fx.cardType} do ruky${fx.costReduction ? ` (−${fx.costReduction})` : ''}`;
+    case 'DecisionBurnOpponent':     return `Rozhodnutí: spal kartu ze soupeřova balíčku`;
+    case 'DecisionFromDiscard':      return `Rozhodnutí: vrať si kartu z odhazovacího balíčku`;
+    case 'DecisionFromDeck':         return `Rozhodnutí: zkopíruj kartu ze svého balíčku`;
+    case 'DecisionDrawFromDeck':     return `Rozhodnutí: lízni vybranou kartu z balíčku`;
+    case 'DecisionMine':             return `Rozhodnutí: postav si důl dle výběru`;
+    case 'SmartJoker':               return `Vyber si kartu podle situace do ruky`;
     default:                         return fx.type;
   }
 }
@@ -1074,6 +1087,9 @@ function convertJsonEffect(fx) {
     case 'DecisionFromDeck':         return { t:'DFK', pr:fx.picks||4 };
     case 'DecisionDrawFromDeck':     return { t:'DFKD', pr:fx.picks||4 };
     case 'SmartJoker':               return { t:'SJ' };
+    case 'Mirror':                   return { t:'MIR' };
+    case 'Clone':                    return { t:'CLN' };
+    case 'DiscountRandomCard':       return { t:'DRC', d:fx.delta||2, ct:fx.cardType||null, r:fx.costType||null, n:fx.count||1 };
     default: return { t:'?', raw: fx.type };
   }
 }
@@ -1816,7 +1832,7 @@ let CARD_EFFECTS_DB = {
   "D08":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"DC",a:2}}]},
   "D09":{ct:"MAGIC", fx:[{t:"?",raw:"DrawPerCardPlayed"}],combo:true},
   "104":{ct:"ATTACK",fx:[{t:"AP",a:5},{t:"AM",r:"ATTACK",a:1}],combo:true},
-  "107":{ct:"MAGIC", fx:[{t:"AP",a:3},{t:"DR",r:"ATTACK",a:3},{t:"DR",r:"STONES",a:3}]},
+  "107":{ct:"MAGIC", fx:[{t:"AP",a:3},{t:"DR",r:"ATTACK",a:3},{t:"DR",r:"STONES",a:3},{t:"AR",r:"CHAOS",a:1}]},
   "108":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionBurnOpponent"}]},
   "109":{ct:"ATTACK",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
   "110":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionFromDiscard"}]},
@@ -1830,6 +1846,20 @@ let CARD_EFFECTS_DB = {
   "C36":{ct:"CHAOS", fx:[{t:"AddOpp",id:"C37",count:3}]},
   "C37":{ct:"CHAOS", fx:[{t:"Trap",e:{t:"AC",a:5}}]},
   "123":{ct:"ATTACK",fx:[{t:"MMA",b:2,bon:4}],combo:false},
+  "093":{ct:"STONES",fx:[{t:"BC",a:5},{t:"GCP",a:3,ct:"Stavba"}],combo:true},
+  "118":{ct:"MAGIC", fx:[{t:"SJ"}],combo:true},
+  "122":{ct:"STONES",fx:[{t:"BC",a:7},{t:"GRC",ct:"STONES"}],combo:true},
+  "124":{ct:"MAGIC", fx:[{t:"DCR",opts:[{resType:"MAGIC",amount:4},{resType:"ATTACK",amount:4},{resType:"STONES",amount:4},{resType:"CHAOS",amount:4}]}],combo:true},
+  "125":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"GRP",r:"CHAOS",a:2,ct:"Útok"}],combo:true},
+  "126":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2},{t:"GRP",r:"CHAOS",a:2,ct:"Magie"}],combo:true},
+  "127":{ct:"MAGIC", fx:[{t:"AC",a:10},{t:"DR",r:"MAGIC",a:2}]},
+  "128":{ct:"MAGIC", fx:[{t:"DPC",ct:null},{t:"GRP",r:"MAGIC",a:1,ct:null}],combo:true},
+  "129":{ct:"STONES",fx:[{t:"BW",a:2},{t:"BC",a:2},{t:"DRC",d:2,ct:"Stavba",n:1}]},
+  "130":{ct:"ATTACK",fx:[{t:"AR",r:"ATTACK",a:2},{t:"AR",r:"STONES",a:-2}],combo:true},
+  "131":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DM",r:"STONES",a:1}]},
+  "C38":{ct:"CHAOS", fx:[]},
+  "C41":{ct:"MAGIC", fx:[{t:"MIR"}],combo:true},
+  "C42":{ct:"MAGIC", fx:[{t:"CLN"}],combo:true},
   "C40":{ct:"CHAOS", fx:[{t:"PSH"}]},
   "C43":{ct:"ATTACK",fx:[{t:"AP",a:2},{t:"NCC"}],combo:true},
   "L01":{ct:"CHAOS", fx:[{t:"SR",r:"MAGIC",a:3},{t:"SR",r:"ATTACK",a:3},{t:"SR",r:"STONES",a:3},{t:"AC",a:18},{t:"SC",a:5}]},
@@ -2448,7 +2478,9 @@ const SIM_CARD_TYPE = {'Útok':'ATTACK','Magie':'MAGIC','Stavba':'STONES','Chaos
 
 function createSimState() {
   return {
-    castleHP: 30, wallHP: 15,
+    // Constructed startuje s hradem 35 (kill 35 vs build +35); náhodné módy mají 30
+    castleHP: 35, wallHP: 15,
+    lastPlayed: null,   // poslední zahraná karta (Zrcadlo/Klon)
     res: { MAGIC:0, ATTACK:0, STONES:0, CHAOS:0 },
     mines: { MAGIC:1, ATTACK:1, STONES:1 },
     mineBlocked: {}, pending: [],
@@ -2520,7 +2552,7 @@ function simFx(fx, me, opp, xv) {
     case 'AW': opp.wallHP = Math.max(0, opp.wallHP - fx.a); break;
     case 'BC': me.castleHP = Math.min(100, me.castleHP + fx.a); break;
     case 'BW': me.wallHP = Math.max(0, Math.min(50, me.wallHP + fx.a)); break;
-    case 'AR': me.res[fx.r] = (me.res[fx.r]||0) + fx.a; break;
+    case 'AR': me.res[fx.r] = Math.max(0, Math.min(999, (me.res[fx.r]||0) + fx.a)); break;
     case 'AM': me.mines[fx.r] = (me.mines[fx.r]||0) + fx.a; break;
     case 'SR': { const tk=Math.min(fx.a,opp.res[fx.r]||0); opp.res[fx.r]=(opp.res[fx.r]||0)-tk; me.res[fx.r]=(me.res[fx.r]||0)+tk; break; }
     case 'DR': opp.res[fx.r] = Math.max(0,(opp.res[fx.r]||0)-fx.a); break;
@@ -2579,6 +2611,30 @@ function simFx(fx, me, opp, xv) {
       if(opts.length){const best=opts.reduce((a,b)=>(me.res[a.resType]||0)<=(me.res[b.resType]||0)?a:b);me.res[best.resType]=(me.res[best.resType]||0)+best.amount;}
       break;
     }
+    case 'MIR': { // Zrcadlo: kopíruj efekty soupeřovy poslední karty (guard proti řetězení morphů)
+      const src=opp.lastPlayed;
+      if(src&&!src.effects.some(f=>f.t==='MIR'||f.t==='CLN')){
+        let x=0; if(src.isXCost){x=me.res[src.costType]||0;me.res[src.costType]=0;}
+        simApply(src.effects,me,opp,x);
+      }
+      break;
+    }
+    case 'CLN': { // Klon: kopíruj efekty VLASTNÍ poslední zahrané karty
+      const src=me.lastPlayed;
+      if(src&&!src.effects.some(f=>f.t==='MIR'||f.t==='CLN')){
+        let x=0; if(src.isXCost){x=me.res[src.costType]||0;me.res[src.costType]=0;}
+        simApply(src.effects,me,opp,x);
+      }
+      break;
+    }
+    case 'DRC': { // Zlevni náhodné karty v ruce (dle typu/zdroje)
+      const pool=me.hand.filter(c=>(!fx.ct||SIM_CARD_TYPE[fx.ct]===c.costType)&&(!fx.r||c.costType===fx.r));
+      for(let i=0;i<(fx.n||1)&&pool.length;i++){
+        const c=pool[Math.floor(Math.random()*pool.length)];
+        c.costModifier=(c.costModifier||0)-(fx.d||2);
+      }
+      break;
+    }
   }
 }
 
@@ -2611,7 +2667,11 @@ function simAI(ai, opp) {
       case 'AC': return (oLH?22:oCW?8:6)+Math.floor((fx.a||0)/5);
       case 'AW': return 4;
       case 'BC': return (fx.a||0)>=0?(aLH?20:aCW?12:5)+Math.floor((fx.a||0)/5):(fx.a||0)*2;
-      case 'BW': return (fx.a||0)>=0?(aLW?16:5):(fx.a||0);
+      case 'BW': { // zeď nad cap (50) nemá hodnotu – port z AiEngine
+        if((fx.a||0)<0) return fx.a||0;
+        const room=Math.max(0,50-ai.wallHP), g=Math.min(fx.a||0,room);
+        return g===0?-5:aLW?16:(g<(fx.a||0)?2+Math.floor(g/3):5);
+      }
       case 'AM': return 9;
       case 'SR': return 7;
       case 'DR': return 6;
@@ -2653,6 +2713,9 @@ function simAI(ai, opp) {
       case 'DFKD': return 5;
       case 'SJ':  return 8;
       case 'DCR': return (fx.opts&&fx.opts.length)?fx.opts.reduce((mx,o)=>Math.max(mx,o.amount||0),0):4;
+      case 'MIR': { const src=opp.lastPlayed; return (src&&!src.effects.some(f=>f.t==='MIR'||f.t==='CLN'))?src.effects.reduce((s,f)=>s+se(f,src.isXCost?(ai.res[src.costType]||0):0),0):-50; }
+      case 'CLN': { const src=ai.lastPlayed;  return (src&&!src.effects.some(f=>f.t==='MIR'||f.t==='CLN'))?src.effects.reduce((s,f)=>s+se(f,src.isXCost?(ai.res[src.costType]||0):0),0):-50; }
+      case 'DRC': return 4;
       default: return 0;
     }
   }
@@ -2680,7 +2743,11 @@ function simAI(ai, opp) {
       const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
       if(best&&best.s>0)return{type:'play',card:best.c};
       if(ai.castleHP<opp.castleHP){
-        const lc=aff.find(c=>c.effects.some(fx=>['AP','AC','BC','SC'].includes(fx.t)));
+        // Nahlíží i dovnitř CE – kartu s NESPLNĚNOU podmínkou nehraj (port z AiEngine)
+        const realized=fxs=>fxs.some(fx=>['AP','AC','SC'].includes(fx.t)
+          ||(fx.t==='BC'&&(fx.a||0)>0)
+          ||(fx.t==='CE'&&simCond(fx.c,ai,opp)&&realized([fx.e])));
+        const lc=aff.find(c=>realized(c.effects));
         if(lc)return{type:'play',card:lc};
       }
     }
@@ -2804,6 +2871,7 @@ function simOneGame(deckA, deckB, trackCards) {
         if(c.isXCost){xv=me.res[c.costType]||0;me.res[c.costType]=0;}
         else me.res[c.costType]=Math.max(0,(me.res[c.costType]||0)-Math.max(0,c.cost+(c.costModifier||0)));
         simApply(c.effects,me,opp,xv);
+        me.lastPlayed=c;   // až PO simApply – Klon kopíruje PŘEDCHOZÍ zahranou kartu
         me.lastType=c.costType;
         me.preCostRes=null;
         if(c.costType==='ATTACK') me.attackCards=(me.attackCards||0)+1;
