@@ -496,12 +496,13 @@ class GameSession {
           cardType:   effect.cardType || null,
           picks:      effect.picks    || 4,
           options:    pd.options.map(c => ({
-            id:       c.id,
-            baseId:   c.baseId || c.id,
-            name:     c.name,
-            cost:     c.cost,
-            costType: c.costType,
-            rarity:   c.rarity
+            id:           c.id,
+            baseId:       c.baseId || c.id,
+            name:         c.name,
+            cost:         c.cost,
+            costType:     c.costType,
+            rarity:       c.rarity,
+            costModifier: c.costModifier || 0
           })),
           timeoutMs: remainingMs
         };
@@ -800,6 +801,16 @@ class GameSession {
       this._send(victimSide, { ...payload, causedByMe: true });
       this._logger.logCardLost(side, action, lc.name || lc.id);
     }
+    // Anuluj lastPlayedCard, pokud zahraná karta způsobila vlastní ztrátu karty
+    // (DrawCard/DrawBoth overdraw, RandomizeHands) – jinak by následné GAME_STATE
+    // přišlo s lastPlayedCard = právě zahraná karta a PŘEPSALO by CARD_LOST-driven
+    // zobrazení spálené karty v discard slotu (stejný trik jako u pastí níže).
+    // Přeskoč u Decision karet – tam je "played" reveal na pozadí overlay žádoucí
+    // a decision flow na lastPlayedCard nezávisí (má vlastní DECISION_REQUEST).
+    if (selfLostCards.length > 0 && !decisionFx) {
+      this.lastPlayedCard   = null;
+      this.lastPlayedAction = null;
+    }
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
     if (decisionFx) {
@@ -838,12 +849,13 @@ class GameSession {
         cardType:       decisionFx.cardType || null,
         picks:          decisionFx.picks   || 4,
         options:        options.map(c => ({
-          id:       c.id,
-          baseId:   c.baseId || c.id,
-          name:     c.name,
-          cost:     c.cost,
-          costType: c.costType,
-          rarity:   c.rarity
+          id:           c.id,
+          baseId:       c.baseId || c.id,
+          name:         c.name,
+          cost:         c.cost,
+          costType:     c.costType,
+          rarity:       c.rarity,
+          costModifier: c.costModifier || 0
         })),
         timeoutMs:      decisionTimeoutMs
       };
@@ -902,10 +914,12 @@ class GameSession {
           .sort(() => Math.random() - 0.5).slice(0, n);
       }
       case 'DecisionChooseType': {
-        // N náhodných karet daného typu z celého poolu (šablony) – bez placeholderů
+        // N náhodných karet daného typu z celého poolu (šablony) – bez placeholderů.
+        // costModifier zobrazí slevu (costReduction) přímo v nabídce, ne až po výběru.
         const pool = ALL_CARDS.filter(c => deriveCardType(c) === effect.cardType && !c.isPlaceholder);
+        const costReduction = effect.costReduction || 0;
         return [...pool].sort(() => Math.random() - 0.5).slice(0, n)
-          .map(c => ({ ...c, id: c.id, baseId: c.id }));
+          .map(c => ({ ...c, id: c.id, baseId: c.id, costModifier: costReduction > 0 ? -costReduction : 0 }));
       }
       case 'DecisionFromDiscard': {
         // N náhodných karet z vlastního odhazovacího balíčku – bez placeholderů
@@ -1152,9 +1166,23 @@ class GameSession {
       }
     }
 
-    // lastPlayedCard už byl zalogován při prvním state pushu → vymaž, aby se nezalogoval znovu
-    this.lastPlayedCard   = null;
-    this.lastPlayedAction = null;
+    // lastPlayedCard už byl zalogován při prvním state pushu (řádek s _sendStateBoth()
+    // před DECISION_REQUEST) → normálně ho vymažeme, aby se nezalogoval znovu.
+    //
+    // VÝJIMKA: DecisionBurnOpponent (Likvidace) a PeekAndStealHand (Zákeřný špeh)
+    // způsobí ZTRÁTU SOUPEŘOVY karty → CARD_LOST(causedByMe) výše dočasně přepíše
+    // klientův "poslední zahraná karta" slot na tu ZTRACENOU kartu (s prstencem
+    // BURNED/STOLEN). Bez opětovného odeslání by se toto přepsání NIKDY nevrátilo
+    // zpět na "zahráno Likvidace" – klient nemá jak si to sám opravit, protože další
+    // GAME_STATE dorazí s lastPlayedCard=null a klient necháva starou hodnotu beze
+    // změny. Necháme tedy lastPlayedCard živé i pro tento další state push; klient
+    // deduplikuje log podle unikátního card.id, takže re-odeslání STEJNÉ karty
+    // nezpůsobí duplicitní log záznam, ale correctly opraví zobrazený slot.
+    const causesOpponentLoss = effect.type === 'DecisionBurnOpponent' || effect.type === 'PeekAndStealHand';
+    if (!causesOpponentLoss) {
+      this.lastPlayedCard   = null;
+      this.lastPlayedAction = null;
+    }
 
     const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
     if (winner !== null) { this._endGame(winner); return; }
@@ -1343,10 +1371,17 @@ class GameSession {
           action: 'BURNED', isGenerated: true });
       }
     }
-    // Anuluj lastPlayedCard → GAME_STATE přijde s null → klient nenahradí bomb display
-    if (traps.length > 0) {
+    // Anuluj lastPlayedCard → GAME_STATE přijde s null → klient nenahradí ghost/bomb
+    // display stálou "PLAYED" kartou z minulého tahu. Platí i pro obyčejné přetažení
+    // (burned) bez pasti – dřív se resetovalo jen pro pasti, takže běžný overdraw na
+    // začátku kola zůstal zamaskovaný předchozí zahranou kartou (lastPlayedCard se
+    // nuluje jen v _handleEndTurn/_handleSkipTurn, ne při automatickém _advanceTurn()
+    // po nekombo kartě – tzn. mohl přežít až sem).
+    if (traps.length > 0 || burned.length > 0) {
       this.lastPlayedCard   = null;
       this.lastPlayedAction = null;
+    }
+    if (traps.length > 0) {
       const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
       if (winner !== null) { this._endGame(winner); return; }
     }

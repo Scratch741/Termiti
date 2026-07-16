@@ -409,6 +409,36 @@ function broadcastCount() {
   }
 }
 
+// ── Heartbeat (detekce "zombie" spojení) ───────────────────────────────────────
+// Bez tohoto: když klient zmizí bez čistého FIN/RST (výpadek WiFi, OS uspí appku,
+// zabitá appka na pozadí – běžné na mobilu), TCP socket zůstane na serveru
+// v limbu a ws.readyState hlásí OPEN klidně donekonečna (dokud OS TCP stack
+// timeout nevyprší – řádově hodiny). Hráč tak zůstane navždy "duch" v players/
+// queue/superQueue: nafoukne online count (nekonzistentně mezi zařízeními, podle
+// toho kdy který klient dostal broadcastCount()) a matchmaking dvou SKUTEČNĚ
+// online hráčů selže, pokud fronta obsahuje ducha (tryMatchFromQueue ho sice
+// při shiftu odfiltruje díky readyState kontrole, ale jen když se DO fronty
+// dostane – jinak prostě zůstává jako "online", i když spojení je mrtvé).
+//
+// Standardní ws-library řešení: pravidelný ping, pokud klient neodpoví pong
+// do dalšího intervalu → terminate() (spustí 'close' → standardní cleanup).
+function heartbeat() { this.isAlive = true; }
+
+const HEARTBEAT_INTERVAL_MS = 30_000;
+const heartbeatTimer = setInterval(() => {
+  for (const ws of wss.clients) {
+    if (ws.isAlive === false) {
+      const p = players.get(ws);
+      log('HEARTBEAT', `Zombie spojení ukončeno${p ? ` (${p.name})` : ''} – klient neodpověděl na ping`);
+      ws.terminate();
+      continue;
+    }
+    ws.isAlive = false;
+    ws.ping();
+  }
+}, HEARTBEAT_INTERVAL_MS);
+wss.on('close', () => clearInterval(heartbeatTimer));
+
 function removeFromQueue(ws) {
   const idx = queue.indexOf(ws);
   if (idx !== -1) queue.splice(idx, 1);
@@ -512,6 +542,9 @@ wss.on('connection', (ws, req) => {
 
   const ip = req.socket.remoteAddress;
   log('+', `Spojení z ${ip}`);
+
+  ws.isAlive = true;
+  ws.on('pong', heartbeat);
 
   // ── Rate limiting ─────────────────────────────────────────────────────────
   let msgCount   = 0;

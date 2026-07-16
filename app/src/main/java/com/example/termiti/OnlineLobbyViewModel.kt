@@ -197,6 +197,15 @@ class OnlineLobbyViewModel(
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
+    /**
+     * Unikátní id (instance) poslední KARTY ZAHRÁNÍ, kterou jsme už zalogovali do
+     * gameLog. Server u některých Decision typů (DecisionBurnOpponent, PeekAndStealHand)
+     * záměrně posílá stejné lastPlayedCard ve VÍCE GAME_STATE zprávách po sobě, aby
+     * opravil zobrazený "poslední zahraná karta" slot poté, co ho dočasně přepsal
+     * CARD_LOST se ztracenou soupeřovou kartou (jinak by slot zůstal navždy ukazovat
+     * tu ztracenou kartu). Bez dedup by se stejná karta zalogovala do gameLog 2×.
+     */
+    private var lastLoggedPlayedCardId: String? = null
 
     // ── Online Rozhodnutí ─────────────────────────────────────────────────────
     /** Čekající výběr karty (Rozhodnutí); null = žádné */
@@ -709,6 +718,7 @@ class OnlineLobbyViewModel(
                     opponentMulliganDone.value = false
                     lastPlayedCard.value       = null   // čistý stav pro novou hru
                     lastPlayedByMe.value       = false
+                    lastLoggedPlayedCardId     = null
                     cancelMulliganWatchdog()            // reset při reconnectu / novém mulliganu
                     phase.value = OnlinePhase.GAME_MULLIGAN
                     // Klient dostane timer o 2s kratší než serverový deadline → stihne
@@ -811,10 +821,17 @@ class OnlineLobbyViewModel(
                                 else        -> CardAction.PLAYED
                             }
                             lastPlayedAction.value = action
-                            val actorName = if (isMe) playerName.value
-                                            else (matchInfo.value?.opponentName ?: "Soupeř")
-                            val turn = gameState.value.turnNumber
-                            gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
+                            // Log dedup podle instance id: server u DecisionBurnOpponent/
+                            // PeekAndStealHand posílá STEJNOU kartu vícekrát (viz komentář
+                            // u lastLoggedPlayedCardId) – lastPlayedCard/Action se má aktualizovat
+                            // pokaždé (opraví zobrazený slot), ale do logu jde jen jednou.
+                            if (card.id != lastLoggedPlayedCardId) {
+                                lastLoggedPlayedCardId = card.id
+                                val actorName = if (isMe) playerName.value
+                                                else (matchInfo.value?.opponentName ?: "Soupeř")
+                                val turn = gameState.value.turnNumber
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
+                            }
                         }
                     }
                     // lpc == null → necháme předchozí kartu (mizí až po nahrazení novou)
@@ -1264,6 +1281,7 @@ class OnlineLobbyViewModel(
         lastPlayedCard.value       = null
         lastPlayedByMe.value       = false
         lastPlayedAction.value     = null
+        lastLoggedPlayedCardId     = null
         if (!preserveMatchInfo) matchInfo.value = null
     }
 
