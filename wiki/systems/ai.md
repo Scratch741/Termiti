@@ -16,7 +16,7 @@ AI iterates over the hand, scores each card, picks the highest.
 ## Scoring formula
 
 ```
-score = effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + noise
+score = effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + waitForSetupPenalty + noise
 ```
 
 ### effectScore — effect value
@@ -50,8 +50,31 @@ If the card costs CHAOS and AI has 0 Chaos resources:
 val chaosBlock = if (card.costType == ResourceType.CHAOS && ai.resources[CHAOS] == 0) 50 else 0
 ```
 
-### totoKoloPenalty — persistent effect penalty
-If AI plays `DrawPerCardPlayed` or `GainResourcePerCardPlayed` but has no Combo follow-up → effect expires unused.
+### totoKoloPenalty / totoBuff / waitForSetupPenalty — TOTO KOLO effects (Inspirace etc.)
+
+`DrawPerCardPlayed`, `GainResourcePerCardPlayed`, `GainCastlePerCardPlayed` all take an optional
+`cardType` filter (e.g. `"Magie"`). The trigger (`GameViewModel._playCard`) checks the type of the
+*next played card* against this filter — **not** `card.isCombo`. A card can trigger the buff without
+being combo itself (it just ends the turn right after triggering it).
+
+**Fixed 2026-07-16** — the AI used to gate all three of these on `comboCardsInHand` (count of any
+`isCombo` card in hand, ignoring type). This meant Inspirace (`DrawPerCardPlayed(cardType="Magie")`)
+was scored as valuable whenever the AI held *any* unrelated combo card, and scored as worthless when
+it held only non-combo Magie cards — both wrong, since the trigger only cares about `card.type`. The
+AI would play Inspirace with nothing to follow it, or waste it after already playing its Magie cards.
+
+Fix: `matchingTypeCount(cardType, excludeId)` counts hand cards whose `.type` matches the effect's
+filter (`null`/`""` = any type), independent of `isCombo`. Three places now use it:
+
+- **`totoKoloPenalty`** — if, after paying for this TOTO KOLO card, no hand card of the matching type
+  is still affordable, penalty `-25` (the buff would fire on nothing).
+- **`totoBuff`** — while a buff from a previously-played card is active this turn, a candidate card
+  gets a bonus (`+10` draw / `+6` resource / `+6` castle) **only if its own type matches** the active
+  buff's filter — not just for being combo.
+- **`waitForSetupPenalty`** *(new)* — the reverse case: if a not-yet-played TOTO KOLO card in hand
+  would match the type of the card currently being scored, and is affordable, apply `-8` to discourage
+  playing the payoff card *before* its setup card (which would waste the buff). This is what stops the
+  AI from playing its Magie cards first and Inspirace last with nothing left to trigger.
 
 ### clonePenalty — CloneNextPlayed penalty
 If AI plays Chaotická replikace but cannot afford any other card → penalty −30:
@@ -119,3 +142,4 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 - 2026-05-29: Documented lethal detection + combo-chain lethal lookahead (`comboSetupForLethal`); DecisionChooseResource AI picks least-held resource; smarter discard (keep strong cards)
 - 2026-07-12: Discard rules documented + fix: AI no longer discards with an empty deck (was a pure card loss — e.g. threw away Nedobytná pevnost instead of waiting); discard now only with a full hand + non-empty deck
 - 2026-07-12: Endgame last-chance fallback fix: AI no longer force-plays a zero-effect conditional card (e.g. Zásobník with unmet CastleBelow condition) as a "last chance" when losing with empty decks — `realizedAttackOrBuild()` now condition-aware, absolute fallback requires effectScore > 0
+- 2026-07-16: Fixed Inspirace/TOTO KOLO scoring: `totoKoloPenalty`/`totoBuff` used to key off `comboCardsInHand` (any `isCombo` card), but the actual trigger checks `card.type` against the effect's `cardType` filter — unrelated. Replaced with `matchingTypeCount()`; added new `waitForSetupPenalty` to stop the AI playing its Magie payoff cards before the Inspirace-style setup card

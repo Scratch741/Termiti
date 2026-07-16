@@ -66,17 +66,40 @@ fun aiChooseAction(
     val buffCastleActive   = ai.gainCastlePerCardPlayed.isNotEmpty()
     val anyBuffActive      = buffDrawActive || buffResourceActive || buffCastleActive
 
-    // Počet combo karet v ruce (bez aktuálně hodnocené karty)
-    val comboCardsInHand   = ai.hand.count { it.isCombo }
+    // Odpovídá typ [actualType] filtru [filterType]? null/"" = libovolný typ.
+    // Používá se pro DrawPerCardPlayed/GainResourcePerCardPlayed/GainCastlePerCardPlayed,
+    // jejichž trigger kontroluje card.type (např. "Magie"), NE card.isCombo –
+    // combo karta jiného typu buff vůbec nespustí (viz GameViewModel._playCard).
+    fun typeMatches(filterType: String?, actualType: String): Boolean =
+        filterType.isNullOrEmpty() || filterType == actualType
+
+    // Počet karet v ruce (bez karty [excludeId]) odpovídajících typovému filtru.
+    fun matchingTypeCount(cardType: String?, excludeId: String?): Int =
+        ai.hand.count { it.id != excludeId && typeMatches(cardType, it.type) }
+
+    // Typové filtry všech TOTO KOLO efektů dané karty (null = libovolný typ).
+    fun totoFiltersOf(c: Card): List<String?> {
+        val filters = mutableListOf<String?>()
+        c.effects.forEach { fx ->
+            when (fx) {
+                is CardEffect.DrawPerCardPlayed         -> filters.add(fx.cardType)
+                is CardEffect.GainResourcePerCardPlayed -> filters.add(fx.cardType)
+                is CardEffect.GainCastlePerCardPlayed   -> filters.add(fx.cardType)
+                else -> {}
+            }
+        }
+        return filters
+    }
 
     // Rekurzivní ohodnocení jednoho efektu v kontextu stavu AI
     // xVal = hodnota X pro X-kost efekty (aktuální zásoby daného zdroje)
+    // ownerId = id karty, které efekt patří (vyloučena z matchingTypeCount, aby se nepočítala sama)
     // Situační příznaky soupeře – pro chytřejší hodnocení efektů
     val oppWall       = opponent.wallHP
     val oppHasWall    = oppWall > 0
     val oppResources  = opponent.resources
 
-    fun scoreEffect(fx: CardEffect, xVal: Int = 0): Int = when (fx) {
+    fun scoreEffect(fx: CardEffect, xVal: Int = 0, ownerId: String? = null): Int = when (fx) {
         is CardEffect.AttackPlayer -> {
             // Pokud soupeř nemá hradby, útok jde přímo na hrad → vyšší hodnota
             val wallBonus = if (!oppHasWall) 4 else 0
@@ -193,19 +216,23 @@ fun aiChooseAction(
         is CardEffect.ModifyHandCost ->
             if (fx.targetOpponent) opponent.hand.size * fx.delta * 2
             else ai.hand.size * (-fx.delta) * 2
-        // Každá combo karta zahraná po této přinese líz – hodnotnější pokud AI má víc combo karet v ruce
+        // Každá další zahraná karta ODPOVÍDAJÍCÍHO TYPU přinese líz – hodnotnější
+        // s víc takovými kartami v ruce (trigger kontroluje card.type, ne isCombo!)
         is CardEffect.DrawPerCardPlayed -> {
-            // Buff stojí za to jen pokud máme combo karty k zahrání
-            if (comboCardsInHand == 0) -2 else 5 + comboCardsInHand * 4
+            val matches = matchingTypeCount(fx.cardType, ownerId)
+            // Buff stojí za to jen pokud máme odpovídající karty k zahrání
+            if (matches == 0) -2 else 5 + matches * 4
             // Poznámka: dostupnost zdrojů po zaplacení se kontroluje v score() níže
         }
-        // Každá zahraná karta přidá zdroje – hodnotnější při více combo kartách v ruce
+        // Každá další zahraná karta odpovídajícího typu přidá zdroje
         is CardEffect.GainResourcePerCardPlayed -> {
-            if (comboCardsInHand == 0) -2 else 4 + comboCardsInHand * (fx.amount + 1)
+            val matches = matchingTypeCount(fx.cardType, ownerId)
+            if (matches == 0) -2 else 4 + matches * (fx.amount + 1)
         }
-        // Každá zahraná stavební karta přidá HP hradu – hodnotnější při více combo v ruce
+        // Každá další zahraná karta odpovídajícího typu přidá HP hradu
         is CardEffect.GainCastlePerCardPlayed -> {
-            if (comboCardsInHand == 0) -2 else 4 + comboCardsInHand * (fx.amount + 1)
+            val matches = matchingTypeCount(fx.cardType, ownerId)
+            if (matches == 0) -2 else 4 + matches * (fx.amount + 1)
         }
         // Wildcard – průměrná hodnota náhodné karty
         is CardEffect.ShapeShift -> 5
@@ -345,27 +372,41 @@ fun aiChooseAction(
             if (!isActualDraw) return -500 + (-2..2).random()
         }
 
-        val effectScore = card.effects.sumOf { scoreEffect(it, xVal) }
+        val effectScore = card.effects.sumOf { scoreEffect(it, xVal, card.id) }
         val costForScore = if (card.isXCost) xVal else card.effectiveCost
         val chaosBlock  = if (card.costType == ResourceType.CHAOS && chaos < card.effectiveCost) 100 else 0
         val noise       = (-2..2).random()
 
-        // ── TOTO KOLO penalty: zahraj jen pokud zbydou resources na combo kartu ──
-        // Zkontroluj, zda AI po zaplacení této TOTO KOLO karty může zahrát
-        // alespoň jednu combo kartu z ruky. Pokud ne, buff by vyšel naprázdno.
-        val isTotoKolo = card.effects.any {
-            it is CardEffect.DrawPerCardPlayed ||
-            it is CardEffect.GainResourcePerCardPlayed ||
-            it is CardEffect.GainCastlePerCardPlayed
-        }
-        val totoKoloPenalty = if (isTotoKolo && comboCardsInHand > 0) {
+        // ── TOTO KOLO penalty: zahraj jen pokud zbydou resources na kartu ODPOVÍDAJÍCÍHO TYPU ──
+        // Trigger DrawPerCardPlayed/GainResourcePerCardPlayed/GainCastlePerCardPlayed kontroluje
+        // typ zahrané karty (card.type, např. "Magie"), NE card.isCombo – payoff karta nemusí
+        // být combo (klidně ukončí tah, buff se stejně spustí). Zkontroluj proto typový filtr.
+        val totoFilters = totoFiltersOf(card)
+        val isTotoKolo  = totoFilters.isNotEmpty()
+        val totoKoloPenalty = if (isTotoKolo) {
             val residualRes = ai.resources.toMutableMap()
             residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.effectiveCost).coerceAtLeast(0)
-            val canAffordCombo = ai.hand.any { combo ->
-                combo.isCombo && combo.id != card.id &&
-                (residualRes[combo.costType] ?: 0) >= combo.effectiveCost
+            val canAffordPayoff = totoFilters.any { filter ->
+                ai.hand.any { other ->
+                    other.id != card.id &&
+                    typeMatches(filter, other.type) &&
+                    (residualRes[other.costType] ?: 0) >= other.effectiveCost
+                }
             }
-            if (!canAffordCombo) -25 else 0  // po zaplacení není na žádnou combo → silná penalta
+            if (!canAffordPayoff) -25 else 0  // po zaplacení není na žádnou odpovídající kartu → silná penalta
+        } else 0
+
+        // ── „Počkej na setup" penalty: v ruce čeká nezahraná TOTO KOLO karta (Inspirace apod.),
+        // jejíž filtr odpovídá typu PRÁVĚ hodnocené karty, a AI si ji může dovolit zahrát dřív –
+        // zahráním této karty TEĎ by se buff promarnil (ještě není aktivní). Mírně odrazuj,
+        // ať AI radši nejdřív odehraje setup kartu.
+        val waitForSetupPenalty = if (!anyBuffActive) {
+            val pendingSetup = ai.hand.any { other ->
+                other.id != card.id &&
+                totoFiltersOf(other).any { filter -> typeMatches(filter, card.type) } &&
+                (ai.resources[other.costType] ?: 0) >= other.effectiveCost
+            }
+            if (pendingSetup) -8 else 0
         } else 0
 
         // ── CloneNextPlayed skóre: zahraj jen pokud po zaplacení zbydou zdroje na další kartu ──
@@ -382,20 +423,23 @@ fun aiChooseAction(
                 followUpCards.isEmpty() -> -30  // žádná follow-up karta → silná penalta
                 // Bonus za hodnotný cíl klonu (nejlepší follow-up karta)
                 else -> followUpCards.maxOfOrNull { other ->
-                    other.effects.sumOf { scoreEffect(it) }
+                    other.effects.sumOf { scoreEffect(it, 0, other.id) }
                 }?.let { bestFollowScore -> (bestFollowScore / 3).coerceIn(0, 12) } ?: 0
             }
         } else 0
 
-        // ── TOTO KOLO bonus pro combo karty ───────────────────────────────────
-        // Pokud je aktivní buff z TOTO KOLO karty, combo karty dostávají velký bonus.
-        val totoBuff = if (anyBuffActive && card.isCombo) {
-            val activeBuffCount = listOf(buffDrawActive, buffResourceActive, buffCastleActive).count { it }
-            val drawBonus = if (buffDrawActive) 4 else 0
-            activeBuffCount * 6 + drawBonus
-        } else 0
+        // ── TOTO KOLO bonus pro odpovídající typ ────────────────────────────────
+        // Pokud je aktivní buff z TOTO KOLO karty A tato karta odpovídá jeho typovému
+        // filtru, dostane bonus (bez ohledu na isCombo – i nekombo karta buff spustí).
+        val totoBuff = run {
+            var bonus = 0
+            if (buffDrawActive && typeMatches(ai.drawCardOnPlay, card.type)) bonus += 10
+            if (ai.gainResourcePerCardPlayed.any { typeMatches(it.cardType, card.type) }) bonus += 6
+            if (ai.gainCastlePerCardPlayed.any { typeMatches(it.cardType, card.type) }) bonus += 6
+            bonus
+        }
 
-        return effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + noise
+        return effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + waitForSetupPenalty + noise
     }
 
     // Chytrý výběr karty k zahození:
