@@ -287,8 +287,9 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
     val enter = remember { Animatable(0f) }   // slide-in stran + pop "VS"
     val exit  = remember { Animatable(0f) }   // závěrečný fade-out
     LaunchedEffect(Unit) {
+        // Celkem 5 s: 450 ms slide-in + 4150 ms hold + 400 ms fade-out
         enter.animateTo(1f, tween(450, easing = FastOutSlowInEasing))
-        delay(3300L)
+        delay(4150L)
         exit.animateTo(1f, tween(400))
         onDone()
     }
