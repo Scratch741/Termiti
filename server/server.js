@@ -452,8 +452,16 @@ function tryMatchFromQueue(q, mode) {
     const ratingA = pA.deviceId ? ratingSystem.getRating(pA.deviceId, mode) : null;
     const ratingB = pB.deviceId ? ratingSystem.getRating(pB.deviceId, mode) : null;
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, opponentActiveAbilities: pB.activeAbilities ?? [], side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode });
+    // Skóre v daném módu (výhry/prohry/remízy) – pro VS intro tabulku
+    const packStats = (deviceId) => {
+      const m = deviceId ? (ratingSystem.getStats(deviceId)?.modes?.[mode] ?? null) : null;
+      return m ? { wins: m.wins || 0, losses: m.losses || 0, draws: m.draws || 0, games: m.games || 0 } : null;
+    };
+    const statsA = packStats(pA.deviceId);
+    const statsB = packStats(pB.deviceId);
+
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, myStats: statsA, opponentStats: statsB, opponentActiveAbilities: pB.activeAbilities ?? [], side: 'A', mode });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, myStats: statsB, opponentStats: statsA, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode });
 
     const onGameEnd = (gid) => {
       // Vyčisti přes přímou WS referenci (standard)

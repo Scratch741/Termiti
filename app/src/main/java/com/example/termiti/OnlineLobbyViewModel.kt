@@ -64,7 +64,10 @@ data class OnlineMatchInfo(
     val opponentCastleSkin    : String       = "castle_player",
     val opponentLevel         : Int          = -1,
     val opponentAbilities     : List<String> = emptyList(),
-    val side                  : String   // "A" nebo "B"
+    val side                  : String,  // "A" nebo "B"
+    val mode                  : String   = "normal",
+    val myStats               : OnlineModeStats? = null,   // skóre v daném módu (VS intro)
+    val opponentStats         : OnlineModeStats? = null
 )
 
 // ─── Odložená surovina přijatá ze serveru ────────────────────────────────────
@@ -666,6 +669,16 @@ class OnlineLobbyViewModel(
                             }
                         }
                     }
+                    // Skóre v daném módu (výhry/prohry) – server je posílá pro VS intro
+                    fun parseModeStats(key: String): OnlineModeStats? =
+                        json.optJSONObject(key)?.let { s ->
+                            OnlineModeStats(
+                                wins   = s.optInt("wins",   0),
+                                losses = s.optInt("losses", 0),
+                                draws  = s.optInt("draws",  0),
+                                games  = s.optInt("games",  0)
+                            )
+                        }
                     matchInfo.value = OnlineMatchInfo(
                         gameId               = json.optString("gameId", ""),
                         opponentName         = json.optString("opponentName", "Soupeř"),
@@ -674,7 +687,10 @@ class OnlineLobbyViewModel(
                         opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
                         opponentLevel        = json.optInt("opponentLevel", -1),
                         opponentAbilities    = oppAbilities,
-                        side                 = json.optString("side", "A")
+                        side                 = json.optString("side", "A"),
+                        mode                 = json.optString("mode", "normal"),
+                        myStats              = parseModeStats("myStats"),
+                        opponentStats        = parseModeStats("opponentStats")
                     )
                     // Načti rating hráče i soupeře z MATCH_FOUND
                     if (!json.isNull("myRating"))       myRating.value       = json.optInt("myRating", 1000)

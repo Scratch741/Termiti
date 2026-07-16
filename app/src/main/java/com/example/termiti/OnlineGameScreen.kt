@@ -271,17 +271,24 @@ fun OnlineGameScreen(
 
 @Composable
 private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
-    val match      by vm.matchInfo
-    val myRating   by vm.myRating
-    val oppRating  by vm.opponentRating
-    val playerName by vm.playerName
-    val profile    = PlayerProfileManager.profile
+    val match        by vm.matchInfo
+    val myRating     by vm.myRating
+    val oppRating    by vm.opponentRating
+    val playerName   by vm.playerName
+    val allModeStats by vm.allModeStats
+    val profile      = PlayerProfileManager.profile
+
+    val mode      = match?.mode ?: "normal"
+    val modeLabel = if (mode == "super_random") "SUPER NÁHODNÝ" else "RYCHLÝ ZÁPAS"
+    // Skóre v daném módu: preferuj data z MATCH_FOUND, fallback na WELCOME statistiky
+    val myStats   = match?.myStats ?: allModeStats[mode]
+    val oppStats  = match?.opponentStats
 
     val enter = remember { Animatable(0f) }   // slide-in stran + pop "VS"
     val exit  = remember { Animatable(0f) }   // závěrečný fade-out
     LaunchedEffect(Unit) {
         enter.animateTo(1f, tween(450, easing = FastOutSlowInEasing))
-        delay(2800L)
+        delay(3300L)
         exit.animateTo(1f, tween(400))
         onDone()
     }
@@ -296,6 +303,18 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
             .pointerInput(Unit) { detectTapGestures {} },   // blokuje vstup pod introm
         contentAlignment = Alignment.Center
     ) {
+        // Mód – badge nahoře
+        Text(
+            modeLabel,
+            color         = OgGold,
+            fontSize      = 12.sp,
+            fontWeight    = FontWeight.Bold,
+            letterSpacing = 4.sp,
+            modifier      = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 22.dp)
+                .graphicsLayer { alpha = enter.value }
+        )
         Row(
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(30.dp)
@@ -307,6 +326,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
                     avatar    = profile?.avatar ?: "player_icon_1",
                     level     = profile?.level ?: -1,
                     rating    = myRating,
+                    stats     = myStats,
                     abilities = profile?.activeAbilities
                         ?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList(),
                     accent    = OgTealLight
@@ -332,6 +352,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
                     avatar    = match?.opponentAvatar ?: "enemy_icon_1",
                     level     = match?.opponentLevel ?: -1,
                     rating    = oppRating,
+                    stats     = oppStats,
                     abilities = match?.opponentAbilities
                         ?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList(),
                     accent    = OgCrimson
@@ -340,7 +361,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
         }
         // Kdo začíná – dole
         Text(
-            if (match?.side == "A") "Ty začínáš první" else "Soupeř začíná první",
+            if (match?.side == "A") "⚔ Ty začínáš první" else "⏳ Soupeř začíná první",
             color      = if (match?.side == "A") OgTealLight else OgTextMuted,
             fontSize   = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -358,30 +379,56 @@ private fun VsSideColumn(
     avatar: String,
     level: Int,
     rating: Int?,
+    stats: OnlineModeStats?,
     abilities: List<PassiveAbility>,
     accent: Color
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier            = Modifier.width(190.dp)
     ) {
-        AvatarDisplay(avatar = avatar, sizeDp = 68f)
+        AvatarDisplay(avatar = avatar, sizeDp = 64f)
         Text(name, color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        if (level >= 0) Text("Level $level", color = OgTextMuted, fontSize = 11.sp)
+        if (level >= 0) Text("Level $level", color = OgTextMuted, fontSize = 10.sp)
         if (rating != null) {
-            Text("🏆 $rating", color = OgGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("🏆 $rating", color = OgGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
+        // Skóre v daném módu: výhry / prohry (+ winrate od 5 her)
+        if (stats != null && stats.games > 0) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${stats.wins}V", color = Color(0xFF4CAF50), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("·", color = OgTextMuted, fontSize = 11.sp)
+                Text("${stats.losses}P", color = OgCrimson, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                if (stats.games >= 5) {
+                    Text("(${stats.winRate} %)", color = OgTextMuted, fontSize = 10.sp)
+                }
+            }
+        }
+        // Pasivní schopnosti s popisky
         if (abilities.isNotEmpty()) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                abilities.take(3).forEach { ab ->
+            Spacer(Modifier.height(2.dp))
+            abilities.take(3).forEach { ab ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment     = Alignment.Top
+                ) {
                     Image(
                         painterResource(ab.iconRes),
                         contentDescription = ab.title,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(15.dp)
                     )
+                    Column {
+                        Text(ab.title, color = OgTextPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            ab.description,
+                            color      = OgTextMuted,
+                            fontSize   = 8.sp,
+                            lineHeight = 9.5.sp,
+                            maxLines   = 2,
+                            overflow   = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
