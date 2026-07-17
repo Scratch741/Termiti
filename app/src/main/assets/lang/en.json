@@ -391,7 +391,7 @@
     },
     "049": {
       "name": "Poison",
-      "desc": "Attack for 3, opponent loses 3 Magic,\n+1 Chaos."
+      "desc": "Attack for 3, opponent loses 3 Magic,\n+2 Chaos."
     },
     "050": {
       "name": "Undermining",
@@ -399,11 +399,11 @@
     },
     "051": {
       "name": "Dragon",
-      "desc": "Attack for 14, castle -8 direct, +2 Chaos."
+      "desc": "Attack for 14, castle -8 direct, +4 Chaos."
     },
     "052": {
       "name": "Demon",
-      "desc": "Direct hit: castle -16. +2 Chaos."
+      "desc": "Direct hit: castle -16. +4 Chaos."
     },
     "053": {
       "name": "Flamethrower",
@@ -471,7 +471,7 @@
     },
     "069": {
       "name": "Double Agent",
-      "desc": "Steal 3 Magic and 3 Attack, +1 Chaos."
+      "desc": "Steal 3 Magic and 3 Attack, +2 Chaos."
     },
     "070": {
       "name": "Supply Crisis",
@@ -479,7 +479,7 @@
     },
     "071": {
       "name": "Spy",
-      "desc": "Steal 2 of each resource, +2 Chaos."
+      "desc": "Steal 1 of each of the opponent's resources, incl. Chaos."
     },
     "072": {
       "name": "Armory",
@@ -507,7 +507,7 @@
     },
     "078": {
       "name": "Vampire Dragon",
-      "desc": "Direct hit: castle -10, steal 4 Magic and 4 Attack, +2 Chaos."
+      "desc": "Direct hit: castle -10, steal 4 Magic and 4 Attack, +4 Chaos."
     },
     "079": {
       "name": "Siege",
@@ -631,7 +631,7 @@
     },
     "C09": {
       "name": "Chaos Crisis",
-      "desc": "Opponent loses 6 of each resource."
+      "desc": "Opponent loses 6 of each resource, incl. Chaos."
     },
     "C10": {
       "name": "Chaos Dragon",
@@ -643,7 +643,7 @@
     },
     "C12": {
       "name": "Anarchy",
-      "desc": "Steal 5 of each of the opponent's resources."
+      "desc": "Steal 5 of each of the opponent's resources, incl. Chaos."
     },
     "C13": {
       "name": "Sabotage",
@@ -735,7 +735,7 @@
     },
     "C28": {
       "name": "Chaos Trophy",
-      "desc": "Steal 2 Attack,\n+3 Chaos.\n[Combo]"
+      "desc": "Steal 2 Attack,\n+2 Chaos.\n[Combo]"
     },
     "C29": {
       "name": "Stormy Mind",
@@ -747,7 +747,7 @@
     },
     "C31": {
       "name": "Chaos Exchanger",
-      "desc": "+4 Chaos, opponent loses 2 of each resource."
+      "desc": "+4 Chaos, opponent loses 2 of each resource, incl. Chaos."
     },
     "C32": {
       "name": "Mutual Destruction",
@@ -807,7 +807,7 @@
     },
     "107": {
       "name": "Curse",
-      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone. +1 Chaos."
+      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone. +2 Chaos."
     },
     "108": {
       "name": "Disposal",

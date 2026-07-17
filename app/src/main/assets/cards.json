@@ -924,7 +924,7 @@
         "amount": 1
       }
     ],
-    "rarity": "LEGENDARY",
+    "rarity": "EPIC",
     "maxCopies": 1,
     "isXCost": false,
     "isPlaceholder": false,
@@ -1037,7 +1037,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 1
+        "amount": 2
       }
     ],
     "rarity": "RARE",
@@ -1087,7 +1087,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 2
+        "amount": 4
       }
     ],
     "rarity": "LEGENDARY",
@@ -1110,7 +1110,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 2
+        "amount": 4
       }
     ],
     "rarity": "LEGENDARY",
@@ -1501,7 +1501,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 1
+        "amount": 2
       }
     ],
     "rarity": "EPIC",
@@ -1544,22 +1544,22 @@
       {
         "type": "StealResource",
         "resType": "MAGIC",
-        "amount": 2
+        "amount": 1
       },
       {
         "type": "StealResource",
         "resType": "ATTACK",
-        "amount": 2
+        "amount": 1
       },
       {
         "type": "StealResource",
         "resType": "STONES",
-        "amount": 2
+        "amount": 1
       },
       {
-        "type": "AddResource",
+        "type": "StealResource",
         "resType": "CHAOS",
-        "amount": 2
+        "amount": 1
       }
     ],
     "rarity": "EPIC",
@@ -1744,7 +1744,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 2
+        "amount": 4
       }
     ],
     "rarity": "LEGENDARY",
@@ -2378,6 +2378,11 @@
         "type": "DrainResource",
         "resType": "STONES",
         "amount": 6
+      },
+      {
+        "type": "DrainResource",
+        "resType": "CHAOS",
+        "amount": 6
       }
     ],
     "rarity": "LEGENDARY",
@@ -2450,6 +2455,11 @@
       {
         "type": "StealResource",
         "resType": "STONES",
+        "amount": 5
+      },
+      {
+        "type": "StealResource",
+        "resType": "CHAOS",
         "amount": 5
       }
     ],
@@ -2921,7 +2931,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 3
+        "amount": 2
       }
     ],
     "rarity": "RARE",
@@ -2998,6 +3008,11 @@
       {
         "type": "DrainResource",
         "resType": "STONES",
+        "amount": 2
+      },
+      {
+        "type": "DrainResource",
+        "resType": "CHAOS",
         "amount": 2
       }
     ],
@@ -3325,7 +3340,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 1
+        "amount": 2
       }
     ],
     "rarity": "EPIC",

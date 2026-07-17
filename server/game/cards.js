@@ -124,17 +124,17 @@ const RAW = [
   // ── Doly – rozšíření ──────────────────────────────────────────────────────
   ['042','Velký kamenolom',5,'MAGIC', 0,[am('STONES',2)],      'EPIC'],
   ['043','Výcvikové centrum',5,'MAGIC',0,[am('ATTACK',2)],     'EPIC'],
-  ['044','Trifekta dolů',  6,'MAGIC', 0,[am('MAGIC',1), am('ATTACK',1), am('STONES',1)], 'LEGENDARY'],
+  ['044','Trifekta dolů',  6,'MAGIC', 0,[am('MAGIC',1), am('ATTACK',1), am('STONES',1)], 'EPIC'],
   ['045','Očarované doly', 7,'MAGIC', 0,[am('MAGIC',3)],       'LEGENDARY'],
 
   // ── Útok – Arcomage / Mravenci inspirace ──────────────────────────────────
   ['046','Goblin',         1,'ATTACK',0,[ap(2), sr('MAGIC',1), ar('CHAOS',1)], 'RARE'],
   ['047','Ogr',            3,'ATTACK',0,[ap(9)],               'COMMON'],
   ['048','Upír',           4,'ATTACK',1,[ap(6), ar('MAGIC',3)],        'RARE'],
-  ['049','Jed',            3,'ATTACK',0,[ap(3), dr('MAGIC',3), ar('CHAOS',1)], 'RARE'],
+  ['049','Jed',            3,'ATTACK',0,[ap(3), dr('MAGIC',3), ar('CHAOS',2)], 'RARE'],
   ['050','Podkopání hradeb',4,'ATTACK',0,[ap(8), dr('STONES',4)],       'RARE'],
-  ['051','Drak',          11,'ATTACK',0,[ap(14), ac(8), ar('CHAOS',2)],'LEGENDARY'],
-  ['052','Démon',         14,'ATTACK',0,[ac(16), ar('CHAOS',2)],       'LEGENDARY'],
+  ['051','Drak',          11,'ATTACK',0,[ap(14), ac(8), ar('CHAOS',4)],'LEGENDARY'],
+  ['052','Démon',         14,'ATTACK',0,[ac(16), ar('CHAOS',4)],       'LEGENDARY'],
   ['053','Plamenomet',     3,'ATTACK',0,[aw(10), ar('ATTACK',2)],      'RARE'],
   ['054','Válečný pochod', 5,'ATTACK',0,[ap(13), ar('ATTACK',2)],      'EPIC'],
   ['055','Poslední vzdor', 2,'ATTACK',0,[ap(3), ar('ATTACK',1), cd(wB(5), ac(8))], 'EPIC'],
@@ -155,9 +155,9 @@ const RAW = [
   ['066','Kamenná daň',    2,'MAGIC', 0,[sr('STONES',4)],      'COMMON'],
   ['067','Sabotér',        2,'MAGIC', 0,[dr('STONES',5)],      'RARE'],
   ['068','Demoralizace',   2,'MAGIC', 0,[dr('ATTACK',5)],      'RARE'],
-  ['069','Dvojitý agent',  4,'MAGIC', 0,[sr('MAGIC',3), sr('ATTACK',3), ar('CHAOS',1)], 'EPIC'],
+  ['069','Dvojitý agent',  4,'MAGIC', 0,[sr('MAGIC',3), sr('ATTACK',3), ar('CHAOS',2)], 'EPIC'],
   ['070','Krize zásobování',4,'MAGIC',0,[dr('STONES',5), dr('ATTACK',5)], 'EPIC'],
-  ['071','Špión',          3,'MAGIC', 0,[sr('MAGIC',2), sr('ATTACK',2), sr('STONES',2), ar('CHAOS',2)], 'EPIC'],
+  ['071','Špión',          3,'MAGIC', 0,[sr('MAGIC',1), sr('ATTACK',1), sr('STONES',1), sr('CHAOS',1)], 'EPIC'],
 
   // ── Zdroje + doly – Arcomage / Mravenci inspirace ──────────────────────────
   ['072','Zbrojnice',      4,'MAGIC', 0,[ar('ATTACK',2), am('ATTACK',1)], 'EPIC'],
@@ -166,7 +166,7 @@ const RAW = [
   ['075','Rozmach těžby',  6,'MAGIC', 0,[am('MAGIC',2), am('STONES',1)],  'EPIC'],
   ['076','Vojenská základna',6,'MAGIC',0,[am('ATTACK',2), am('STONES',1)],'EPIC'],
   ['077','Přeměna magie',  3,'MAGIC', 0,[cd(rA('MAGIC',8), ar('ATTACK',10))], 'RARE'],
-  ['078','Upíří drak',    10,'ATTACK',0,[ac(10), sr('MAGIC',4), sr('ATTACK',4), ar('CHAOS',2)], 'LEGENDARY'],
+  ['078','Upíří drak',    10,'ATTACK',0,[ac(10), sr('MAGIC',4), sr('ATTACK',4), ar('CHAOS',4)], 'LEGENDARY'],
   ['079','Obléhání',       5,'ATTACK',0,[ap(12), dr('MAGIC',3), ar('CHAOS',2)], 'EPIC'],
   ['080','Velkovýroba',   10,'MAGIC', 0,[am('MAGIC',2), am('ATTACK',2), am('STONES',2)], 'LEGENDARY'],
 
@@ -201,10 +201,10 @@ const RAW = [
   ['C06','Bouře chaosu',    6,'CHAOS',0,[ap(20)],              'LEGENDARY'],
   ['C07','Chaotický štít',  4,'CHAOS',0,[bw(16)],              'EPIC'],
   ['C08','Zázrak chaosu',   5,'CHAOS',0,[bc(15)],              'LEGENDARY'],
-  ['C09','Chaotická krize', 7,'CHAOS',0,[dr('MAGIC',6), dr('ATTACK',6), dr('STONES',6)], 'LEGENDARY'],
+  ['C09','Chaotická krize', 7,'CHAOS',0,[dr('MAGIC',6), dr('ATTACK',6), dr('STONES',6), dr('CHAOS',6)], 'LEGENDARY'],
   ['C10','Chaotický drak', 11,'CHAOS',0,[ap(15), ac(12)],      'LEGENDARY'],
   ['C11','Chaos a řád',     4,'CHAOS',0,[bc(8), bw(8)],        'EPIC'],
-  ['C12','Anarchie',        9,'CHAOS',0,[sr('MAGIC',5), sr('ATTACK',5), sr('STONES',5)], 'LEGENDARY'],
+  ['C12','Anarchie',        9,'CHAOS',0,[sr('MAGIC',5), sr('ATTACK',5), sr('STONES',5), sr('CHAOS',5)], 'LEGENDARY'],
 
   // ── Chaos – ničení dolů ───────────────────────────────────────────────────
   ['C13','Sabotáž',         5,'CHAOS',0,[dm('MAGIC',1),  bm('MAGIC',2)],                           'EPIC'],
@@ -237,10 +237,10 @@ const RAW = [
   ['C25','Nestabilní vír',  1,'MAGIC', 1,[ar('CHAOS',2), ar('MAGIC',2)], 'RARE'],
   ['C26','Krvavá oběť',     1,'MAGIC', 1,[ar('CHAOS',3)],       'RARE'],
   ['C27','Odraz magie',     2,'MAGIC', 0,[cd(rA('MAGIC',5), ar('CHAOS',7))], 'EPIC'],
-  ['C28','Chaotická trofej',1,'MAGIC', 1,[sr('ATTACK',2), ar('CHAOS',3)], 'RARE'],
+  ['C28','Chaotická trofej',1,'MAGIC', 1,[sr('ATTACK',2), ar('CHAOS',2)], 'RARE'],
   ['C29','Bouřlivá mysl',   5,'MAGIC', 0,[ar('CHAOS',3), am('CHAOS',1)], 'EPIC'],
   ['C30','Chrám chaosu',    7,'MAGIC', 0,[am('CHAOS',2)],       'LEGENDARY'],
-  ['C31','Chaotický výměník',4,'MAGIC', 0,[ar('CHAOS',4), dr('MAGIC',2), dr('ATTACK',2), dr('STONES',2)], 'EPIC'],
+  ['C31','Chaotický výměník',4,'MAGIC', 0,[ar('CHAOS',4), dr('MAGIC',2), dr('ATTACK',2), dr('STONES',2), dr('CHAOS',2)], 'EPIC'],
   ['C32','Vzájemná zkáza',  3,'CHAOS', 0,[ac(10), bc(-10)],     'EPIC'],
 
   // ── Lízni karet ───────────────────────────────────────────────────────────
@@ -259,7 +259,7 @@ const RAW = [
   ['099','Temný přenos',   8,'MAGIC', 0,[sca(10)],             'EPIC'],
   ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
   ['104','Válečný trénink',4,'ATTACK',0,[ap(5), am('ATTACK',1)],'EPIC'],
-  ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3), ar('CHAOS',1)], 'EPIC'],
+  ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3), ar('CHAOS',2)], 'EPIC'],
   ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
   ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
   ['110','Vzpomínka',      2,'MAGIC', 0,[dfd()],               'EPIC'],

@@ -391,7 +391,7 @@
     },
     "049": {
       "name": "Jed",
-      "desc": "Zaútočí za 3, soupeř ztratí 3 magie, chaos +1."
+      "desc": "Zaútočí za 3, soupeř ztratí 3 magie, chaos +2."
     },
     "050": {
       "name": "Podkopání hradeb",
@@ -399,11 +399,11 @@
     },
     "051": {
       "name": "Drak",
-      "desc": "Zaútočí za 14, hrad −8 přímo, chaos +2."
+      "desc": "Zaútočí za 14, hrad −8 přímo, chaos +4."
     },
     "052": {
       "name": "Démon",
-      "desc": "Přímý zásah: hrad −16. Chaos +2."
+      "desc": "Přímý zásah: hrad −16. Chaos +4."
     },
     "053": {
       "name": "Plamenomet",
@@ -471,7 +471,7 @@
     },
     "069": {
       "name": "Dvojitý agent",
-      "desc": "Ukradni 3 magie a 3 útoku, chaos +1."
+      "desc": "Ukradni 3 magie a 3 útoku, chaos +2."
     },
     "070": {
       "name": "Krize zásobování",
@@ -479,7 +479,7 @@
     },
     "071": {
       "name": "Špión",
-      "desc": "Ukradni 2 od každého zdroje, chaos +2."
+      "desc": "Ukradni 1 od každého zdroje soupeře, vč. chaosu."
     },
     "072": {
       "name": "Zbrojnice",
@@ -507,7 +507,7 @@
     },
     "078": {
       "name": "Upíří drak",
-      "desc": "Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku, chaos +2."
+      "desc": "Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku, chaos +4."
     },
     "079": {
       "name": "Obléhání",
@@ -631,7 +631,7 @@
     },
     "C09": {
       "name": "Chaotická krize",
-      "desc": "Soupeř ztratí 6 od každého zdroje."
+      "desc": "Soupeř ztratí 6 od každého zdroje, vč. chaosu."
     },
     "C10": {
       "name": "Chaotický drak",
@@ -643,7 +643,7 @@
     },
     "C12": {
       "name": "Anarchie",
-      "desc": "Ukradni 5 od každého zdroje soupeře."
+      "desc": "Ukradni 5 od každého zdroje soupeře, vč. chaosu."
     },
     "C13": {
       "name": "Sabotáž",
@@ -735,7 +735,7 @@
     },
     "C28": {
       "name": "Chaotická trofej",
-      "desc": "Ukradni 2 útoku, chaos +3.\n[Combo]"
+      "desc": "Ukradni 2 útoku, chaos +2.\n[Combo]"
     },
     "C29": {
       "name": "Bouřlivá mysl",
@@ -747,7 +747,7 @@
     },
     "C31": {
       "name": "Chaotický výměník",
-      "desc": "Chaos +4, soupeř ztratí 2 každého zdroje."
+      "desc": "Chaos +4, soupeř ztratí 2 od každého zdroje, vč. chaosu."
     },
     "C32": {
       "name": "Vzájemná zkáza",
@@ -807,7 +807,7 @@
     },
     "107": {
       "name": "Prokletí",
-      "desc": "Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů. Chaos +1."
+      "desc": "Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů. Chaos +2."
     },
     "108": {
       "name": "Likvidace",
