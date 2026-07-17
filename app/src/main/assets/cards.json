@@ -1310,7 +1310,7 @@
   {
     "id": "061",
     "name": "Tunely",
-    "cost": 3,
+    "cost": 2,
     "costType": "STONES",
     "isCombo": false,
     "effects": [

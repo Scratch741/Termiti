@@ -145,7 +145,7 @@ const RAW = [
   ['058','Obranný val',    0,'STONES',1,[bw(4)],               'EPIC'],
   ['059','Pevnostní hrad', 4,'STONES',0,[bw(4), bc(6), dr('ATTACK',1)], 'RARE'],
   ['060','Chrám',         10,'STONES',0,[bc(18)],              'EPIC'],
-  ['061','Tunely',         3,'STONES',0,[bc(4), bm('ATTACK',1)], 'EPIC'],
+  ['061','Tunely',         2,'STONES',0,[bc(4), bm('ATTACK',1)], 'EPIC'],
   ['062','Obranná aliance',5,'STONES',0,[bw(6), bc(5), ar('STONES',2)], 'EPIC'],
   ['063','Věž strážní',    5,'STONES',0,[bw(11), am('STONES',1)],      'RARE'],
   ['064','Zásobník',       3,'STONES',0,[cd(cB(40), bc(10))],  'EPIC'],
