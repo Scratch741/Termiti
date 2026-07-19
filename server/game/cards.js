@@ -133,7 +133,7 @@ const RAW = [
   ['048','Upír',           4,'ATTACK',1,[ap(6), ar('MAGIC',3)],        'RARE'],
   ['049','Jed',            3,'ATTACK',0,[ap(3), dr('MAGIC',3), ar('CHAOS',2)], 'RARE'],
   ['050','Podkopání hradeb',4,'ATTACK',0,[ap(8), dr('STONES',4)],       'RARE'],
-  ['051','Drak',          11,'ATTACK',0,[ap(14), ac(8), ar('CHAOS',4)],'LEGENDARY'],
+  ['051','Drak',          11,'ATTACK',0,[ap(14), ac(8), ar('CHAOS',3)],'LEGENDARY'],
   ['052','Démon',         14,'ATTACK',0,[ac(16), ar('CHAOS',4)],       'LEGENDARY'],
   ['053','Plamenomet',     3,'ATTACK',0,[aw(10), ar('ATTACK',2)],      'RARE'],
   ['054','Válečný pochod', 5,'ATTACK',0,[ap(13), ar('ATTACK',2)],      'EPIC'],
@@ -157,7 +157,7 @@ const RAW = [
   ['068','Demoralizace',   2,'MAGIC', 0,[dr('ATTACK',5)],      'RARE'],
   ['069','Dvojitý agent',  4,'MAGIC', 0,[sr('MAGIC',3), sr('ATTACK',3), ar('CHAOS',2)], 'EPIC'],
   ['070','Krize zásobování',4,'MAGIC',0,[dr('STONES',5), dr('ATTACK',5)], 'EPIC'],
-  ['071','Špión',          3,'MAGIC', 0,[sr('MAGIC',1), sr('ATTACK',1), sr('STONES',1), sr('CHAOS',1)], 'EPIC'],
+  ['071','Špión',          3,'MAGIC', 0,[sr('MAGIC',1), sr('ATTACK',1), sr('STONES',1), sr('CHAOS',1), ar('CHAOS',2)], 'EPIC'],
 
   // ── Zdroje + doly – Arcomage / Mravenci inspirace ──────────────────────────
   ['072','Zbrojnice',      4,'MAGIC', 0,[ar('ATTACK',2), am('ATTACK',1)], 'EPIC'],
@@ -166,7 +166,7 @@ const RAW = [
   ['075','Rozmach těžby',  6,'MAGIC', 0,[am('MAGIC',2), am('STONES',1)],  'EPIC'],
   ['076','Vojenská základna',6,'MAGIC',0,[am('ATTACK',2), am('STONES',1)],'EPIC'],
   ['077','Přeměna magie',  3,'MAGIC', 0,[cd(rA('MAGIC',8), ar('ATTACK',10))], 'RARE'],
-  ['078','Upíří drak',    10,'ATTACK',0,[ac(10), sr('MAGIC',4), sr('ATTACK',4), ar('CHAOS',4)], 'LEGENDARY'],
+  ['078','Upíří drak',    10,'ATTACK',0,[ac(10), sr('MAGIC',4), sr('ATTACK',4), ar('CHAOS',3)], 'LEGENDARY'],
   ['079','Obléhání',       5,'ATTACK',0,[ap(12), dr('MAGIC',3), ar('CHAOS',2)], 'EPIC'],
   ['080','Velkovýroba',   10,'MAGIC', 0,[am('MAGIC',2), am('ATTACK',2), am('STONES',2)], 'LEGENDARY'],
 

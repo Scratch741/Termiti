@@ -925,7 +925,7 @@
       }
     ],
     "rarity": "EPIC",
-    "maxCopies": 1,
+    "maxCopies": 2,
     "isXCost": false,
     "isPlaceholder": false,
     "baseId": "044"
@@ -1087,7 +1087,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 4
+        "amount": 3
       }
     ],
     "rarity": "LEGENDARY",
@@ -1560,6 +1560,11 @@
         "type": "StealResource",
         "resType": "CHAOS",
         "amount": 1
+      },
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
       }
     ],
     "rarity": "EPIC",
@@ -1744,7 +1749,7 @@
       {
         "type": "AddResource",
         "resType": "CHAOS",
-        "amount": 4
+        "amount": 3
       }
     ],
     "rarity": "LEGENDARY",

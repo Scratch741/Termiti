@@ -399,7 +399,7 @@
     },
     "051": {
       "name": "Drak",
-      "desc": "Zaútočí za 14, hrad −8 přímo, chaos +4."
+      "desc": "Zaútočí za 14, hrad −8 přímo, chaos +3."
     },
     "052": {
       "name": "Démon",
@@ -479,7 +479,7 @@
     },
     "071": {
       "name": "Špión",
-      "desc": "Ukradni 1 od každého zdroje soupeře, vč. chaosu."
+      "desc": "Ukradni 1 od každého zdroje. +2 Chaos."
     },
     "072": {
       "name": "Zbrojnice",
@@ -507,7 +507,7 @@
     },
     "078": {
       "name": "Upíří drak",
-      "desc": "Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku, chaos +4."
+      "desc": "Přímý zásah: hrad −10, ukradni 4 magie a 4 útoku, chaos +3."
     },
     "079": {
       "name": "Obléhání",
@@ -631,7 +631,7 @@
     },
     "C09": {
       "name": "Chaotická krize",
-      "desc": "Soupeř ztratí 6 od každého zdroje, vč. chaosu."
+      "desc": "Soupeř ztratí 6 od každého zdroje."
     },
     "C10": {
       "name": "Chaotický drak",
@@ -643,7 +643,7 @@
     },
     "C12": {
       "name": "Anarchie",
-      "desc": "Ukradni 5 od každého zdroje soupeře, vč. chaosu."
+      "desc": "Ukradni 5 od každého zdroje."
     },
     "C13": {
       "name": "Sabotáž",
@@ -747,7 +747,7 @@
     },
     "C31": {
       "name": "Chaotický výměník",
-      "desc": "Chaos +4, soupeř ztratí 2 od každého zdroje, vč. chaosu."
+      "desc": "Chaos +4, soupeř ztratí 2 od každého zdroje."
     },
     "C32": {
       "name": "Vzájemná zkáza",

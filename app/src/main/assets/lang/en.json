@@ -399,7 +399,7 @@
     },
     "051": {
       "name": "Dragon",
-      "desc": "Attack for 14, castle -8 direct, +4 Chaos."
+      "desc": "Attack for 14, castle -8 direct, +3 Chaos."
     },
     "052": {
       "name": "Demon",
@@ -479,7 +479,7 @@
     },
     "071": {
       "name": "Spy",
-      "desc": "Steal 1 of each of the opponent's resources, incl. Chaos."
+      "desc": "Steal 1 of each resource. +2 Chaos."
     },
     "072": {
       "name": "Armory",
@@ -507,7 +507,7 @@
     },
     "078": {
       "name": "Vampire Dragon",
-      "desc": "Direct hit: castle -10, steal 4 Magic and 4 Attack, +4 Chaos."
+      "desc": "Direct hit: castle -10, steal 4 Magic and 4 Attack, +3 Chaos."
     },
     "079": {
       "name": "Siege",
@@ -631,7 +631,7 @@
     },
     "C09": {
       "name": "Chaos Crisis",
-      "desc": "Opponent loses 6 of each resource, incl. Chaos."
+      "desc": "Opponent loses 6 of each resource."
     },
     "C10": {
       "name": "Chaos Dragon",
@@ -643,7 +643,7 @@
     },
     "C12": {
       "name": "Anarchy",
-      "desc": "Steal 5 of each of the opponent's resources, incl. Chaos."
+      "desc": "Steal 5 of each resource."
     },
     "C13": {
       "name": "Sabotage",
@@ -747,7 +747,7 @@
     },
     "C31": {
       "name": "Chaos Exchanger",
-      "desc": "+4 Chaos, opponent loses 2 of each resource, incl. Chaos."
+      "desc": "+4 Chaos, opponent loses 2 of each resource."
     },
     "C32": {
       "name": "Mutual Destruction",
