@@ -1819,16 +1819,30 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 scheduleGameEnd(result, s3); return@launch
             }
 
-            gameState.value = s3
-
             // Auto-pass: hráč nemá žádné karty (ruka + balíček prázdné) a nemůže nic dělat.
             // Po krátké pauze (aby hráč viděl stav) automaticky přeskočíme jeho tah.
             if (player.hand.isEmpty() && player.deck.isEmpty()) {
+                // KRITICKÉ: nastav activePlayer = AI HNED, ne PLAYER jako v normální větvi níže.
+                // endPlayerTurn()/waitTurn()/discardCard()/playCard() všechny kontrolují jen
+                // "old.activePlayer == PLAYER" jako guard. Kdyby tu zůstal PLAYER (jak dřív),
+                // hráč má ~1,3s okno (delay níže), kde může kliknout Wait/Ukončit tah a odpálit
+                // DRUHOU souběžnou finishTurn korutinu vedle téhle čekající. Dvě souběžné AI
+                // kola pak hrají "přes sebe" (nezávislé kopie stavu) – vypadá to jako AI hraje
+                // opakovaně stejné karty a může to nezávisle 2× vyhodnotit konec hry různým
+                // výsledkem (proto "prohra" zvuk, který se pak přepíše na finální "výhru").
+                gameState.value = s3.copy(activePlayer = ActivePlayer.AI)
                 delay(700L)
                 log.appendLog(ls.logPlayerSkip)
+                // Dokud hráč nemá ruku ani balíček, tento blok se volá znovu na konci
+                // KAŽDÉHO dalšího AI kola (finishTurn → tenhle stejný auto-pass) – bez
+                // pauzy tu na sebe kola nabalují prakticky bez přestávky a AI hraní
+                // (často opakovaně stejné karty ze zbytku ruky) vypadá jako trhaný glitch.
+                delay(600L)
                 val autoPlayer = s3.playerState.deepCopy()
                 val autoAi     = s3.aiState.deepCopy()
                 finishTurn(s3, autoPlayer, autoAi, playerWaited = true)
+            } else {
+                gameState.value = s3
             }
         }
     }
