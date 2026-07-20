@@ -3998,5 +3998,30 @@
     "isXCost": true,
     "isPlaceholder": false,
     "baseId": "103"
+  },
+  {
+    "id": "132",
+    "name": "Zoufalý žold",
+    "cost": 2,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 5
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 3,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "132",
+    "discardEffects": [
+      {
+        "type": "AddResource",
+        "resType": "ATTACK",
+        "amount": 3
+      }
+    ]
   }
 ]

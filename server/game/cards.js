@@ -302,6 +302,11 @@ const RAW = [
   ['101','Náhlá smrt',      0,'ATTACK',0,[xac(2)],             'LEGENDARY', true],
   ['102','Kamenný příval',  0,'STONES',0,[xbc(2)],             'LEGENDARY', true],
   ['103','Magické rozdělení',0,'MAGIC',0,[xdr('ATTACK','STONES',2)], 'LEGENDARY', true],
+
+  // ── Mechanika "Zahození" (testovací karty) ──────────────────────────────────
+  // discardEffects (11. pozice) = alternativní efekt spuštěný MÍSTO effects,
+  // pokud hráč kartu zahodí místo zahraje. Viz wiki/mechanics/discard.md.
+  ['132','Zoufalý žold',    2,'ATTACK',0,[ap(5)],              'COMMON', false, undefined, false, [ar('ATTACK',3)]],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────

@@ -922,6 +922,10 @@
       "name": "Magické rozdělení",
       "desc": "Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene."
     },
+    "132": {
+      "name": "Zoufalý žold",
+      "desc": "Zaútočí za 5. | **Při zahození:** +3 útoku."
+    },
     "L01": {
       "name": "Temný mág",
       "desc": "Ukradne 3 magie, útoku a kamenů. Hrad -18. Ukradne 5 životů hradu."

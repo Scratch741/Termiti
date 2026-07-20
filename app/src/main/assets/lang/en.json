@@ -922,6 +922,10 @@
       "name": "Mana Split",
       "desc": "Consumes all Magic. Add X/2 Attack and X/2 Stone."
     },
+    "132": {
+      "name": "Desperate Wages",
+      "desc": "Attack for 5. | **On discard:** +3 Attack."
+    },
     "L01": {
       "name": "Darkmage",
       "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. -18 castle. Steals 5 castle HP."

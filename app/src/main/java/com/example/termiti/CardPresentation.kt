@@ -377,6 +377,13 @@ object CardPresentation {
         "103" to CardPres("Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene.",
             R.drawable.art_magicke_rozdeleni, "Magie",
             artScale = 0.80f, artBiasY = -0.40f),
+
+        // ── Mechanika "Zahození" (testovací karty) ─────────────────────────────
+        // isBasic = true JEN pro testování – karta je hned dostupná bez balíčků/kolekce.
+        // Až se mechanika ověří, zvaž přesun do standardní pack-ekonomiky (isBasic = false).
+        "132" to CardPres("Zaútočí za 5. | **Při zahození:** +3 útoku.",
+            R.drawable.art_placeholder_utok, "Útok",
+            artScale = 0.80f, isBasic = true),
         "108" to CardPres("**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu.",
             R.drawable.art_likvidace, "Chaos",
             artScale = 0.80f, artBiasY = -1.00f),
