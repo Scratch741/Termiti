@@ -442,6 +442,26 @@ fun aiChooseAction(
         return effectScore - costForScore - chaosBlock + totoKoloPenalty + clonePenalty + totoBuff + waitForSetupPenalty + noise
     }
 
+    // Skóre efektů mechaniky "Zahození" (viz [Card.discardEffects]) z pohledu
+    // toho, kdo kartu zahazuje. Kladné = zahození je výhodné, záporné = poškodí ho.
+    // Samostatná od scoreEffect() – ta u AddResource ignoruje znaménko (vždy
+    // kladné skóre), zatímco tady musí záporná hodnota (self-harm) vyjít záporně.
+    fun scoreDiscardEffect(fx: CardEffect): Int = when (fx) {
+        is CardEffect.AddResource   -> fx.amount * 3
+        is CardEffect.AddMine       -> fx.amount * 9
+        is CardEffect.BuildCastle   -> fx.amount * 2
+        is CardEffect.BuildWall     -> fx.amount
+        is CardEffect.AttackCastle  -> fx.amount / 2   // poškodí soupeře → dobré pro discardera
+        is CardEffect.AttackPlayer  -> fx.amount / 3
+        is CardEffect.AttackWall    -> fx.amount / 3
+        is CardEffect.DrawCard      -> fx.count * 4
+        is CardEffect.StealResource -> fx.amount * 4
+        is CardEffect.DrainResource -> fx.amount * 2
+        is CardEffect.BurnCard      -> 6
+        is CardEffect.StealCard     -> 6
+        else                        -> 0
+    }
+
     // Chytrý výběr karty k zahození:
     // Zahodí kartu s nejnižší "hodnotou v ruce":
     //   hodnotaVRuce = síla efektů × 2  −  táhla_do_dovolení × 3
@@ -456,7 +476,10 @@ fun aiChooseAction(
         val turnsToAfford = (shortfall.toFloat() / mineRate).coerceAtMost(4f)
         // Malý bonus za cenu: dražší karta = silnější late-game potenciál.
         val costBonus     = card.effectiveCost / 2
-        effectScore * 2 - turnsToAfford * 2 + costBonus
+        // Mechanika "Zahození": záporné discardScore (self-harm) kartu chrání
+        // (skóre roste → míň pravděpodobná k zahození); kladné ji zvýhodní.
+        val discardScore  = card.discardEffects.sumOf { scoreDiscardEffect(it) }
+        effectScore * 2 - turnsToAfford * 2 + costBonus - discardScore
     }
 
     // ── Combo-chain lethal (1 krok dopředu) ───────────────────────────────────

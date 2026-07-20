@@ -277,6 +277,7 @@ data class LanguagePack(
                 logNotEnough         = str("logNotEnough",         "Nedostatek %s pro: %s"),
                 logConditionNotMet   = str("logConditionNotMet",   "%s: podmínka nesplněna!"),
                 logReplication       = str("logReplication",       "Replikace: %d× %s zamícháno do balíčku"),
+                logDiscardEffectTriggered = str("logDiscardEffectTriggered", "Zahozením karty %s se spustil efekt!"),
                 logPlayerEndTurn     = str("logPlayerEndTurn",     "Hráč ukončil tah"),
                 logPlayerSkip        = str("logPlayerSkip",        "Hráč přeskočil kolo"),
                 logAiDiscardFromDeck = str("logAiDiscardFromDeck", "AI zahodila z tvého balíku: %s"),

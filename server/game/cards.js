@@ -305,12 +305,15 @@ const RAW = [
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────
-const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost, maxCopiesOverride, isPlaceholder]) => ({
+// discardEffects (11. pozice, volitelné): mechanika "Zahození" – efekty spuštěné
+// MÍSTO [effects], pokud hráč kartu zahodí (swipe-to-discard) místo zahrání.
+const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, isXCost, maxCopiesOverride, isPlaceholder, discardEffects]) => ({
   id, name, cost, costType, isCombo: !!isCombo, effects,
   rarity: rarity || 'COMMON',
   maxCopies: maxCopiesOverride !== undefined ? maxCopiesOverride : (MAX_COPIES[rarity || 'COMMON'] || 4),
   isXCost: !!isXCost,
   isPlaceholder: !!isPlaceholder,
+  discardEffects: discardEffects || [],
   baseId: id    // pro instance je baseId = id šablony
 }));
 

@@ -1010,6 +1010,10 @@ function generateCardDesc(card) {
   let desc = parts.join('. ');
   if (card.isCombo) desc += ' [Combo]';
   if (card.isXCost) desc += ' [X-kost]';
+  // Mechanika "Zahození": efekty MÍSTO normálních, spuštěné jen při zahození
+  if (card.discardEffects && card.discardEffects.length) {
+    desc += ' | **Při zahození:** ' + card.discardEffects.map(_descEffect).join('. ');
+  }
   return desc;
 }
 
@@ -1034,6 +1038,11 @@ function parseJsonCards(jsonText) {
     const entry = { ct: card.costType, fx: cvtFx };
     if (card.isCombo) entry.combo = true;
     if (card.isXCost) entry.xCost = true;
+    // Mechanika "Zahození": alternativní efekty spuštěné MÍSTO normálních,
+    // pokud je karta zahozena (ne zahrána) – viz Card.kt discardEffects.
+    if (card.discardEffects && card.discardEffects.length) {
+      entry.dfx = card.discardEffects.map(convertJsonEffect);
+    }
     newEffectsDb[card.id] = entry;
   }
   CARD_EFFECTS_DB = newEffectsDb;
@@ -1877,7 +1886,7 @@ function makeSimCard(id) {
   const db = CARD_EFFECTS_DB[id];
   if (!db) return null;
   const base = CARD_MAP[id] || {};
-  return { id, name: base.name || id, cost: base.cost || 0, costType: db.ct, effects: db.fx, isCombo: !!db.combo, isXCost: !!db.xCost };
+  return { id, name: base.name || id, cost: base.cost || 0, costType: db.ct, effects: db.fx, isCombo: !!db.combo, isXCost: !!db.xCost, discardEffects: db.dfx || [] };
 }
 
 // ─── Smart náhodný balíček ──────────────────────────────────────────────────
@@ -2729,11 +2738,34 @@ function simAI(ai, opp) {
     return es-cs-cb+((Math.random()*4-2)|0);
   }
 
+  // Skóre efektu mechaniky "Zahození" – na rozdíl od se() správně zohledňuje
+  // ZÁPORNÉ hodnoty (self-harm při zahození), viz AiEngine.scoreDiscardEffect.
+  function sde(fx){
+    switch(fx.t){
+      case 'AR': return (fx.a||0)*3;
+      case 'AM': return (fx.a||0)*9;
+      case 'BC': return (fx.a||0)*2;
+      case 'BW': return (fx.a||0);
+      case 'AC': return Math.floor((fx.a||0)/2);
+      case 'AP': return Math.floor((fx.a||0)/3);
+      case 'AW': return Math.floor((fx.a||0)/3);
+      case 'DC': return (fx.a||0)*4;
+      case 'SR': return (fx.a||0)*4;
+      case 'DR': return (fx.a||0)*2;
+      case 'BurnC': return 6;
+      case 'StealC': return 6;
+      default: return 0;
+    }
+  }
+
   function bd(){
     return ai.hand.reduce((best,c)=>{
       const sf=Math.max(0,c.cost-(ai.res[c.costType]||0));
       const mr=Math.max(1,ai.mines[c.costType]||0);
-      const s=sf*10/mr;
+      // Zahození se self-harm efektem (dfx < 0) snižuje s → karta se chrání.
+      // Prospěšný efekt (dfx > 0) s zvyšuje → AI ji zahodí raději.
+      const dfx=(c.discardEffects||[]).reduce((sum,fx)=>sum+sde(fx),0);
+      const s=sf*10/mr+dfx;
       return(!best||s>best.s)?{c,s}:best;
     },null)?.c||null;
   }
@@ -2882,6 +2914,12 @@ function simOneGame(deckA, deckB, trackCards) {
         const idx=me.hand.indexOf(act.card);
         if(idx!==-1)me.hand.splice(idx,1);
         me.discard.push(act.card);
+        // Mechanika "Zahození": efekty MÍSTO normálních – spustí se jen při zahození
+        if(act.card.discardEffects && act.card.discardEffects.length){
+          simApply(act.card.discardEffects, me, opp, 0);
+          const w2=simWin(pA,pB);
+          if(w2!==null)return{winner:w2,turns:t,playedA,playedB};
+        }
         go=false;
       } else { waited=true; go=false; }
     }

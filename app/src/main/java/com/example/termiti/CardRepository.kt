@@ -60,6 +60,7 @@ object CardRepository {
             costType    = ResourceType.valueOf(obj.getString("costType")),
             rarity      = Rarity.valueOf(obj.getString("rarity")),
             effects     = parseEffects(obj.getJSONArray("effects")),
+            discardEffects = parseEffects(obj.optJSONArray("discardEffects") ?: JSONArray()),
             isCombo     = obj.optBoolean("isCombo", false),
             isXCost     = obj.optBoolean("isXCost", false),
             artResId    = pres.artResId,

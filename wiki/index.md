@@ -26,6 +26,7 @@
 | [[mechanics/mines]] | Mine system, blocking, destruction, card list | 2026-05-21 |
 | [[mechanics/combo]] | Combo system, CloneNextPlayed, AI penalty | 2026-05-21 |
 | [[mechanics/win-conditions]] | Win conditions, 99-round limit | 2026-05-21 |
+| [[mechanics/discard]] | Discard mechanic — alternative effects fired on discard | 2026-07-20 |
 
 ## Systems
 

@@ -1244,6 +1244,43 @@ class GameSession {
       costPaid:   null,
       isXCost:    false
     }, compactState(this.state.A, this.state.B));
+
+    // ── Mechanika "Zahození": alternativní efekty MÍSTO normálního zahrání ────
+    // card.effects se NEAPLIKUJÍ – jde o kartu se speciálním chováním, které
+    // se spustí právě a jen když je zahozena (ne zahrána).
+    if (card.discardEffects && card.discardEffects.length > 0) {
+      const opp = this.state[side === 'A' ? 'B' : 'A'];
+      const lostCards     = [];
+      const selfLostCards = [];
+      applyEffects(
+        card.discardEffects, self, opp, CARD_MAP,
+        (c, action) => lostCards.push({ card: c, action }),
+        0,
+        (c, action) => selfLostCards.push({ card: c, action })
+      );
+      this._log(`Zahozením karty ${card.name} se spustil efekt!`);
+
+      const victimSide = side === 'A' ? 'B' : 'A';
+      for (const { card: lc, action } of lostCards) {
+        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false };
+        this._send(victimSide, payload);
+        this._send(side,       { ...payload, causedByMe: true });
+        this._logger.logCardLost(side, action, lc.name || lc.id);
+      }
+      for (const { card: lc, action } of selfLostCards) {
+        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, ownCard: true };
+        this._send(side,       payload);
+        this._send(victimSide, { ...payload, causedByMe: true });
+        this._logger.logCardLost(side, action, lc.name || lc.id);
+      }
+
+      const winner = checkWin(this.state.A, this.state.B, this.winTarget.A, this.winTarget.B);
+      if (winner !== null) {
+        this._endGame(winner);
+        return;
+      }
+    }
+
     // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje, stejně jako po combo
     // kartě, tj. se ZBÝVAJÍCÍM časem tahu (žádných +15 s navíc)
     this._resumeTurnTimer(this._remainingTurnMsAtAction ?? 0);

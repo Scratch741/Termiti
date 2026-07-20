@@ -1389,6 +1389,30 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         playerDiscardUsed.value = true
         addReplayFrame(old.copy(playerState = player, aiState = ai), card, isPlayer = true, action = CardAction.DISCARDED)
+
+        // ── Mechanika "Zahození": alternativní efekty MÍSTO normálního zahrání ────
+        // Karta má tyto efekty jen když je ZAHOZENA (ne zahrána) – card.effects se
+        // v tomto případě vůbec neaplikují.
+        if (card.discardEffects.isNotEmpty()) {
+            log.appendLog(ls.logDiscardEffectTriggered.format(card.displayName))
+            applyEffects(card.discardEffects, player, ai, allCards,
+                onOpponentCardLost = { lostCard, action ->
+                    cardHistory.appendHistory(lostCard, action, isMine = false)
+                    addCardLog("Hráč", lostCard, action, isMe = false)
+                    recordCard(lostCard, action, isPlayer = false)
+                    recordAiHandLoss(lostCard, action)
+                },
+                maxHandSize = old.playerMaxHand,
+                onSelfCardLost = { lostCard, action ->
+                    cardHistory.appendHistory(lostCard, action, isMine = true)
+                    addCardLog("Hráč", lostCard, action, isMe = true)
+                })
+            val s1 = old.copy(playerState = player, aiState = ai)
+            s1.checkWinCondition()?.let { result ->
+                scheduleGameEnd(result, s1); return
+            }
+        }
+
         // Zahození NEukončuje tah (1× za kolo) – hráč pokračuje; combo stav se nemění
         gameState.value = old.copy(playerState = player, aiState = ai)
     }
@@ -1714,6 +1738,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         addReplayFrame(old.copy(playerState = player, aiState = ai), toDiscard, isPlayer = false, action = CardAction.DISCARDED)
                         recordCard(toDiscard, CardAction.DISCARDED, isPlayer = false)
                         addCardLog("AI", toDiscard, CardAction.DISCARDED, isMe = false)
+
+                        // ── Mechanika "Zahození": efekty spuštěné zahozením AI kartou ──
+                        if (toDiscard.discardEffects.isNotEmpty()) {
+                            log.appendLog(ls.logDiscardEffectTriggered.format(toDiscard.displayName))
+                            applyEffects(toDiscard.discardEffects, ai, player, allCards,
+                                onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
+                                maxHandSize = old.aiMaxHand,
+                                onSelfCardLost = { lostCard, action ->
+                                    cardHistory.appendHistory(lostCard, action, isMine = false)
+                                    addCardLog("AI", lostCard, action, isMe = false)
+                                })
+                            val midDiscard = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
+                            midDiscard.checkWinCondition()?.let { result ->
+                                scheduleGameEnd(result, midDiscard); return@launch
+                            }
+                        }
                         aiContinues = false
                     }
                 }

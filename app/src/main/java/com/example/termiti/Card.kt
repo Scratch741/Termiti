@@ -99,7 +99,15 @@ data class Card(
      * Podmínkové efekty zkopírované ze zdrojové karty (Mirror/Clone).
      * Slouží POUZE k zobrazení ✓/✗ indikátoru — při hraní karty se NESPOUŠTĚJÍ.
      */
-    val overlayEffects: List<CardEffect> = emptyList()
+    val overlayEffects: List<CardEffect> = emptyList(),
+    /**
+     * Mechanika "Zahození" (Discard): efekty, které se spustí místo NORMÁLNÍCH
+     * efektů, pokud hráč/AI tuto kartu zahodí (swipe-to-discard), místo aby ji
+     * zahrál. [effects] se v tom případě NEAPLIKUJÍ — jde o alternativní cestu.
+     * Prázdný seznam = karta se chová jako dřív (zahození beze zvláštního efektu).
+     * UI zobrazí lebku jako varování, že zahození není "zadarmo".
+     */
+    val discardEffects: List<CardEffect> = emptyList()
 ) {
     /**
      * Skutečná cena, která se platí a zobrazuje.

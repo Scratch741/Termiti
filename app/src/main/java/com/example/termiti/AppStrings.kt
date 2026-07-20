@@ -238,6 +238,7 @@ data class AppStrings(
     val logNotEnough: String,
     val logConditionNotMet: String,
     val logReplication: String,
+    val logDiscardEffectTriggered: String,   // formát: %s (jméno karty)
     val logPlayerEndTurn: String,
     val logPlayerSkip: String,
     val logAiDiscardFromDeck: String,

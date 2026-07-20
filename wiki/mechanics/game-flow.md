@@ -27,6 +27,8 @@ Discarding a card does **not** end the turn, but is allowed only **once per turn
 - Online: `GameSession._handleDiscardCard` keeps the turn running (restarts the turn timer, like combo cards)
 - AI: unchanged — the AI only discards when it cannot play anything with a full hand, so ending its turn right after is equivalent
 
+Some cards carry a second, alternative effect list (`Card.discardEffects`) that fires only via this discard path instead of `effects` — see [[mechanics/discard]].
+
 ## `playCard()` — key function (Gameviewmodel.kt)
 
 ```

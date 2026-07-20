@@ -180,6 +180,7 @@
     "logNotEnough": "Not enough %s for: %s",
     "logConditionNotMet": "%s: condition not met!",
     "logReplication": "Replication: %d× %s shuffled into deck",
+    "logDiscardEffectTriggered": "Discarding %s triggered its effect!",
     "logPlayerEndTurn": "You ended your turn",
     "logPlayerSkip": "You skipped the turn",
     "logAiDiscardFromDeck": "AI discarded from your deck: %s",

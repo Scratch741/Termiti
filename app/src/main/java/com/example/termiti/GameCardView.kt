@@ -813,6 +813,20 @@ private fun CardViewTextured(
                     )
                 }
             }
+            // Mechanika "Zahození": lebka varuje, že zahození této karty spustí
+            // vlastní (obvykle nebezpečný) efekt místo normálního zahrání.
+            if (card.discardEffects.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .border(1.dp, DiscardRed.copy(alpha = 0.75f), RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(painterResource(R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                }
+            }
         }
 
         // Vrstva 6: typ karty v úplně dolním pruhu (127–139 dp od vrchu)
