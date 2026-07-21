@@ -2239,59 +2239,45 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var rogueRun     = androidx.compose.runtime.mutableStateOf<RogueRun?>(null);   private set
     var rogueVictory = androidx.compose.runtime.mutableStateOf(false);             private set
     // Draft stav
-    val rogueDraft       = androidx.compose.runtime.mutableStateListOf<Card>()
-    var rogueOffers      = androidx.compose.runtime.mutableStateOf<List<Card>>(emptyList()); private set
-    var rogueBudgetSpent = androidx.compose.runtime.mutableStateOf(0);                        private set
+    /** Sestavovaný roguelike balíček (deckbuilder). Compose ho pozoruje. */
+    val rogueDraft = androidx.compose.runtime.mutableStateListOf<Card>()
 
     fun startRoguelike() {
         rogueDraft.clear()
-        rogueBudgetSpent.value = 0
-        rogueRun.value         = null
-        rogueVictory.value     = false
-        roguePhase.value       = RoguePhase.DRAFT
-        generateRogueOffers()
+        rogueRun.value     = null
+        rogueVictory.value = false
+        roguePhase.value   = RoguePhase.DRAFT
     }
+
+    /** Aktuálně utracené body rozpočtu (součet cen rarit v balíčku). */
+    fun rogueBudgetSpent(): Int = rogueDraft.sumOf { RogueConfig.rarityBudgetCost(it.rarity) }
+
+    /** Kolik kopií dané karty je právě v roguelike balíčku. */
+    fun rogueCountOf(card: Card): Int = rogueDraft.count { it.baseId == card.baseId }
 
     /**
-     * Nabídne 3 karty z HRÁČOVY KOLEKCE (vlastněné/základní), které si může
-     * dovolit (rozpočet) a ještě nevyčerpal jejich vlastněný počet kopií.
+     * Přidá kartu do balíčku. Vrátí false (a nepřidá), pokud:
+     *  – balíček je plný (DECK_SIZE),
+     *  – nemáš víc kopií (vlastněný počet),
+     *  – by přesáhla rozpočet.
      */
-    private fun generateRogueOffers() {
-        val remaining    = RogueConfig.BUDGET - rogueBudgetSpent.value
-        val pickedCounts = rogueDraft.groupingBy { it.baseId }.eachCount()
-
-        fun available(c: Card): Boolean {
-            val owned = CardCollectionManager.usableCopies(c)   // 0 = nevlastní; základní = max kopií
-            return owned > 0 && (pickedCounts[c.baseId] ?: 0) < owned
-        }
-
-        val pool = allCards.filter {
-            !it.isPlaceholder && !it.isGenerated && available(it) &&
-            RogueConfig.rarityBudgetCost(it.rarity) <= remaining
-        }
-        var offers = pool.shuffled().take(3)
-
-        // Pojistka pro řídkou kolekci: doplň dostupné základní commons (cena 0).
-        if (offers.size < 3) {
-            val basics = allCards.filter {
-                !it.isPlaceholder && it.isBasic && available(it) && it !in offers
-            }.shuffled()
-            offers = (offers + basics).take(3)
-        }
-
-        // Nouzová pojistka: opravdu není co nabídnout → spusť run s tím, co je.
-        if (offers.isEmpty()) {
-            if (rogueDraft.isNotEmpty()) beginRogueRun()
-            return
-        }
-        rogueOffers.value = offers
+    fun rogueAddCard(card: Card): Boolean {
+        if (rogueDraft.size >= RogueConfig.DECK_SIZE) return false
+        val owned = CardCollectionManager.usableCopies(card)
+        if (rogueCountOf(card) >= owned) return false
+        if (rogueBudgetSpent() + RogueConfig.rarityBudgetCost(card.rarity) > RogueConfig.BUDGET) return false
+        rogueDraft.add(card)
+        return true
     }
 
-    fun pickRogueCard(card: Card) {
-        rogueDraft.add(card)
-        rogueBudgetSpent.value += RogueConfig.rarityBudgetCost(card.rarity)
-        if (rogueDraft.size >= RogueConfig.DECK_SIZE) beginRogueRun()
-        else generateRogueOffers()
+    fun rogueRemoveCard(card: Card) {
+        val idx = rogueDraft.indexOfLast { it.baseId == card.baseId }
+        if (idx >= 0) rogueDraft.removeAt(idx)
+    }
+
+    /** Spustí run z hotového balíčku (musí mít přesně DECK_SIZE karet). */
+    fun startRogueRun() {
+        if (rogueDraft.size == RogueConfig.DECK_SIZE) beginRogueRun()
     }
 
     private fun beginRogueRun() {

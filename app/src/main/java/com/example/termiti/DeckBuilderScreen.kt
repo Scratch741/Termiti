@@ -1177,7 +1177,7 @@ private fun FullCardPreview(card: Card) {
 
 // ─── Catalog Card Item ────────────────────────────────────────────────────────
 @Composable
-private fun CatalogCardItem(
+internal fun CatalogCardItem(
     card: Card,
     count: Int,
     usable: Int,
