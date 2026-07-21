@@ -28,7 +28,7 @@ import com.example.termiti.ui.theme.TermitiTheme
 
 private enum class Screen {
     PROFILE_SETUP,
-    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, ONLINE_MP, SETTINGS, PROFILE,
+    MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, ROGUELIKE, ONLINE_MP, SETTINGS, PROFILE,
     CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT,
     SHOP, LEADERBOARD
 }
@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
                     var gameSuperRandom by remember { mutableStateOf(false) }
                     val arenaPhase by viewModel.arenaPhase
                     val arenaWins  by viewModel.arenaWins
+                    val roguePhase by viewModel.roguePhase
 
                     // ── Migrace limitů rarities ───────────────────────────────
                     val migrationResult by viewModel.rarityMigrationResult
@@ -132,6 +133,7 @@ class MainActivity : ComponentActivity() {
                             onOwnDeck     = { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
+                            onRoguelike   = { viewModel.startRoguelike(); screen = Screen.ROGUELIKE },
                             onCampaign    = { screen = Screen.CAMPAIGN_MAP },
                             onBack        = { screen = Screen.MENU },
                             onShop        = { screen = Screen.SHOP },
@@ -247,6 +249,31 @@ class MainActivity : ComponentActivity() {
                             ArenaPhase.ENDED -> ArenaEndScreen(
                                 wins   = arenaWins,
                                 onBack = { viewModel.exitArena(); screen = Screen.PLAY_MENU }
+                            )
+                            null -> { screen = Screen.PLAY_MENU }
+                        }
+
+                        // ── Roguelike ─────────────────────────────────────────
+                        Screen.ROGUELIKE -> when (roguePhase) {
+                            RoguePhase.DRAFT -> RogueDraftScreen(
+                                viewModel = viewModel,
+                                onBack    = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU }
+                            )
+                            RoguePhase.BATTLE -> GameScreen(
+                                viewModel    = viewModel,
+                                onBackToMenu = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU },
+                                onGameEnd    = { win ->
+                                    PlayerProfileManager.recordGameResult(win = win, online = false)
+                                    viewModel.onRogueBattleEnd(win)
+                                }
+                            )
+                            RoguePhase.REWARD -> RogueRewardScreen(
+                                viewModel = viewModel,
+                                onExit    = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU }
+                            )
+                            RoguePhase.ENDED -> RogueEndScreen(
+                                viewModel = viewModel,
+                                onBack    = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU }
                             )
                             null -> { screen = Screen.PLAY_MENU }
                         }

@@ -2234,6 +2234,255 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         arenaWins.value  = 0
     }
 
+    // ── Roguelike ───────────────────────────────────────────────────────────────
+    var roguePhase   = androidx.compose.runtime.mutableStateOf<RoguePhase?>(null); private set
+    var rogueRun     = androidx.compose.runtime.mutableStateOf<RogueRun?>(null);   private set
+    var rogueVictory = androidx.compose.runtime.mutableStateOf(false);             private set
+    // Draft stav
+    val rogueDraft       = androidx.compose.runtime.mutableStateListOf<Card>()
+    var rogueOffers      = androidx.compose.runtime.mutableStateOf<List<Card>>(emptyList()); private set
+    var rogueBudgetSpent = androidx.compose.runtime.mutableStateOf(0);                        private set
+
+    fun startRoguelike() {
+        rogueDraft.clear()
+        rogueBudgetSpent.value = 0
+        rogueRun.value         = null
+        rogueVictory.value     = false
+        roguePhase.value       = RoguePhase.DRAFT
+        generateRogueOffers()
+    }
+
+    /** Nabídne 3 karty, které si hráč MŮŽE dovolit (rozpočet + max kopií). */
+    private fun generateRogueOffers() {
+        val remaining     = RogueConfig.BUDGET - rogueBudgetSpent.value
+        val pickedCounts  = rogueDraft.groupingBy { it.baseId }.eachCount()
+        val pool = allCards.filter {
+            !it.isPlaceholder && !it.isGenerated &&
+            RogueConfig.rarityBudgetCost(it.rarity) <= remaining &&
+            (pickedCounts[it.baseId] ?: 0) < it.rarity.maxCopies
+        }
+        // commons stojí 0 bodů a je jich dost → pool nikdy neklesne pod 3
+        rogueOffers.value = pool.shuffled().take(3)
+    }
+
+    fun pickRogueCard(card: Card) {
+        rogueDraft.add(card)
+        rogueBudgetSpent.value += RogueConfig.rarityBudgetCost(card.rarity)
+        if (rogueDraft.size >= RogueConfig.DECK_SIZE) beginRogueRun()
+        else generateRogueOffers()
+    }
+
+    private fun beginRogueRun() {
+        rogueRun.value = RogueRun(
+            deck        = rogueDraft.toList(),
+            maxCastle   = RogueConfig.START_MAX_CASTLE,
+            hp          = RogueConfig.START_MAX_CASTLE,
+            wall        = RogueConfig.START_WALL,
+            battleIndex = 0
+        )
+        startRogueBattle()
+    }
+
+    /** Připraví a spustí bitvu proti generovanému soupeři pro aktuální battleIndex. */
+    private fun startRogueBattle() {
+        val run   = rogueRun.value ?: return
+        val enemy = generateRogueEnemy(run.battleIndex)
+        rogueRun.value   = run.copy(enemy = enemy)
+        roguePhase.value = RoguePhase.BATTLE
+
+        // Reset bojového stavu (zrcadlí startCampaignBattle)
+        gameEndJob?.cancel()
+        gameEndPending.value    = false
+        activeCampaignOpponent.value = enemy       // → top bar ukáže jméno/avatar, potlačí obecný dialog
+        aiPassiveAbilities.value = emptyList()
+        gameOver.value          = null
+        log.value               = emptyList()
+        lastCard.value          = null
+        lastCardAction.value    = CardAction.PLAYED
+        lastCardIsPlayer.value  = true
+        revealedAiCard.value    = null
+        revealedAiCardIdx.value = null
+        cardHistory.value       = emptyList()
+        lostToOpponent.value    = emptyList()
+        aiHandLossLog.value     = emptyList()
+        isPlayerComboTurn.value = false
+        playerDiscardUsed.value = false
+        awaitingDecisionOverlay = false
+        quickDrawUsed           = false
+        cancelDecisionTimer()
+        pendingDecision.value   = null
+        decisionPlayer          = null
+        decisionAi              = null
+        decisionOld             = null
+        decisionEffect          = null
+        decisionIsCombo         = false
+        decisionPendingDraws    = 0
+        replayFrames.clear()
+        gameState.value         = createRogueState(run, enemy)
+        isMulligan.value        = true
+        mulliganSelected.value  = emptySet()
+    }
+
+    /** GameState pro roguelike bitvu: hráč startuje s aktuálním run HP + run balíčkem. */
+    private fun createRogueState(run: RogueRun, enemy: CampaignOpponent): GameState {
+        val playerCards = run.deck.withUniqueIds().shuffled()
+        val playerState = PlayerState(
+            castleHP = run.hp.coerceAtLeast(1),
+            wallHP   = run.wall.coerceAtLeast(0)     // hradby = run stat (reset každou bitvu)
+        ).also {
+            for ((t, d) in run.bonusMines) it.mines[t] = ((it.mines[t] ?: 1) + d).coerceAtLeast(0)
+            it.deck.addAll(playerCards)
+            it.drawCards(4)
+        }
+
+        val aiCards = enemy.deckCardCounts.flatMap { (id, count) ->
+            val c = allCards.find { it.id == id } ?: return@flatMap emptyList()
+            List(count) { c }
+        }.withUniqueIds().shuffled()
+
+        val aiState = PlayerState(castleHP = enemy.aiCastle, wallHP = enemy.aiWall).also {
+            for ((t, b) in enemy.aiExtraMines) it.mines[t] = (it.mines[t] ?: 1) + b
+            if (enemy.aiStartMagic  > 0) it.resources[ResourceType.MAGIC]  = enemy.aiStartMagic
+            if (enemy.aiStartAttack > 0) it.resources[ResourceType.ATTACK] = enemy.aiStartAttack
+            if (enemy.aiStartStones > 0) it.resources[ResourceType.STONES] = enemy.aiStartStones
+            it.deck.addAll(aiCards)
+            it.drawCards(enemy.aiStartHandSize.coerceIn(1, 10))
+        }
+
+        return GameState(
+            playerState     = playerState,
+            aiState         = aiState,
+            activePlayer    = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI,
+            playerWinTarget = enemy.winTarget,
+            aiWinTarget     = enemy.aiWinTarget,
+            playerMaxHand   = 7
+        )
+    }
+
+    /** Volá se z onGameEnd v roguelike bitvě. */
+    fun onRogueBattleEnd(win: Boolean) {
+        val run = rogueRun.value ?: return
+        if (!win) {
+            rogueVictory.value = false
+            roguePhase.value   = RoguePhase.ENDED
+            return
+        }
+        // Zastropování HP: přenes koncový hrad, cap na maxCastle, + malý heal
+        val endCastle = gameState.value.playerState.castleHP
+        val newHp     = (minOf(run.maxCastle, endCastle) + RogueConfig.AUTO_HEAL_ON_WIN)
+                            .coerceIn(1, run.maxCastle)
+        val nextIndex = run.battleIndex + 1
+
+        if (nextIndex >= RogueConfig.TOTAL_BATTLES) {
+            rogueRun.value     = run.copy(hp = newHp, battleIndex = nextIndex, enemy = null)
+            rogueVictory.value = true
+            roguePhase.value   = RoguePhase.ENDED
+            return
+        }
+        rogueRun.value   = run.copy(hp = newHp, battleIndex = nextIndex, enemy = null,
+                                    rewardCards = generateRogueRewardCards(run))
+        roguePhase.value = RoguePhase.REWARD
+    }
+
+    /** 3 kartové nabídky do odměny (respektuje max kopií vůči aktuálnímu run balíčku). */
+    private fun generateRogueRewardCards(run: RogueRun): List<Card> {
+        val counts = run.deck.groupingBy { it.baseId }.eachCount()
+        val pool = allCards.filter {
+            !it.isPlaceholder && !it.isGenerated &&
+            (counts[it.baseId] ?: 0) < it.rarity.maxCopies
+        }
+        return pool.shuffled().take(3)
+    }
+
+    fun applyRogueReward(reward: RogueReward) {
+        val run = rogueRun.value ?: return
+        val updated = when (reward) {
+            is RogueReward.AddCard -> run.copy(deck = run.deck + reward.card)
+            RogueReward.MaxCastle  -> run.copy(
+                maxCastle = run.maxCastle + RogueConfig.REWARD_MAX_CASTLE,
+                hp        = run.hp + RogueConfig.REWARD_MAX_CASTLE
+            )
+            RogueReward.Wall       -> run.copy(wall = run.wall + RogueConfig.REWARD_WALL)
+            RogueReward.Repair     -> run.copy(
+                hp = (run.hp + RogueConfig.REWARD_REPAIR).coerceAtMost(run.maxCastle)
+            )
+            RogueReward.MineMagic  -> run.copy(
+                bonusMines = run.bonusMines +
+                    (ResourceType.MAGIC to ((run.bonusMines[ResourceType.MAGIC] ?: 0) + 1))
+            )
+        }
+        rogueRun.value = updated.copy(rewardCards = emptyList())
+        startRogueBattle()
+    }
+
+    /** Přeskočit odměnu = žádná karta/stat, jen malý heal (deck-thinning strategie). */
+    fun skipRogueReward() {
+        val run = rogueRun.value ?: return
+        rogueRun.value = run.copy(
+            rewardCards = emptyList(),
+            hp = (run.hp + RogueConfig.AUTO_HEAL_ON_WIN).coerceAtMost(run.maxCastle)
+        )
+        startRogueBattle()
+    }
+
+    fun exitRoguelike() {
+        roguePhase.value = null
+        rogueRun.value   = null
+        rogueDraft.clear()
+        activeCampaignOpponent.value = null
+    }
+
+    // ── Generování soupeře podle hloubky ────────────────────────────────────────
+    private fun generateRogueEnemy(battleIndex: Int): CampaignOpponent {
+        val act      = battleIndex / RogueConfig.BATTLES_PER_ACT
+        val posInAct = battleIndex % RogueConfig.BATTLES_PER_ACT
+        val isBoss   = posInAct == RogueConfig.BATTLES_PER_ACT - 1
+
+        val castle      = 30 + act * 3 + (if (isBoss) 4 else 0)
+        val wall        = 15 + act * 2 + (if (isBoss) 2 else 0)
+        val startMagic  = act + (if (isBoss) 1 else 0)
+        val startAttack = act + (if (isBoss) 1 else 0)
+        val handSize    = 4 + (if (act >= 2) 1 else 0)
+        val extraMines  = buildMap {
+            if (act >= 1) put(ResourceType.ATTACK, 1)
+            if (act >= 2) put(ResourceType.MAGIC,  1)
+            if (isBoss)   put(ResourceType.STONES, 1)
+        }
+
+        val names = RogueConfig.ENEMY_NAMES.getOrElse(act) { RogueConfig.ENEMY_NAMES.last() }
+        val baseName = names.random()
+
+        return CampaignOpponent(
+            id             = "rogue_$battleIndex",
+            name           = if (isBoss) "$baseName ★" else baseName,   // ★
+            title          = RogueConfig.ACT_TITLES.getOrElse(act) { "" },
+            avatar         = randomEnemyAvatar(),
+            description    = "",
+            isBoss         = isBoss,
+            aiCastle       = castle,
+            aiWall         = wall,
+            aiStartMagic   = startMagic,
+            aiStartAttack  = startAttack,
+            aiExtraMines   = extraMines,
+            deckCardCounts = generateRogueEnemyDeck(),
+            winTarget      = 70,
+            aiWinTarget    = 70,
+            aiStartHandSize = handSize,
+            playerStartHandSize = 4
+        )
+    }
+
+    /**
+     * Nepřátelský balíček = ověřený balancedDeck (dobrá ekonomika + křivka)
+     * s odebranými zabanovanými kartami. Obtížnost v1 škáluje přes STATY,
+     * ne přes kvalitu balíčku (to je na doladění).
+     */
+    private fun generateRogueEnemyDeck(): Map<String, Int> =
+        balancedDeck()
+            .filter { it.id !in RogueConfig.ENEMY_DECK_BANLIST }
+            .groupingBy { it.baseId }
+            .eachCount()
+
     private fun playSoundForCard(card: Card) = playSoundForCardGlobal(card)
 }
 

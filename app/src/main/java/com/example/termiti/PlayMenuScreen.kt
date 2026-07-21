@@ -25,6 +25,7 @@ fun PlayMenuScreen(
     onOwnDeck:     () -> Unit,
     onSuperRandom: () -> Unit,
     onArena:       () -> Unit,
+    onRoguelike:   () -> Unit = {},
     onCampaign:    () -> Unit,
     onBack:        () -> Unit,
     onShop:        () -> Unit = {},
@@ -124,6 +125,7 @@ fun PlayMenuScreen(
                     MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         onClick = onOwnDeck)
                     MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), onClick = onSuperRandom)
                     MenuButton(s.arena,       imageRes = R.drawable.button_2, accent = Gold,              onClick = onArena)
+                    MenuButton("Roguelike",   imageRes = R.drawable.button_4, accent = Color(0xFFB388FF), onClick = onRoguelike)
                     MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), onClick = onCampaign)
                 }
             }
