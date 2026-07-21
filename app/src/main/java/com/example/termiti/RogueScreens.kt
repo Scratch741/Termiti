@@ -318,6 +318,7 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     ) {
         Column(
             Modifier
+                .widthIn(max = 360.dp)          // bez ohraničení fillMaxWidth dítě roztáhne kartu na celou obrazovku
                 .clip(RoundedCornerShape(16.dp))
                 .background(Brush.verticalGradient(listOf(Color(0xFF1A1420), BgPanel)))
                 .border(1.dp, (if (victory) Gold else Crimson).copy(alpha = 0.45f), RoundedCornerShape(16.dp))
