@@ -136,7 +136,7 @@ private fun CardEffect.toCategory(): String? = when (this) {
 }
 
 /** Vrátí všechny kategorie efektů karty (karta může mít víc najednou, např. Obrana + Doly). */
-private fun Card.categories(): Set<String> =
+internal fun Card.categories(): Set<String> =
     effects.mapNotNull { it.toCategory() }.toSet().ifEmpty { setOf("Ostatní") }
 
 private fun Card.category() = categories().first()
@@ -541,7 +541,7 @@ private fun FilterBar(
 
 // ─── Cost Chip ────────────────────────────────────────────────────────────────
 @Composable
-private fun CostChip(label: String, active: Boolean, width: androidx.compose.ui.unit.Dp = 31.dp, onClick: () -> Unit) {
+internal fun CostChip(label: String, active: Boolean, width: androidx.compose.ui.unit.Dp = 31.dp, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(width = width, height = width)
@@ -651,12 +651,12 @@ private fun ManaCostFilterBar(
 }
 
 @Composable
-private fun FilterChip(label: String, active: Boolean, color: Color, onClick: () -> Unit) {
+internal fun FilterChip(label: String, active: Boolean, color: Color, onClick: () -> Unit) {
     FilterChip(iconRes = null, label = label, active = active, color = color, onClick = onClick)
 }
 
 @Composable
-private fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolean, color: Color, onClick: () -> Unit) {
+internal fun FilterChip(@DrawableRes iconRes: Int?, label: String, active: Boolean, color: Color, onClick: () -> Unit) {
     if (iconRes != null) {
         PlainButtonWithIcon(
             text         = label,
