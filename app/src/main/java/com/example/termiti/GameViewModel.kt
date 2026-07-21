@@ -936,6 +936,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
             gameState.value = old.copy(playerState = player)
             log.appendLog(ls.logPlayerFirst)
+            snapshotRogueBattle("PLAYER_IDLE")   // první hráčův tah po mulliganu
             return
         }
 
@@ -1435,6 +1436,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             aiState      = ai,
             activePlayer = ActivePlayer.AI
         )
+        // Roguelike snapshot: čistý bod „po hráčově akci, začátek tahu AI".
+        // Quit teď → obnova rozehraje tah AI znovu (nedá se zopakovat hráčův tah).
+        snapshotRogueBattle("AI_TURN", aiDrawsAtStart, playerDrawsAtEnd, playerWaited)
 
         viewModelScope.launch(crashHandler) {
             delay((500L..1000L).random())
@@ -1883,6 +1887,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 finishTurn(s3, autoPlayer, autoAi, playerWaited = true)
             } else {
                 gameState.value = s3
+                // Roguelike snapshot: čistý bod „začátek hráčova tahu" (idle).
+                snapshotRogueBattle("PLAYER_IDLE")
             }
         }
     }
@@ -2297,6 +2303,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val enemy = generateRogueEnemy(run.battleIndex)
         rogueRun.value   = run.copy(enemy = enemy)
         roguePhase.value = RoguePhase.BATTLE
+        RogueSaveManager.clearBattle()   // čerstvá bitva → zahoď starý snapshot (nový vznikne po mulliganu)
 
         // Reset bojového stavu (zrcadlí startCampaignBattle)
         gameEndJob?.cancel()
@@ -2341,7 +2348,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     fun hasRogueSave(): Boolean = RogueSaveManager.hasSave()
 
-    /** Obnoví uložený run. REWARD → obrazovka odměny; jinak restartuje aktuální bitvu. */
+    /** Obnoví uložený run. REWARD → odměna; BATTLE → přesně obnovená bitva (fér). */
     fun resumeRoguelike() {
         val saved = RogueSaveManager.load(allCards) ?: return
         rogueDraft.clear()
@@ -2351,9 +2358,83 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (saved.run.rewardCards.isEmpty())
                 rogueRun.value = saved.run.copy(rewardCards = generateRogueRewardCards(saved.run))
             roguePhase.value = RoguePhase.REWARD
-        } else {
-            startRogueBattle()   // mid-battle stav se neukládá → čerstvá bitva stejného stupně
+            return
         }
+        // BATTLE: obnov přesný stav bitvy; jen když snapshot chybí, restartuj bitvu
+        val battle = RogueSaveManager.loadBattle(allCards)
+        if (battle != null) restoreRogueBattle(battle) else startRogueBattle()
+    }
+
+    /** Uloží přesný stav rozehrané bitvy (jen ve fázi BATTLE, v čistém bodě tahu). */
+    private fun snapshotRogueBattle(turnPhase: String, aiDraws: Boolean = true, playerDraws: Boolean = true, playerWaited: Boolean = false) {
+        if (roguePhase.value != RoguePhase.BATTLE) return
+        val enemy = rogueRun.value?.enemy
+        val save = RogueBattleSave(
+            turnPhase        = turnPhase,
+            game             = gameState.value,
+            quickDrawUsed    = quickDrawUsed,
+            aiDrawsAtStart   = aiDraws,
+            playerDrawsAtEnd = playerDraws,
+            playerWaited     = playerWaited,
+            lastCard         = lastCard.value,
+            lastCardAction   = lastCardAction.value,
+            lastCardByPlayer = lastCardIsPlayer.value,
+            enemyName        = enemy?.name   ?: "Soupeř",
+            enemyAvatar      = enemy?.avatar ?: "enemy_icon_1"
+        )
+        RogueSaveManager.saveBattle(RogueBattleCodec.toJson(save))
+    }
+
+    /** Obnoví bitvu ze snapshotu – přesně tam, kde skončila. */
+    private fun restoreRogueBattle(b: RogueBattleSave) {
+        val run = rogueRun.value ?: return
+        // Soupeř jen pro top bar + budoucí snapshoty (jméno/avatar ze snapshotu;
+        // skutečný herní stav – deck/staty – je v b.game.aiState, ne tady).
+        // Uloženo i zpět do rogueRun.enemy, aby další snapshotRogueBattle() v tomto
+        // běhu (další hráčova akce) mělo odkud vzít jméno/avatar – jinak by po
+        // obnově druhý snapshot spadl na fallback "Soupeř".
+        val enemyShell = generateRogueEnemy(run.battleIndex).copy(name = b.enemyName, avatar = b.enemyAvatar)
+        activeCampaignOpponent.value = enemyShell
+        rogueRun.value   = run.copy(enemy = enemyShell)
+        aiPassiveAbilities.value = emptyList()
+        roguePhase.value = RoguePhase.BATTLE
+
+        gameEndJob?.cancel(); gameEndPending.value = false
+        gameOver.value          = null
+        isMulligan.value        = false
+        mulliganSelected.value  = emptySet()
+        isPlayerComboTurn.value = false
+        playerDiscardUsed.value = false
+        awaitingDecisionOverlay = false
+        quickDrawUsed           = b.quickDrawUsed
+        cancelDecisionTimer()
+        pendingDecision.value   = null
+        decisionPlayer = null; decisionAi = null; decisionOld = null
+        decisionEffect = null; decisionIsCombo = false; decisionPendingDraws = 0
+        revealedAiCard.value = null; revealedAiCardIdx.value = null
+        cardHistory.value = emptyList(); lostToOpponent.value = emptyList(); aiHandLossLog.value = emptyList()
+        log.value = emptyList(); replayFrames.clear()
+        lastCard.value         = b.lastCard
+        lastCardAction.value   = b.lastCardAction
+        lastCardIsPlayer.value = b.lastCardByPlayer
+
+        // Obnov morph vzhled (Zrcadlo/Klon/Shapeshifter) z lastPlayedCard
+        val g = b.game
+        transformShapeShifters(g.playerState.hand, allCards)
+        updateMirrorCards(g.playerState.hand, g.aiState.lastPlayedCard, allCards)
+        updateCloneCards(g.playerState.hand, g.playerState.lastPlayedCard, allCards)
+        transformShapeShifters(g.aiState.hand, allCards)
+        updateMirrorCards(g.aiState.hand, g.playerState.lastPlayedCard, allCards)
+        updateCloneCards(g.aiState.hand, g.aiState.lastPlayedCard, allCards)
+
+        gameState.value = g
+
+        if (b.turnPhase == "AI_TURN") {
+            // Pokračuj tahem AI (znovu se rozehraje – reziduum "AI re-roll")
+            finishTurn(g, g.playerState.deepCopy(), g.aiState.deepCopy(),
+                       aiDrawsAtStart = b.aiDrawsAtStart, playerDrawsAtEnd = b.playerDrawsAtEnd, playerWaited = b.playerWaited)
+        }
+        // PLAYER_IDLE → čeká na vstup hráče
     }
 
     /** GameState pro roguelike bitvu: hráč startuje s aktuálním run HP + run balíčkem. */
@@ -2395,6 +2476,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Volá se z onGameEnd v roguelike bitvě. */
     fun onRogueBattleEnd(win: Boolean) {
         val run = rogueRun.value ?: return
+        RogueSaveManager.clearBattle()   // bitva skončila → snapshot už neplatí
         if (!win) {
             rogueVictory.value = false
             roguePhase.value   = RoguePhase.ENDED

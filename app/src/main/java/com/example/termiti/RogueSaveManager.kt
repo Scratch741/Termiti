@@ -19,8 +19,9 @@ import org.json.JSONObject
  * bitva restartuje od začátku proti soupeři stejného stupně. Run zůstává.
  */
 object RogueSaveManager {
-    private const val PREFS = "termiti_rogue"
-    private const val KEY   = "run_json"
+    private const val PREFS      = "termiti_rogue"
+    private const val KEY        = "run_json"
+    private const val KEY_BATTLE = "battle_json"
     private var prefs: SharedPreferences? = null
 
     fun init(context: Context) {
@@ -29,7 +30,15 @@ object RogueSaveManager {
 
     fun hasSave(): Boolean = prefs?.contains(KEY) == true
 
-    fun clear() { prefs?.edit()?.remove(KEY)?.apply() }
+    fun clear() { prefs?.edit()?.remove(KEY)?.remove(KEY_BATTLE)?.apply() }
+
+    // ── Rozehraná bitva (přesný stav pro férovou obnovu) ──────────────────────
+    fun saveBattle(json: String) { prefs?.edit()?.putString(KEY_BATTLE, json)?.apply() }
+    fun clearBattle() { prefs?.edit()?.remove(KEY_BATTLE)?.apply() }
+    fun loadBattle(all: List<Card>): RogueBattleSave? {
+        val raw = prefs?.getString(KEY_BATTLE, null) ?: return null
+        return RogueBattleCodec.fromJson(raw, all)
+    }
 
     fun save(run: RogueRun, phase: RoguePhase) {
         val p = prefs ?: return
