@@ -2360,9 +2360,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             roguePhase.value = RoguePhase.REWARD
             return
         }
-        // BATTLE: obnov přesný stav bitvy; jen když snapshot chybí, restartuj bitvu
+        // BATTLE: obnov přesný stav bitvy; jen když snapshot chybí NEBO je nekonzistentní
+        // (např. hrad ≤ 0 – bitva už měla skončit dřív, než byl snapshot pořízen),
+        // restartuj aktuální bitvu znovu (postup runu zůstává zachován).
         val battle = RogueSaveManager.loadBattle(allCards)
-        if (battle != null) restoreRogueBattle(battle) else startRogueBattle()
+        val valid  = battle != null &&
+            battle.game.playerState.castleHP > 0 &&
+            battle.game.aiState.castleHP > 0
+        if (valid) restoreRogueBattle(battle!!) else {
+            RogueSaveManager.clearBattle()
+            startRogueBattle()
+        }
     }
 
     /** Uloží přesný stav rozehrané bitvy (jen ve fázi BATTLE, v čistém bodě tahu). */
