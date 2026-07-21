@@ -2252,17 +2252,39 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         generateRogueOffers()
     }
 
-    /** Nabídne 3 karty, které si hráč MŮŽE dovolit (rozpočet + max kopií). */
+    /**
+     * Nabídne 3 karty z HRÁČOVY KOLEKCE (vlastněné/základní), které si může
+     * dovolit (rozpočet) a ještě nevyčerpal jejich vlastněný počet kopií.
+     */
     private fun generateRogueOffers() {
-        val remaining     = RogueConfig.BUDGET - rogueBudgetSpent.value
-        val pickedCounts  = rogueDraft.groupingBy { it.baseId }.eachCount()
-        val pool = allCards.filter {
-            !it.isPlaceholder && !it.isGenerated &&
-            RogueConfig.rarityBudgetCost(it.rarity) <= remaining &&
-            (pickedCounts[it.baseId] ?: 0) < it.rarity.maxCopies
+        val remaining    = RogueConfig.BUDGET - rogueBudgetSpent.value
+        val pickedCounts = rogueDraft.groupingBy { it.baseId }.eachCount()
+
+        fun available(c: Card): Boolean {
+            val owned = CardCollectionManager.usableCopies(c)   // 0 = nevlastní; základní = max kopií
+            return owned > 0 && (pickedCounts[c.baseId] ?: 0) < owned
         }
-        // commons stojí 0 bodů a je jich dost → pool nikdy neklesne pod 3
-        rogueOffers.value = pool.shuffled().take(3)
+
+        val pool = allCards.filter {
+            !it.isPlaceholder && !it.isGenerated && available(it) &&
+            RogueConfig.rarityBudgetCost(it.rarity) <= remaining
+        }
+        var offers = pool.shuffled().take(3)
+
+        // Pojistka pro řídkou kolekci: doplň dostupné základní commons (cena 0).
+        if (offers.size < 3) {
+            val basics = allCards.filter {
+                !it.isPlaceholder && it.isBasic && available(it) && it !in offers
+            }.shuffled()
+            offers = (offers + basics).take(3)
+        }
+
+        // Nouzová pojistka: opravdu není co nabídnout → spusť run s tím, co je.
+        if (offers.isEmpty()) {
+            if (rogueDraft.isNotEmpty()) beginRogueRun()
+            return
+        }
+        rogueOffers.value = offers
     }
 
     fun pickRogueCard(card: Card) {
@@ -2384,12 +2406,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         roguePhase.value = RoguePhase.REWARD
     }
 
-    /** 3 kartové nabídky do odměny (respektuje max kopií vůči aktuálnímu run balíčku). */
+    /** 3 kartové nabídky do odměny – z HRÁČOVY KOLEKCE, respektuje vlastněné kopie. */
     private fun generateRogueRewardCards(run: RogueRun): List<Card> {
         val counts = run.deck.groupingBy { it.baseId }.eachCount()
         val pool = allCards.filter {
-            !it.isPlaceholder && !it.isGenerated &&
-            (counts[it.baseId] ?: 0) < it.rarity.maxCopies
+            val owned = CardCollectionManager.usableCopies(it)
+            !it.isPlaceholder && !it.isGenerated && owned > 0 &&
+            (counts[it.baseId] ?: 0) < owned
         }
         return pool.shuffled().take(3)
     }

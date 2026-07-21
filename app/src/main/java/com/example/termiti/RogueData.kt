@@ -15,8 +15,8 @@ enum class RoguePhase { DRAFT, BATTLE, REWARD, ENDED }
 
 /** Všechna laditelná čísla módu na jednom místě. */
 object RogueConfig {
-    const val DECK_SIZE         = 15
-    const val BUDGET            = 9      // body nad common (Leg 4 / Epic 2 / Rare 1 / Common 0)
+    const val DECK_SIZE         = 20
+    const val BUDGET            = 12     // body nad common (Leg 4 / Epic 2 / Rare 1 / Common 0)
     const val ACTS              = 3
     const val BATTLES_PER_ACT   = 4
     const val TOTAL_BATTLES     = ACTS * BATTLES_PER_ACT   // 12
