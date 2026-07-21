@@ -2461,8 +2461,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val posInAct = battleIndex % RogueConfig.BATTLES_PER_ACT
         val isBoss   = posInAct == RogueConfig.BATTLES_PER_ACT - 1
 
-        val castle      = 30 + act * 3 + (if (isBoss) 4 else 0)
-        val wall        = 15 + act * 2 + (if (isBoss) 2 else 0)
+        // Plynulý náběh per-bitva: první soupeř je slabý warmup, poslední boss tvrdý.
+        //   hrad:   b0=20 → b11(boss)=46   (hráč startuje na 30, takže b0 je jasně slabší)
+        //   hradby: b0=8  → b11(boss)=21
+        val castle      = 20 + battleIndex * 2 + (if (isBoss) 4 else 0)
+        val wall        = 8  + battleIndex     + (if (isBoss) 2 else 0)
         val startMagic  = act + (if (isBoss) 1 else 0)
         val startAttack = act + (if (isBoss) 1 else 0)
         val handSize    = 4 + (if (act >= 2) 1 else 0)
