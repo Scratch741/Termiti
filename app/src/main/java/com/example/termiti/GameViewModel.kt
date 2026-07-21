@@ -2329,6 +2329,31 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value         = createRogueState(run, enemy)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
+        persistRogue()
+    }
+
+    /** Uloží aktuální stav runu na disk (přežije zabití procesu). */
+    private fun persistRogue() {
+        val run   = rogueRun.value   ?: return
+        val phase = roguePhase.value ?: return
+        RogueSaveManager.save(run, phase)
+    }
+
+    fun hasRogueSave(): Boolean = RogueSaveManager.hasSave()
+
+    /** Obnoví uložený run. REWARD → obrazovka odměny; jinak restartuje aktuální bitvu. */
+    fun resumeRoguelike() {
+        val saved = RogueSaveManager.load(allCards) ?: return
+        rogueDraft.clear()
+        rogueRun.value     = saved.run
+        rogueVictory.value = false
+        if (saved.phase == RoguePhase.REWARD) {
+            if (saved.run.rewardCards.isEmpty())
+                rogueRun.value = saved.run.copy(rewardCards = generateRogueRewardCards(saved.run))
+            roguePhase.value = RoguePhase.REWARD
+        } else {
+            startRogueBattle()   // mid-battle stav se neukládá → čerstvá bitva stejného stupně
+        }
     }
 
     /** GameState pro roguelike bitvu: hráč startuje s aktuálním run HP + run balíčkem. */
@@ -2373,6 +2398,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (!win) {
             rogueVictory.value = false
             roguePhase.value   = RoguePhase.ENDED
+            persistRogue()   // ENDED → save() smaže uložený run
             return
         }
         // Zastropování HP: přenes koncový hrad, cap na maxCastle, + malý heal
@@ -2385,11 +2411,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             rogueRun.value     = run.copy(hp = newHp, battleIndex = nextIndex, enemy = null)
             rogueVictory.value = true
             roguePhase.value   = RoguePhase.ENDED
+            persistRogue()
             return
         }
         rogueRun.value   = run.copy(hp = newHp, battleIndex = nextIndex, enemy = null,
                                     rewardCards = generateRogueRewardCards(run))
         roguePhase.value = RoguePhase.REWARD
+        persistRogue()
     }
 
     /** 3 kartové nabídky do odměny – z HRÁČOVY KOLEKCE, respektuje vlastněné kopie. */
@@ -2439,6 +2467,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         rogueRun.value   = null
         rogueDraft.clear()
         activeCampaignOpponent.value = null
+        RogueSaveManager.clear()
     }
 
     // ── Generování soupeře podle hloubky ────────────────────────────────────────

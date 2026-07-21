@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         CampaignManager.init(this)
         QuestManager.init(this)
         LanguageManager.init(this)
+        RogueSaveManager.init(this)
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         enableEdgeToEdge()
@@ -133,7 +134,14 @@ class MainActivity : ComponentActivity() {
                             onOwnDeck     = { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
-                            onRoguelike   = { viewModel.startRoguelike(); screen = Screen.ROGUELIKE },
+                            onRoguelike   = {
+                                when {
+                                    viewModel.roguePhase.value != null -> { /* run běží v paměti → jen zobraz */ }
+                                    viewModel.hasRogueSave()           -> viewModel.resumeRoguelike()  // přežil zabití procesu
+                                    else                               -> viewModel.startRoguelike()   // nový run
+                                }
+                                screen = Screen.ROGUELIKE
+                            },
                             onCampaign    = { screen = Screen.CAMPAIGN_MAP },
                             onBack        = { screen = Screen.MENU },
                             onShop        = { screen = Screen.SHOP },
