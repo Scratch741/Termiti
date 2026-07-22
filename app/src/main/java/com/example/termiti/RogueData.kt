@@ -7,11 +7,18 @@ package com.example.termiti
 //   • Probíjíš se 12 bitvami (3 akty × 4), soupeři sílí.
 //   • HP hradu se PŘENÁŠÍ mezi bitvami (zastropování na maxCastle),
 //     hradby se resetují každou bitvu. Léčení jen přes výhru/odměny.
-//   • Po každé výhře: vyber 1 ze 3 karet, nebo stat-upgrade, nebo skip.
+//   • Po každé výhře: POVINNĚ vyber 2 (po bossovi 3) karty Rare+ – nelze
+//     přeskočit, balíček musí růst. Po každém výběru se nabídka obnoví (ne
+//     jen zmizí vybraná karta). Reroll nabídky lze udělat jen pár× za CELÝ
+//     run. Až po povinných kartách, jen po zabití bosse, ještě bonus navíc
+//     (stat/oprava/důl) nebo přeskoč.
 //   • Prohra bitvy = konec runu.
 // ============================================================
 
 enum class RoguePhase { DRAFT, BATTLE, REWARD, ENDED }
+
+/** Uložená šablona roguelike draftu (baseId → počet), obdoba [Deck] z konstruovaného módu. */
+data class RoguePreset(val name: String, val cardCounts: Map<String, Int> = emptyMap())
 
 /** Všechna laditelná čísla módu na jednom místě. */
 object RogueConfig {
@@ -22,10 +29,17 @@ object RogueConfig {
     const val TOTAL_BATTLES     = ACTS * BATTLES_PER_ACT   // 12
     const val START_MAX_CASTLE  = 30
     const val START_WALL        = 15
-    const val AUTO_HEAL_ON_WIN  = 5      // heal po každé výhře (i při skipu odměny)
-    const val REWARD_MAX_CASTLE = 6      // +max hrad (+ vyléčí stejně)
-    const val REWARD_WALL       = 6      // +startovní hradby
-    const val REWARD_REPAIR     = 15     // oprava hradu (heal)
+    const val AUTO_HEAL_ON_WIN  = 5      // heal po každé výhře (i po odměně)
+    const val REWARD_MAX_CASTLE = 6      // bonus po bossovi: +max hrad (+ vyléčí stejně)
+    const val REWARD_WALL       = 6      // bonus po bossovi: +startovní hradby
+    const val REWARD_REPAIR     = 15     // bonus po bossovi: oprava hradu (heal)
+
+    // Povinné kartové odměny – balíček MUSÍ růst, nejde jen stavět staty.
+    const val REWARD_CARD_PICKS      = 2   // běžná výhra: kolik karet si musíš vzít
+    const val REWARD_CARD_PICKS_BOSS = 3   // výhra nad bossem: kolik karet si musíš vzít
+    const val REWARD_CARD_OFFERS      = 4  // z kolika běžná výhra vybírá
+    const val REWARD_CARD_OFFERS_BOSS = 5  // z kolika výhra nad bossem vybírá
+    const val REROLLS_PER_RUN         = 3  // kolikrát lze za CELÝ run rerollovat nabídku karet
 
     fun rarityBudgetCost(r: Rarity): Int = when (r) {
         Rarity.COMMON    -> 0
@@ -58,13 +72,16 @@ object RogueConfig {
     )
 }
 
-/** Odměna po vyhrané bitvě. Kartové jsou generované, statové fixní. */
+/**
+ * BONUSOVÁ odměna (jen po zabití bosse, navíc k povinným kartám). Výběr karet
+ * na povinnou část NENÍ součástí tohoto typu – řeší ho GameViewModel.pickRewardCard(Card)
+ * přímo, protože je to jiný (nepřeskočitelný) krok.
+ */
 sealed class RogueReward {
-    data class AddCard(val card: Card) : RogueReward()
     object MaxCastle : RogueReward()   // +max hrad
     object Wall      : RogueReward()   // +hradby
     object Repair    : RogueReward()   // oprava HP
-    object MineMagic : RogueReward()   // +1 startovní důl magie (permanentní ekonomika)
+    data class Mine(val type: ResourceType) : RogueReward()   // +1 startovní důl zvoleného typu
 }
 
 /**
@@ -80,7 +97,13 @@ data class RogueRun(
     /** 0-based index bitvy, KTERÁ SE PRÁVĚ HRAJE (nebo je připravena po odměně). */
     val battleIndex : Int = 0,
     val enemy       : CampaignOpponent? = null,
-    val rewardCards : List<Card> = emptyList()
+    val rewardCards : List<Card> = emptyList(),
+    /** Kolik POVINNÝCH karet ještě musí hráč vybrat na aktuální odměňovací obrazovce. */
+    val rewardCardPicksLeft   : Int = 0,
+    /** true = po vybrání povinných karet ještě čeká bonus (jen po bossovi). */
+    val rewardBonusAvailable  : Boolean = false,
+    /** Kolik rerollů nabídky karet zbývá – sdílená zásoba na CELÝ run, ne na 1 odměnu. */
+    val rerollsLeft : Int = RogueConfig.REROLLS_PER_RUN
 ) {
     val act: Int get() = battleIndex / RogueConfig.BATTLES_PER_ACT
     val isBoss: Boolean get() =

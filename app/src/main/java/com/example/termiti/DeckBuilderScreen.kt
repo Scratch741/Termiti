@@ -1472,7 +1472,7 @@ private fun DeckPanel(
 }
 
 @Composable
-private fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
+internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     val costColor = resColor(card.costType)
     val artResId  = card.effectiveArtResId()
 

@@ -66,6 +66,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var activeDeckIndex = androidx.compose.runtime.mutableStateOf(0)
         private set
 
+    // ── Uložené roguelike balíčky (šablony, obdoba decks[] z konstruovaného módu) ──
+    // Musí být deklarováno PŘED init{} – ten volá loadRoguePresets(), a Kotlin
+    // inicializuje vlastnosti v pořadí výskytu v souboru. Kdyby byl tento seznam
+    // deklarovaný níž (jako předtím), byl by v okamžiku init{} ještě null → NPE.
+    val roguePresets = androidx.compose.runtime.mutableStateListOf(
+        RoguePreset("Balíček 1"), RoguePreset("Balíček 2"), RoguePreset("Balíček 3")
+    )
+
     /**
      * Výsledek migrace limitů kopií – null = žádná migrace neproběhla.
      * UI ho přečte a zobrazí hráči toast / dialog.
@@ -74,6 +82,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         loadDecks()
+        loadRoguePresets()
         migrateRarityLimits()
     }
 
@@ -2248,6 +2257,40 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Sestavovaný roguelike balíček (deckbuilder). Compose ho pozoruje. */
     val rogueDraft = androidx.compose.runtime.mutableStateListOf<Card>()
 
+    private fun loadRoguePresets() {
+        roguePresets.forEachIndexed { i, preset ->
+            val str = prefs.getString("rogue_preset_$i", "") ?: ""
+            val counts = if (str.isNotEmpty()) {
+                str.split(";").mapNotNull { entry ->
+                    val parts = entry.split(":")
+                    if (parts.size == 2) parts[0] to (parts[1].toIntOrNull() ?: return@mapNotNull null)
+                    else null
+                }.toMap()
+            } else emptyMap()
+            roguePresets[i] = preset.copy(cardCounts = counts)
+        }
+    }
+
+    /** Uloží aktuální rozestavěný draft (rogueDraft) do slotu [index], přepíše starý obsah. */
+    fun saveRoguePreset(index: Int) {
+        val counts = rogueDraft.groupingBy { it.baseId }.eachCount()
+        roguePresets[index] = roguePresets[index].copy(cardCounts = counts)
+        prefs.edit()
+            .putString("rogue_preset_$index", counts.entries.joinToString(";") { "${it.key}:${it.value}" })
+            .apply()
+    }
+
+    /** Nahradí rozestavěný draft obsahem uloženého slotu (respektuje vlastnictví/rozpočet). */
+    fun loadRoguePreset(index: Int) {
+        val counts = roguePresets[index].cardCounts
+        if (counts.isEmpty()) return
+        rogueDraft.clear()
+        counts.forEach { (baseId, count) ->
+            val card = allCards.find { it.id == baseId } ?: return@forEach
+            repeat(count) { rogueAddCard(card) }
+        }
+    }
+
     fun startRoguelike() {
         rogueDraft.clear()
         rogueRun.value     = null
@@ -2300,7 +2343,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Připraví a spustí bitvu proti generovanému soupeři pro aktuální battleIndex. */
     private fun startRogueBattle() {
         val run   = rogueRun.value ?: return
-        val enemy = generateRogueEnemy(run.battleIndex)
+        val enemy = generateRogueEnemy(run)
         rogueRun.value   = run.copy(enemy = enemy)
         roguePhase.value = RoguePhase.BATTLE
         RogueSaveManager.clearBattle()   // čerstvá bitva → zahoď starý snapshot (nový vznikne po mulliganu)
@@ -2355,8 +2398,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         rogueRun.value     = saved.run
         rogueVictory.value = false
         if (saved.phase == RoguePhase.REWARD) {
-            if (saved.run.rewardCards.isEmpty())
-                rogueRun.value = saved.run.copy(rewardCards = generateRogueRewardCards(saved.run))
+            if (saved.run.rewardCards.isEmpty() && saved.run.rewardCardPicksLeft > 0) {
+                val offers = if (saved.run.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+                rogueRun.value = saved.run.copy(rewardCards = generateRogueRewardCards(saved.run, offers))
+            }
             roguePhase.value = RoguePhase.REWARD
             return
         }
@@ -2401,7 +2446,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Uloženo i zpět do rogueRun.enemy, aby další snapshotRogueBattle() v tomto
         // běhu (další hráčova akce) mělo odkud vzít jméno/avatar – jinak by po
         // obnově druhý snapshot spadl na fallback "Soupeř".
-        val enemyShell = generateRogueEnemy(run.battleIndex).copy(name = b.enemyName, avatar = b.enemyAvatar)
+        val enemyShell = generateRogueEnemy(run).copy(name = b.enemyName, avatar = b.enemyAvatar)
         activeCampaignOpponent.value = enemyShell
         rogueRun.value   = run.copy(enemy = enemyShell)
         aiPassiveAbilities.value = emptyList()
@@ -2504,51 +2549,97 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             persistRogue()
             return
         }
-        rogueRun.value   = run.copy(hp = newHp, battleIndex = nextIndex, enemy = null,
-                                    rewardCards = generateRogueRewardCards(run))
+        val wasBoss = run.isBoss   // musí se přečíst PŘED battleIndex++ (run.isBoss se počítá z aktuálního indexu)
+        rogueRun.value   = run.copy(
+            hp = newHp, battleIndex = nextIndex, enemy = null,
+            rewardCards = generateRogueRewardCards(
+                run, if (wasBoss) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+            ),
+            rewardCardPicksLeft  = if (wasBoss) RogueConfig.REWARD_CARD_PICKS_BOSS else RogueConfig.REWARD_CARD_PICKS,
+            rewardBonusAvailable = wasBoss
+        )
         roguePhase.value = RoguePhase.REWARD
         persistRogue()
     }
 
-    /** 3 kartové nabídky do odměny – z HRÁČOVY KOLEKCE, respektuje vlastněné kopie. */
-    private fun generateRogueRewardCards(run: RogueRun): List<Card> {
+    /**
+     * Kartové nabídky do odměny – z HRÁČOVY KOLEKCE, respektuje vlastněné kopie.
+     * Přednostně jen Rare+ (odměna má být citelný skok síly), Common jen jako
+     * záchranná síť, kdyby hráč měl vykoupené skoro všechny Rare+ karty.
+     */
+    private fun generateRogueRewardCards(run: RogueRun, offerCount: Int): List<Card> {
         val counts = run.deck.groupingBy { it.baseId }.eachCount()
-        val pool = allCards.filter {
+        fun poolFrom(minRarity: Rarity) = allCards.filter {
             val owned = CardCollectionManager.usableCopies(it)
             !it.isPlaceholder && !it.isGenerated && owned > 0 &&
-            (counts[it.baseId] ?: 0) < owned
+            (counts[it.baseId] ?: 0) < owned && it.rarity >= minRarity
         }
-        return pool.shuffled().take(3)
+        val rarePlus = poolFrom(Rarity.RARE)
+        val pool = if (rarePlus.size >= offerCount) rarePlus else poolFrom(Rarity.COMMON)
+        return pool.shuffled().take(offerCount)
     }
 
-    fun applyRogueReward(reward: RogueReward) {
+    /**
+     * Povinný krok odměny: vybere 1 z nabízených karet. NELZE přeskočit – dokud
+     * [RogueRun.rewardCardPicksLeft] neklesne na 0, hra nejde dál. Teprve pak
+     * (jen po bossovi) přijde volitelný bonus, jinak rovnou další bitva.
+     * Po každém výběru se nabídka celá OBNOVÍ (ne jen zmizí vybraná karta) –
+     * další pick tak vidí čerstvý náhodný výběr, ne zbytek toho původního.
+     */
+    fun pickRewardCard(card: Card) {
         val run = rogueRun.value ?: return
+        if (run.rewardCardPicksLeft <= 0) return
+        val picksLeft = run.rewardCardPicksLeft - 1
+        val updated = run.copy(deck = run.deck + card, rewardCardPicksLeft = picksLeft)
+        if (picksLeft <= 0 && !updated.rewardBonusAvailable) {
+            rogueRun.value = updated.copy(rewardCards = emptyList())
+            startRogueBattle()
+        } else {
+            val offerCount = if (updated.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+            rogueRun.value = updated.copy(rewardCards = generateRogueRewardCards(updated, offerCount))
+            persistRogue()
+        }
+    }
+
+    /** Zahodí aktuální nabídku a vylosuje novou – stojí 1 z omezené zásoby rerollů na CELÝ run. */
+    fun rerollRewardCards() {
+        val run = rogueRun.value ?: return
+        if (run.rewardCardPicksLeft <= 0 || run.rerollsLeft <= 0) return
+        val offerCount = if (run.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+        rogueRun.value = run.copy(
+            rewardCards = generateRogueRewardCards(run, offerCount),
+            rerollsLeft = run.rerollsLeft - 1
+        )
+        persistRogue()
+    }
+
+    /** Volitelný bonus navíc – jen po zabití bosse a jen když jsou povinné karty už vybrané. */
+    fun pickRewardBonus(reward: RogueReward) {
+        val run = rogueRun.value ?: return
+        if (!run.rewardBonusAvailable || run.rewardCardPicksLeft > 0) return
         val updated = when (reward) {
-            is RogueReward.AddCard -> run.copy(deck = run.deck + reward.card)
-            RogueReward.MaxCastle  -> run.copy(
+            RogueReward.MaxCastle -> run.copy(
                 maxCastle = run.maxCastle + RogueConfig.REWARD_MAX_CASTLE,
                 hp        = run.hp + RogueConfig.REWARD_MAX_CASTLE
             )
-            RogueReward.Wall       -> run.copy(wall = run.wall + RogueConfig.REWARD_WALL)
-            RogueReward.Repair     -> run.copy(
+            RogueReward.Wall      -> run.copy(wall = run.wall + RogueConfig.REWARD_WALL)
+            RogueReward.Repair    -> run.copy(
                 hp = (run.hp + RogueConfig.REWARD_REPAIR).coerceAtMost(run.maxCastle)
             )
-            RogueReward.MineMagic  -> run.copy(
+            is RogueReward.Mine   -> run.copy(
                 bonusMines = run.bonusMines +
-                    (ResourceType.MAGIC to ((run.bonusMines[ResourceType.MAGIC] ?: 0) + 1))
+                    (reward.type to ((run.bonusMines[reward.type] ?: 0) + 1))
             )
         }
-        rogueRun.value = updated.copy(rewardCards = emptyList())
+        rogueRun.value = updated.copy(rewardBonusAvailable = false, rewardCards = emptyList())
         startRogueBattle()
     }
 
-    /** Přeskočit odměnu = žádná karta/stat, jen malý heal (deck-thinning strategie). */
-    fun skipRogueReward() {
+    /** Přeskočí jen bonus (povinné karty už musí být hotové – jinak no-op). */
+    fun skipRewardBonus() {
         val run = rogueRun.value ?: return
-        rogueRun.value = run.copy(
-            rewardCards = emptyList(),
-            hp = (run.hp + RogueConfig.AUTO_HEAL_ON_WIN).coerceAtMost(run.maxCastle)
-        )
+        if (run.rewardCardPicksLeft > 0) return
+        rogueRun.value = run.copy(rewardBonusAvailable = false, rewardCards = emptyList())
         startRogueBattle()
     }
 
@@ -2561,16 +2652,25 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // ── Generování soupeře podle hloubky ────────────────────────────────────────
-    private fun generateRogueEnemy(battleIndex: Int): CampaignOpponent {
+    /**
+     * winTarget škáluje s [RogueRun.maxCastle], ne pevná konstanta – jinak by šlo
+     * nastřádat max hrad odměnami napříč běhy natolik, že hráč nastoupí do bitvy
+     * už NAD cílovou hranicí a "vyhraje" postavením hradu dřív, než padne první karta
+     * (nahlášený exploit: 72 hradu vs. pevný cíl 70 = auto-výhra na začátku kola).
+     * +15 nad aktuální strop zaručuje reálnou mezeru, kterou musí hráč v bitvě uzavřít.
+     */
+    private fun generateRogueEnemy(run: RogueRun): CampaignOpponent {
+        val battleIndex = run.battleIndex
+        val winTarget = (run.maxCastle + 15).coerceAtLeast(70)
         val act      = battleIndex / RogueConfig.BATTLES_PER_ACT
         val posInAct = battleIndex % RogueConfig.BATTLES_PER_ACT
         val isBoss   = posInAct == RogueConfig.BATTLES_PER_ACT - 1
 
         // Plynulý náběh per-bitva: první soupeř je slabý warmup, poslední boss tvrdý.
-        //   hrad:   b0=20 → b11(boss)=46   (hráč startuje na 30, takže b0 je jasně slabší)
-        //   hradby: b0=8  → b11(boss)=21
-        val castle      = 20 + battleIndex * 2 + (if (isBoss) 4 else 0)
-        val wall        = 8  + battleIndex     + (if (isBoss) 2 else 0)
+        //   hrad:   b0=16 → b11(boss)=42   (hráč startuje na 30, takže b0 je jasně slabší)
+        //   hradby: b0=6  → b11(boss)=19
+        val castle      = 16 + battleIndex * 2 + (if (isBoss) 4 else 0)
+        val wall        = 6  + battleIndex     + (if (isBoss) 2 else 0)
         val startMagic  = act + (if (isBoss) 1 else 0)
         val startAttack = act + (if (isBoss) 1 else 0)
         val handSize    = 4 + (if (act >= 2) 1 else 0)
@@ -2595,9 +2695,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             aiStartMagic   = startMagic,
             aiStartAttack  = startAttack,
             aiExtraMines   = extraMines,
-            deckCardCounts = generateRogueEnemyDeck(),
-            winTarget      = 70,
-            aiWinTarget    = 70,
+            deckCardCounts = generateRogueEnemyDeck(act),
+            winTarget      = winTarget,
+            aiWinTarget    = winTarget,
             aiStartHandSize = handSize,
             playerStartHandSize = 4
         )
@@ -2605,14 +2705,27 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /**
      * Nepřátelský balíček = ověřený balancedDeck (dobrá ekonomika + křivka)
-     * s odebranými zabanovanými kartami. Obtížnost v1 škáluje přes STATY,
-     * ne přes kvalitu balíčku (to je na doladění).
+     * s odebranými zabanovanými kartami. Obtížnost škáluje přes STATY i přes
+     * KVALITU balíčku – první akt (warmup) nesmí mít epické/legendární karty,
+     * druhý akt ještě bez legendárních, teprve třetí akt táhne z celého poolu.
+     * (Bez toho měl i "nejslabší" soupeř plnohodnotný 30kartový balíček a hráč
+     * s omezeným roguelike draftem ho nemohl dohnat jinak než rushem.)
      */
-    private fun generateRogueEnemyDeck(): Map<String, Int> =
-        balancedDeck()
+    private fun generateRogueEnemyDeck(act: Int): Map<String, Int> {
+        val pool = when (act) {
+            0    -> allCards.filter { it.rarity <= Rarity.RARE }
+            1    -> allCards.filter { it.rarity != Rarity.LEGENDARY }
+            else -> allCards
+        }
+        return buildBalancedDeck(pool)
+            .flatMap { (id, count) ->
+                val card = allCards.find { it.id == id } ?: return@flatMap emptyList()
+                List(count) { card }
+            }
             .filter { it.id !in RogueConfig.ENEMY_DECK_BANLIST }
             .groupingBy { it.baseId }
             .eachCount()
+    }
 
     private fun playSoundForCard(card: Card) = playSoundForCardGlobal(card)
 }

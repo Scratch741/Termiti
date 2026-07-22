@@ -51,6 +51,9 @@ object RogueSaveManager {
             put("battleIndex", run.battleIndex)
             put("deck",        JSONArray(run.deck.map { it.baseId }))
             put("rewards",     JSONArray(run.rewardCards.map { it.baseId }))
+            put("rewardCardPicksLeft",  run.rewardCardPicksLeft)
+            put("rewardBonusAvailable", run.rewardBonusAvailable)
+            put("rerollsLeft",          run.rerollsLeft)
             put("mines",       JSONObject().apply { run.bonusMines.forEach { (t, n) -> put(t.name, n) } })
         }
         p.edit().putString(KEY, obj.toString()).apply()
@@ -83,7 +86,10 @@ object RogueSaveManager {
                 bonusMines  = mines,
                 battleIndex = o.getInt("battleIndex"),
                 enemy       = null,
-                rewardCards = cards("rewards")
+                rewardCards = cards("rewards"),
+                rewardCardPicksLeft  = o.optInt("rewardCardPicksLeft", 0),
+                rewardBonusAvailable = o.optBoolean("rewardBonusAvailable", false),
+                rerollsLeft = o.optInt("rerollsLeft", RogueConfig.REROLLS_PER_RUN)
             )
             Saved(run, RoguePhase.valueOf(o.getString("phase")))
         }.getOrNull()
