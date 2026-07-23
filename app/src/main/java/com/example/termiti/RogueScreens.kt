@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -347,13 +349,19 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
         )
-        Column(
-            Modifier.fillMaxSize().padding(horizontal = 40.dp, vertical = 26.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
+        Row(Modifier.fillMaxSize().padding(horizontal = 40.dp, vertical = 26.dp)) {
+            // ── Přehled balíčku (vlevo) – stejný styl jako DeckPanel v deckbuilderu ──
+            RogueDeckOverview(deck = run.deck, modifier = Modifier.weight(0.85f).fillMaxHeight())
+
+            Spacer(Modifier.width(24.dp))
+
+            Column(
+                Modifier.weight(2.45f).fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
             // Header: postup + HP
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 PlainButton("Vzdát se", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("VÍTĚZSTVÍ", color = TealLight, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
@@ -369,40 +377,44 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
 
             if (run.rewardCardPicksLeft > 0) {
                 // ── Fáze 1: POVINNÝ výběr karet – nelze přeskočit, balíček musí růst ──
-                Text(
-                    "Vyber kartu (POVINNÉ) — zbývá ${run.rewardCardPicksLeft}×",
-                    color = Gold, fontSize = 10.sp, letterSpacing = 1.sp
-                )
-                Box(Modifier.weight(1f).fillMaxWidth()) {
-                    Row(
-                        Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        run.rewardCards.forEach { card ->
-                            Spacer(Modifier.width(10.dp))
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Box(Modifier.scale(1.1f)) {
-                                    CardView(card = card, canPlay = true, discardMode = false, showFade = false,
-                                        onClick = { viewModel.pickRewardCard(card) })
-                                }
-                                Spacer(Modifier.height(24.dp))
-                                PlainButton("PŘIDAT", modifier = Modifier.width(96.dp), textColor = TealLight,
-                                    fontSize = 9.sp, paddingH = 0.dp, paddingV = 5.dp,
-                                    onClick = { viewModel.pickRewardCard(card) })
-                            }
-                            Spacer(Modifier.width(10.dp))
-                        }
-                    }
-                    // Reroll – vpravo od karet, mimo řádek s nadpisem
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Vyber kartu (POVINNÉ) — zbývá ${run.rewardCardPicksLeft}×",
+                        color = Gold, fontSize = 10.sp, letterSpacing = 1.sp
+                    )
                     PlainButton(
                         "🔄 Reroll (${run.rerollsLeft}×)",
-                        modifier  = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
                         textColor = if (run.rerollsLeft > 0) TealLight else TextMuted.copy(alpha = 0.4f),
                         fontSize = 8.sp, paddingH = 8.dp, paddingV = 4.dp,
                         enabled = run.rerollsLeft > 0,
                         onClick = { viewModel.rerollRewardCards() }
                     )
+                }
+                // Řádek karet – horizontálně scrollovatelný, aby se nezařezával při 5 kartách
+                // (odměna za bosse nabízí víc karet, než se vejde vedle sebe v užším panelu).
+                Row(
+                    Modifier.weight(1f).fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    run.rewardCards.forEach { card ->
+                        Spacer(Modifier.width(8.dp))
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Box(Modifier.scale(0.9f)) {
+                                CardView(card = card, canPlay = true, discardMode = false, showFade = false,
+                                    onClick = { viewModel.pickRewardCard(card) })
+                            }
+                            Spacer(Modifier.height(20.dp))
+                            PlainButton("PŘIDAT", modifier = Modifier.width(90.dp), textColor = TealLight,
+                                fontSize = 9.sp, paddingH = 0.dp, paddingV = 5.dp,
+                                onClick = { viewModel.pickRewardCard(card) })
+                        }
+                        Spacer(Modifier.width(8.dp))
+                    }
                 }
             } else {
                 // ── Fáze 2: bonus navíc, jen po zabití bosse (volitelné) ──
@@ -434,6 +446,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
                         paddingH = 16.dp, paddingV = 6.dp, onClick = { viewModel.skipRewardBonus() })
                 }
             }
+            }
         }
     }
 
@@ -463,6 +476,60 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
                         paddingH = 20.dp, paddingV = 8.dp,
                         onClick = { showExitConfirm = false; onExit() }
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Přehled aktuálního běžeckého balíčku (jen k nahlédnutí, bez odebírání) –
+ * stejný styl seskupení podle zdroje + DeckCardRow jako DeckPanel v deckbuilderu.
+ */
+@Composable
+private fun RogueDeckOverview(deck: List<Card>, modifier: Modifier = Modifier) {
+    val counts = remember(deck) { deck.groupingBy { it.baseId }.eachCount() }
+    val cards  = remember(deck) {
+        deck.distinctBy { it.baseId }
+            .sortedWith(compareBy({ it.costType.ordinal }, { it.cost }, { it.displayName }))
+    }
+    val groups = remember(cards) { cards.groupBy { it.costType } }
+    val s = LocalStrings.current
+
+    Column(modifier) {
+        Text("TVŮJ BALÍČEK (${deck.size})", color = Gold, fontSize = 10.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Spacer(Modifier.height(4.dp))
+        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            ResourceType.entries.forEach { type ->
+                val typeCards = groups[type] ?: return@forEach
+                item(key = "rdeck_hdr_$type") {
+                    val typeColor = resColor(type)
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 1.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(11.dp))
+                        val groupCount = typeCards.sumOf { counts[it.baseId] ?: 0 }
+                        Text(
+                            "${when (type) {
+                                ResourceType.MAGIC  -> s.resMagic
+                                ResourceType.ATTACK -> s.resAttack
+                                ResourceType.STONES -> s.resStone
+                                ResourceType.CHAOS  -> s.resChaos
+                            }.uppercase()} ($groupCount)",
+                            color = typeColor.copy(alpha = 0.85f),
+                            fontSize = 7.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                        )
+                        Box(
+                            Modifier.weight(1f).height(1.dp)
+                                .background(Brush.horizontalGradient(listOf(typeColor.copy(alpha = 0.45f), Color.Transparent)))
+                        )
+                    }
+                }
+                items(typeCards, key = { it.id }) { card ->
+                    DeckCardRow(card = card, count = counts[card.baseId] ?: 0, onRemove = {})
                 }
             }
         }
