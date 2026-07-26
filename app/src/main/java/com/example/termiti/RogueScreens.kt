@@ -1,10 +1,12 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
@@ -338,7 +340,7 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
 // ─── Odměna po výhře ────────────────────────────────────────────────────────
 @Composable
-fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
+fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -> Unit) {
     val run = viewModel.rogueRun.value ?: return
     var showExitConfirm by remember { mutableStateOf(false) }
 
@@ -350,22 +352,27 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
             contentScale = ContentScale.FillBounds
         )
         Row(Modifier.fillMaxSize().padding(horizontal = 40.dp, vertical = 26.dp)) {
-            // ── Přehled balíčku (vlevo) – stejný styl jako DeckPanel v deckbuilderu ──
-            RogueDeckOverview(deck = run.deck, modifier = Modifier.weight(0.85f).fillMaxHeight())
-
-            Spacer(Modifier.width(24.dp))
-
             Column(
                 Modifier.weight(2.45f).fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
             // Header: postup + HP
-            Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                PlainButton("Vzdát se", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
+            Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    PlainButton("Menu", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = onMenu)
+                    PlainButton("Vzdát se", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
+                }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("VÍTĚZSTVÍ", color = TealLight, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
                     Text("${run.actTitle}  ·  následuje ${run.battleLabel}", color = TextMuted, fontSize = 9.sp)
+                    if (run.rewardCardPicksLeft > 0) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "Vyber kartu (POVINNÉ) — zbývá ${run.rewardCardPicksLeft}×",
+                            color = Gold, fontSize = 10.sp, letterSpacing = 1.sp
+                        )
+                    }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(14.dp))
@@ -379,13 +386,9 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
                 // ── Fáze 1: POVINNÝ výběr karet – nelze přeskočit, balíček musí růst ──
                 Row(
                     Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        "Vyber kartu (POVINNÉ) — zbývá ${run.rewardCardPicksLeft}×",
-                        color = Gold, fontSize = 10.sp, letterSpacing = 1.sp
-                    )
                     PlainButton(
                         "🔄 Reroll (${run.rerollsLeft}×)",
                         textColor = if (run.rerollsLeft > 0) TealLight else TextMuted.copy(alpha = 0.4f),
@@ -421,32 +424,37 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit) {
                 // Karty místo namačkaného řádku – zabírají volný prostor, který
                 // tu jinak zbýval prázdný, a nic se nezařezává mimo obrazovku.
                 Column(
-                    Modifier.weight(1f).fillMaxWidth(),
+                    Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text("★ BONUS ZA BOSSE ★", color = Gold, fontSize = 15.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                     Text("Vyber jeden navíc, nebo přeskoč", color = TextMuted, fontSize = 10.sp)
-                    Spacer(Modifier.height(18.dp))
+                    Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        RogueBonusCard("🏰", "+${RogueConfig.REWARD_MAX_CASTLE}", "Max hrad", Gold) { viewModel.pickRewardBonus(RogueReward.MaxCastle) }
-                        RogueBonusCard("🧱", "+${RogueConfig.REWARD_WALL}", "Hradby", StoneColor) { viewModel.pickRewardBonus(RogueReward.Wall) }
-                        RogueBonusCard("✚", "+${RogueConfig.REWARD_REPAIR}", "Oprava", HpGreen) { viewModel.pickRewardBonus(RogueReward.Repair) }
+                        RogueBonusCard(R.drawable.castle_icon, "+${RogueConfig.REWARD_MAX_CASTLE}", "Max hrad", Gold) { viewModel.pickRewardBonus(RogueReward.MaxCastle) }
+                        RogueBonusCard(R.drawable.wall_icon, "+${RogueConfig.REWARD_WALL}", "Hradby", StoneColor) { viewModel.pickRewardBonus(RogueReward.Wall) }
+                        RogueBonusCard(R.drawable.shield_icon, "+${RogueConfig.REWARD_REPAIR}", "Oprava", HpGreen) { viewModel.pickRewardBonus(RogueReward.Repair) }
                     }
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        RogueBonusCard("⛏️", "Magie", "Nový důl", MagicBlue) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.MAGIC)) }
-                        RogueBonusCard("⛏️", "Útok", "Nový důl", AttackRed) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.ATTACK)) }
-                        RogueBonusCard("⛏️", "Kámen", "Nový důl", StoneColor) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.STONES)) }
-                        RogueBonusCard("⛏️", "Chaos", "Nový důl", ChaosOrange) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.CHAOS)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.MAGIC), "Magie", "Nový důl", MagicBlue) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.MAGIC)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.ATTACK), "Útok", "Nový důl", AttackRed) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.ATTACK)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.STONES), "Kámen", "Nový důl", StoneColor) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.STONES)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.CHAOS), "Chaos", "Nový důl", ChaosOrange) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.CHAOS)) }
                     }
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(14.dp))
                     PlainButton("Přeskočit", textColor = TextMuted, fontSize = 10.sp,
                         paddingH = 16.dp, paddingV = 6.dp, onClick = { viewModel.skipRewardBonus() })
                 }
             }
             }
+
+            Spacer(Modifier.width(24.dp))
+
+            // ── Přehled balíčku (vpravo) – stejný styl jako DeckPanel v deckbuilderu ──
+            RogueDeckOverview(deck = run.deck, modifier = Modifier.weight(0.85f).fillMaxHeight())
         }
     }
 
@@ -499,6 +507,17 @@ private fun RogueDeckOverview(deck: List<Card>, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text("TVŮJ BALÍČEK (${deck.size})", color = Gold, fontSize = 10.sp,
             fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Spacer(Modifier.height(3.dp))
+        // Souhrn zdrojů v balíčku – kolik karet kterého typu, na první pohled bez scrollování.
+        Row(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = Alignment.CenterVertically) {
+            ResourceType.entries.forEach { type ->
+                val total = (groups[type] ?: emptyList()).sumOf { counts[it.baseId] ?: 0 }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Image(painterResource(resourceIconRes(type)), contentDescription = null, modifier = Modifier.size(10.dp))
+                    Text("$total", color = resColor(type).copy(alpha = 0.9f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
         Spacer(Modifier.height(4.dp))
         LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             ResourceType.entries.forEach { type ->
@@ -541,7 +560,7 @@ private fun RogueDeckOverview(deck: List<Card>, modifier: Modifier = Modifier) {
  * pozadí (stejné jako CostChip/CatalogCardItem), ne vlastní barevný box.
  */
 @Composable
-private fun RogueBonusCard(icon: String, value: String, label: String, accent: Color, onClick: () -> Unit) {
+private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String, accent: Color, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .width(96.dp)
@@ -552,7 +571,7 @@ private fun RogueBonusCard(icon: String, value: String, label: String, accent: C
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(icon, fontSize = 24.sp)
+        Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(24.dp))
         Spacer(Modifier.height(4.dp))
         Text(value, color = accent, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Text(label, color = TextMuted, fontSize = 7.5.sp, textAlign = TextAlign.Center)

@@ -277,7 +277,10 @@ class MainActivity : ComponentActivity() {
                             )
                             RoguePhase.REWARD -> RogueRewardScreen(
                                 viewModel = viewModel,
-                                onExit    = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU }
+                                onExit    = { viewModel.exitRoguelike(); screen = Screen.PLAY_MENU },
+                                // Menu = jen odejít, run zůstává rozehraný (v paměti + na disku
+                                // díky auto-save) – "Vzdát se" ho oproti tomu natvrdo zahodí.
+                                onMenu    = { screen = Screen.PLAY_MENU }
                             )
                             RoguePhase.ENDED -> RogueEndScreen(
                                 viewModel = viewModel,
