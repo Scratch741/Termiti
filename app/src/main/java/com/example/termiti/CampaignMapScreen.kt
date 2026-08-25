@@ -6,7 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +18,10 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +30,7 @@ private val CmGold  = Color(0xFFD4A843)
 private val CmTeal  = Color(0xFF3DBFAD)
 private val CmText  = Color(0xFFEDE0C4)
 private val CmMuted = Color(0xFF7A6E5F)
+private val CmDesc  = Color(0xFFCBBFA5)   // světlejší než CmMuted – popisek musí být čitelný na ilustraci
 private val CmGreen = Color(0xFF4CAF50)
 
 // Výška art okna card_frame: 64.3 % výšky karty (změřeno z GameCardView: 90dp / 140dp)
@@ -38,9 +42,9 @@ fun CampaignMapScreen(
     onBack: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Texturované pozadí z herního světa
+        // Texturované pozadí – stejné jako ostatní navigační obrazovky (menu/shop/nastavení)
         Image(
-            painter      = painterResource(R.drawable.bg_game),
+            painter      = painterResource(R.drawable.menu_bg),
             contentDescription = null,
             modifier     = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -104,8 +108,8 @@ fun CampaignMapScreen(
                 contentPadding        = PaddingValues(horizontal = 4.dp),
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                items(CampaignData.locations) { location ->
-                    LocationCard(location) {
+                itemsIndexed(CampaignData.locations) { index, location ->
+                    LocationCard(location, order = index + 1) {
                         if (CampaignManager.isLocationUnlocked(location)) {
                             SoundManager.playMenuTap()
                             onLocationSelected(location)
@@ -118,7 +122,7 @@ fun CampaignMapScreen(
 }
 
 @Composable
-private fun LocationCard(location: CampaignLocation, onClick: () -> Unit) {
+private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> Unit) {
     val unlocked      = CampaignManager.isLocationUnlocked(location)
     val cleared       = CampaignManager.isLocationCleared(location)
     val defeatedCount = location.opponents.count { CampaignManager.isDefeated(it.id) }
@@ -174,6 +178,34 @@ private fun LocationCard(location: CampaignLocation, onClick: () -> Unit) {
             contentScale       = ContentScale.FillBounds
         )
 
+        // ── Vrstva 2.6: pořadí kampaně vlevo nahoře – stejné místo/styl jako cena karty ──
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 2.4.dp, y = 3.2.dp)
+                .size(29.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            val orderLabel = "$order"
+            val orderStyle = TextStyle(
+                fontSize      = 13.sp,
+                fontWeight    = FontWeight.ExtraBold,
+                textAlign     = TextAlign.Center,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim      = LineHeightStyle.Trim.Both
+                )
+            )
+            // Černý obrys – 4 posunuté kopie (stejná technika jako u ceny karty)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = (-1).dp), style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = 1.dp),  style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = (-1).dp), style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = 1.dp),  style = orderStyle)
+            // Bílá výplň
+            Text(orderLabel, color = Color.White, modifier = Modifier.fillMaxWidth(), style = orderStyle)
+        }
+
         // ── Vrstva 3: textový obsah ───────────────────────────────────────────
         Column(
             modifier                = Modifier
@@ -196,7 +228,7 @@ private fun LocationCard(location: CampaignLocation, onClick: () -> Unit) {
             )
             Text(
                 location.description,
-                color      = CmMuted,
+                color      = if (unlocked) CmDesc else CmMuted,
                 fontSize   = 8.sp,
                 textAlign  = TextAlign.Center,
                 lineHeight = 11.sp,
@@ -208,10 +240,11 @@ private fun LocationCard(location: CampaignLocation, onClick: () -> Unit) {
             // Progress bar
             LocationProgressBar(defeatedCount, location.opponents.size, cleared)
 
-            // Status
+            // Status – vycentrováno na celou šířku karty
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment     = Alignment.CenterVertically
             ) {
                 Image(
                     painterResource(when {
@@ -222,6 +255,7 @@ private fun LocationCard(location: CampaignLocation, onClick: () -> Unit) {
                     contentDescription = null,
                     modifier           = Modifier.size(11.dp)
                 )
+                Spacer(Modifier.width(4.dp))
                 Text(
                     when {
                         cleared  -> "Vyčištěno"
