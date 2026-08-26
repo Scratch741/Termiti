@@ -524,7 +524,7 @@
     },
     "080": {
       "name": "Mass Production",
-      "desc": "+2 to every mine."
+      "desc": "+2 Magic, Attack and Stone mine."
     },
     "130": {
       "name": "Plunder",
@@ -940,11 +940,11 @@
     },
     "133": {
       "name": "Infested Rats",
-      "desc": "Shuffles **3× Infested Rat** into the opponent's deck. | **On discard:** −5 walls."
+      "desc": "Shuffles **3× Infested Rat** into the opponent's deck."
     },
     "134": {
       "name": "Infested Rat",
-      "desc": "A mangy card with no effect – **instantly ends your turn**. | **On discard:** −4 castle, −4 walls."
+      "desc": "No effect, ends your turn. | **On discard:** −4 castle & walls."
     },
     "135": {
       "name": "Coin of Fate",
@@ -952,7 +952,7 @@
     },
     "136": {
       "name": "Final Lunge",
-      "desc": "Attack the enemy for 7. | **On discard:** −4 walls."
+      "desc": "Attack the enemy for 10. | **On discard:** −4 walls."
     },
     "137": {
       "name": "Forgotten Note",

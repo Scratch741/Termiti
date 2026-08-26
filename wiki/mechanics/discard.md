@@ -54,7 +54,7 @@ The deck-builder simulator mirrors this with `sde(fx)` inside `bd()`.
 
 ## UI
 
-`GameCardView.kt` (`CardViewTextured`) shows a small skull-icon badge (border color `DiscardRed`, same slot as the combo/generated/condition badges, top-right corner) whenever `card.discardEffects.isNotEmpty()`, warning the player that discarding this card is not "free". No description auto-generation exists in the app (card text is hand-authored, same convention as `[Combo]`/`[X-kost]` suffixes) — an author should manually add a clause like `"| **Při zahození:** ..."` to the card's description string (`parseCardDesc` already supports `|` as a line break and `**bold**`). `deckbuilder.html`'s `generateCardDesc()` DOES auto-append a `"| **Při zahození:** ..."` clause from `discardEffects` for cards loaded from JSON, since that tool builds descriptions from data.
+`GameCardView.kt` (`CardViewTextured`) shows a small skull-icon badge (border color `DiscardRed`, same slot as the combo/generated/condition badges, top-right corner) whenever `card.discardEffects.isNotEmpty()`, warning the player that discarding this card is not "free". No description auto-generation exists in the app (card text is hand-authored, same convention as `[Combo]`/`[X-kost]` suffixes) — an author should manually add a clause like `"| **Zahození:** ..."` to the card's description string (`parseCardDesc` already supports `|` as a line break and `**bold**`). `deckbuilder.html`'s `generateCardDesc()` DOES auto-append a `"| **Zahození:** ..."` clause from `discardEffects` for cards loaded from JSON, since that tool builds descriptions from data.
 
 ## Related pages
 - [[cards/effects]] — the CardEffect types reused by discardEffects

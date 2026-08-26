@@ -1147,7 +1147,7 @@ function generateCardDesc(card) {
   if (card.isXCost) desc += ' [X-kost]';
   // Mechanika "Zahození": efekty MÍSTO normálních, spuštěné jen při zahození
   if (card.discardEffects && card.discardEffects.length) {
-    desc += ' | **Při zahození:** ' + card.discardEffects.map(_descEffect).join('. ');
+    desc += ' | **Zahození:** ' + card.discardEffects.map(_descEffect).join('. ');
   }
   return desc;
 }
