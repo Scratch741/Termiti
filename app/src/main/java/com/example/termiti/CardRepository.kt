@@ -87,6 +87,7 @@ object CardRepository {
         "AddMine"             -> CardEffect.AddMine(resType(obj), obj.getInt("amount"))
         "BuildWall"           -> CardEffect.BuildWall(obj.getInt("amount"))
         "BuildCastle"         -> CardEffect.BuildCastle(obj.getInt("amount"))
+        "ConvertWallToCastle" -> CardEffect.ConvertWallToCastle
         "AttackPlayer"        -> CardEffect.AttackPlayer(obj.getInt("amount"))
         "AttackWall"          -> CardEffect.AttackWall(obj.getInt("amount"))
         "AttackCastle"        -> CardEffect.AttackCastle(obj.getInt("amount"))

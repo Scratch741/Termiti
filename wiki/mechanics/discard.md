@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Introduced for high-risk/high-reward card designs, e.g. a future card "Zamořené krysy" (Infested Rats): played, it shuffles X rat cards into the opponent's deck (cost X resources, do nothing when drawn); if instead the player discards this card from hand, something bad happens to them. No such card exists yet — this page documents the underlying system, ready for future card authoring.
+Introduced for high-risk/high-reward card designs. Realized by "Zamořené krysy" (Infested Rats, `"133"`): played, it shuffles 3 copies of a placeholder curse card into the opponent's deck; that placeholder has no play effect of its own (just a chaos cost + forced turn-end), so the opponent who draws it is stuck choosing between wasting a turn to play it or discarding it for a direct HP penalty. See changelog for the full mechanic history.
 
 ## Data model
 
@@ -63,3 +63,14 @@ The deck-builder simulator mirrors this with `sde(fx)` inside `bd()`.
 
 ## Changelog
 - 2026-07-20: Page created — initial "Discard" mechanic implementation (infrastructure only, no card uses it yet)
+- 2026-07-26: First real content batch — 6 cards now use `discardEffects` beyond the original test card `"132"` (Zoufalý žold):
+  - `"133"` Zamořené krysy (3 CHAOS, RARE) — play: `AddToOpponentDeck("134", 3)`, shuffles the placeholder `"134"` into the opponent's deck; discard: `BuildWall(-5)` self-harm. Realizes the hypothetical example this page originally used to motivate the whole mechanic (§ Purpose). **`"134"` was redesigned on 2026-08-26 — see below.**
+  - `"135"` Osudová mince (2 CHAOS, EPIC) — play: `StealResource(CHAOS,3)`; discard: `AddResource(CHAOS,2)` (both positive — a "flex" card).
+  - `"136"` Poslední výpad (3 ATTACK, EPIC) — play: `AttackPlayer(7)`; discard: `BuildWall(-4)` self-harm.
+  - `"137"` Zapomenutá poznámka (1 MAGIC, COMMON) — play: `AddResource(MAGIC,2)`; discard: `DrawCard(1)` (never a dead draw).
+  - `"138"` Podkopané valy (3 STONES, RARE) — play: `BuildWall(7)` + `DrainResource(STONES,3)`; discard: `BuildWall(-5)` self-harm.
+  - `"139"` Pohlcení hradeb (8 STONES, LEGENDARY) — play: new effect `ConvertWallToCastle` (see [[cards/effects]]); discard: `BuildCastle(-8)` self-harm.
+  - Design rule learned this round: a punishing-discard card's PLAY side must be a genuinely new effect/combo, not a reprint of an existing card's stat-line with a discard clause bolted on — two earlier drafts ("Zazděný poklad", "Vázaný duch") were rejected for being strictly-worse duplicates of "Pevné základy" (`"009"`) and "Magický pramen" (`"013"`) respectively.
+  - All 6 added to `cards.json`, `CardPresentation.kt`, and mirrored server-side in `cards.js`/`engine.js`/`GameSession.js` for online parity (server-side `ConvertWallToCastle` execution + smart-pick scoring not runtime-tested — no Node.js in this environment, see repo `CLAUDE.md`).
+  - Not updated: `deckbuilder.html`'s SIMULÁTOR tab has its own hand-authored per-card shorthand effect DB (separate from the DECK BUILDER tab, which reads real `cards.json` fine) — cards `"133"`–`"139"` and `ConvertWallToCastle` are not yet in it.
+- 2026-08-26: `"134"` redesigned from a draw-triggered trap into a real playable curse card, per user spec. Was: `Krysa`, 0 CHAOS, `effects:[TrapOnDraw(AttackWall(3))]` (fired automatically on draw, never sat in hand as a real choice), no `discardEffects`. Now: `Zamořená Krysa`, 3 CHAOS, `effects:[]` (no play effect at all — playing it purely costs chaos and, being a non-combo card, ends the turn via the normal turn-end-after-play rule, no new `CardEffect` needed), `discardEffects:[BuildCastle(-4), BuildWall(-4)]`. Net effect: the opponent who draws it must choose between burning a turn + 3 chaos for nothing, or taking 4 castle + 4 wall damage via discard — a genuine dilemma instead of an unavoidable draw-time ping. `isPlaceholder:true`/`maxCopies:0` unchanged (still excluded from all reward/decision/deck-builder pools, still only enters play via `"133"`'s `AddToOpponentDeck`). Updated in `cards.json`, `CardPresentation.kt`, `cards.js` (server), and both `cs.json`/`en.json` localization files.

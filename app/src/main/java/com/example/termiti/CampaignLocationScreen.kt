@@ -5,7 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,9 +15,13 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -119,42 +123,56 @@ fun CampaignLocationScreen(
                         modifier           = Modifier.fillMaxSize(),
                         contentScale       = ContentScale.FillBounds
                     )
-                    // Text
-                    Column(
-                        modifier                = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp),
-                        horizontalAlignment     = Alignment.CenterHorizontally,
-                        verticalArrangement     = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Spacer(Modifier.height(locArtH + 4.dp))
+                    // Jméno – zakřivený text na stejném místě jako u karet
+                    ArcCardName(
+                        name         = location.displayName,
+                        modifier     = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(y = 106.dp)
+                            .fillMaxWidth()
+                            .height(32.dp),
+                        fontSizeSp   = 12f,
+                        arcRadiusDp  = 520f,
+                        baselineFrac = 0.78f
+                    )
 
+                    // Popisek – pevné, ořezané místo jako popis karty
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(y = 140.dp)
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .clipToBounds()
+                            .padding(horizontal = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            location.name.uppercase(),
-                            color        = ClGold,
-                            fontSize     = 11.sp,
-                            fontWeight   = FontWeight.Bold,
-                            letterSpacing = 2.sp,
-                            textAlign    = TextAlign.Center
-                        )
-                        Text(
-                            location.description,
+                            location.displayDescription,
                             color      = ClMuted,
                             fontSize   = 8.sp,
                             textAlign  = TextAlign.Center,
                             lineHeight = 11.sp,
-                            maxLines   = 3
+                            maxLines   = 4,
+                            overflow   = TextOverflow.Ellipsis
                         )
-                        Spacer(Modifier.weight(1f))
+                    }
+
+                    // Status – stejné místo jako typ karty
+                    run {
                         val defeated = location.opponents.count { CampaignManager.isDefeated(it.id) }
                         val total    = location.opponents.size
                         Text(
                             "$defeated / $total poraženo",
                             color      = if (defeated == total) ClGreen else ClTeal,
                             fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            textAlign  = TextAlign.Center,
+                            modifier   = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(y = 198.dp)
+                                .fillMaxWidth()
                         )
-                        Spacer(Modifier.height(8.dp))
                     }
                 }
             }
@@ -166,12 +184,13 @@ fun CampaignLocationScreen(
                 contentPadding        = PaddingValues(horizontal = 4.dp),
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                items(location.opponents) { opponent ->
+                itemsIndexed(location.opponents) { index, opponent ->
                     val unlocked   = CampaignManager.isUnlocked(location, opponent)
                     val isDefeated = CampaignManager.isDefeated(opponent.id)
                     OpponentCard(
                         opponent   = opponent,
                         locationId = location.id,
+                        order      = index + 1,
                         unlocked   = unlocked,
                         defeated   = isDefeated,
                         onClick    = {
@@ -189,6 +208,7 @@ fun CampaignLocationScreen(
 private fun OpponentCard(
     opponent  : CampaignOpponent,
     locationId: String,
+    order     : Int,
     unlocked  : Boolean,
     defeated  : Boolean,
     onClick   : () -> Unit
@@ -243,112 +263,148 @@ private fun OpponentCard(
             contentScale       = ContentScale.FillBounds
         )
 
-        // ── Vrstva 3: textový obsah ───────────────────────────────────────────
-        Column(
-            modifier                = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp),
-            horizontalAlignment     = Alignment.CenterHorizontally,
-            verticalArrangement     = Arrangement.spacedBy(3.dp)
+        // ── Vrstva 2.6: pořadí soupeře vlevo nahoře – stejné místo/styl jako cena karty.
+        //    Boss (poslední v lokaci) má číslo červené, stejně jako zdražení karty. ──
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 2.2.dp, y = 3.1.dp)
+                .size(27.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(Modifier.height(artH + 4.dp))
-
-            // Boss badge nebo prázdný řádek pro zarovnání
-            if (opponent.isBoss) {
-                Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
-                    Image(
-                        painterResource(R.drawable.rarity_legendary),
-                        contentDescription = null,
-                        modifier           = Modifier.height(10.dp).width(24.dp)
-                    )
-                    Text(
-                        "BOSS",
-                        color        = ClGold,
-                        fontSize     = 8.sp,
-                        fontWeight   = FontWeight.Bold,
-                        letterSpacing = 2.sp
-                    )
-                }
-            } else {
-                Spacer(Modifier.height(12.dp))
-            }
-
-            Text(
-                opponent.name,
-                color      = ClText,
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign  = TextAlign.Center,
-                lineHeight = 13.sp,
-                maxLines   = 2
+            val orderLabel = "$order"
+            val fillColor  = if (opponent.isBoss) Color(0xFFFF5252) else Color.White
+            val orderStyle = TextStyle(
+                fontSize      = 13.sp,
+                fontWeight    = FontWeight.ExtraBold,
+                textAlign     = TextAlign.Center,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim      = LineHeightStyle.Trim.Both
+                )
             )
-            Text(
-                opponent.title,
-                color      = ClMuted,
-                fontSize   = 8.sp,
-                textAlign  = TextAlign.Center,
-                fontStyle  = FontStyle.Italic
-            )
+            // Černý obrys – 4 posunuté kopie (stejná technika jako u ceny karty)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = (-1).dp), style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = 1.dp),  style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = (-1).dp), style = orderStyle)
+            Text(orderLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = 1.dp),  style = orderStyle)
+            // Výplň (bílá běžně, červená u bosse)
+            Text(orderLabel, color = fillColor, modifier = Modifier.fillMaxWidth(), style = orderStyle)
+        }
 
-            Spacer(Modifier.weight(1f))
-
-            // Odměna
+        // ── Vrstva 2.7: BOSS štítek vpravo nahoře (nezabírá místo v textu) ────
+        if (opponent.isBoss) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment     = Alignment.CenterVertically
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-4).dp, y = 4.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+                Image(
+                    painterResource(R.drawable.rarity_legendary),
+                    contentDescription = null,
+                    modifier           = Modifier.height(9.dp).width(20.dp)
+                )
+                Text("BOSS", color = ClGold, fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            }
+        }
+
+        // ── Vrstva 3: jméno – zakřivený text na stejném místě jako u karet ────
+        ArcCardName(
+            name         = opponent.displayName,
+            modifier     = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 106.dp)
+                .fillMaxWidth()
+                .height(32.dp),
+            fontSizeSp   = 12f,
+            arcRadiusDp  = 520f,
+            baselineFrac = 0.78f
+        )
+
+        // ── Vrstva 4: text karty – popisek soupeře + odměna, stejné místo jako popis karty ──
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 140.dp)
+                .fillMaxWidth()
+                .height(54.dp)
+                .clipToBounds()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    opponent.displayDescription,
+                    color      = Color(0xFFDDD0B0),
+                    fontSize   = 7.5.sp,
+                    textAlign  = TextAlign.Center,
+                    lineHeight = 9.5.sp,
+                    maxLines   = 2,
+                    overflow   = TextOverflow.Ellipsis
+                )
                 Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Image(painterResource(R.drawable.goldcoin_icon), null, Modifier.size(11.dp))
-                    Text("${opponent.rewardGold}", color = ClGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                }
-                if (opponent.rewardGems > 0) {
                     Row(
                         verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Image(painterResource(R.drawable.diamond_icon), null, Modifier.size(11.dp))
-                        Text("${opponent.rewardGems}", color = Color(0xFF7EC8E3), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Image(painterResource(R.drawable.goldcoin_icon), null, Modifier.size(10.dp))
+                        Text("${opponent.rewardGold}", color = ClGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (opponent.rewardGems > 0) {
+                        Row(
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Image(painterResource(R.drawable.diamond_icon), null, Modifier.size(10.dp))
+                            Text("${opponent.rewardGems}", color = Color(0xFF7EC8E3), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
+        }
 
-            // Status
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Image(
-                    painterResource(when {
-                        defeated  -> R.drawable.check_icon
-                        !unlocked -> R.drawable.lock_icon
-                        else      -> R.drawable.utok_icon
-                    }),
-                    contentDescription = null,
-                    modifier           = Modifier.size(11.dp)
-                )
-                Text(
-                    when {
-                        defeated  -> "Poražen"
-                        !unlocked -> "Zamčen"
-                        else      -> "Bojuj!"
-                    },
-                    color      = when {
-                        defeated  -> ClGreen
-                        !unlocked -> ClMuted
-                        else      -> ClTeal
-                    },
-                    fontSize   = 9.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(Modifier.height(6.dp))
+        // ── Vrstva 5: status – stejné místo jako typ karty ─────────────────────
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 198.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            Image(
+                painterResource(when {
+                    defeated  -> R.drawable.check_icon
+                    !unlocked -> R.drawable.lock_icon
+                    else      -> R.drawable.utok_icon
+                }),
+                contentDescription = null,
+                modifier           = Modifier.size(11.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                when {
+                    defeated  -> "Poražen"
+                    !unlocked -> "Zamčen"
+                    else      -> "Bojuj!"
+                },
+                color      = when {
+                    defeated  -> ClGreen
+                    !unlocked -> ClMuted
+                    else      -> ClTeal
+                },
+                fontSize   = 9.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

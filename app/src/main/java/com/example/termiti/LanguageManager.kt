@@ -74,6 +74,43 @@ object LanguageManager {
         return t.desc.ifBlank { fallback }
     }
 
+    // ── Campaign text lookup ────────────────────────────────────────────────────
+
+    /** Localized campaign location name for [id]; falls back to [fallback] (built-in Czech). */
+    fun campaignLocationName(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.campaignLocations[id] ?: return fallback
+        return t.name.ifBlank { fallback }
+    }
+
+    /** Localized campaign location description for [id]; falls back to [fallback] (built-in Czech). */
+    fun campaignLocationDesc(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.campaignLocations[id] ?: return fallback
+        return t.desc.ifBlank { fallback }
+    }
+
+    /** Localized campaign opponent name for [id]; falls back to [fallback] (built-in Czech). */
+    fun campaignOpponentName(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.campaignOpponents[id] ?: return fallback
+        return t.name.ifBlank { fallback }
+    }
+
+    /** Localized campaign opponent title for [id]; falls back to [fallback] (built-in Czech). */
+    fun campaignOpponentTitle(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.campaignOpponents[id] ?: return fallback
+        return t.title.ifBlank { fallback }
+    }
+
+    /** Localized campaign opponent description for [id]; falls back to [fallback] (built-in Czech). */
+    fun campaignOpponentDesc(id: String, fallback: String): String {
+        val pack = currentPackState.value ?: return fallback
+        val t = pack.campaignOpponents[id] ?: return fallback
+        return t.desc.ifBlank { fallback }
+    }
+
     // ── Init ─────────────────────────────────────────────────────────────────
 
     fun init(context: Context) {

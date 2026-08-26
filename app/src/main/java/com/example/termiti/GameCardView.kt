@@ -91,6 +91,7 @@ internal fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
     is CardEffect.AttackCastle      -> "🎯"
     is CardEffect.AttackWall        -> "💣"
     is CardEffect.BuildCastle       -> "🏰"
+    is CardEffect.ConvertWallToCastle -> "🔄"
     is CardEffect.BuildWall         -> "🧱"
     is CardEffect.AddResource       -> "💰"
     is CardEffect.AddMine           -> "⛏️"
@@ -144,7 +145,7 @@ internal fun effectIcon(card: Card) = when (card.effects.firstOrNull()) {
 internal fun EffectIconView(card: Card, size: androidx.compose.ui.unit.Dp, fontSizeSp: Float) {
     val iconRes: Int? = when (card.effects.firstOrNull()) {
         is CardEffect.AttackPlayer, is CardEffect.XScaledAttackPlayer, is CardEffect.MomentumAttack -> R.drawable.utok_icon
-        is CardEffect.BuildCastle, is CardEffect.XScaledBuildCastle                                 -> R.drawable.castle_icon
+        is CardEffect.BuildCastle, is CardEffect.XScaledBuildCastle, is CardEffect.ConvertWallToCastle -> R.drawable.castle_icon
         is CardEffect.BuildWall                                                                      -> R.drawable.stavba_icon
         is CardEffect.AttackWall, is CardEffect.AttackCastle, is CardEffect.XScaledAttackCastle,
         is CardEffect.DestroyMine, is CardEffect.TrapOnDraw, is CardEffect.AddToOpponentDeck        -> R.drawable.explode_icon

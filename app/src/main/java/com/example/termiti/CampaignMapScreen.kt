@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -206,41 +207,52 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
             Text(orderLabel, color = Color.White, modifier = Modifier.fillMaxWidth(), style = orderStyle)
         }
 
-        // ── Vrstva 3: textový obsah ───────────────────────────────────────────
-        Column(
-            modifier                = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
-            horizontalAlignment     = Alignment.CenterHorizontally,
-            verticalArrangement     = Arrangement.spacedBy(4.dp)
-        ) {
-            // Skok přes art okno
-            Spacer(Modifier.height(artH + 4.dp))
+        // ── Vrstva 3: jméno – zakřivený text na stejném místě jako u karet ────
+        ArcCardName(
+            name         = location.displayName,
+            modifier     = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 116.dp)
+                .fillMaxWidth()
+                .height(35.dp),
+            fontSizeSp   = 13f,
+            arcRadiusDp  = 560f,
+            baselineFrac = 0.78f
+        )
 
+        // ── Vrstva 4: text karty – popisek lokace, stejné místo jako popis karty ──
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 153.dp)
+                .fillMaxWidth()
+                .height(40.dp)
+                .clipToBounds()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                location.name,
-                color      = if (unlocked) CmText else CmMuted,
-                fontSize   = 12.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign  = TextAlign.Center,
-                lineHeight = 15.sp,
-                maxLines   = 2
-            )
-            Text(
-                location.description,
+                location.displayDescription,
                 color      = if (unlocked) CmDesc else CmMuted,
                 fontSize   = 8.sp,
                 textAlign  = TextAlign.Center,
                 lineHeight = 11.sp,
-                maxLines   = 2
+                maxLines   = 3,
+                overflow   = TextOverflow.Ellipsis
             )
+        }
 
-            Spacer(Modifier.weight(1f))
-
-            // Progress bar
+        // ── Vrstva 5: progress bar + status – pevné místo blízko spodku karty ──
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(y = 196.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             LocationProgressBar(defeatedCount, location.opponents.size, cleared)
 
-            // Status – vycentrováno na celou šířku karty
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -271,8 +283,6 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
                     fontWeight = FontWeight.Bold
                 )
             }
-
-            Spacer(Modifier.height(8.dp))
         }
     }
 }

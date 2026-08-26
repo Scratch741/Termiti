@@ -234,7 +234,7 @@ object QuestManager {
                 _quests[i] = updated
                 if (!wasCompleted && updated.completed) {
                     RewardNotifier.emit(RewardNotifier.RewardEvent(
-                        source = "🎯 Quest splněn – převzít odměnu!"
+                        source = LanguageManager.currentStrings.questCompletedNotif
                     ))
                 }
             }

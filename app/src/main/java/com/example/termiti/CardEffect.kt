@@ -13,6 +13,8 @@ sealed class CardEffect {
     data class AddMine(val type: ResourceType, val amount: Int = 1) : CardEffect()
     data class BuildWall(val amount: Int) : CardEffect()
     data class BuildCastle(val amount: Int) : CardEffect()
+    /** Převede CELÉ aktuální HP vlastních hradeb na HP hradu (hradby klesnou na 0). */
+    object ConvertWallToCastle : CardEffect()
     /** Útočí na hráče: nejdřív poškodí hradby, přebytek jde na hrad. */
     data class AttackPlayer(val amount: Int) : CardEffect()
     /** Specializovaný útok POUZE na hradby – žádné přetečení na hrad. */

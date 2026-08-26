@@ -137,6 +137,11 @@ fun aiChooseAction(
         } else {
             fx.amount  // záporné skóre za ztrátu hradeb
         }
+        // Převede celé vlastní hradby na hrad – hodnota škáluje s aktuálním HP hradeb.
+        is CardEffect.ConvertWallToCastle -> {
+            val urgency = if (aiLowHp) 20 else if (aiCloseToWin) 12 else 5
+            if (ai.wallHP <= 0) -6 else urgency + ai.wallHP / 4
+        }
         is CardEffect.AddMine             -> 9   // long-term value
         is CardEffect.StealResource       -> {
             // Krást má smysl jen pokud soupeř daný zdroj má

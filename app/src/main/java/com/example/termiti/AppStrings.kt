@@ -102,6 +102,15 @@ data class AppStrings(
     val resultPlayAgain: String,
     val resultBackToMenu: String,
 
+    // ── Campaign result screen ───────────────────────────────────────────────
+    val campaignVictory: String,
+    val campaignDefeat: String,
+    val campaignRewardFirstKill: String,
+    val campaignRewardAlreadyClaimed: String,
+    val campaignRetry: String,
+    val campaignBackToLocation: String,
+    val campaignNextOpponent: String,
+
     // ── Deck builder ─────────────────────────────────────────────────────────
     val deckBuilder: String,
     val deckSave: String,
@@ -183,6 +192,7 @@ data class AppStrings(
     val questPlayCards: String,     // %d
     val questDealDamage: String,    // %d
     val questWinCampaign: String,   // %d
+    val questCompletedNotif: String,   // toast vpravo dole při dokončení questu
 
     // ── Shop ─────────────────────────────────────────────────────────────────
     val shopTitle: String,

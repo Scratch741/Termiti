@@ -4023,5 +4023,180 @@
         "amount": 3
       }
     ]
+  },
+  {
+    "id": "133",
+    "name": "Zamořené krysy",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddToOpponentDeck",
+        "cardId": "134",
+        "count": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "133",
+    "discardEffects": [
+      {
+        "type": "BuildWall",
+        "amount": -5
+      }
+    ]
+  },
+  {
+    "id": "134",
+    "name": "Zamořená Krysa",
+    "cost": 3,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [],
+    "rarity": "COMMON",
+    "maxCopies": 0,
+    "isXCost": false,
+    "isPlaceholder": true,
+    "baseId": "134",
+    "discardEffects": [
+      {
+        "type": "BuildCastle",
+        "amount": -4
+      },
+      {
+        "type": "BuildWall",
+        "amount": -4
+      }
+    ]
+  },
+  {
+    "id": "135",
+    "name": "Osudová mince",
+    "cost": 2,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "StealResource",
+        "resType": "CHAOS",
+        "amount": 3
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "135",
+    "discardEffects": [
+      {
+        "type": "AddResource",
+        "resType": "CHAOS",
+        "amount": 2
+      }
+    ]
+  },
+  {
+    "id": "136",
+    "name": "Poslední výpad",
+    "cost": 3,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 7
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "136",
+    "discardEffects": [
+      {
+        "type": "BuildWall",
+        "amount": -4
+      }
+    ]
+  },
+  {
+    "id": "137",
+    "name": "Zapomenutá poznámka",
+    "cost": 1,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 2
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 3,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "137",
+    "discardEffects": [
+      {
+        "type": "DrawCard",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "138",
+    "name": "Podkopané valy",
+    "cost": 3,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 7
+      },
+      {
+        "type": "DrainResource",
+        "resType": "STONES",
+        "amount": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "138",
+    "discardEffects": [
+      {
+        "type": "BuildWall",
+        "amount": -5
+      }
+    ]
+  },
+  {
+    "id": "139",
+    "name": "Pohlcení hradeb",
+    "cost": 8,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "ConvertWallToCastle"
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "baseId": "139",
+    "discardEffects": [
+      {
+        "type": "BuildCastle",
+        "amount": -8
+      }
+    ]
   }
 ]

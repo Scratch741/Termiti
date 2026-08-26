@@ -9,6 +9,7 @@ const ar = (t,n)    => ({ type:'AddResource',       resType:t, amount:n });
 const am = (t,n=1)  => ({ type:'AddMine',           resType:t, amount:n });
 const bw = (n)      => ({ type:'BuildWall',          amount:n });
 const bc = (n)      => ({ type:'BuildCastle',        amount:n });
+const cwtc= ()      => ({ type:'ConvertWallToCastle' });
 const ap = (n)      => ({ type:'AttackPlayer',       amount:n });
 const aw = (n)      => ({ type:'AttackWall',         amount:n });
 const ac = (n)      => ({ type:'AttackCastle',       amount:n });
@@ -307,6 +308,15 @@ const RAW = [
   // discardEffects (11. pozice) = alternativní efekt spuštěný MÍSTO effects,
   // pokud hráč kartu zahodí místo zahraje. Viz wiki/mechanics/discard.md.
   ['132','Zoufalý žold',    2,'ATTACK',0,[ap(5)],              'COMMON', false, undefined, false, [ar('ATTACK',3)]],
+
+  // ── Mechanika "Zahození" (ostré karty) ───────────────────────────────────────
+  ['133','Zamořené krysy',  3,'CHAOS', 0,[aod('134',3)],       'RARE',   false, undefined, false, [bw(-5)]],
+  ['134','Zamořená Krysa',  3,'CHAOS', 0,[],                   'COMMON', false, 0,         true, [bc(-4),bw(-4)]], // placeholder – vkládána pouze efektem 133; bez play efektu, jen ukončí tah
+  ['135','Osudová mince',   2,'CHAOS', 0,[sr('CHAOS',3)],      'EPIC',   false, undefined, false, [ar('CHAOS',2)]],
+  ['136','Poslední výpad',  3,'ATTACK',0,[ap(7)],              'EPIC',   false, undefined, false, [bw(-4)]],
+  ['137','Zapomenutá poznámka',1,'MAGIC',0,[ar('MAGIC',2)],    'COMMON', false, undefined, false, [dc(1)]],
+  ['138','Podkopané valy',  3,'STONES',0,[bw(7),dr('STONES',3)],'RARE',  false, undefined, false, [bw(-5)]],
+  ['139','Pohlcení hradeb', 8,'STONES',0,[cwtc()],             'LEGENDARY', false, undefined, false, [bc(-8)]],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────

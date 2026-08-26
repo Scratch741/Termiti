@@ -66,6 +66,13 @@
     "resultBothDead": "Oba hrady zničeny.",
     "resultPlayAgain": "Hrát znovu",
     "resultBackToMenu": "Zpět do menu",
+    "campaignVictory": "VÍTĚZSTVÍ!",
+    "campaignDefeat": "PORÁŽKA",
+    "campaignRewardFirstKill": "ODMĚNA ZA PRVNÍ PORAŽENÍ",
+    "campaignRewardAlreadyClaimed": "Odměna již byla vyplacena",
+    "campaignRetry": "🔄  Zkusit znovu",
+    "campaignBackToLocation": "Zpět na lokaci",
+    "campaignNextOpponent": "Další soupeř",
     "deckBuilder": "STAVITEL BALÍČKU",
     "deckSave": "Uložit",
     "deckReset": "Resetovat",
@@ -140,6 +147,7 @@
     "questPlayCards": "Zahraj %d karet",
     "questDealDamage": "Způsob %d poškození hradu",
     "questWinCampaign": "Poraž %d soupeřů v kampani",
+    "questCompletedNotif": "🎯 Quest splněn – převzít odměnu!",
     "shopTitle": "OBCHOD",
     "shopBuy": "Koupit",
     "shopDust": "Prach",
@@ -929,22 +937,312 @@
     "L01": {
       "name": "Temný mág",
       "desc": "Ukradne 3 magie, útoku a kamenů. Hrad -18. Ukradne 5 životů hradu."
+    },
+    "133": {
+      "name": "Zamořené krysy",
+      "desc": "Nasype **3× Zamořená Krysa** do soupeřova balíčku. | **Při zahození:** −5 hradeb."
+    },
+    "134": {
+      "name": "Zamořená Krysa",
+      "desc": "Prašivá karta bez efektu – **okamžitě ukončí tvé kolo**. | **Při zahození:** −4 hradu, −4 hradby."
+    },
+    "135": {
+      "name": "Osudová mince",
+      "desc": "Ukradne **3 CHAOSU** soupeři. | **Při zahození:** +2 chaosu."
+    },
+    "136": {
+      "name": "Poslední výpad",
+      "desc": "Zaútočí na nepřítele za 7. | **Při zahození:** −4 hradby."
+    },
+    "137": {
+      "name": "Zapomenutá poznámka",
+      "desc": "Magie +2. | **Při zahození:** lízni 1 kartu."
+    },
+    "138": {
+      "name": "Podkopané valy",
+      "desc": "Hradby +7, sabotuje soupeři 3 kamene. | **Při zahození:** −5 hradeb."
+    },
+    "139": {
+      "name": "Pohlcení hradeb",
+      "desc": "Převede všechny hradby na hrad. | **Při zahození:** −8 hradu."
     }
   },
   "abilities": {
-    "extra_castle":    { "name": "Pevný hrad",        "desc": "+5 startovní hrad, ale vítězný cíl se zvýší z 60 na 65." },
-    "extra_wall":      { "name": "Silné hradby",      "desc": "+5 startovní hradba." },
-    "extra_magic":     { "name": "Magický talent",    "desc": "+1 magie na začátku hry." },
-    "extra_attack":    { "name": "Bojový výcvik",     "desc": "+1 útok na začátku hry." },
-    "extra_stones":    { "name": "Kamenný základ",    "desc": "+1 kameny na začátku hry." },
-    "extra_chaos":     { "name": "Chaotická mysl",    "desc": "+1 chaos na začátku hry." },
-    "extra_hand_card": { "name": "Velká ruka",        "desc": "Maximální velikost ruky vzroste na 8 (místo 7)." },
-    "iron_bastion":    { "name": "Nedobytná pevnost", "desc": "Soupeř potřebuje dosáhnout 75 bodů hradu k výhře výstavbou (místo 70)." },
-    "quick_draw":      { "name": "Rychlý tah",        "desc": "Na začátku prvního kola lízneš 1 kartu navíc." },
-    "boost_attack":    { "name": "Útočná posila",     "desc": "Do balíčku se přidají 2 náhodné útočné karty." },
-    "boost_build":     { "name": "Stavební posila",   "desc": "Do balíčku se přidají 2 náhodné stavební karty." },
-    "boost_magic":     { "name": "Magická posila",    "desc": "Do balíčku se přidají 2 náhodné magické karty." },
-    "boost_chaos":     { "name": "Chaotická posila",  "desc": "Do balíčku se přidají 2 náhodné chaos karty." },
-    "boost_random":    { "name": "Náhodná posila",    "desc": "Do balíčku se přidají 3 náhodné karty libovolného typu." }
+    "extra_castle": {
+      "name": "Pevný hrad",
+      "desc": "+5 startovní hrad, ale vítězný cíl se zvýší z 60 na 65."
+    },
+    "extra_wall": {
+      "name": "Silné hradby",
+      "desc": "+5 startovní hradba."
+    },
+    "extra_magic": {
+      "name": "Magický talent",
+      "desc": "+1 magie na začátku hry."
+    },
+    "extra_attack": {
+      "name": "Bojový výcvik",
+      "desc": "+1 útok na začátku hry."
+    },
+    "extra_stones": {
+      "name": "Kamenný základ",
+      "desc": "+1 kameny na začátku hry."
+    },
+    "extra_chaos": {
+      "name": "Chaotická mysl",
+      "desc": "+1 chaos na začátku hry."
+    },
+    "extra_hand_card": {
+      "name": "Velká ruka",
+      "desc": "Maximální velikost ruky vzroste na 8 (místo 7)."
+    },
+    "iron_bastion": {
+      "name": "Nedobytná pevnost",
+      "desc": "Soupeř potřebuje dosáhnout 75 bodů hradu k výhře výstavbou (místo 70)."
+    },
+    "quick_draw": {
+      "name": "Rychlý tah",
+      "desc": "Na začátku prvního kola lízneš 1 kartu navíc."
+    },
+    "boost_attack": {
+      "name": "Útočná posila",
+      "desc": "Do balíčku se přidají 2 náhodné útočné karty."
+    },
+    "boost_build": {
+      "name": "Stavební posila",
+      "desc": "Do balíčku se přidají 2 náhodné stavební karty."
+    },
+    "boost_magic": {
+      "name": "Magická posila",
+      "desc": "Do balíčku se přidají 2 náhodné magické karty."
+    },
+    "boost_chaos": {
+      "name": "Chaotická posila",
+      "desc": "Do balíčku se přidají 2 náhodné chaos karty."
+    },
+    "boost_random": {
+      "name": "Náhodná posila",
+      "desc": "Do balíčku se přidají 3 náhodné karty libovolného typu."
+    }
+  },
+  "campaignLocations": {
+    "loc_goblins": {
+      "name": "Goblinský tábor",
+      "desc": "Zanedbaný tábor goblinů. Slabí, ale přemnožení."
+    },
+    "loc_dwarves": {
+      "name": "Trpasličí hory",
+      "desc": "Opevněné horské průsmyky. Trpaslíci staví lépe než bojují."
+    },
+    "loc_citadel": {
+      "name": "Temná citadela",
+      "desc": "Sídlo temnoty. Soupeři hrají nefér — a jsou na to pyšní."
+    },
+    "loc_dragon": {
+      "name": "Dračí impérium",
+      "desc": "Říši vládnou draci a chaos. Výstavba = smrt. Výjimky neexistují."
+    }
+  },
+  "campaignOpponents": {
+    "gob_scout": {
+      "name": "Goblin Průzkumník",
+      "title": "Drzý rváč",
+      "desc": "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej."
+    },
+    "gob_archer": {
+      "name": "Goblin Lučištník",
+      "title": "Ostrostřelec z kopce",
+      "desc": "Střílí šípy na hradby. Aspoň míří správným směrem."
+    },
+    "gob_shaman": {
+      "name": "Goblin Šaman",
+      "title": "Čaroděj bez školy",
+      "desc": "Neumí kouzlit, ale dělá, že ano."
+    },
+    "gob_warrior": {
+      "name": "Goblin Válečník",
+      "title": "Rváč s klackem",
+      "desc": "Přišel o zbraň. Teď bojuje klackem."
+    },
+    "gob_looter": {
+      "name": "Goblin Drancovač",
+      "title": "Mistr nepořádku",
+      "desc": "Drancuje vesnice a pak se diví, proč ho nikdo nemá rád."
+    },
+    "gob_berserker": {
+      "name": "Goblin Berserk",
+      "title": "Zuřivý houf jednoho",
+      "desc": "Překvapí tě dřív, než si vůbec lízneš. Startovní ruka: 3 karty."
+    },
+    "gob_troll": {
+      "name": "Goblin Troll",
+      "title": "Boří hradby, staví drby",
+      "desc": "Velký pro goblina. Specialita: boření hradeb."
+    },
+    "gob_commander": {
+      "name": "Goblin Velitel",
+      "title": "Vůdce tlupy",
+      "desc": "Velí ostatním. Alespoň trochu ví, co dělá."
+    },
+    "gob_warchief": {
+      "name": "Goblin Válečný náčelník",
+      "title": "Téměř nebezpečný",
+      "desc": "Jeden krok od trůnu. Sekyrníci a přímé zásahy."
+    },
+    "gob_king": {
+      "name": "Goblin Král",
+      "title": "Pán tábora",
+      "desc": "Boss goblinů. 32 karet, startuje s 5 kartami v ruce. Jednorázová odměna: 200 XP."
+    },
+    "dwf_miner": {
+      "name": "Horník",
+      "title": "Stavitel hradeb",
+      "desc": "Celý den kope a staví. Útok? To nezná."
+    },
+    "dwf_carpenter": {
+      "name": "Trpasličí Tesař",
+      "title": "Palisádový mistr",
+      "desc": "Staví palisády tak rychle, že mu nestíháš číst jméno."
+    },
+    "dwf_guardian": {
+      "name": "Kamenný Strážce",
+      "title": "Neprůstřelný",
+      "desc": "Chodící zeď. Výstavba nestačí – musíš ho prorazit silou."
+    },
+    "dwf_smith": {
+      "name": "Trpasličí Kovář",
+      "title": "Mistr kovadliny",
+      "desc": "Vyrábí zbraně i hradby. Útok a obrana najednou."
+    },
+    "dwf_ranger": {
+      "name": "Horský Ranger",
+      "title": "Průsmykový hlídač",
+      "desc": "Hlídá průsmyky a bourá hradby. Rád používá beranidla."
+    },
+    "dwf_warrior": {
+      "name": "Horský Bojovník",
+      "title": "Sekyrový veterán",
+      "desc": "Na rozdíl od ostatních trpaslíků opravdu bojuje."
+    },
+    "dwf_mage": {
+      "name": "Trpasličí Mág",
+      "title": "Horský čaroděj",
+      "desc": "Sabotoval tvůj kamenolom. Startovní důl kamene −1."
+    },
+    "dwf_general": {
+      "name": "Trpasličí Generál",
+      "title": "Velitel horské armády",
+      "desc": "Zkušený velitel. Startuje s 5 kartami a extra mine útoku."
+    },
+    "dwf_colossus": {
+      "name": "Kamenný Kolos",
+      "title": "Neprolomitelná pevnost",
+      "desc": "35 karet a winTarget 80. Prolomit nebo zemřít."
+    },
+    "dwf_thane": {
+      "name": "Trpasličí Thane",
+      "title": "Pán hor",
+      "desc": "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok. Jednorázová odměna: 200 XP."
+    },
+    "cit_knight": {
+      "name": "Stínový Rytíř",
+      "title": "Zloděj zdrojů",
+      "desc": "Krade ti zdroje a ještě se směje. Začínáš s méně magií."
+    },
+    "cit_archer": {
+      "name": "Temný Lučištník",
+      "title": "Sniper citadely",
+      "desc": "Zápalné šípy na hradby, přímé zásahy na hrad."
+    },
+    "cit_mage": {
+      "name": "Temný Čaroděj",
+      "title": "Mistr ohně",
+      "desc": "Ovládá magii temnoty. Začínáš s méně útokem."
+    },
+    "cit_necromancer": {
+      "name": "Nekromant",
+      "title": "Pán jedů a stínů",
+      "desc": "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1."
+    },
+    "cit_warrior": {
+      "name": "Temný Válečník",
+      "title": "Sekáč bez milosti",
+      "desc": "35 karet čistého útoku. Výstavba nestačí — zaútočíš nebo zemřeš."
+    },
+    "cit_guardian": {
+      "name": "Temný Strážce",
+      "title": "Pevná ruka temnoty",
+      "desc": "Útočí i brání. Výstavba na 70 je tvá jediná alternativa."
+    },
+    "cit_saboteur": {
+      "name": "Sabotér",
+      "title": "Mistr sabotáže",
+      "desc": "Okrade tě ještě před startem. Ruka 3 karty, bez útoku a kamenů."
+    },
+    "cit_dragon": {
+      "name": "Ohnivý Drak",
+      "title": "Dech zkázy",
+      "desc": "38 karet ohně. Startuje s 5 v ruce. Zabudovat nelze."
+    },
+    "cit_general": {
+      "name": "Temný Generál",
+      "title": "Pravá ruka Pána",
+      "desc": "42 karet, startuje se 6. Začínáš oslaben. Útočíš nebo prohraješ."
+    },
+    "cit_lord": {
+      "name": "Temný Pán",
+      "title": "Vládce temnoty",
+      "desc": "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt. Jednorázová odměna: 200 XP."
+    },
+    "drg_warden": {
+      "name": "Dračí Strážce",
+      "title": "Ochránce bran",
+      "desc": "Brána do říše. Útok a Chaos v jednom. Hrad −3."
+    },
+    "drg_shaman": {
+      "name": "Dračí Šaman",
+      "title": "Mistr chaosu",
+      "desc": "Kouzlí chaosem. Sabotoval tvůj útok a magie mine −1."
+    },
+    "drg_rider": {
+      "name": "Dračí Jezdec",
+      "title": "Sedlo z plamenů",
+      "desc": "Startuje s 5 kartami. Hrad −3, hradby −3."
+    },
+    "drg_saboteur": {
+      "name": "Entropický Sabotér",
+      "title": "Rozsévač chaosu",
+      "desc": "Zničil tvůj kamenolom a vyprázdnil zásoby. Mine kamene −1."
+    },
+    "drg_wyrm": {
+      "name": "Starý Wyrm",
+      "title": "Žijící rána",
+      "desc": "Přepadne tě dřív, než procitnete. Ruka 3, hrad −5."
+    },
+    "drg_general": {
+      "name": "Dračí Generál",
+      "title": "Velitel spálené země",
+      "desc": "5 karet a 3 typy dolů. Útok nebo záhuba. Hrad −5, hradby −5."
+    },
+    "drg_venom": {
+      "name": "Jedovatý Drak",
+      "title": "Zkáza z dálky",
+      "desc": "Otráví tvůj výcvikový tábor. Mine útoku −1, hrad −5."
+    },
+    "drg_tyrant": {
+      "name": "Dračí Tyran",
+      "title": "Ohnivý trůn",
+      "desc": "6 karet, 3 typy dolů. Legendy v balíčku. Hrad −5, hradby −5."
+    },
+    "drg_archon": {
+      "name": "Dračí Archon",
+      "title": "Pravá ruka Impéria",
+      "desc": "6 karet, 3 extra miny. Hrad −7, hradby −5, mine magie −1."
+    },
+    "drg_emperor": {
+      "name": "Dračí Císař",
+      "title": "Vládce věčného plamene",
+      "desc": "55 karet, 7 startovních. Drak, Démon i Chaos drak. Hrad −8, hradby −8. Jednorázová odměna: 200 XP."
+    }
   }
 }

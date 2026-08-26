@@ -143,6 +143,7 @@ private fun DraftStatsPanel(
         is CardEffect.StealCard,
         is CardEffect.ConditionalEffect -> "Útok"
         is CardEffect.BuildCastle,
+        is CardEffect.ConvertWallToCastle,
         is CardEffect.BuildWall         -> "Obrana"
         is CardEffect.AddResource       -> "Zdroje"
         is CardEffect.AddMine           -> "Doly"

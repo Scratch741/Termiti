@@ -66,6 +66,13 @@
     "resultBothDead": "Both castles destroyed.",
     "resultPlayAgain": "Play again",
     "resultBackToMenu": "Back to menu",
+    "campaignVictory": "VICTORY!",
+    "campaignDefeat": "DEFEAT",
+    "campaignRewardFirstKill": "REWARD FOR FIRST DEFEAT",
+    "campaignRewardAlreadyClaimed": "Reward already claimed",
+    "campaignRetry": "🔄  Try again",
+    "campaignBackToLocation": "Back to location",
+    "campaignNextOpponent": "Next opponent",
     "deckBuilder": "DECK BUILDER",
     "deckSave": "Save",
     "deckReset": "Reset",
@@ -140,6 +147,7 @@
     "questPlayCards": "Play %d cards",
     "questDealDamage": "Deal %d castle damage",
     "questWinCampaign": "Beat %d opponents in campaign",
+    "questCompletedNotif": "🎯 Quest complete – claim your reward!",
     "shopTitle": "SHOP",
     "shopBuy": "Buy",
     "shopDust": "Dust",
@@ -929,6 +937,34 @@
     "L01": {
       "name": "Darkmage",
       "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. -18 castle. Steals 5 castle HP."
+    },
+    "133": {
+      "name": "Infested Rats",
+      "desc": "Shuffles **3× Infested Rat** into the opponent's deck. | **On discard:** −5 walls."
+    },
+    "134": {
+      "name": "Infested Rat",
+      "desc": "A mangy card with no effect – **instantly ends your turn**. | **On discard:** −4 castle, −4 walls."
+    },
+    "135": {
+      "name": "Coin of Fate",
+      "desc": "Steals **3 CHAOS** from the opponent. | **On discard:** +2 Chaos."
+    },
+    "136": {
+      "name": "Final Lunge",
+      "desc": "Attack the enemy for 7. | **On discard:** −4 walls."
+    },
+    "137": {
+      "name": "Forgotten Note",
+      "desc": "Magic +2. | **On discard:** draw 1 card."
+    },
+    "138": {
+      "name": "Undermined Ramparts",
+      "desc": "Walls +7, sabotages 3 stone from the opponent. | **On discard:** −5 walls."
+    },
+    "139": {
+      "name": "Absorption of the Walls",
+      "desc": "Converts all walls into castle. | **On discard:** −8 castle."
     }
   },
   "abilities": {
@@ -987,6 +1023,226 @@
     "boost_random": {
       "name": "Random Boost",
       "desc": "Adds 3 random cards of any type to your deck."
+    }
+  },
+  "campaignLocations": {
+    "loc_goblins": {
+      "name": "Goblin Camp",
+      "desc": "A neglected goblin camp. Weak, but overwhelming in numbers."
+    },
+    "loc_dwarves": {
+      "name": "Dwarven Mountains",
+      "desc": "Fortified mountain passes. The dwarves build better than they fight."
+    },
+    "loc_citadel": {
+      "name": "Dark Citadel",
+      "desc": "A seat of darkness. Its warriors fight dirty — and they're proud of it."
+    },
+    "loc_dragon": {
+      "name": "Draconic Empire",
+      "desc": "An empire ruled by dragons and chaos. Building means death. No exceptions."
+    }
+  },
+  "campaignOpponents": {
+    "gob_scout": {
+      "name": "Goblin Scout",
+      "title": "Cocky Brawler",
+      "desc": "The weakest of the pack. Build your castle to 45, or just kick him down."
+    },
+    "gob_archer": {
+      "name": "Goblin Archer",
+      "title": "Sharpshooter on the Hill",
+      "desc": "Fires arrows at walls. At least he's aiming the right way."
+    },
+    "gob_shaman": {
+      "name": "Goblin Shaman",
+      "title": "Self-Taught Sorcerer",
+      "desc": "Can't actually cast spells, but pretends he can."
+    },
+    "gob_warrior": {
+      "name": "Goblin Warrior",
+      "title": "Brawler with a Club",
+      "desc": "Lost his weapon. Now he fights with a stick."
+    },
+    "gob_looter": {
+      "name": "Goblin Looter",
+      "title": "Master of Mess",
+      "desc": "Pillages villages, then wonders why nobody likes him."
+    },
+    "gob_berserker": {
+      "name": "Goblin Berserker",
+      "title": "A Furious Mob of One",
+      "desc": "Catches you off guard before you even draw. Starting hand: 3 cards."
+    },
+    "gob_troll": {
+      "name": "Goblin Troll",
+      "title": "Tears Down Walls, Builds Rumors",
+      "desc": "Big for a goblin. His specialty: tearing down walls."
+    },
+    "gob_commander": {
+      "name": "Goblin Commander",
+      "title": "Leader of the Pack",
+      "desc": "Commands the others. At least he sort of knows what he's doing."
+    },
+    "gob_warchief": {
+      "name": "Goblin Warchief",
+      "title": "Almost Dangerous",
+      "desc": "One step from the throne. Axe-wielders and direct strikes."
+    },
+    "gob_king": {
+      "name": "Goblin King",
+      "title": "Lord of the Camp",
+      "desc": "Boss of the goblins. 32 cards, starts with 5 in hand. One-time reward: 200 XP."
+    },
+    "dwf_miner": {
+      "name": "Miner",
+      "title": "Wall Builder",
+      "desc": "Digs and builds all day long. Attacking? Never heard of it."
+    },
+    "dwf_carpenter": {
+      "name": "Dwarven Carpenter",
+      "title": "Palisade Master",
+      "desc": "Builds palisades so fast you can't even read his name in time."
+    },
+    "dwf_guardian": {
+      "name": "Stone Guardian",
+      "title": "Bulletproof",
+      "desc": "A walking wall. Building won't be enough — you have to break through with force."
+    },
+    "dwf_smith": {
+      "name": "Dwarven Smith",
+      "title": "Master of the Anvil",
+      "desc": "Forges weapons and walls alike. Offense and defense at once."
+    },
+    "dwf_ranger": {
+      "name": "Mountain Ranger",
+      "title": "Pass Watcher",
+      "desc": "Guards the passes and tears down walls. Loves a good battering ram."
+    },
+    "dwf_warrior": {
+      "name": "Mountain Warrior",
+      "title": "Axe Veteran",
+      "desc": "Unlike the other dwarves, he actually fights."
+    },
+    "dwf_mage": {
+      "name": "Dwarven Mage",
+      "title": "Mountain Sorcerer",
+      "desc": "Sabotaged your quarry. Starting stone mine −1."
+    },
+    "dwf_general": {
+      "name": "Dwarven General",
+      "title": "Commander of the Mountain Army",
+      "desc": "A seasoned commander. Starts with 5 cards and an extra attack mine."
+    },
+    "dwf_colossus": {
+      "name": "Stone Colossus",
+      "title": "Unbreakable Fortress",
+      "desc": "35 cards and a win target of 80. Break through, or die trying."
+    },
+    "dwf_thane": {
+      "name": "Dwarven Thane",
+      "title": "Lord of the Mountains",
+      "desc": "Ruler of the mountains. 38 cards, 5 starting cards. Attack, or attack. One-time reward: 200 XP."
+    },
+    "cit_knight": {
+      "name": "Shadow Knight",
+      "title": "Resource Thief",
+      "desc": "Steals your resources and laughs while doing it. You start with less magic."
+    },
+    "cit_archer": {
+      "name": "Dark Archer",
+      "title": "Citadel Sniper",
+      "desc": "Flaming arrows for your walls, direct hits on your castle."
+    },
+    "cit_mage": {
+      "name": "Dark Sorcerer",
+      "title": "Master of Fire",
+      "desc": "Wields the magic of darkness. You start with less attack."
+    },
+    "cit_necromancer": {
+      "name": "Necromancer",
+      "title": "Lord of Poisons and Shadows",
+      "desc": "Poisons your supplies and ruins your magic mine. Castle −3, magic mine −1."
+    },
+    "cit_warrior": {
+      "name": "Dark Warrior",
+      "title": "Merciless Cutter",
+      "desc": "35 cards of pure aggression. Building won't save you — attack, or die."
+    },
+    "cit_guardian": {
+      "name": "Dark Guardian",
+      "title": "The Firm Hand of Darkness",
+      "desc": "Attacks and defends both. Building to 70 is your only alternative."
+    },
+    "cit_saboteur": {
+      "name": "Saboteur",
+      "title": "Master of Sabotage",
+      "desc": "Robs you before the match even starts. Hand of 3, no attack or stone."
+    },
+    "cit_dragon": {
+      "name": "Fire Dragon",
+      "title": "Breath of Ruin",
+      "desc": "38 cards of fire. Starts with 5 in hand. Building is not an option."
+    },
+    "cit_general": {
+      "name": "Dark General",
+      "title": "The Lord's Right Hand",
+      "desc": "42 cards, starts with 6. You begin weakened. Attack, or lose."
+    },
+    "cit_lord": {
+      "name": "Dark Lord",
+      "title": "Ruler of Darkness",
+      "desc": "48 cards, 7 to start. Demon and Dragon both. Building means death. One-time reward: 200 XP."
+    },
+    "drg_warden": {
+      "name": "Dragon Warden",
+      "title": "Guardian of the Gates",
+      "desc": "The gateway to the empire. Attack and Chaos in one. Castle −3."
+    },
+    "drg_shaman": {
+      "name": "Dragon Shaman",
+      "title": "Master of Chaos",
+      "desc": "Casts with chaos. Sabotaged your attack — magic mine −1."
+    },
+    "drg_rider": {
+      "name": "Dragon Rider",
+      "title": "Saddle of Flames",
+      "desc": "Starts with 5 cards. Castle −3, walls −3."
+    },
+    "drg_saboteur": {
+      "name": "Entropic Saboteur",
+      "title": "Sower of Chaos",
+      "desc": "Destroyed your quarry and emptied your stores. Stone mine −1."
+    },
+    "drg_wyrm": {
+      "name": "Old Wyrm",
+      "title": "A Living Wound",
+      "desc": "Strikes before you're even awake. Hand of 3, castle −5."
+    },
+    "drg_general": {
+      "name": "Dragon General",
+      "title": "Commander of Scorched Earth",
+      "desc": "5 cards and 3 mine types. Attack, or perish. Castle −5, walls −5."
+    },
+    "drg_venom": {
+      "name": "Venomous Dragon",
+      "title": "Doom from Afar",
+      "desc": "Poisons your training camp. Attack mine −1, castle −5."
+    },
+    "drg_tyrant": {
+      "name": "Dragon Tyrant",
+      "title": "Throne of Fire",
+      "desc": "6 cards, 3 mine types. Legendaries in the deck. Castle −5, walls −5."
+    },
+    "drg_archon": {
+      "name": "Dragon Archon",
+      "title": "The Empire's Right Hand",
+      "desc": "6 cards, 3 extra mines. Castle −7, walls −5, magic mine −1."
+    },
+    "drg_emperor": {
+      "name": "Dragon Emperor",
+      "title": "Ruler of the Eternal Flame",
+      "desc": "55 cards, 7 to start. Dragon, Demon, and Chaos Dragon alike. Castle −8, walls −8. One-time reward: 200 XP."
     }
   }
 }

@@ -545,6 +545,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     if (fx.amount >= selfHpMissing) 200.0
                     else fx.amount * 10.0 / selfHpMissing
                 }
+                is CardEffect.ConvertWallToCastle -> {
+                    val amt = self.wallHP
+                    if (amt >= selfHpMissing) 200.0 else amt * 10.0 / selfHpMissing
+                }
                 is CardEffect.BuildWall     -> {
                     // Zeď nad cap (MAX_WALL) nemá hodnotu – počítej jen to, co se vejde
                     val effective = fx.amount.coerceAtMost(MAX_WALL - self.wallHP).coerceAtLeast(0)
@@ -2752,7 +2756,8 @@ fun detectCardSound(card: Card): CardSound {
     }
     val hasBuild = allEffects.any { e ->
         e is CardEffect.BuildCastle || e is CardEffect.BuildWall ||
-        e is CardEffect.AddMine     || e is CardEffect.XScaledBuildCastle
+        e is CardEffect.AddMine     || e is CardEffect.XScaledBuildCastle ||
+        e is CardEffect.ConvertWallToCastle
     }
     val hasResource = allEffects.any { e ->
         e is CardEffect.AddResource        || e is CardEffect.AddResourceDelayed ||

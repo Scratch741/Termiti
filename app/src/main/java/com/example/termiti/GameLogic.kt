@@ -36,6 +36,11 @@ fun applyEffects(
         is CardEffect.BuildCastle   ->
             self.castleHP = (self.castleHP + effect.amount).coerceAtMost(100)
 
+        is CardEffect.ConvertWallToCastle -> {
+            self.castleHP = (self.castleHP + self.wallHP).coerceAtMost(100)
+            self.wallHP = 0
+        }
+
         is CardEffect.AttackPlayer  -> {
             val dmg      = effect.amount.coerceAtMost(opponent.wallHP)
             opponent.wallHP -= dmg

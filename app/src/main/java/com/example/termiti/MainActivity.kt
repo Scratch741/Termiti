@@ -224,6 +224,11 @@ class MainActivity : ComponentActivity() {
                         Screen.CAMPAIGN_RESULT -> {
                             val opp = campaignOpponent
                             if (opp == null) { screen = Screen.CAMPAIGN_MAP } else {
+                                val loc = campaignLocation
+                                val nextOpp = loc?.opponents?.let { list ->
+                                    val idx = list.indexOf(opp)
+                                    if (idx in 0 until list.size - 1) list[idx + 1] else null
+                                }
                                 CampaignResultScreen(
                                     opponent        = opp,
                                     playerWon       = campaignPlayerWon,
@@ -232,7 +237,13 @@ class MainActivity : ComponentActivity() {
                                         screen = Screen.CAMPAIGN_GAME
                                     },
                                     onBackToLocation = { screen = Screen.CAMPAIGN_LOCATION },
-                                    onBackToMap      = { screen = Screen.CAMPAIGN_MAP }
+                                    onBackToMap      = { screen = Screen.CAMPAIGN_MAP },
+                                    onNextOpponent   = nextOpp?.let { next ->
+                                        {
+                                            viewModel.startCampaignBattle(next)
+                                            screen = Screen.CAMPAIGN_GAME
+                                        }
+                                    }
                                 )
                             }
                         }

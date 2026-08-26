@@ -11,6 +11,7 @@
 | `AddMine` | type, amount=1 | Permanently increases mine production |
 | `BuildWall` | amount | Adds (or removes) wall height |
 | `BuildCastle` | amount | Adds (or removes) castle height |
+| `ConvertWallToCastle` | — | Converts the caster's ENTIRE current wall HP into castle HP (wall drops to 0). Value is dynamic (depends on wall HP at cast time), unlike the fixed-amount `BuildCastle`. |
 | `AttackPlayer` | amount | Attacks player — hits wall first, overflow goes to castle |
 | `AttackWall` | amount | Attacks wall ONLY, no overflow to castle |
 | `AttackCastle` | amount | Direct castle hit — ignores wall |
@@ -110,4 +111,5 @@ Implementation: server charges in `GameSession._handlePlayCard` (cloneSrc branch
 - 2026-05-26: Added missing effects: GiveRandomCard, TrapOnDraw, AddToOpponentDeck, ModifyHandCost, RandomizeHands, SmartJoker
 - 2026-05-28: Documented DecisionChooseResource, PeekAndStealHand, MomentumAttack
 - 2026-07-12: Morph cards section (Mirror/Clone) + cost rules; fixed online/offline parity: online server now charges Klon as source+1 in source's resource type; Kletba cen (`ModifyHandCost`) no longer visually lost on Zrcadlo/Klon
+- 2026-07-26: Added `ConvertWallToCastle` (new effect, first used by "Pohlcení hradeb" `"139"`) — wired through `CardEffect.kt`/`GameLogic.kt`/`CardRepository.kt`/`AiEngine.kt` offline and `engine.js`/`GameSession.js`/`cards.js` (`cwtc()` helper) online. See [[mechanics/discard]] changelog for the 6 new discard-mechanic cards added alongside it.
 - 2026-05-29: DecisionChooseResource now shown as placeholder cards (not buttons)

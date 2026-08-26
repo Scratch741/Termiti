@@ -463,6 +463,7 @@
     <button id="tab-builder" class="mode-tab active" onclick="setMode('builder')">DECK BUILDER</button>
     <button id="tab-designer" class="mode-tab" onclick="setMode('designer')">DESIGNER MODE</button>
     <button id="tab-sim" class="mode-tab" onclick="setMode('sim')">SIMULÁTOR</button>
+    <button id="tab-campaign" class="mode-tab" onclick="setMode('campaign')">KAMPAŇ</button>
   </div>
 
   <div class="header-center">
@@ -740,8 +741,138 @@
       </div>
     </div>
 
+    <!-- CAMPAIGN PANEL -->
+    <div id="campaign-panel-view" style="display:none;flex-direction:column;height:100%">
+      <div class="panel-header">
+        <h2>KAMPAŇ – SOUPEŘI</h2>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:10px 14px" id="campaign-form-root">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <div class="cf-label">LOKACE</div>
+            <select id="camp-location-select" onchange="onCampaignLocationChange()" class="cf-select"></select>
+          </div>
+          <div>
+            <div class="cf-label">SOUPEŘ</div>
+            <select id="camp-opponent-select" onchange="onCampaignOpponentChange()" class="cf-select"></select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Základní info</h3>
+          <div class="cf-row"><label>ID</label><input type="text" id="camp-id"></div>
+          <div class="cf-row"><label>Jméno</label><input type="text" id="camp-name"></div>
+          <div class="cf-row"><label>Titul</label><input type="text" id="camp-title"></div>
+          <div class="cf-row"><label>Avatar</label><input type="text" id="camp-avatar"></div>
+          <div class="cf-row cf-row-top"><label>Popis</label><textarea id="camp-description" rows="2" class="cf-select" style="resize:vertical"></textarea></div>
+          <div class="cf-row"><label>Boss lokace</label><input type="checkbox" id="camp-isboss" style="justify-self:start"></div>
+        </div>
+
+        <div class="control-group">
+          <h3>Startovní stav AI</h3>
+          <div class="cf-grid3">
+            <div><label>Hrad</label><input type="number" id="camp-aiCastle"></div>
+            <div><label>Hradby</label><input type="number" id="camp-aiWall"></div>
+            <div><label>Ruka AI</label><input type="number" id="camp-aiStartHandSize"></div>
+          </div>
+          <div class="cf-grid3">
+            <div><label>Magie</label><input type="number" id="camp-aiStartMagic"></div>
+            <div><label>Útok</label><input type="number" id="camp-aiStartAttack"></div>
+            <div><label>Kámen</label><input type="number" id="camp-aiStartStones"></div>
+          </div>
+          <div class="cf-sublabel">Extra doly AI (navíc k základní 1)</div>
+          <div class="cf-grid4">
+            <div><label>Magie</label><input type="number" id="camp-mineMagic"></div>
+            <div><label>Útok</label><input type="number" id="camp-mineAttack"></div>
+            <div><label>Kámen</label><input type="number" id="camp-mineStones"></div>
+            <div><label>Chaos</label><input type="number" id="camp-mineChaos"></div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Podmínky souboje</h3>
+          <div class="cf-grid3">
+            <div><label>winTarget</label><input type="number" id="camp-winTarget"></div>
+            <div><label>aiWinTarget</label><input type="number" id="camp-aiWinTarget"></div>
+            <div><label>Ruka hráče</label><input type="number" id="camp-playerStartHandSize"></div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Handicap hráče</h3>
+          <div class="cf-grid3">
+            <div><label>Hrad</label><input type="number" id="camp-hcCastle"></div>
+            <div><label>Hradby</label><input type="number" id="camp-hcWall"></div>
+            <div></div>
+          </div>
+          <div class="cf-grid3">
+            <div><label>Magie</label><input type="number" id="camp-hcMagic"></div>
+            <div><label>Útok</label><input type="number" id="camp-hcAttack"></div>
+            <div><label>Kámen</label><input type="number" id="camp-hcStones"></div>
+          </div>
+          <div class="cf-sublabel">Zásah do dolů hráče (záporné = zničený)</div>
+          <div class="cf-grid4">
+            <div><label>Magie</label><input type="number" id="camp-hcMineMagic"></div>
+            <div><label>Útok</label><input type="number" id="camp-hcMineAttack"></div>
+            <div><label>Kámen</label><input type="number" id="camp-hcMineStones"></div>
+            <div><label>Chaos</label><input type="number" id="camp-hcMineChaos"></div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Odměna</h3>
+          <div class="cf-grid3">
+            <div><label>Zlato</label><input type="number" id="camp-rewardGold"></div>
+            <div><label>Drahokamy</label><input type="number" id="camp-rewardGems"></div>
+            <div><label>XP</label><input type="number" id="camp-rewardXp"></div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3 style="margin:0">Balíček soupeře</h3>
+            <div style="font-size:12px;color:var(--gold)"><span id="camp-deck-count">0</span> karet</div>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin:4px 0 6px">
+            Klikni na kartu vlevo = přidat. Klik na položku = −1, pravý klik = +1. Bez limitu kopií.
+          </div>
+          <div id="camp-deck-list" style="max-height:280px;overflow-y:auto"></div>
+        </div>
+
+        <button class="btn-action" style="width:100%;margin-top:6px" onclick="resetCampaignOpponent()">↺ VRÁTIT PŮVODNÍ DATA TOHOTO SOUPEŘE</button>
+        <button class="btn-action" style="width:100%;margin-top:6px" onclick="copyCampaignOpponentCode()">KOPÍROVAT SOUPEŘE (Kotlin)</button>
+        <div id="campaign-output" class="output-box" style="white-space:pre-wrap;font-size:10px;text-align:left">—</div>
+      </div>
+    </div>
+
   </div>
 </div>
+
+<style>
+  .cf-label { font-size:10px;color:var(--text-muted);font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px; }
+  .cf-sublabel { font-size:10px;color:var(--text-muted);margin:8px 0 4px; }
+  .cf-select {
+    width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);
+    padding:6px 8px;font-family:'Crimson Pro',serif;font-size:13px;
+  }
+  .cf-row {
+    display:grid;grid-template-columns:80px 1fr;align-items:center;gap:8px;margin-bottom:6px;
+  }
+  .cf-row-top { align-items:start; }
+  .cf-row label { font-size:11px;color:var(--text-dim); }
+  .cf-row input[type="text"] {
+    width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);
+    padding:4px 6px;font-family:'Crimson Pro',serif;font-size:12px;
+  }
+  .cf-grid3, .cf-grid4 { display:grid;gap:6px;margin-bottom:6px; }
+  .cf-grid3 { grid-template-columns:repeat(3,1fr); }
+  .cf-grid4 { grid-template-columns:repeat(4,1fr); }
+  .cf-grid3 label, .cf-grid4 label { display:block;font-size:9px;color:var(--text-muted);margin-bottom:2px; }
+  .cf-grid3 input, .cf-grid4 input {
+    width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);
+    padding:4px 3px;font-family:'Crimson Pro',serif;font-size:12px;text-align:center;
+  }
+</style>
 
 <script>
 let CARDS = [];
@@ -851,6 +982,7 @@ function setMode(m) {
   document.getElementById('tab-builder').classList.toggle('active', m === 'builder');
   document.getElementById('tab-designer').classList.toggle('active', m === 'designer');
   document.getElementById('tab-sim').classList.toggle('active', m === 'sim');
+  document.getElementById('tab-campaign').classList.toggle('active', m === 'campaign');
   document.getElementById('main-layout').classList.toggle('designer-mode', m === 'designer');
 
   document.getElementById('designer-center').style.display = m === 'designer' ? 'flex' : 'none';
@@ -860,9 +992,11 @@ function setMode(m) {
   const deckPanel     = document.getElementById('deck-panel-view');
   const designerPanel = document.getElementById('designer-panel-view');
   const simPanel      = document.getElementById('sim-panel-view');
+  const campaignPanel = document.getElementById('campaign-panel-view');
 
   deckPanel.style.display     = m === 'builder'  ? 'flex' : 'none';
   simPanel.style.display      = m === 'sim'      ? 'flex' : 'none';
+  campaignPanel.style.display = m === 'campaign' ? 'flex' : 'none';
   if (m === 'designer') {
     designerPanel.style.display = 'flex';
     document.querySelector('.designer-controls').scrollTop = 0;
@@ -871,6 +1005,7 @@ function setMode(m) {
   }
 
   if (m === 'sim') renderSimPanel();
+  if (m === 'campaign' && !campOpponentRef) initCampaignPanel();
   renderBrowser();
 }
 
@@ -1191,7 +1326,7 @@ function renderBrowser() {
     const rarityColor = { COMMON: 'var(--common)', RARE: 'var(--rare)', EPIC: 'var(--epic)', LEGENDARY: 'var(--legendary)' };
     const rarityLabel = { COMMON: 'Běžná', RARE: 'Vzácná', EPIC: 'Epická', LEGENDARY: 'Legendární' };
     const cap = maxCopies(c.rarity);
-    const inDeck = DECK[c.id] || 0;
+    const inDeck = mode === 'campaign' ? (CAMPAIGN_DECK[c.id] || 0) : (DECK[c.id] || 0);
     const atMax = mode === 'builder' && inDeck >= cap;
     const col = rarityColor[c.rarity] || 'var(--common)';
     return `
@@ -1205,7 +1340,8 @@ function renderBrowser() {
         <div class="card-desc">${c.desc}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px">
           <span style="color:${col}">${rarityLabel[c.rarity] || c.rarity}</span>
-          ${mode === 'builder' ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">${inDeck}/${cap}</span>` : ''}
+          ${mode === 'builder'  ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">${inDeck}/${cap}</span>` : ''}
+          ${mode === 'campaign' ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">×${inDeck}</span>` : ''}
           ${isAdjusted ? '<span style="color:var(--gold);font-weight:bold">MOD</span>' : ''}
         </div>
       </div>
@@ -1218,6 +1354,9 @@ function selectCard(id) {
     const cap = maxCopies(CARD_MAP[id]?.rarity || 'COMMON');
     DECK[id] = Math.min((DECK[id] || 0) + 1, cap);
     renderDeck();
+  } else if (mode === 'campaign') {
+    CAMPAIGN_DECK[id] = (CAMPAIGN_DECK[id] || 0) + 1;   // soupeři nemají limit kopií
+    renderCampaignDeck();
   } else {
     selectedCardId = id;
     const card = CARD_MAP[id];
@@ -1672,6 +1811,383 @@ function copyDeckCode() {
   try {
     document.execCommand('copy');
     alert("Kód balíčku zkopírován do schránky.");
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+  }
+  document.body.removeChild(textArea);
+}
+
+// ═══════════════════════════════════════════════════════════
+// KAMPAŇ – editor soupeřů (balíček, staty, handicap, odměna)
+// Data ručně přepsaná z CampaignData.kt. Sparse objekty (jen
+// nedefaultní pole) se normalizují přes normOpp() – stejná
+// logika jako pojmenované argumenty s defaulty v Kotlinu.
+// ═══════════════════════════════════════════════════════════
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function normOpp(o) {
+  const base = {
+    isBoss: false, aiCastle: 30, aiWall: 10,
+    aiStartMagic: 0, aiStartAttack: 0, aiStartStones: 0,
+    aiExtraMines: {}, deckCardCounts: {},
+    winTarget: 60, aiWinTarget: 60,
+    aiStartHandSize: 4, playerStartHandSize: 4,
+    playerHandicap: { extraCastle: 0, extraWall: 0, extraMagic: 0, extraAttack: 0, extraStones: 0, extraMines: {} },
+    rewardGold: 50, rewardGems: 0, rewardXp: 75
+  };
+  const merged = Object.assign({}, base, o);
+  merged.aiExtraMines = Object.assign({}, o.aiExtraMines || {});
+  const hc = Object.assign({}, base.playerHandicap, o.playerHandicap || {});
+  hc.extraMines = Object.assign({}, (o.playerHandicap && o.playerHandicap.extraMines) || {});
+  merged.playerHandicap = hc;
+  return merged;
+}
+
+const CAMPAIGN_LOCATIONS_RAW = [
+  {
+    id: "loc_goblins", name: "Goblinský tábor", emoji: "🌲",
+    description: "Zanedbaný tábor goblinů. Slabí, ale přemnožení.",
+    opponents: [
+      {id:"gob_scout",name:"Goblin Průzkumník",title:"Drzý rváč",avatar:"enemy_icon_1",description:"Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej.",aiCastle:20,aiWall:5,deckCardCounts:{"001":6,"008":6,"004":6},winTarget:45,rewardGold:30},
+      {id:"gob_archer",name:"Goblin Lučištník",title:"Ostrostřelec z kopce",avatar:"🏹",description:"Střílí šípy na hradby. Aspoň míří správným směrem.",aiCastle:21,aiWall:6,deckCardCounts:{"008":7,"019":6,"001":4,"004":3},winTarget:48,rewardGold:35},
+      {id:"gob_shaman",name:"Goblin Šaman",title:"Čaroděj bez školy",avatar:"🧌",description:"Neumí kouzlit, ale dělá, že ano.",aiCastle:22,aiWall:7,aiStartMagic:1,deckCardCounts:{"001":6,"008":6,"012":5,"004":5},winTarget:52,rewardGold:40},
+      {id:"gob_warrior",name:"Goblin Válečník",title:"Rváč s klackem",avatar:"🪓",description:"Přišel o zbraň. Teď bojuje klackem.",aiCastle:23,aiWall:8,deckCardCounts:{"001":6,"007":4,"008":5,"012":4,"002":3,"004":2},winTarget:55,rewardGold:45},
+      {id:"gob_looter",name:"Goblin Drancovač",title:"Mistr nepořádku",avatar:"💰",description:"Drancuje vesnice a pak se diví, proč ho nikdo nemá rád.",aiCastle:24,aiWall:8,deckCardCounts:{"007":4,"001":5,"027":4,"008":4,"012":4,"002":3,"004":1},winTarget:57,rewardGold:50},
+      {id:"gob_berserker",name:"Goblin Berserk",title:"Zuřivý houf jednoho",avatar:"😤",description:"Překvapí tě dřív, než si vůbec lízneš. Startovní ruka: 3 karty.",aiCastle:25,aiWall:7,deckCardCounts:{"007":5,"001":4,"024":4,"008":4,"006":4,"025":3,"004":2},winTarget:58,playerStartHandSize:3,rewardGold:55},
+      {id:"gob_troll",name:"Goblin Troll",title:"Boří hradby, staví drby",avatar:"🪨",description:"Velký pro goblina. Specialita: boření hradeb.",aiCastle:26,aiWall:10,deckCardCounts:{"007":5,"001":4,"019":5,"020":4,"008":4,"002":3,"012":2},winTarget:59,rewardGold:60},
+      {id:"gob_commander",name:"Goblin Velitel",title:"Vůdce tlupy",avatar:"👹",description:"Velí ostatním. Alespoň trochu ví, co dělá.",aiCastle:25,aiWall:10,deckCardCounts:{"001":5,"008":5,"007":5,"012":5,"002":4,"004":4},winTarget:60,rewardGold:65},
+      {id:"gob_warchief",name:"Goblin Válečný náčelník",title:"Téměř nebezpečný",avatar:"🎖️",description:"Jeden krok od trůnu. Sekyrníci a přímé zásahy.",aiCastle:27,aiWall:11,aiExtraMines:{ATTACK:1},deckCardCounts:{"007":6,"001":5,"017":4,"022":4,"012":4,"006":4,"004":3},winTarget:60,rewardGold:80},
+      {id:"gob_king",name:"Goblin Král",title:"Pán tábora",avatar:"👑",description:"Boss goblinů. 32 karet, startuje s 5 kartami v ruce. Jednorázová odměna: 200 XP.",isBoss:true,aiCastle:28,aiWall:12,aiExtraMines:{ATTACK:1},deckCardCounts:{"007":6,"001":5,"008":5,"006":4,"017":4,"012":4,"004":3,"002":1},winTarget:62,aiStartHandSize:5,rewardGold:150,rewardGems:2,rewardXp:200}
+    ]
+  },
+  {
+    id: "loc_dwarves", name: "Trpasličí hory", emoji: "⛰️",
+    description: "Opevněné horské průsmyky. Trpaslíci staví lépe než bojují.",
+    opponents: [
+      {id:"dwf_miner",name:"Horník",title:"Stavitel hradeb",avatar:"⛏️",description:"Celý den kope a staví. Útok? To nezná.",aiCastle:27,aiWall:15,aiExtraMines:{STONES:1},deckCardCounts:{"002":6,"010":6,"005":5,"011":4,"004":4},winTarget:58,rewardGold:60},
+      {id:"dwf_carpenter",name:"Trpasličí Tesař",title:"Palisádový mistr",avatar:"🪚",description:"Staví palisády tak rychle, že mu nestíháš číst jméno.",aiCastle:28,aiWall:18,aiExtraMines:{STONES:1},deckCardCounts:{"002":6,"010":5,"029":5,"028":4,"005":4,"004":2},winTarget:60,rewardGold:65},
+      {id:"dwf_guardian",name:"Kamenný Strážce",title:"Neprůstřelný",avatar:"🛡️",description:"Chodící zeď. Výstavba nestačí – musíš ho prorazit silou.",aiCastle:30,aiWall:20,aiExtraMines:{STONES:2},deckCardCounts:{"002":6,"018":5,"009":5,"011":4,"014":4,"004":4},winTarget:70,aiWinTarget:55,rewardGold:70},
+      {id:"dwf_smith",name:"Trpasličí Kovář",title:"Mistr kovadliny",avatar:"hammer_icon",description:"Vyrábí zbraně i hradby. Útok a obrana najednou.",aiCastle:30,aiWall:18,deckCardCounts:{"007":5,"001":4,"022":4,"002":5,"010":4,"012":4,"004":2},winTarget:62,rewardGold:75},
+      {id:"dwf_ranger",name:"Horský Ranger",title:"Průsmykový hlídač",avatar:"🎯",description:"Hlídá průsmyky a bourá hradby. Rád používá beranidla.",aiCastle:30,aiWall:15,deckCardCounts:{"020":5,"019":5,"007":5,"002":5,"008":4,"010":3,"004":3},winTarget:63,rewardGold:80},
+      {id:"dwf_warrior",name:"Horský Bojovník",title:"Sekyrový veterán",avatar:"🪓",description:"Na rozdíl od ostatních trpaslíků opravdu bojuje.",aiCastle:30,aiWall:12,deckCardCounts:{"007":6,"001":6,"022":5,"020":4,"012":5,"004":4},winTarget:65,rewardGold:85},
+      {id:"dwf_mage",name:"Trpasličí Mág",title:"Horský čaroděj",avatar:"🔮",description:"Sabotoval tvůj kamenolom. Startovní důl kamene −1.",aiCastle:31,aiWall:14,aiExtraMines:{MAGIC:1},deckCardCounts:{"013":4,"015":4,"003":5,"016":3,"037":5,"040":4,"004":5,"001":2},winTarget:65,playerHandicap:{extraMines:{STONES:-1}},rewardGold:90},
+      {id:"dwf_general",name:"Trpasličí Generál",title:"Velitel horské armády",avatar:"⚔️",description:"Zkušený velitel. Startuje s 5 kartami a extra mine útoku.",aiCastle:32,aiWall:18,aiExtraMines:{ATTACK:1},deckCardCounts:{"007":4,"022":4,"017":4,"002":4,"018":4,"013":4,"014":4,"004":5},winTarget:68,aiStartHandSize:5,rewardGold:100},
+      {id:"dwf_colossus",name:"Kamenný Kolos",title:"Neprolomitelná pevnost",avatar:"🗿",description:"35 karet a winTarget 80. Prolomit nebo zemřít.",aiCastle:33,aiWall:22,aiExtraMines:{STONES:2},deckCardCounts:{"018":5,"002":5,"030":5,"034":5,"036":5,"009":5,"063":4,"004":1},winTarget:80,aiWinTarget:50,rewardGold:120},
+      {id:"dwf_thane",name:"Trpasličí Thane",title:"Pán hor",avatar:"🔱",description:"Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok. Jednorázová odměna: 200 XP.",isBoss:true,aiCastle:35,aiWall:20,aiExtraMines:{STONES:1,ATTACK:1},deckCardCounts:{"007":5,"022":5,"017":4,"002":5,"018":5,"013":4,"014":4,"015":4,"004":2},winTarget:75,aiStartHandSize:5,rewardGold:220,rewardGems:3,rewardXp:200}
+    ]
+  },
+  {
+    id: "loc_citadel", name: "Temná citadela", emoji: "🏰",
+    description: "Sídlo temnoty. Soupeři hrají nefér — a jsou na to pyšní.",
+    opponents: [
+      {id:"cit_knight",name:"Stínový Rytíř",title:"Zloděj zdrojů",avatar:"🗡️",description:"Krade ti zdroje a ještě se směje. Začínáš s méně magií.",aiCastle:33,aiWall:15,aiExtraMines:{ATTACK:1},deckCardCounts:{"007":6,"001":5,"017":5,"006":4,"012":4,"013":3,"004":3},winTarget:62,playerHandicap:{extraMagic:-2},rewardGold:100},
+      {id:"cit_archer",name:"Temný Lučištník",title:"Sniper citadely",avatar:"🏹",description:"Zápalné šípy na hradby, přímé zásahy na hrad.",aiCastle:33,aiWall:12,aiExtraMines:{ATTACK:1},deckCardCounts:{"008":6,"019":6,"022":5,"053":4,"027":5,"012":4},winTarget:63,rewardGold:110},
+      {id:"cit_mage",name:"Temný Čaroděj",title:"Mistr ohně",avatar:"🧙",description:"Ovládá magii temnoty. Začínáš s méně útokem.",aiCastle:35,aiWall:12,aiExtraMines:{MAGIC:2},deckCardCounts:{"003":6,"026":5,"013":5,"016":4,"037":5,"004":5,"001":3},winTarget:65,playerHandicap:{extraAttack:-2},rewardGold:120},
+      {id:"cit_necromancer",name:"Nekromant",title:"Pán jedů a stínů",avatar:"🦇",description:"Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1.",aiCastle:35,aiWall:12,aiExtraMines:{MAGIC:1},deckCardCounts:{"049":5,"003":5,"013":5,"037":5,"069":4,"040":5,"004":4},winTarget:65,playerHandicap:{extraCastle:-3,extraMines:{MAGIC:-1}},rewardGold:130},
+      {id:"cit_warrior",name:"Temný Válečník",title:"Sekáč bez milosti",avatar:"💀",description:"35 karet čistého útoku. Výstavba nestačí — zaútočíš nebo zemřeš.",aiCastle:36,aiWall:14,deckCardCounts:{"021":5,"007":5,"054":5,"022":5,"047":4,"017":4,"012":5,"004":2},winTarget:999,rewardGold:140},
+      {id:"cit_guardian",name:"Temný Strážce",title:"Pevná ruka temnoty",avatar:"🛡️",description:"Útočí i brání. Výstavba na 70 je tvá jediná alternativa.",aiCastle:36,aiWall:20,aiExtraMines:{ATTACK:1,STONES:1},deckCardCounts:{"007":5,"022":5,"002":5,"018":5,"036":4,"062":4,"015":4,"004":3},winTarget:70,rewardGold:150},
+      {id:"cit_saboteur",name:"Sabotér",title:"Mistr sabotáže",avatar:"🕵️",description:"Okrade tě ještě před startem. Ruka 3 karty, bez útoku a kamenů.",aiCastle:37,aiWall:15,aiExtraMines:{MAGIC:2},deckCardCounts:{"065":5,"066":5,"067":5,"068":5,"070":5,"071":4,"037":5,"004":4},winTarget:999,playerStartHandSize:3,playerHandicap:{extraAttack:-3,extraStones:-3,extraMines:{ATTACK:-1}},rewardGold:160},
+      {id:"cit_dragon",name:"Ohnivý Drak",title:"Dech zkázy",avatar:"🐉",description:"38 karet ohně. Startuje s 5 v ruce. Zabudovat nelze.",aiCastle:38,aiWall:18,aiExtraMines:{ATTACK:1,MAGIC:1},deckCardCounts:{"021":6,"007":6,"022":5,"012":5,"015":5,"013":5,"004":6},winTarget:999,aiStartHandSize:5,rewardGold:170},
+      {id:"cit_general",name:"Temný Generál",title:"Pravá ruka Pána",avatar:"👿",description:"42 karet, startuje se 6. Začínáš oslaben. Útočíš nebo prohraješ.",aiCastle:40,aiWall:20,aiExtraMines:{MAGIC:1,ATTACK:1},deckCardCounts:{"021":5,"023":5,"007":4,"017":4,"018":4,"032":4,"016":4,"013":4,"026":4,"040":4},winTarget:999,aiStartHandSize:6,playerHandicap:{extraCastle:-3,extraWall:-3},rewardGold:200},
+      {id:"cit_lord",name:"Temný Pán",title:"Vládce temnoty",avatar:"☠️",description:"48 karet, 7 startovních. Démon i Drak. Výstavba = smrt. Jednorázová odměna: 200 XP.",isBoss:true,aiCastle:45,aiWall:25,aiExtraMines:{MAGIC:1,ATTACK:1,STONES:1},deckCardCounts:{"052":4,"051":3,"021":6,"023":5,"016":4,"043":4,"044":3,"040":4,"032":5,"004":6,"054":4},winTarget:999,aiStartHandSize:7,playerHandicap:{extraCastle:-5,extraWall:-5},rewardGold:400,rewardGems:6,rewardXp:200}
+    ]
+  },
+  {
+    id: "loc_dragon", name: "Dračí impérium", emoji: "🐉",
+    description: "Říši vládnou draci a chaos. Výstavba = smrt. Výjimky neexistují.",
+    opponents: [
+      {id:"drg_warden",name:"Dračí Strážce",title:"Ochránce bran",avatar:"🐲",description:"Brána do říše. Útok a Chaos v jednom. Hrad −3.",aiCastle:42,aiWall:18,aiExtraMines:{ATTACK:1},deckCardCounts:{"021":6,"007":5,"054":5,"022":5,"017":5,"C01":4,"C02":4,"004":4},winTarget:999,playerHandicap:{extraCastle:-3},rewardGold:180},
+      {id:"drg_shaman",name:"Dračí Šaman",title:"Mistr chaosu",avatar:"🔮",description:"Kouzlí chaosem. Sabotoval tvůj útok a magie mine −1.",aiCastle:43,aiWall:20,aiExtraMines:{MAGIC:2},deckCardCounts:{"C01":5,"C02":5,"C05":4,"013":4,"016":4,"037":5,"040":5,"077":4,"004":4},winTarget:999,playerHandicap:{extraAttack:-3,extraMines:{MAGIC:-1}},rewardGold:200},
+      {id:"drg_rider",name:"Dračí Jezdec",title:"Sedlo z plamenů",avatar:"🏇",description:"Startuje s 5 kartami. Hrad −3, hradby −3.",aiCastle:44,aiWall:20,aiExtraMines:{ATTACK:1,MAGIC:1},deckCardCounts:{"021":6,"051":3,"054":5,"079":4,"C01":4,"C06":3,"017":5,"012":5,"004":5},winTarget:999,aiStartHandSize:5,playerHandicap:{extraCastle:-3,extraWall:-3},rewardGold:220},
+      {id:"drg_saboteur",name:"Entropický Sabotér",title:"Rozsévač chaosu",avatar:"🕵️",description:"Zničil tvůj kamenolom a vyprázdnil zásoby. Mine kamene −1.",aiCastle:45,aiWall:22,aiExtraMines:{MAGIC:1,ATTACK:1},deckCardCounts:{"065":5,"068":5,"070":5,"071":5,"C02":4,"C09":4,"069":4,"040":5,"004":5},winTarget:999,playerHandicap:{extraCastle:-4,extraStones:-4,extraMines:{STONES:-1}},rewardGold:240},
+      {id:"drg_wyrm",name:"Starý Wyrm",title:"Žijící rána",avatar:"🦎",description:"Přepadne tě dřív, než procitnete. Ruka 3, hrad −5.",aiCastle:46,aiWall:22,aiExtraMines:{ATTACK:2},deckCardCounts:{"021":7,"054":5,"022":5,"023":5,"079":4,"C06":4,"017":5,"004":7},winTarget:999,playerStartHandSize:3,playerHandicap:{extraCastle:-5,extraWall:-3},rewardGold:260},
+      {id:"drg_general",name:"Dračí Generál",title:"Velitel spálené země",avatar:"👿",description:"5 karet a 3 typy dolů. Útok nebo záhuba. Hrad −5, hradby −5.",aiCastle:48,aiWall:25,aiExtraMines:{ATTACK:2,MAGIC:1},deckCardCounts:{"021":6,"051":4,"054":5,"079":4,"C05":4,"C06":3,"C09":3,"017":5,"043":4,"004":6},winTarget:999,aiStartHandSize:5,playerHandicap:{extraCastle:-5,extraWall:-5},rewardGold:280},
+      {id:"drg_venom",name:"Jedovatý Drak",title:"Zkáza z dálky",avatar:"☠️",description:"Otráví tvůj výcvikový tábor. Mine útoku −1, hrad −5.",aiCastle:48,aiWall:25,aiExtraMines:{MAGIC:2,ATTACK:1},deckCardCounts:{"078":3,"051":4,"052":3,"021":5,"C10":3,"C02":4,"016":4,"040":5,"069":4,"004":5,"077":4},winTarget:999,playerHandicap:{extraCastle:-5,extraMines:{ATTACK:-1}},rewardGold:300},
+      {id:"drg_tyrant",name:"Dračí Tyran",title:"Ohnivý trůn",avatar:"🔱",description:"6 karet, 3 typy dolů. Legendy v balíčku. Hrad −5, hradby −5.",aiCastle:50,aiWall:28,aiExtraMines:{MAGIC:1,ATTACK:2,STONES:1},deckCardCounts:{"052":4,"051":4,"078":3,"021":5,"C10":4,"C06":4,"C09":3,"016":4,"043":4,"044":3,"040":5,"004":5},winTarget:999,aiStartHandSize:6,playerHandicap:{extraCastle:-5,extraWall:-5},rewardGold:350},
+      {id:"drg_archon",name:"Dračí Archon",title:"Pravá ruka Impéria",avatar:"🌑",description:"6 karet, 3 extra miny. Hrad −7, hradby −5, mine magie −1.",aiCastle:52,aiWall:30,aiExtraMines:{MAGIC:2,ATTACK:2},deckCardCounts:{"052":5,"051":4,"078":4,"C10":4,"C06":5,"C09":4,"016":4,"043":4,"044":4,"040":5,"077":4,"004":3},winTarget:999,aiStartHandSize:6,playerHandicap:{extraCastle:-7,extraWall:-5,extraMines:{MAGIC:-1}},rewardGold:420},
+      {id:"drg_emperor",name:"Dračí Císař",title:"Vládce věčného plamene",avatar:"🐉",description:"55 karet, 7 startovních. Drak, Démon i Chaos drak. Hrad −8, hradby −8. Jednorázová odměna: 200 XP.",isBoss:true,aiCastle:55,aiWall:35,aiExtraMines:{MAGIC:2,ATTACK:2,STONES:1},deckCardCounts:{"052":4,"051":4,"078":4,"C10":4,"C06":4,"C09":4,"C05":4,"016":4,"043":4,"044":3,"040":4,"077":4,"021":4,"004":4},winTarget:999,aiStartHandSize:7,playerHandicap:{extraCastle:-8,extraWall:-8},rewardGold:600,rewardGems:8,rewardXp:200}
+    ]
+  }
+];
+
+const CAMPAIGN_LOCATIONS_ORIGINAL = CAMPAIGN_LOCATIONS_RAW.map(loc => ({
+  id: loc.id, name: loc.name, emoji: loc.emoji, description: loc.description,
+  opponents: loc.opponents.map(normOpp)
+}));
+
+let CAMPAIGN_LOCATIONS = deepClone(CAMPAIGN_LOCATIONS_ORIGINAL);
+let campOpponentRef = null;   // {locIdx, oppIdx} soupeře aktuálně rozebraného ve formuláři
+let CAMPAIGN_DECK = {};       // id -> count, bez limitu kopií
+
+function currentCampaignOpponent() {
+  if (!campOpponentRef) return null;
+  const loc = CAMPAIGN_LOCATIONS[campOpponentRef.locIdx];
+  return loc ? loc.opponents[campOpponentRef.oppIdx] : null;
+}
+
+function initCampaignPanel() {
+  const locSel = document.getElementById('camp-location-select');
+  locSel.innerHTML = CAMPAIGN_LOCATIONS.map((l, i) => `<option value="${i}">${l.emoji} ${l.name}</option>`).join('');
+  locSel.value = 0;
+  onCampaignLocationChange();
+}
+
+function onCampaignLocationChange() {
+  syncFormToCampaignData();
+  const locIdx = +document.getElementById('camp-location-select').value;
+  const loc = CAMPAIGN_LOCATIONS[locIdx];
+  const oppSel = document.getElementById('camp-opponent-select');
+  oppSel.innerHTML = loc.opponents.map((o, i) => `<option value="${i}">${i + 1}. ${o.name}${o.isBoss ? ' ★ BOSS' : ''}</option>`).join('');
+  oppSel.value = 0;
+  campOpponentRef = { locIdx, oppIdx: 0 };
+  loadCampaignOpponentIntoForm();
+}
+
+function onCampaignOpponentChange() {
+  syncFormToCampaignData();
+  const locIdx = +document.getElementById('camp-location-select').value;
+  const oppIdx = +document.getElementById('camp-opponent-select').value;
+  campOpponentRef = { locIdx, oppIdx };
+  loadCampaignOpponentIntoForm();
+}
+
+function loadCampaignOpponentIntoForm() {
+  const o = currentCampaignOpponent();
+  if (!o) return;
+  document.getElementById('camp-id').value          = o.id;
+  document.getElementById('camp-name').value        = o.name;
+  document.getElementById('camp-title').value       = o.title;
+  document.getElementById('camp-avatar').value      = o.avatar;
+  document.getElementById('camp-description').value = o.description;
+  document.getElementById('camp-isboss').checked    = !!o.isBoss;
+
+  document.getElementById('camp-aiCastle').value        = o.aiCastle;
+  document.getElementById('camp-aiWall').value          = o.aiWall;
+  document.getElementById('camp-aiStartHandSize').value = o.aiStartHandSize;
+  document.getElementById('camp-aiStartMagic').value    = o.aiStartMagic;
+  document.getElementById('camp-aiStartAttack').value   = o.aiStartAttack;
+  document.getElementById('camp-aiStartStones').value   = o.aiStartStones;
+  document.getElementById('camp-mineMagic').value  = o.aiExtraMines.MAGIC  || 0;
+  document.getElementById('camp-mineAttack').value = o.aiExtraMines.ATTACK || 0;
+  document.getElementById('camp-mineStones').value = o.aiExtraMines.STONES || 0;
+  document.getElementById('camp-mineChaos').value  = o.aiExtraMines.CHAOS  || 0;
+
+  document.getElementById('camp-winTarget').value            = o.winTarget;
+  document.getElementById('camp-aiWinTarget').value          = o.aiWinTarget;
+  document.getElementById('camp-playerStartHandSize').value  = o.playerStartHandSize;
+
+  const hc = o.playerHandicap || {};
+  document.getElementById('camp-hcCastle').value = hc.extraCastle || 0;
+  document.getElementById('camp-hcWall').value   = hc.extraWall   || 0;
+  document.getElementById('camp-hcMagic').value  = hc.extraMagic  || 0;
+  document.getElementById('camp-hcAttack').value = hc.extraAttack || 0;
+  document.getElementById('camp-hcStones').value = hc.extraStones || 0;
+  const hcm = hc.extraMines || {};
+  document.getElementById('camp-hcMineMagic').value  = hcm.MAGIC  || 0;
+  document.getElementById('camp-hcMineAttack').value = hcm.ATTACK || 0;
+  document.getElementById('camp-hcMineStones').value = hcm.STONES || 0;
+  document.getElementById('camp-hcMineChaos').value  = hcm.CHAOS  || 0;
+
+  document.getElementById('camp-rewardGold').value = o.rewardGold;
+  document.getElementById('camp-rewardGems').value = o.rewardGems;
+  document.getElementById('camp-rewardXp').value   = o.rewardXp;
+
+  CAMPAIGN_DECK = Object.assign({}, o.deckCardCounts);
+  document.getElementById('campaign-output').textContent = '—';
+  renderCampaignDeck();
+  if (mode === 'campaign') renderBrowser();
+}
+
+function syncFormToCampaignData() {
+  const o = currentCampaignOpponent();
+  if (!o) return;
+  o.id          = document.getElementById('camp-id').value.trim();
+  o.name        = document.getElementById('camp-name').value;
+  o.title       = document.getElementById('camp-title').value;
+  o.avatar      = document.getElementById('camp-avatar').value;
+  o.description = document.getElementById('camp-description').value;
+  o.isBoss      = document.getElementById('camp-isboss').checked;
+
+  o.aiCastle        = +document.getElementById('camp-aiCastle').value || 0;
+  o.aiWall          = +document.getElementById('camp-aiWall').value || 0;
+  o.aiStartHandSize = +document.getElementById('camp-aiStartHandSize').value || 0;
+  o.aiStartMagic    = +document.getElementById('camp-aiStartMagic').value || 0;
+  o.aiStartAttack   = +document.getElementById('camp-aiStartAttack').value || 0;
+  o.aiStartStones   = +document.getElementById('camp-aiStartStones').value || 0;
+
+  o.aiExtraMines = {};
+  const mm = +document.getElementById('camp-mineMagic').value  || 0; if (mm) o.aiExtraMines.MAGIC  = mm;
+  const ma = +document.getElementById('camp-mineAttack').value || 0; if (ma) o.aiExtraMines.ATTACK = ma;
+  const ms = +document.getElementById('camp-mineStones').value || 0; if (ms) o.aiExtraMines.STONES = ms;
+  const mc = +document.getElementById('camp-mineChaos').value  || 0; if (mc) o.aiExtraMines.CHAOS  = mc;
+
+  o.winTarget           = +document.getElementById('camp-winTarget').value || 0;
+  o.aiWinTarget          = +document.getElementById('camp-aiWinTarget').value || 0;
+  o.playerStartHandSize  = +document.getElementById('camp-playerStartHandSize').value || 0;
+
+  const hc = { extraCastle: 0, extraWall: 0, extraMagic: 0, extraAttack: 0, extraStones: 0, extraMines: {} };
+  hc.extraCastle = +document.getElementById('camp-hcCastle').value || 0;
+  hc.extraWall   = +document.getElementById('camp-hcWall').value || 0;
+  hc.extraMagic  = +document.getElementById('camp-hcMagic').value || 0;
+  hc.extraAttack = +document.getElementById('camp-hcAttack').value || 0;
+  hc.extraStones = +document.getElementById('camp-hcStones').value || 0;
+  const hmm = +document.getElementById('camp-hcMineMagic').value  || 0; if (hmm) hc.extraMines.MAGIC  = hmm;
+  const hma = +document.getElementById('camp-hcMineAttack').value || 0; if (hma) hc.extraMines.ATTACK = hma;
+  const hms = +document.getElementById('camp-hcMineStones').value || 0; if (hms) hc.extraMines.STONES = hms;
+  const hmc = +document.getElementById('camp-hcMineChaos').value  || 0; if (hmc) hc.extraMines.CHAOS  = hmc;
+  o.playerHandicap = hc;
+
+  o.rewardGold = +document.getElementById('camp-rewardGold').value || 0;
+  o.rewardGems = +document.getElementById('camp-rewardGems').value || 0;
+  o.rewardXp   = +document.getElementById('camp-rewardXp').value || 0;
+
+  const deck = Object.assign({}, CAMPAIGN_DECK);
+  Object.keys(deck).forEach(k => { if (!deck[k]) delete deck[k]; });
+  o.deckCardCounts = deck;
+}
+
+function changeCampaignDeckCount(id, delta) {
+  CAMPAIGN_DECK[id] = Math.max(0, (CAMPAIGN_DECK[id] || 0) + delta);
+  renderCampaignDeck();
+}
+
+function renderCampaignDeck() {
+  const list = document.getElementById('camp-deck-list');
+  if (!list) return;
+  const entries = Object.entries(CAMPAIGN_DECK).filter(e => e[1] > 0);
+  let total = 0;
+
+  const typeOrder = { ATTACK: 0, STONES: 1, MAGIC: 2, CHAOS: 3 };
+  entries.sort(([aId], [bId]) => {
+    const a = CARD_MAP[aId], b = CARD_MAP[bId];
+    if (!a || !b) return 0;
+    return (a.cost - b.cost) || ((typeOrder[a.type] ?? 9) - (typeOrder[b.type] ?? 9)) || a.name.localeCompare(b.name, 'cs');
+  });
+
+  list.innerHTML = entries.map(([id, count]) => {
+    const c = CARD_MAP[id];
+    total += count;
+    const hex     = TYPE_HEX[c?.type] || '#8a7a60';
+    const badgeBg = hexRgba(hex, 0.88);
+    const border  = hexRgba(hex, 0.50);
+    const costLabel = c?.isXCost ? 'X' : (c?.cost ?? '?');
+    return `
+      <div style="position:relative;height:26px;margin-bottom:3px;border-radius:4px;
+                  background:#18121E;border:1px solid ${border};overflow:hidden;cursor:pointer"
+           onclick="changeCampaignDeckCount('${id}',-1)"
+           oncontextmenu="event.preventDefault();changeCampaignDeckCount('${id}',1)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 4px;gap:5px">
+          <div style="flex-shrink:0;width:18px;height:18px;border-radius:5px;
+                      background:${badgeBg};border:1px solid rgba(255,255,255,0.25);
+                      display:flex;align-items:center;justify-content:center;
+                      color:#fff;font-size:8px;font-weight:800;font-family:'Cinzel',serif;line-height:1">
+            ${costLabel}
+          </div>
+          <div style="flex:1;min-width:0;color:#fff;font-size:9px;font-weight:600;
+                      font-family:'Cinzel',serif;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${c ? c.name : id + ' (neznámá karta)'}
+          </div>
+        </div>
+        <div style="position:absolute;right:3px;top:50%;transform:translateY(-50%);
+                    min-width:16px;height:16px;padding:0 3px;border-radius:3px;
+                    background:#0D0A0E;border:1px solid rgba(201,150,58,0.70);
+                    display:flex;align-items:center;justify-content:center;
+                    color:var(--gold);font-size:8px;font-weight:800;font-family:monospace;pointer-events:none">
+          ${count}
+        </div>
+      </div>`;
+  }).join('');
+
+  const countEl = document.getElementById('camp-deck-count');
+  if (countEl) countEl.textContent = total;
+}
+
+function resetCampaignOpponent() {
+  if (!campOpponentRef) return;
+  const orig = CAMPAIGN_LOCATIONS_ORIGINAL[campOpponentRef.locIdx].opponents[campOpponentRef.oppIdx];
+  CAMPAIGN_LOCATIONS[campOpponentRef.locIdx].opponents[campOpponentRef.oppIdx] = deepClone(orig);
+  loadCampaignOpponentIntoForm();
+}
+
+function formatCampaignOpponentKotlin(o) {
+  const esc = s => (s || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const lines = [];
+  lines.push('CampaignOpponent(');
+  lines.push(`    id = "${o.id}", name = "${esc(o.name)}", title = "${esc(o.title)}",`);
+  lines.push(`    avatar = "${esc(o.avatar)}", description = "${esc(o.description)}",`);
+  if (o.isBoss) lines.push('    isBoss = true,');
+  lines.push(`    aiCastle = ${o.aiCastle}, aiWall = ${o.aiWall},`);
+  if (o.aiStartMagic)  lines.push(`    aiStartMagic = ${o.aiStartMagic},`);
+  if (o.aiStartAttack) lines.push(`    aiStartAttack = ${o.aiStartAttack},`);
+  if (o.aiStartStones) lines.push(`    aiStartStones = ${o.aiStartStones},`);
+
+  const emEntries = Object.entries(o.aiExtraMines || {}).filter(([, v]) => v);
+  if (emEntries.length === 1) {
+    lines.push(`    aiExtraMines = mapOf(ResourceType.${emEntries[0][0]} to ${emEntries[0][1]}),`);
+  } else if (emEntries.length > 1) {
+    lines.push('    aiExtraMines = mapOf(');
+    lines.push('        ' + emEntries.map(([k, v]) => `ResourceType.${k} to ${v}`).join(', '));
+    lines.push('    ),');
+  }
+
+  const deckEntries = Object.entries(o.deckCardCounts || {}).filter(([, v]) => v > 0);
+  const totalCards  = deckEntries.reduce((s, [, v]) => s + v, 0);
+  lines.push('    deckCardCounts = mapOf(');
+  let buf = [], chunks = [];
+  deckEntries.forEach(([id, cnt], i) => {
+    buf.push(`"${id}" to ${cnt}`);
+    if (buf.length === 4 || i === deckEntries.length - 1) { chunks.push(buf.join(', ')); buf = []; }
+  });
+  lines.push('        ' + chunks.join(',\n        '));
+  lines.push('    ),');
+
+  lines.push(`    winTarget = ${o.winTarget}${o.aiWinTarget !== 60 ? `, aiWinTarget = ${o.aiWinTarget}` : ''},`);
+  if (o.aiStartHandSize !== 4)     lines.push(`    aiStartHandSize = ${o.aiStartHandSize},`);
+  if (o.playerStartHandSize !== 4) lines.push(`    playerStartHandSize = ${o.playerStartHandSize},`);
+
+  const hc = o.playerHandicap || {};
+  const hcParts = [];
+  if (hc.extraCastle) hcParts.push(`extraCastle = ${hc.extraCastle}`);
+  if (hc.extraWall)   hcParts.push(`extraWall = ${hc.extraWall}`);
+  if (hc.extraMagic)  hcParts.push(`extraMagic = ${hc.extraMagic}`);
+  if (hc.extraAttack) hcParts.push(`extraAttack = ${hc.extraAttack}`);
+  if (hc.extraStones) hcParts.push(`extraStones = ${hc.extraStones}`);
+  const hcm = Object.entries(hc.extraMines || {}).filter(([, v]) => v);
+  if (hcm.length) {
+    const mineStr = hcm.length === 1
+      ? `mapOf(ResourceType.${hcm[0][0]} to ${hcm[0][1]})`
+      : `mapOf(${hcm.map(([k, v]) => `ResourceType.${k} to ${v}`).join(', ')})`;
+    hcParts.push(`extraMines = ${mineStr}`);
+  }
+  if (hcParts.length) lines.push(`    playerHandicap = PlayerHandicap(${hcParts.join(', ')}),`);
+
+  let rewardLine = `    rewardGold = ${o.rewardGold}`;
+  if (o.rewardGems) rewardLine += `, rewardGems = ${o.rewardGems}`;
+  if (o.rewardXp !== 75) rewardLine += `, rewardXp = ${o.rewardXp}`;
+  lines.push(rewardLine);
+
+  lines.push('),');
+  lines.push(`// ${totalCards} karet celkem`);
+  return lines.join('\n');
+}
+
+function copyCampaignOpponentCode() {
+  syncFormToCampaignData();
+  const o = currentCampaignOpponent();
+  if (!o) return;
+  const code = formatCampaignOpponentKotlin(o);
+
+  const outputEl = document.getElementById('campaign-output');
+  outputEl.textContent = code;
+
+  const textArea = document.createElement('textarea');
+  textArea.value = code;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('Kód soupeře zkopírován do schránky. Vlož ho do CampaignData.kt na místo původního bloku.');
   } catch (err) {
     console.error('Fallback copy failed', err);
   }

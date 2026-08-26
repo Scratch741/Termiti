@@ -5,8 +5,12 @@ package com.example.termiti
 
 import org.json.JSONObject
 
-/** Localized name + description for a single card (keyed by card id). */
-data class CardText(val name: String, val desc: String)
+/**
+ * Localized name + description for a single card (keyed by card id).
+ * Also reused for abilities (name=title, desc=description) and campaign content:
+ * locations (name+desc, [title] unused) and opponents (name+title+desc).
+ */
+data class CardText(val name: String, val desc: String, val title: String = "")
 
 /**
  * A loaded language pack: metadata + all UI strings + all card texts.
@@ -22,7 +26,11 @@ data class LanguagePack(
     /** id → localized {name, desc}. Empty for an untranslated pack. */
     val cards:    Map<String, CardText> = emptyMap(),
     /** passive-ability id → localized {name=title, desc=description}. */
-    val abilities: Map<String, CardText> = emptyMap()
+    val abilities: Map<String, CardText> = emptyMap(),
+    /** CampaignLocation id → localized {name, desc}. */
+    val campaignLocations: Map<String, CardText> = emptyMap(),
+    /** CampaignOpponent id → localized {name, title, desc}. */
+    val campaignOpponents: Map<String, CardText> = emptyMap()
 ) {
     companion object {
 
@@ -48,13 +56,15 @@ data class LanguagePack(
             val strings = buildStrings(language.code, root.optJSONObject("strings") ?: JSONObject(), fallbackPack?.strings)
             val cards   = buildCards(root.optJSONObject("cards"))
             val abilities = buildCards(root.optJSONObject("abilities"))
-            return LanguagePack(language, strings, cards, abilities)
+            val campaignLocations = buildCards(root.optJSONObject("campaignLocations"))
+            val campaignOpponents = buildCards(root.optJSONObject("campaignOpponents"))
+            return LanguagePack(language, strings, cards, abilities, campaignLocations, campaignOpponents)
         }
 
         /**
-         * Parses the optional "cards" object: { "<id>": { "name": "...", "desc": "..." }, … }.
-         * A missing name/desc within an entry stays empty → caller falls back to the card's
-         * built-in Czech text. Returns an empty map if there is no "cards" block at all.
+         * Parses an optional "<id>": { "name": "...", "desc": "...", "title": "..." } object.
+         * A missing field within an entry stays empty → caller falls back to the built-in
+         * Czech text. Returns an empty map if there is no such block at all.
          */
         private fun buildCards(obj: JSONObject?): Map<String, CardText> {
             if (obj == null) return emptyMap()
@@ -64,8 +74,9 @@ data class LanguagePack(
                 val id = ids.next()
                 val e  = obj.optJSONObject(id) ?: continue
                 out[id] = CardText(
-                    name = e.optString("name", ""),
-                    desc = e.optString("desc", "")
+                    name  = e.optString("name", ""),
+                    desc  = e.optString("desc", ""),
+                    title = e.optString("title", "")
                 )
             }
             return out
@@ -153,6 +164,14 @@ data class LanguagePack(
                 resultPlayAgain       = str("resultPlayAgain",       "Hrát znovu"),
                 resultBackToMenu      = str("resultBackToMenu",      "Zpět do menu"),
 
+                campaignVictory              = str("campaignVictory",              "VÍTĚZSTVÍ!"),
+                campaignDefeat               = str("campaignDefeat",               "PORÁŽKA"),
+                campaignRewardFirstKill      = str("campaignRewardFirstKill",      "ODMĚNA ZA PRVNÍ PORAŽENÍ"),
+                campaignRewardAlreadyClaimed = str("campaignRewardAlreadyClaimed", "Odměna již byla vyplacena"),
+                campaignRetry                = str("campaignRetry",                "🔄  Zkusit znovu"),
+                campaignBackToLocation       = str("campaignBackToLocation",       "Zpět na lokaci"),
+                campaignNextOpponent         = str("campaignNextOpponent",         "Další soupeř"),
+
                 deckBuilder   = str("deckBuilder",   "STAVITEL BALÍČKU"),
                 deckSave      = str("deckSave",      "Uložit"),
                 deckReset     = str("deckReset",     "Resetovat"),
@@ -230,6 +249,7 @@ data class LanguagePack(
                 questPlayCards           = str("questPlayCards",           "Zahraj %d karet"),
                 questDealDamage          = str("questDealDamage",          "Způsob %d poškození hradu"),
                 questWinCampaign         = str("questWinCampaign",         "Poraž %d soupeřů v kampani"),
+                questCompletedNotif      = str("questCompletedNotif",      "🎯 Quest splněn – převzít odměnu!"),
 
                 shopTitle = str("shopTitle", "OBCHOD"),
                 shopBuy   = str("shopBuy",   "Koupit"),

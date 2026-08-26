@@ -72,6 +72,11 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
         break;
       }
+      case 'ConvertWallToCastle': {
+        const amt = self.wallHP || 0;
+        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
+        break;
+      }
       case 'BuildWall': {
         // Zeď nad cap (50) nemá hodnotu – počítej jen to, co se vejde
         const effective = Math.max(0, Math.min(fx.amount || 0, 50 - (self.wallHP || 0)));

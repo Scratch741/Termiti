@@ -40,7 +40,14 @@ data class CampaignOpponent(
     val rewardGold: Int = 50,
     val rewardGems: Int = 0,
     val rewardXp  : Int = 75
-)
+) {
+    /** Localized display name — active language pack (by [id]) → built-in Czech [name] fallback. */
+    val displayName: String get() = LanguageManager.campaignOpponentName(id, name)
+    /** Localized display title — active language pack (by [id]) → built-in Czech [title] fallback. */
+    val displayTitle: String get() = LanguageManager.campaignOpponentTitle(id, title)
+    /** Localized display description — active language pack (by [id]) → built-in Czech [description] fallback. */
+    val displayDescription: String get() = LanguageManager.campaignOpponentDesc(id, description)
+}
 
 // ── Lokace = skupina soupeřů zakončená bossem ─────────────────────────────────
 data class CampaignLocation(
@@ -51,6 +58,11 @@ data class CampaignLocation(
     val opponents  : List<CampaignOpponent>
 ) {
     val boss: CampaignOpponent get() = opponents.last()
+
+    /** Localized display name — active language pack (by [id]) → built-in Czech [name] fallback. */
+    val displayName: String get() = LanguageManager.campaignLocationName(id, name)
+    /** Localized display description — active language pack (by [id]) → built-in Czech [description] fallback. */
+    val displayDescription: String get() = LanguageManager.campaignLocationDesc(id, description)
 }
 
 // ── Celá kampaň ───────────────────────────────────────────────────────────────

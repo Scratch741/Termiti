@@ -35,8 +35,10 @@ fun CampaignResultScreen(
     playerWon       : Boolean,
     onRetry         : () -> Unit,
     onBackToLocation: () -> Unit,
-    onBackToMap     : () -> Unit
+    onBackToMap     : () -> Unit,
+    onNextOpponent  : (() -> Unit)? = null
 ) {
+    val s = LocalStrings.current
     val rewardClaimed = remember(opponent.id, playerWon) {
         if (playerWon) {
             CampaignManager.markDefeated(opponent.id)
@@ -76,7 +78,7 @@ fun CampaignResultScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                if (playerWon) "VÍTĚZSTVÍ!" else "PORÁŽKA",
+                if (playerWon) s.campaignVictory else s.campaignDefeat,
                 color        = if (playerWon) CrGold else CrRed,
                 fontSize     = 32.sp,
                 fontWeight   = FontWeight.Bold,
@@ -92,13 +94,13 @@ fun CampaignResultScreen(
                 AvatarView(opponent.avatar, size = 40.dp)
                 Column {
                     Text(
-                        opponent.name,
+                        opponent.displayName,
                         color      = CrText,
                         fontSize   = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        opponent.title,
+                        opponent.displayTitle,
                         color    = CrMuted,
                         fontSize = 11.sp
                     )
@@ -122,7 +124,7 @@ fun CampaignResultScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            "ODMĚNA ZA PRVNÍ PORAŽENÍ",
+                            s.campaignRewardFirstKill,
                             color        = CrGold,
                             fontSize     = 11.sp,
                             fontWeight   = FontWeight.Bold,
@@ -151,7 +153,7 @@ fun CampaignResultScreen(
                         .padding(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        "Odměna již byla vyplacena",
+                        s.campaignRewardAlreadyClaimed,
                         color    = CrMuted,
                         fontSize = 11.sp
                     )
@@ -164,7 +166,7 @@ fun CampaignResultScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (!playerWon) {
                     PlainButton(
-                        text      = "🔄  Zkusit znovu",
+                        text      = s.campaignRetry,
                         modifier  = Modifier,
                         textColor = CrText,
                         fontSize  = 13.sp,
@@ -174,7 +176,7 @@ fun CampaignResultScreen(
                     )
                 }
                 PlainButton(
-                    text      = "📍  Zpět na lokaci",
+                    text      = s.campaignBackToLocation,
                     modifier  = Modifier,
                     textColor = CrText,
                     fontSize  = 13.sp,
@@ -182,6 +184,17 @@ fun CampaignResultScreen(
                     paddingV  = 14.dp,
                     onClick   = onBackToLocation
                 )
+                if (playerWon && onNextOpponent != null) {
+                    PlainButton(
+                        text      = s.campaignNextOpponent,
+                        modifier  = Modifier,
+                        textColor = CrGold,
+                        fontSize  = 13.sp,
+                        paddingH  = 20.dp,
+                        paddingV  = 14.dp,
+                        onClick   = onNextOpponent
+                    )
+                }
             }
         }
     }

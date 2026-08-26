@@ -13,7 +13,9 @@ As of `v0.1.0` the game ships complete Czech (`cs`) and English (`en`) packs cov
   "meta":    { "code": "en", "name": "English", "flag": "🇬🇧", "author": "...", "version": 1 },
   "strings": { "play": "PLAY", "settings": "SETTINGS", "decisionAlchemyTitle": "ALCHEMY", ... },
   "cards":   { "001": { "name": "Quick Attack", "desc": "Attack the enemy for 5. [Combo]" }, ... },
-  "abilities": { "extra_castle": { "name": "...", "desc": "..." }, ... }
+  "abilities": { "extra_castle": { "name": "...", "desc": "..." }, ... },
+  "campaignLocations": { "loc_goblins": { "name": "Goblin Camp", "desc": "..." }, ... },
+  "campaignOpponents":  { "gob_scout": { "name": "Goblin Scout", "title": "Cocky Brawler", "desc": "..." }, ... }
 }
 ```
 
@@ -21,6 +23,8 @@ As of `v0.1.0` the game ships complete Czech (`cs`) and English (`en`) packs cov
 - **`strings`** — UI strings, parsed into `AppStrings` (one field per key).
 - **`cards`** — `id → { name, desc }` (`CardText`). Missing entry → card's built-in Czech text.
 - **`abilities`** — passive-ability `id → { name, desc }`.
+- **`campaignLocations`** — Campaign `CampaignLocation.id → { name, desc }` (`title` unused).
+- **`campaignOpponents`** — Campaign `CampaignOpponent.id → { name, title, desc }`.
 
 ## Key Kotlin types
 
@@ -28,8 +32,8 @@ As of `v0.1.0` the game ships complete Czech (`cs`) and English (`en`) packs cov
 |------|------|
 | `Language` | Pack identity (code, name, flag, author, version) |
 | `AppStrings` | All UI strings as typed fields; `LocalStrings` CompositionLocal exposes the current one |
-| `CardText` | `{ name, desc }` for one card |
-| `LanguagePack` | `language + strings + cards + abilities`; built by `LanguagePack.fromJson(root, fallbackPack)` |
+| `CardText` | `{ name, desc, title="" }` — shared record reused for cards, abilities (name=title), campaign locations (title unused) and campaign opponents (all three fields) |
+| `LanguagePack` | `language + strings + cards + abilities + campaignLocations + campaignOpponents`; built by `LanguagePack.fromJson(root, fallbackPack)` |
 | `LanguageManager` | Loads packs from assets, persists selection (SharedPreferences), exposes reactive current pack |
 
 ## Fallback chain
@@ -51,3 +55,4 @@ Card game data (cost, effects, rarity) stays in `cards.json`; only **display nam
 
 ## Changelog
 - 2026-05-29: Page created — JSON localization system landed in `v0.1.0` (cs + en, UI + all cards)
+- 2026-07-26: Campaign content (`CampaignLocation`/`CampaignOpponent`, previously 100% hardcoded Czech with no lookup at all) now localizable — added `title` field to `CardText`, `campaignLocations`/`campaignOpponents` maps to `LanguagePack`, `campaignLocationName/Desc`/`campaignOpponentName/Title/Desc` lookups to `LanguageManager`, and `displayName`/`displayTitle`/`displayDescription` getters to `CampaignLocation`/`CampaignOpponent` (mirroring `Card.displayName`). `CampaignMapScreen.kt`/`CampaignLocationScreen.kt`/`CampaignResultScreen.kt` switched from raw `.name`/`.title`/`.description` to the new `display*` properties. Full cs+en content added for all 4 locations + 40 opponents. Also backfilled `en`/`cs` translations for cards `"133"`-`"139"` (missed when those cards were added).

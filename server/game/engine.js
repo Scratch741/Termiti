@@ -187,6 +187,11 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         self.castleHP = Math.min(100, self.castleHP + fx.amount);
         break;
 
+      case 'ConvertWallToCastle':
+        self.castleHP = Math.min(100, self.castleHP + self.wallHP);
+        self.wallHP = 0;
+        break;
+
       case 'AttackPlayer': {
         const wallDmg = Math.min(fx.amount, opponent.wallHP);
         opponent.wallHP -= wallDmg;
