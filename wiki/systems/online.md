@@ -69,6 +69,16 @@ Any new effect that can cause a self-inflicted card loss mid-play should route t
 
 **Fix (2026-07-16):** `_resolveDecision` skips the null-reset for `DecisionBurnOpponent`/`PeekAndStealHand`, so the *same* played-card gets resent in the next `GAME_STATE`, correcting the display. This would normally duplicate the `gameLog` entry (the client used to blindly append on every non-null `lastPlayedCard`) — fixed by adding client-side dedup keyed on the card's unique instance `id` (`lastLoggedPlayedCardId` in `OnlineLobbyViewModel`): the display (`lastPlayedCard`/`lastPlayedAction`/`lastPlayedByMe`) always updates, but the log only appends once per unique id.
 
+## Paced combo reveal for the opponent (`_sendStateBothPaced`)
+
+A combo card doesn't end the turn, so a fast player can play several combo cards back-to-back almost instantly. If every play broadcast `GAME_STATE` immediately to both sides (the normal `_sendStateBoth()`), the opponent's client could receive the *second* card's state before it had rendered/registered the first — the play would flash by unnoticed.
+
+**The player's own experience must stay instant** — only the *opponent's* copy needs pacing. `_sendStateBothPaced(actingSide)` (used at both combo-continuation call sites — the non-Decision branch of `_handlePlayCard` and the combo branch of `_resolveDecision`) sends `actingSide`'s state directly, but routes the opponent's copy through a per-side FIFO queue (`_queueRevealFor` → `_pumpRevealQueue`) that delivers one message at a time, at least `REVEAL_MIN_INTERVAL_MS` (1000ms) apart. Each individual combo play still gets its own delivery to the opponent (never dropped or coalesced into just the latest state) — they just arrive spaced out instead of all at once.
+
+**Ordering gotcha:** the plain `_sendStateBoth()` (turn end, discard, decision request, game end — anything authoritative that must land *now*) always wins over a still-draining paced queue. Without a flush, a stale queued reveal (e.g. from combo card 2) could arrive to the opponent *after* an unpaced "turn ended" message that was sent immediately following combo card 3 — an out-of-order flicker. `_sendStateBoth()` therefore calls `_clearRevealQueue()` for both sides before sending, discarding any not-yet-delivered paced reveals in favor of the fresh authoritative state.
+
+Fixed 2026-08-26 (replacing an earlier, cruder fix that delayed *processing* PLAY_CARD itself — which also slowed down the acting player's own combo, not just the opponent's view of it).
+
 ## GameSession.js — key methods
 
 | Method | Description |
@@ -99,3 +109,4 @@ if (this.turnNumber >= 99) {
 - 2026-05-29: Added `PROTOCOL_VERSION` handshake / `VERSION_MISMATCH`; `resourceOptions` in `DECISION_REQUEST`
 - 2026-07-16: Documented `lastPlayedCard` masking gotcha + fix (self-inflicted overdraw burns weren't visible in the discard slot, only logged)
 - 2026-07-16: Added WebSocket ping/pong heartbeat (`server.js`) — fixes ghost connections inflating/desyncing online count and blocking matchmaking
+- 2026-08-26: Documented paced combo reveal (`_sendStateBothPaced`) — opponent-only delivery queue for rapid combo plays, with `_sendStateBoth()` flushing it to prevent out-of-order delivery

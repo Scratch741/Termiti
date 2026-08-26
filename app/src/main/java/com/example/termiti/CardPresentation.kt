@@ -389,7 +389,7 @@ object CardPresentation {
         "133" to CardPres("Zamíchá **3× Zamořená Krysa** do soupeřova balíčku.",
             R.drawable.art_zamorene_krysy, "Chaos",
             artScale = 0.80f),
-        "134" to CardPres("Bez efektu, ukončí kolo. | **Zahození:** −4 hrad i hradby.",
+        "134" to CardPres("Bez efektu. | **Zahození:** −4 hrad i hradby.",
             R.drawable.art_zamorena_krysa, "Chaos",
             artScale = 0.80f),
         "135" to CardPres("Ukradne **3 CHAOSU** soupeři. | **Zahození:** +2 chaosu.",

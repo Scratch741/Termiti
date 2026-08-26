@@ -932,7 +932,7 @@
     },
     "132": {
       "name": "Desperate Wages",
-      "desc": "Attack for 5. | **On discard:** +3 Attack."
+      "desc": "Attack for 5. | **Discard:** +3 Attack."
     },
     "L01": {
       "name": "Darkmage",
@@ -944,27 +944,27 @@
     },
     "134": {
       "name": "Infested Rat",
-      "desc": "No effect, ends your turn. | **On discard:** −4 castle & walls."
+      "desc": "No effect. | **Discard:** −4 castle & walls."
     },
     "135": {
       "name": "Coin of Fate",
-      "desc": "Steals **3 CHAOS** from the opponent. | **On discard:** +2 Chaos."
+      "desc": "Steals **3 CHAOS** from the opponent. | **Discard:** +2 Chaos."
     },
     "136": {
       "name": "Final Lunge",
-      "desc": "Attack the enemy for 10. | **On discard:** −4 walls."
+      "desc": "Attack the enemy for 10. | **Discard:** −4 walls."
     },
     "137": {
       "name": "Forgotten Note",
-      "desc": "Magic +2. | **On discard:** draw 1 card."
+      "desc": "Magic +2. | **Discard:** draw 1 card."
     },
     "138": {
       "name": "Undermined Ramparts",
-      "desc": "Walls +7, sabotages 3 stone from the opponent. | **On discard:** −5 walls."
+      "desc": "Walls +7, sabotages 3 stone from the opponent. | **Discard:** −5 walls."
     },
     "139": {
       "name": "Absorption of the Walls",
-      "desc": "Converts all walls into castle. | **On discard:** −8 castle."
+      "desc": "Converts all walls into castle. | **Discard:** −8 castle."
     }
   },
   "abilities": {

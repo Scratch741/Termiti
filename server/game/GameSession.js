@@ -136,11 +136,11 @@ const MULLIGAN_TIMEOUT_MS   = 35_000;   // 35 s na mulligan (VS intro ukusuje ~4
 const TURN_HAND_DRAW        = 1;
 const TURN_SECONDS          = 15;
 const TIMEBANK_SECONDS      = 120;
-// Min. rozestup mezi zpracováním dvou PLAY_CARD od STEJNÉ strany (combo řetězec
-// umožňuje zahrát víc karet v jednom tahu bez čekání na soupeře). Bez tohoto šlo
-// zahrát 2+ combo karty tak rychle za sebou, že soupeřův klient nestihl vykreslit
-// GAME_STATE/animaci první karty, než dorazila druhá – soupeř si zahrání nevšiml.
-const PLAY_CARD_MIN_INTERVAL_MS = 1000;
+// Min. rozestup mezi GAME_STATE zprávami DORUČENÝMI SOUPEŘI během combo řetězce
+// (viz _sendStateBothPaced). Hráč sám hraje karty bez zpoždění – jde jen o to,
+// aby soupeřův klient stihl vykreslit/zaregistrovat jednu odhalenou kartu, než
+// dorazí další, když hráč zahraje 2+ combo karty rychle po sobě.
+const REVEAL_MIN_INTERVAL_MS = 1000;
 
 class GameSession {
 
@@ -187,9 +187,11 @@ class GameSession {
     this.actedThisTurn = { A: false, B: false };
     // Zahození karty NEukončuje tah, ale je povolené jen 1× za kolo.
     this.discardUsedThisTurn = { A: false, B: false };
-    // PLAY_CARD throttle fronta – wall-clock čas, kdy smí server zpracovat DALŠÍ
-    // kartu od dané strany (viz PLAY_CARD_MIN_INTERVAL_MS / _handlePlayCard).
-    this._nextAllowedPlayAt  = { A: 0, B: 0 };
+    // Fronta GAME_STATE zpráv čekajících na doručení SOUPEŘI s odstupem
+    // REVEAL_MIN_INTERVAL_MS (viz _sendStateBothPaced/_queueRevealFor).
+    // _revealTimer[side] != null ⇔ právě běží odstup po poslední doručené zprávě.
+    this._revealQueue = { A: [], B: [] };
+    this._revealTimer = { A: null, B: null };
 
     // Last played/discarded card (sent to both clients so they can animate it)
     this.lastPlayedCard    = null;
@@ -582,31 +584,7 @@ class GameSession {
 
   // ── Play card ──────────────────────────────────────────────────────────────
 
-  /**
-   * Throttle vstupní bod pro PLAY_CARD. Fronta místo prostého zamítnutí: každý
-   * požadavek si rezervuje nejbližší volný slot (>= now, >= konec předchozí
-   * rezervace pro TUTO stranu), takže i 3+ rychlé taps za sebou (combo řetězec)
-   * proběhnou postupně po PLAY_CARD_MIN_INTERVAL_MS, ne najednou v tu samou chvíli.
-   * Skutečná herní logika je v _playCardNow – beze změny, jen zavolaná se zpožděním.
-   */
-  _handlePlayCard(side, data) {
-    const now      = Date.now();
-    const earliest = Math.max(now, this._nextAllowedPlayAt[side] || 0);
-    this._nextAllowedPlayAt[side] = earliest + PLAY_CARD_MIN_INTERVAL_MS;
-    const delay = earliest - now;
-    if (delay > 0) {
-      setTimeout(() => {
-        // Hra mohla mezitím skončit / tah se mohl přehoupnout (odpojení, vzdání
-        // se, vypršení timeru) – stejná pojistka jako u _turnTimer callbacků výše.
-        if (this.activeSide !== side || this.phase !== 'playing') return;
-        this._playCardNow(side, data);
-      }, delay);
-    } else {
-      this._playCardNow(side, data);
-    }
-  }
-
-  _playCardNow(side, { cardId }) {
+  _handlePlayCard(side, { cardId }) {
     // Hráč zahrál kartu → resetuj příznak prázdného přeskočení (není to skip)
     this.skippedEmptyDeck[side] = false;
     this.actedThisTurn[side]    = true;
@@ -932,7 +910,7 @@ class GameSession {
       // se ZBÝVAJÍCÍM časem (žádných +15 s navíc). Bez resume by serverový
       // timer zůstal vypnutý (handleAction ho vymazal) a hráče by nikdy nepřeskočil.
       this._resumeTurnTimer(this._remainingTurnMsAtAction ?? 0);
-      this._sendStateBoth();
+      this._sendStateBothPaced(side);
     }
   }
 
@@ -1230,7 +1208,7 @@ class GameSession {
       // Combo: hráč pokračuje v tahu – POUZE se zbývajícím časem.
       // Dřív se restartoval plných 15 s → hráč získal čas navíc za každé Rozhodnutí.
       this._resumeTurnTimer(remainingTurnMs);
-      this._sendStateBoth();
+      this._sendStateBothPaced(side);
     }
   }
 
@@ -1697,6 +1675,12 @@ class GameSession {
   }
 
   _sendStateBoth() {
+    // Tahle zpráva je autoritativní a jde OBĚMA stranám HNED – zruš proto
+    // rozdělané "paced" fronty (viz _sendStateBothPaced), jinak by mohla dorazit
+    // zastaralá zpožděná zpráva AŽ PO téhle (typicky: konec tahu hned po poslední
+    // combo kartě) a klientovi na chvíli přehrát stav v nesprávném pořadí.
+    this._clearRevealQueue('A');
+    this._clearRevealQueue('B');
     const stateA = this._buildStateFor('A');
     const stateB = this._buildStateFor('B');
     console.log(`[DECK] game=${this.gameId} turn=${this.turnNumber} A.deck=${stateA.myState.deckSize} B.deck=${stateB.myState.deckSize} active=${this.activeSide}`);
@@ -1705,6 +1689,54 @@ class GameSession {
     this.lastLog = [];
     this.privateLog = { A: [], B: [] };
     // lastPlayedCard se NEresetuje – zůstane viditelný, dokud ho nenahradí nová karta
+  }
+
+  /** Zahodí čekající frontu paced-reveal zpráv pro [side] a zruší její odstup-timer. */
+  _clearRevealQueue(side) {
+    this._revealQueue[side] = [];
+    if (this._revealTimer[side]) {
+      clearTimeout(this._revealTimer[side]);
+      this._revealTimer[side] = null;
+    }
+  }
+
+  /**
+   * Jako _sendStateBoth(), ale pro combo řetězec: hraje AKTIVNÍ hráč, takže JEHO
+   * GAME_STATE jde vždy okamžitě (žádné umělé zpoždění vlastního hraní). SOUPEŘOVA
+   * kopie ale prochází frontou s min. odstupem REVEAL_MIN_INTERVAL_MS – bez toho
+   * šlo zahrát 2+ combo karty tak rychle po sobě, že soupeřův klient dostal druhé
+   * GAME_STATE dřív, než stihl vykreslit/zaregistrovat to první, a zahrání si nevšiml.
+   * Fronta (ne throttle/coalesce): každá jednotlivá karta se soupeři DORUČÍ, jen
+   * s odstupem – nezahodí se ani se nesloučí do jedné "poslední" zprávy.
+   */
+  _sendStateBothPaced(actingSide) {
+    const oppSide = actingSide === 'A' ? 'B' : 'A';
+    this._send(actingSide, this._buildStateFor(actingSide));
+    this._queueRevealFor(oppSide, this._buildStateFor(oppSide));
+    this.lastLog = [];
+    this.privateLog = { A: [], B: [] };
+  }
+
+  /** Zařadí GAME_STATE payload pro [side] do fronty a spustí/pokračuje její vyprazdňování. */
+  _queueRevealFor(side, payload) {
+    this._revealQueue[side].push(payload);
+    this._pumpRevealQueue(side);
+  }
+
+  /**
+   * Pošle další frontu čekající zprávu pro [side], pokud zrovna neběží odstup od
+   * poslední. Po odeslání nastaví timer na REVEAL_MIN_INTERVAL_MS, po jehož
+   * uplynutí se zavolá znovu – takže fronta se vyprazdňuje přesně tímhle tempem.
+   */
+  _pumpRevealQueue(side) {
+    if (this._revealTimer[side]) return;               // odstup po předchozí zprávě ještě běží
+    const payload = this._revealQueue[side].shift();
+    if (!payload) return;                               // fronta prázdná
+    this._send(side, payload);
+    this._revealTimer[side] = setTimeout(() => {
+      this._revealTimer[side] = null;
+      this._pumpRevealQueue(side);
+    }, REVEAL_MIN_INTERVAL_MS);
   }
 
   _log(msg) {
