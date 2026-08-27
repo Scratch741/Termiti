@@ -31,6 +31,8 @@ private val ClTeal  = Color(0xFF3DBFAD)
 private val ClText  = Color(0xFFEDE0C4)
 private val ClMuted = Color(0xFF7A6E5F)
 private val ClGreen = Color(0xFF4CAF50)
+private val ClXp    = Color(0xFF7EE8A2)   // stejná zelená jako XP badge na obrazovce výsledku
+private val ClGem   = Color(0xFF7EC8E3)
 
 private const val ART_RATIO = 0.643f
 
@@ -123,12 +125,14 @@ fun CampaignLocationScreen(
                         modifier           = Modifier.fillMaxSize(),
                         contentScale       = ContentScale.FillBounds
                     )
-                    // Jméno – zakřivený text na stejném místě jako u karet
+                    // Jméno – zakřivený text na stejném místě jako u karet.
+                    // 220 dp / 12 sp → baseline 135,0 dp = offset 110 dp + 0,78 × 32 dp
+                    // (odvození vzorce viz CampaignMapScreen.LocationCard).
                     ArcCardName(
                         name         = location.displayName,
                         modifier     = Modifier
                             .align(Alignment.TopStart)
-                            .offset(y = 106.dp)
+                            .offset(y = 110.dp)
                             .fillMaxWidth()
                             .height(32.dp),
                         fontSizeSp   = 12f,
@@ -312,11 +316,12 @@ private fun OpponentCard(
         }
 
         // ── Vrstva 3: jméno – zakřivený text na stejném místě jako u karet ────
+        // Stejné umístění jako u panelu lokace: 220 dp / 12 sp → baseline 135,0 dp.
         ArcCardName(
             name         = opponent.displayName,
             modifier     = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 106.dp)
+                .offset(y = 110.dp)
                 .fillMaxWidth()
                 .height(32.dp),
             fontSizeSp   = 12f,
@@ -348,25 +353,16 @@ private fun OpponentCard(
                     maxLines   = 2,
                     overflow   = TextOverflow.Ellipsis
                 )
+                // Odměny za první poražení – stejné pořadí i barvy jako na
+                // obrazovce výsledku ([CampaignResultScreen] RewardBadge): XP, zlato, gemy.
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Image(painterResource(R.drawable.goldcoin_icon), null, Modifier.size(10.dp))
-                        Text("${opponent.rewardGold}", color = ClGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    }
+                    RewardChip(R.drawable.star_icon,     "${opponent.rewardXp}",   ClXp)
+                    RewardChip(R.drawable.goldcoin_icon, "${opponent.rewardGold}", ClGold)
                     if (opponent.rewardGems > 0) {
-                        Row(
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            Image(painterResource(R.drawable.diamond_icon), null, Modifier.size(10.dp))
-                            Text("${opponent.rewardGems}", color = Color(0xFF7EC8E3), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                        }
+                        RewardChip(R.drawable.diamond_icon, "${opponent.rewardGems}", ClGem)
                     }
                 }
             }
@@ -406,6 +402,18 @@ private fun OpponentCard(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+/** Ikona + hodnota jedné odměny v textovém pruhu karty soupeře. */
+@Composable
+private fun RewardChip(iconRes: Int, value: String, color: Color) {
+    Row(
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Image(painterResource(iconRes), null, Modifier.size(10.dp))
+        Text(value, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold)
     }
 }
 

@@ -85,12 +85,16 @@ fun CampaignMapScreen(
                     contentDescription = null,
                     modifier           = Modifier.size(52.dp)
                 )
+                // letterSpacing přidává mezeru i ZA poslední písmeno, takže vycentrovaný
+                // text sedí o půl mezery vlevo od osy sloupce. padding(start = letterSpacing)
+                // to vyrovná na druhé straně → glyfy jsou přesně na ose (pod trofejí).
                 Text(
                     "KAMPAŇ",
                     color        = CmGold,
                     fontSize     = 26.sp,
                     fontWeight   = FontWeight.Bold,
-                    letterSpacing = 4.sp
+                    letterSpacing = 4.sp,
+                    modifier     = Modifier.padding(start = 4.dp)
                 )
                 Text(
                     "Vyber lokaci a poraž\nvšechny soupeře",
@@ -98,7 +102,8 @@ fun CampaignMapScreen(
                     fontSize    = 12.sp,
                     letterSpacing = 1.sp,
                     textAlign   = TextAlign.Center,
-                    lineHeight  = 18.sp
+                    lineHeight  = 18.sp,
+                    modifier    = Modifier.padding(start = 1.dp)
                 )
             }
 
@@ -208,11 +213,15 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
         }
 
         // ── Vrstva 3: jméno – zakřivený text na stejném místě jako u karet ────
+        // Střed jmenného pruhu v card_frame_*.png je na 59,4 % výšky karty (pruh
+        // 652–768 px z 1195 px). Text je opticky uprostřed, když platí
+        //     baseline = 0,594 × výškaKarty + 0,355 × fontSize      (0,355 ≈ půl verzálky)
+        // 240 dp / 13 sp → 147,4 dp = offset 120 dp + baselineFrac 0,78 × 35 dp.
         ArcCardName(
             name         = location.displayName,
             modifier     = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 116.dp)
+                .offset(y = 120.dp)
                 .fillMaxWidth()
                 .height(35.dp),
             fontSizeSp   = 13f,
