@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -71,6 +72,7 @@ fun avatarResId(avatar: String): Int? = when (avatar) {
     "enemy_icon_2"   -> R.drawable.enemy_icon_2
     "enemy_icon_3"   -> R.drawable.enemy_icon_3
     "hammer_icon"    -> R.drawable.hammer_icon
+    "goblin_kral_profil" -> R.drawable.goblin_kral_profil
     else             -> null
 }
 
@@ -100,7 +102,7 @@ fun ProfileScreen(onBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Textured background
         Image(
-            painter            = painterResource(R.drawable.deckbuild_bg),
+            painter            = painterResource(R.drawable.bg_plain),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
@@ -274,6 +276,9 @@ fun ProfileScreen(onBack: () -> Unit) {
                         SectionHeader(LocalStrings.current.profileSectionCastle)
                         CastleSkinPicker(current = profile!!.castleSkin, onChanged = { profile = it })
 
+                        SectionHeader(LocalStrings.current.profileSectionWall)
+                        WallSkinPicker(current = profile!!.wallSkin, onChanged = { profile = it })
+
                         SectionHeader(LocalStrings.current.profileSectionCardBack)
                         CardBackSkinPicker(current = profile!!.cardBackSkin, onChanged = { profile = it })
 
@@ -300,17 +305,15 @@ fun ProfileScreen(onBack: () -> Unit) {
         }
 
         // ── Tlačítko Zpět (floating) ──────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .statusBarsPadding()
-                .padding(10.dp)
-        ) {
-            FantasyButton(text = "← ${LocalStrings.current.back}", compact = true) {
-                SoundManager.playMenuTap()
-                onBack()
-            }
-        }
+        PlainButton(
+            text      = "Zpět",
+            modifier  = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(10.dp),
+            textColor = PrMuted,
+            fontSize  = 12.sp,
+            paddingH  = 14.dp,
+            paddingV  = 8.dp,
+            onClick   = { SoundManager.playMenuTap(); onBack() }
+        )
     }
 }
 
@@ -470,7 +473,11 @@ private fun AvatarPicker(
 
 // ── Castle skin picker ────────────────────────────────────────────────────────
 
-private val CASTLE_SKINS = listOf("castle_player", "castle_player_2", "castle_player_3")
+private val CASTLE_SKINS = listOf(
+    "castle_player", "castle_player_2", "castle_player_3", "castle_player_4", "castle_player_5",
+    "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
+    "castle_player_11", "castle_player_12", "castle_player_13"
+)
 
 @Composable
 private fun castleSkinLabel(id: String): String {
@@ -478,7 +485,9 @@ private fun castleSkinLabel(id: String): String {
     return when (id) {
         "castle_player"   -> s.castleClassic
         "castle_player_2" -> s.castleStone
-        else              -> s.castleDark
+        "castle_player_3" -> s.castleDark
+        "castle_player_4" -> s.castleOutlawCamp
+        else              -> s.castleVariant.format(id.substringAfterLast('_').toIntOrNull() ?: 0)
     }
 }
 
@@ -488,7 +497,7 @@ private fun CastleSkinPicker(
     onChanged: (PlayerProfile) -> Unit
 ) {
     Row(
-        modifier              = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        modifier              = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CASTLE_SKINS.forEach { skinId ->
@@ -497,7 +506,7 @@ private fun CastleSkinPicker(
             val resId    = castleSkinDrawable(skinId)
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .width(84.dp)
                     .background(
                         if (selected) PrGold.copy(alpha = 0.15f) else Color(0x22000000),
                         RoundedCornerShape(8.dp)
@@ -519,7 +528,64 @@ private fun CastleSkinPicker(
                     modifier           = Modifier.fillMaxWidth().height(60.dp),
                     contentScale       = ContentScale.Fit
                 )
-                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
+                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
+                if (selected) Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
+            }
+        }
+    }
+}
+
+// ── Wall skin picker ──────────────────────────────────────────────────────────
+
+private val WALL_SKINS = listOf("wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
+
+@Composable
+private fun wallSkinLabel(id: String): String {
+    val s = LocalStrings.current
+    return when (id) {
+        "wall_player" -> s.wallClassic
+        else          -> s.wallVariant.format(id.removePrefix("wall_player").toIntOrNull() ?: 0)
+    }
+}
+
+@Composable
+private fun WallSkinPicker(
+    current:   String,
+    onChanged: (PlayerProfile) -> Unit
+) {
+    Row(
+        modifier              = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        WALL_SKINS.forEach { skinId ->
+            val label    = wallSkinLabel(skinId)
+            val selected = skinId == current
+            val resId    = wallSkinDrawable(skinId)
+            Column(
+                modifier = Modifier
+                    .width(84.dp)
+                    .background(
+                        if (selected) PrGold.copy(alpha = 0.15f) else Color(0x22000000),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .then(if (selected) Modifier.border(1.5.dp, PrGold, RoundedCornerShape(8.dp)) else Modifier)
+                    .clickable(enabled = !selected) {
+                        SoundManager.playMenuTap()
+                        val updated = PlayerProfileManager.profile!!.copy(wallSkin = skinId)
+                        PlayerProfileManager.save(updated)
+                        onChanged(updated)
+                    }
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Image(
+                    painter            = painterResource(resId),
+                    contentDescription = label,
+                    modifier           = Modifier.fillMaxWidth().height(60.dp),
+                    contentScale       = ContentScale.Fit
+                )
+                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
                 if (selected) Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
             }
         }

@@ -584,7 +584,7 @@ fun PlayerPanel(
         Spacer(Modifier.height(6.dp))
 
         // Vizuál hradu/hradeb – vyplní volný prostor
-        CastleWallVisual(castleHp = castleHp, wallHp = wallHp, winTarget = winTarget,
+        CastleWallVisual(castleHp = castleHp, wallHp = wallHp, winTarget = winTarget, maxWall = playerState.maxWall,
             modifier = Modifier.fillMaxWidth().weight(1f))
 
         Spacer(Modifier.height(6.dp))
@@ -601,14 +601,14 @@ fun PlayerPanel(
 }
 
 @Composable
-fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, modifier: Modifier = Modifier) {
+fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, maxWall: Int = MAX_WALL, modifier: Modifier = Modifier) {
     val castleColor = if (castleHp > 15) HpGreen else HpRed
     val castleFrac by animateFloatAsState(
         (castleHp / winTarget.toFloat()).coerceIn(0f, 1f),
         tween(600, easing = EaseOutCubic), label = "castle"
     )
     val wallFrac by animateFloatAsState(
-        (wallHp / 50f).coerceIn(0f, 1f),
+        (wallHp / maxWall.toFloat()).coerceIn(0f, 1f),
         tween(600, easing = EaseOutCubic), label = "wall"
     )
 

@@ -31,7 +31,7 @@ fun applyEffects(
             self.mines[effect.type] = ((self.mines[effect.type] ?: 0) + effect.amount).coerceAtMost(MAX_MINES)
 
         is CardEffect.BuildWall     ->
-            self.wallHP = (self.wallHP + effect.amount).coerceIn(0, MAX_WALL)
+            self.wallHP = (self.wallHP + effect.amount).coerceIn(0, self.maxWall)
 
         is CardEffect.BuildCastle   ->
             self.castleHP = (self.castleHP + effect.amount).coerceAtMost(100)

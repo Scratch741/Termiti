@@ -27,6 +27,12 @@ data class PendingResource(
 class PlayerState(
     var castleHP: Int = 30,
     var wallHP: Int = 15,
+    /**
+     * Strop hradeb tohoto hráče (BuildWall efekty se coerceIn(0, maxWall)). Výchozí = globální
+     * MAX_WALL – nastaveno jinak jen u AI v kampani ([CampaignOpponent.aiMaxWall]), aby slabý
+     * soupeř s nízkým aiWall neměl vizuálně "prázdnou" hradbu škálovanou vůči 50.
+     */
+    var maxWall: Int = MAX_WALL,
     var resources: MutableMap<ResourceType, Int> = mutableMapOf(
         ResourceType.MAGIC  to 0,
         ResourceType.ATTACK to 0,
@@ -97,6 +103,7 @@ class PlayerState(
     fun deepCopy(): PlayerState = PlayerState(
         castleHP                 = castleHP,
         wallHP                   = wallHP,
+        maxWall                  = maxWall,
         resources                = resources.toMutableMap(),
         mines                    = mines.toMutableMap(),
         mineBlockedTurns         = mineBlockedTurns.toMutableMap(),

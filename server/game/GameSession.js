@@ -153,8 +153,13 @@ class GameSession {
    * @param {string[]|null} deckIdsA  – 30 base ID karet pro hráče A (null = náhodný)
    * @param {string[]|null} deckIdsB  – 30 base ID karet pro hráče B (null = náhodný)
    * @param {Function|null} onEnd     – callback(gameId) volaný při ukončení hry
+   * @param {string}  castleSkinA/B  – kosmetický skin hradu (pro GAME_STATE.oppState, viz reconnect)
+   * @param {string}  wallSkinA/B    – kosmetický skin hradby (pro GAME_STATE.oppState, viz reconnect)
+   * @param {string}  background     – pozadí bojiště, vybrané JEDNOU serverem při matchmakingu,
+   *                                   stejné pro oba hráče (viz pickBattleBackground() v server.js)
    */
-  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal', abilitiesA = [], abilitiesB = [], deviceIdA = null, deviceIdB = null) {
+  constructor(gameId, wsA, nameA, wsB, nameB, deckIdsA = null, deckIdsB = null, onEnd = null, mode = 'normal', abilitiesA = [], abilitiesB = [], deviceIdA = null, deviceIdB = null,
+    castleSkinA = 'castle_player', wallSkinA = 'wall_player', castleSkinB = 'castle_player', wallSkinB = 'wall_player', background = 'castle_background') {
     this.gameId = gameId;
     this.onEnd  = onEnd;
     this.mode   = mode;   // 'normal' | 'super_random'
@@ -164,6 +169,11 @@ class GameSession {
     this.deviceId  = { A: deviceIdA, B: deviceIdB };
     this.deckIds   = { A: deckIdsA,  B: deckIdsB  };
     this.abilities = { A: abilitiesA, B: abilitiesB };
+    // Kosmetika hráčů – server ji "trackuje" po celou dobu zápasu (ne jen v MATCH_FOUND),
+    // aby ji GAME_STATE mohl dodat i při rekonstrukci matchInfo po restartu appky (reconnect).
+    this.castleSkin = { A: castleSkinA, B: castleSkinB };
+    this.wallSkin   = { A: wallSkinA,   B: wallSkinB   };
+    this.background = background;
 
     // Game state
     this.state     = { A: null, B: null };
@@ -1597,7 +1607,9 @@ class GameSession {
       deckSize:        opp.deck.length,
       discardSize:     opp.discardPile.length,
       maxHandSize:     opp.maxHandSize || 7,
-      lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null
+      lastPlayedIdx:   this.lastPlayedBySide === oppSide ? this.lastPlayedCardIdx : null,
+      castleSkin:      this.castleSkin[oppSide],
+      wallSkin:        this.wallSkin[oppSide]
     };
 
     // Při konci hry přidej skutečné karty soupeře – klient je zobrazí v review módu
@@ -1609,6 +1621,7 @@ class GameSession {
       type: 'GAME_STATE',
       gameId:     this.gameId,   // klient potřebuje gameId pro GAME_ACTION po restartu appky
       mySide:     side,          // klient potřebuje vědět, která strana je jeho
+      background: this.background, // stejné pro oba hráče – vybráno serverem při matchmakingu
       activeSide: this.activeSide,
       isMyTurn:   this.activeSide === side,
       turnNumber: this.turnNumber,

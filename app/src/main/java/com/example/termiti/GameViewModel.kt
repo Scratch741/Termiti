@@ -438,6 +438,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var activeCampaignOpponent = androidx.compose.runtime.mutableStateOf<CampaignOpponent?>(null)
         private set
 
+    /**
+     * Pozadí aktuálního bojiště – vybráno JEDNOU při startu hry (restartGame/
+     * startCampaignBattle/startArenaBattle/startRoguelike), ne odvozeno reaktivně
+     * v Composable, aby se neměnilo při každé rekompozici. Náhodné mimo kampaň,
+     * u kampaně dané lokací (jinak default).
+     */
+    var battleBackgroundResId = androidx.compose.runtime.mutableStateOf(R.drawable.castle_background)
+        private set
+
     // ── Mulligan ──────────────────────────────────────────────────────────────
     var isMulligan = androidx.compose.runtime.mutableStateOf(true)
         private set
@@ -550,8 +559,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     if (amt >= selfHpMissing) 200.0 else amt * 10.0 / selfHpMissing
                 }
                 is CardEffect.BuildWall     -> {
-                    // Zeď nad cap (MAX_WALL) nemá hodnotu – počítej jen to, co se vejde
-                    val effective = fx.amount.coerceAtMost(MAX_WALL - self.wallHP).coerceAtLeast(0)
+                    // Zeď nad cap (self.maxWall) nemá hodnotu – počítej jen to, co se vejde
+                    val effective = fx.amount.coerceAtMost(self.maxWall - self.wallHP).coerceAtLeast(0)
                     // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)
                     val danger = 1.0 + (30 - self.castleHP).coerceAtLeast(0) / 30.0
                     effective * 1.5 * danger
@@ -2006,6 +2015,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = null
+        battleBackgroundResId.value  = randomBattleBackground()
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null
@@ -2047,6 +2057,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
+        // Goblinský tábor má vlastní vzhled bojiště; ostatní lokace zatím výchozí
+        // (žádné vlastní pozadí zatím nemají).
+        battleBackgroundResId.value = if (opponent.id.startsWith("gob_"))
+            R.drawable.castle_background_goblin else R.drawable.castle_background
         aiPassiveAbilities.value = emptyList()   // kampaňský soupeř má vlastní stats, ne náhodné pasivky
         gameOver.value          = null
         log.value               = emptyList()
@@ -2153,7 +2167,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val aiState = PlayerState(
             castleHP = opponent.aiCastle,
-            wallHP   = opponent.aiWall
+            wallHP   = opponent.aiWall,
+            maxWall  = opponent.aiMaxWall
         ).also {
             for ((resType, bonus) in opponent.aiExtraMines) {
                 it.mines[resType] = (it.mines[resType] ?: 1) + bonus
@@ -2202,6 +2217,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun startArenaBattle() {
         arenaPhase.value = ArenaPhase.BATTLE
+        activeCampaignOpponent.value = null
+        battleBackgroundResId.value  = randomBattleBackground()
         replayFrames.clear()
         val ps = PlayerState().also {
             it.deck.addAll(arenaDraft.toList().withUniqueIds().shuffled())
@@ -2356,6 +2373,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = enemy       // → top bar ukáže jméno/avatar, potlačí obecný dialog
+        // Roguelike soupeři jsou procedurální, ne vázaní na konkrétní kampaňovou lokaci → náhodné pozadí.
+        battleBackgroundResId.value = randomBattleBackground()
         aiPassiveAbilities.value = emptyList()
         gameOver.value          = null
         log.value               = emptyList()

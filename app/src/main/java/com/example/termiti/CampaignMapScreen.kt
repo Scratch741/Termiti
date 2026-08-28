@@ -31,7 +31,6 @@ private val CmGold  = Color(0xFFD4A843)
 private val CmTeal  = Color(0xFF3DBFAD)
 private val CmText  = Color(0xFFEDE0C4)
 private val CmMuted = Color(0xFF7A6E5F)
-private val CmDesc  = Color(0xFFCBBFA5)   // světlejší než CmMuted – popisek musí být čitelný na ilustraci
 private val CmGreen = Color(0xFF4CAF50)
 
 // Výška art okna card_frame: 64.3 % výšky karty (změřeno z GameCardView: 90dp / 140dp)
@@ -43,18 +42,19 @@ fun CampaignMapScreen(
     onBack: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Texturované pozadí – stejné jako ostatní navigační obrazovky (menu/shop/nastavení)
+        // Texturované pozadí
         Image(
-            painter      = painterResource(R.drawable.menu_bg),
+            painter      = painterResource(R.drawable.bg_plain),
             contentDescription = null,
             modifier     = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        // Tmavý overlay pro čitelnost
+        // Tmavý overlay pro čitelnost – bg_plain.png je samo o sobě už tmavé/tlumené,
+        // silný overlay (dřív 0xBF) ho prakticky celé překryl. Jen jemné dolazení.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xBF09070D))
+                .background(Color(0x4009070D))
         )
 
         PlainButton(
@@ -229,33 +229,34 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
             baselineFrac = 0.78f
         )
 
-        // ── Vrstva 4: text karty – popisek lokace, stejné místo jako popis karty ──
+        // ── Vrstva 4: text karty – popisek lokace, stejný styl jako popisek
+        // soupeře v CampaignLocationScreen.kt (velikost/barva/umístění sjednoceny) ──
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 153.dp)
+                .offset(y = 167.dp)
                 .fillMaxWidth()
-                .height(40.dp)
+                .height(36.dp)
                 .clipToBounds()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 14.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 location.displayDescription,
-                color      = if (unlocked) CmDesc else CmMuted,
-                fontSize   = 8.sp,
+                color      = if (unlocked) Color(0xFFDDD0B0) else CmMuted,
+                fontSize   = 8.5.sp,
                 textAlign  = TextAlign.Center,
-                lineHeight = 11.sp,
+                lineHeight = 10.5.sp,
                 maxLines   = 3,
                 overflow   = TextOverflow.Ellipsis
             )
         }
 
-        // ── Vrstva 5: progress bar + status – pevné místo blízko spodku karty ──
+        // ── Vrstva 5: progress bar + status – stejné místo jako typ karty ──────
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 196.dp)
+                .offset(y = 210.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -329,7 +330,7 @@ internal fun locationFrameRes(id: String): Int = when (id) {
 
 @DrawableRes
 private fun locationArtRes(id: String): Int = when (id) {
-    "loc_goblins" -> R.drawable.art_goblin
+    "loc_goblins" -> R.drawable.goblin_tabor
     "loc_dwarves" -> R.drawable.art_opevneni
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak

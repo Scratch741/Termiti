@@ -52,7 +52,7 @@ fun aiChooseAction(
     // Situační příznaky
     val aiLowHp        = ai.castleHP < 15
     val aiLowWall      = ai.wallHP   < 5
-    val aiWallRoom     = (MAX_WALL - ai.wallHP).coerceAtLeast(0)  // kolik hradeb ještě lze postavit
+    val aiWallRoom     = (ai.maxWall - ai.wallHP).coerceAtLeast(0)  // kolik hradeb ještě lze postavit
     val oppLowHp       = opponent.castleHP < 20
     val oppCloseToWin  = opponent.castleHP >= (playerWinTarget - 20) // soupeř je blízko výhry hradem
     val aiCloseToWin   = ai.castleHP       >= (aiWinTarget - 20)    // AI je blízko výhry hradem

@@ -671,7 +671,14 @@ private fun OnlineGameplay(
                     ),
                     opponentCastleResId   = castleSkinDrawable(
                         matchInfo?.opponentCastleSkin ?: "castle_player"
-                    )
+                    ),
+                    playerWallResId       = wallSkinDrawable(
+                        PlayerProfileManager.profile?.wallSkin ?: "wall_player"
+                    ),
+                    opponentWallResId     = wallSkinDrawable(
+                        matchInfo?.opponentWallSkin ?: "wall_player"
+                    ),
+                    backgroundResId       = vm.battleBackgroundResId.value
                 )
 
                 // ── Pravý panel: zdroje soupeře ───────────────────────────────

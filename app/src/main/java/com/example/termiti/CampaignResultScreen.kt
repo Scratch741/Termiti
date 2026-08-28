@@ -219,6 +219,17 @@ private fun AvatarView(avatar: String, size: Dp) {
         "enemy_icon_2" -> R.drawable.enemy_icon_2
         "enemy_icon_3" -> R.drawable.enemy_icon_3
         "hammer_icon"  -> R.drawable.hammer_icon
+        "player_icon_10"          -> R.drawable.player_icon_10
+        "goblin_pruzkumnik"       -> R.drawable.goblin_pruzkumnik
+        "goblin_lucistnik"        -> R.drawable.goblin_lucistnik
+        "goblin_saman"            -> R.drawable.goblin_saman
+        "goblin_valecnik"         -> R.drawable.goblin_valecnik
+        "goblin_drancovac"        -> R.drawable.goblin_drancovac
+        "goblin_berserk"          -> R.drawable.goblin_berserk
+        "goblin_troll"            -> R.drawable.goblin_troll
+        "goblin_velitel"          -> R.drawable.goblin_velitel
+        "goblin_valecny_nacelnik" -> R.drawable.goblin_valecny_nacelnik
+        "goblin_kral_profil"      -> R.drawable.goblin_kral_profil
         else           -> null
     }
     if (resId != null) {

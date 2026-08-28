@@ -125,6 +125,7 @@
     "profileUnlockAll": "Všechny karty odemčeny",
     "profileSectionAvatar": "Ikonka hráče",
     "profileSectionCastle": "Skin hradu",
+    "profileSectionWall": "Skin hradby",
     "profileSectionCardBack": "Rub karty",
     "profileSectionAbilities": "Pasivní schopnosti",
     "profileActiveCount": "Aktivní: %d / %d",
@@ -137,6 +138,10 @@
     "castleClassic": "Klasický",
     "castleStone": "Kamenný",
     "castleDark": "Temný",
+    "castleOutlawCamp": "Tábor psanců",
+    "castleVariant": "Hrad %d",
+    "wallClassic": "Klasická",
+    "wallVariant": "Hradba %d",
     "cardBackBasic": "Základní",
     "cardBackStyle2": "Styl 2",
     "cardBackStyle3": "Styl 3",
@@ -1048,7 +1053,7 @@
     "gob_scout": {
       "name": "Goblin Průzkumník",
       "title": "Drzý rváč",
-      "desc": "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej."
+      "desc": "Nejslabší z tlupy. Postav hrad na 45 nebo ho sejmi."
     },
     "gob_archer": {
       "name": "Goblin Lučištník",

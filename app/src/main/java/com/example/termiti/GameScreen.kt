@@ -225,8 +225,17 @@ fun GameScreen(
                     aiMaxHand         = state.aiMaxHand,
                     playerCastleResId = castleSkinDrawable(
                         PlayerProfileManager.profile?.castleSkin ?: "castle_player"
-                    )
-                    // opponentCastleResId = default (AI vždy základní hrad)
+                    ),
+                    playerWallResId = wallSkinDrawable(
+                        PlayerProfileManager.profile?.wallSkin ?: "wall_player"
+                    ),
+                    // Kampaň – Goblinský tábor: AI dostane vzhled táborového opevnění
+                    // místo výchozího hradu (jinak default = obecný hrad/hradba).
+                    opponentCastleResId = if (campaignOpponent?.id?.startsWith("gob_") == true)
+                        R.drawable.castle_player_4 else R.drawable.castle_player,
+                    opponentWallResId = if (campaignOpponent?.id?.startsWith("gob_") == true)
+                        R.drawable.wall_goblin else R.drawable.wall_player,
+                    backgroundResId = viewModel.battleBackgroundResId.value
                 )
 
                 // ── Pravý panel: zdroje AI ────────────────────────────────────

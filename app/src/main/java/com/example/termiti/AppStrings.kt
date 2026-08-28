@@ -170,6 +170,7 @@ data class AppStrings(
     val profileUnlockAll: String,
     val profileSectionAvatar: String,
     val profileSectionCastle: String,
+    val profileSectionWall: String,
     val profileSectionCardBack: String,
     val profileSectionAbilities: String,
     val profileActiveCount: String,       // %d / %d
@@ -182,6 +183,10 @@ data class AppStrings(
     val castleClassic: String,
     val castleStone: String,
     val castleDark: String,
+    val castleOutlawCamp: String,
+    val castleVariant: String,
+    val wallClassic: String,
+    val wallVariant: String,
     val cardBackBasic: String,
     val cardBackStyle2: String,
     val cardBackStyle3: String,

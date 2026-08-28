@@ -33,7 +33,7 @@ object PlayerProfileManager {
 
     /** Vytvoří nový profil se zadaným jménem a uloží ho. */
     fun createProfile(name: String) {
-        save(PlayerProfile(name = name.trim(), gold = 300))
+        save(PlayerProfile(name = name.trim(), gold = 500))
     }
 
     fun save(profile: PlayerProfile) {

@@ -81,13 +81,19 @@ fun NewBattlefield(
     aiMaxHand: Int = 7,               // max. velikost ruky soupeře/AI (7 nebo 8 s extra_hand_card)
     opponentCardBackResId: Int = R.drawable.card_back_frame,  // skin rubu karet soupeře/AI
     playerCastleResId: Int = R.drawable.castle_player,        // skin hradu hráče
-    opponentCastleResId: Int = R.drawable.castle_player       // skin hradu soupeře/AI
+    opponentCastleResId: Int = R.drawable.castle_player,      // skin hradu soupeře/AI
+    playerWallResId: Int = R.drawable.wall_player,             // skin hradby hráče
+    opponentWallResId: Int = R.drawable.wall_player,            // skin hradby soupeře/AI
+    // Pozadí bojiště – náhodné pro běžné hry (viz randomBattleBackground()) nebo
+    // vynucené konkrétní pro kampaň (např. castle_background_goblin). Plameny se
+    // renderují JEN pro výchozí castle_background – jinde by nesedly na pochodně.
+    backgroundResId: Int = R.drawable.castle_background
 ) {
     BoxWithConstraints(
         modifier = modifier
             .clipToBounds()
             .paint(
-                painterResource(R.drawable.castle_background),
+                painterResource(backgroundResId),
                 contentScale = ContentScale.Crop
             )
     ) {
@@ -267,58 +273,64 @@ fun NewBattlefield(
 
         // ── Plameny na pochodeňových pozicích (renderovány PŘED hrady → jsou za nimi) ──
         //
-        //  x, y = procenta OBRÁZKU castle_background.png (1200×400 px).
-        //  Měř přímo na obrázku: x=0 je levý kraj, x=100 pravý; y=0 vršek, y=100 spodek.
-        //  Kód sám přepočítá ContentScale.Crop crop a zobrazí plamen na správném místě.
+        //  Pozice jsou nafitované na pochodně konkrétně v castle_background.png (1200×400 px).
+        //  U jiných pozadí (castle_background_swamp/vulcan/winter/goblin) by seděly jen náhodou
+        //  – proto se plameny renderují VÝHRADNĚ pro výchozí pozadí, viz backgroundResId dole.
+        //
+        //  x, y = procenta OBRÁZKU. Měř přímo na obrázku: x=0 je levý kraj, x=100 pravý;
+        //  y=0 vršek, y=100 spodek. Kód sám přepočítá ContentScale.Crop crop a zobrazí
+        //  plamen na správném místě.
         //
         //  size = velikost plamene v dp (výchozí 20)
         //  seed = nemeň (odděluje fáze animací sousedních plamenů)
         //
-        data class Flame(val x: Float, val y: Float, val seed: Float, val size: Float = 20f)
-        val flames = remember {
-            listOf(
-                Flame(x = 30f, y = 65f, seed = 0.0f),            // ①
-                Flame(x = 34f, y = 57f, seed = 1.7f),            // ②
-                Flame(x = 71f, y = 55.2f, seed = 2.5f),            // ③
-                Flame(x = 78.5f, y = 65f, seed = 3.7f),            // ④
-                Flame(x = 83.3f, y = 55f, seed = 0.9f, size = 25f),            // ⑤
-                Flame(x = 97f, y = 51.5f, seed = 2.1f, size = 42f) // ⑥
-            )
-        }
+        if (backgroundResId == R.drawable.castle_background) {
+            data class Flame(val x: Float, val y: Float, val seed: Float, val size: Float = 20f)
+            val flames = remember {
+                listOf(
+                    Flame(x = 30f, y = 65f, seed = 0.0f),            // ①
+                    Flame(x = 34f, y = 57f, seed = 1.7f),            // ②
+                    Flame(x = 71f, y = 55.2f, seed = 2.5f),            // ③
+                    Flame(x = 78.5f, y = 65f, seed = 3.7f),            // ④
+                    Flame(x = 83.3f, y = 55f, seed = 0.9f, size = 25f),            // ⑤
+                    Flame(x = 97f, y = 51.5f, seed = 2.1f, size = 42f) // ⑥
+                )
+            }
 
-        // Přepočet image-space → display-space s korekcí ContentScale.Crop.
-        // Obrázek je 1200×400 (poměr 3:1).
-        val imgAR   = 3.0f
-        val dispAR  = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
-        val imgDispW: Dp
-        val imgDispH: Dp
-        val cropX:   Dp
-        val cropY:   Dp
-        if (dispAR >= imgAR) {
-            // Zobrazení je širší než obrázek → škáluje se na šířku, ořez nahoře/dole
-            imgDispW = maxWidth
-            imgDispH = maxWidth / imgAR
-            cropX    = 0.dp
-            cropY    = (imgDispH - maxHeight) / 2f
-        } else {
-            // Zobrazení je užší než obrázek → škáluje se na výšku, ořez vlevo/vpravo
-            imgDispW = maxHeight * imgAR
-            imgDispH = maxHeight
-            cropX    = (imgDispW - maxWidth) / 2f
-            cropY    = 0.dp
-        }
+            // Přepočet image-space → display-space s korekcí ContentScale.Crop.
+            // Obrázek je 1200×400 (poměr 3:1).
+            val imgAR   = 3.0f
+            val dispAR  = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
+            val imgDispW: Dp
+            val imgDispH: Dp
+            val cropX:   Dp
+            val cropY:   Dp
+            if (dispAR >= imgAR) {
+                // Zobrazení je širší než obrázek → škáluje se na šířku, ořez nahoře/dole
+                imgDispW = maxWidth
+                imgDispH = maxWidth / imgAR
+                cropX    = 0.dp
+                cropY    = (imgDispH - maxHeight) / 2f
+            } else {
+                // Zobrazení je užší než obrázek → škáluje se na výšku, ořez vlevo/vpravo
+                imgDispW = maxHeight * imgAR
+                imgDispH = maxHeight
+                cropX    = (imgDispW - maxWidth) / 2f
+                cropY    = 0.dp
+            }
 
-        flames.forEach { f ->
-            val fSz = f.size.dp
-            val xDisplay = imgDispW * (f.x / 100f) - cropX - fSz / 2
-            val yDisplay = imgDispH * (f.y / 100f) - cropY - fSz * 0.80f
-            TorchFlame(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = xDisplay, y = yDisplay),
-                size = fSz,
-                seed = f.seed
-            )
+            flames.forEach { f ->
+                val fSz = f.size.dp
+                val xDisplay = imgDispW * (f.x / 100f) - cropX - fSz / 2
+                val yDisplay = imgDispH * (f.y / 100f) - cropY - fSz * 0.80f
+                TorchFlame(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = xDisplay, y = yDisplay),
+                    size = fSz,
+                    seed = f.seed
+                )
+            }
         }
 
         // ── Hrady – vlevo/vpravo dole (renderovány PO plamenech → překrývají je) ──
@@ -327,7 +339,9 @@ fun NewBattlefield(
             wallHp      = playerState.wallHP,
             isPlayer    = true,
             winTarget   = playerWinTarget,
+            maxWall     = playerState.maxWall,
             castleResId = playerCastleResId,
+            wallResId   = playerWallResId,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 4.dp)
@@ -337,7 +351,9 @@ fun NewBattlefield(
             wallHp      = aiState.wallHP,
             isPlayer    = false,
             winTarget   = aiWinTarget,
+            maxWall     = aiState.maxWall,
             castleResId = opponentCastleResId,
+            wallResId   = opponentWallResId,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 8.dp, bottom = 4.dp)
@@ -349,6 +365,7 @@ fun NewBattlefield(
             wallHp      = playerState.wallHP,
             isPlayer    = true,
             winTarget   = playerWinTarget,
+            maxWall     = playerState.maxWall,
             handSize    = playerState.hand.size,
             maxHandSize = playerMaxHand,
             modifier    = Modifier
@@ -362,6 +379,7 @@ fun NewBattlefield(
             wallHp      = aiState.wallHP,
             isPlayer    = false,
             winTarget   = aiWinTarget,
+            maxWall     = aiState.maxWall,
             handSize    = aiState.hand.size,
             maxHandSize = aiMaxHand,
             modifier    = Modifier
@@ -506,13 +524,65 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
     return minFrac + (1f - minFrac) * raw
 }
 
+// ─── Bojiště – pozadí ─────────────────────────────────────────────────────────
+
+/**
+ * Pool pozadí pro běžné (nekampaňové) hry – offline, WiFi MP, online, aréna, roguelike.
+ * castle_background_goblin NENÍ v poolu – je vyhrazené jen pro kampaň (Goblinský tábor),
+ * viz [randomBattleBackground] volající kód. Plameny (torch sconces) jsou nafitované jen
+ * na castle_background – ostatní pozadí je proto vždy zobrazují BEZ plamenů (viz NewBattlefield).
+ */
+private val RANDOM_BATTLE_BACKGROUNDS = listOf(
+    R.drawable.castle_background,
+    R.drawable.castle_background_swamp,
+    R.drawable.castle_background_vulcan,
+    R.drawable.castle_background_winter
+)
+
+/** Náhodně vybere pozadí bojiště z [RANDOM_BATTLE_BACKGROUNDS]. Volat JEDNOU na začátku hry a uložit. */
+fun randomBattleBackground(): Int = RANDOM_BATTLE_BACKGROUNDS.random()
+
+/**
+ * Mapuje ID pozadí (string, jak ho posílá online server v MATCH_FOUND/GAME_STATE)
+ * na drawable resource. Online zápasy NEvolí pozadí náhodně na klientovi (viz
+ * [randomBattleBackground]) – server ho vybere jednou při matchmakingu a pošle
+ * oběma hráčům stejné, aby se jim neodlišovalo.
+ */
+fun battleBackgroundDrawable(id: String): Int = when (id) {
+    "castle_background_swamp"  -> R.drawable.castle_background_swamp
+    "castle_background_vulcan" -> R.drawable.castle_background_vulcan
+    "castle_background_winter" -> R.drawable.castle_background_winter
+    "castle_background_goblin" -> R.drawable.castle_background_goblin
+    else                        -> R.drawable.castle_background
+}
+
 // ─── Castle Structure ─────────────────────────────────────────────────────────
 
 /** Mapuje ID skinu hradu na drawable resource. */
 fun castleSkinDrawable(skinId: String): Int = when (skinId) {
-    "castle_player_2" -> R.drawable.castle_player_2
-    "castle_player_3" -> R.drawable.castle_player_3
-    else              -> R.drawable.castle_player
+    "castle_player_2"  -> R.drawable.castle_player_2
+    "castle_player_3"  -> R.drawable.castle_player_3
+    "castle_player_4"  -> R.drawable.castle_player_4
+    "castle_player_5"  -> R.drawable.castle_player_5
+    "castle_player_6"  -> R.drawable.castle_player_6
+    "castle_player_7"  -> R.drawable.castle_player_7
+    "castle_player_8"  -> R.drawable.castle_player_8
+    "castle_player_9"  -> R.drawable.castle_player_9
+    "castle_player_10" -> R.drawable.castle_player_10
+    "castle_player_11" -> R.drawable.castle_player_11
+    "castle_player_12" -> R.drawable.castle_player_12
+    "castle_player_13" -> R.drawable.castle_player_13
+    else                -> R.drawable.castle_player
+}
+
+/** Mapuje ID skinu hradby na drawable resource. */
+fun wallSkinDrawable(skinId: String): Int = when (skinId) {
+    "wall_player2" -> R.drawable.wall_player2
+    "wall_player3" -> R.drawable.wall_player3
+    "wall_player4" -> R.drawable.wall_player4
+    "wall_player5" -> R.drawable.wall_player5
+    "wall_player6" -> R.drawable.wall_player6
+    else           -> R.drawable.wall_player
 }
 
 @Composable
@@ -521,14 +591,16 @@ private fun NewCastleStructure(
     wallHp: Int,
     isPlayer: Boolean,
     winTarget: Int = 60,
+    maxWall: Int = MAX_WALL,
     castleResId: Int = R.drawable.castle_player,
+    wallResId: Int = R.drawable.wall_player,
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isPlayer) Teal    else Crimson
     val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
 
     val wallFrac by animateFloatAsState(
-        targetValue   = (wallHp / 50f).coerceIn(0f, 1f),
+        targetValue   = (wallHp / maxWall.toFloat()).coerceIn(0f, 1f),
         animationSpec = tween(400),
         label         = "wall_frac"
     )
@@ -541,9 +613,9 @@ private fun NewCastleStructure(
     ) {
         if (isPlayer) {
             CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId)
-            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true)
+            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true, wallResId = wallResId, maxWall = maxWall)
         } else {
-            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false)
+            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false, wallResId = wallResId, maxWall = maxWall)
             CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId)
         }
     }
@@ -597,10 +669,10 @@ private fun CastleTowerBlock(
 }
 
 @Composable
-private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true) {
+private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true, wallResId: Int = R.drawable.wall_player, maxWall: Int = MAX_WALL) {
     val wallFullW = 42.dp
     val wallFullH = 58.dp
-    val wallFrac  = hpToVisualFrac(wallHp, maxHp = 50f)
+    val wallFrac  = hpToVisualFrac(wallHp, maxHp = maxWall.toFloat())
 
     val offsetY by animateDpAsState(
         targetValue   = wallFullH * (1f - wallFrac),
@@ -616,7 +688,7 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
                 .clip(androidx.compose.ui.graphics.RectangleShape)
         ) {
             Image(
-                painter            = painterResource(R.drawable.wall_player),
+                painter            = painterResource(wallResId),
                 contentDescription = "Zeď",
                 modifier           = Modifier
                     .size(wallFullW, wallFullH)
@@ -640,6 +712,7 @@ private fun CastleHpBadge(
     wallHp: Int,
     isPlayer: Boolean,
     winTarget: Int = 60,
+    maxWall: Int = MAX_WALL,
     handSize: Int = 0,
     maxHandSize: Int = 7,
     modifier: Modifier = Modifier
@@ -668,7 +741,7 @@ private fun CastleHpBadge(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
             Text(
-                "$wallHp/$MAX_WALL",
+                "$wallHp/$maxWall",
                 color      = accentColor,
                 fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold

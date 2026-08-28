@@ -16,12 +16,17 @@ data class CampaignOpponent(
     val name       : String,
     val title      : String,
     val avatar     : String,
+    /** Plná ilustrace pro roster kartu (CampaignLocationScreen) – pokud null, spadne na [avatar]. */
+    val cardArt    : String? = null,
     val description: String,
     val isBoss     : Boolean = false,
 
     // AI startovní stav
     val aiCastle      : Int = 30,
     val aiWall        : Int = 10,
+    /** Strop hradeb AI (MAX_WALL = 50 pokud nenastaveno). Nízký strop u slabých soupeřů,
+     *  aby jejich hradba na bojišti nevypadala vizuálně "prázdná" vůči globálním 50. */
+    val aiMaxWall     : Int = MAX_WALL,
     val aiStartMagic  : Int = 0,
     val aiStartAttack : Int = 0,
     val aiStartStones : Int = 0,
@@ -91,59 +96,63 @@ object CampaignData {
             description = "Zanedbaný tábor goblinů. Slabí, ale přemnožení.",
             opponents = listOf(
 
-                // 1 ── 18 karet, winTarget 45 ───────────────────────────────
+                // 1 ── 16 karet, winTarget 45 ───────────────────────────────
                 // Malý balíček + nízký winTarget = výstavba je nejjednodušší cesta.
                 CampaignOpponent(
                     id = "gob_scout", name = "Goblin Průzkumník", title = "Drzý rváč",
-                    avatar = "enemy_icon_1", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho zkopej.",
-                    aiCastle = 20, aiWall = 5,
-                    deckCardCounts = mapOf("001" to 6, "008" to 6, "004" to 6),
-                    winTarget = 45,
+                    avatar = "player_icon_10", cardArt = "goblin_pruzkumnik", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho sejmi.",
+                    aiCastle = 25, aiWall = 5, aiMaxWall = 5,
+                    deckCardCounts = mapOf("001" to 6, "046" to 2, "012" to 4, "D04" to 4),
+                    winTarget = 45, aiWinTarget = 27,
                     rewardGold = 30
                 ),
 
-                // 2 ── 20 karet, winTarget 48 ───────────────────────────────
+                // 2 ── 22 karet, winTarget 48 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_archer", name = "Goblin Lučištník", title = "Ostrostřelec z kopce",
-                    avatar = "🏹", description = "Střílí šípy na hradby. Aspoň míří správným směrem.",
-                    aiCastle = 21, aiWall = 6,
-                    deckCardCounts = mapOf("008" to 7, "019" to 6, "001" to 4, "004" to 3),
-                    winTarget = 48,
+                    avatar = "player_icon_10", cardArt = "goblin_lucistnik", description = "Střílí šípy na hradby. Aspoň míří správným směrem.",
+                    aiCastle = 27, aiWall = 6, aiMaxWall = 6,
+                    deckCardCounts = mapOf("008" to 5, "046" to 2, "012" to 3, "D04" to 3, "022" to 2,
+                        "019" to 5, "C21" to 2),
+                    winTarget = 48, aiWinTarget = 29,
                     rewardGold = 35
                 ),
 
-                // 3 ── 22 karet, winTarget 52 ───────────────────────────────
+                // 3 ── 26 karet, winTarget 52 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_shaman", name = "Goblin Šaman", title = "Čaroděj bez školy",
-                    avatar = "🧌", description = "Neumí kouzlit, ale dělá, že ano.",
-                    aiCastle = 22, aiWall = 7, aiStartMagic = 1,
-                    deckCardCounts = mapOf("001" to 6, "008" to 6, "012" to 5, "004" to 5),
-                    winTarget = 52,
+                    avatar = "player_icon_10", cardArt = "goblin_saman", description = "Neumí kouzlit, ale dělá, že ano.",
+                    aiCastle = 28, aiWall = 7, aiStartMagic = 1, aiMaxWall = 7,
+                    deckCardCounts = mapOf("113" to 4, "001" to 4, "004" to 5, "046" to 3,
+                        "D04" to 3, "047" to 2, "003" to 3, "013" to 2),
+                    winTarget = 52, aiWinTarget = 29,
                     rewardGold = 40
                 ),
 
                 // 4 ── 24 karet, winTarget 55 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_warrior", name = "Goblin Válečník", title = "Rváč s klackem",
-                    avatar = "🪓", description = "Přišel o zbraň. Teď bojuje klackem.",
-                    aiCastle = 23, aiWall = 8,
+                    avatar = "player_icon_10", cardArt = "goblin_valecnik", description = "Přišel o zbraň. Teď bojuje klackem.",
+                    aiCastle = 30, aiWall = 8, aiMaxWall = 8,
                     deckCardCounts = mapOf(
-                        "001" to 6, "007" to 4, "008" to 5, "012" to 4, "002" to 3, "004" to 2
+                        "104" to 2, "001" to 5, "046" to 2, "012" to 6,
+                        "047" to 4, "020" to 2, "017" to 3
                     ),
-                    winTarget = 55,
+                    winTarget = 55, aiWinTarget = 32,
                     rewardGold = 45
                 ),
 
                 // 5 ── 25 karet, winTarget 57 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_looter", name = "Goblin Drancovač", title = "Mistr nepořádku",
-                    avatar = "💰", description = "Drancuje vesnice a pak se diví, proč ho nikdo nemá rád.",
-                    aiCastle = 24, aiWall = 8,
+                    avatar = "player_icon_10", cardArt = "goblin_drancovac", description = "Drancuje vesnice a pak se diví, proč ho nikdo nemá rád.",
+                    aiCastle = 32, aiWall = 8, aiMaxWall = 8,
                     deckCardCounts = mapOf(
-                        "007" to 4, "001" to 5, "027" to 4, "008" to 4,
-                        "012" to 4, "002" to 3, "004" to 1
+                        "001" to 3, "046" to 2, "012" to 3, "056" to 3,
+                        "017" to 3, "015" to 2, "050" to 3, "C12" to 1,
+                        "037" to 3, "C31" to 2
                     ),
-                    winTarget = 57,
+                    winTarget = 57, aiWinTarget = 34,
                     rewardGold = 50
                 ),
 
@@ -151,13 +160,14 @@ object CampaignData {
                 // Berserk překvapí menší rukou na startu.
                 CampaignOpponent(
                     id = "gob_berserker", name = "Goblin Berserk", title = "Zuřivý houf jednoho",
-                    avatar = "😤", description = "Překvapí tě dřív, než si vůbec lízneš. Startovní ruka: 3 karty.",
-                    aiCastle = 25, aiWall = 7,
+                    avatar = "player_icon_10", cardArt = "goblin_berserk", description = "Překvapí tě dřív, než si vůbec lízneš. Startovní ruka: 3 karty.",
+                    aiCastle = 34, aiWall = 7, aiMaxWall = 7,
                     deckCardCounts = mapOf(
-                        "007" to 5, "001" to 4, "024" to 4, "008" to 4,
-                        "006" to 4, "025" to 3, "004" to 2
+                        "104" to 1, "001" to 3, "046" to 2, "012" to 3,
+                        "017" to 2, "015" to 2, "050" to 3, "037" to 4,
+                        "024" to 3, "006" to 2, "023" to 2
                     ),
-                    winTarget = 58,
+                    winTarget = 58, aiWinTarget = 36,
                     playerStartHandSize = 3,
                     rewardGold = 55
                 ),
@@ -165,56 +175,61 @@ object CampaignData {
                 // 7 ── 27 karet, winTarget 59 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_troll", name = "Goblin Troll", title = "Boří hradby, staví drby",
-                    avatar = "🪨", description = "Velký pro goblina. Specialita: boření hradeb.",
-                    aiCastle = 26, aiWall = 10,
+                    avatar = "player_icon_10", cardArt = "goblin_troll", description = "Velký pro goblina. Specialita: boření hradeb.",
+                    aiCastle = 35, aiWall = 10, aiMaxWall = 10,
                     deckCardCounts = mapOf(
-                        "007" to 5, "001" to 4, "019" to 5, "020" to 4,
-                        "008" to 4, "002" to 3, "012" to 2
+                        "104" to 1, "119" to 4, "001" to 3, "046" to 2,
+                        "012" to 3, "047" to 3, "017" to 2, "027" to 2,
+                        "015" to 2, "050" to 3, "037" to 2
                     ),
-                    winTarget = 59,
+                    winTarget = 59, aiWinTarget = 37,
                     rewardGold = 60
                 ),
 
-                // 8 ── 28 karet, winTarget 60 ───────────────────────────────
+                // 8 ── 29 karet, winTarget 60 ───────────────────────────────
                 CampaignOpponent(
                     id = "gob_commander", name = "Goblin Velitel", title = "Vůdce tlupy",
-                    avatar = "👹", description = "Velí ostatním. Alespoň trochu ví, co dělá.",
-                    aiCastle = 25, aiWall = 10,
+                    avatar = "player_icon_10", cardArt = "goblin_velitel", description = "Velí ostatním. Alespoň trochu ví, co dělá.",
+                    aiCastle = 37, aiWall = 10, aiMaxWall = 10,
                     deckCardCounts = mapOf(
-                        "001" to 5, "008" to 5, "007" to 5, "012" to 5,
-                        "002" to 4, "004" to 4
+                        "104" to 2, "109" to 4, "001" to 3, "046" to 2,
+                        "012" to 3, "056" to 2, "020" to 2, "017" to 2,
+                        "015" to 2, "050" to 3, "037" to 2, "055" to 2
                     ),
-                    winTarget = 60,
+                    winTarget = 60, aiWinTarget = 39,
                     rewardGold = 65
                 ),
 
-                // 9 ── 30 karet, winTarget 60, AI má extra mine útoku ────────
+                // 9 ── 31 karet, winTarget 60, AI má extra mine útoku ────────
                 CampaignOpponent(
                     id = "gob_warchief", name = "Goblin Válečný náčelník", title = "Téměř nebezpečný",
-                    avatar = "🎖️", description = "Jeden krok od trůnu. Sekyrníci a přímé zásahy.",
-                    aiCastle = 27, aiWall = 11,
+                    avatar = "player_icon_10", cardArt = "goblin_valecny_nacelnik", description = "Jeden krok od trůnu. Sekyrníci a přímé zásahy.",
+                    aiCastle = 38, aiWall = 11, aiMaxWall = 11,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
-                        "007" to 6, "001" to 5, "017" to 4, "022" to 4,
-                        "012" to 4, "006" to 4, "004" to 3
+                        "104" to 2, "001" to 3, "008" to 3, "004" to 2,
+                        "046" to 2, "022" to 4, "017" to 5, "015" to 2,
+                        "037" to 3, "026" to 2, "038" to 3
                     ),
-                    winTarget = 60,
+                    winTarget = 60, aiWinTarget = 40,
                     rewardGold = 80
                 ),
 
-                // 10 BOSS ── 32 karet, winTarget 62, AI lízne 5 karet ────────
+                // 10 BOSS ── 37 karet, winTarget 62, AI lízne 5 karet ────────
                 CampaignOpponent(
                     id = "gob_king", name = "Goblin Král", title = "Pán tábora",
-                    avatar = "👑", description = "Boss goblinů. 32 karet, startuje s 5 kartami v ruce. Jednorázová odměna: 200 XP.",
+                    avatar = "goblin_kral_profil", cardArt = "goblin_kral", description = "Král goblinů. 32 karet, startuje s 5 kartami v ruce a dvěma doly útoku.",
                     isBoss = true,
-                    aiCastle = 28, aiWall = 12,
+                    aiCastle = 40, aiWall = 12, aiMaxWall = 12,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
-                        "007" to 6, "001" to 5, "008" to 5, "006" to 4,
-                        "017" to 4, "012" to 4, "004" to 3, "002" to 1
+                        "104" to 2, "109" to 3, "119" to 2, "001" to 3,
+                        "004" to 4, "046" to 3, "056" to 2, "022" to 4,
+                        "017" to 5, "015" to 1, "050" to 3, "038" to 3,
+                        "054" to 2
                     ),
-                    winTarget = 62, aiStartHandSize = 5,
-                    rewardGold = 150, rewardGems = 2, rewardXp = 200
+                    winTarget = 62, aiStartHandSize = 5, aiWinTarget = 42,
+                    rewardGold = 150, rewardXp = 200
                 )
             )
         ),

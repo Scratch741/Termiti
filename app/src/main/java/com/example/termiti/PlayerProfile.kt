@@ -16,6 +16,9 @@ data class PlayerProfile(
     // ── Skin hradu ────────────────────────────────────────────────────────────
     val castleSkin: String = "castle_player",      // ID drawablu hradu hráče
 
+    // ── Skin hradby ───────────────────────────────────────────────────────────
+    val wallSkin: String = "wall_player",          // ID drawablu hradby hráče
+
     // ── Skin rubu karty ───────────────────────────────────────────────────────
     val cardBackSkin: String = "card_back_frame",  // ID drawablu rubu karty
 

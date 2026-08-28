@@ -16,7 +16,7 @@
  *   { type:"WELCOME",           online:N, queue:N }
  *   { type:"COUNT",             online:N, queue:N }
  *   { type:"QUEUE_OK" }
- *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", opponentAvatar:"...", side:"A"|"B" }
+ *   { type:"MATCH_FOUND",       gameId:"...", opponentName:"...", opponentAvatar:"...", opponentCastleSkin:"...", opponentWallSkin:"...", background:"...", side:"A"|"B" }
  *   { type:"VERSION_MISMATCH",  server:N, client:N, msg:"..." }
  *   { type:"ERROR",             msg:"..." }
  *   { type:"PONG" }
@@ -65,6 +65,17 @@ const PATH = '/lobby';
  * Musí odpovídat PROTOCOL_VERSION v app/.../OnlineLobbyViewModel.kt.
  */
 const PROTOCOL_VERSION = 1;
+
+/**
+ * Pool pozadí bojiště pro online zápasy – zrcadlí RANDOM_BATTLE_BACKGROUNDS
+ * v GameBattlefield.kt (bez castle_background_goblin, to je jen pro kampaň).
+ * Server ho vybere JEDNOU při vytvoření zápasu, aby oba hráči viděli STEJNÉ
+ * pozadí (dřív si ho každý klient losoval nezávisle → mohlo se lišit).
+ */
+const BATTLE_BACKGROUNDS = ['castle_background', 'castle_background_swamp', 'castle_background_vulcan', 'castle_background_winter'];
+function pickBattleBackground() {
+  return BATTLE_BACKGROUNDS[Math.floor(Math.random() * BATTLE_BACKGROUNDS.length)];
+}
 
 // ── HTTP server (sdílený pro WS + REST + HTML) ────────────────────────────────
 
@@ -490,8 +501,11 @@ function tryMatchFromQueue(q, mode) {
     const statsA = packStats(pA.deviceId);
     const statsB = packStats(pB.deviceId);
 
-    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, myStats: statsA, opponentStats: statsB, opponentActiveAbilities: pB.activeAbilities ?? [], side: 'A', mode });
-    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, myStats: statsB, opponentStats: statsA, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode });
+    // Pozadí bojiště – vybráno jednou serverem, posláno oběma, aby ho měli stejné.
+    const background = pickBattleBackground();
+
+    send(wsA, { type: 'MATCH_FOUND', gameId, opponentName: pB.name, opponentAvatar: pB.avatar ?? '👺', opponentCardBackSkin: pB.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pB.castleSkin ?? 'castle_player', opponentWallSkin: pB.wallSkin ?? 'wall_player', opponentLevel: pB.level ?? 1, opponentRating: ratingB, myRating: ratingA, myStats: statsA, opponentStats: statsB, opponentActiveAbilities: pB.activeAbilities ?? [], side: 'A', mode, background });
+    send(wsB, { type: 'MATCH_FOUND', gameId, opponentName: pA.name, opponentAvatar: pA.avatar ?? '👺', opponentCardBackSkin: pA.cardBackSkin ?? 'card_back_frame', opponentCastleSkin: pA.castleSkin ?? 'castle_player', opponentWallSkin: pA.wallSkin ?? 'wall_player', opponentLevel: pA.level ?? 1, opponentRating: ratingA, myRating: ratingB, myStats: statsB, opponentStats: statsA, opponentActiveAbilities: pA.activeAbilities ?? [], side: 'B', mode, background });
 
     const onGameEnd = (gid) => {
       // Vyčisti přes přímou WS referenci (standard)
@@ -508,7 +522,9 @@ function tryMatchFromQueue(q, mode) {
     };
 
     const session = new GameSession(gameId, wsA, pA.name, wsB, pB.name, pA.deckIds, pB.deckIds, onGameEnd, mode,
-      pA.activeAbilities || [], pB.activeAbilities || [], pA.deviceId || null, pB.deviceId || null);
+      pA.activeAbilities || [], pB.activeAbilities || [], pA.deviceId || null, pB.deviceId || null,
+      pA.castleSkin || 'castle_player', pA.wallSkin || 'wall_player',
+      pB.castleSkin || 'castle_player', pB.wallSkin || 'wall_player', background);
     games.set(gameId, session);
     try {
       session.start();
@@ -687,8 +703,15 @@ wss.on('connection', (ws, req) => {
         const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
         // Skin hradu – přijmi jen povolené hodnoty
-        const KNOWN_CASTLE_SKINS = new Set(['castle_player', 'castle_player_2', 'castle_player_3']);
+        const KNOWN_CASTLE_SKINS = new Set([
+          'castle_player', 'castle_player_2', 'castle_player_3', 'castle_player_4', 'castle_player_5',
+          'castle_player_6', 'castle_player_7', 'castle_player_8', 'castle_player_9', 'castle_player_10',
+          'castle_player_11', 'castle_player_12', 'castle_player_13'
+        ]);
         const castleSkin = KNOWN_CASTLE_SKINS.has(msg.castleSkin) ? msg.castleSkin : 'castle_player';
+        // Skin hradby – přijmi jen povolené hodnoty
+        const KNOWN_WALL_SKINS = new Set(['wall_player', 'wall_player2', 'wall_player3', 'wall_player4', 'wall_player5', 'wall_player6']);
+        const wallSkin = KNOWN_WALL_SKINS.has(msg.wallSkin) ? msg.wallSkin : 'wall_player';
         // Pasivní schopnosti – přijmi max 2 známá ID, ignoruj neznámá (anti-cheat)
         const KNOWN_ABILITIES = new Set([
           'extra_castle','extra_wall','extra_magic','extra_attack','extra_stones','extra_chaos',
@@ -699,7 +722,7 @@ wss.on('connection', (ws, req) => {
         const activeAbilities = rawAbilities
           .filter(a => typeof a === 'string' && KNOWN_ABILITIES.has(a))
           .slice(0, 2);
-        players.set(ws, { id: uuidv4(), name, avatar, cardBackSkin, castleSkin, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
+        players.set(ws, { id: uuidv4(), name, avatar, cardBackSkin, castleSkin, wallSkin, level, deviceId, activeAbilities, inQueue: false, gameId: null, side: null });
         log('JOIN', `${name} (online: ${players.size})`);
 
         // Pošli hráči jeho aktuální rating pro všechny módy

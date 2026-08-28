@@ -62,6 +62,7 @@ data class OnlineMatchInfo(
     val opponentAvatar        : String       = "enemy_icon_1",
     val opponentCardBackSkin  : String       = "card_back_frame",
     val opponentCastleSkin    : String       = "castle_player",
+    val opponentWallSkin      : String       = "wall_player",
     val opponentLevel         : Int          = -1,
     val opponentAbilities     : List<String> = emptyList(),
     val side                  : String,  // "A" nebo "B"
@@ -143,6 +144,8 @@ class OnlineLobbyViewModel(
     var statusMsg    = mutableStateOf(""); private set
     var errorMsg     = mutableStateOf(""); private set
     var matchInfo    = mutableStateOf<OnlineMatchInfo?>(null); private set
+    /** Pozadí bojiště pro tenhle zápas – vybráno JEDNOU při MATCH_FOUND, online hra nikdy není kampaň. */
+    var battleBackgroundResId = mutableStateOf(R.drawable.castle_background); private set
 
     // ── Rating / MMR ──────────────────────────────────────────────────────────
     /** Aktuální rating hráče v módu normal (z WELCOME nebo GAME_OVER) */
@@ -568,6 +571,7 @@ class OnlineLobbyViewModel(
                 put("avatar",           PlayerProfileManager.profile?.avatar ?: "player_icon_1")
                 put("cardBackSkin",     PlayerProfileManager.profile?.cardBackSkin  ?: "card_back_frame")
                 put("castleSkin",       PlayerProfileManager.profile?.castleSkin    ?: "castle_player")
+                put("wallSkin",         PlayerProfileManager.profile?.wallSkin      ?: "wall_player")
                 put("level",            PlayerProfileManager.profile?.level  ?: 1)
                 put("activeAbilities",  abilitiesArr)
                 put("deviceId",         deviceId)
@@ -711,12 +715,16 @@ class OnlineLobbyViewModel(
                                 games  = s.optInt("games",  0)
                             )
                         }
+                    // Pozadí vybírá server (jednou za zápas), aby ho oba hráči viděli stejné –
+                    // klient si ho už nesmí losovat sám (viz battleBackgroundDrawable).
+                    battleBackgroundResId.value = battleBackgroundDrawable(json.optString("background", "castle_background"))
                     matchInfo.value = OnlineMatchInfo(
                         gameId               = json.optString("gameId", ""),
                         opponentName         = json.optString("opponentName", "Soupeř"),
                         opponentAvatar       = json.optString("opponentAvatar", "enemy_icon_1"),
                         opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
                         opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
+                        opponentWallSkin     = json.optString("opponentWallSkin",     "wall_player"),
                         opponentLevel        = json.optInt("opponentLevel", -1),
                         opponentAbilities    = oppAbilities,
                         side                 = json.optString("side", "A"),
@@ -782,12 +790,18 @@ class OnlineLobbyViewModel(
                         val recoveredGameId = json.optString("gameId", "")
                         val recoveredSide   = json.optString("mySide", "A")
                         if (recoveredGameId.isNotEmpty()) {
+                            // Server trackuje soupeřův hrad/hradbu i pozadí po celou dobu zápasu
+                            // (GameSession.js), ne jen v MATCH_FOUND - takže i po restartu appky
+                            // (matchInfo ztraceno) je GAME_STATE dodá znovu, místo hardcoded defaultů.
+                            val oppState = json.optJSONObject("oppState")
+                            battleBackgroundResId.value = battleBackgroundDrawable(json.optString("background", "castle_background"))
                             matchInfo.value = OnlineMatchInfo(
                                 gameId               = recoveredGameId,
                                 opponentName         = "Soupeř",
                                 opponentAvatar       = "enemy_icon_1",
                                 opponentCardBackSkin = "card_back_frame",
-                                opponentCastleSkin   = "castle_player",
+                                opponentCastleSkin   = oppState?.optString("castleSkin", "castle_player") ?: "castle_player",
+                                opponentWallSkin     = oppState?.optString("wallSkin", "wall_player") ?: "wall_player",
                                 opponentLevel        = -1,
                                 side                 = recoveredSide
                             )

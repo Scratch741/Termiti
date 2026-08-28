@@ -45,20 +45,22 @@ fun CampaignLocationScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Texturované pozadí
         Image(
-            painter            = painterResource(R.drawable.bg_game),
+            painter            = painterResource(R.drawable.bg_plain),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
         )
+        // Tmavý overlay pro čitelnost – bg_plain.png je samo o sobě už tmavé/tlumené,
+        // silný overlay (dřív 0xBF) ho prakticky celé překryl. Jen jemné dolazení.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xBF09070D))
+                .background(Color(0x4009070D))
         )
 
         PlainButton(
             text      = "← Zpět",
-            modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
+            modifier  = Modifier.padding(start = 28.dp, top = 16.dp, end = 16.dp, bottom = 16.dp).align(Alignment.TopStart),
             textColor = ClMuted,
             fontSize  = 12.sp,
             paddingH  = 14.dp,
@@ -140,23 +142,25 @@ fun CampaignLocationScreen(
                         baselineFrac = 0.78f
                     )
 
-                    // Popisek – pevné, ořezané místo jako popis karty
+                    // Popisek – pevné, ořezané místo jako popis karty.
+                    // Mezera od jména: ArcCardName končí na y=142dp (offset 110 + výška 32),
+                    // popisek proto začíná až na 145dp, ne 140dp (dřív se s ním překrýval).
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .offset(y = 140.dp)
+                            .offset(y = 145.dp)
                             .fillMaxWidth()
-                            .height(54.dp)
+                            .height(50.dp)
                             .clipToBounds()
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             location.displayDescription,
-                            color      = ClMuted,
-                            fontSize   = 8.sp,
+                            color      = ClText,
+                            fontSize   = 9.sp,
                             textAlign  = TextAlign.Center,
-                            lineHeight = 11.sp,
+                            lineHeight = 12.sp,
                             maxLines   = 4,
                             overflow   = TextOverflow.Ellipsis
                         )
@@ -174,7 +178,7 @@ fun CampaignLocationScreen(
                             textAlign  = TextAlign.Center,
                             modifier   = Modifier
                                 .align(Alignment.TopStart)
-                                .offset(y = 198.dp)
+                                .offset(y = 200.dp)
                                 .fillMaxWidth()
                         )
                     }
@@ -195,6 +199,7 @@ fun CampaignLocationScreen(
                         opponent   = opponent,
                         locationId = location.id,
                         order      = index + 1,
+                        total      = location.opponents.size,
                         unlocked   = unlocked,
                         defeated   = isDefeated,
                         onClick    = {
@@ -213,6 +218,7 @@ private fun OpponentCard(
     opponent  : CampaignOpponent,
     locationId: String,
     order     : Int,
+    total     : Int,
     unlocked  : Boolean,
     defeated  : Boolean,
     onClick   : () -> Unit
@@ -238,16 +244,12 @@ private fun OpponentCard(
                 )
         )
 
-        // ── Vrstva 1: avatar soupeře vycentrovaný v art okně ─────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(artH)
-                .align(Alignment.TopStart),
-            contentAlignment = Alignment.Center
-        ) {
-            AvatarView(opponent.avatar, size = 60.dp)
-        }
+        // ── Vrstva 1: art soupeře přes celé art okno (jako u herních karet) ──
+        OpponentCardArt(
+            avatar   = opponent.cardArt ?: opponent.avatar,
+            artH     = artH,
+            modifier = Modifier.align(Alignment.TopStart)
+        )
 
         // ── Vrstva 2: card frame ──────────────────────────────────────────────
         Image(
@@ -257,11 +259,9 @@ private fun OpponentCard(
             contentScale       = ContentScale.FillBounds
         )
 
-        // ── Vrstva 2.5: rarity overlay (legendary = boss, epic = ostatní) ────
+        // ── Vrstva 2.5: rarity overlay – odstupňovaná podle pořadí, boss = legendary ──
         Image(
-            painter            = painterResource(
-                if (opponent.isBoss) R.drawable.rarity_legendary else R.drawable.rarity_epic
-            ),
+            painter            = painterResource(opponentRarityRes(order, total, opponent.isBoss)),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.FillBounds
@@ -330,14 +330,16 @@ private fun OpponentCard(
         )
 
         // ── Vrstva 4: text karty – popisek soupeře + odměna, stejné místo jako popis karty ──
+        // Mezera od jména: ArcCardName končí na y=142dp (offset 110 + výška 32),
+        // text proto začíná až na 145dp, ne 140dp (dřív se s ním překrýval).
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 140.dp)
+                .offset(y = 154.dp)
                 .fillMaxWidth()
-                .height(54.dp)
+                .height(41.dp)
                 .clipToBounds()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 14.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -347,9 +349,9 @@ private fun OpponentCard(
                 Text(
                     opponent.displayDescription,
                     color      = Color(0xFFDDD0B0),
-                    fontSize   = 7.5.sp,
+                    fontSize   = 8.5.sp,
                     textAlign  = TextAlign.Center,
-                    lineHeight = 9.5.sp,
+                    lineHeight = 10.5.sp,
                     maxLines   = 2,
                     overflow   = TextOverflow.Ellipsis
                 )
@@ -372,7 +374,7 @@ private fun OpponentCard(
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 198.dp)
+                .offset(y = 200.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment     = Alignment.CenterVertically
@@ -417,16 +419,37 @@ private fun RewardChip(iconRes: Int, value: String, color: Color) {
     }
 }
 
+/** Avatary s plnou ilustrací (celoplošný art, ne malá ikonka) – vykreslují se přes celé art okno karty. */
+private val FULL_ART_AVATARS = setOf(
+    "goblin_pruzkumnik", "goblin_lucistnik", "goblin_saman", "goblin_valecnik", "goblin_drancovac",
+    "goblin_berserk", "goblin_troll", "goblin_velitel", "goblin_valecny_nacelnik", "goblin_kral"
+)
+
+/** Mapuje avatar ID na drawable resource, nebo null pokud jde o emoji řetězec. */
+private fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
+    "enemy_icon_1" -> R.drawable.enemy_icon_1
+    "enemy_icon_2" -> R.drawable.enemy_icon_2
+    "enemy_icon_3" -> R.drawable.enemy_icon_3
+    "hammer_icon"  -> R.drawable.hammer_icon
+    "player_icon_10"          -> R.drawable.player_icon_10
+    "goblin_pruzkumnik"       -> R.drawable.goblin_pruzkumnik
+    "goblin_lucistnik"        -> R.drawable.goblin_lucistnik
+    "goblin_saman"            -> R.drawable.goblin_saman
+    "goblin_valecnik"         -> R.drawable.goblin_valecnik
+    "goblin_drancovac"        -> R.drawable.goblin_drancovac
+    "goblin_berserk"          -> R.drawable.goblin_berserk
+    "goblin_troll"            -> R.drawable.goblin_troll
+    "goblin_velitel"          -> R.drawable.goblin_velitel
+    "goblin_valecny_nacelnik" -> R.drawable.goblin_valecny_nacelnik
+    "goblin_kral_profil"      -> R.drawable.goblin_kral_profil
+    "goblin_kral"             -> R.drawable.goblin_kral
+    else           -> null
+}
+
 // Avatar: pokud je string jméno resources, zobrazí Image; jinak emoji Text
 @Composable
 private fun AvatarView(avatar: String, size: Dp) {
-    val resId: Int? = when (avatar) {
-        "enemy_icon_1" -> R.drawable.enemy_icon_1
-        "enemy_icon_2" -> R.drawable.enemy_icon_2
-        "enemy_icon_3" -> R.drawable.enemy_icon_3
-        "hammer_icon"  -> R.drawable.hammer_icon
-        else           -> null
-    }
+    val resId = avatarDrawableRes(avatar)
     if (resId != null) {
         Image(
             painterResource(resId),
@@ -445,10 +468,51 @@ private fun AvatarView(avatar: String, size: Dp) {
     }
 }
 
+/**
+ * Art karty soupeře v art okně (celá šířka × artH), stejně jako u skutečných herních karet
+ * (CardView) – Crop přes celou plochu, ne malá centrovaná ikonka. Pro avatary bez plné
+ * ilustrace (staré enemy_icon_N, emoji lokace) padá zpátky na malou centrovanou AvatarView.
+ */
+@Composable
+private fun OpponentCardArt(avatar: String, artH: Dp, modifier: Modifier = Modifier) {
+    val resId = avatarDrawableRes(avatar)
+    if (avatar in FULL_ART_AVATARS && resId != null) {
+        Image(
+            painter            = painterResource(resId),
+            contentDescription = null,
+            modifier           = modifier.fillMaxWidth().height(artH),
+            contentScale       = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = modifier.fillMaxWidth().height(artH),
+            contentAlignment = Alignment.Center
+        ) {
+            AvatarView(avatar, size = 60.dp)
+        }
+    }
+}
+
 // ── Pomocné funkce ────────────────────────────────────────────────────────────
 
+/**
+ * Odstupňovaná rarita soupeře podle pořadí v lokaci – rovnoměrně common/rare/epic
+ * napříč neboss soupeři, boss vždy legendary. Např. 9 běžných + boss: 1-3 common,
+ * 4-6 rare, 7-9 epic, boss legendary.
+ */
+private fun opponentRarityRes(order: Int, total: Int, isBoss: Boolean): Int {
+    if (isBoss) return R.drawable.rarity_legendary
+    val regularCount = (total - 1).coerceAtLeast(1)
+    val frac = (order - 1).toFloat() / regularCount
+    return when {
+        frac < 1f / 3f -> R.drawable.rarity_common
+        frac < 2f / 3f -> R.drawable.rarity_rare
+        else           -> R.drawable.rarity_epic
+    }
+}
+
 private fun locationArtRes(id: String): Int = when (id) {
-    "loc_goblins" -> R.drawable.art_goblin
+    "loc_goblins" -> R.drawable.goblin_tabor
     "loc_dwarves" -> R.drawable.art_opevneni
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
