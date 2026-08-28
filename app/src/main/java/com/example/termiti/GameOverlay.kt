@@ -194,7 +194,13 @@ fun MulliganOverlay(
     onSkip: () -> Unit,
     submitted: Boolean = false,
     goesFirst: Boolean? = null,
-    secondsLeft: Int? = null      // null = bez timeru (offline / WiFi)
+    secondsLeft: Int? = null,     // null = bez timeru (offline / WiFi)
+    /**
+     * Zbývající sekundy SOUPEŘOVA rozhodnutí – zobrazí se v závorce za
+     * „Čekám na soupeře…" poté, co jsme sami potvrdili. null = neznámé
+     * (offline, nebo soupeř už potvrdil a čeká se jen na server).
+     */
+    waitingSecondsLeft: Int? = null
 ) {
     val s = LocalStrings.current
     Box(
@@ -261,7 +267,10 @@ fun MulliganOverlay(
             // Podtitulek / čekání po odeslání
             if (submitted) {
                 Text(
-                    s.mulliganWaitingOpponent,
+                    if (waitingSecondsLeft != null)
+                        s.mulliganWaitingOpponentTimer.format(waitingSecondsLeft)
+                    else
+                        s.mulliganWaitingOpponent,
                     color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
                 )
             } else {

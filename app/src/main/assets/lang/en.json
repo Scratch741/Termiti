@@ -109,6 +109,7 @@
     "mulliganYouFirst": "You go first",
     "mulliganOpponentFirst": "Opponent goes first",
     "mulliganWaitingOpponent": "Waiting for opponent…",
+    "mulliganWaitingOpponentTimer": "Waiting for opponent… (%ds)",
     "mulliganInstruction": "Tap the cards you want to **swap** for new ones from your deck",
     "mulliganSelected": "**Selected: %d** — tap again to deselect",
     "mulliganPlayNoSwap": "Play without swapping",

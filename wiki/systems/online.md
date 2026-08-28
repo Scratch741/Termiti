@@ -40,7 +40,7 @@ Bump `PROTOCOL_VERSION` (both sides) on any breaking change to the protocol or s
 |---------|-------------|
 | `STATE` | Updated game state |
 | `DECISION_REQUEST` | Show Decision overlay (effectType, options, timeoutMs; `resourceOptions` for DecisionChooseResource) |
-| `CARD_LOST` | Card loss animation (burn, steal) |
+| `CARD_LOST` | Card loss animation (burn, steal); `fromHand` marks losses taken out of a hand |
 | `VERSION_MISMATCH` | Client protocol version incompatible → "update the app" |
 | `GAME_OVER` | Game ended (result) |
 | `GAME_ERROR` | Action error |
@@ -99,6 +99,14 @@ if (this.turnNumber >= 99) {
 }
 ```
 
+## Opponent hand-loss ghosts (`fromHand` in `CARD_LOST`)
+
+When you burn or steal from the opponent's hand, one card back disappears from their strip; `NewBattlefield` marks it with a ghost effect showing the lost card's face. Offline this is driven by `GameViewModel.aiHandLossLog` — an ordered FIFO consumed one entry per removed slot. Online the queue was never filled, and the fallback (the singular `lastCard`/`lastCardAction`) never fired: `CARD_LOST` is sent *before* the `GAME_STATE` that shrinks `oppState.handSize`, so by the time `LaunchedEffect(aiHandSize)` runs, `GAME_STATE` has already overwritten `lastPlayedAction` back to `PLAYED` with the card the attacker played. Nothing was shown at all.
+
+**Fix (2026-08-28):** `CARD_LOST` payloads carry `fromHand: true` when the card really came out of a hand — the direct `BurnCard`/`StealCard` path in `_playCardNow`, the same path fired by `discardEffects`, and `PeekAndStealHand` (Zákeřný špeh). `DecisionBurnOpponent` (Likvidace) deliberately does **not** set it: it burns from the opponent's *deck*, and an entry queued for it would never be consumed, shifting the cursor so every later loss showed the wrong card. The client (`OnlineLobbyViewModel.opponentHandLoss`) enqueues only `causedByMe` + `fromHand` events and passes the queue to `NewBattlefield(oppLossQueue = …)`, exactly as offline does. Ordering no longer matters — the queue survives until a slot is actually removed.
+
+The field is additive: an old server simply omits it, the queue stays empty, and the client falls back to the previous behaviour, so `PROTOCOL_VERSION` was not bumped.
+
 ## Related pages
 - [[architecture]] — technical architecture, versioning
 - [[cards/decisions]] — Decision mechanic
@@ -110,3 +118,4 @@ if (this.turnNumber >= 99) {
 - 2026-07-16: Documented `lastPlayedCard` masking gotcha + fix (self-inflicted overdraw burns weren't visible in the discard slot, only logged)
 - 2026-07-16: Added WebSocket ping/pong heartbeat (`server.js`) — fixes ghost connections inflating/desyncing online count and blocking matchmaking
 - 2026-08-26: Documented paced combo reveal (`_sendStateBothPaced`) — opponent-only delivery queue for rapid combo plays, with `_sendStateBoth()` flushing it to prevent out-of-order delivery
+- 2026-08-28: Added `fromHand` to `CARD_LOST` + client-side `opponentHandLoss` queue — opponent hand-loss ghosts were invisible online

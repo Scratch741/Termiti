@@ -796,7 +796,12 @@ class GameSession {
         cardId:      lc.id,
         baseId:      lc.baseId || lc.id,
         action,
-        isGenerated: lc.isGenerated || false
+        isGenerated: lc.isGenerated || false,
+        // StealCard i BurnCard berou vždy z opponent.hand (engine.js) → útočníkův
+        // klient podle toho ví, že soupeři ubude RUB v ruce, a může ztrátu ukázat
+        // ghost efektem nad jeho stripem. Ztráty z BALÍČKU (DecisionBurnOpponent)
+        // tento příznak NEmají – tam se v ruce nic neděje.
+        fromHand:    true
       };
       this._send(victimSide, payload);                            // oběť – jejich karta
       this._send(side,       { ...payload, causedByMe: true });   // útočník – způsobil ztrátu
@@ -1152,7 +1157,7 @@ class GameSession {
             const [stolen] = opp.hand.splice(idx, 1);
             const oppSide  = side === 'A' ? 'B' : 'A';
             const payload  = { type: 'CARD_LOST', cardId: stolen.id, baseId: stolen.baseId || stolen.id,
-              action: 'STOLEN', isGenerated: stolen.isGenerated || false };
+              action: 'STOLEN', isGenerated: stolen.isGenerated || false, fromHand: true };
             this._send(oppSide, payload);
             this._send(side, { ...payload, causedByMe: true });
             // Shapeshifter: vlož čerstvou instanci C34 (bez displayBaseId) – bude se znovu transformovat
@@ -1277,7 +1282,7 @@ class GameSession {
 
       const victimSide = side === 'A' ? 'B' : 'A';
       for (const { card: lc, action } of lostCards) {
-        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false };
+        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, fromHand: true };
         this._send(victimSide, payload);
         this._send(side,       { ...payload, causedByMe: true });
         this._logger.logCardLost(side, action, lc.name || lc.id);

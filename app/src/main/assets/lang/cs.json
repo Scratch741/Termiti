@@ -109,6 +109,7 @@
     "mulliganYouFirst": "Ty začínáš první",
     "mulliganOpponentFirst": "Soupeř začíná první",
     "mulliganWaitingOpponent": "Čekám na soupeře…",
+    "mulliganWaitingOpponentTimer": "Čekám na soupeře… (%d s)",
     "mulliganInstruction": "Klikni na karty, které chceš **vyměnit** za nové z balíčku",
     "mulliganSelected": "**Vybráno: %d** — klikni znovu pro zrušení",
     "mulliganPlayNoSwap": "Hrát bez výměny",

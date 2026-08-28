@@ -184,7 +184,12 @@ class OnlineLobbyViewModel(
     var mulliganSelected     = mutableStateOf<Set<String>>(emptySet()); private set
     var mulliganSubmitted    = mutableStateOf(false); private set
     var opponentMulliganDone = mutableStateOf(false); private set
-    /** Zbývající sekundy mulligan odpočtu; null = timer neběží */
+    /**
+     * Zbývající sekundy mulligan odpočtu; null = timer neběží.
+     * Běží dál i po vlastním odeslání – oba klienti ho startují ze stejného
+     * serverového deadlinu, takže je to zároveň zbývající čas SOUPEŘE na
+     * rozhodnutí (zobrazuje ho „Čekám na soupeře… (N s)").
+     */
     var mulliganSecondsLeft  = mutableStateOf<Int?>(null); private set
     private var mulliganTimerJob: Job? = null
 
@@ -194,6 +199,22 @@ class OnlineLobbyViewModel(
     var gameEndPending   = mutableStateOf(false); private set
     var gameLog          = mutableStateOf<List<LogEntry>>(emptyList()); private set
     var lostToOpponent   = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
+    /**
+     * FIFO fronta karet, o které přišel SOUPEŘ ze své RUKY mým přičiněním
+     * (BurnCard / StealCard / Zákeřný špeh). Online obdoba offline
+     * [GameViewModel.aiHandLossLog] – bojiště ji konzumuje kurzorem, jednu
+     * položku na jeden zmizelý rub v soupeřově stripu, a ukáže ghost efekt
+     * s lícem ztracené karty.
+     *
+     * Bez fronty se dřív spoléhalo na singulární lastPlayedCard, jenže
+     * GAME_STATE dorazí až PO CARD_LOST a přepíše ho právě zahranou kartou –
+     * v okamžiku, kdy se ruka soupeře zmenší, už je akce PLAYED a ghost se
+     * nevykreslí vůbec. Fronta na pořadí zpráv nezávisí.
+     *
+     * Plní se jen z CARD_LOST s `fromHand` = ztráty z BALÍČKU
+     * (DecisionBurnOpponent) sem nesmí, jinak by kurzor ujel o položku.
+     */
+    var opponentHandLoss = mutableStateOf<List<CardHistoryEntry>>(emptyList()); private set
     var lastPlayedCard   = mutableStateOf<Card?>(null); private set
     var lastPlayedByMe   = mutableStateOf(false); private set
     var lastPlayedAction = mutableStateOf<CardAction?>(null); private set
@@ -373,7 +394,9 @@ class OnlineLobbyViewModel(
 
     fun confirmMulligan() {
         if (mulliganSubmitted.value) return
-        cancelMulliganTimer()
+        // Odpočet po odeslání NERUŠ – běží dál jako zbývající čas soupeře.
+        // Zbytečný je jen tehdy, když soupeř už potvrdil.
+        if (opponentMulliganDone.value) cancelMulliganTimer()
         mulliganSubmitted.value = true
         val returnIds = mulliganSelected.value.toList()
         sendMulliganDone(returnIds)
@@ -383,7 +406,7 @@ class OnlineLobbyViewModel(
 
     fun skipMulligan() {
         if (mulliganSubmitted.value) return
-        cancelMulliganTimer()
+        if (opponentMulliganDone.value) cancelMulliganTimer()
         mulliganSubmitted.value = true
         sendMulliganDone(emptyList())
         if (opponentMulliganDone.value) startMulliganWatchdog()
@@ -735,8 +758,12 @@ class OnlineLobbyViewModel(
 
                 "OPPONENT_MULLIGAN_DONE" -> {
                     opponentMulliganDone.value = true
-                    // Pokud jsme také potvrdili, spusť watchdog – oba potvrdili, čekáme na GAME_STATE
-                    if (mulliganSubmitted.value) startMulliganWatchdog()
+                    // Pokud jsme také potvrdili, spusť watchdog – oba potvrdili, čekáme na GAME_STATE.
+                    // Odpočet už nemá co měřit (soupeř rozhodl) → zruš, ať zmizí ze zprávy o čekání.
+                    if (mulliganSubmitted.value) {
+                        cancelMulliganTimer()
+                        startMulliganWatchdog()
+                    }
                 }
 
                 "GAME_STATE" -> {
@@ -849,6 +876,7 @@ class OnlineLobbyViewModel(
                     val causedByMe  = json.optBoolean("causedByMe", false)
                     val ownCard     = json.optBoolean("ownCard", false)
                     val causedBySelf = json.optBoolean("causedBySelf", false)
+                    val fromHand     = json.optBoolean("fromHand", false)
                     val template    = allCards.find { it.id == baseId } ?: return@launch
                     val card        = template.copy(id = cardId, isGenerated = isGenerated)
                     val turn        = gameState.value.turnNumber
@@ -873,7 +901,12 @@ class OnlineLobbyViewModel(
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
                             }
                             causedByMe -> {
-                                // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision)
+                                // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision).
+                                // Jen ztráta z RUKY zmenší soupeřův strip → jen ta patří do fronty.
+                                if (fromHand) {
+                                    opponentHandLoss.value =
+                                        opponentHandLoss.value + CardHistoryEntry(card, action, isMine = false)
+                                }
                                 lastPlayedCard.value   = card
                                 lastPlayedAction.value = action
                                 lastPlayedByMe.value   = false
@@ -1278,6 +1311,7 @@ class OnlineLobbyViewModel(
         gameResult.value           = null
         gameLog.value              = emptyList()
         lostToOpponent.value       = emptyList()
+        opponentHandLoss.value     = emptyList()
         lastPlayedCard.value       = null
         lastPlayedByMe.value       = false
         lastPlayedAction.value     = null

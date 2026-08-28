@@ -152,6 +152,7 @@ data class AppStrings(
     val mulliganYouFirst: String,
     val mulliganOpponentFirst: String,
     val mulliganWaitingOpponent: String,
+    val mulliganWaitingOpponentTimer: String,   // formát s %d (zbývající sekundy soupeře)
     val mulliganInstruction: String,
     val mulliganSelected: String,       // formát s %d (počet vybraných karet)
     val mulliganPlayNoSwap: String,

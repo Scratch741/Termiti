@@ -72,8 +72,8 @@ fun NewBattlefield(
     modifier: Modifier = Modifier,
     revealedAiCard: Card? = null,     // karta zahrána soupeřem
     revealedAiCardIdx: Int? = null,   // původní index v ruce (před zahráním)
-    // Ordered fronta karet ztracených z AI ruky (spálené/ukradené hráčem) – viz
-    // GameViewModel.aiHandLossLog. Prázdné online (fallback na lastCard, viz níže).
+    // Ordered fronta karet ztracených ze soupeřovy ruky (spálené/ukradené hráčem) –
+    // offline GameViewModel.aiHandLossLog, online OnlineLobbyViewModel.opponentHandLoss.
     oppLossQueue: List<CardHistoryEntry> = emptyList(),
     playerWinTarget: Int = 60,        // 60 nebo 65 s extra_castle pasivní schopností
     aiWinTarget: Int = 60,            // win target soupeře / AI
@@ -154,9 +154,9 @@ fun NewBattlefield(
                         aiSlotRects[removedKey]?.let { rect ->
                             // Přednostně konkrétní událost z fronty (správná karta i při
                             // více simultánních ztrátách za jednu akci – Spálená
-                            // knihovna/BurnCard(2) apod.). Fallback na lastCard: online
-                            // zatím frontu neplní, jednotlivé CARD_LOST zprávy ale
-                            // přichází s odstupem, takže singulární hodnota tam stačí.
+                            // knihovna/BurnCard(2) apod.). Frontu plní offline i online.
+                            // Fallback na lastCard zůstává pro starší server bez
+                            // příznaku `fromHand` v CARD_LOST (fronta pak přijde prázdná).
                             val queued = oppLossQueue.getOrNull(oppLossCursor)
                             val act: CardAction
                             val face: Card?

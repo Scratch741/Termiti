@@ -210,6 +210,7 @@ data class LanguagePack(
                 mulliganYouFirst        = str("mulliganYouFirst",        "Ty začínáš první"),
                 mulliganOpponentFirst   = str("mulliganOpponentFirst",   "Soupeř začíná první"),
                 mulliganWaitingOpponent = str("mulliganWaitingOpponent", "Čekám na soupeře…"),
+                mulliganWaitingOpponentTimer = str("mulliganWaitingOpponentTimer", "Čekám na soupeře… (%d s)"),
                 mulliganInstruction     = str("mulliganInstruction",     "Klikni na karty, které chceš **vyměnit** za nové z balíčku"),
                 mulliganSelected        = str("mulliganSelected",        "**Vybráno: %d** — klikni znovu pro zrušení"),
                 mulliganPlayNoSwap      = str("mulliganPlayNoSwap",      "Hrát bez výměny"),
@@ -361,6 +362,7 @@ data class LanguagePack(
             "mulliganYouFirst" -> fb.mulliganYouFirst
             "mulliganOpponentFirst" -> fb.mulliganOpponentFirst
             "mulliganWaitingOpponent" -> fb.mulliganWaitingOpponent
+            "mulliganWaitingOpponentTimer" -> fb.mulliganWaitingOpponentTimer
             "mulliganInstruction" -> fb.mulliganInstruction
             "mulliganSelected" -> fb.mulliganSelected
             "mulliganPlayNoSwap" -> fb.mulliganPlayNoSwap

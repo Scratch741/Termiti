@@ -471,6 +471,7 @@ private fun OnlineGameplay(
     }
     val gameLog        by vm.gameLog
     val lostToOpponent by vm.lostToOpponent
+    val oppHandLoss    by vm.opponentHandLoss
     val phase       by vm.phase
     val isGameOver  = phase == OnlinePhase.GAME_OVER
     // Resetuj pohled na soupeřovu ruku při zavření review módu
@@ -657,6 +658,7 @@ private fun OnlineGameplay(
                     modifier              = Modifier.fillMaxHeight().weight(1f),
                     revealedAiCard        = if (!lastCardByMe) lastCard else null,
                     revealedAiCardIdx     = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null,
+                    oppLossQueue          = oppHandLoss,
                     playerWinTarget       = gs.myWinTarget,
                     aiWinTarget           = gs.oppWinTarget,
                     playerMaxHand         = gs.myState.maxHandSize,
@@ -886,12 +888,18 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
         else                                    -> null
     }
 
+    // Po odeslání běží stejný odpočet dál – oba klienti ho startují ze stejného
+    // serverového deadlinu, takže zbývající sekundy = čas, který má soupeř na
+    // rozhodnutí. Jakmile soupeř potvrdí, čeká se už jen na GAME_STATE → skryj.
+    val waitingSecondsLeft = secondsLeft.takeIf { submitted && !oppDone }
+
     MulliganOverlay(
         hand        = hand,
         selectedIds = selected,
         submitted   = submitted,
         goesFirst   = goesFirst,
         secondsLeft = secondsLeft,
+        waitingSecondsLeft = waitingSecondsLeft,
         onToggle    = { if (!submitted) { SoundManager.playDeckSelect(); vm.toggleMulligan(it) } },
         onConfirm   = { SoundManager.playMenuTap(); vm.confirmMulligan() },
         onSkip      = { SoundManager.playMenuTap(); vm.skipMulligan() }
