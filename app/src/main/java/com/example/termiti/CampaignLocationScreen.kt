@@ -171,7 +171,7 @@ fun CampaignLocationScreen(
                         val defeated = location.opponents.count { CampaignManager.isDefeated(it.id) }
                         val total    = location.opponents.size
                         Text(
-                            "$defeated / $total poraženo",
+                            "$defeated / $total",
                             color      = if (defeated == total) ClGreen else ClTeal,
                             fontSize   = 10.sp,
                             fontWeight = FontWeight.Bold,
@@ -422,7 +422,9 @@ private fun RewardChip(iconRes: Int, value: String, color: Color) {
 /** Avatary s plnou ilustrací (celoplošný art, ne malá ikonka) – vykreslují se přes celé art okno karty. */
 private val FULL_ART_AVATARS = setOf(
     "goblin_pruzkumnik", "goblin_lucistnik", "goblin_saman", "goblin_valecnik", "goblin_drancovac",
-    "goblin_berserk", "goblin_troll", "goblin_velitel", "goblin_valecny_nacelnik", "goblin_kral"
+    "goblin_berserk", "goblin_troll", "goblin_velitel", "goblin_valecny_nacelnik", "goblin_kral",
+    "hory_hornik", "hory_tesar", "hory_strazce", "hory_kovar", "hory_ranger",
+    "hory_bojovnik", "hory_mag", "hory_general", "hory_kolos", "hory_thane"
 )
 
 /** Mapuje avatar ID na drawable resource, nebo null pokud jde o emoji řetězec. */
@@ -443,6 +445,16 @@ private fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
     "goblin_valecny_nacelnik" -> R.drawable.goblin_valecny_nacelnik
     "goblin_kral_profil"      -> R.drawable.goblin_kral_profil
     "goblin_kral"             -> R.drawable.goblin_kral
+    "hory_hornik"             -> R.drawable.hory_hornik
+    "hory_tesar"              -> R.drawable.hory_tesar
+    "hory_strazce"            -> R.drawable.hory_strazce
+    "hory_kovar"              -> R.drawable.hory_kovar
+    "hory_ranger"             -> R.drawable.hory_ranger
+    "hory_bojovnik"           -> R.drawable.hory_bojovnik
+    "hory_mag"                -> R.drawable.hory_mag
+    "hory_general"            -> R.drawable.hory_general
+    "hory_kolos"              -> R.drawable.hory_kolos
+    "hory_thane"              -> R.drawable.hory_thane
     else           -> null
 }
 
@@ -469,6 +481,15 @@ private fun AvatarView(avatar: String, size: Dp) {
 }
 
 /**
+ * Avatary, kde hlava/koruna sahá až k úplně hornímu okraji ilustrace – středový
+ * Crop by jí useknul vršek. Tyhle se místo toho zarovnávají nahoru (ořez jde
+ * jen zespodu), aby zůstala celá vidět.
+ */
+private val TOP_ALIGNED_AVATARS = setOf(
+    "goblin_troll", "goblin_valecny_nacelnik", "goblin_kral"
+)
+
+/**
  * Art karty soupeře v art okně (celá šířka × artH), stejně jako u skutečných herních karet
  * (CardView) – Crop přes celou plochu, ne malá centrovaná ikonka. Pro avatary bez plné
  * ilustrace (staré enemy_icon_N, emoji lokace) padá zpátky na malou centrovanou AvatarView.
@@ -481,7 +502,8 @@ private fun OpponentCardArt(avatar: String, artH: Dp, modifier: Modifier = Modif
             painter            = painterResource(resId),
             contentDescription = null,
             modifier           = modifier.fillMaxWidth().height(artH),
-            contentScale       = ContentScale.Crop
+            contentScale       = ContentScale.Crop,
+            alignment           = if (avatar in TOP_ALIGNED_AVATARS) Alignment.TopCenter else Alignment.Center
         )
     } else {
         Box(
@@ -513,7 +535,7 @@ private fun opponentRarityRes(order: Int, total: Int, isBoss: Boolean): Int {
 
 private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
-    "loc_dwarves" -> R.drawable.art_opevneni
+    "loc_dwarves" -> R.drawable.trpaslici_hory
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
     else          -> R.drawable.art_magie

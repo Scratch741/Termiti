@@ -1505,11 +1505,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
             // AI hraje v cyklu (podporuje combo karty)
             var aiContinues = true
+            // Combo karta dopředu "nakouknutá" (viz níže) – použije se místo nového
+            // aiChooseAction() volání, aby se predikce z peeku a skutečná akce nerozešly
+            // (aiChooseAction má náhodný šum ve skóre, dvě volání by mohla dát jiný výsledek).
+            var pendingAiChoice: AiAction? = null
             while (aiContinues) {
                 // Transformuj Shapeshiftery líznuté uprostřed tahu (DrawCard, Decision apod.)
                 // onlyNew = true → nemění formu již transformovaných instancí
                 transformShapeShifters(ai.hand, allCards, onlyNew = true)
-                val aiChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
+                val aiChoice = pendingAiChoice ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
+                pendingAiChoice = null
                 when (aiChoice) {
                     is AiAction.Play -> {
                         val aiCard = aiChoice.card
@@ -1724,7 +1729,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         playSoundForCard(aiCard)
 
                         if (aiCard.isCombo || aiNextComboBoost) {
-                            // Combo: krátká pauza + mezistate + pokračuj.
+                            // Combo: pauza + mezistate + pokračuj.
                             // activePlayer musí zůstat AI, aby hráč nemohl kliknout
                             // v okně delay a nespustil druhou souběžnou finishTurn coroutinu.
                             // deepCopy zajistí, že Compose detekuje změny (AddToOpponentDeck, atd.)
@@ -1737,7 +1742,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 scheduleGameEnd(result, mid); return@launch
                             }
                             gameState.value = mid   // vizuální mezistav
-                            delay(450L)
+                            // Nakoukni, jestli combo pokračuje další kartou, nebo tahle byla
+                            // poslední (AI teď skončí kolo) – použije se místo nového
+                            // aiChooseAction() volání na začátku příští iterace (viz pendingAiChoice výš).
+                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
+                            pendingAiChoice = nextChoice
+                            // Další karta comba přijde → 1s, aby ji hráč stihl přečíst.
+                            // Tahle byla poslední → jen 0,5s, není na co čekat.
+                            delay(if (nextChoice is AiAction.Play) 1000L else 500L)
                         } else {
                             aiContinues = false     // normální karta → konec tahu AI
                         }
@@ -2057,10 +2069,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
-        // Goblinský tábor má vlastní vzhled bojiště; ostatní lokace zatím výchozí
-        // (žádné vlastní pozadí zatím nemají).
-        battleBackgroundResId.value = if (opponent.id.startsWith("gob_"))
-            R.drawable.castle_background_goblin else R.drawable.castle_background
+        // Goblinský tábor a Trpasličí hory mají vlastní vzhled bojiště; ostatní
+        // lokace zatím výchozí (žádné vlastní pozadí zatím nemají).
+        battleBackgroundResId.value = when {
+            opponent.id.startsWith("gob_") -> R.drawable.castle_background_goblin
+            opponent.id.startsWith("dwf_") -> R.drawable.castle_background_winter
+            else                            -> R.drawable.castle_background
+        }
         aiPassiveAbilities.value = emptyList()   // kampaňský soupeř má vlastní stats, ne náhodné pasivky
         gameOver.value          = null
         log.value               = emptyList()

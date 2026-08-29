@@ -331,7 +331,7 @@ internal fun locationFrameRes(id: String): Int = when (id) {
 @DrawableRes
 private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
-    "loc_dwarves" -> R.drawable.art_opevneni
+    "loc_dwarves" -> R.drawable.trpaslici_hory
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
     else          -> R.drawable.art_magie

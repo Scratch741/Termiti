@@ -344,7 +344,7 @@ fun NewBattlefield(
             wallResId   = playerWallResId,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 8.dp, bottom = 4.dp)
+                .padding(start = 8.dp)
         )
         NewCastleStructure(
             castleHp    = aiState.castleHP,
@@ -356,7 +356,7 @@ fun NewBattlefield(
             wallResId   = opponentWallResId,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 8.dp, bottom = 4.dp)
+                .padding(end = 8.dp)
         )
 
         // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
@@ -572,6 +572,9 @@ fun castleSkinDrawable(skinId: String): Int = when (skinId) {
     "castle_player_11" -> R.drawable.castle_player_11
     "castle_player_12" -> R.drawable.castle_player_12
     "castle_player_13" -> R.drawable.castle_player_13
+    "castle_hory"       -> R.drawable.castle_hory
+    "castle_citadela"   -> R.drawable.castle_citadela
+    "castle_drak"       -> R.drawable.castle_drak
     else                -> R.drawable.castle_player
 }
 
@@ -582,6 +585,10 @@ fun wallSkinDrawable(skinId: String): Int = when (skinId) {
     "wall_player4" -> R.drawable.wall_player4
     "wall_player5" -> R.drawable.wall_player5
     "wall_player6" -> R.drawable.wall_player6
+    "wall_goblin"  -> R.drawable.wall_goblin
+    "wall_hory"     -> R.drawable.wall_hory
+    "wall_citadela" -> R.drawable.wall_citadela
+    "wall_drak"     -> R.drawable.wall_drak
     else           -> R.drawable.wall_player
 }
 
@@ -658,7 +665,8 @@ private fun CastleTowerBlock(
                     .size(castleFullW, castleFullH)
                     .offset(y = offsetY)
                     .graphicsLayer { scaleX = if (isPlayer) 1f else -1f },
-                contentScale       = ContentScale.Fit
+                contentScale       = ContentScale.Fit,
+                alignment          = Alignment.BottomCenter
             )
         }
         // zIndex(1f) zajistí vykreslení čísla NAVRCH textury hradu

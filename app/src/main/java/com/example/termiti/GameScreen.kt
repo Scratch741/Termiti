@@ -229,12 +229,10 @@ fun GameScreen(
                     playerWallResId = wallSkinDrawable(
                         PlayerProfileManager.profile?.wallSkin ?: "wall_player"
                     ),
-                    // Kampaň – Goblinský tábor: AI dostane vzhled táborového opevnění
-                    // místo výchozího hradu (jinak default = obecný hrad/hradba).
-                    opponentCastleResId = if (campaignOpponent?.id?.startsWith("gob_") == true)
-                        R.drawable.castle_player_4 else R.drawable.castle_player,
-                    opponentWallResId = if (campaignOpponent?.id?.startsWith("gob_") == true)
-                        R.drawable.wall_goblin else R.drawable.wall_player,
+                    // Kampaň: AI dostane vzhled hradu/hradby dané lokace (viz
+                    // CampaignOpponent.aiCastleSkin/aiWallSkin); mimo kampaň zůstává default.
+                    opponentCastleResId = castleSkinDrawable(campaignOpponent?.aiCastleSkin ?: "castle_player"),
+                    opponentWallResId   = wallSkinDrawable(campaignOpponent?.aiWallSkin ?: "wall_player"),
                     backgroundResId = viewModel.battleBackgroundResId.value
                 )
 

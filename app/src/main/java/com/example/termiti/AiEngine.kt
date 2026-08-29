@@ -132,7 +132,7 @@ fun aiChooseAction(
                 effectiveGain == 0 -> -5           // zeď je plná, efekt přijde vniveč
                 aiLowWall          -> 16            // urgentní obrana
                 effectiveGain < fx.amount -> 2 + effectiveGain / 3  // blízko capu – jen částečný zisk
-                else               -> 5            // plná hodnota
+                else               -> 5 + fx.amount / 5  // plná hodnota – škáluj jako BuildCastle
             }
         } else {
             fx.amount  // záporné skóre za ztrátu hradeb
@@ -153,7 +153,7 @@ fun aiChooseAction(
             val available = oppResources[fx.type] ?: 0
             if (available == 0) -5 else 6 + available.coerceAtMost(3)
         }
-        is CardEffect.AddResource         -> 3
+        is CardEffect.AddResource         -> 3 + fx.amount / 2
         is CardEffect.AddResourceDelayed  -> fx.amount * 2  // méně než ihned (3), ale hodnotné
         is CardEffect.DestroyMine         -> {
             // Zničit důl má smysl jen pokud soupeř má více než povinné minimum
