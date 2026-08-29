@@ -230,9 +230,12 @@ fun GameScreen(
                         PlayerProfileManager.profile?.wallSkin ?: "wall_player"
                     ),
                     // Kampaň: AI dostane vzhled hradu/hradby dané lokace (viz
-                    // CampaignOpponent.aiCastleSkin/aiWallSkin); mimo kampaň zůstává default.
-                    opponentCastleResId = castleSkinDrawable(campaignOpponent?.aiCastleSkin ?: "castle_player"),
-                    opponentWallResId   = wallSkinDrawable(campaignOpponent?.aiWallSkin ?: "wall_player"),
+                    // CampaignOpponent.aiCastleSkin/aiWallSkin); mimo kampaň náhodný skin
+                    // vybraný jednou při startu hry (viewModel.opponentCastleResId/WallResId).
+                    opponentCastleResId = campaignOpponent?.let { castleSkinDrawable(it.aiCastleSkin) }
+                        ?: viewModel.opponentCastleResId.value,
+                    opponentWallResId = campaignOpponent?.let { wallSkinDrawable(it.aiWallSkin) }
+                        ?: viewModel.opponentWallResId.value,
                     backgroundResId = viewModel.battleBackgroundResId.value
                 )
 

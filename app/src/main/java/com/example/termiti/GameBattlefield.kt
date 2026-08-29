@@ -528,15 +528,16 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
 
 /**
  * Pool pozadí pro běžné (nekampaňové) hry – offline, WiFi MP, online, aréna, roguelike.
- * castle_background_goblin NENÍ v poolu – je vyhrazené jen pro kampaň (Goblinský tábor),
- * viz [randomBattleBackground] volající kód. Plameny (torch sconces) jsou nafitované jen
- * na castle_background – ostatní pozadí je proto vždy zobrazují BEZ plamenů (viz NewBattlefield).
+ * Plameny (torch sconces) jsou nafitované jen na castle_background – ostatní pozadí je
+ * proto vždy zobrazují BEZ plamenů (viz NewBattlefield).
  */
 private val RANDOM_BATTLE_BACKGROUNDS = listOf(
     R.drawable.castle_background,
     R.drawable.castle_background_swamp,
     R.drawable.castle_background_vulcan,
-    R.drawable.castle_background_winter
+    R.drawable.castle_background_winter,
+    R.drawable.castle_background_goblin,
+    R.drawable.castle_background_citadela
 )
 
 /** Náhodně vybere pozadí bojiště z [RANDOM_BATTLE_BACKGROUNDS]. Volat JEDNOU na začátku hry a uložit. */
@@ -553,8 +554,35 @@ fun battleBackgroundDrawable(id: String): Int = when (id) {
     "castle_background_vulcan" -> R.drawable.castle_background_vulcan
     "castle_background_winter" -> R.drawable.castle_background_winter
     "castle_background_goblin" -> R.drawable.castle_background_goblin
+    "castle_background_citadela" -> R.drawable.castle_background_citadela
     else                        -> R.drawable.castle_background
 }
+
+/**
+ * Pool "obyčejných" (nekampaňových) hradů/hradeb – stejné skiny, jaké si hráč
+ * může vybrat v Profilu. Kampaňové skiny (castle_hory, wall_goblin, ...) tu
+ * záměrně nejsou – ty patří jen dané lokaci. String ID (ne rovnou drawable),
+ * aby šly použít i tam, kde se soupeř nese jako CampaignOpponent.aiCastleSkin/
+ * aiWallSkin (roguelike – viz generateRogueEnemy()), ne přímo jako resource ID.
+ */
+private val RANDOM_OPPONENT_CASTLE_SKIN_IDS = listOf(
+    "castle_player", "castle_player_2", "castle_player_3", "castle_player_4", "castle_player_5",
+    "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
+    "castle_player_11", "castle_player_12", "castle_player_13"
+)
+private val RANDOM_OPPONENT_WALL_SKIN_IDS = listOf(
+    "wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6"
+)
+
+/** Náhodně vybere ID vzhledu soupeřova hradu mimo kampaň. */
+fun randomOpponentCastleSkinId(): String = RANDOM_OPPONENT_CASTLE_SKIN_IDS.random()
+/** Náhodně vybere ID vzhledu soupeřovy hradby mimo kampaň. */
+fun randomOpponentWallSkinId(): String = RANDOM_OPPONENT_WALL_SKIN_IDS.random()
+
+/** Náhodně vybere vzhled soupeřova hradu mimo kampaň. Volat JEDNOU na začátku hry a uložit. */
+fun randomOpponentCastleResId(): Int = castleSkinDrawable(randomOpponentCastleSkinId())
+/** Náhodně vybere vzhled soupeřovy hradby mimo kampaň. Volat JEDNOU na začátku hry a uložit. */
+fun randomOpponentWallResId(): Int = wallSkinDrawable(randomOpponentWallSkinId())
 
 // ─── Castle Structure ─────────────────────────────────────────────────────────
 

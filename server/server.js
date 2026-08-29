@@ -68,11 +68,10 @@ const PROTOCOL_VERSION = 1;
 
 /**
  * Pool pozadí bojiště pro online zápasy – zrcadlí RANDOM_BATTLE_BACKGROUNDS
- * v GameBattlefield.kt (bez castle_background_goblin, to je jen pro kampaň).
- * Server ho vybere JEDNOU při vytvoření zápasu, aby oba hráči viděli STEJNÉ
- * pozadí (dřív si ho každý klient losoval nezávisle → mohlo se lišit).
+ * v GameBattlefield.kt. Server ho vybere JEDNOU při vytvoření zápasu, aby oba
+ * hráči viděli STEJNÉ pozadí (dřív si ho každý klient losoval nezávisle → mohlo se lišit).
  */
-const BATTLE_BACKGROUNDS = ['castle_background', 'castle_background_swamp', 'castle_background_vulcan', 'castle_background_winter'];
+const BATTLE_BACKGROUNDS = ['castle_background', 'castle_background_swamp', 'castle_background_vulcan', 'castle_background_winter', 'castle_background_goblin', 'castle_background_citadela'];
 function pickBattleBackground() {
   return BATTLE_BACKGROUNDS[Math.floor(Math.random() * BATTLE_BACKGROUNDS.length)];
 }

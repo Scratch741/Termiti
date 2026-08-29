@@ -447,6 +447,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     var battleBackgroundResId = androidx.compose.runtime.mutableStateOf(R.drawable.castle_background)
         private set
 
+    /**
+     * Vzhled soupeřova hradu/hradby MIMO kampaň – kampaň má vlastní skin daný lokací
+     * (CampaignOpponent.aiCastleSkin/aiWallSkin, viz GameScreen.kt). Vybráno JEDNOU
+     * při startu hry (stejný vzor jako [battleBackgroundResId]); default (castle_player/
+     * wall_player) v normálním módu, náhodné ve vlastním balíčku / super-random módu.
+     */
+    var opponentCastleResId = androidx.compose.runtime.mutableStateOf(R.drawable.castle_player)
+        private set
+    var opponentWallResId = androidx.compose.runtime.mutableStateOf(R.drawable.wall_player)
+        private set
+
     // ── Mulligan ──────────────────────────────────────────────────────────────
     var isMulligan = androidx.compose.runtime.mutableStateOf(true)
         private set
@@ -2028,6 +2039,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndPending.value    = false
         activeCampaignOpponent.value = null
         battleBackgroundResId.value  = randomBattleBackground()
+        // Náhodný vzhled soupeřova hradu/hradby – "Vlastní balíček" i "Super-random"
+        // volají restartGame() (nikoli campaign), takže sem spadá vždy mimo kampaň.
+        opponentCastleResId.value = randomOpponentCastleResId()
+        opponentWallResId.value   = randomOpponentWallResId()
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null
@@ -2069,11 +2084,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
-        // Goblinský tábor a Trpasličí hory mají vlastní vzhled bojiště; ostatní
-        // lokace zatím výchozí (žádné vlastní pozadí zatím nemají).
+        // Goblinský tábor, Trpasličí hory a Temná citadela mají vlastní vzhled
+        // bojiště; Dračí impérium zatím výchozí (žádné vlastní pozadí zatím nemá).
         battleBackgroundResId.value = when {
             opponent.id.startsWith("gob_") -> R.drawable.castle_background_goblin
             opponent.id.startsWith("dwf_") -> R.drawable.castle_background_winter
+            opponent.id.startsWith("cit_") -> R.drawable.castle_background_citadela
             else                            -> R.drawable.castle_background
         }
         aiPassiveAbilities.value = emptyList()   // kampaňský soupeř má vlastní stats, ne náhodné pasivky
@@ -2730,6 +2746,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             isBoss         = isBoss,
             aiCastle       = castle,
             aiWall         = wall,
+            // Roguelike soupeři jsou procedurální, ne vázaní na konkrétní lokaci → náhodný skin
+            // (bez toho by defaultovali na castle_player/wall_player, viz aiCastleSkin výchozí hodnota).
+            aiCastleSkin   = randomOpponentCastleSkinId(),
+            aiWallSkin     = randomOpponentWallSkinId(),
             aiStartMagic   = startMagic,
             aiStartAttack  = startAttack,
             aiExtraMines   = extraMines,

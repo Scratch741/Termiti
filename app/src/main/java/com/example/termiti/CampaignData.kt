@@ -395,7 +395,7 @@ object CampaignData {
                     id = "dwf_thane", name = "Trpasličí Thane", title = "Pán hor",
                     avatar = "player_icon_10", cardArt = "hory_thane", description = "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok. Jednorázová odměna: 200 XP.",
                     isBoss = true,
-                    aiCastle = 35, aiWall = 20, aiMaxWall = 50*,
+                    aiCastle = 35, aiWall = 20, aiMaxWall = 50,
                     aiExtraMines = mapOf(ResourceType.STONES to 1, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
                         "136" to 4, "022" to 4, "017" to 4, "002" to 3,
