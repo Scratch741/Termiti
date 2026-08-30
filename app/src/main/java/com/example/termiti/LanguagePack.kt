@@ -105,16 +105,16 @@ data class LanguagePack(
                 languageLabel = str("languageLabel", "🌐  Jazyk"),
 
                 play         = str("play",         "HRÁT"),
-                buildDeck    = str("buildDeck",    "BALÍČEK"),
+                buildDeck    = str("buildDeck",    "TVORBA BALÍČKU"),
                 multiplayer  = str("multiplayer",  "MULTIPLAYER"),
                 profile      = str("profile",      "PROFIL"),
                 shop         = str("shop",         "OBCHOD"),
                 exit         = str("exit",         "KONEC"),
 
-                ownDeck     = str("ownDeck",     "Vlastní balíček"),
-                superRandom = str("superRandom", "Super náhodné"),
+                ownDeck     = str("ownDeck",     "VLASTNÍ BALÍČEK"),
+                superRandom = str("superRandom", "SUPER NÁHODNÉ"),
                 arena       = str("arena",       "Aréna"),
-                campaign    = str("campaign",    "Kampaň"),
+                campaign    = str("campaign",    "KAMPAŇ"),
 
                 yourTurn      = str("yourTurn",      "VÁŠ TAH"),
                 opponentTurn  = str("opponentTurn",  "TAH SOUPEŘE"),

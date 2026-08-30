@@ -125,7 +125,7 @@ fun PlayMenuScreen(
                     MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         onClick = onOwnDeck)
                     MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), onClick = onSuperRandom)
                     // Aréna dočasně skryta (nevejde se; ponechána jako záloha – onArena/routing zůstává)
-                    MenuButton("Roguelike",   imageRes = R.drawable.button_2, accent = Color(0xFFB388FF), onClick = onRoguelike)
+                    MenuButton("ROGUELIKE",   imageRes = R.drawable.button_2, accent = Color(0xFFB388FF), onClick = onRoguelike)
                     MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), onClick = onCampaign)
                 }
             }

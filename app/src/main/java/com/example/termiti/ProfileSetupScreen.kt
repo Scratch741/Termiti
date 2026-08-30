@@ -3,7 +3,6 @@ package com.example.termiti
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -17,7 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
@@ -169,49 +167,20 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
             )
 
             // ── Potvrdit ──────────────────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        if (canConfirm)
-                            Brush.verticalGradient(
-                                listOf(PsTealLight.copy(alpha = 0.25f), PsTealLight.copy(alpha = 0.10f))
-                            )
-                        else
-                            Brush.verticalGradient(
-                                listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.30f))
-                            )
-                    )
-                    .border(
-                        1.dp,
-                        if (canConfirm) PsTealLight.copy(alpha = 0.70f)
-                        else PsTextMuted.copy(alpha = 0.20f),
-                        RoundedCornerShape(10.dp)
-                    )
-                    .then(
-                        if (canConfirm) Modifier.clickable {
-                            SoundManager.playMenuTap()
-                            PlayerProfileManager.createProfile(name)
-                            onDone()
-                        } else Modifier
-                    )
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "VSTOUPIT DO HRY",
-                    color      = if (canConfirm) PsTextPrimary else PsTextMuted.copy(alpha = 0.40f),
-                    fontSize   = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    style = TextStyle(
-                        shadow = if (canConfirm)
-                            Shadow(Color.Black, Offset(0f, 2f), blurRadius = 6f)
-                        else Shadow(Color.Transparent, Offset.Zero, 0f)
-                    )
-                )
-            }
+            PlainButton(
+                text      = "VSTOUPIT DO HRY",
+                modifier  = Modifier.fillMaxWidth(),
+                textColor = PsTealLight,
+                fontSize  = 12.sp,
+                enabled   = canConfirm,
+                paddingH  = 0.dp,
+                paddingV  = 10.dp,
+                buttonRes = R.drawable.plain_button_longer,
+                onClick   = {
+                    PlayerProfileManager.createProfile(name)
+                    onDone()
+                }
+            )
         }
     }
 }

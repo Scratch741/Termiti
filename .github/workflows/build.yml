@@ -34,15 +34,13 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Bez local.properties/KEYSTORE_PATH zůstane signingConfig prázdný
-      # (viz app/build.gradle.kts) → assembleRelease vyprodukuje NEPODEPSANÝ APK.
-      # Pro instalaci na zařízení je potřeba ho dodatečně podepsat (apksigner)
-      # nebo si lokálně vytvořit local.properties s KEYSTORE_* hodnotami.
-      - name: Build release APK (unsigned)
-        run: ./gradlew assembleRelease --no-daemon
+      # assembleRelease bez local.properties/KEYSTORE_PATH dá NEPODEPSANÝ APK –
+      # Android takový balíček odmítne nainstalovat ("chyba při instalaci").
+      # Debug build řeší obojí: Gradle ho automaticky podepíše vestavěným
+      # debug keystore (bez jakýchkoli secrets), takže jde rovnou nainstalovat.
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon
 
-      # Gradle task v app/build.gradle.kts přejmenuje výstup na
-      # darkmage-<versionName>-release.apk
       - name: Read version name
         id: version
         run: echo "ver=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)" >> "$GITHUB_OUTPUT"
@@ -50,8 +48,8 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: darkmage-${{ steps.version.outputs.ver }}-release
-          path: app/build/outputs/apk/release/*.apk
+          name: darkmage-${{ steps.version.outputs.ver }}-debug
+          path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
       - name: Create Release
@@ -59,5 +57,5 @@ jobs:
         with:
           tag_name: release-${{ steps.version.outputs.ver }}-build${{ github.run_number }}
           name: "DarkMage ${{ steps.version.outputs.ver }} (build #${{ github.run_number }})"
-          body: "Release build z commitu ${{ github.sha }}"
-          files: app/build/outputs/apk/release/*.apk
+          body: "Debug build (nepodepsaný release keystore) z commitu ${{ github.sha }} – instalovatelný, podepsaný vestavěným debug klíčem."
+          files: app/build/outputs/apk/debug/*.apk

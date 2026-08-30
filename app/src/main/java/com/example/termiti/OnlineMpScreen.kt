@@ -254,25 +254,25 @@ private fun LobbyPanel(
 
                     // Akční tlačítka – stejný styl jako v hlavním menu
                     MenuButton(
-                        label    = "Rychlý zápas",
+                        label    = "RYCHLÝ ZÁPAS",
                         imageRes = R.drawable.button_1,
                         accent   = TealLight,
                         onClick  = { vm.joinQueue(superRandom = false) }
                     )
                     MenuButton(
-                        label    = "Super Náhodný",
+                        label    = "SUPER NÁHODNÝ",
                         imageRes = R.drawable.button_9,
                         accent   = OnPurple,
                         onClick  = { vm.joinQueue(superRandom = true) }
                     )
                     MenuButton(
-                        label    = "Žebříček",
+                        label    = "ŽEBŘÍČEK",
                         imageRes = R.drawable.button_4,
                         accent   = OnGold,
                         onClick  = onLeaderboard
                     )
                     MenuButton(
-                        label    = "Odpojit",
+                        label    = "ODPOJIT",
                         imageRes = R.drawable.button_6,
                         accent   = OnMuted,
                         onClick  = { vm.disconnect(); onBack() }
@@ -419,9 +419,9 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 
             Spacer(Modifier.height(16.dp))
 
-            OnBtn("Připojit se", OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
+            OnBtn("PŘIPOJIT SE", OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
             Spacer(Modifier.height(8.dp))
-            OnBtn("← Zpět", OnMuted, Modifier.width(260.dp)) { onBack() }
+            OnBtn("← ZPĚT", OnMuted, Modifier.width(260.dp)) { onBack() }
         }
     }
 }
@@ -439,7 +439,7 @@ private fun ConnectingPanel(onCancel: (() -> Unit)? = null) {
             )
             if (onCancel != null) {
                 Spacer(Modifier.height(20.dp))
-                OnBtn("← Zrušit", OnMuted, Modifier.width(200.dp)) { onCancel() }
+                OnBtn("← ZRUŠIT", OnMuted, Modifier.width(200.dp)) { onCancel() }
             }
         }
     }
@@ -550,7 +550,7 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                     }
                     IconMenuButton(
                         imageRes = R.drawable.button_6,
-                        label    = "Zpět",
+                        label    = "ZPĚT",
                         size     = H * 0.12f,
                         onClick  = { vm.leaveQueue() }
                     )
@@ -660,9 +660,9 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                 modifier  = Modifier.widthIn(max = 280.dp)
             )
             Spacer(Modifier.height(28.dp))
-            OnBtn("Zkusit znovu", OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
+            OnBtn("ZKUSIT ZNOVU", OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
             Spacer(Modifier.height(10.dp))
-            OnBtn("← Zpět", OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
+            OnBtn("← ZPĚT", OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
         }
     }
 }

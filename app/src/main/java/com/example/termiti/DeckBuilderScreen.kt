@@ -32,12 +32,17 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 // Paleta barev → GameColors.kt
 
@@ -1472,6 +1478,67 @@ private fun DeckPanel(
     }
 }
 
+/**
+ * Cenovka karty jako malý kruhový výřez ze skutečného rámu karty (card_frame_magic/
+ * attack/stones/chaos.png) – stejná grafika jako "kolečko" na herní kartě (viz
+ * GameCardView.kt CardViewTextured/CardPreview: cena je vždy jen text přes kruh
+ * NAKRESLENÝ v rámu, ne samostatný flat kruh). Referenční geometrie: na kartě
+ * 100×140dp sedí ten kruh na offsetu (1.5dp, 2dp) o velikosti 18dp – tady se
+ * stejný poměr jen přeškáluje na [size], ať vizuálně sedí i mimo plnou kartu.
+ */
+@Composable
+private fun CardCostBadge(card: Card, size: Dp = 20.dp) {
+    val context = LocalContext.current
+    val frameResId = remember(card.costType) {
+        context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
+    }
+    Box(modifier = Modifier.size(size).clip(CircleShape)) {
+        if (frameResId != 0) {
+            // Canvas + drawImage se zdrojovým/cílovým obdélníkem – přímý výřez bitmapy
+            // podle pixelů, ne přes Modifier.size/offset/align (ty na malých velikostech
+            // spolehlivě neořezávaly správně, viz předchozí pokusy). Zdrojový obdélník je
+            // stejný poměr jako na referenční kartě 100×140dp: kolečko sedí na (1.5,2)dp
+            // o velikosti 18×18dp, přepočteno na skutečné pixely bitmapy.
+            val bitmap = ImageBitmap.imageResource(id = frameResId)
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val srcW = bitmap.width
+                val srcH = bitmap.height
+                val srcX = (1.5f / 100f * srcW).roundToInt()
+                val srcY = (2f   / 140f * srcH).roundToInt()
+                val srcSzW = (18f / 100f * srcW).roundToInt()
+                val srcSzH = (18f / 140f * srcH).roundToInt()
+                drawImage(
+                    image      = bitmap,
+                    srcOffset  = IntOffset(srcX, srcY),
+                    srcSize    = IntSize(srcSzW, srcSzH),
+                    dstOffset  = IntOffset.Zero,
+                    dstSize    = IntSize(this.size.width.roundToInt(), this.size.height.roundToInt())
+                )
+            }
+        }
+        Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+            val costLabel = if (card.isXCost) "X" else "${card.effectiveCost}"
+            val costStyle = TextStyle(
+                fontSize        = (size.value / 18f * 9f).sp,
+                fontWeight      = FontWeight.ExtraBold,
+                textAlign       = TextAlign.Center,
+                platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim      = LineHeightStyle.Trim.Both
+                )
+            )
+            val outline = size / 18f
+            // Černý obrys – 4 posunuté kopie (stejná technika jako na skutečné kartě)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = -outline), style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(x = outline),  style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = -outline), style = costStyle)
+            Text(costLabel, color = Color.Black, modifier = Modifier.fillMaxWidth().offset(y = outline),  style = costStyle)
+            Text(costLabel, color = Color.White, modifier = Modifier.fillMaxWidth(), style = costStyle)
+        }
+    }
+}
+
 @Composable
 internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     val costColor = resColor(card.costType)
@@ -1526,29 +1593,7 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             verticalAlignment    = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Box(
-                Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(costColor.copy(alpha = 0.88f))
-                    .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    if (card.isXCost) "X" else "${card.effectiveCost}",
-                    color      = Color.White,
-                    fontSize   = 9.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign  = TextAlign.Center,
-                    style = TextStyle(
-                        platformStyle   = PlatformTextStyle(includeFontPadding = false),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Center,
-                            trim      = LineHeightStyle.Trim.Both
-                        )
-                    )
-                )
-            }
+            CardCostBadge(card, size = 20.dp)
             Text(
                 card.displayName,
                 color    = Color.White,
