@@ -342,15 +342,18 @@ fun MulliganOverlay(
                 }
             }
 
-            // Badge: kdo jde první (jen pokud je znám). Slot má PEVNOU výšku –
-            // badge naskakuje až po potvrzení obou hráčů a bez rezervovaného
-            // místa by v tu chvíli posunul celý panel (karty by uskočily).
-            Box(
-                modifier         = Modifier.height(14.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (goesFirst != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            // Jeden JEDNOŘÁDKOVÝ slot pro badge „kdo jde první" i pro podtitulek.
+            // Schválně jsou pohromadě: jako dva samostatné potomky Column by je
+            // spacedBy(14.dp) odsadilo dvakrát (díra pod nadpisem) a naskočení
+            // badge po potvrzení obou hráčů by navíc posunulo karty pod ním.
+            // Badge podtitulek nahrazuje – jakmile soupeř potvrdí, „čekám na
+            // soupeře" už stejně neplatí.
+            Box(contentAlignment = Alignment.Center) {
+                when {
+                    goesFirst != null -> Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         if (goesFirst) {
                             Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(12.dp))
                         }
@@ -360,29 +363,24 @@ fun MulliganOverlay(
                             fontSize = 10.sp, fontWeight = FontWeight.Bold
                         )
                     }
-                }
-            }
-
-            // Podtitulek / čekání po odeslání
-            if (submitted) {
-                Text(
-                    if (waitingSecondsLeft != null)
-                        s.mulliganWaitingOpponentTimer.format(waitingSecondsLeft)
-                    else
-                        s.mulliganWaitingOpponent,
-                    color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
-                )
-            } else {
-                Text(
-                    parseCardDesc(
-                        if (selectedIds.isEmpty())
-                            s.mulliganInstruction
+                    submitted -> Text(
+                        if (waitingSecondsLeft != null)
+                            s.mulliganWaitingOpponentTimer.format(waitingSecondsLeft)
                         else
-                            s.mulliganSelected.format(selectedIds.size),
-                        boldColor = Gold
-                    ),
-                    color = TextPrimary, fontSize = 10.sp, textAlign = TextAlign.Center
-                )
+                            s.mulliganWaitingOpponent,
+                        color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
+                    )
+                    else -> Text(
+                        parseCardDesc(
+                            if (selectedIds.isEmpty())
+                                s.mulliganInstruction
+                            else
+                                s.mulliganSelected.format(selectedIds.size),
+                            boldColor = Gold
+                        ),
+                        color = TextPrimary, fontSize = 10.sp, textAlign = TextAlign.Center
+                    )
+                }
             }
 
             // ── Karty ────────────────────────────────────────────────────────

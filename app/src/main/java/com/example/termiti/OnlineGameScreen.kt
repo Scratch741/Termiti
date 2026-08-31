@@ -150,6 +150,12 @@ fun OnlineGameScreen(
             .fillMaxSize()
             .background(OgBgDeep)
     ) {
+        // VS intro (tabulka hráč vs soupeř) se kreslí NAD mulliganem a trvá ~4 s.
+        // Stav je tady nahoře schválně: mulligan se pod ním nesmí composnout,
+        // jinak by se karty rozdaly „poslepu" za intrem a hráč by po jeho
+        // zmizení našel ruku už hotovou (animace by proběhla naprázdno).
+        var showVsIntro by remember { mutableStateOf(phase == OnlinePhase.GAME_MULLIGAN) }
+
         // Mulligan overlay musí PŘEŽÍT přechod do GAME_PLAYING. Server pošle
         // GAME_STATE hned, jak potvrdí oba hráči – kdo potvrdí jako druhý, tomu
         // by se overlay zabil uprostřed lízání a karty by se do ruky nikdy
@@ -173,7 +179,8 @@ fun OnlineGameScreen(
         when (phase) {
             OnlinePhase.GAME_MULLIGAN, OnlinePhase.GAME_PLAYING -> {
                 OnlineGameplay(vm, onBack)
-                if (mulliganVisible) {
+                // Rozdávání startuje až po dojetí VS intra (viz showVsIntro výš)
+                if (mulliganVisible && !showVsIntro) {
                     OnlineMulliganLayer(
                         vm           = vm,
                         // Server rozjel hru → dorozdej a předej karty do ruky
@@ -282,8 +289,8 @@ fun OnlineGameScreen(
 
         // ── VS intro (jako Hearthstone): pár vteřin před mulliganem ──────────
         // Zobrazí se jen při vstupu do hry přes mulligan (ne při reconnectu
-        // do rozehrané hry). Kreslí se NAD mulligan overlayem.
-        var showVsIntro by remember { mutableStateOf(phase == OnlinePhase.GAME_MULLIGAN) }
+        // do rozehrané hry). Kreslí se NAD mulligan overlayem; stav je
+        // deklarovaný nahoře, protože na něj čeká i rozdávání mulliganu.
         if (showVsIntro && phase == OnlinePhase.GAME_MULLIGAN) {
             OnlineVersusIntro(vm, onDone = { showVsIntro = false })
         }
