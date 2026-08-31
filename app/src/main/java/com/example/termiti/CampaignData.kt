@@ -106,7 +106,8 @@ object CampaignData {
                     id = "gob_scout", name = "Goblin Průzkumník", title = "Drzý rváč",
                     avatar = "player_icon_10", cardArt = "goblin_pruzkumnik", description = "Nejslabší z tlupy. Postav hrad na 45 nebo ho sejmi.",
                     aiCastle = 25, aiWall = 5, aiMaxWall = 5,
-                    deckCardCounts = mapOf("001" to 6, "046" to 2, "012" to 4, "D04" to 4),
+                    deckCardCounts = mapOf("132" to 4, "001" to 2, "046" to 2, "012" to 4,
+                        "D04" to 4),
                     winTarget = 45, aiWinTarget = 27,
                     rewardGold = 30
                 ),
@@ -127,8 +128,9 @@ object CampaignData {
                     id = "gob_shaman", name = "Goblin Šaman", title = "Čaroděj bez školy",
                     avatar = "player_icon_10", cardArt = "goblin_saman", description = "Neumí kouzlit, ale dělá, že ano.",
                     aiCastle = 28, aiWall = 7, aiStartMagic = 1, aiMaxWall = 7,
-                    deckCardCounts = mapOf("113" to 4, "001" to 4, "004" to 5, "046" to 3,
-                        "D04" to 3, "047" to 2, "003" to 3, "013" to 2),
+                    deckCardCounts = mapOf("113" to 4, "132" to 2, "001" to 2, "004" to 5,
+                        "046" to 3, "D04" to 3, "047" to 2, "003" to 3,
+                        "013" to 2),
                     winTarget = 52, aiWinTarget = 29,
                     rewardGold = 40
                 ),
@@ -139,8 +141,8 @@ object CampaignData {
                     avatar = "player_icon_10", cardArt = "goblin_valecnik", description = "Přišel o zbraň. Teď bojuje klackem.",
                     aiCastle = 30, aiWall = 8, aiMaxWall = 8,
                     deckCardCounts = mapOf(
-                        "104" to 2, "001" to 5, "046" to 2, "012" to 6,
-                        "047" to 4, "020" to 2, "017" to 3
+                        "104" to 2, "132" to 3, "001" to 2, "046" to 2,
+                        "012" to 6, "047" to 4, "020" to 2, "017" to 3
                     ),
                     winTarget = 55, aiWinTarget = 32,
                     rewardGold = 45

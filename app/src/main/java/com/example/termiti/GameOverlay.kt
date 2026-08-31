@@ -459,40 +459,41 @@ fun MulliganOverlay(
                 }
             }
 
-            // Tlačítka — skrytá po odeslání i během animací
-            if (!submitted) {
-                val canConfirm = selectedIds.isNotEmpty() && !busy
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PlainButton(
-                        text      = s.mulliganPlayNoSwap,
-                        textColor = if (busy) TextMuted.copy(alpha = 0.3f) else Gold,
-                        fontSize  = 11.sp,
-                        enabled   = !busy,
-                        paddingH  = 22.dp,
-                        paddingV  = 10.dp,
-                        onClick   = {
-                            onSkip()
-                            // Bez výměny se nic nedolízává → rovnou do ruky
-                            if (onFinished != null) phase = MulliganAnim.HANDOFF
-                        }
-                    )
-                    PlainButton(
-                        text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
-                        textColor = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
-                        fontSize  = 11.sp,
-                        enabled   = canConfirm,
-                        paddingH  = 22.dp,
-                        paddingV  = 10.dp,
-                        onClick   = {
-                            // Nejdřív ať vybrané karty odletí zpět k balíčku, teprve
-                            // pak ViewModel provede výměnu — jinak by karty zmizely
-                            // dřív, než je stihne animace odnést.
-                            outgoingIds     = selectedIds
-                            finishAfterDeal = onFinished != null
-                            phase           = MulliganAnim.LEAVING
-                        }
-                    )
-                }
+            // Tlačítka — po odeslání ZŮSTÁVAJÍ na místě, jen zešednou (disabled).
+            // Dřív mizela úplně (if (!submitted)), což i s mezerou nad nimi (spacedBy)
+            // zmenšilo panel a posunulo karty výš/níž hned po odeslání.
+            val locked     = submitted || busy
+            val canConfirm = selectedIds.isNotEmpty() && !locked
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PlainButton(
+                    text      = s.mulliganPlayNoSwap,
+                    textColor = if (locked) TextMuted.copy(alpha = 0.3f) else Gold,
+                    fontSize  = 11.sp,
+                    enabled   = !locked,
+                    paddingH  = 22.dp,
+                    paddingV  = 10.dp,
+                    onClick   = {
+                        onSkip()
+                        // Bez výměny se nic nedolízává → rovnou do ruky
+                        if (onFinished != null) phase = MulliganAnim.HANDOFF
+                    }
+                )
+                PlainButton(
+                    text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
+                    textColor = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
+                    fontSize  = 11.sp,
+                    enabled   = canConfirm,
+                    paddingH  = 22.dp,
+                    paddingV  = 10.dp,
+                    onClick   = {
+                        // Nejdřív ať vybrané karty odletí zpět k balíčku, teprve
+                        // pak ViewModel provede výměnu — jinak by karty zmizely
+                        // dřív, než je stihne animace odnést.
+                        outgoingIds     = selectedIds
+                        finishAfterDeal = onFinished != null
+                        phase           = MulliganAnim.LEAVING
+                    }
+                )
             }
         }
     }

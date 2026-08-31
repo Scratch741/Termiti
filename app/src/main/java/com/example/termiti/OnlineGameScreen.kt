@@ -452,6 +452,11 @@ private fun OnlineGameplay(
     val lastCardAction by vm.lastPlayedAction
     val myPs  = gs.myState.toPlayerState()
     val oppPs = gs.oppState.toPlayerState(oppHandSize = gs.oppState.handSize)
+    // Server nechává tah aktivní (isMyTurn zůstane true po MÉM zahrání) jen pro
+    // combo karty / NextCardIsCombo boost - nekombo karta vždy rovnou ukončí tah
+    // (viz GameSession.js _advanceTurn). Takže pokud jsem po svém zahrání pořád
+    // na tahu, jde vždy o combo řetěz – ekvivalent offline isPlayerComboTurn.
+    val isComboTurn = gs.isMyTurn && lastCardByMe
 
     var showLog        by remember { mutableStateOf(false) }
     var showLostCards  by remember { mutableStateOf(false) }
@@ -605,7 +610,7 @@ private fun OnlineGameplay(
                 playerDeckSize   = myPs.deck.size,
                 aiDeckSize       = oppPs.deck.size,
                 isPlayerTurn     = gs.isMyTurn,
-                isComboTurn      = false,
+                isComboTurn      = isComboTurn,
                 currentTurn      = gs.turnNumber,
                 playerLabel      = PlayerProfileManager.profile?.name   ?: "Hráč",
                 playerAvatar     = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
@@ -713,6 +718,7 @@ private fun OnlineGameplay(
                             NewPanelButton(
                                 label     = when {
                                     isGameEnding -> s.endGame
+                                    isComboTurn  -> s.endCombo
                                     gs.isMyTurn  -> s.endTurn
                                     else         -> s.waitingTurn
                                 },
@@ -753,7 +759,7 @@ private fun OnlineGameplay(
             HandPanel(
                 hand             = displayHand,
                 isPlayerTurn     = gs.isMyTurn && !isGameOver,
-                isComboTurn      = false,
+                isComboTurn      = isComboTurn && !isGameOver,
                 playerResources  = handOwner.resources,
                 onPlayCard       = { card -> vm.playCard(card.id) },
                 onDiscardCard    = { card -> vm.discardCard(card.id) },

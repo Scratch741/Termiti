@@ -20,8 +20,8 @@ android {
         targetSdk = 36
         // Verzování: versionName = SemVer (MAJOR.MINOR.PATCH), hra je v beta fázi (0.x).
         // versionCode MUSÍ růst o 1 při každém vydaném buildu (požadavek Androidu pro update).
-        versionCode = 4
-        versionName = "0.2.0"
+        versionCode = 5
+        versionName = "0.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

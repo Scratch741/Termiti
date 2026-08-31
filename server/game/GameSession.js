@@ -854,21 +854,15 @@ class GameSession {
       this._send(victimSide, { ...payload, causedByMe: true });
       this._logger.logCardLost(side, action, lc.name || lc.id);
     }
-    // Anuluj lastPlayedCard, pokud zahraná karta způsobila vlastní ztrátu karty
-    // (DrawCard/DrawBoth overdraw, RandomizeHands) – jinak by následné GAME_STATE
-    // přišlo s lastPlayedCard = právě zahraná karta a PŘEPSALO by CARD_LOST-driven
-    // zobrazení spálené karty v discard slotu (stejný trik jako u pastí níže).
-    // Přeskoč u Decision karet – tam je "played" reveal na pozadí overlay žádoucí
-    // a decision flow na lastPlayedCard nezávisí (má vlastní DECISION_REQUEST).
-    // Pozor na `lostCards`: cílené pálení/krádež (Spálená knihovna, Likvidace)
-    // se tu nulovat NESMÍ – tam má slot patřit zahrané kartě a displej se sám
-    // opraví příštím GAME_STATE. Nulujeme jen kvůli PŘELÍZNUTÍ, které jinak
-    // GAME_STATE přebije zahranou kartou dřív, než ho hráč stihne uvidět.
-    const hadOverdraw = lostCards.some(l => l.overdraw) || selfLostCards.some(l => l.overdraw);
-    if ((selfLostCards.length > 0 || hadOverdraw) && !decisionFx) {
-      this.lastPlayedCard   = null;
-      this.lastPlayedAction = null;
-    }
+    // POZNÁMKA: dřív se tu lastPlayedCard nulovalo při jakékoli vlastní ztrátě karty
+    // (overdraw, past z DrawCard, RandomizeHands), aby ho následné GAME_STATE
+    // nepřepsalo přes CARD_LOST-driven zobrazení spálené karty ve stejném slotu.
+    // Klient teď ale sám řadí zobrazení za sebe (viz playedDisplayJob/reveal.join()
+    // v OnlineLobbyViewModel.kt – GAME_STATE počká, až doběhne rozehraný řetěz
+    // CARD_LOST revealů, teprve pak ukáže zahranou kartu), takže nulování tu už
+    // jen škodilo: karta, která TAHLE past/přetažení SAMA způsobila (např.
+    // "Průzkumník" táhnoucí past), zmizela úplně – nezobrazila se v odhazovacím
+    // slotu ani se nezalogovala jako zahraná.
 
     // ── Decision: přeruš tah, pošli výběr hráči ─────────────────────────────
     if (decisionFx) {

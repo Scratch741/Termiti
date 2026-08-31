@@ -54,23 +54,17 @@ fun DecisionOverlay(
                 contentAlignment  = Alignment.BottomCenter
             ) {
                 Row(
-                    modifier = Modifier
-                        .padding(bottom = 162.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0xEE1A0A2E))
-                        .border(1.dp, Gold.copy(alpha = 0.70f), RoundedCornerShape(24.dp))
-                        .clickable { peeking = false }
-                        .padding(horizontal = 22.dp, vertical = 10.dp),
+                    modifier              = Modifier.padding(bottom = 162.dp),
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("↩", color = Gold, fontSize = 14.sp)
-                    Text(
-                        s.decisionBackToDecision,
-                        color         = Gold,
-                        fontSize      = 13.sp,
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
+                    PlainButton(
+                        text      = "↩ ${s.decisionBackToDecision}",
+                        textColor = Gold,
+                        fontSize  = 13.sp,
+                        paddingH  = 22.dp,
+                        paddingV  = 10.dp,
+                        onClick   = { peeking = false }
                     )
                     if (secondsLeft != null) {
                         val timerColor = if (secondsLeft <= 10) Color(0xFFFF4444) else TextMuted

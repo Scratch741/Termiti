@@ -17,6 +17,34 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.2.1] – 2026-08-31
+
+### Opravy
+- Online: zahraná karta, která si sama vytáhla past (např. **Průzkumník**), už
+  se nezatratila beze stopy — objeví se v odhazovacím balíčku i v logu.
+- Online: tlačítko po zahrání combo karty teď správně píše „Ukončit combo"
+  místo „Ukončit tah".
+- Mulligan: tlačítka po odeslání volby jen zešednou, dřív úplně zmizela a
+  panel se zmenšil i s kartami.
+- Hrad soupeře v kampani (Trpasličí hory a další nové skiny) se už nevznáší
+  nad okrajem bojiště.
+- Oprava tří ilustrací soupeřů v kampani, kde ořez utínal hlavu.
+- AI: karty stavějící hradby a přidávající suroviny se nezahazovaly zbytečně
+  často — jejich hodnota se dřív neškálovala podle síly efektu.
+- AI: v combo řetězu je pauza mezi kartami 1 s, ale po poslední kartě jen 0,5 s
+  (dřív čekala zbytečně dlouho i na konci).
+- Build z GitHubu už nevyžaduje podpisový klíč a je rovnou instalovatelný
+  (debug build).
+
+### Nové
+- Nový vzhled hradu/hradby pro lokace Temná citadela a Dračí impérium,
+  Trpasličí hory mají vlastní zimní pozadí bojiště.
+- Mimo kampaň (vlastní balíček, super náhodné, roguelike) má soupeř náhodný
+  vzhled hradu/hradby místo pořád stejného výchozího.
+- Nový hráč dostává při založení účtu 500 zlaťáků místo 300.
+
+---
+
 ## [0.2.0] – 2026-08-28
 
 ### Balanc
@@ -80,5 +108,6 @@ První verzovaný build. Shrnutí dosavadního stavu hry:
 - Zavedeno verzování: SemVer, `versionCode`/`versionName`, `PROTOCOL_VERSION` handshake,
   git tagy, tento changelog.
 
+[0.2.1]: https://github.com/Scratch741/Termiti/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Scratch741/Termiti/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Scratch741/Termiti/releases/tag/v0.1.0
