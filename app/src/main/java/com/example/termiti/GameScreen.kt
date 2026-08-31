@@ -172,7 +172,7 @@ fun GameScreen(
                 playerLabel    = PlayerProfileManager.profile?.name   ?: LocalStrings.current.logActorPlayer,
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
-                opponentLabel  = campaignOpponent?.name   ?: LocalStrings.current.enemy,
+                opponentLabel  = campaignOpponent?.displayName ?: LocalStrings.current.enemy,
                 opponentAvatar = campaignOpponent?.avatar ?: defaultEnemyAvatar,
                 onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true },
                 playerPassives = playerPassives,

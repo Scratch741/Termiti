@@ -42,6 +42,9 @@ private fun Throwable.czMessage(): String {
  */
 const val PROTOCOL_VERSION = 1
 
+/** Jak dlouho drží jedna ztracená karta střed bojiště, než smí nastoupit další. */
+private const val CARD_LOST_HOLD_MS = 700L
+
 // ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
     NAME_INPUT,       // zadání přezdívky
@@ -246,9 +249,24 @@ class OnlineLobbyViewModel(
     var opponentDisconnectSec     = mutableStateOf(0);      private set
     private var oppDisconnectJob: Job? = null
 
-    // ── Sekvenční zobrazení bomb (C37 / C38) ──────────────────────────────────
-    /** Zřetězuje CARD_LOST eventy pro bomby – každý čeká na předchozí + delay */
-    private var bombDisplayJob: Job? = null
+    // ── Sekvenční odhalování ztracených karet ─────────────────────────────────
+    /**
+     * Zřetězuje zobrazení CARD_LOST eventů ve středu bojiště. Bez toho by se při
+     * více ztrátách naráz (Spálená knihovna pálí 2, Prázdná mysl 3, Studna
+     * vědomostí může přelíznout obě strany) stihla ukázat jen ta poslední —
+     * útočník by nevěděl, co soupeři vlastně shořelo.
+     *
+     * Každá položka po zobrazení podrží slot [CARD_LOST_HOLD_MS], teprve pak
+     * smí nastoupit další. První ztráta se nezdržuje.
+     */
+    private var cardLostRevealJob: Job? = null
+
+    /**
+     * Odložené zobrazení zahrané karty z GAME_STATE. GAME_STATE chodí hned za
+     * CARD_LOST a přebilo by rozehraný řetěz odhalování; tenhle job počká, až
+     * řetěz doběhne. Log se zapisuje hned, ten na pořadí zobrazení nezávisí.
+     */
+    private var playedDisplayJob: Job? = null
 
     // ── Mulligan watchdog ─────────────────────────────────────────────────────
     /**
@@ -852,16 +870,32 @@ class OnlineLobbyViewModel(
                                 // a vykreslením změní stav jazykového packu.
                                 localizationId = if (displayBaseId != null) "__morph__" else null
                             )
-                            lastPlayedCard.value   = card
                             val isMe = json.optBoolean("lastPlayedByMe", false)
-                            lastPlayedByMe.value   = isMe
                             val action = when (json.optString("lastPlayedAction", "PLAYED")) {
                                 "DISCARDED" -> CardAction.DISCARDED
                                 "BURNED"    -> CardAction.BURNED
                                 "STOLEN"    -> CardAction.STOLEN
                                 else        -> CardAction.PLAYED
                             }
-                            lastPlayedAction.value = action
+                            // Zahranou kartu ukaž až po doběhnutí řetězu ztrát —
+                            // jinak by GAME_STATE (chodí hned za CARD_LOST) sebralo
+                            // slot dřív, než si útočník stihne přečíst, co soupeři
+                            // shořelo. Bez rozehraného řetězu se aplikuje ihned.
+                            val applyPlayedDisplay = {
+                                lastPlayedCard.value   = card
+                                lastPlayedByMe.value   = isMe
+                                lastPlayedAction.value = action
+                            }
+                            playedDisplayJob?.cancel()   // starší odklad je neaktuální
+                            val reveal = cardLostRevealJob
+                            if (reveal?.isActive == true) {
+                                playedDisplayJob = viewModelScope.launch {
+                                    reveal.join()
+                                    applyPlayedDisplay()
+                                }
+                            } else {
+                                applyPlayedDisplay()
+                            }
                             // Log dedup podle instance id: server u DecisionBurnOpponent/
                             // PeekAndStealHand posílá STEJNOU kartu vícekrát (viz komentář
                             // u lastLoggedPlayedCardId) – lastPlayedCard/Action se má aktualizovat
@@ -941,17 +975,17 @@ class OnlineLobbyViewModel(
                         }
                     }
 
-                    // Bomba (C37) a Explodovaná bomba (C38): zobraz sekvenčně s delay,
-                    // aby bylo každou kartu vidět zvlášť a neobjevily se najednou
-                    if (baseId == "C37" || baseId == "C38") {
-                        val prev = bombDisplayJob
-                        bombDisplayJob = viewModelScope.launch {
-                            prev?.join()
-                            delay(800L)
-                            applyCardLost()
-                        }
-                    } else {
+                    // Každou ztracenou kartu ukaž zvlášť: počkej na předchozí,
+                    // zobraz, a pak slot chvíli podrž, aby ji stihl další CARD_LOST
+                    // přebít až po přečtení. Bomby (C37/C38) mají navíc náběh —
+                    // exploze v balíčku má působit jako událost, ne jako blik.
+                    val isBomb = baseId == "C37" || baseId == "C38"
+                    val prev   = cardLostRevealJob
+                    cardLostRevealJob = viewModelScope.launch {
+                        prev?.join()
+                        if (isBomb) delay(800L)
                         applyCardLost()
+                        delay(CARD_LOST_HOLD_MS)
                     }
                 }
 

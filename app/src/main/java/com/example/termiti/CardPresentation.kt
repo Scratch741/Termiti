@@ -42,7 +42,7 @@ object CardPresentation {
             soundResId = R.raw.arrow_hit),
         "003" to CardPres("Udeř hrad −8.",
             R.drawable.art_ohniva_koule, "Magie", artBiasY = -0.60f,
-            soundResId = R.raw.fireball),
+            soundResId = R.raw.fireball, isBasic = true),
         "007" to CardPres("Zaútočí na nepřítele za 11.",
             R.drawable.art_silny_uder, "Útok",
             artScale = 0.80f, artBiasY = -1.00f, isBasic = true),

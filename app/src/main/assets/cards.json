@@ -2395,7 +2395,7 @@
   {
     "id": "C05",
     "name": "Chaotický výbuch",
-    "cost": 7,
+    "cost": 6,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
@@ -2423,8 +2423,8 @@
         "amount": 20
       }
     ],
-    "rarity": "LEGENDARY",
-    "maxCopies": 1,
+    "rarity": "EPIC",
+    "maxCopies": 2,
     "isXCost": false,
     "isPlaceholder": false,
     "discardEffects": [],
@@ -2552,7 +2552,7 @@
   {
     "id": "C12",
     "name": "Anarchie",
-    "cost": 9,
+    "cost": 8,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
@@ -2771,7 +2771,7 @@
   {
     "id": "C35",
     "name": "Chaotická přeměna",
-    "cost": 4,
+    "cost": 2,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
@@ -3508,7 +3508,7 @@
   {
     "id": "108",
     "name": "Likvidace",
-    "cost": 4,
+    "cost": 3,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
@@ -3765,7 +3765,7 @@
   {
     "id": "121",
     "name": "Kletba cen",
-    "cost": 3,
+    "cost": 2,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
@@ -4252,7 +4252,7 @@
   {
     "id": "135",
     "name": "Osudová mince",
-    "cost": 2,
+    "cost": 1,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [

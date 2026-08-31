@@ -358,6 +358,128 @@ fun MulliganOverlay(
     }
 }
 
+
+// ─── Změna limitů kopií ──────────────────────────────────────────────────────
+/**
+ * Hlášení po srovnání limitů kopií (viz [GameViewModel.reconcileCardLimits]).
+ * Vizuálně navazuje na [MulliganOverlay] — stejné pozadí, rám i rytmus —
+ * protože jde o stejný typ momentu: hráč se dívá na karty a bere na vědomí,
+ * co se s nimi stalo.
+ */
+@Composable
+fun CardLimitChangeOverlay(
+    changes    : List<Pair<Card, CardLimitChange>>,
+    dustGained : Int,
+    deckRemoved: Int,
+    onDismiss  : () -> Unit
+) {
+    val s = LocalStrings.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0x99000000))
+            .pointerInput(Unit) { detectTapGestures {} },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .then(
+                    Modifier.paint(
+                        painterResource(R.drawable.mulligan_background),
+                        contentScale = ContentScale.Crop
+                    )
+                )
+                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .padding(horizontal = 28.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                s.limitChangeTitle,
+                color = Gold, fontSize = 18.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 4.sp,
+                modifier = Modifier.padding(start = 4.dp)   // kompenzace letterSpacing
+            )
+            Text(
+                s.limitChangeSubtitle,
+                color = TextPrimary, fontSize = 10.sp,
+                textAlign = TextAlign.Center, lineHeight = 14.sp
+            )
+
+            // Dotčené karty – při větším počtu se dá scrollovat vodorovně
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding        = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(changes, key = { it.first.id }) { (card, change) ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Box {
+                            CardView(
+                                card        = card,
+                                canPlay     = false,
+                                discardMode = false,
+                                onClick     = {},
+                                showFade    = false,
+                                showGlow    = false
+                            )
+                            // Kolik kopií zmizelo – červený odznak přes roh karty
+                            val removed = maxOf(change.fromCollection, change.fromDecks)
+                            if (removed > 0) {
+                                Box(
+                                    Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = (-4).dp, y = 4.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(DiscardRed.copy(alpha = 0.9f))
+                                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        "−$removed",
+                                        color = Color.White, fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            s.limitChangeNewLimit.format(card.rarity.maxCopies),
+                            color = TextMuted, fontSize = 8.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            // Souhrn – řádky se ukážou jen když opravdu nastaly
+            if (dustGained > 0) {
+                Text(
+                    s.limitChangeDust.format(dustGained),
+                    color = Teal, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                )
+            }
+            if (deckRemoved > 0) {
+                Text(
+                    s.limitChangeDecks.format(deckRemoved),
+                    color = TextMuted, fontSize = 10.sp
+                )
+            }
+
+            PlainButton(
+                text      = s.limitChangeConfirm,
+                textColor = Gold,
+                fontSize  = 11.sp,
+                paddingH  = 26.dp,
+                paddingV  = 10.dp,
+                onClick   = onDismiss
+            )
+        }
+    }
+}
+
 // ─── Lost Cards Overlay ───────────────────────────────────────────────────────
 @Composable
 fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, onMenu: (() -> Unit)? = null) {

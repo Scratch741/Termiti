@@ -158,6 +158,14 @@ data class AppStrings(
     val mulliganPlayNoSwap: String,
     val mulliganSwap: String,
 
+    // ── Změna limitů kopií ───────────────────────────────────────────────────
+    val limitChangeTitle: String,
+    val limitChangeSubtitle: String,
+    val limitChangeNewLimit: String,    // formát s %d (nový limit kopií)
+    val limitChangeDust: String,        // formát s %d (získaný prach)
+    val limitChangeDecks: String,       // formát s %d (karet odebráno z balíčků)
+    val limitChangeConfirm: String,
+
     // ── Profile ──────────────────────────────────────────────────────────────
     val profileTitle: String,
     val profileWins: String,

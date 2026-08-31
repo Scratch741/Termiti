@@ -160,6 +160,12 @@ function checkCondition(cond, player, opponent) {
  * @param {Function} onOpponentLoss – (card, action) => void, volá se, když soupeř přijde o kartu
  * @param {number}   xValue         – hodnota X pro X-kost efekty (spotřebovaný zdroj)
  * @param {Function} onSelfLoss     – (card, action) => void, volá se, když self přijde o kartu (RandomizeHands)
+ *
+ * Oba ztrátové callbacky dostávají 3. argument `overdraw`:
+ *   true  = karta shořela JEN proto, že cílová ruka byla plná (přelíznutí)
+ *   false = cílené odebrání (BurnCard, StealCard) nebo past
+ * GameSession podle toho rozhoduje, co si zaslouží střed bojiště a co je
+ * skutečná ztráta z ruky (viz `fromHand` / `fromOverdraw` v CARD_LOST).
  */
 function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue = 0, onSelfLoss = null) {
   for (const fx of effects) {
@@ -307,7 +313,8 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         // Reportuj spálené overdraw karty a pasti – jinak se neukážou
         // v odhazovacím balíčku ani v logu
         const r = drawCards(self, fx.count, self.maxHandSize || 7);
-        [...r.burned, ...r.traps].forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED'));
+        r.burned.forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED', true));
+        r.traps.forEach(c  => onSelfLoss && onSelfLoss(c, 'BURNED', false));
         break;
       }
 
@@ -315,9 +322,11 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         // Studna vědomostí apod.: lížou OBA hráči – spálené overdraw karty
         // a pasti obou stran se musí reportovat (odhazovací balíček + log)
         const rs = drawCards(self, fx.count, self.maxHandSize || 7);
-        [...rs.burned, ...rs.traps].forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED'));
+        rs.burned.forEach(c => onSelfLoss && onSelfLoss(c, 'BURNED', true));
+        rs.traps.forEach(c  => onSelfLoss && onSelfLoss(c, 'BURNED', false));
         const ro = drawCards(opponent, fx.count, opponent.maxHandSize || 7);
-        [...ro.burned, ...ro.traps].forEach(c => onOpponentLoss && onOpponentLoss(c, 'BURNED'));
+        ro.burned.forEach(c => onOpponentLoss && onOpponentLoss(c, 'BURNED', true));
+        ro.traps.forEach(c  => onOpponentLoss && onOpponentLoss(c, 'BURNED', false));
         break;
       }
 

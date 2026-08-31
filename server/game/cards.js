@@ -198,14 +198,14 @@ const RAW = [
   ['C04','Krádež chaosu',   1,'MAGIC',1,[sr('CHAOS',3)],       'RARE'],
 
   // Karty platící Chaosem – silné efekty
-  ['C05','Chaotický výbuch',7,'CHAOS',0,[ac(14)],              'EPIC'],
-  ['C06','Bouře chaosu',    6,'CHAOS',0,[ap(20)],              'LEGENDARY'],
+  ['C05','Chaotický výbuch',6,'CHAOS',0,[ac(14)],              'EPIC'],
+  ['C06','Bouře chaosu',    6,'CHAOS',0,[ap(20)],              'EPIC'],
   ['C07','Chaotický štít',  4,'CHAOS',0,[bw(16)],              'EPIC'],
   ['C08','Zázrak chaosu',   5,'CHAOS',0,[bc(15)],              'LEGENDARY'],
   ['C09','Chaotická krize', 7,'CHAOS',0,[dr('MAGIC',6), dr('ATTACK',6), dr('STONES',6), dr('CHAOS',6)], 'LEGENDARY'],
   ['C10','Chaotický drak', 11,'CHAOS',0,[ap(15), ac(12)],      'LEGENDARY'],
   ['C11','Chaos a řád',     4,'CHAOS',0,[bc(8), bw(8)],        'EPIC'],
-  ['C12','Anarchie',        9,'CHAOS',0,[sr('MAGIC',5), sr('ATTACK',5), sr('STONES',5), sr('CHAOS',5)], 'LEGENDARY'],
+  ['C12','Anarchie',        8,'CHAOS',0,[sr('MAGIC',5), sr('ATTACK',5), sr('STONES',5), sr('CHAOS',5)], 'LEGENDARY'],
 
   // ── Chaos – ničení dolů ───────────────────────────────────────────────────
   ['C13','Sabotáž',         5,'CHAOS',0,[dm('MAGIC',1),  bm('MAGIC',2)],                           'EPIC'],
@@ -218,7 +218,7 @@ const RAW = [
   ['C18','Krádež osudu',    5,'CHAOS',0,[sc(2)],               'LEGENDARY'],
   ['C33','Krádež identity', 8,'CHAOS',0,[swh()],               'LEGENDARY'],
   ['C34','Shapeshifter',    0,'CHAOS',0,[ss()],                'EPIC'],
-  ['C35','Chaotická přeměna',4,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
+  ['C35','Chaotická přeměna',2,'CHAOS',0,[cvM('MAGIC','CHAOS')], 'EPIC'],
   ['C36','Skrytá bomba',    4,'CHAOS',0,[aod('C37',3)],          'RARE'],
   ['C37','Bomba',           0,'CHAOS',0,[tod(ac(5))],             'COMMON', false, 0, true], // placeholder – vkládána pouze efektem C36
   ['C38','Explodovaná bomba',0,'CHAOS',0,[],                      'COMMON', false, 0, true], // placeholder po výbuchu, isPlaceholder:true
@@ -261,7 +261,7 @@ const RAW = [
   ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
   ['104','Válečný trénink',4,'ATTACK',0,[ap(5), am('ATTACK',1)],'EPIC'],
   ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3), ar('CHAOS',2)], 'EPIC'],
-  ['108','Likvidace',      4,'CHAOS', 0,[dbo()],               'EPIC'],
+  ['108','Likvidace',      3,'CHAOS', 0,[dbo()],               'EPIC'],
   ['109','Rekrut',         3,'ATTACK',1,[dct('Útok',4,2)],     'RARE'],
   ['110','Vzpomínka',      2,'MAGIC', 0,[dfd()],               'EPIC'],
   ['111','Intuice',        2,'MAGIC', 0,[dfk()],               'EPIC'],
@@ -275,7 +275,7 @@ const RAW = [
   ['118','Magický žolík',    4,'MAGIC',1,[sj()],              'LEGENDARY'],
   ['119','Válečný pokřik',  4,'ATTACK',1,[ap(7),grc('ATTACK')],'EPIC'],
   ['120','Hromadná sleva',  2,'MAGIC', 0,[mhc(-1)],           'EPIC'],
-  ['121','Kletba cen',      3,'CHAOS', 0,[mhc(1,true)],       'RARE'],
+  ['121','Kletba cen',      2,'CHAOS', 0,[mhc(1,true)],       'RARE'],
   ['122','Stavební posila', 4,'STONES',1,[bc(7),grc('STONES')],'EPIC'],
   ['123','Momentum',        3,'ATTACK',0,[mma(2,4)],           'EPIC'],
   ['C40','Zákeřný špeh',   4,'CHAOS', 0,[psh()],              'EPIC'],
@@ -312,7 +312,7 @@ const RAW = [
   // ── Mechanika "Zahození" (ostré karty) ───────────────────────────────────────
   ['133','Zamořené krysy',  3,'CHAOS', 0,[aod('134',3)],       'RARE',   false, undefined, false, []],
   ['134','Zamořená Krysa',  3,'CHAOS', 0,[],                   'COMMON', false, 0,         true, [bc(-4),bw(-4)]], // placeholder – vkládána pouze efektem 133; bez play efektu, jen ukončí tah
-  ['135','Osudová mince',   2,'CHAOS', 0,[sr('CHAOS',3)],      'EPIC',   false, undefined, false, [ar('CHAOS',2)]],
+  ['135','Osudová mince',   1,'CHAOS', 0,[sr('CHAOS',3)],      'EPIC',   false, undefined, false, [ar('CHAOS',2)]],
   ['136','Poslední výpad',  3,'ATTACK',0,[ap(10)],             'RARE',   false, undefined, false, [bw(-4)]],
   ['137','Zapomenutá poznámka',1,'MAGIC',0,[ar('MAGIC',2)],    'COMMON', false, undefined, false, [dc(1)]],
   ['138','Podkopané valy',  3,'STONES',0,[bw(7),dr('STONES',3)],'RARE',  false, undefined, false, [bw(-5)]],

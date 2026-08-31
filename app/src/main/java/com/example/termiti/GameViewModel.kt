@@ -6,15 +6,35 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 /** Výsledek migrace limitů karet (zobrazí se hráči po prvním spuštění nové verze). */
-data class RarityMigrationResult(
-    val dustGained      : Int,
-    val deckCardsRemoved: Int
+/**
+ * Jedna karta dotčená změnou limitu kopií (rarita karty se posunula, nebo se
+ * změnila tabulka [Rarity.maxCopies]).
+ */
+data class CardLimitChange(
+    val cardId        : String,
+    /** Kopií rozebráno z kolekce na prach. */
+    val fromCollection: Int,
+    /** Kopií odebráno z uložených balíčků. */
+    val fromDecks     : Int,
+    val dustGained    : Int
 )
+
+/**
+ * Souhrn poslední srovnávací akce limitů kopií. Přežívá restart appky
+ * (ukládá se do prefs) a čeká, až ho hráč uvidí v deck builderu — jinak by o
+ * rozebrané karty přišel bez jediného slova.
+ */
+data class CardLimitReport(val changes: List<CardLimitChange>) {
+    val dustGained            : Int get() = changes.sumOf { it.dustGained }
+    val deckCardsRemoved      : Int get() = changes.sumOf { it.fromDecks }
+    val collectionCardsRemoved: Int get() = changes.sumOf { it.fromCollection }
+}
 
 // ── Rozhodnutí ────────────────────────────────────────────────────────────────
 /** Jednorázová volba suroviny v DecisionChooseResource (zobrazí se jako tlačítko, ne jako karta). */
@@ -75,40 +95,123 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     /**
-     * Výsledek migrace limitů kopií – null = žádná migrace neproběhla.
-     * UI ho přečte a zobrazí hráči toast / dialog.
+     * Nezobrazené hlášení o srovnání limitů kopií – null = není co hlásit.
+     * Čte ho deck builder ([DeckBuilderScreen]) a po odkliknutí zavolá
+     * [dismissCardLimitReport].
      */
-    val rarityMigrationResult = androidx.compose.runtime.mutableStateOf<RarityMigrationResult?>(null)
+    val cardLimitReport = androidx.compose.runtime.mutableStateOf<CardLimitReport?>(null)
 
     init {
         loadDecks()
         loadRoguePresets()
-        migrateRarityLimits()
+        loadCardLimitReport()
+        reconcileCardLimits()
+    }
+
+    // ── Srovnání limitů kopií ────────────────────────────────────────────────
+    //
+    // Limit kopií karty = Rarity.maxCopies. Když se posune (karta změní raritu,
+    // nebo se přepíše tabulka v Rarity.kt), může hráč držet víc kopií, než je
+    // nově povoleno — v kolekci i v uložených balíčcích.
+    //
+    // Dřív to řešil jednorázový příznak v prefs ("rarity_migration_v2"), který
+    // se musel při KAŽDÉ další změně limitů ručně zvednout. Na to se dá snadno
+    // zapomenout a hráči by zůstal nelegální balíček. Místo toho se drží otisk
+    // (fingerprint) všech aktuálních limitů: jakmile se katalog v tomhle ohledu
+    // liší od uloženého stavu, srovnání proběhne samo.
+
+    private val LIMITS_FINGERPRINT_KEY = "card_limits_fingerprint"
+    private val LIMITS_REPORT_KEY      = "card_limits_report"
+
+    /**
+     * Stabilní otisk limitů celého katalogu (id → maxCopies).
+     * FNV-1a 64bit — na rozdíl od [String.hashCode] nezávisí na verzi JVM.
+     */
+    private fun currentLimitsFingerprint(): String {
+        var hash = -3750763034362895579L          // FNV offset basis
+        allCards.sortedBy { it.id }.forEach { card ->
+            "${card.id}:${card.rarity.maxCopies};".forEach { ch ->
+                hash = (hash xor ch.code.toLong()) * 1099511628211L
+            }
+        }
+        return java.lang.Long.toHexString(hash)
     }
 
     /**
-     * Migrace po snížení limitů rarities (3/2/2/1).
+     * Porovná uložený otisk limitů s aktuálním a při rozdílu srovná kolekci
+     * i balíčky. Výsledek se uloží pro pozdější zobrazení v deck builderu.
      *
-     * 1. Decky: ořízne počty karet nad nový maxCopies a uloží.
-     * 2. Kolekce: přebytečné kopie nad maxCopies → prach (dustValue × počet navíc).
-     *
-     * Výsledek se uloží do [rarityMigrationResult] pro zobrazení hráči.
-     * Migrace je jednorázová – po provedení nastaví příznak v prefs.
+     * Na čerstvé instalaci (a při prvním spuštění buildu s touhle kontrolou)
+     * se jen zapíše výchozí otisk — hráč o nic nepřišel, není co hlásit.
      */
-    private fun migrateRarityLimits() {
-        val MIGRATION_KEY = "rarity_migration_v2"   // zvýšit při další změně limitů
-        if (prefs.getBoolean(MIGRATION_KEY, false)) return
+    private fun reconcileCardLimits() {
+        if (allCards.isEmpty()) return            // katalog se nenačetl → nic neřež
+        val fingerprint = currentLimitsFingerprint()
+        val stored      = prefs.getString(LIMITS_FINGERPRINT_KEY, null)
+        if (stored == fingerprint) return
+        if (stored == null) {
+            prefs.edit().putString(LIMITS_FINGERPRINT_KEY, fingerprint).apply()
+            return
+        }
+        val changes = applyCardLimits()
+        prefs.edit().putString(LIMITS_FINGERPRINT_KEY, fingerprint).apply()
+        if (changes.isNotEmpty()) saveCardLimitReport(changes)
+    }
 
-        val cardMap = allCards.associateBy { it.id }
-        var dustGained = 0
-        var deckCardsRemoved = 0
+    /**
+     * Ořízne kolekci i balíčky na aktuální limity.
+     *
+     * Pořadí je podstatné: nejdřív kolekce (přebytek → prach), teprve pak
+     * balíčky — ty se ořezávají na [CardCollectionManager.usableCopies], takže
+     * odrážejí kolekci PO srovnání, ne před ním.
+     */
+    private fun applyCardLimits(): List<CardLimitChange> {
+        val cardMap        = allCards.associateBy { it.id }
+        val fromCollection = mutableMapOf<String, Int>()
+        val dustPerCard    = mutableMapOf<String, Int>()
 
-        // ── 1. Decky ─────────────────────────────────────────────────────────
+        // ── 1. Kolekce ───────────────────────────────────────────────────────
+        PlayerProfileManager.profile?.let { profile ->
+            var dustTotal = 0
+            val newCollection = profile.cardCollection.mapValues { (id, count) ->
+                val card   = cardMap[id] ?: return@mapValues count
+                val limit  = card.rarity.maxCopies
+                val excess = (count - limit).coerceAtLeast(0)
+                // Základní karty se rozebrat nedají (jsou zdarma v plném počtu),
+                // takže se uložený počet jen srovná — hráč nic neztrácí a do
+                // hlášení nepatří.
+                if (excess > 0 && !CardCollectionManager.isBasicCard(card)) {
+                    fromCollection[id] = excess
+                    val dust = excess * card.rarity.dustValue
+                    dustPerCard[id] = dust
+                    dustTotal += dust
+                }
+                count.coerceAtMost(limit)
+            }.filter { it.value > 0 }
+
+            if (newCollection != profile.cardCollection || dustTotal > 0) {
+                PlayerProfileManager.save(
+                    profile.copy(
+                        cardCollection = newCollection,
+                        dust           = profile.dust + dustTotal
+                    )
+                )
+            }
+        }
+
+        // ── 2. Balíčky ───────────────────────────────────────────────────────
+        // Bez profilu vrací usableCopies() 0 pro všechno → oříznout na skutečně
+        // vlastněné kopie by vymazalo celý balíček. V tom případě drž jen tvrdý
+        // limit rarity.
+        val hasProfile = PlayerProfileManager.profile != null
+        val fromDecks  = mutableMapOf<String, Int>()
         decks.forEachIndexed { i, deck ->
             val newCounts = deck.cardCounts.mapValues { (id, count) ->
-                val limit = cardMap[id]?.rarity?.maxCopies ?: count
+                val card    = cardMap[id] ?: return@mapValues 0   // karta zmizela z katalogu
+                val limit   = if (hasProfile) CardCollectionManager.usableCopies(card)
+                              else card.rarity.maxCopies
                 val clamped = count.coerceAtMost(limit)
-                deckCardsRemoved += (count - clamped)
+                if (clamped < count) fromDecks[id] = (fromDecks[id] ?: 0) + (count - clamped)
                 clamped
             }.filter { it.value > 0 }
             if (newCounts != deck.cardCounts) {
@@ -117,36 +220,61 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
 
-        // ── 2. Kolekce ───────────────────────────────────────────────────────
-        val profile = PlayerProfileManager.profile
-        if (profile != null) {
-            val newCollection = profile.cardCollection.mapValues { (id, count) ->
-                val card  = cardMap[id]
-                val limit = card?.rarity?.maxCopies ?: count
-                val excess = (count - limit).coerceAtLeast(0)
-                if (excess > 0 && card != null) dustGained += excess * card.rarity.dustValue
-                count.coerceAtMost(limit)
-            }.filter { it.value > 0 }
-
-            if (dustGained > 0 || newCollection != profile.cardCollection) {
-                PlayerProfileManager.save(
-                    profile.copy(
-                        cardCollection = newCollection,
-                        dust           = profile.dust + dustGained
-                    )
-                )
-            }
-        }
-
-        // ── Označ jako hotové ─────────────────────────────────────────────
-        prefs.edit().putBoolean(MIGRATION_KEY, true).apply()
-
-        if (dustGained > 0 || deckCardsRemoved > 0) {
-            rarityMigrationResult.value = RarityMigrationResult(
-                dustGained       = dustGained,
-                deckCardsRemoved = deckCardsRemoved
+        return (fromCollection.keys + fromDecks.keys).sorted().map { id ->
+            CardLimitChange(
+                cardId         = id,
+                fromCollection = fromCollection[id] ?: 0,
+                fromDecks      = fromDecks[id]      ?: 0,
+                dustGained     = dustPerCard[id]    ?: 0
             )
         }
+    }
+
+    // ── Hlášení pro deck builder ─────────────────────────────────────────────
+    // Formát v prefs: "id:kolekce:balicky:prach|id:kolekce:balicky:prach"
+
+    /** Uloží hlášení; pokud nějaké čeká nezobrazené, sloučí je (nic se neztratí). */
+    private fun saveCardLimitReport(changes: List<CardLimitChange>) {
+        val merged = LinkedHashMap<String, CardLimitChange>()
+        (cardLimitReport.value?.changes.orEmpty() + changes).forEach { c ->
+            val prev = merged[c.cardId]
+            merged[c.cardId] = if (prev == null) c else CardLimitChange(
+                cardId         = c.cardId,
+                fromCollection = prev.fromCollection + c.fromCollection,
+                fromDecks      = prev.fromDecks      + c.fromDecks,
+                dustGained     = prev.dustGained     + c.dustGained
+            )
+        }
+        val report = CardLimitReport(merged.values.toList())
+        cardLimitReport.value = report
+        prefs.edit().putString(
+            LIMITS_REPORT_KEY,
+            report.changes.joinToString("|") {
+                "${it.cardId}:${it.fromCollection}:${it.fromDecks}:${it.dustGained}"
+            }
+        ).apply()
+    }
+
+    private fun loadCardLimitReport() {
+        val raw = prefs.getString(LIMITS_REPORT_KEY, "").orEmpty()
+        if (raw.isBlank()) return
+        val changes = raw.split("|").mapNotNull { entry ->
+            val p = entry.split(":")
+            if (p.size != 4) return@mapNotNull null
+            CardLimitChange(
+                cardId         = p[0],
+                fromCollection = p[1].toIntOrNull() ?: 0,
+                fromDecks      = p[2].toIntOrNull() ?: 0,
+                dustGained     = p[3].toIntOrNull() ?: 0
+            )
+        }
+        if (changes.isNotEmpty()) cardLimitReport.value = CardLimitReport(changes)
+    }
+
+    /** Hráč hlášení odklikl v deck builderu — zahoď ho i z prefs. */
+    fun dismissCardLimitReport() {
+        cardLimitReport.value = null
+        prefs.edit().remove(LIMITS_REPORT_KEY).apply()
     }
 
     private fun saveDeck(index: Int) {
@@ -175,7 +303,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun grantStarterDeck() {
         val starterCounts = mapOf(
             "012" to 2,  // Mobilizace
-            "065" to 3,  // Lupič
+            "065" to 1,  // Lupič
+            "003" to 2,  // Ohnivá koule
             "D01" to 2,  // Průzkumník
             "013" to 2,  // Magický pramen
             "038" to 2,  // Vojenský rozkaz
@@ -826,11 +955,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
-                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
-                        val ph = injectExplosionPlaceholder(player)
-                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
-                        log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        reportTrap(trap, player, isPlayer = true)
                         gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
                     }
@@ -1226,14 +1351,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         val aiCastleHpBefore = ai.castleHP
+        // Ztráty soupeře se sbírají a vyhodnocují až PO applyEffects: zobrazení
+        // musí být sekvenční (víc karet naráz) a ghost ve stripu se smí pustit
+        // jen u skutečné ztráty z ruky, což se pozná až podle overdrawIds.
+        val oppLosses   = mutableListOf<Pair<Card, CardAction>>()
+        val overdrawIds = mutableSetOf<String>()
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
             onOpponentCardLost = { lostCard, action ->
                 cardHistory.appendHistory(lostCard, action, isMine = false)
                 addCardLog("Hráč", lostCard, action, isMe = false)
-                // Ukaž ztracenou kartu v discard slotu (prstenec BURNED/STOLEN)
-                // + spusť ghost efekt v AI stripu – stejné chování jako online CARD_LOST
-                recordCard(lostCard, action, isPlayer = false)
-                recordAiHandLoss(lostCard, action)
+                oppLosses.add(lostCard to action)
             },
             onDrawCard = { _, count -> pendingDrawCount += count },
             maxHandSize = old.playerMaxHand,
@@ -1241,7 +1368,21 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // Hráčovy vlastní zahozené karty (např. Velký zmatek)
                 cardHistory.appendHistory(lostCard, action, isMine = true)
                 addCardLog("Hráč", lostCard, action, isMe = true)
+            },
+            opponentMaxHandSize = old.aiMaxHand,
+            // Hráčova karta se ve slotu zobrazila UŽ PŘED applyEffects
+            // (recordCard výše), takže přelíznutí ho může rovnou přebít.
+            onOverdrawBurn = { burned, isSelf ->
+                if (isSelf) showOverdrawBurn(burned, isPlayer = true)
+                else        overdrawIds.add(burned.id)   // zobrazí revealOpponentLosses
             })
+        // Ghost v AI stripu jen u SKUTEČNÉ ztráty z ruky. Přelíznutí jde z balíčku
+        // rovnou do odhazovacího, ruka se nezmenší → položka ve frontě by se nikdy
+        // nespotřebovala a rozjela by kurzor pro všechny další ztráty.
+        oppLosses.forEach { (lostCard, action) ->
+            if (lostCard.id !in overdrawIds) recordAiHandLoss(lostCard, action)
+        }
+        revealOpponentLosses(oppLosses)
         // Quest: poškození hradu
         val castleDmg = (aiCastleHpBefore - ai.castleHP).coerceAtLeast(0)
         if (castleDmg > 0) QuestManager.onDamageDealt(castleDmg)
@@ -1345,11 +1486,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         activePlayer = ActivePlayer.AI
                     )
                     for (trap in drawResult.traps) {
-                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
-                        val ph = injectExplosionPlaceholder(player)
-                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
-                        log.appendLog(trapLogMsg(trap, isPlayer = true))
+                        reportTrap(trap, player, isPlayer = true)
                         gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
                         delay(1000L)
                     }
@@ -1429,18 +1566,29 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // v tomto případě vůbec neaplikují.
         if (card.discardEffects.isNotEmpty()) {
             log.appendLog(ls.logDiscardEffectTriggered.format(card.displayName))
+            // Stejný postup jako u zahrání karty – sbírej, vyhodnoť po applyEffects
+            val dOppLosses   = mutableListOf<Pair<Card, CardAction>>()
+            val dOverdrawIds = mutableSetOf<String>()
             applyEffects(card.discardEffects, player, ai, allCards,
                 onOpponentCardLost = { lostCard, action ->
                     cardHistory.appendHistory(lostCard, action, isMine = false)
                     addCardLog("Hráč", lostCard, action, isMe = false)
-                    recordCard(lostCard, action, isPlayer = false)
-                    recordAiHandLoss(lostCard, action)
+                    dOppLosses.add(lostCard to action)
                 },
                 maxHandSize = old.playerMaxHand,
                 onSelfCardLost = { lostCard, action ->
                     cardHistory.appendHistory(lostCard, action, isMine = true)
                     addCardLog("Hráč", lostCard, action, isMe = true)
+                },
+                opponentMaxHandSize = old.aiMaxHand,
+                onOverdrawBurn = { burned, isSelf ->
+                    if (isSelf) showOverdrawBurn(burned, isPlayer = true)
+                    else        dOverdrawIds.add(burned.id)
                 })
+            dOppLosses.forEach { (lostCard, action) ->
+                if (lostCard.id !in dOverdrawIds) recordAiHandLoss(lostCard, action)
+            }
+            revealOpponentLosses(dOppLosses)
             val s1 = old.copy(playerState = player, aiState = ai)
             s1.checkWinCondition()?.let { result ->
                 scheduleGameEnd(result, s1); return
@@ -1492,11 +1640,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     delay(750L)
                 }
                 for (trap in drawResult.traps) {
-                    cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
-                    addCardLog("AI", trap, CardAction.BURNED, isMe = false)
-                    val ph = injectExplosionPlaceholder(ai)
-                    if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = false)
-                    log.appendLog(trapLogMsg(trap, isPlayer = false))
+                    reportTrap(trap, ai, isPlayer = false)
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
                     delay(1000L)
                 }
@@ -1574,6 +1718,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         val aiCardHandIdx = ai.hand.indexOf(aiCard)
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
+                        // Přelíznutí nasbíraná během efektů. Nezobrazují se hned:
+                        // slot ve středu si nejdřív musí vzít AI zahraná karta
+                        // (recordCard níž), jinak by ji plamen okamžitě přebil a
+                        // hráč by nevěděl, CO ho přelíznutí stálo.
+                        val aiOverdrawBurns = mutableListOf<Pair<Card, Boolean>>()
                         applyEffects(
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
                             onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
@@ -1586,11 +1735,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                         addCardLog("AI", b, CardAction.BURNED, isMe = false)
                                     }
                                     r.traps.forEach { trap ->
-                                        cardHistory.appendHistory(trap, CardAction.BURNED, isMine = false)
-                                        addCardLog("AI", trap, CardAction.BURNED, isMe = false)
-                                        val ph = injectExplosionPlaceholder(state)
-                                        if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = false)
-                                        log.appendLog(trapLogMsg(trap, isPlayer = false))
+                                        reportTrap(trap, state, isPlayer = false)
                                     }
                                 }
                             },
@@ -1599,6 +1744,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 // AI vlastní zahozené karty (např. Velký zmatek zahrané AI)
                                 cardHistory.appendHistory(lostCard, action, isMine = false)
                                 addCardLog("AI", lostCard, action, isMe = false)
+                            },
+                            opponentMaxHandSize = old.playerMaxHand,
+                            // isSelf = true → přeteklo AI; false → přeteklo hráči
+                            onOverdrawBurn = { burned, isSelf ->
+                                aiOverdrawBurns.add(burned to !isSelf)
                             }
                         )
                         // AI auto-pick pro Decision efekty.
@@ -1739,6 +1889,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         revealedAiCardIdx.value = aiCardHandIdx.takeIf { it >= 0 }
                         playSoundForCard(aiCard)
 
+                        // Až teď ukaž přelíznutí — hráč nejdřív uvidí, CO soupeř
+                        // zahrál (Studna vědomostí), pak teprve kartu, která mu
+                        // kvůli plné ruce shořela.
+                        for ((burned, isPlayerCard) in aiOverdrawBurns) {
+                            delay(650L)
+                            showOverdrawBurn(burned, isPlayer = isPlayerCard)
+                            SoundManager.playCardDraw()
+                        }
+
                         if (aiCard.isCombo || aiNextComboBoost) {
                             // Combo: pauza + mezistate + pokračuj.
                             // activePlayer musí zůstat AI, aby hráč nemohl kliknout
@@ -1794,6 +1953,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             applyEffects(toDiscard.discardEffects, ai, player, allCards,
                                 onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
                                 maxHandSize = old.aiMaxHand,
+                                opponentMaxHandSize = old.playerMaxHand,
+                                onOverdrawBurn = { burned, isSelf ->
+                                    showOverdrawBurn(burned, isPlayer = !isSelf)
+                                },
                                 onSelfCardLost = { lostCard, action ->
                                     cardHistory.appendHistory(lostCard, action, isMine = false)
                                     addCardLog("AI", lostCard, action, isMe = false)
@@ -1841,11 +2004,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     recordCard(b, CardAction.BURNED, isPlayer = true)
                 }
                 for (trap in drawResult.traps) {
-                    cardHistory.appendHistory(trap, CardAction.BURNED, isMine = true)
-                    addCardLog("Hráč", trap, CardAction.BURNED, isMe = true)
-                    val ph = injectExplosionPlaceholder(player)
-                    if (ph != null) recordCard(ph, CardAction.BURNED, isPlayer = true)
-                    log.appendLog(trapLogMsg(trap, isPlayer = true))
+                    reportTrap(trap, player, isPlayer = true)
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
                     delay(1000L)
                 }
@@ -1983,6 +2142,27 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      * Po explozi pasti přidá do odkladiště [state] jednu kopii "Explodovaná bomba" (C38).
      * Vrátí instanci karty pro případné zalogování do card history, nebo null pokud C38 neexistuje.
      */
+    /**
+     * Lízla se past (TrapOnDraw) — efekt už proběhl v [PlayerState.drawCards].
+     *
+     * Navenek se hlásí POUZE exploze ("Explodovaná bomba", C38). Samotná
+     * "Bomba" (C37) je jen placeholder v balíčku, aby ji šlo cíleně odstranit
+     * (Likvidace) — jako událost se neukazuje. Dřív se logovaly obě, takže
+     * jedno líznutí vypadalo jako dvě spálené karty.
+     *
+     * Skutečnou příčinu i dopad vysvětlí systémová hláška [trapLogMsg], která
+     * pastí pojmenuje ("Lízl jsi Bombu — hrad −5").
+     */
+    private fun reportTrap(trap: Card, state: PlayerState, isPlayer: Boolean) {
+        val explosion = injectExplosionPlaceholder(state)
+        if (explosion != null) {
+            // recordCard = střed bojiště + zápis do historie
+            recordCard(explosion, CardAction.BURNED, isPlayer = isPlayer)
+            addCardLog(if (isPlayer) "Hráč" else "AI", explosion, CardAction.BURNED, isMe = isPlayer)
+        }
+        log.appendLog(trapLogMsg(trap, isPlayer = isPlayer))
+    }
+
     private fun injectExplosionPlaceholder(state: PlayerState): Card? {
         val template = allCards.find { it.id == "C38" } ?: return null
         val instance = template.copy(id = "C38_${java.util.UUID.randomUUID()}", isGenerated = true)
@@ -2009,6 +2189,48 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
         val turn = gameState.value.currentTurn
         log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
+    }
+
+    /**
+     * Ukáže ztracenou kartu uprostřed bojiště (prstenec + ikona podle akce).
+     *
+     * Na rozdíl od [recordCard] NEzapisuje do historie — tu už naplnily
+     * onSelfCardLost / onOpponentCardLost v applyEffects, jinak by tam karta
+     * byla dvakrát. Tohle je čistě zobrazení.
+     */
+    private fun showLostCard(card: Card, action: CardAction, isPlayer: Boolean) {
+        lastCard.value         = card
+        lastCardAction.value   = action
+        lastCardIsPlayer.value = isPlayer
+    }
+
+    /** Přelíznutá karta ve středu bojiště s plamenem. */
+    private fun showOverdrawBurn(card: Card, isPlayer: Boolean) =
+        showLostCard(card, CardAction.BURNED, isPlayer)
+
+    /** Postupné odhalování karet, o které soupeř přišel mým přičiněním. */
+    private var oppLossRevealJob: Job? = null
+
+    /**
+     * Ukáže VŠECHNY karty, o které soupeř právě přišel — jednu po druhé.
+     * Spálená knihovna pálí 2 karty, Prázdná mysl 3; kdyby se nastavovaly
+     * v cyklu hned, hráč by uviděl jen tu poslední a nevěděl by, co soupeři
+     * vlastně zničil.
+     */
+    private fun revealOpponentLosses(losses: List<Pair<Card, CardAction>>) {
+        oppLossRevealJob?.cancel()
+        if (losses.isEmpty()) return
+        if (losses.size == 1) {
+            val (card, action) = losses[0]
+            showLostCard(card, action, isPlayer = false)
+            return
+        }
+        oppLossRevealJob = viewModelScope.launch {
+            losses.forEachIndexed { i, (card, action) ->
+                if (i > 0) delay(700L)
+                showLostCard(card, action, isPlayer = false)
+            }
+        }
     }
 
     private fun recordCard(card: Card, action: CardAction, isPlayer: Boolean) {

@@ -696,10 +696,11 @@ class GameSession {
       }
       const _drawTrapOppSide = side === 'A' ? 'B' : 'A';
       for (const trap of drawTraps) {
-        this._send(side,           { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
-          action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
-        this._send(_drawTrapOppSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
-          action: 'BURNED', isGenerated: trap.isGenerated || false });
+        // POZOR: za past se NEposílá CARD_LOST pro samotnou "Bombu" (C37) –
+        // ta je jen placeholder v balíčku kvůli cílenému odstranění (Likvidace).
+        // Jako událost se hlásí výhradně exploze (C38) níž, jinak jedno líznutí
+        // vypadá jako dvě spálené karty. Příčinu vysvětlí textová hláška.
+        this._log(`${this.name[side]} lízl past – ${trap.name} vybuchla.`);
         const c38Tmpl2 = CARD_MAP.get('C38');
         if (c38Tmpl2) {
           const c38Inst2 = { ...makeInstance(c38Tmpl2), isGenerated: true };
@@ -754,9 +755,9 @@ class GameSession {
       self,
       opp,
       CARD_MAP,
-      (c, action) => lostCards.push({ card: c, action }),
+      (c, action, overdraw) => lostCards.push({ card: c, action, overdraw: !!overdraw }),
       xValue,
-      (c, action) => selfLostCards.push({ card: c, action })
+      (c, action, overdraw) => selfLostCards.push({ card: c, action, overdraw: !!overdraw })
     );
     // Snapshot už není potřeba – vyčistit, aby neovlivnil další vyhodnocení
     delete self._preCostResources;
@@ -800,7 +801,7 @@ class GameSession {
     // Notify both players about stolen/burned cards via structured CARD_LOST
     // (místo textového logu – klient zobrazí CardEvent s artworkem)
     const victimSide = side === 'A' ? 'B' : 'A';
-    for (const { card: lc, action } of lostCards) {
+    for (const { card: lc, action, overdraw } of lostCards) {
       const payload = {
         type:        'CARD_LOST',
         cardId:      lc.id,
@@ -811,7 +812,13 @@ class GameSession {
         // klient podle toho ví, že soupeři ubude RUB v ruce, a může ztrátu ukázat
         // ghost efektem nad jeho stripem. Ztráty z BALÍČKU (DecisionBurnOpponent)
         // tento příznak NEmají – tam se v ruce nic neděje.
-        fromHand:    true
+        //
+        // Přelíznutí (DrawBoth se soupeřovou plnou rukou) také NE: karta šla
+        // z balíčku rovnou do odhazovacího, ruka zůstala stejně velká. Kdyby
+        // sem šla, útočníkovi by se do fronty ghostů přidala položka, kterou
+        // nikdy nic nespotřebuje, a kurzor by se rozjel na všechny další ztráty.
+        fromHand:     !overdraw,
+        fromOverdraw: !!overdraw
       };
       this._send(victimSide, payload);                            // oběť – jejich karta
       this._send(side,       { ...payload, causedByMe: true });   // útočník – způsobil ztrátu
@@ -837,7 +844,12 @@ class GameSession {
     // zobrazení spálené karty v discard slotu (stejný trik jako u pastí níže).
     // Přeskoč u Decision karet – tam je "played" reveal na pozadí overlay žádoucí
     // a decision flow na lastPlayedCard nezávisí (má vlastní DECISION_REQUEST).
-    if (selfLostCards.length > 0 && !decisionFx) {
+    // Pozor na `lostCards`: cílené pálení/krádež (Spálená knihovna, Likvidace)
+    // se tu nulovat NESMÍ – tam má slot patřit zahrané kartě a displej se sám
+    // opraví příštím GAME_STATE. Nulujeme jen kvůli PŘELÍZNUTÍ, které jinak
+    // GAME_STATE přebije zahranou kartou dřív, než ho hráč stihne uvidět.
+    const hadOverdraw = lostCards.some(l => l.overdraw) || selfLostCards.some(l => l.overdraw);
+    if ((selfLostCards.length > 0 || hadOverdraw) && !decisionFx) {
       this.lastPlayedCard   = null;
       this.lastPlayedAction = null;
     }
@@ -1284,15 +1296,15 @@ class GameSession {
       const selfLostCards = [];
       applyEffects(
         card.discardEffects, self, opp, CARD_MAP,
-        (c, action) => lostCards.push({ card: c, action }),
+        (c, action, overdraw) => lostCards.push({ card: c, action, overdraw: !!overdraw }),
         0,
-        (c, action) => selfLostCards.push({ card: c, action })
+        (c, action, overdraw) => selfLostCards.push({ card: c, action, overdraw: !!overdraw })
       );
       this._log(`Zahozením karty ${card.name} se spustil efekt!`);
 
       const victimSide = side === 'A' ? 'B' : 'A';
-      for (const { card: lc, action } of lostCards) {
-        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, fromHand: true };
+      for (const { card: lc, action, overdraw } of lostCards) {
+        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, fromHand: !overdraw, fromOverdraw: !!overdraw };
         this._send(victimSide, payload);
         this._send(side,       { ...payload, causedByMe: true });
         this._logger.logCardLost(side, action, lc.name || lc.id);
@@ -1420,11 +1432,10 @@ class GameSession {
     // Pasty: injektuj placeholder C38, reportuj klientovi (oběma stranám), zkontroluj výhru
     const oppSideForTrap = this.activeSide === 'A' ? 'B' : 'A';
     for (const trap of traps) {
-      // Pošli CARD_LOST pro past (C37) aktivnímu hráči (ownCard: true) A soupeři
-      this._send(this.activeSide, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
-        action: 'BURNED', isGenerated: trap.isGenerated || false, ownCard: true });
-      this._send(oppSideForTrap, { type: 'CARD_LOST', cardId: trap.id, baseId: trap.baseId || trap.id,
-        action: 'BURNED', isGenerated: trap.isGenerated || false });
+      // Samotná "Bomba" (C37) se jako událost NEHLÁSÍ – je to jen placeholder
+      // v balíčku, aby šla cíleně odstranit (Likvidace). Klient by jinak ukázal
+      // dvě spálené karty za jedno líznutí. Viditelná je jen exploze (C38).
+      this._log(`${this.name[this.activeSide]} lízl past – ${trap.name} vybuchla.`);
       // Injektuj C38 placeholder a pošli CARD_LOST oběma stranám jako samostatný event
       // (NEstavíme lastPlayedCard – GAME_STATE musí přijít s null, aby nepřepsal
       //  sekvenční bomb display zpracovávaný s delay na klientu)
@@ -1693,12 +1704,13 @@ class GameSession {
   }
 
   _sendStateBoth() {
-    // Tahle zpráva je autoritativní a jde OBĚMA stranám HNED – zruš proto
+    // Tahle zpráva je autoritativní a jde OBĚMA stranám HNED – vyprázdni proto
     // rozdělané "paced" fronty (viz _sendStateBothPaced), jinak by mohla dorazit
     // zastaralá zpožděná zpráva AŽ PO téhle (typicky: konec tahu hned po poslední
     // combo kartě) a klientovi na chvíli přehrát stav v nesprávném pořadí.
-    this._clearRevealQueue('A');
-    this._clearRevealQueue('B');
+    // Vyprázdnit ≠ zahodit: čekající zprávy odejdou hned a v pořadí před touhle.
+    this._flushRevealQueue('A');
+    this._flushRevealQueue('B');
     const stateA = this._buildStateFor('A');
     const stateB = this._buildStateFor('B');
     console.log(`[DECK] game=${this.gameId} turn=${this.turnNumber} A.deck=${stateA.myState.deckSize} B.deck=${stateB.myState.deckSize} active=${this.activeSide}`);
@@ -1709,13 +1721,25 @@ class GameSession {
     // lastPlayedCard se NEresetuje – zůstane viditelný, dokud ho nenahradí nová karta
   }
 
-  /** Zahodí čekající frontu paced-reveal zpráv pro [side] a zruší její odstup-timer. */
-  _clearRevealQueue(side) {
+  /**
+   * Vyprázdní čekající frontu paced-reveal zpráv pro [side] – ale NEZAHODÍ ji:
+   * všechny čekající GAME_STATE odejdou HNED a v pořadí, teprve pak smí
+   * odejít autoritativní zpráva volajícího. Pořadí tím zůstane správné
+   * (kvůli tomu tu fronta původně byla mazána), ale nic se neztratí.
+   *
+   * Zahazování mělo ošklivý důsledek: soupeř zahrál kartu a hned ukončil tah,
+   * čímž _sendStateBoth() smazal jeho ještě nedoručený reveal. Když navíc
+   * druhý hráč vzápětí lízl past, _advanceTurn() vynuloval lastPlayedCard –
+   * a zahraná karta se pak neobjevila NIKDE, ani v logu.
+   */
+  _flushRevealQueue(side) {
+    const pending = this._revealQueue[side];
     this._revealQueue[side] = [];
     if (this._revealTimer[side]) {
       clearTimeout(this._revealTimer[side]);
       this._revealTimer[side] = null;
     }
+    for (const payload of pending) this._send(side, payload);
   }
 
   /**

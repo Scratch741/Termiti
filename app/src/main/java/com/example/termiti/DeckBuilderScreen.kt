@@ -352,6 +352,33 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 }
             }
         }
+
+        // ── Hlášení o srovnání limitů kopií ──────────────────────────────────
+        // Kreslí se NAD náhledem karty: je to jednorázová informace o tom, že
+        // hráči něco zmizelo z kolekce, a musí ji vzít na vědomí dřív, než
+        // začne balíček upravovat.
+        val limitReport by viewModel.cardLimitReport
+        limitReport?.let { report ->
+            val cardMap = remember(viewModel.allCards) { viewModel.allCards.associateBy { it.id } }
+            val rows = remember(report) {
+                report.changes.mapNotNull { ch -> cardMap[ch.cardId]?.let { it to ch } }
+            }
+            if (rows.isEmpty()) {
+                // Všechny dotčené karty zmizely z katalogu → není co ukazovat
+                LaunchedEffect(report) { viewModel.dismissCardLimitReport() }
+            } else {
+                CardLimitChangeOverlay(
+                    changes     = rows,
+                    dustGained  = report.dustGained,
+                    deckRemoved = report.deckCardsRemoved,
+                    onDismiss   = {
+                        SoundManager.playMenuTap()
+                        viewModel.dismissCardLimitReport()
+                        profile = PlayerProfileManager.profile   // prach se změnil
+                    }
+                )
+            }
+        }
     }
 }
 

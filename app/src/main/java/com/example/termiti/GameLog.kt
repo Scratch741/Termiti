@@ -87,9 +87,13 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                 CardAction.BURNED    -> s.logVerbBurned
                 CardAction.STOLEN    -> s.logVerbStolen
             }
-            // actorName je uloženo jako literál "Hráč"/"AI" → lokalizuj při zobrazení
+            // actorName je uloženo jako literál "Hráč"/"AI" → přelož až při zobrazení.
+            // U hráče má přednost jméno z profilu (stejně jako v top baru a v replayi);
+            // logActorPlayer je jen záloha, když profil chybí nebo je jméno prázdné.
+            // Online posílá rovnou skutečná jména, ta projdou větví else beze změny.
             val actorLabel = when (entry.actorName) {
-                "Hráč" -> s.logActorPlayer
+                "Hráč" -> PlayerProfileManager.profile?.name?.takeIf { it.isNotBlank() }
+                              ?: s.logActorPlayer
                 "AI"   -> s.logActorAi
                 else   -> entry.actorName
             }

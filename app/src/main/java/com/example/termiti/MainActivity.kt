@@ -75,29 +75,9 @@ class MainActivity : ComponentActivity() {
                     val arenaWins  by viewModel.arenaWins
                     val roguePhase by viewModel.roguePhase
 
-                    // ── Migrace limitů rarities ───────────────────────────────
-                    val migrationResult by viewModel.rarityMigrationResult
-                    migrationResult?.let { result ->
-                        androidx.compose.material3.AlertDialog(
-                            onDismissRequest = { viewModel.rarityMigrationResult.value = null },
-                            confirmButton = {
-                                androidx.compose.material3.TextButton(
-                                    onClick = { viewModel.rarityMigrationResult.value = null }
-                                ) { androidx.compose.material3.Text("OK") }
-                            },
-                            title = { androidx.compose.material3.Text("Aktualizace balíčků") },
-                            text  = {
-                                val lines = buildString {
-                                    appendLine("Limity kopií karet byly sníženy na 3/2/2/1.")
-                                    if (result.deckCardsRemoved > 0)
-                                        appendLine("• Z balíčků odebráno ${result.deckCardsRemoved} přebytečných karet.")
-                                    if (result.dustGained > 0)
-                                        appendLine("• Za přebytečné kopie v kolekci získáváš +${result.dustGained} prachu ✨")
-                                }
-                                androidx.compose.material3.Text(lines.trim())
-                            }
-                        )
-                    }
+                    // Hlášení o změně limitů kopií se zobrazuje až v deck builderu
+                    // (viz GameViewModel.cardLimitReport a CardLimitChangeOverlay) —
+                    // hráč ho uvidí přesně tam, kde s kartami pracuje.
 
                     // ── Kampaň ────────────────────────────────────────────────
                     var campaignLocation by remember { mutableStateOf<CampaignLocation?>(null) }

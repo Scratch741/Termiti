@@ -18,7 +18,17 @@ fun applyEffects(
     onOpponentCardLost: ((Card, CardAction) -> Unit)? = null,
     onDrawCard: ((PlayerState, Int) -> Unit)? = null,
     maxHandSize: Int? = null,
-    onSelfCardLost: ((Card, CardAction) -> Unit)? = null
+    onSelfCardLost: ((Card, CardAction) -> Unit)? = null,
+    /** Max. ruka SOUPEŘE – rozhoduje, kdy mu líznutí přeteče (DrawBoth). */
+    opponentMaxHandSize: Int? = null,
+    /**
+     * Přelíznutí (overdraw): karta shořela jen proto, že cílová ruka byla plná.
+     * Oddělené od [onOpponentCardLost] / [onSelfCardLost], které řeší evidenci
+     * (historie, log, „ztraceno soupeři"), protože tohle je čistě VIZUÁLNÍ hák —
+     * spálená karta se má ukázat uprostřed bojiště s plamenem. Cílené pálení
+     * (BurnCard, Spálená knihovna) sem nepatří, tam si střed drží zahraná karta.
+     */
+    onOverdrawBurn: ((Card, Boolean) -> Unit)? = null   // Boolean = shořelo hráči „self"
 ) {
     for (effect in effects) when (effect) {
         is CardEffect.AddResource   ->
@@ -67,7 +77,13 @@ fun applyEffects(
 
         is CardEffect.ConditionalEffect ->
             if (checkCondition(effect.condition, self, opponent))
-                applyEffects(listOf(effect.effect), self, opponent, allCards, xValue, onOpponentCardLost, onDrawCard)
+                // Předej VŠECHNY háky – podmíněná Studna vědomostí by jinak
+                // přelíznutí nikde nenahlásila.
+                applyEffects(
+                    listOf(effect.effect), self, opponent, allCards, xValue,
+                    onOpponentCardLost, onDrawCard, maxHandSize, onSelfCardLost,
+                    opponentMaxHandSize, onOverdrawBurn
+                )
 
         is CardEffect.DestroyMine   -> {
             val cur = opponent.mines[effect.type] ?: 0
@@ -139,22 +155,27 @@ fun applyEffects(
             else {
                 // Reportuj spálené overdraw karty a pasti – jinak se neukážou
                 // v odhazovacím balíčku ani v logu
-                val r = self.drawCards(effect.count)
+                val r = self.drawCards(effect.count, maxHandSize ?: 7)
                 (r.burned + r.traps).forEach { onSelfCardLost?.invoke(it, CardAction.BURNED) }
+                r.burned.forEach { onOverdrawBurn?.invoke(it, true) }
             }
 
         is CardEffect.DrawBoth -> {
             if (onDrawCard != null) onDrawCard(self, effect.count)
             else {
-                val r = self.drawCards(effect.count)
+                val r = self.drawCards(effect.count, maxHandSize ?: 7)
                 (r.burned + r.traps).forEach { onSelfCardLost?.invoke(it, CardAction.BURNED) }
+                r.burned.forEach { onOverdrawBurn?.invoke(it, true) }
             }
             // Studna vědomostí apod.: líže i SOUPEŘ – jeho spálené overdraw karty
             // a pasti se musí reportovat (odhazovací balíček + log)
-            val oppResult = opponent.drawCards(effect.count)
+            val oppResult = opponent.drawCards(effect.count, opponentMaxHandSize ?: 7)
             (oppResult.burned + oppResult.traps).forEach {
                 onOpponentCardLost?.invoke(it, CardAction.BURNED)
             }
+            // …a navíc se přelíznutá karta ukáže uprostřed bojiště s plamenem.
+            // Bez toho ji hráč, kterému shořela, uvidí jen v logu a v historii.
+            oppResult.burned.forEach { onOverdrawBurn?.invoke(it, false) }
         }
 
         is CardEffect.CloneNextPlayed -> self.cloneNextPlayed = effect.count
@@ -290,7 +311,11 @@ fun applyEffects(
                     self.resources[src.costType] = 0
                     x
                 } else xValue
-                applyEffects(src.effects, self, opponent, allCards, mirrorX, onOpponentCardLost, onDrawCard)
+                applyEffects(
+                    src.effects, self, opponent, allCards, mirrorX,
+                    onOpponentCardLost, onDrawCard, maxHandSize, onSelfCardLost,
+                    opponentMaxHandSize, onOverdrawBurn
+                )
             }
         }
 
@@ -303,7 +328,11 @@ fun applyEffects(
                     self.resources[src.costType] = 0
                     x
                 } else xValue
-                applyEffects(src.effects, self, opponent, allCards, cloneX, onOpponentCardLost, onDrawCard)
+                applyEffects(
+                    src.effects, self, opponent, allCards, cloneX,
+                    onOpponentCardLost, onDrawCard, maxHandSize, onSelfCardLost,
+                    opponentMaxHandSize, onOverdrawBurn
+                )
             } else {
                 // Fallback: hráč ještě nic nezahrál → +2 magie
                 self.resources[ResourceType.MAGIC] = ((self.resources[ResourceType.MAGIC] ?: 0) + 2).coerceAtMost(MAX_RESOURCE)

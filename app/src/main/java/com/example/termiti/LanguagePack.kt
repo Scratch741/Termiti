@@ -216,6 +216,13 @@ data class LanguagePack(
                 mulliganPlayNoSwap      = str("mulliganPlayNoSwap",      "Hrát bez výměny"),
                 mulliganSwap            = str("mulliganSwap",            "Vyměnit"),
 
+                limitChangeTitle    = str("limitChangeTitle",    "ZMĚNA LIMITŮ"),
+                limitChangeSubtitle = str("limitChangeSubtitle", "Limit kopií u těchto karet se snížil.\nPřebytečné kopie byly rozebrány na prach."),
+                limitChangeNewLimit = str("limitChangeNewLimit", "nyní max. %d"),
+                limitChangeDust     = str("limitChangeDust",     "+%d prachu"),
+                limitChangeDecks    = str("limitChangeDecks",    "Z balíčků odebráno: %d"),
+                limitChangeConfirm  = str("limitChangeConfirm",  "Rozumím"),
+
                 profileTitle  = str("profileTitle",  "PROFIL"),
                 profileWins   = str("profileWins",   "Výhry"),
                 profileLosses = str("profileLosses", "Prohry"),
@@ -372,6 +379,12 @@ data class LanguagePack(
             "mulliganSelected" -> fb.mulliganSelected
             "mulliganPlayNoSwap" -> fb.mulliganPlayNoSwap
             "mulliganSwap" -> fb.mulliganSwap
+            "limitChangeTitle" -> fb.limitChangeTitle
+            "limitChangeSubtitle" -> fb.limitChangeSubtitle
+            "limitChangeNewLimit" -> fb.limitChangeNewLimit
+            "limitChangeDust" -> fb.limitChangeDust
+            "limitChangeDecks" -> fb.limitChangeDecks
+            "limitChangeConfirm" -> fb.limitChangeConfirm
             "profileTitle" -> fb.profileTitle; "profileWins" -> fb.profileWins
             "profileLosses" -> fb.profileLosses; "profileGames" -> fb.profileGames
             "shopTitle" -> fb.shopTitle; "shopBuy" -> fb.shopBuy; "shopDust" -> fb.shopDust
