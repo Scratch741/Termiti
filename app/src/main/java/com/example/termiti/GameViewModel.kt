@@ -380,7 +380,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             "091" to 2,
             "010" to 3,
             "009" to 2,
-            "037" to 1,
+            "037" to 2,
             "074" to 2,
             "004" to 2,
             "026" to 2,
