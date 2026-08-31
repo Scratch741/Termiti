@@ -79,6 +79,14 @@ fun GameScreen(
     val aiHandLossLog     by viewModel.aiHandLossLog
     val lostToOpponent   by viewModel.lostToOpponent
     val isMulligan           by viewModel.isMulligan
+    // Po zavření mulliganu se karty do ruky NErozdávají znovu: do ruky je právě
+    // přenesl overlay svou animací. Bez tohohle by HandPanel viděl ruku poprvé
+    // (během mulliganu byla prázdná), považoval všechny karty za nově líznuté
+    // a rozdal je podruhé – karta by se zdánlivě vrátila do balíčku a lízla znovu.
+    var skipHandDeal by remember { mutableStateOf(false) }
+    LaunchedEffect(skipHandDeal) {
+        if (skipHandDeal) { kotlinx.coroutines.delay(400L); skipHandDeal = false }
+    }
     val mulliganSelected     by viewModel.mulliganSelected
     val isComboTurn          by viewModel.isPlayerComboTurn
     val campaignOpponent     by viewModel.activeCampaignOpponent
@@ -215,6 +223,7 @@ fun GameScreen(
                     lastCard          = lastCard,
                     lastCardAction    = lastCardAction,
                     lastCardIsPlayer  = lastCardIsPlayer,
+                    animateDraws      = gameOver == null,
                     revealedAiCard    = revealedAiCard,
                     revealedAiCardIdx = revealedAiCardIdx,
                     oppLossQueue      = aiHandLossLog,
@@ -299,7 +308,13 @@ fun GameScreen(
 
             // ── Ruka hráče – přes celou šířku dole ───────────────────
             val viewingOppHand = gameOver != null && showOppHand
-            val displayHand = if (viewingOppHand) state.aiState.hand else state.playerState.hand
+            // Během mulliganu je ruka dole PRÁZDNÁ – karty jsou zatím jen
+            // v mulligan overlayi a do ruky doletí jeho vlastní animací (HANDOFF).
+            val displayHand = when {
+                isMulligan     -> emptyList()
+                viewingOppHand -> state.aiState.hand
+                else           -> state.playerState.hand
+            }
             // Review soupeřovy ruky: podmínky (✓/✗), dostupnost i X-náhled se musí
             // vyhodnocovat z pohledu VLASTNÍKA ruky (soupeře), ne hráče
             val handOwner = if (viewingOppHand) state.aiState else state.playerState
@@ -319,7 +334,9 @@ fun GameScreen(
                 oppResources     = handOpp.resources,
                 lastPlayedType   = handOwner.lastPlayedType,
                 onLongPressCard  = { cardPreview = it },
-                animateDraws     = gameOver == null,   // review mód: přepínání rukou bez příletu
+                // review mód: přepínání rukou bez příletu; skipHandDeal: karty právě
+                // doletěly z mulliganu, nesmí se rozdat podruhé
+                animateDraws     = gameOver == null && !skipHandDeal,
                 canDiscard       = !viewModel.playerDiscardUsed.value,
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
@@ -403,7 +420,11 @@ fun GameScreen(
                 selectedIds      = mulliganSelected,
                 onToggle         = { viewModel.toggleMulliganCard(it) },
                 onConfirm        = { viewModel.confirmMulligan() },
-                onSkip           = { viewModel.skipMulligan() }
+                onSkip           = { viewModel.skipMulligan() },
+                onFinished       = {
+                    skipHandDeal = true          // musí platit dřív, než se ruka objeví
+                    viewModel.finishMulligan()
+                }
             )
         }
 

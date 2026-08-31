@@ -336,6 +336,15 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     FullCardPreview(card)
+                    val pvCount  = editingDeck.cardCounts[card.id] ?: 0
+                    val pvUsable = when {
+                        profile?.allCardsUnlocked == true ||
+                        CardCollectionManager.isBasicCard(card) -> card.rarity.maxCopies
+                        else -> minOf(
+                            profile?.cardCollection?.getOrDefault(card.id, 0) ?: 0,
+                            card.rarity.maxCopies
+                        )
+                    }
                     CardActionPanel(
                         card        = card,
                         profile     = profile,
@@ -347,7 +356,16 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                             CardCollectionManager.dismantleCard(card.id, viewModel.allCards)
                             profile = PlayerProfileManager.profile
                         },
-                        onClose = { previewCard = null }
+                        onClose = { previewCard = null },
+                        deckCount    = pvCount,
+                        deckMax      = pvUsable,
+                        canAddToDeck = pvCount < pvUsable && editingDeck.totalCards < 30,
+                        onAddToDeck  = {
+                            viewModel.setCardCount(editingIdx, card.id, pvCount + 1)
+                        },
+                        onRemoveFromDeck = {
+                            if (pvCount > 0) viewModel.setCardCount(editingIdx, card.id, pvCount - 1)
+                        }
                     )
                 }
             }
@@ -860,7 +878,13 @@ private fun CardActionPanel(
     profile    : PlayerProfile?,
     onCraft    : () -> Unit,
     onDismantle: () -> Unit,
-    onClose    : () -> Unit
+    onClose    : () -> Unit,
+    // Ovládání balíčku přímo z rozkliku – ať se nemusí náhled zavírat
+    deckCount  : Int,
+    deckMax    : Int,
+    canAddToDeck: Boolean,
+    onAddToDeck : () -> Unit,
+    onRemoveFromDeck: () -> Unit
 ) {
     val isBasic     = CardCollectionManager.isBasicCard(card)
     val allUnlocked = profile?.allCardsUnlocked ?: true
@@ -918,6 +942,25 @@ private fun CardActionPanel(
                     )
                 }
             }
+            // ── V balíčku ────────────────────────────────────────────────────
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    LocalStrings.current.dbInDeck,
+                    color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                )
+                DeckCountStepper(
+                    count    = deckCount,
+                    maxCount = deckMax,
+                    canAdd   = canAddToDeck,
+                    onAdd    = onAddToDeck,
+                    onRemove = onRemoveFromDeck
+                )
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1358,6 +1401,37 @@ private fun CountBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
     CostChip(label = label, active = enabled, width = 26.dp, onClick = { if (enabled) onClick() })
 }
 
+/**
+ * Ovládání počtu kopií karty v balíčku: [−] n / max [+].
+ *
+ * Sdílí ho dlaždice v katalogu i rozklik karty (deck builder i roguelike
+ * draft), aby se karta dala přidat i odtud a nebylo nutné náhled zavírat.
+ */
+@Composable
+internal fun DeckCountStepper(
+    count: Int,
+    maxCount: Int,
+    canAdd: Boolean,
+    onAdd: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier              = modifier,
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CountBtn("−", enabled = count > 0, onClick = onRemove)
+        Text(
+            "$count / $maxCount",
+            color      = if (count > 0) TealLight else TextMuted,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+        CountBtn("+", enabled = canAdd, onClick = onAdd)
+    }
+}
+
 // ─── Deck Panel ───────────────────────────────────────────────────────────────
 @Composable
 private fun DeckPanel(
@@ -1593,15 +1667,16 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
                 painter      = painterResource(artResId),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                // alignment MUSÍ být taky – bez něj Compose ořízne na střed
+                // bez ohledu na bias (stejná dvojice jako u velké ilustrace)
+                alignment    = deckListAlignment(card),
                 modifier     = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        val s = ArtDefaults.SCALE * card.artScale
+                        // Výřez miniatury lze doladit nezávisle na kartě – viz deckListArt()
+                        val (s, pivotX, pivotY) = deckListArt(card)
                         scaleX = s; scaleY = s
-                        transformOrigin = TransformOrigin(
-                            ((ArtDefaults.BIAS_X + card.artBiasX + 1f) / 2f).coerceIn(0f, 1f),
-                            ((ArtDefaults.BIAS_Y + card.artBiasY + 1f) / 2f).coerceIn(0f, 1f)
-                        )
+                        transformOrigin = TransformOrigin(pivotX, pivotY)
                     }
             )
             // Gradient: art mizí doleva

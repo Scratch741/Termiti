@@ -176,9 +176,10 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
 
                     // Tlačítko koupit
                     MenuButton(
-                        label    = "🪙 ${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
+                        label    = "${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
                         accent   = if (canAfford) ShGold else ShMuted,
                         imageRes = R.drawable.button_7,
+                        leadingIconRes = R.drawable.goldcoin_icon,
                         enabled  = canAfford,
                         onClick  = {
                             SoundManager.playMenuTap()
@@ -253,7 +254,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                "📦  BALÍČEK OTEVŘEN!",
+                "BALÍČEK OTEVŘEN!",
                 color = ShGold, fontSize = 18.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 3.sp
             )
@@ -289,9 +290,13 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("💨", fontSize = 13.sp)
+                                Image(
+                                    painter            = painterResource(R.drawable.dust_icon),
+                                    contentDescription = null,
+                                    modifier           = Modifier.size(13.dp)
+                                )
                                 Text(
-                                    "Duplikáty → +${result.totalDustGained} ✨ prachu",
+                                    "Duplikáty → +${result.totalDustGained} prachu",
                                     color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
                                 )
                             }
@@ -376,7 +381,17 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                                 .padding(vertical = 3.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("💨 +${gain.dustGained} ✨", color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Image(
+                                    painter            = painterResource(R.drawable.dust_icon),
+                                    contentDescription = null,
+                                    modifier           = Modifier.size(9.dp)
+                                )
+                                Text("+${gain.dustGained}", color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }

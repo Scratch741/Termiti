@@ -773,6 +773,13 @@ fun DeckChipWithBack(@DrawableRes cardBackRes: Int, count: Int, label: String) {
 // ─── Hand ─────────────────────────────────────────────────────────────────────
 // ComboYellow → GameColors.kt
 
+/**
+ * Časování animace lízání. Sdílí ho ruka i mulligan ([MulliganOverlay]) —
+ * lízání má v obou vypadat stejně, a když se to drží na dvou místech, rozejde se.
+ */
+const val DRAW_STAGGER_MS = 500L
+const val DRAW_FLIGHT_MS  = 450
+
 @Composable
 fun HandPanel(
     hand: List<Card>,
@@ -853,9 +860,9 @@ fun HandPanel(
                 // za krajem („z voidu"), nezávisle na počtu karet v ruce.
                 var flyStartPx by remember(card.id) { mutableFloatStateOf(0f) }
                 if (appearIdx >= 0) LaunchedEffect(card.id) {
-                    kotlinx.coroutines.delay(500L * appearIdx)
+                    kotlinx.coroutines.delay(DRAW_STAGGER_MS * appearIdx)
                     SoundManager.playCardDraw()
-                    flyIn.animateTo(0f, tween(durationMillis = 450, easing = FastOutSlowInEasing))
+                    flyIn.animateTo(0f, tween(durationMillis = DRAW_FLIGHT_MS, easing = FastOutSlowInEasing))
                 }
                 Box(
                     Modifier

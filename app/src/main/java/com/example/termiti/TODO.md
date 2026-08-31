@@ -23,6 +23,7 @@ Sestavit balík - filtr na karty, které mám. Celkově rework filtry a sestaven
 ── Nové návrhy ──────────────────────────────────────────────────────────────
 
 Live log v battlefield - jako v hearthstone, posledních X zahraných karet
+Jednoduché animace - například bouchnutí do hradu, výbuch nad hradem, atd.
 
 Nové karty:
 
@@ -31,7 +32,6 @@ Nové karty:
 - Ničení hradeb - znič všechny hradby soupeři
 - Přestavba - vyměň veškeré hradby za hrad
 - Mythic karty - Lze mít pouze 1 v decku, na začátku hry se zahraje její speciální efekt.
-- Mechanika "Zahození/Discard" - pokud zahodíš tuto kartu, stane se X (Nápady: Zamořené krysy - zamíchej X krys do soupeřova balíku. Budou stát X zdrojů, nic dělat nebudou. Pokud je zahodíš, stane se ti něco; Dodatek k nějaké kartě, že je alternativa ji zahodit, nebo prostě že se spustí zajímavá mechanika)
 
 Jednotnost
 - některé karty referují na všechny zdroje (špion), ale nekradou chaos
@@ -39,7 +39,7 @@ Jednotnost
 Možné úpravy (balance)
 - karta ZRCADLO a KLON je triggernuta pouze až po tom, co ji máš v ruce. 
 - Magický žolík sebrat combo (moc OP v late game)
-- Constructed - 30 karet feeluje málo, možná zkusit 40? Případně 50. Také
+- Constructed - 30 karet feeluje málo, možná zkusit 40?
 - Recap po fightu - použitých karet, dmg, stavby, atd.
 
 Replay systém

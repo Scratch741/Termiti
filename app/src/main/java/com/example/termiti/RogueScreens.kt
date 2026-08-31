@@ -334,7 +334,21 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
         }
 
         // Náhled karty
-        previewCard?.let { CardFullPreviewOverlay(card = it, onDismiss = { previewCard = null }) }
+        previewCard?.let { pc ->
+            // Draft jede na baseId (instance se generují), proto count přes baseId
+            val pvCount  = draft.count { it.baseId == pc.baseId }
+            val pvUsable = CardCollectionManager.usableCopies(pc)
+            val pvOver   = spent + RogueConfig.rarityBudgetCost(pc.rarity) > RogueConfig.BUDGET
+            CardFullPreviewOverlay(
+                card      = pc,
+                onDismiss = { previewCard = null },
+                deckCount = pvCount,
+                deckMax   = pvUsable,
+                canAddToDeck = pvCount < pvUsable && !full && !pvOver,
+                onAddToDeck  = { viewModel.rogueAddCard(pc) },
+                onRemoveFromDeck = { viewModel.rogueRemoveCard(pc) }
+            )
+        }
     }
 }
 

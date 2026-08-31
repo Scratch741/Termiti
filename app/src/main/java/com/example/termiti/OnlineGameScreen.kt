@@ -650,6 +650,7 @@ private fun OnlineGameplay(
 
                 // ── Bojiště ───────────────────────────────────────────────────
                 NewBattlefield(
+                    animateDraws          = !isGameOver,
                     playerState           = myPs,
                     aiState               = oppPs,
                     lastCard              = lastCard,

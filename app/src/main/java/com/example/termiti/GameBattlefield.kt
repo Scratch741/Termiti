@@ -87,7 +87,16 @@ fun NewBattlefield(
     // Pozadí bojiště – náhodné pro běžné hry (viz randomBattleBackground()) nebo
     // vynucené konkrétní pro kampaň (např. castle_background_goblin). Plameny se
     // renderují JEN pro výchozí castle_background – jinde by nesedly na pochodně.
-    backgroundResId: Int = R.drawable.castle_background
+    backgroundResId: Int = R.drawable.castle_background,
+    /**
+     * false = nerozdávej rub soupeře animací (konec hry / review).
+     *
+     * Přílet rubu startuje mimo pravý okraj obrazovky (translationX = flyStartPx)
+     * a NEMÁ alpha bránu – dokud animace nedoběhne, karta reálně existuje, jen ji
+     * není vidět. Když hra skončí přesně v tom okně, zůstane rub navždy za krajem:
+     * hráč vidí v soupeřově ruce o kartu míň, než kolik jich ukáže „Prohlédnout hru".
+     */
+    animateDraws: Boolean = true
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -244,7 +253,7 @@ fun NewBattlefield(
                     // Nově líznutý rub přilétá zprava (od balíčku) – zrcadlí animaci hráče
                     val slotKey   = item.first as Int
                     val appearIdx = remember(slotKey) {
-                        if (slotKey in aiNewSlotIds) aiNewSlotIds.sorted().indexOf(slotKey) else -1
+                        if (animateDraws && slotKey in aiNewSlotIds) aiNewSlotIds.sorted().indexOf(slotKey) else -1
                     }
                     val flyIn = remember(slotKey) { Animatable(if (appearIdx >= 0) 1f else 0f) }
                     var flyStartPx by remember(slotKey) { mutableFloatStateOf(0f) }
@@ -252,6 +261,10 @@ fun NewBattlefield(
                         delay(200L * appearIdx)
                         flyIn.animateTo(0f, tween(400, easing = FastOutSlowInEasing))
                     }
+                    // Konec hry uprostřed příletu: dosaď rub do klidové polohy, ať
+                    // nezůstane viset za okrajem. Řeší i rub, jehož animace se
+                    // rozeběhla a nestihla doběhnout.
+                    LaunchedEffect(animateDraws) { if (!animateDraws) flyIn.snapTo(0f) }
                     Box(
                         Modifier
                             // fadeInSpec = null: výchozí fade-in by maskoval začátek příletu
@@ -490,7 +503,11 @@ fun NewBattlefield(
                                     contentDescription = null,
                                     modifier = Modifier.size(48.dp)
                                 )
-                                CardAction.BURNED -> Text("🔥", fontSize = 38.sp, textAlign = TextAlign.Center)
+                                CardAction.BURNED -> Image(
+                                    painterResource(R.drawable.burn_icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp)
+                                )
                                 else -> Unit
                             }
                         }
@@ -868,7 +885,7 @@ private fun OfflineMiniHistoryCard(
         CardAction.PLAYED    -> Color(0xFF1A1320)
     }
     val overlayIcon = when (action) {
-        CardAction.BURNED    -> "🔥"
+        CardAction.BURNED    -> null   // burn_icon se vykreslí samostatně níže
         CardAction.STOLEN    -> "🃏"
         CardAction.DISCARDED -> null   // cross_icon se vykreslí samostatně níže
         CardAction.PLAYED    -> null
@@ -897,7 +914,7 @@ private fun OfflineMiniHistoryCard(
                 )
             }
         }
-        if (action == CardAction.DISCARDED) {
+        if (action == CardAction.DISCARDED || action == CardAction.BURNED) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -905,7 +922,10 @@ private fun OfflineMiniHistoryCard(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painterResource(R.drawable.cross_icon),
+                    painterResource(
+                        if (action == CardAction.BURNED) R.drawable.burn_icon
+                        else                             R.drawable.cross_icon
+                    ),
                     contentDescription = null,
                     modifier = Modifier.size(12.dp)
                 )

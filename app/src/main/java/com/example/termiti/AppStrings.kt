@@ -137,6 +137,7 @@ data class AppStrings(
     val dbSetActive: String,
     val dbActiveDeck: String,
     val dbComposition: String,
+    val dbInDeck: String,
     val dbConfirm: String,
     val dbDone: String,
 

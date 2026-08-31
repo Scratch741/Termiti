@@ -44,10 +44,57 @@ fun aiChooseAction(
     playerWinTarget: Int = 70
 ): AiAction {
     // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
-    val affordable     = ai.hand.filter { card ->
+    val playable = ai.hand.filter { card ->
         if (card.isXCost) true
         else (ai.resources[card.costType] ?: 0) >= card.effectiveCost
     }
+
+    /**
+     * Udělá tenhle seznam efektů TEĎ vůbec něco? Rekurzivní, protože Zrcadlo
+     * a Klon jen spouštějí efekty jiné karty – když ta nic neudělá, neudělá nic
+     * ani ona. [depth] hlídá řetěz Zrcadlo→Zrcadlo, ať se to nezacyklí.
+     */
+    fun effectsDoNothing(effects: List<CardEffect>, depth: Int): Boolean =
+        effects.isEmpty() || effects.all { fx ->
+            when (fx) {
+                // Podmínka teď neplatí → vnitřní efekt se vůbec nespustí
+                is CardEffect.ConditionalEffect -> !checkCondition(fx.condition, ai, opponent)
+                // Zrcadlo kopíruje POSLEDNÍ kartu soupeře; bez ní nemá co dělat
+                is CardEffect.Mirror -> {
+                    val src = opponent.lastPlayedCard
+                    src == null || (depth < 2 && effectsDoNothing(src.effects, depth + 1))
+                }
+                // Klon kopíruje vlastní poslední kartu. BEZ zdroje má náhradní
+                // efekt (+2 magie), takže to no-op není – řeší ho skóre −100.
+                is CardEffect.Clone -> {
+                    val src = ai.lastPlayedCard
+                    src != null && depth < 2 && effectsDoNothing(src.effects, depth + 1)
+                }
+                // Netransformovaný Shapeshifter: applyEffects je u ShapeShift no-op,
+                // proměna probíhá až na začátku tahu. Normálně se AI k takové
+                // instanci nedostane (transformShapeShifters běží dřív), tohle je
+                // pojistka pro okno, kdy se karta do ruky dostane jinudy.
+                is CardEffect.ShapeShift -> true
+                else -> false
+            }
+        }
+
+    /**
+     * Karta, která by TEĎ po zahrání neudělala vůbec nic – jen zaplatila cenu
+     * (Protiútok s 15 hradbami, Zrcadlo bez soupeřovy poslední karty, Klon
+     * kopírující kartu bez efektů…). Počkat je vždycky lepší.
+     *
+     * Testuje se STRUKTURNĚ, ne přes skóre: scoreEffect() vrací 0 i pro efekty,
+     * které nemodeluje, takže filtr podle skóre by vyhazoval i karty, které ve
+     * skutečnosti něco dělají.
+     */
+    fun isNoOpNow(card: Card): Boolean =
+        card.effects.isNotEmpty() && effectsDoNothing(card.effects, depth = 0)
+
+    // Filtruje se HNED tady, ne až v rozhodovacím prahu — jinak by karta prošla
+    // průchody, které práh skóre obcházejí (aktivní CloneNextPlayed hraje
+    // nejlepší kartu bez ohledu na skóre, stejně tak endgame fallback).
+    val affordable = playable.filterNot { isNoOpNow(it) }
 
     // Situační příznaky
     val aiLowHp        = ai.castleHP < 15

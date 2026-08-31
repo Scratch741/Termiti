@@ -313,18 +313,34 @@ class GameSession {
     const ps = this.state[side];
 
     if (returnIds && returnIds.length > 0) {
-      // Odděl vrácené a ponechané karty
-      const kept     = [];
-      const returned = [];
-      for (const card of ps.hand) {
-        if (returnIds.includes(card.id)) returned.push(card);
+      // Odděl vrácené a ponechané karty. `freedSlots` = pozice, které se
+      // výměnou uvolnily; náhrady půjdou přesně tam, aby ponechané karty
+      // nepřeskakovaly doleva (klient by ukázal teleport ještě před dolíznutím).
+      const kept       = [];
+      const returned   = [];
+      const freedSlots = [];
+      ps.hand.forEach((card, i) => {
+        if (returnIds.includes(card.id)) { returned.push(card); freedSlots.push(i); }
         else kept.push(card);
-      }
-      ps.hand = kept;
+      });
+      ps.hand = kept.slice();
 
       // Lízni náhrady DŘÍV než vrácené karty dáš zpět do balíčku
       // → hráč nemůže dostat zpět přesně ty samé instance
+      const keptCount = ps.hand.length;
       drawCards(ps, returned.length);
+      const keptOnly = ps.hand.slice(0, keptCount);
+      const drawn    = ps.hand.slice(keptCount);
+
+      // Slož ruku zpět s náhradami v uvolněných slotech
+      const rebuilt = [];
+      let ki = 0, di = 0;
+      for (let i = 0; i < keptOnly.length + drawn.length; i++) {
+        if (freedSlots.includes(i) && di < drawn.length) rebuilt.push(drawn[di++]);
+        else if (ki < keptOnly.length)                   rebuilt.push(keptOnly[ki++]);
+        else if (di < drawn.length)                      rebuilt.push(drawn[di++]);
+      }
+      ps.hand = rebuilt;
 
       // Teď vrácené karty zamíchej do balíčku
       for (const c of returned) ps.deck.push(c);
@@ -1086,10 +1102,15 @@ class GameSession {
             const [burned] = opp.deck.splice(idx, 1);
             opp.discardPile.push(burned);
             const oppSide = side === 'A' ? 'B' : 'A';
+            // fromHand se ZÁMĚRNĚ neposílá – Likvidace pálí z BALÍČKU, soupeři se
+            // ruka nezmenší a položka ve frontě ghostů by se nikdy nespotřebovala.
             const payload = { type: 'CARD_LOST', cardId: burned.id, baseId: burned.baseId || burned.id,
               action: 'BURNED', isGenerated: burned.isGenerated || false };
             this._send(oppSide, payload);
             this._send(side, { ...payload, causedByMe: true });
+            // Textová hláška do logu – offline ji má (logBurnedFromOppDeck),
+            // online chyběla, takže po Likvidaci nebylo v logu napsané, co shořelo.
+            this._log(`${this.name[side]} zahodil ze soupeřova balíčku: ${burned.name}.`);
           }
         }
         break;

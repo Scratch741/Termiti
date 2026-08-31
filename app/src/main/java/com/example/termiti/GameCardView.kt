@@ -891,7 +891,20 @@ private fun CardViewTextured(
  * Rozměry 220×308 dp (2.2× základní 100×140 dp) – vhodné i pro landscape.
  */
 @Composable
-fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit, xPreview: Int? = null) {
+fun CardFullPreviewOverlay(
+    card: Card,
+    onDismiss: () -> Unit,
+    xPreview: Int? = null,
+    /**
+     * Ovládání počtu kopií v balíčku pod kartou. null = neukazovat
+     * (běžný náhled ve hře, kde se balíček needituje).
+     */
+    deckCount: Int? = null,
+    deckMax: Int = 0,
+    canAddToDeck: Boolean = false,
+    onAddToDeck: () -> Unit = {},
+    onRemoveFromDeck: () -> Unit = {}
+) {
     val context = LocalContext.current
     val frameResId = remember(card.costType) {
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
@@ -1054,6 +1067,26 @@ fun CardFullPreviewOverlay(card: Card, onDismiss: () -> Unit, xPreview: Int? = n
                         style         = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                     )
                 }
+            }
+        }
+
+        // Ovládání balíčku – jen tam, kde se balíček edituje (roguelike draft)
+        if (deckCount != null) {
+            Spacer(Modifier.height(14.dp))
+            Box(
+                modifier = Modifier.clickable(
+                    indication        = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick           = {}      // klik na ovládání nezavírá náhled
+                )
+            ) {
+                DeckCountStepper(
+                    count    = deckCount,
+                    maxCount = deckMax,
+                    canAdd   = canAddToDeck,
+                    onAdd    = onAddToDeck,
+                    onRemove = onRemoveFromDeck
+                )
             }
         }
 

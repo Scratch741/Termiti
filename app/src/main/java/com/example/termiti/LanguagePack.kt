@@ -197,6 +197,7 @@ data class LanguagePack(
                 dbSetActive      = str("dbSetActive",      "Nastavit aktivní"),
                 dbActiveDeck     = str("dbActiveDeck",     "✓ Aktivní balíček"),
                 dbComposition    = str("dbComposition",    "Složení balíčku"),
+                dbInDeck         = str("dbInDeck",         "V BALÍČKU"),
                 dbConfirm        = str("dbConfirm",        "✓  Potvrdit"),
                 dbDone           = str("dbDone",           "✓  Hotovo"),
 
@@ -365,6 +366,7 @@ data class LanguagePack(
             "resultBothDead" -> fb.resultBothDead
             "resultPlayAgain" -> fb.resultPlayAgain; "resultBackToMenu" -> fb.resultBackToMenu
             "deckBuilder" -> fb.deckBuilder; "deckSave" -> fb.deckSave
+            "dbInDeck" -> fb.dbInDeck
             "deckReset" -> fb.deckReset; "deckClear" -> fb.deckClear
             "deckCardCount" -> fb.deckCardCount
             "arenaDraft" -> fb.arenaDraft; "arenaPickCard" -> fb.arenaPickCard

@@ -305,6 +305,8 @@ fun MenuButton(
     modifier: Modifier = Modifier.fillMaxWidth(0.9f),
     enabled: Boolean = true,
     @DrawableRes imageRes: Int? = null,
+    /** Volitelná ikonka před textem (např. mince u ceny). */
+    @DrawableRes leadingIconRes: Int? = null,
     onClick: () -> Unit
 ) {
     val alphaVal = if (enabled) 1f else 0.4f
@@ -332,13 +334,25 @@ fun MenuButton(
                     .padding(start = btnW * 0.23f, end = btnW * 0.03f),
                 contentAlignment = Alignment.CenterStart
             ) {
-                Text(
-                    label,
-                    color         = TextPrimary,
-                    fontSize      = (btnW.value * 0.045f).sp,
-                    fontWeight    = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(btnW * 0.02f)
+                ) {
+                    if (leadingIconRes != null) {
+                        Image(
+                            painter            = painterResource(leadingIconRes),
+                            contentDescription = null,
+                            modifier           = Modifier.size(btnW * 0.055f)
+                        )
+                    }
+                    Text(
+                        label,
+                        color         = TextPrimary,
+                        fontSize      = (btnW.value * 0.045f).sp,
+                        fontWeight    = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                }
             }
         }
     } else {
@@ -352,13 +366,25 @@ fun MenuButton(
                 .padding(vertical = 9.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                label,
-                color         = if (enabled) TextPrimary.copy(alpha = alphaVal) else TextMuted.copy(alpha = alphaVal),
-                fontSize      = 13.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (leadingIconRes != null) {
+                    Image(
+                        painter            = painterResource(leadingIconRes),
+                        contentDescription = null,
+                        modifier           = Modifier.size(15.dp).alpha(alphaVal)
+                    )
+                }
+                Text(
+                    label,
+                    color         = if (enabled) TextPrimary.copy(alpha = alphaVal) else TextMuted.copy(alpha = alphaVal),
+                    fontSize      = 13.sp,
+                    fontWeight    = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+            }
         }
     }
 }

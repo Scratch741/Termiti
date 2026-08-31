@@ -614,35 +614,73 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         mulliganSelected.value = if (cardId in cur) cur - cardId else cur + cardId
     }
 
+    /**
+      * Provede výměnu vybraných karet, ale mulligan NEZAVÍRÁ.
+      *
+      * Overlay ([MulliganOverlay]) si po této změně dolíznuté karty sám rozdá
+      * animací a teprve pak zavolá [finishMulligan]. Kdyby se mulligan zavřel
+      * tady, karty by se objevily v ruce bez toho, aby si je hráč prohlédl.
+      */
     fun confirmMulligan() {
-        if (mulliganSelected.value.isEmpty()) { skipMulligan(); return }
+        val ids = mulliganSelected.value
+        if (ids.isEmpty()) return
         val old    = gameState.value
         val player = old.playerState.deepCopy()
-        val ids    = mulliganSelected.value
 
+        // Které sloty se výměnou uvolní. Náhrady půjdou PŘESNĚ do nich, aby
+        // ponechané karty zůstaly, kde jsou. Kdyby se jen odebraly a náhrady
+        // připojily na konec (jak to bylo dřív), ponechaná karta by se
+        // teleportovala doleva – při výměně 1.–3. karty skočila čtvrtá na první
+        // místo dřív, než se stihly dolíznout náhrady.
+        val freedSlots = player.hand.withIndex()
+            .filter { it.value.id in ids }
+            .map { it.index }
         val returned = player.hand.filter { it.id in ids }
         player.hand.removeAll { it.id in ids }
+
         // Lízni náhrady DŘÍV, než vrácené karty zamícháš zpět do balíčku
         // → hráč nemůže dolíznout tytéž karty, které právě vyměnil
         // (stejné pravidlo jako online server v handleMulligan)
+        val keptCount = player.hand.size
         player.drawCards(returned.size)
+        val kept  = player.hand.take(keptCount)
+        val drawn = player.hand.drop(keptCount)
+
+        // Slož ruku zpět: uvolněné sloty dostanou nové karty, zbytek zůstává
+        player.hand.clear()
+        var ki = 0
+        var di = 0
+        repeat(kept.size + drawn.size) { i ->
+            when {
+                i in freedSlots && di < drawn.size -> player.hand.add(drawn[di++])
+                ki < kept.size                     -> player.hand.add(kept[ki++])
+                di < drawn.size                    -> player.hand.add(drawn[di++])
+            }
+        }
+
         player.deck.addAll(returned)
         player.deck.shuffle()
 
         gameState.value        = old.copy(playerState = player)
-        isMulligan.value       = false
         mulliganSelected.value = emptySet()
-        // Dolíznuté karty přilétají s odstupem 0,5 s (HandPanel). Kdyby první kolo
-        // (tah AI + hráčův líz) začalo hned, druhé lízání se spustí uprostřed
-        // animace a karty v ruce přeskakují. Počkej, až všechny přílety doběhnou.
-        val redrawAnimMs = (returned.size - 1) * 500L + 450L + 250L
-        maybeStartAiFirstTurn(startDelayMs = redrawAnimMs)
     }
 
+    /** „Hrát bez výměny" – jen zruš výběr; zavření řeší [finishMulligan]. */
     fun skipMulligan() {
+        mulliganSelected.value = emptySet()
+    }
+
+    /**
+     * Zavře mulligan a rozjede první tah. Volá overlay, až karty „odejdou
+     * do ruky" – do té doby je ruka dole prázdná a hráč kouká na mulligan.
+     */
+    fun finishMulligan() {
+        if (!isMulligan.value) return
         isMulligan.value       = false
         mulliganSelected.value = emptySet()
-        maybeStartAiFirstTurn()
+        // Karty do ruky přenesl overlay (HANDOFF) a HandPanel je znovu nerozdává,
+        // takže stačí krátký nádech, ne čekání na animaci celého lízání.
+        maybeStartAiFirstTurn(startDelayMs = 300L)
     }
 
     // ── Rozhodnutí – helpery ──────────────────────────────────────────────────
@@ -846,6 +884,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 ai.deck.remove(chosen)
                 ai.discardPile.add(chosen)
                 log.appendLog(ls.logBurnedFromOppDeck.format(chosen.displayName))
+                // Ukaž spálenou kartu v prostředním slotu a zapiš ji do logu jako
+                // KARTU (s artem), ne jen textovou hlášku – hráč jinak neví, co
+                // vlastně zničil. Do fronty ghostů v AI stripu ale NEpatří: karta
+                // šla z balíčku, ruka se nezmenšila, položka by se nespotřebovala
+                // a rozjela by kurzor pro všechny další ztráty.
+                cardHistory.appendHistory(chosen, CardAction.BURNED, isMine = false)
+                addCardLog("Hráč", chosen, CardAction.BURNED, isMe = false)
+                revealOpponentLosses(listOf(chosen to CardAction.BURNED))
             }
             is CardEffect.DecisionChooseType -> {
                 val newCard = chosen.copy(
@@ -1622,6 +1668,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         snapshotRogueBattle("AI_TURN", aiDrawsAtStart, playerDrawsAtEnd, playerWaited)
 
         viewModelScope.launch(crashHandler) {
+            // Nech doběhnout odhalování karet, o které soupeř právě přišel
+            // (StealCard/BurnCard). Bez toho AI zahraje dřív, než hráč uvidí,
+            // co ukradl – a její karta odhalení okamžitě přebije.
+            oppLossRevealJob?.join()
             delay((500L..1000L).random())
 
             // ── Tah AI ────────────────────────────────────────────────────────
@@ -1718,11 +1768,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         val aiCardHandIdx = ai.hand.indexOf(aiCard)
                         ai.hand.remove(aiCard)
                         ai.discardPile.add(aiCard)
-                        // Přelíznutí nasbíraná během efektů. Nezobrazují se hned:
-                        // slot ve středu si nejdřív musí vzít AI zahraná karta
-                        // (recordCard níž), jinak by ji plamen okamžitě přebil a
-                        // hráč by nevěděl, CO ho přelíznutí stálo.
-                        val aiOverdrawBurns = mutableListOf<Pair<Card, Boolean>>()
+                        // Karty, které se mají ukázat AŽ PO zahrané kartě AI
+                        // (přelíznutí, spálení z balíčku Likvidací). Slot ve středu
+                        // si nejdřív musí vzít zahraná karta (recordCard níž), jinak
+                        // by ji odhalení okamžitě přebilo a hráč by nevěděl, CO ho
+                        // to stálo. Boolean = karta patřila hráči.
+                        val aiPendingReveals = mutableListOf<Pair<Card, Boolean>>()
                         applyEffects(
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
                             onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
@@ -1748,7 +1799,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             opponentMaxHandSize = old.playerMaxHand,
                             // isSelf = true → přeteklo AI; false → přeteklo hráči
                             onOverdrawBurn = { burned, isSelf ->
-                                aiOverdrawBurns.add(burned to !isSelf)
+                                aiPendingReveals.add(burned to !isSelf)
                             }
                         )
                         // AI auto-pick pro Decision efekty.
@@ -1782,6 +1833,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                         player.deck.remove(chosen)
                                         player.discardPile.add(chosen)
                                         log.appendLog(ls.logAiDiscardFromDeck.format(chosen.displayName))
+                                        // Zapiš i jako kartu do logu a ukaž ji ve středu –
+                                        // ale až po zahrané kartě AI (viz aiPendingReveals).
+                                        cardHistory.appendHistory(chosen, CardAction.BURNED, isMine = true)
+                                        addCardLog("AI", chosen, CardAction.BURNED, isMe = false)
+                                        aiPendingReveals.add(chosen to true)
                                     }
                                 }
                                 is CardEffect.DecisionChooseType -> {
@@ -1892,9 +1948,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // Až teď ukaž přelíznutí — hráč nejdřív uvidí, CO soupeř
                         // zahrál (Studna vědomostí), pak teprve kartu, která mu
                         // kvůli plné ruce shořela.
-                        for ((burned, isPlayerCard) in aiOverdrawBurns) {
+                        for ((lost, isPlayerCard) in aiPendingReveals) {
                             delay(650L)
-                            showOverdrawBurn(burned, isPlayer = isPlayerCard)
+                            showLostCard(lost, CardAction.BURNED, isPlayer = isPlayerCard)
                             SoundManager.playCardDraw()
                         }
 
@@ -2211,6 +2267,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Postupné odhalování karet, o které soupeř přišel mým přičiněním. */
     private var oppLossRevealJob: Job? = null
 
+    /** Rozestup mezi odhalovanými ztrátami soupeře i doba, po kterou drží ta poslední. */
+    private val OPP_LOSS_REVEAL_MS = 700L
+
+    /**
+     * Náběh, než se ukáže první ztracená karta. Hráčova právě zahraná karta ještě
+     * letí do slotu (FlightOverlay, ~300 ms) a musí být chvíli vidět – jinak ji
+     * odhalení přebije dřív, než vůbec dopadne, a hráč nevidí, co zahrál.
+     */
+    private val OPP_LOSS_LEAD_IN_MS = 500L
+
     /**
      * Ukáže VŠECHNY karty, o které soupeř právě přišel — jednu po druhé.
      * Spálená knihovna pálí 2 karty, Prázdná mysl 3; kdyby se nastavovaly
@@ -2220,16 +2286,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun revealOpponentLosses(losses: List<Pair<Card, CardAction>>) {
         oppLossRevealJob?.cancel()
         if (losses.isEmpty()) return
-        if (losses.size == 1) {
-            val (card, action) = losses[0]
-            showLostCard(card, action, isPlayer = false)
-            return
-        }
         oppLossRevealJob = viewModelScope.launch {
+            delay(OPP_LOSS_LEAD_IN_MS)
             losses.forEachIndexed { i, (card, action) ->
-                if (i > 0) delay(700L)
+                if (i > 0) delay(OPP_LOSS_REVEAL_MS)
                 showLostCard(card, action, isPlayer = false)
             }
+            // Podrž i tu poslední. Tah AI na tenhle job čeká (viz finishTurn),
+            // jinak by zahraná karta AI přebila odhalení dřív, než ho hráč
+            // stihne přečíst – u Krádeže osudu (2 karty naráz) to vypadalo,
+            // že obě ukradené karty jen probliknou.
+            delay(OPP_LOSS_REVEAL_MS)
         }
     }
 

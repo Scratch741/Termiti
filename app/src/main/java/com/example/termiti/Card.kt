@@ -44,6 +44,13 @@ data class Card(
      */
     val artScale: Float = 1f,
     /**
+     * Doladění miniatury v seznamu balíčku; null = převezme se [artBiasX] /
+     * [artBiasY] / [artScale]. Viz [CardPres.listBiasY] a [deckListArt].
+     */
+    val listBiasX: Float? = null,
+    val listBiasY: Float? = null,
+    val listScale: Float? = null,
+    /**
      * Pokud true, je karta "základní" — vždy dostupná v plném počtu, nelze ji rozebrat
      * ani ji nenajdeš v balíčcích. Ostatní karty (i COMMON) jsou sběratelské.
      */

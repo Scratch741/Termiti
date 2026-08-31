@@ -15,6 +15,19 @@ data class CardPres(
     val artBiasX:      Float     = 0f,
     val artBiasY:      Float     = 0f,
     val artScale:      Float     = 1f,
+    /**
+     * Doladění MINIATURY v seznamu balíčku (deck builder / roguelike).
+     *
+     * Výřez je tam úplně jiný než v kartě — pruh 72×28 dp na šířku místo
+     * okna 100×90 dp na výšku — takže bias vyladěný pro kartu v něm často
+     * sedne špatně (typicky je potřeba posunout obraz níž/výš).
+     *
+     * null = použij hodnotu karty ([artBiasX] / [artBiasY] / [artScale]).
+     * Ladí se v deckbuilder.html → DESIGNER MODE → „Miniatura v seznamu".
+     */
+    val listBiasX:     Float?    = null,
+    val listBiasY:     Float?    = null,
+    val listScale:     Float?    = null,
     val isBasic:       Boolean   = false,
     val sound:         CardSound? = null,
     val soundResId:    Int?      = null,
@@ -62,7 +75,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f, isBasic = true),
         "005" to CardPres("Hrad +5.",
             R.drawable.art_posila_hradu, "Stavba",
-            artScale = 0.80f, artBiasY = -0.30f, isBasic = true),
+            artScale = 0.80f, artBiasY = -0.30f, isBasic = true, listBiasY = -0.80f),
         "009" to CardPres("Hrad +8, kámen +1.",
             R.drawable.art_pevne_zaklady, "Stavba",
             artScale = 0.80f, artBiasY = 0.50f, isBasic = true),
@@ -97,7 +110,7 @@ object CardPresentation {
         // ── Útok – rozšíření ──────────────────────────────────────────────────
         "019" to CardPres("Poškodí hradby o 5.\n[Combo]",
             R.drawable.art_zapalne_sipy, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit),
+            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit, listBiasY = -0.55f),
         "020" to CardPres("Poškodí jen hradby o 12.\n[Combo]",
             R.drawable.art_beranidlo, "Útok",
             artScale = 0.85f, artBiasY = 0.05f),
@@ -129,7 +142,7 @@ object CardPresentation {
             artBiasX = 0.50f, artBiasY = -1.00f, artScale = 0.85f),
         "029" to CardPres("Hradby +6, hrad +2.",
             R.drawable.art_opevneni, "Stavba",
-            artScale = 0.80f, artBiasY = 0.55f),
+            artScale = 0.80f, artBiasY = 0.55f, listBiasY = -0.90f),
         "030" to CardPres("Hradby +13.",
             R.drawable.art_kamenny_val, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -163,7 +176,7 @@ object CardPresentation {
             R.drawable.art_stavebni_boom, "Magie",
             artScale = 0.80f, artBiasY = 0.25f, isBasic = true),
         "040" to CardPres("Pokud máš >4 magie, získej +8 útoku.",
-            R.drawable.art_alchymie, "Magie"),
+            R.drawable.art_alchymie, "Magie", listBiasY = -0.25f),
         "041" to CardPres("Magie +2, útok +2, kámen +2.\n[Combo]",
             R.drawable.art_magicke_trio, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -211,7 +224,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.30f),
         "055" to CardPres("Zaútočí za 3, +1 útok. Pokud <5 hradeb: hrad −8.",
             R.drawable.art_posledni_vzdor, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, listBiasY = 0.45f),
         "056" to CardPres("Ukradni 3 útoku, zaútočí za 4.",
             R.drawable.art_najezdnik, "Útok",
             artScale = 0.80f, artBiasY = -0.65f, isBasic = true),
@@ -245,16 +258,16 @@ object CardPresentation {
         // ── Sabotáž a krádež (platí MAGIC) ────────────────────────────────────
         "065" to CardPres("Ukradni 4 útoku od soupeře.",
             R.drawable.art_lupic, "Magie",
-            artScale = 0.80f, artBiasY = 0.05f, isBasic = true),
+            artScale = 0.80f, artBiasY = 0.05f, isBasic = true, listBiasY = -0.70f),
         "066" to CardPres("Ukradni 4 kameny od soupeře.",
             R.drawable.art_kamenna_dan, "Magie",
             artScale = 0.80f),
         "067" to CardPres("Soupeř ztratí 5 kamenů.",
             R.drawable.art_saboter, "Magie",
-            artBiasX = -1.00f, artBiasY = 0.40f, artScale = 0.80f),
+            artBiasX = -1.00f, artBiasY = 0.40f, artScale = 0.80f, listBiasY = -0.50f),
         "068" to CardPres("Soupeř ztratí 5 útoku.",
             R.drawable.art_demoralizace, "Magie",
-            artScale = 0.80f, artBiasY = 0.30f),
+            artScale = 0.80f, artBiasY = 0.30f, listBiasY = -0.15f),
         "069" to CardPres("Ukradni 3 magie a 3 útoku, chaos +2.",
             R.drawable.art_dvojity_agent, "Magie",
             artScale = 0.80f, artBiasY = -0.60f),
@@ -422,7 +435,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f),
         "111" to CardPres("**Rozhodnutí:** Prohledej vlastní balíček a vyber si 1 kopii karty.",
             R.drawable.art_intuice, "Magie",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, listBiasY = -0.40f),
         "104" to CardPres("Zaútočí za 5, důl útoku +1.",
             R.drawable.art_valecny_trenink, "Důl",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -433,7 +446,7 @@ object CardPresentation {
         // ── Chaos – generátory chaosu ────────────────────────────────────────
         "C01" to CardPres("Chaos +2.\n[Combo]",
             R.drawable.art_chaoticka_jiskra, "Chaos",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, listBiasY = -0.35f),
         "C02" to CardPres("Chaos +5. Soupeř ztratí 2 magie.",
             R.drawable.art_entropie, "Magie",
             artScale = 0.80f),
@@ -512,19 +525,19 @@ object CardPresentation {
         // ── Chaos – nové generátory ───────────────────────────────────────────
         "C24" to CardPres("Chaos +5.\n[Combo]",
             R.drawable.art_temny_ritual, "Magie",
-            artScale = 0.80f, artBiasY = 0.30f),
+            artScale = 0.80f, artBiasY = 0.30f, listBiasY = -0.65f),
         "C25" to CardPres("Chaos +2, magie +2.\n[Combo]",
             R.drawable.art_nestabilni_vir, "Magie",
-            artScale = 0.80f, artBiasY = -0.75f),
+            artScale = 0.80f, artBiasY = -0.75f, listBiasY = -0.40f),
         "C26" to CardPres("Chaos +3.\n[Combo]",
             R.drawable.art_krvava_obet, "Magie",
             artScale = 0.80f),
         "C27" to CardPres("Pokud máš >5 magie, získej +7 chaosu.",
             R.drawable.art_odraz_magie, "Magie",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, listBiasY = -0.20f),
         "C28" to CardPres("Ukradni 2 útoku, chaos +2.\n[Combo]",
             R.drawable.art_chaoticka_trofej, "Chaos",
-            artScale = 0.80f, artBiasY = -0.95f),
+            artScale = 0.80f, artBiasY = -0.95f, listBiasY = -0.55f),
         "C29" to CardPres("Chaos +3, důl chaosu +1.",
             R.drawable.art_bourliva_mysl, "Důl",
             artScale = 0.80f, artBiasY = -0.75f),
@@ -567,7 +580,7 @@ object CardPresentation {
         // ── Lízni karet ───────────────────────────────────────────────────────
         "D01" to CardPres("Lízni 1 kartu.\n[Combo]",
             R.drawable.art_pruzkumnik, "Magie",
-            artScale = 0.80f, artBiasY = 0.30f, isBasic = true),
+            artScale = 0.80f, artBiasY = 0.30f, isBasic = true, listBiasY = -0.55f),
         "D02" to CardPres("Lízni 2 karty.",
             R.drawable.art_vestba, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -579,7 +592,7 @@ object CardPresentation {
             artScale = 0.80f, isBasic = true),
         "D05" to CardPres("Hradby +4. Lízni 1 kartu.\n[Combo]",
             R.drawable.art_stavebni_plany, "Stavba",
-            artScale = 0.80f),
+            artScale = 0.80f, listBiasY = -0.50f),
         "D06" to CardPres("Zaútočí za 8. Lízni 1 kartu.",
             R.drawable.art_elitni_zved, "Útok",
             artScale = 0.80f, artBiasY = -0.35f),
@@ -601,7 +614,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f),
         "115" to CardPres("Oba hráči líznou 2 karty.\n[Combo]",
             R.drawable.art_studna_vedomosti, "Magie",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, listBiasY = -0.55f),
         "116" to CardPres("**Toto kolo:** příští karta, co zahraješ, se 2× zkopíruje do balíčku. [Combo]",
             R.drawable.art_chaoticka_replikace, "Chaos",
             artScale = 0.90f, artBiasY = -0.30f),
@@ -640,7 +653,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.30f,
             descriptionEn = "**Decision:** gain 4 Magic, 4 Attack, or 4 Stones. [Combo]",
             nameAccusative = "Alchymistovu volbu"
-        ),
+        , listBiasY = -0.60f),
         "125" to CardPres(
             "Zaútočí za 4. **Toto kolo:** každá zahraná **ÚTOK** karta přidá 2 chaos. [Combo]",
             R.drawable.art_valecny_zapal, "Útok",
@@ -654,7 +667,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.60f,
             descriptionEn = "Chaos +2. **This turn:** each Magic card adds 2 chaos. [Combo]",
             nameAccusative = "Magický proud"
-        ),
+        , listBiasY = -0.25f),
         "127" to CardPres(
             "Přímý zásah hradu za 10, znič 2 magie soupeři.",
             R.drawable.art_pyroblast, "Magie",
@@ -675,7 +688,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.5f,
             descriptionEn = "Deal 2 damage. The next card you play acts as [Combo]. [Combo]",
             nameAccusative = "Nájezd"
-        ),
+        , listBiasY = 0.35f),
         "C42" to CardPres(
             "Zkopíruje efekt poslední karty, co jsi zahrál. Cena +1. [Combo]",
             R.drawable.art_klon, "Chaos",

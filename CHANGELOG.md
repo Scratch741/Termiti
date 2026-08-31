@@ -17,6 +17,44 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.2.0] – 2026-08-28
+
+### Balanc
+- Zlevněno šest chaosových karet: **Chaotická přeměna** 4→2, **Anarchie** 9→8,
+  **Chaotický výbuch** 7→6, **Likvidace** 4→3, **Kletba cen** 3→2,
+  **Osudová mince** 2→1.
+- **Bouře chaosu** přesunuta z Legendární na Epickou (limit kopií 1→2). Její poměr
+  20 poškození za 6 chaosu odpovídá vzácným kartám, ne legendárním.
+- **Ohnivá koule** je nově základní karta — dostupná od začátku bez craftění.
+  Ve startovním balíčku nahradila 2× Lupiče.
+
+### Opravy
+- **Přelíznutí** (líz s plnou rukou) se konečně zobrazuje: spálená karta se objeví
+  uprostřed bojiště s plamenem. Offline se neukazovalo, když kartu vyvolal soupeř,
+  online ji přebilo následující obnovení stavu.
+- **Útočník vidí, které karty soupeři zničil.** Při více ztrátách naráz
+  (Spálená knihovna, Prázdná mysl) byla dřív vidět jen poslední.
+- **Skrytá bomba** hlásila dvě karty místo jedné (Bomba + Explodovaná bomba).
+  Bomba zůstává v balíčku jako placeholder pro cílené odstranění, ale už není
+  vidět jako událost.
+- Online: soupeřova zahraná karta mohla zmizet i z logu, pokud hned ukončil tah
+  a hráč si vzápětí lízl past.
+- Karty se v historii zapisovaly dvakrát; líznutí ignorovalo pasivní schopnost
+  na větší ruku a spálilo kartu o jednu dřív.
+- Popisky 33 karet se rozcházely mezi vestavěným textem a jazykovými balíčky;
+  tři z nich uváděly věcně špatné hodnoty.
+- Offline log zobrazuje jméno hráče z profilu místo obecného „Hráč".
+
+### Nové
+- **Limity kopií se srovnávají samy.** Když se sníží limit karty, přebytečné kopie
+  se rozeberou na prach, uložené balíčky se ořežou podle kolekce a hráč dostane
+  v Stavitel balíčků přehled, o co přišel. Dřív to vyžadovalo ruční zásah v kódu.
+- Mulligan v online hře ukazuje, kolik času zbývá soupeři na rozhodnutí.
+- Kampaň: vycentrované názvy na kartách lokací i soupeřů, XP mezi zobrazenými
+  odměnami.
+
+---
+
 ## [0.1.0] – 2026-05-29
 
 První verzovaný build. Shrnutí dosavadního stavu hry:
@@ -42,4 +80,5 @@ První verzovaný build. Shrnutí dosavadního stavu hry:
 - Zavedeno verzování: SemVer, `versionCode`/`versionName`, `PROTOCOL_VERSION` handshake,
   git tagy, tento changelog.
 
+[0.2.0]: https://github.com/Scratch741/Termiti/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Scratch741/Termiti/releases/tag/v0.1.0

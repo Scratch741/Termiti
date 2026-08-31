@@ -105,6 +105,46 @@ fun artAlignment(card: Card): BiasAlignment =
         verticalBias   = ArtDefaults.BIAS_Y + card.artBiasY
     )
 
+/**
+ * Výsledné (scale, biasX, biasY) pro MINIATURU v seznamu balíčku.
+ *
+ * Bere per-karta override [Card.listScale] / [Card.listBiasX] / [Card.listBiasY];
+ * když chybí, spadne zpět na hodnoty karty. Globální [ArtDefaults] konstanty
+ * se přičítají stejně jako u velké ilustrace.
+ */
+private fun deckListBias(card: Card): Triple<Float, Float, Float> = Triple(
+    ArtDefaults.SCALE  * (card.listScale ?: card.artScale),
+    ArtDefaults.BIAS_X + (card.listBiasX ?: card.artBiasX),
+    ArtDefaults.BIAS_Y + (card.listBiasY ?: card.artBiasY)
+)
+
+/**
+ * Transformace ilustrace miniatury pro `graphicsLayer`: (scale, pivotX, pivotY).
+ *
+ * POZOR: sama o sobě NESTAČÍ. Zvětšení kolem pivotu určuje, kolem čeho se obraz
+ * nafoukne, ale NE to, která část obrázku se do výřezu vejde – o tom rozhoduje
+ * `alignment` u `Image` (viz [deckListAlignment]). Velká ilustrace na kartě
+ * používá obojí; miniatura dřív jen tohle, takže crop zůstával na středu a
+ * u karet s výrazným posunem (např. „Magie", artBiasY = −1) uřízl hlavu.
+ */
+fun deckListArt(card: Card): Triple<Float, Float, Float> {
+    val (scale, bx, by) = deckListBias(card)
+    return Triple(
+        scale,
+        ((bx + 1f) / 2f).coerceIn(0f, 1f),
+        ((by + 1f) / 2f).coerceIn(0f, 1f)
+    )
+}
+
+/**
+ * Zarovnání výřezu miniatury – protějšek [artAlignment] pro seznam balíčku.
+ * Musí se předat `Image(alignment = …)`, jinak Compose ořízne obrázek na střed.
+ */
+fun deckListAlignment(card: Card): BiasAlignment {
+    val (_, bx, by) = deckListBias(card)
+    return BiasAlignment(horizontalBias = bx, verticalBias = by)
+}
+
 // ─── Arc Card Name ─────────────────────────────────────────────────────────────
 /**
  * Vykreslí název karty podél kruhového oblouku pomocí nativeCanvas.drawTextOnPath.

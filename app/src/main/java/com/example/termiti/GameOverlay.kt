@@ -33,6 +33,9 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -185,6 +188,32 @@ internal fun ResourceDelta(amount: Int, modifier: Modifier = Modifier) {
 }
 
 // ─── Mulligan Overlay ────────────────────────────────────────────────────────
+/**
+ * Fáze animace mulliganu. Overlay si ji drží sám — ViewModel jen dodává ruku
+ * a dostane zpět zprávu, až animace doběhne.
+ */
+private enum class MulliganAnim {
+    /** Karty se právě rozdávají do mulliganu (přilétají od balíčku). */
+    DEALING,
+    /** Rozdáno, hráč vybírá. */
+    IDLE,
+    /** Vybrané karty odlétají doprava zpět do balíčku. */
+    LEAVING,
+    /** Karty odcházejí dolů do ruky a mulligan se zavírá. */
+    HANDOFF
+}
+
+// Rozdávání do mulliganu je TOTÉŽ lízání jako do ruky – bere konstanty
+// z HandPanel, aby se obě animace nemohly rozejít.
+private const val MULL_DEAL_STAGGER = DRAW_STAGGER_MS
+private const val MULL_DEAL_MS      = DRAW_FLIGHT_MS.toLong()
+/** Odlet vyměněné karty zpět k balíčku (doprava). */
+private const val MULL_LEAVE_MS     = 420L
+/** Přesun karet z mulliganu dolů do ruky. */
+private const val MULL_HANDOFF_MS   = 460L
+/** Zvětšení celého panelu – musí sedět s .scale() níž (viz výpočet doletu). */
+private const val MULL_PANEL_SCALE  = 1.15f
+
 @Composable
 fun MulliganOverlay(
     hand: List<Card>,
@@ -200,9 +229,45 @@ fun MulliganOverlay(
      * „Čekám na soupeře…" poté, co jsme sami potvrdili. null = neznámé
      * (offline, nebo soupeř už potvrdil a čeká se jen na server).
      */
-    waitingSecondsLeft: Int? = null
+    waitingSecondsLeft: Int? = null,
+    /**
+     * Zavolá se, až karty „odejdou do ruky" (po [MulliganAnim.HANDOFF]).
+     * Offline tím ViewModel zavře mulligan a rozjede první tah. Online se
+     * nepředává — tam overlay zůstává a čeká na soupeře.
+     */
+    onFinished: (() -> Unit)? = null
 ) {
     val s = LocalStrings.current
+
+    // ── Stav animace ─────────────────────────────────────────────────────────
+    // dealtIds: karty, které už „dolétly". Nové id v [hand] = karta k rozdání.
+    val dealtIds    = remember { mutableStateOf(emptySet<String>()) }
+    var outgoingIds by remember { mutableStateOf(emptySet<String>()) }
+    var phase       by remember { mutableStateOf(MulliganAnim.DEALING) }
+    // Po výměně se čeká na dolíznuté karty; jakmile dojdou a rozdají se,
+    // spustí se předání do ruky.
+    var finishAfterDeal by remember { mutableStateOf(false) }
+
+    val pendingDeal = hand.map { it.id }.filter { it !in dealtIds.value }
+
+    // Rozdávání: po doběhnutí poslední karty přepni do IDLE (nebo rovnou předej)
+    LaunchedEffect(pendingDeal.joinToString("|")) {
+        if (pendingDeal.isEmpty()) return@LaunchedEffect
+        phase = MulliganAnim.DEALING
+        delay(MULL_DEAL_STAGGER * (pendingDeal.size - 1) + MULL_DEAL_MS)
+        dealtIds.value = dealtIds.value + pendingDeal
+        phase = if (finishAfterDeal) MulliganAnim.HANDOFF else MulliganAnim.IDLE
+    }
+
+    // Předání do ruky – karty sjedou dolů, zmizí a overlay se zavře
+    LaunchedEffect(phase) {
+        if (phase != MulliganAnim.HANDOFF) return@LaunchedEffect
+        delay(MULL_HANDOFF_MS)
+        onFinished?.invoke()
+    }
+
+    val busy = phase != MulliganAnim.IDLE
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -217,7 +282,7 @@ fun MulliganOverlay(
     ) {
         Column(
             modifier = Modifier
-                .scale(1.15f)
+                .scale(MULL_PANEL_SCALE)
                 .clip(RoundedCornerShape(16.dp))
                 .then(
                     Modifier.paint(
@@ -238,7 +303,8 @@ fun MulliganOverlay(
                 Text(
                     s.mulliganTitle,
                     color = Gold, fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 5.sp
+                    fontWeight = FontWeight.Bold, letterSpacing = 5.sp,
+                    modifier = Modifier.padding(start = 5.dp)   // kompenzace letterSpacing
                 )
                 if (secondsLeft != null && !submitted) {
                     val timerColor = if (secondsLeft <= 10) Color(0xFFFF4444) else TextMuted
@@ -286,20 +352,82 @@ fun MulliganOverlay(
                 )
             }
 
-            // Karty
+            // ── Karty ────────────────────────────────────────────────────────
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 hand.forEach { card ->
                     val isSelected = card.id in selectedIds
-                    Box(
-                        modifier = Modifier.let {
-                            if (!submitted) it.clickable { onToggle(card.id) } else it
+                    val isLeaving  = card.id in outgoingIds
+                    // Pořadí mezi právě rozdávanými (latch při vstupu do kompozice)
+                    val dealIdx = remember(card.id) { pendingDeal.indexOf(card.id) }
+                    // 1 = mimo obraz vpravo (u balíčku), 0 = na svém místě
+                    val fly = remember(card.id) { Animatable(if (dealIdx >= 0) 1f else 0f) }
+                    // Vzdálenost k pravému okraji obrazovky → let vždy startuje za krajem
+                    var edgeDistPx by remember(card.id) { mutableFloatStateOf(0f) }
+                    // Vzdálenost od středu karty ke spodku obrazovky → o tolik karta
+                    // sjede při předání do ruky, takže skutečně DOLETÍ k ruce místo
+                    // pouhého posunutí o pár dp.
+                    var handDistPx by remember(card.id) { mutableFloatStateOf(0f) }
+                    // Sesun do ruky
+                    val toHand = remember(card.id) { Animatable(0f) }
+
+                    if (dealIdx >= 0) LaunchedEffect(card.id) {
+                        delay(MULL_DEAL_STAGGER * dealIdx)
+                        SoundManager.playCardDraw()
+                        fly.animateTo(0f, tween(MULL_DEAL_MS.toInt(), easing = FastOutSlowInEasing))
+                    }
+                    // Výměna: vybraná karta odlétá zpět k balíčku (doprava)
+                    LaunchedEffect(isLeaving) {
+                        if (isLeaving) fly.animateTo(1f, tween(MULL_LEAVE_MS.toInt(), easing = FastOutSlowInEasing))
+                    }
+                    // Předání do ruky: všechny karty sjedou dolů a zmizí
+                    LaunchedEffect(phase) {
+                        if (phase == MulliganAnim.HANDOFF) {
+                            toHand.animateTo(1f, tween(MULL_HANDOFF_MS.toInt(), easing = FastOutSlowInEasing))
                         }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .onGloballyPositioned { c ->
+                                val root = c.findRootCoordinates()
+                                val pos  = c.positionInRoot()
+                                edgeDistPx = root.size.width - pos.x
+                                handDistPx = root.size.height - (pos.y + c.size.height / 2f)
+                            }
+                            .graphicsLayer {
+                                val p  = fly.value
+                                val h  = toHand.value
+                                val startX = if (edgeDistPx > 0f) edgeDistPx else 700.dp.toPx()
+                                // handDistPx je měřený na obrazovce, ale translace se
+                                // aplikuje UVNITŘ panelu zvětšeného .scale(MULL_PANEL_SCALE)
+                                // – bez dělení by karta přeletěla o těch 15 % níž.
+                                val drop = (if (handDistPx > 0f) handDistPx else 260.dp.toPx()) / MULL_PANEL_SCALE
+                                translationX = p * startX
+                                translationY = -p * 30.dp.toPx() + h * drop
+                                rotationZ    = p * 8f
+                                // Karty cestou k ruce ZÁMĚRNĚ nezmenšujeme. Zmenšení
+                                // kolem středu každé karty nechá rozestupy v řadě
+                                // beze změny, takže se mezery opticky roztáhnou a
+                                // skupina se rozpadne. Buď by musely zároveň
+                                // konvergovat ke středu řady, nebo nezmenšovat vůbec –
+                                // druhá varianta vypadá čistěji a nic si nevymýšlí.
+                                // Průhlednost nastupuje až v poslední třetině, aby
+                                // bylo do konce vidět, kam karta letí.
+                                alpha = when {
+                                    p > 0.98f -> 0f          // čeká na svůj odstup
+                                    else      -> (1f - (h - 0.65f) / 0.35f).coerceIn(0f, 1f)
+                                }
+                            }
+                            .then(
+                                if (!submitted && !busy) Modifier.clickable { onToggle(card.id) }
+                                else Modifier
+                            )
                     ) {
                         CardView(
                             card        = card,
                             canPlay     = !isSelected && !submitted,
                             discardMode = isSelected,
-                            onClick     = { if (!submitted) onToggle(card.id) },
+                            onClick     = { if (!submitted && !busy) onToggle(card.id) },
                             showGlow    = false
                         )
                         // Overlay na vybrané kartě
@@ -331,17 +459,22 @@ fun MulliganOverlay(
                 }
             }
 
-            // Tlačítka — skrytá po odeslání
+            // Tlačítka — skrytá po odeslání i během animací
             if (!submitted) {
-                val canConfirm = selectedIds.isNotEmpty()
+                val canConfirm = selectedIds.isNotEmpty() && !busy
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlainButton(
                         text      = s.mulliganPlayNoSwap,
-                        textColor = Gold,
+                        textColor = if (busy) TextMuted.copy(alpha = 0.3f) else Gold,
                         fontSize  = 11.sp,
+                        enabled   = !busy,
                         paddingH  = 22.dp,
                         paddingV  = 10.dp,
-                        onClick   = onSkip
+                        onClick   = {
+                            onSkip()
+                            // Bez výměny se nic nedolízává → rovnou do ruky
+                            if (onFinished != null) phase = MulliganAnim.HANDOFF
+                        }
                     )
                     PlainButton(
                         text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
@@ -350,14 +483,31 @@ fun MulliganOverlay(
                         enabled   = canConfirm,
                         paddingH  = 22.dp,
                         paddingV  = 10.dp,
-                        onClick   = onConfirm
+                        onClick   = {
+                            // Nejdřív ať vybrané karty odletí zpět k balíčku, teprve
+                            // pak ViewModel provede výměnu — jinak by karty zmizely
+                            // dřív, než je stihne animace odnést.
+                            outgoingIds     = selectedIds
+                            finishAfterDeal = onFinished != null
+                            phase           = MulliganAnim.LEAVING
+                        }
                     )
                 }
             }
         }
     }
-}
 
+    // Po doletu odcházejících karet spusť samotnou výměnu
+    LaunchedEffect(phase) {
+        if (phase != MulliganAnim.LEAVING) return@LaunchedEffect
+        delay(MULL_LEAVE_MS)
+        // Odcházející karty už v ruce nebudou; ať se po návratu nepovažují
+        // za „nerozdané" a nezkusí se animovat znovu.
+        dealtIds.value  = dealtIds.value - outgoingIds
+        outgoingIds     = emptySet()
+        onConfirm()
+    }
+}
 
 // ─── Změna limitů kopií ──────────────────────────────────────────────────────
 /**
