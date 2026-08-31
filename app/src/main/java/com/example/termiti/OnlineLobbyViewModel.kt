@@ -45,6 +45,13 @@ const val PROTOCOL_VERSION = 1
 /** Jak dlouho drží jedna ztracená karta střed bojiště, než smí nastoupit další. */
 private const val CARD_LOST_HOLD_MS = 700L
 
+/**
+ * Jak dlouho je vidět ZAHRANÁ karta, než ji ve slotu vystřídá karta, kterou
+ * spálila/ukradla. Server posílá CARD_LOST dřív než GAME_STATE se zahranou
+ * kartou, takže bez tohoto náběhu by se pořadí obrátilo.
+ */
+private const val PLAYED_BEFORE_LOSS_MS = 1_000L
+
 // ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
     NAME_INPUT,       // zadání přezdívky
@@ -257,16 +264,10 @@ class OnlineLobbyViewModel(
      * útočník by nevěděl, co soupeři vlastně shořelo.
      *
      * Každá položka po zobrazení podrží slot [CARD_LOST_HOLD_MS], teprve pak
-     * smí nastoupit další. První ztráta se nezdržuje.
+     * smí nastoupit další. První ztráta v řetězu má náběh [PLAYED_BEFORE_LOSS_MS],
+     * aby byla nejdřív vidět karta, která ztrátu způsobila.
      */
     private var cardLostRevealJob: Job? = null
-
-    /**
-     * Odložené zobrazení zahrané karty z GAME_STATE. GAME_STATE chodí hned za
-     * CARD_LOST a přebilo by rozehraný řetěz odhalování; tenhle job počká, až
-     * řetěz doběhne. Log se zapisuje hned, ten na pořadí zobrazení nezávisí.
-     */
-    private var playedDisplayJob: Job? = null
 
     // ── Mulligan watchdog ─────────────────────────────────────────────────────
     /**
@@ -877,25 +878,18 @@ class OnlineLobbyViewModel(
                                 "STOLEN"    -> CardAction.STOLEN
                                 else        -> CardAction.PLAYED
                             }
-                            // Zahranou kartu ukaž až po doběhnutí řetězu ztrát —
-                            // jinak by GAME_STATE (chodí hned za CARD_LOST) sebralo
-                            // slot dřív, než si útočník stihne přečíst, co soupeři
-                            // shořelo. Bez rozehraného řetězu se aplikuje ihned.
-                            val applyPlayedDisplay = {
-                                lastPlayedCard.value   = card
-                                lastPlayedByMe.value   = isMe
-                                lastPlayedAction.value = action
-                            }
-                            playedDisplayJob?.cancel()   // starší odklad je neaktuální
-                            val reveal = cardLostRevealJob
-                            if (reveal?.isActive == true) {
-                                playedDisplayJob = viewModelScope.launch {
-                                    reveal.join()
-                                    applyPlayedDisplay()
-                                }
-                            } else {
-                                applyPlayedDisplay()
-                            }
+                            // Zahranou kartu ukaž IHNED. Ztráty, které způsobila, se
+                            // zobrazí AŽ PO NÍ (CARD_LOST má náběh PLAYED_BEFORE_LOSS_MS),
+                            // takže pořadí ve slotu je "zahraná karta → co spálila/ukradla"
+                            // a končí u ztráty.
+                            //
+                            // Dřív to bylo obráceně (ztráta hned, zahraná karta až po
+                            // doběhnutí jejího revealu) → hráč viděl zahranou kartu
+                            // DVAKRÁT: před ztrátou i po ní (Telekineze → ukradená →
+                            // Telekineze).
+                            lastPlayedCard.value   = card
+                            lastPlayedByMe.value   = isMe
+                            lastPlayedAction.value = action
                             // Log dedup podle instance id: server u DecisionBurnOpponent/
                             // PeekAndStealHand posílá STEJNOU kartu vícekrát (viz komentář
                             // u lastLoggedPlayedCardId) – lastPlayedCard/Action se má aktualizovat
@@ -977,13 +971,21 @@ class OnlineLobbyViewModel(
 
                     // Každou ztracenou kartu ukaž zvlášť: počkej na předchozí,
                     // zobraz, a pak slot chvíli podrž, aby ji stihl další CARD_LOST
-                    // přebít až po přečtení. Bomby (C37/C38) mají navíc náběh —
+                    // přebít až po přečtení.
+                    //
+                    // PRVNÍ ztráta v řetězu má náběh PLAYED_BEFORE_LOSS_MS: server
+                    // posílá CARD_LOST dřív než GAME_STATE se zahranou kartou, ale
+                    // zobrazit se má nejdřív ta ZAHRANÁ (co ztrátu způsobila) a
+                    // teprve pak ztráta samotná. Bomby (C37/C38) mají vlastní náběh —
                     // exploze v balíčku má působit jako událost, ne jako blik.
-                    val isBomb = baseId == "C37" || baseId == "C38"
-                    val prev   = cardLostRevealJob
+                    val isBomb  = baseId == "C37" || baseId == "C38"
+                    val prev    = cardLostRevealJob
+                    val chained = prev?.isActive == true
                     cardLostRevealJob = viewModelScope.launch {
                         prev?.join()
-                        if (isBomb) delay(800L)
+                        val leadIn = if (chained) (if (isBomb) 800L else 0L)
+                                     else maxOf(PLAYED_BEFORE_LOSS_MS, if (isBomb) 800L else 0L)
+                        if (leadIn > 0L) delay(leadIn)
                         applyCardLost()
                         delay(CARD_LOST_HOLD_MS)
                     }

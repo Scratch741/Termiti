@@ -150,14 +150,37 @@ fun OnlineGameScreen(
             .fillMaxSize()
             .background(OgBgDeep)
     ) {
-        when (phase) {
-            OnlinePhase.GAME_MULLIGAN -> {
-                // Zobraz prázdnou hru v pozadí + mulligan overlay
-                OnlineGameplay(vm, onBack)
-                OnlineMulliganLayer(vm)
+        // Mulligan overlay musí PŘEŽÍT přechod do GAME_PLAYING. Server pošle
+        // GAME_STATE hned, jak potvrdí oba hráči – kdo potvrdí jako druhý, tomu
+        // by se overlay zabil uprostřed lízání a karty by se do ruky nikdy
+        // nepředaly (žádný plynulý přechod). Overlay se proto zavře až sám,
+        // po doběhnutí animace (onFinished).
+        var mulliganVisible by remember { mutableStateOf(false) }
+        LaunchedEffect(phase) {
+            if (phase == OnlinePhase.GAME_MULLIGAN) mulliganVisible = true
+        }
+        // Pojistka pro případ, že by animace uvázla – overlay nesmí zůstat viset
+        // přes rozehranou hru. Musí být s rezervou DELŠÍ než celé dorozdání:
+        // DRAW_STAGGER_MS (500) × (karet−1) + DRAW_FLIGHT_MS (450) + handoff (460),
+        // tj. u plné ruky ~3,9 s. Kratší timeout by animaci sám uřízl.
+        LaunchedEffect(phase, mulliganVisible) {
+            if (mulliganVisible && phase != OnlinePhase.GAME_MULLIGAN) {
+                delay(6_000L)
+                mulliganVisible = false
             }
-            OnlinePhase.GAME_PLAYING -> {
+        }
+
+        when (phase) {
+            OnlinePhase.GAME_MULLIGAN, OnlinePhase.GAME_PLAYING -> {
                 OnlineGameplay(vm, onBack)
+                if (mulliganVisible) {
+                    OnlineMulliganLayer(
+                        vm           = vm,
+                        // Server rozjel hru → dorozdej a předej karty do ruky
+                        startHandoff = phase != OnlinePhase.GAME_MULLIGAN,
+                        onFinished   = { mulliganVisible = false }
+                    )
+                }
             }
             OnlinePhase.GAME_OVER -> {
                 OnlineGameplay(
@@ -887,7 +910,11 @@ private fun OnlineGameplay(
 // ─── Mulligan vrstva ──────────────────────────────────────────────────────────
 
 @Composable
-private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
+private fun OnlineMulliganLayer(
+    vm: OnlineLobbyViewModel,
+    startHandoff: Boolean = false,
+    onFinished: () -> Unit = {}
+) {
     val hand         by vm.mulliganHand
     val selected     by vm.mulliganSelected
     val submitted    by vm.mulliganSubmitted
@@ -916,7 +943,9 @@ private fun OnlineMulliganLayer(vm: OnlineLobbyViewModel) {
         waitingSecondsLeft = waitingSecondsLeft,
         onToggle    = { if (!submitted) { SoundManager.playDeckSelect(); vm.toggleMulligan(it) } },
         onConfirm   = { SoundManager.playMenuTap(); vm.confirmMulligan() },
-        onSkip      = { SoundManager.playMenuTap(); vm.skipMulligan() }
+        onSkip      = { SoundManager.playMenuTap(); vm.skipMulligan() },
+        onFinished  = onFinished,
+        startHandoff = startHandoff
     )
 }
 

@@ -232,10 +232,19 @@ fun MulliganOverlay(
     waitingSecondsLeft: Int? = null,
     /**
      * Zavolá se, až karty „odejdou do ruky" (po [MulliganAnim.HANDOFF]).
-     * Offline tím ViewModel zavře mulligan a rozjede první tah. Online se
-     * nepředává — tam overlay zůstává a čeká na soupeře.
+     * Offline tím ViewModel zavře mulligan a rozjede první tah. Online tím
+     * obrazovka odstraní overlay, až animace doběhne (viz [startHandoff]).
      */
-    onFinished: (() -> Unit)? = null
+    onFinished: (() -> Unit)? = null,
+    /**
+     * null = overlay si předání do ruky spustí SÁM hned po výměně/přeskočení
+     * (offline – hra pokračuje okamžitě).
+     *
+     * true/false = čeká na externí signál (online): po vlastním potvrzení
+     * zůstane viset a čeká na soupeře; jakmile server hru rozjede, přepne se
+     * na true a overlay teprve teď dorozdá a předá karty do ruky.
+     */
+    startHandoff: Boolean? = null
 ) {
     val s = LocalStrings.current
 
@@ -264,6 +273,16 @@ fun MulliganOverlay(
         if (phase != MulliganAnim.HANDOFF) return@LaunchedEffect
         delay(MULL_HANDOFF_MS)
         onFinished?.invoke()
+    }
+
+    // Externí signál (online): server rozjel hru → dorozdej a předej karty do ruky.
+    // finishAfterDeal zajistí, že rozehrané lízání DOBĚHNE a teprve pak se předává
+    // (jinak by karty zmizely v půlce letu, když potvrdím jako druhý a GAME_STATE
+    // dorazí prakticky okamžitě).
+    LaunchedEffect(startHandoff) {
+        if (startHandoff != true) return@LaunchedEffect
+        finishAfterDeal = true
+        if (phase == MulliganAnim.IDLE) phase = MulliganAnim.HANDOFF
     }
 
     val busy = phase != MulliganAnim.IDLE
@@ -306,8 +325,15 @@ fun MulliganOverlay(
                     fontWeight = FontWeight.Bold, letterSpacing = 5.sp,
                     modifier = Modifier.padding(start = 5.dp)   // kompenzace letterSpacing
                 )
-                if (secondsLeft != null && !submitted) {
-                    val timerColor = if (secondsLeft <= 10) Color(0xFFFF4444) else TextMuted
+                if (secondsLeft != null) {
+                    // Po odeslání se timer jen ZPRŮHLEDNÍ, nemizí – jinak by se
+                    // panel po potvrzení zúžil a vycentrovaný obsah poskočil.
+                    // (odpočet soupeře se pak ukazuje v podtitulku níž)
+                    val timerColor = when {
+                        submitted         -> Color.Transparent
+                        secondsLeft <= 10 -> Color(0xFFFF4444)
+                        else              -> TextMuted
+                    }
                     Text(
                         "${secondsLeft}s",
                         color = timerColor, fontSize = 13.sp,
@@ -316,17 +342,24 @@ fun MulliganOverlay(
                 }
             }
 
-            // Badge: kdo jde první (jen pokud je znám)
-            if (goesFirst != null) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (goesFirst) {
-                        Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+            // Badge: kdo jde první (jen pokud je znám). Slot má PEVNOU výšku –
+            // badge naskakuje až po potvrzení obou hráčů a bez rezervovaného
+            // místa by v tu chvíli posunul celý panel (karty by uskočily).
+            Box(
+                modifier         = Modifier.height(14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (goesFirst != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (goesFirst) {
+                            Image(painterResource(R.drawable.utok_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+                        }
+                        Text(
+                            if (goesFirst) s.mulliganYouFirst else "⏳ ${s.mulliganOpponentFirst}",
+                            color = if (goesFirst) Teal else TextMuted,
+                            fontSize = 10.sp, fontWeight = FontWeight.Bold
+                        )
                     }
-                    Text(
-                        if (goesFirst) s.mulliganYouFirst else "⏳ ${s.mulliganOpponentFirst}",
-                        color = if (goesFirst) Teal else TextMuted,
-                        fontSize = 10.sp, fontWeight = FontWeight.Bold
-                    )
                 }
             }
 
@@ -474,8 +507,9 @@ fun MulliganOverlay(
                     paddingV  = 10.dp,
                     onClick   = {
                         onSkip()
-                        // Bez výměny se nic nedolízává → rovnou do ruky
-                        if (onFinished != null) phase = MulliganAnim.HANDOFF
+                        // Bez výměny se nic nedolízává → rovnou do ruky.
+                        // Online (startHandoff != null) se čeká na soupeře.
+                        if (onFinished != null && startHandoff == null) phase = MulliganAnim.HANDOFF
                     }
                 )
                 PlainButton(
@@ -490,7 +524,9 @@ fun MulliganOverlay(
                         // pak ViewModel provede výměnu — jinak by karty zmizely
                         // dřív, než je stihne animace odnést.
                         outgoingIds     = selectedIds
-                        finishAfterDeal = onFinished != null
+                        // Online (startHandoff != null): po dolíznutí se NEpředává
+                        // hned – čeká se, až server hru rozjede (viz startHandoff).
+                        finishAfterDeal = onFinished != null && startHandoff == null
                         phase           = MulliganAnim.LEAVING
                     }
                 )
