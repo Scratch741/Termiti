@@ -52,6 +52,14 @@ private const val CARD_LOST_HOLD_MS = 700L
  */
 private const val PLAYED_BEFORE_LOSS_MS = 1_000L
 
+/**
+ * Kartu, kterou zahrál HRÁČ, ukáže discard slot až po doletu animace z ruky
+ * (viz FlightOverlay – 300 ms). U vlastních zahrání se proto náběh ztráty
+ * o tuhle dobu prodlužuje, jinak by spálená karta stihla slot přebít dřív,
+ * než se v něm zahraná karta vůbec objeví (typicky když spálení ukončí kolo).
+ */
+private const val PLAYED_FLIGHT_MS = 300L
+
 // ─── Fáze aplikace ────────────────────────────────────────────────────────────
 enum class OnlinePhase {
     NAME_INPUT,       // zadání přezdívky
@@ -981,10 +989,15 @@ class OnlineLobbyViewModel(
                     val isBomb  = baseId == "C37" || baseId == "C38"
                     val prev    = cardLostRevealJob
                     val chained = prev?.isActive == true
+                    // Ztrátu způsobila MOJE zahraná karta (spálil/ukradl jsem soupeři
+                    // kartu, nebo si moje karta sama vytáhla past) → slot ji ukáže až
+                    // po doletu z ruky, náběh proto musí být o let delší.
+                    val byMyPlay = causedByMe || ownCard
                     cardLostRevealJob = viewModelScope.launch {
                         prev?.join()
+                        val firstLeadIn = PLAYED_BEFORE_LOSS_MS + if (byMyPlay) PLAYED_FLIGHT_MS else 0L
                         val leadIn = if (chained) (if (isBomb) 800L else 0L)
-                                     else maxOf(PLAYED_BEFORE_LOSS_MS, if (isBomb) 800L else 0L)
+                                     else maxOf(firstLeadIn, if (isBomb) 800L else 0L)
                         if (leadIn > 0L) delay(leadIn)
                         applyCardLost()
                         delay(CARD_LOST_HOLD_MS)

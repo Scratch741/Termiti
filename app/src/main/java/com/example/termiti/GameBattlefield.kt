@@ -136,9 +136,38 @@ fun NewBattlefield(
         // Kurzor do oppLossQueue – konzumováno FIFO, jedna položka na jeden odebraný slot.
         var oppLossCursor by remember { mutableIntStateOf(0) }
 
-        LaunchedEffect(aiHandSize) {
+        // Ghost ztracené karty se pouští PODLE FRONTY, ne podle zmenšení stripu.
+        // Server pošle CARD_LOST hned, ale počet karet v soupeřově ruce se často
+        // vůbec nezmenší: když spálení zároveň ukončí kolo, soupeř si v témže
+        // GAME_STATE lízne a velikost ruky vyjde nastejno. Ghost se pak neukázal
+        // vůbec – a protože kurzor zůstal stát, vyskočil až o několik kol později
+        // u úplně jiné akce.
+        LaunchedEffect(oppLossQueue.size) {
             // Fronta se resetovala (nová hra) → kurzor taky, jinak by zůstal za koncem
             if (oppLossQueue.size < oppLossCursor) oppLossCursor = 0
+            while (oppLossCursor < oppLossQueue.size) {
+                val entry = oppLossQueue[oppLossCursor]
+                oppLossCursor++
+                // Ruby jsou anonymní (neznáme slot konkrétní karty) → ghost odletí
+                // z náhodného známého rubu; strip se sesune sám, až dorazí nová
+                // velikost ruky.
+                val rect = aiSlotIds.mapNotNull { aiSlotRects[it] }.randomOrNull() ?: continue
+                // Líc ve velikosti odhalené karty (31×44) na pozici rubu (22×32)
+                val w = rect.width  * (31f / 22f)
+                val h = rect.height * (44f / 32f)
+                lossFx?.spawnLoss(
+                    entry.card, null, entry.action,
+                    Rect(
+                        rect.center.x - w / 2f, rect.center.y - h / 2f,
+                        rect.center.x + w / 2f, rect.center.y + h / 2f
+                    )
+                )
+                // Víc ztrát naráz (Spálená knihovna) ať jde po sobě, ne přes sebe
+                delay(220L)
+            }
+        }
+
+        LaunchedEffect(aiHandSize) {
             if (aiSlotIds.size < aiHandSize) {
                 // Líznutí: přidej nové klíče na konec a označ je pro fly-in animaci
                 val added = mutableSetOf<Int>()
@@ -162,24 +191,16 @@ fun NewBattlefield(
                     aiSlotIds.removeAt(removeAt)
                     // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
                     // ghost efekt (oranžová/fialová), aby bylo vidět, že soupeř
-                    // přišel o kartu z ruky a jak. Pokud známe konkrétní kartu,
-                    // ukaž její líc – stejný efekt jako u hráčovy ruky; jinak
-                    // fallback na rub.
-                    if (!showReveal && lossFx != null) {
+                    // přišel o kartu z ruky a jak.
+                    //
+                    // Tohle je JEN fallback pro starší server, který v CARD_LOST
+                    // neposílá `fromHand` (fronta pak zůstane prázdná). Když fronta
+                    // existuje, ghost už pustil efekt výš – tady by vznikl duplikát.
+                    if (!showReveal && lossFx != null && oppLossQueue.isEmpty()) {
                         aiSlotRects[removedKey]?.let { rect ->
-                            // Přednostně konkrétní událost z fronty (správná karta i při
-                            // více simultánních ztrátách za jednu akci – Spálená
-                            // knihovna/BurnCard(2) apod.). Frontu plní offline i online.
-                            // Fallback na lastCard zůstává pro starší server bez
-                            // příznaku `fromHand` v CARD_LOST (fronta pak přijde prázdná).
-                            val queued = oppLossQueue.getOrNull(oppLossCursor)
                             val act: CardAction
                             val face: Card?
-                            if (queued != null) {
-                                oppLossCursor++
-                                act  = queued.action
-                                face = queued.card
-                            } else if (lastCardAction == CardAction.BURNED || lastCardAction == CardAction.STOLEN) {
+                            if (lastCardAction == CardAction.BURNED || lastCardAction == CardAction.STOLEN) {
                                 act  = lastCardAction
                                 face = lastCard?.takeIf { !lastCardIsPlayer }
                             } else {

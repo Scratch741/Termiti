@@ -941,7 +941,7 @@ class GameSession {
     // Non-combo karta → automaticky ukončí tah (jako offline hra)
     // nextComboBoost: flag nastaven předchozí kartou (NextCardIsCombo efekt) – tato karta se chová jako combo
     if (!card.isCombo && !nextComboBoost) {
-      this._advanceTurn();
+      this._advanceTurn(true);   // tah ukončila právě zahraná karta – nech ji vidět
     } else {
       // Combo karta (nebo boost z NextCardIsCombo) → hráč pokračuje v tahu
       // se ZBÝVAJÍCÍM časem (žádných +15 s navíc). Bez resume by serverový
@@ -1245,7 +1245,7 @@ class GameSession {
     if (winner !== null) { this._endGame(winner); return; }
 
     if (!isCombo) {
-      this._advanceTurn();
+      this._advanceTurn(true);   // tah ukončila právě dohraná karta s Rozhodnutím
     } else {
       // Combo: hráč pokračuje v tahu – POUZE se zbývajícím časem.
       // Dřív se restartoval plných 15 s → hráč získal čas navíc za každé Rozhodnutí.
@@ -1399,7 +1399,14 @@ class GameSession {
 
   // ── Advance turn ───────────────────────────────────────────────────────────
 
-  _advanceTurn() {
+  /**
+   * @param {boolean} keepLastPlayed – true, když tah ukončila PRÁVĚ zahraná karta
+   *   (auto-advance po nekombo kartě / po vyřešení Rozhodnutí). Taková karta se
+   *   nesmí vynulovat níž při pasti/přetažení soupeře – hráč by pak vůbec neviděl
+   *   (ani v logu), čím tah ukončil. Volající, kteří lastPlayedCard nulují sami
+   *   (_handleEndTurn/_handleSkipTurn), nechávají false.
+   */
+  _advanceTurn(keepLastPlayed = false) {
     // Reset per-card-played efektů pro hráče, který právě skončil tah
     const prevState = this.state[this.activeSide];
     prevState.drawCardOnPlay = null;
@@ -1470,7 +1477,11 @@ class GameSession {
     // začátku kola zůstal zamaskovaný předchozí zahranou kartou (lastPlayedCard se
     // nuluje jen v _handleEndTurn/_handleSkipTurn, ne při automatickém _advanceTurn()
     // po nekombo kartě – tzn. mohl přežít až sem).
-    if (traps.length > 0 || burned.length > 0) {
+    // Kartu, která tenhle tah PRÁVĚ ukončila, nechat žít (keepLastPlayed) –
+    // jinak ji hráč, který ji zahrál, nikdy neuvidí ani v logu, kdykoli si
+    // soupeř na začátku svého tahu lízne past nebo přetáhne. Klient si pořadí
+    // zobrazení pohlídá sám: zahraná karta hned, ztráta až po ní.
+    if ((traps.length > 0 || burned.length > 0) && !keepLastPlayed) {
       this.lastPlayedCard   = null;
       this.lastPlayedAction = null;
     }
