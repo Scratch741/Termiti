@@ -221,31 +221,34 @@ fun ProfileScreen(onBack: () -> Unit) {
                                     fontSize = 9.sp,
                                     modifier = Modifier.weight(1f)
                                 )
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            if (allUnlocked) PrGreen.copy(alpha = 0.2f) else PrMuted.copy(alpha = 0.12f),
-                                            RoundedCornerShape(5.dp)
-                                        )
-                                        .clickable {
-                                            SoundManager.playMenuTap()
-                                            CardCollectionManager.setAllCardsUnlocked(!allUnlocked)
-                                            profile = PlayerProfileManager.profile
-                                        }
-                                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        if (allUnlocked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
-                                        color      = if (allUnlocked) PrGreen else PrMuted,
-                                        fontSize   = 9.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                DebugToggle(checked = allUnlocked) {
+                                    CardCollectionManager.setAllCardsUnlocked(!allUnlocked)
+                                    profile = PlayerProfileManager.profile
                                 }
                                 DebugBtn("+500 pr", dustColor, Modifier) {
                                     val p = PlayerProfileManager.profile!!
                                     PlayerProfileManager.save(p.copy(dust = p.dust + 500))
                                     profile = PlayerProfileManager.profile
+                                }
+                            }
+                            // Odemkne všechny lokace i soupeře kampaně. Nemění postup
+                            // (počitadla "X/10" ani odměny) – jen obchází zámky, takže
+                            // vypnutím se hráč vrátí přesně tam, kde skutečně je.
+                            var campaignUnlocked by remember { mutableStateOf(CampaignManager.allUnlocked) }
+                            Row(
+                                modifier              = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment     = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    LocalStrings.current.profileUnlockCampaign,
+                                    color    = PrMuted,
+                                    fontSize = 9.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                DebugToggle(checked = campaignUnlocked) {
+                                    CampaignManager.setAllUnlocked(!campaignUnlocked)
+                                    campaignUnlocked = CampaignManager.allUnlocked
                                 }
                             }
                         }
@@ -698,6 +701,31 @@ private fun SectionHeader(title: String) {
             contentDescription = null,
             modifier           = Modifier.fillMaxWidth(),
             contentScale       = ContentScale.FillWidth
+        )
+    }
+}
+
+/** ZAP/VYP přepínač v DEBUG bloku – stejný vzhled jako [DebugBtn], jen dvoustavový. */
+@Composable
+private fun DebugToggle(checked: Boolean, onToggle: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .background(
+                if (checked) PrGreen.copy(alpha = 0.2f) else PrMuted.copy(alpha = 0.12f),
+                RoundedCornerShape(5.dp)
+            )
+            .clickable {
+                SoundManager.playMenuTap()
+                onToggle()
+            }
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            if (checked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
+            color      = if (checked) PrGreen else PrMuted,
+            fontSize   = 9.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }

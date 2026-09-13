@@ -241,7 +241,183 @@ object CampaignData {
         ),
 
         // ════════════════════════════════════════════════════════════════════
-        // LOKACE 2 – Trpasličí hory
+        // LOKACE 2 – Magické bažiny
+        // winTarget: 60 → 60 → 62 → 62 → 64 → 65 → 66 → 66 → 68 → 70
+        // Téma: magie, jed a krádeže zdrojů. Bažiňáci nestaví – rozkládají.
+        // Hradby drží nízko (aiMaxWall 8–20); nebezpečí je v odsávání zdrojů,
+        // pálení karet a bombách v balíčku, ne v tvrdém úderu.
+        // Balíčky: 24 → 25 → 26 → 27 → 28 → 29 → 30 → 31 → 33 → 36
+        // ════════════════════════════════════════════════════════════════════
+        CampaignLocation(
+            id = "loc_swamp", name = "Magické bažiny", emoji = "🐸",
+            description = "Mlžné tůně plné divoké magie. Neubijí tě – vysají tě.",
+            opponents = listOf(
+
+                // 1 ── 24 karet, winTarget 60 ───────────────────────────────
+                // Měkký vstup do lokace: jen mírné odsávání magie.
+                CampaignOpponent(
+                    id = "swp_frog", name = "Bažinná Žába", title = "Skokan z tůní",
+                    avatar = "🐸", description = "Kváká a krade magii. Nic víc neumí.",
+                    aiCastle = 30, aiWall = 8, aiMaxWall = 8, aiStartMagic = 1,
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "137" to 3, "065" to 3,
+                        "008" to 3, "003" to 2, "010" to 3, "028" to 2,
+                        "049" to 2
+                    ),
+                    winTarget = 60, aiWinTarget = 42,
+                    rewardGold = 70
+                ),
+
+                // 2 ── 25 karet, winTarget 60 ───────────────────────────────
+                CampaignOpponent(
+                    id = "swp_leech", name = "Bahenní Pijavice", title = "Saje, co najde",
+                    avatar = "🩸", description = "Přisaje se ke tvým zásobám a nepustí.",
+                    aiCastle = 31, aiWall = 9, aiMaxWall = 9, aiStartMagic = 2,
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "065" to 3, "066" to 2,
+                        "067" to 3, "049" to 3, "003" to 2, "029" to 3,
+                        "010" to 2, "C26" to 1
+                    ),
+                    winTarget = 60, aiWinTarget = 43,
+                    rewardGold = 75
+                ),
+
+                // 3 ── 26 karet, winTarget 62, AI má extra důl magie ─────────
+                CampaignOpponent(
+                    id = "swp_witch", name = "Močálová Čarodějka", title = "Vaří v kotli",
+                    avatar = "🧪", description = "Míchá lektvary z bahna. Extra důl magie.",
+                    aiCastle = 32, aiWall = 10, aiMaxWall = 12, aiStartMagic = 2,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "013" to 2, "003" to 3,
+                        "127" to 1, "067" to 2, "068" to 2, "049" to 2,
+                        "124" to 2, "029" to 3, "081" to 2, "C24" to 1
+                    ),
+                    winTarget = 62, aiWinTarget = 44,
+                    rewardGold = 80
+                ),
+
+                // 4 ── 27 karet, winTarget 62 ───────────────────────────────
+                // První soupeř, který ti sype bomby a krysy do balíčku.
+                CampaignOpponent(
+                    id = "swp_ratcatcher", name = "Krysí Zaklínač", title = "Pán zamořených tůní",
+                    avatar = "🐀", description = "Sype ti krysy a bomby do balíčku. Líži opatrně.",
+                    aiCastle = 33, aiWall = 10, aiMaxWall = 12, aiStartMagic = 2,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "133" to 3, "C36" to 2,
+                        "003" to 3, "049" to 2, "065" to 2, "067" to 2,
+                        "029" to 3, "010" to 2, "D01" to 2
+                    ),
+                    winTarget = 62, aiWinTarget = 45,
+                    rewardGold = 85
+                ),
+
+                // 5 ── 28 karet, winTarget 64, hráč startuje s méně magií ────
+                CampaignOpponent(
+                    id = "swp_alchemist", name = "Bažinný Alchymista", title = "Míchá, co nemá",
+                    avatar = "⚗️", description = "Rozpustil ti část zásob. Startuješ s −2 magie.",
+                    aiCastle = 34, aiWall = 11, aiMaxWall = 14, aiStartMagic = 3,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "040" to 2, "077" to 2,
+                        "013" to 2, "003" to 3, "127" to 2, "049" to 2,
+                        "068" to 2, "124" to 2, "029" to 3, "081" to 2
+                    ),
+                    winTarget = 64, aiWinTarget = 46,
+                    playerHandicap = PlayerHandicap(extraMagic = -2),
+                    rewardGold = 90
+                ),
+
+                // 6 ── 29 karet, winTarget 65 ───────────────────────────────
+                CampaignOpponent(
+                    id = "swp_hag", name = "Bahenní Ježibaba", title = "Prokletí na míru",
+                    avatar = "🧙", description = "Prokletí a demoralizace. Zdroje ti mizí pod rukama.",
+                    aiCastle = 35, aiWall = 12, aiMaxWall = 15, aiStartMagic = 3,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "107" to 3, "068" to 3,
+                        "067" to 2, "003" to 3, "049" to 2, "065" to 2,
+                        "C28" to 2, "029" to 3, "081" to 2, "013" to 1
+                    ),
+                    winTarget = 65, aiWinTarget = 47,
+                    rewardGold = 95
+                ),
+
+                // 7 ── 30 karet, winTarget 66, hráči zničen důl magie ────────
+                CampaignOpponent(
+                    id = "swp_serpent", name = "Močálový Had", title = "Jed v každém zubu",
+                    avatar = "🐍", description = "Otrávil tvůj pramen magie. Mine magie −1.",
+                    aiCastle = 36, aiWall = 12, aiMaxWall = 16, aiStartMagic = 3,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "049" to 4, "050" to 3, "048" to 2, "107" to 2,
+                        "004" to 3, "037" to 3, "003" to 3, "070" to 2,
+                        "029" to 3, "081" to 2, "013" to 2, "D01" to 1
+                    ),
+                    winTarget = 66, aiWinTarget = 48,
+                    playerHandicap = PlayerHandicap(
+                        extraMines = mapOf(ResourceType.MAGIC to -1)
+                    ),
+                    rewardGold = 100
+                ),
+
+                // 8 ── 31 karet, winTarget 66, AI ti pálí a krade karty ──────
+                CampaignOpponent(
+                    id = "swp_shade", name = "Bludička", title = "Světlo, které tě utopí",
+                    avatar = "🔥", description = "Pálí ti karty z ruky a krade je. Hrad −3.",
+                    aiCastle = 37, aiWall = 13, aiMaxWall = 16, aiStartMagic = 4,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    deckCardCounts = mapOf(
+                        "C19" to 2, "C17" to 2, "004" to 3, "037" to 3,
+                        "071" to 2, "069" to 2, "003" to 3, "127" to 2,
+                        "107" to 2, "049" to 2, "029" to 3, "081" to 2,
+                        "013" to 3
+                    ),
+                    winTarget = 66, aiWinTarget = 49,
+                    playerHandicap = PlayerHandicap(extraCastle = -3),
+                    rewardGold = 110
+                ),
+
+                // 9 ── 33 karet, winTarget 68, AI lízne 5 karet ──────────────
+                CampaignOpponent(
+                    id = "swp_druid", name = "Mokřadní Druid", title = "Mluví s rákosím",
+                    avatar = "🌿", description = "5 karet v ruce, 2 doly magie. Kouzlí bez přestávky.",
+                    aiCastle = 38, aiWall = 14, aiMaxWall = 18, aiStartMagic = 4,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2),
+                    deckCardCounts = mapOf(
+                        "004" to 3, "037" to 3, "016" to 2, "013" to 2,
+                        "073" to 2, "003" to 4, "127" to 3, "107" to 3,
+                        "049" to 2, "070" to 2, "029" to 3, "081" to 2,
+                        "D02" to 2
+                    ),
+                    winTarget = 68, aiStartHandSize = 5, aiWinTarget = 50,
+                    playerHandicap = PlayerHandicap(extraCastle = -3, extraWall = -3),
+                    rewardGold = 130
+                ),
+
+                // 10 BOSS ── 36 karet, winTarget 70, AI lízne 5 karet ────────
+                CampaignOpponent(
+                    id = "swp_lord", name = "Pán Mlhy", title = "Vládce magických bažin",
+                    avatar = "🌫️", description = "36 karet, 5 startovních. Temný přenos ti sebere hrad. Jednorázová odměna: 200 XP.",
+                    isBoss = true,
+                    aiCastle = 42, aiWall = 16, aiMaxWall = 20, aiStartMagic = 5,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 2, ResourceType.ATTACK to 1),
+                    deckCardCounts = mapOf(
+                        "099" to 2, "127" to 3, "003" to 4, "107" to 3,
+                        "049" to 3, "050" to 2, "070" to 2, "C19" to 2,
+                        "004" to 3, "037" to 3, "016" to 2, "013" to 2,
+                        "029" to 3, "081" to 2
+                    ),
+                    winTarget = 70, aiStartHandSize = 5, aiWinTarget = 52,
+                    playerHandicap = PlayerHandicap(extraCastle = -4, extraWall = -4),
+                    rewardGold = 190, rewardGems = 2, rewardXp = 200
+                )
+            ).map { it.copy(aiCastleSkin = "castle_player_2", aiWallSkin = "wall_player5") }
+        ),
+
+        // ════════════════════════════════════════════════════════════════════
+        // LOKACE 3 – Trpasličí hory
         // winTarget: 58 → 60 → 70 → 62 → 63 → 65 → 65 → 68 → 80 → 75
         // U obranářů vyšší winTarget – přelstít zeď výstavbou je těžší.
         // Balíčky: 28 → 28 → 28 → 28 → 30 → 30 → 32 → 33 → 35 → 38
@@ -411,7 +587,7 @@ object CampaignData {
         ),
 
         // ════════════════════════════════════════════════════════════════════
-        // LOKACE 3 – Temná citadela
+        // LOKACE 4 – Temná citadela
         // winTarget: 62 → 63 → 65 → 65 → 999 → 70 → 999 → 999 → 999 → 999
         // Od Temného Válečníka výš: výstavba = okamžitá prohra.
         // Balíčky: 30 → 30 → 33 → 33 → 35 → 35 → 38 → 38 → 42 → 48
@@ -590,7 +766,7 @@ object CampaignData {
         ),
 
         // ════════════════════════════════════════════════════════════════════
-        // LOKACE 4 – Dračí impérium
+        // LOKACE 5 – Dračí impérium
         // Všichni soupeři mají winTarget = 999 – výstavba je okamžitá sebevražda.
         // Důraz na chaos karty, legendární útok a těžké handicapy hráče.
         // Balíčky: 38 → 40 → 40 → 42 → 42 → 44 → 44 → 48 → 50 → 55

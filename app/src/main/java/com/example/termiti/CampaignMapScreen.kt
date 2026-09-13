@@ -322,6 +322,7 @@ private fun LocationProgressBar(current: Int, total: Int, cleared: Boolean) {
 @DrawableRes
 internal fun locationFrameRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.card_frame_attack
+    "loc_swamp"   -> R.drawable.card_frame_magic
     "loc_dwarves" -> R.drawable.card_frame_stones
     "loc_citadel" -> R.drawable.card_frame_magic
     "loc_dragon"  -> R.drawable.card_frame_chaos
@@ -331,6 +332,7 @@ internal fun locationFrameRes(id: String): Int = when (id) {
 @DrawableRes
 private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
+    "loc_swamp"   -> R.drawable.art_magicky_pramen
     "loc_dwarves" -> R.drawable.trpaslici_hory
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
@@ -340,6 +342,7 @@ private fun locationArtRes(id: String): Int = when (id) {
 @DrawableRes
 private fun locationRarityRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.rarity_common
+    "loc_swamp"   -> R.drawable.rarity_rare
     "loc_dwarves" -> R.drawable.rarity_rare
     "loc_citadel" -> R.drawable.rarity_epic
     "loc_dragon"  -> R.drawable.rarity_legendary

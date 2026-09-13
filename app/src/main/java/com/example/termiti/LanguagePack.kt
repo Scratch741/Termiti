@@ -233,6 +233,7 @@ data class LanguagePack(
                 profileGems              = str("profileGems",              "Drahokamy"),
                 profilePlayed            = str("profilePlayed",            "Odehráno"),
                 profileUnlockAll         = str("profileUnlockAll",         "Všechny karty odemčeny"),
+                profileUnlockCampaign    = str("profileUnlockCampaign",    "Celá kampaň odemčena"),
                 profileSectionAvatar     = str("profileSectionAvatar",     "Ikonka hráče"),
                 profileSectionCastle     = str("profileSectionCastle",     "Skin hradu"),
                 profileSectionWall       = str("profileSectionWall",       "Skin hradby"),

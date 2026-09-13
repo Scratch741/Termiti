@@ -535,6 +535,7 @@ private fun opponentRarityRes(order: Int, total: Int, isBoss: Boolean): Int {
 
 private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
+    "loc_swamp"   -> R.drawable.art_magicky_pramen
     "loc_dwarves" -> R.drawable.trpaslici_hory
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
@@ -543,6 +544,7 @@ private fun locationArtRes(id: String): Int = when (id) {
 
 private fun locationRarityRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.rarity_common
+    "loc_swamp"   -> R.drawable.rarity_rare
     "loc_dwarves" -> R.drawable.rarity_rare
     "loc_citadel" -> R.drawable.rarity_epic
     "loc_dragon"  -> R.drawable.rarity_legendary

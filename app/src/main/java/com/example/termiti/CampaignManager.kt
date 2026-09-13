@@ -14,6 +14,7 @@ object CampaignManager {
     private const val PREFS_NAME    = "termiti_campaign"
     private const val KEY_DEFEATED  = "defeated_opponents"   // JSONArray stringů
     private const val KEY_REWARDED  = "rewarded_opponents"   // JSONArray stringů
+    private const val KEY_UNLOCKALL = "debug_unlock_all"     // Boolean
 
     private var prefs: SharedPreferences? = null
 
@@ -21,6 +22,8 @@ object CampaignManager {
     private val _defeated  = mutableSetOf<String>()
     /** Množina ID soupeřů, jejichž odměna byla již vyplacena. */
     private val _rewarded  = mutableSetOf<String>()
+    /** DEBUG přepínač: zpřístupní všechny lokace i soupeře bez ohledu na postup. */
+    private var _allUnlocked = false
 
     // ── Inicializace ─────────────────────────────────────────────────────────
 
@@ -35,6 +38,20 @@ object CampaignManager {
     fun isRewarded(opponentId: String): Boolean = opponentId in _rewarded
 
     /**
+     * DEBUG: true pokud je aktivní přepínač "vše odemčeno".
+     * Obchází POUZE zámky ([isUnlocked], [isLocationUnlocked]); [isDefeated] ani
+     * odměny se nemění, takže počitadla "X/10" i výplata odměn dál sledují
+     * skutečný postup a vypnutím přepínače se nic neztratí.
+     */
+    val allUnlocked: Boolean get() = _allUnlocked
+
+    /** DEBUG: zapne/vypne odemčení celé kampaně. Persistováno spolu s postupem. */
+    fun setAllUnlocked(value: Boolean) {
+        _allUnlocked = value
+        save()
+    }
+
+    /**
      * Vrátí true pokud jsou všichni soupeři v lokaci poraženi.
      */
     fun isLocationCleared(location: CampaignLocation): Boolean =
@@ -46,6 +63,7 @@ object CampaignManager {
      * ostatní pouze pokud byl poražen předchozí.
      */
     fun isUnlocked(location: CampaignLocation, opponent: CampaignOpponent): Boolean {
+        if (_allUnlocked) return true
         val idx = location.opponents.indexOf(opponent)
         if (idx <= 0) return true
         return isDefeated(location.opponents[idx - 1].id)
@@ -57,6 +75,7 @@ object CampaignManager {
      * zcela vyčištěna (boss poražen).
      */
     fun isLocationUnlocked(location: CampaignLocation): Boolean {
+        if (_allUnlocked) return true
         val idx = CampaignData.locations.indexOf(location)
         if (idx <= 0) return true
         return isLocationCleared(CampaignData.locations[idx - 1])
@@ -94,12 +113,14 @@ object CampaignManager {
         prefs?.edit()
             ?.putString(KEY_DEFEATED, defeatedArr.toString())
             ?.putString(KEY_REWARDED, rewardedArr.toString())
+            ?.putBoolean(KEY_UNLOCKALL, _allUnlocked)
             ?.apply()
     }
 
     private fun load() {
         _defeated.clear()
         _rewarded.clear()
+        _allUnlocked = prefs?.getBoolean(KEY_UNLOCKALL, false) ?: false
         prefs?.getString(KEY_DEFEATED, null)?.let { json ->
             runCatching {
                 val arr = JSONArray(json)

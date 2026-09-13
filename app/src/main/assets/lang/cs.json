@@ -130,6 +130,7 @@
     "profileGems": "Drahokamy",
     "profilePlayed": "Odehráno",
     "profileUnlockAll": "Všechny karty odemčeny",
+    "profileUnlockCampaign": "Celá kampaň odemčena",
     "profileSectionAvatar": "Ikonka hráče",
     "profileSectionCastle": "Skin hradu",
     "profileSectionWall": "Skin hradby",
@@ -1043,6 +1044,10 @@
       "name": "Goblinský tábor",
       "desc": "Zanedbaný tábor goblinů. Slabí, ale přemnožení."
     },
+    "loc_swamp": {
+      "name": "Magické bažiny",
+      "desc": "Mlžné tůně plné divoké magie. Neubijí tě – vysají tě."
+    },
     "loc_dwarves": {
       "name": "Trpasličí hory",
       "desc": "Opevněné horské průsmyky. Trpaslíci staví lépe než bojují."
@@ -1106,6 +1111,56 @@
       "name": "Goblin Král",
       "title": "Pán tábora",
       "desc": "Boss goblinů. 32 karet, startuje s 5 kartami v ruce. Jednorázová odměna: 200 XP."
+    },
+    "swp_frog": {
+      "name": "Bažinná Žába",
+      "title": "Skokan z tůní",
+      "desc": "Kváká a krade magii. Nic víc neumí."
+    },
+    "swp_leech": {
+      "name": "Bahenní Pijavice",
+      "title": "Saje, co najde",
+      "desc": "Přisaje se ke tvým zásobám a nepustí."
+    },
+    "swp_witch": {
+      "name": "Močálová Čarodějka",
+      "title": "Vaří v kotli",
+      "desc": "Míchá lektvary z bahna. Extra důl magie."
+    },
+    "swp_ratcatcher": {
+      "name": "Krysí Zaklínač",
+      "title": "Pán zamořených tůní",
+      "desc": "Sype ti krysy a bomby do balíčku. Líži opatrně."
+    },
+    "swp_alchemist": {
+      "name": "Bažinný Alchymista",
+      "title": "Míchá, co nemá",
+      "desc": "Rozpustil ti část zásob. Startuješ s −2 magie."
+    },
+    "swp_hag": {
+      "name": "Bahenní Ježibaba",
+      "title": "Prokletí na míru",
+      "desc": "Prokletí a demoralizace. Zdroje ti mizí pod rukama."
+    },
+    "swp_serpent": {
+      "name": "Močálový Had",
+      "title": "Jed v každém zubu",
+      "desc": "Otrávil tvůj pramen magie. Mine magie −1."
+    },
+    "swp_shade": {
+      "name": "Bludička",
+      "title": "Světlo, které tě utopí",
+      "desc": "Pálí ti karty z ruky a krade je. Hrad −3."
+    },
+    "swp_druid": {
+      "name": "Mokřadní Druid",
+      "title": "Mluví s rákosím",
+      "desc": "5 karet v ruce, 2 doly magie. Kouzlí bez přestávky."
+    },
+    "swp_lord": {
+      "name": "Pán Mlhy",
+      "title": "Vládce magických bažin",
+      "desc": "36 karet, 5 startovních. Temný přenos ti sebere hrad. Jednorázová odměna: 200 XP."
     },
     "dwf_miner": {
       "name": "Horník",

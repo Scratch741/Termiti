@@ -2373,10 +2373,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
-        // Goblinský tábor, Trpasličí hory a Temná citadela mají vlastní vzhled
-        // bojiště; Dračí impérium zatím výchozí (žádné vlastní pozadí zatím nemá).
+        // Goblinský tábor, Magické bažiny, Trpasličí hory a Temná citadela mají vlastní
+        // vzhled bojiště; Dračí impérium zatím výchozí (žádné vlastní pozadí zatím nemá).
         battleBackgroundResId.value = when {
             opponent.id.startsWith("gob_") -> R.drawable.castle_background_goblin
+            opponent.id.startsWith("swp_") -> R.drawable.castle_background_swamp
             opponent.id.startsWith("dwf_") -> R.drawable.castle_background_winter
             opponent.id.startsWith("cit_") -> R.drawable.castle_background_citadela
             else                            -> R.drawable.castle_background

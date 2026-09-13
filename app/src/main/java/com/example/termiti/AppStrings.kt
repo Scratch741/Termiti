@@ -177,6 +177,7 @@ data class AppStrings(
     val profileGems: String,
     val profilePlayed: String,
     val profileUnlockAll: String,
+    val profileUnlockCampaign: String,
     val profileSectionAvatar: String,
     val profileSectionCastle: String,
     val profileSectionWall: String,
