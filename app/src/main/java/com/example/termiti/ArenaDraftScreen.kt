@@ -53,7 +53,7 @@ fun ArenaDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PlainButton(
-                    text      = "← Zpět",
+                    text      = LocalStrings.current.backShort,
                     textColor = TextMuted,
                     fontSize  = 10.sp,
                     paddingH  = 10.dp,
@@ -63,14 +63,14 @@ fun ArenaDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "ARÉNA — DRAFT", color = Gold,
+                        LocalStrings.current.arenaTitleDraft, color = Gold,
                         fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp
                     )
                     Text("$draftCount / 30 karet", color = TextMuted, fontSize = 9.sp)
                 }
 
                 Text(
-                    "Vyber jednu kartu",
+                    LocalStrings.current.arenaPickOne,
                     color = TextMuted.copy(alpha = 0.6f), fontSize = 9.sp
                 )
             }
@@ -165,12 +165,12 @@ private fun DraftStatsPanel(
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
-            "SLOŽENÍ BALÍČKU",
+            LocalStrings.current.arenaDeckComposition,
             color = TextMuted, fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp
         )
 
         // By resource type
-        Text("Zdroje", color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
+        Text(LocalStrings.current.catResources, color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
         ResourceType.entries.forEach { type ->
             val count = byType[type] ?: 0
             Row(
@@ -202,7 +202,7 @@ private fun DraftStatsPanel(
         HorizontalDivider(color = Gold.copy(alpha = 0.08f))
 
         // By category
-        Text("Efekty", color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
+        Text(LocalStrings.current.arenaEffects, color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
         val catColors = mapOf(
             "Útok"    to AttackRed,
             "Obrana"  to StoneColor,
@@ -234,13 +234,13 @@ private fun DraftStatsPanel(
                     modifier = Modifier.width(14.dp),
                     textAlign = TextAlign.End
                 )
-                Text(cat, color = cc.copy(alpha = 0.7f), fontSize = 7.sp, modifier = Modifier.width(40.dp))
+                Text(arenaCategoryLabel(cat), color = cc.copy(alpha = 0.7f), fontSize = 7.sp, modifier = Modifier.width(40.dp))
             }
         }
 
         if (recent.isNotEmpty()) {
             HorizontalDivider(color = Gold.copy(alpha = 0.08f))
-            Text("Poslední výběry", color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
+            Text(LocalStrings.current.arenaRecentPicks, color = TextMuted.copy(alpha = 0.6f), fontSize = 7.sp, letterSpacing = 1.sp)
             recent.forEach { card ->
                 val cc = resColor(card.costType)
                 Row(
@@ -285,7 +285,7 @@ private fun DraftCardChoice(card: Card, onClick: () -> Unit) {
 
         // Tlačítko Vybrat pod kartou
         PlainButton(
-            text      = "VYBRAT",
+            text      = LocalStrings.current.arenaPick,
             modifier  = Modifier.width(110.dp),
             textColor = TextPrimary,
             fontSize  = 10.sp,
@@ -322,7 +322,7 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
             ) {
                 Image(painterResource(R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(32.dp))
                 Text(
-                    "ARÉNA UKONČENA",
+                    LocalStrings.current.arenaEnded,
                     color = Crimson, fontSize = 16.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 3.sp
                 )
@@ -360,24 +360,24 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
                         },
                         fontSize = 26.sp, fontWeight = FontWeight.Bold
                     )
-                    Text("vítězství", color = TextMuted, fontSize = 11.sp)
+                    Text(LocalStrings.current.arenaWinsWord, color = TextMuted, fontSize = 11.sp)
                 }
             }
 
             Text(
                 when {
-                    wins == 0 -> "Příště to vyjde!"
-                    wins < 3  -> "Dobrý začátek."
-                    wins < 5  -> "Solidní výkon!"
-                    wins < 8  -> "Výborně! Jsi silný protivník."
-                    else      -> "Legenda arény!"
+                    wins == 0 -> LocalStrings.current.arenaRank0
+                    wins < 3  -> LocalStrings.current.arenaRank1
+                    wins < 5  -> LocalStrings.current.arenaRank2
+                    wins < 8  -> LocalStrings.current.arenaRank3
+                    else      -> LocalStrings.current.arenaRank4
                 },
                 color = TextPrimary, fontSize = 11.sp, textAlign = TextAlign.Center
             )
 
             Spacer(Modifier.height(4.dp))
             PlainButton(
-                text      = "ZPĚT DO MENU",
+                text      = LocalStrings.current.backToMenuCaps,
                 modifier  = Modifier.fillMaxWidth(),
                 textColor = TealLight,
                 fontSize  = 11.sp,
@@ -386,5 +386,18 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
                 onClick   = onBack
             )
         }
+    }
+}
+
+/** Lokalizovaný popisek kategorie efektu. Interní klíče ("Útok", "Obrana", …) zůstávají české. */
+@Composable
+private fun arenaCategoryLabel(cat: String): String {
+    val s = LocalStrings.current
+    return when (cat) {
+        "Útok"   -> s.catAttack
+        "Obrana" -> s.catDefense
+        "Zdroje" -> s.catResources
+        "Doly"   -> s.catMines
+        else     -> s.catOther
     }
 }

@@ -83,7 +83,7 @@ object PlayerProfileManager {
                 xp     = xp,
                 gold   = gold,
                 gems   = gems,
-                source = if (win) (if (online) "🌐 Online výhra" else "⚔️ Výhra") else "💀 Prohra"
+                source = if (win) (if (online) LanguageManager.currentStrings.rewardOnlineWin else LanguageManager.currentStrings.rewardWin) else LanguageManager.currentStrings.rewardLoss
             ))
         }
         // Quest tracking

@@ -141,10 +141,10 @@ fun DecisionOverlay(
                     ) {
                         decision.resourceChoices.forEach { rc ->
                             val (iconRes, label, accent) = when (rc.type) {
-                                ResourceType.MAGIC  -> Triple(R.drawable.magie_icon,  "Magie",  Color(0xFF7EC8E3))
-                                ResourceType.ATTACK -> Triple(R.drawable.utok_icon,   "Útok",   Color(0xFFE07070))
-                                ResourceType.STONES -> Triple(R.drawable.kamen_icon2, "Kameny", Color(0xFFB39DDB))
-                                ResourceType.CHAOS  -> Triple(R.drawable.chaos_icon,  "Chaos",  Gold)
+                                ResourceType.MAGIC  -> Triple(R.drawable.magie_icon,  LocalStrings.current.resMagic,  Color(0xFF7EC8E3))
+                                ResourceType.ATTACK -> Triple(R.drawable.utok_icon,   LocalStrings.current.resAttack,   Color(0xFFE07070))
+                                ResourceType.STONES -> Triple(R.drawable.kamen_icon2, LocalStrings.current.resStone, Color(0xFFB39DDB))
+                                ResourceType.CHAOS  -> Triple(R.drawable.chaos_icon,  LocalStrings.current.resChaos,  Gold)
                             }
                             Box(
                                 modifier = Modifier

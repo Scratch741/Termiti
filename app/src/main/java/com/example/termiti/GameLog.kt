@@ -202,7 +202,7 @@ fun LogPanel(
                 fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
             if (log.isEmpty()) {
-                Text("— Hra začíná —", color = TextMuted, fontSize = 10.sp,
+                Text(LocalStrings.current.logGameStarts, color = TextMuted, fontSize = 10.sp,
                     fontStyle = FontStyle.Italic)
             } else {
                 val recent = log.takeLast(5)

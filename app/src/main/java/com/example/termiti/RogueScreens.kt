@@ -92,16 +92,16 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("SESTAV BALÍČEK", color = Gold, fontSize = 11.sp,
+                    Text(LocalStrings.current.rogueBuildDeck, color = Gold, fontSize = 11.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Spacer(Modifier.weight(1f))
-                    Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
+                    Text(LocalStrings.current.dbResourceLabel, color = TextMuted, fontSize = 9.sp)
                     FilterChip(R.drawable.magie_icon,  s.resMagic,  filterRes == ResourceType.MAGIC,  MagicBlue)   { filterRes = if (filterRes == ResourceType.MAGIC)  null else ResourceType.MAGIC }
                     FilterChip(R.drawable.utok_icon,   s.resAttack, filterRes == ResourceType.ATTACK, AttackRed)   { filterRes = if (filterRes == ResourceType.ATTACK) null else ResourceType.ATTACK }
                     FilterChip(R.drawable.kamen_icon2, s.resStone,  filterRes == ResourceType.STONES, StoneColor)  { filterRes = if (filterRes == ResourceType.STONES) null else ResourceType.STONES }
                     FilterChip(R.drawable.chaos_icon,  s.resChaos,  filterRes == ResourceType.CHAOS,  ChaosOrange) { filterRes = if (filterRes == ResourceType.CHAOS)  null else ResourceType.CHAOS }
                     PlainButton(
-                        text      = "← Zpět",
+                        text      = LocalStrings.current.backShort,
                         modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 58.dp),
                         textColor = TextMuted,
                         fontSize  = 8.sp,
@@ -130,9 +130,9 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(3.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Rarita:", color = TextMuted, fontSize = 9.sp)
+                    Text(LocalStrings.current.rogueRarityLabel, color = TextMuted, fontSize = 9.sp)
                     Rarity.entries.forEach { r ->
-                        FilterChip(r.label, filterRarity == r, rarityColor(r)) { filterRarity = if (filterRarity == r) null else r }
+                        FilterChip(r.displayLabel, filterRarity == r, rarityColor(r)) { filterRarity = if (filterRarity == r) null else r }
                     }
                     Spacer(Modifier.weight(1f))
                     Text("${catalog.size} karet", color = TextMuted.copy(alpha = 0.6f), fontSize = 8.sp)
@@ -143,7 +143,7 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(3.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Cena:", color = TextMuted, fontSize = 9.sp)
+                    Text(LocalStrings.current.rogueCostLabel, color = TextMuted, fontSize = 9.sp)
                     (0..7).forEach { cost ->
                         CostChip(if (cost == 7) "7+" else "$cost", filterCost == cost, width = 26.dp) {
                             filterCost = if (filterCost == cost) null else cost
@@ -182,12 +182,12 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("ROGUELIKE — BALÍČEK", color = Gold, fontSize = 13.sp,
+                Text(LocalStrings.current.rogueDeckTitle, color = Gold, fontSize = 13.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
 
                 // Uložené balíčky (šablony) – uloží/načte rozestavěný draft
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("Uložené balíčky:", color = TextMuted, fontSize = 8.sp)
+                    Text(LocalStrings.current.rogueSavedDecks, color = TextMuted, fontSize = 8.sp)
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -229,7 +229,7 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
                 // Počet karet
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("Karty: $picked / ${RogueConfig.DECK_SIZE}",
+                    Text(LocalStrings.current.rogueCardsCount.format(picked, RogueConfig.DECK_SIZE),
                         color = if (full) HpGreen else TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Box(
                         Modifier.fillMaxWidth().height(5.dp)
@@ -244,7 +244,7 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 // Rozpočet
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     val overCap = spent >= RogueConfig.BUDGET
-                    Text("Rozpočet: $spent / ${RogueConfig.BUDGET} bodů",
+                    Text(LocalStrings.current.rogueBudget.format(spent, RogueConfig.BUDGET),
                         color = if (overCap) Gold else TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Box(
                         Modifier.fillMaxWidth().height(5.dp)
@@ -308,7 +308,7 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     if (draft.isEmpty()) {
                         item(key = "empty_hint") {
                             Text(
-                                "Balíček je zatím prázdný.",
+                                LocalStrings.current.rogueDeckEmpty,
                                 color = TextMuted, fontSize = 9.sp, textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                             )
@@ -317,12 +317,12 @@ fun RogueDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 }
 
                 if (!full) {
-                    Text("Doplň balíček na ${RogueConfig.DECK_SIZE} karet.",
+                    Text(LocalStrings.current.rogueFillDeck.format(RogueConfig.DECK_SIZE),
                         color = TextMuted, fontSize = 9.sp, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth())
                 }
                 PlainButton(
-                    text      = if (full) "ZAHÁJIT RUN" else "BALÍČEK NENÍ HOTOVÝ",
+                    text      = if (full) LocalStrings.current.rogueStartRun else LocalStrings.current.rogueDeckNotReady,
                     modifier  = Modifier.fillMaxWidth(),
                     textColor = if (full) TealLight else TextMuted.copy(alpha = 0.4f),
                     fontSize  = 13.sp, paddingH = 0.dp, paddingV = 11.dp,
@@ -375,15 +375,15 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
             Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     PlainButton("Menu", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = onMenu)
-                    PlainButton("Vzdát se", textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
+                    PlainButton(LocalStrings.current.surrender, textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("VÍTĚZSTVÍ", color = TealLight, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
-                    Text("${run.actTitle}  ·  následuje ${run.battleLabel}", color = TextMuted, fontSize = 9.sp)
+                    Text(LocalStrings.current.rogueVictory, color = TealLight, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+                    Text(LocalStrings.current.rogueNext.format(run.actTitle, run.battleLabel), color = TextMuted, fontSize = 9.sp)
                     if (run.rewardCardPicksLeft > 0) {
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "Vyber kartu (POVINNÉ) — zbývá ${run.rewardCardPicksLeft}×",
+                            LocalStrings.current.roguePickRequired.format(run.rewardCardPicksLeft),
                             color = Gold, fontSize = 10.sp, letterSpacing = 1.sp
                         )
                     }
@@ -426,7 +426,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                                     onClick = { viewModel.pickRewardCard(card) })
                             }
                             Spacer(Modifier.height(20.dp))
-                            PlainButton("PŘIDAT", modifier = Modifier.width(90.dp), textColor = TealLight,
+                            PlainButton(LocalStrings.current.rogueAdd, modifier = Modifier.width(90.dp), textColor = TealLight,
                                 fontSize = 9.sp, paddingH = 0.dp, paddingV = 5.dp,
                                 onClick = { viewModel.pickRewardCard(card) })
                         }
@@ -444,7 +444,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                 ) {
                     Text("★ BONUS ZA BOSSE ★", color = Gold, fontSize = 15.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                    Text("Vyber jeden navíc, nebo přeskoč", color = TextMuted, fontSize = 10.sp)
+                    Text(LocalStrings.current.roguePickExtra, color = TextMuted, fontSize = 10.sp)
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         RogueBonusCard(R.drawable.castle_icon, "+${RogueConfig.REWARD_MAX_CASTLE}", "Max hrad", Gold) { viewModel.pickRewardBonus(RogueReward.MaxCastle) }
@@ -453,13 +453,13 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        RogueBonusCard(resourceIconRes(ResourceType.MAGIC), "Magie", "Nový důl", MagicBlue) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.MAGIC)) }
-                        RogueBonusCard(resourceIconRes(ResourceType.ATTACK), "Útok", "Nový důl", AttackRed) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.ATTACK)) }
-                        RogueBonusCard(resourceIconRes(ResourceType.STONES), "Kámen", "Nový důl", StoneColor) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.STONES)) }
-                        RogueBonusCard(resourceIconRes(ResourceType.CHAOS), "Chaos", "Nový důl", ChaosOrange) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.CHAOS)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.MAGIC), LocalStrings.current.resMagic, LocalStrings.current.rogueNewMine, MagicBlue) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.MAGIC)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.ATTACK), LocalStrings.current.resAttack, LocalStrings.current.rogueNewMine, AttackRed) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.ATTACK)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.STONES), LocalStrings.current.resStone, LocalStrings.current.rogueNewMine, StoneColor) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.STONES)) }
+                        RogueBonusCard(resourceIconRes(ResourceType.CHAOS), LocalStrings.current.resChaos, LocalStrings.current.rogueNewMine, ChaosOrange) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.CHAOS)) }
                     }
                     Spacer(Modifier.height(14.dp))
-                    PlainButton("Přeskočit", textColor = TextMuted, fontSize = 10.sp,
+                    PlainButton(LocalStrings.current.rogueSkip, textColor = TextMuted, fontSize = 10.sp,
                         paddingH = 16.dp, paddingV = 6.dp, onClick = { viewModel.skipRewardBonus() })
                 }
             }
@@ -483,18 +483,18 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Vzdát se?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                Text(LocalStrings.current.surrenderQ, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
                 Spacer(Modifier.height(2.dp))
-                Text("Rozehraný run bude ztracen. Opravdu se chceš vzdát?", color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                Text(LocalStrings.current.rogueSurrenderMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlainButton(
-                        text = "Zůstat", textColor = TealLight, fontSize = 13.sp,
+                        text = LocalStrings.current.stay, textColor = TealLight, fontSize = 13.sp,
                         paddingH = 20.dp, paddingV = 8.dp,
                         onClick = { showExitConfirm = false }
                     )
                     PlainButton(
-                        text = "Vzdát se", textColor = Crimson, fontSize = 13.sp,
+                        text = LocalStrings.current.surrender, textColor = Crimson, fontSize = 13.sp,
                         paddingH = 20.dp, paddingV = 8.dp,
                         onClick = { showExitConfirm = false; onExit() }
                     )
@@ -519,7 +519,7 @@ private fun RogueDeckOverview(deck: List<Card>, modifier: Modifier = Modifier) {
     val s = LocalStrings.current
 
     Column(modifier) {
-        Text("TVŮJ BALÍČEK (${deck.size})", color = Gold, fontSize = 10.sp,
+        Text(LocalStrings.current.rogueYourDeck.format(deck.size), color = Gold, fontSize = 10.sp,
             fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         Spacer(Modifier.height(3.dp))
         // Souhrn zdrojů v balíčku – kolik karet kterého typu, na první pohled bez scrollování.
@@ -623,13 +623,13 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 contentDescription = null, modifier = Modifier.size(40.dp)
             )
             Text(
-                if (victory) "RUN DOKONČEN!" else "RUN SKONČIL",
+                if (victory) LocalStrings.current.rogueRunComplete else LocalStrings.current.rogueRunOver,
                 color = if (victory) Gold else Crimson,
                 fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp
             )
             Text(
-                if (victory) "Probil ses všemi ${RogueConfig.TOTAL_BATTLES} bitvami."
-                else "Tvůj hrad padl.",
+                if (victory) LocalStrings.current.rogueAllBattles.format(RogueConfig.TOTAL_BATTLES)
+                else LocalStrings.current.rogueCastleFell,
                 color = TextPrimary, fontSize = 12.sp, textAlign = TextAlign.Center
             )
             Box(
@@ -638,11 +638,11 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                     .padding(horizontal = 18.dp, vertical = 6.dp)
             ) {
-                Text("Vyhrané bitvy: $battlesWon / ${RogueConfig.TOTAL_BATTLES}",
+                Text(LocalStrings.current.rogueBattlesWon.format(battlesWon, RogueConfig.TOTAL_BATTLES),
                     color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(4.dp))
-            PlainButton("ZPĚT DO MENU", modifier = Modifier.fillMaxWidth(),
+            PlainButton(LocalStrings.current.backToMenuCaps, modifier = Modifier.fillMaxWidth(),
                 textColor = TextPrimary, fontSize = 12.sp, paddingH = 0.dp, paddingV = 10.dp,
                 buttonRes = R.drawable.plain_button_longer, onClick = onBack)
         }

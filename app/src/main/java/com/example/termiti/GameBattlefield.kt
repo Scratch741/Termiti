@@ -863,7 +863,7 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
             if (lostCards.isNotEmpty() && onShowLostCards != null) {
                 PlainButton(
-                    text      = "Spálené & ukradené (${lostCards.size})",
+                    text      = LocalStrings.current.lostCardsButton.format(lostCards.size),
                     modifier  = Modifier.fillMaxWidth(),
                     buttonRes = R.drawable.plain_button_longer,
                     textColor = Color(0xFF9B59B6),
@@ -874,7 +874,7 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
                 )
             }
             PlainButton(
-                text      = "Zavřít",
+                text      = LocalStrings.current.close,
                 modifier  = Modifier.align(Alignment.CenterHorizontally),
                 textColor = TextMuted,
                 fontSize  = 11.sp,
@@ -1020,7 +1020,7 @@ fun AiHandRow(
                 }
             }
             PlainButton(
-                text      = "Kolo $currentTurn",
+                text      = LocalStrings.current.roundN.format(currentTurn),
                 buttonRes = R.drawable.plain_button,
                 modifier  = Modifier.size(width = 72.dp, height = 34.dp),
                 textColor = Gold.copy(alpha = 0.85f),

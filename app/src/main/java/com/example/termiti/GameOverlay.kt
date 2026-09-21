@@ -690,18 +690,18 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
             // Nadpis
             Spacer(Modifier.height(4.dp))
             Text(
-                "SPÁLENÉ & UKRADENÉ KARTY",
+                LocalStrings.current.lostCardsTitle,
                 color = Gold, fontSize = 14.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 3.sp
             )
             Text(
-                "Karty, o které tě připravil soupeř.",
+                LocalStrings.current.lostCardsSubtitle,
                 color = TextMuted, fontSize = 10.sp
             )
 
             if (lostCards.isEmpty()) {
                 Text(
-                    "Žádná karta zatím nebyla spálena ani ukradena.",
+                    LocalStrings.current.lostCardsEmpty,
                     color = TextMuted.copy(alpha = 0.6f), fontSize = 10.sp,
                     textAlign = TextAlign.Center
                 )
@@ -717,7 +717,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                     lostCards.forEach { entry ->
                         val badgeColor = if (entry.action == CardAction.STOLEN)
                             Color(0xFF9B59B6) else Color(0xFFE07B39)
-                        val badgeText  = if (entry.action == CardAction.STOLEN) "UKRADENO" else "SPÁLENO"
+                        val badgeText  = if (entry.action == CardAction.STOLEN) LocalStrings.current.badgeStolen else LocalStrings.current.badgeBurned
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -756,7 +756,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                     )
                 }
                 PlainButton(
-                    text      = "Zavřít",
+                    text      = LocalStrings.current.close,
                     textColor = TextMuted,
                     fontSize  = 11.sp,
                     paddingH  = 28.dp,
@@ -815,7 +815,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
             )
             Spacer(Modifier.height(8.dp))
             PlainButton(
-                text      = "PROHLÉDNOUT HRU",
+                text      = LocalStrings.current.inspectGameCaps,
                 modifier  = Modifier.fillMaxWidth(),
                 textColor = TextPrimary,
                 fontSize  = 12.sp,
@@ -849,16 +849,16 @@ fun ArenaGameOverDialog(
     onEndArena: () -> Unit
 ) {
     val (title, sub) = when (result) {
-        GameResult.PLAYER_CASTLE_DESTROYED -> "Prohrál jsi"  to "Tvůj hrad byl zničen."
-        GameResult.AI_CASTLE_DESTROYED     -> "Vítězství!"   to "Zničil jsi nepřátelský hrad."
-        GameResult.PLAYER_CASTLE_BUILT     -> "Vítězství!"   to "Postavil jsi mocný hrad."
-        GameResult.AI_CASTLE_BUILT         -> "Prohrál jsi"  to "Nepřítel dokončil svůj hrad."
-        GameResult.PLAYER_HP_WINS          -> "Vítězství!"   to "Balíčky došly – tvůj hrad je vyšší."
-        GameResult.AI_HP_WINS              -> "Prohrál jsi"  to "Balíčky došly – nepřítel má vyšší hrad."
-        GameResult.PLAYER_HP_WINS_TURN_LIMIT -> "Vítězství!" to "Limit 99 kol – tvůj hrad je vyšší."
-        GameResult.AI_HP_WINS_TURN_LIMIT   -> "Prohrál jsi"  to "Limit 99 kol – nepřítel má vyšší hrad."
-        GameResult.DRAW                    -> "Remíza"       to "Balíčky došly – hrady jsou stejně vysoké."
-        GameResult.DRAW_BOTH_DEAD          -> "Remíza"       to "Oba hrady byly zničeny současně."
+        GameResult.PLAYER_CASTLE_DESTROYED -> LocalStrings.current.arenaYouLost  to LocalStrings.current.resultYourCastleDestroyed
+        GameResult.AI_CASTLE_DESTROYED     -> LocalStrings.current.arenaVictory   to LocalStrings.current.resultCastleDestroyed
+        GameResult.PLAYER_CASTLE_BUILT     -> LocalStrings.current.arenaVictory   to LocalStrings.current.resultCastleBuilt
+        GameResult.AI_CASTLE_BUILT         -> LocalStrings.current.arenaYouLost  to LocalStrings.current.resultEnemyCastleBuilt
+        GameResult.PLAYER_HP_WINS          -> LocalStrings.current.arenaVictory   to LocalStrings.current.resultHpWins
+        GameResult.AI_HP_WINS              -> LocalStrings.current.arenaYouLost  to LocalStrings.current.resultHpLose
+        GameResult.PLAYER_HP_WINS_TURN_LIMIT -> LocalStrings.current.arenaVictory to LocalStrings.current.resultHpWinsTurnLimit
+        GameResult.AI_HP_WINS_TURN_LIMIT   -> LocalStrings.current.arenaYouLost  to LocalStrings.current.resultHpLoseTurnLimit
+        GameResult.DRAW                    -> LocalStrings.current.arenaDraw       to LocalStrings.current.resultDrawEqual
+        GameResult.DRAW_BOTH_DEAD          -> LocalStrings.current.arenaDraw       to LocalStrings.current.resultBothDead
     }
 
     GameDialog(onDismissRequest = {}) {
@@ -887,7 +887,7 @@ fun ArenaGameOverDialog(
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             ) {
                 Text(
-                    "Vítězství: $wins",
+                    LocalStrings.current.arenaWinsCount.format(wins),
                     color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold
                 )
             }
@@ -896,7 +896,7 @@ fun ArenaGameOverDialog(
 
             if (isPlayerWin) {
                 PlainButton(
-                    text      = "DALŠÍ BITVA",
+                    text      = LocalStrings.current.arenaNextBattle,
                     modifier  = Modifier.fillMaxWidth(),
                     textColor = TealLight,
                     fontSize  = 12.sp,
@@ -907,7 +907,7 @@ fun ArenaGameOverDialog(
                 )
             } else {
                 PlainButton(
-                    text      = "UKONČIT ARÉNU",
+                    text      = LocalStrings.current.arenaEnd,
                     modifier  = Modifier.fillMaxWidth(),
                     textColor = Crimson,
                     fontSize  = 12.sp,

@@ -16,17 +16,18 @@ import java.util.concurrent.TimeUnit
 private const val LOBBY_WS_URL = "ws://138.2.136.49:8765/lobby"
 
 private fun Throwable.czMessage(): String {
-    val m = message ?: return "neznámá chyba"
+    val s = LanguageManager.currentStrings
+    val m = message ?: return s.errUnknown
     return when {
-        m.contains("Software caused connection abort", ignoreCase = true) -> "spojení přerušeno sítí"
-        m.contains("Connection refused",               ignoreCase = true) -> "server nepřijímá spojení"
-        m.contains("Unable to resolve host",           ignoreCase = true) -> "nelze najít server"
-        m.contains("No address associated",            ignoreCase = true) -> "server nenalezen"
-        m.contains("timed out",                        ignoreCase = true) -> "vypršel čas připojení"
-        m.contains("ECONNRESET",                       ignoreCase = true) -> "spojení resetováno"
-        m.contains("Network is unreachable",           ignoreCase = true) -> "síť nedostupná"
-        m.contains("ECONNREFUSED",                     ignoreCase = true) -> "server odmítl spojení"
-        else                                                               -> "neznámá chyba připojení"
+        m.contains("Software caused connection abort", ignoreCase = true) -> s.errNetAbort
+        m.contains("Connection refused",               ignoreCase = true) -> s.errRefused
+        m.contains("Unable to resolve host",           ignoreCase = true) -> s.errNoHost
+        m.contains("No address associated",            ignoreCase = true) -> s.errNotFound
+        m.contains("timed out",                        ignoreCase = true) -> s.errTimeout
+        m.contains("ECONNRESET",                       ignoreCase = true) -> s.errReset
+        m.contains("Network is unreachable",           ignoreCase = true) -> s.errUnreachable
+        m.contains("ECONNREFUSED",                     ignoreCase = true) -> s.errRejected
+        else                                                               -> s.errUnknownConn
     }
 }
 
@@ -197,7 +198,7 @@ class OnlineLobbyViewModel(
         _pendingDeckIds = deckIds
         android.util.Log.d("DECK", "setDeckChoice: index=$index, deckIds=${deckIds?.size ?: "null"}")
         // Ukáže v lobby UI kolik karet bude posláno
-        statusMsg.value = if (deckIds != null) "Balíček: ${deckIds.size} karet připraveno" else "Balíček: náhodný"
+        statusMsg.value = if (deckIds != null) LanguageManager.currentStrings.lobbyDeckReady.format(deckIds.size) else LanguageManager.currentStrings.lobbyDeckRandom
     }
 
     // ── Herní stav ────────────────────────────────────────────────────────────
@@ -311,7 +312,7 @@ class OnlineLobbyViewModel(
 
     fun connect() {
         val name = playerName.value.trim()
-        if (name.isBlank()) { errorMsg.value = "Zadej přezdívku"; return }
+        if (name.isBlank()) { errorMsg.value = LanguageManager.currentStrings.lobbyEnterNick; return }
 
         // Zruš předchozí spojení a invaliduj staré listenery novou generací
         ws?.cancel()
@@ -321,7 +322,7 @@ class OnlineLobbyViewModel(
         reconnectAttempts    = 0
 
         phase.value     = OnlinePhase.CONNECTING
-        statusMsg.value = "Připojuji k serveru…"
+        statusMsg.value = LanguageManager.currentStrings.mpConnecting
         errorMsg.value  = ""
 
         val request = Request.Builder().url(LOBBY_WS_URL).build()
@@ -348,7 +349,7 @@ class OnlineLobbyViewModel(
             ws?.send(json.toString())
             isSuperRandom.value = true
             phase.value     = OnlinePhase.QUEUING
-            statusMsg.value = "Hledám super náhodného soupeře…"
+            statusMsg.value = LanguageManager.currentStrings.lobbySearchingSuperRandom
             return
         }
 
@@ -356,7 +357,7 @@ class OnlineLobbyViewModel(
         android.util.Log.d("DECK", "joinQueue: selectedDeckIndex=${selectedDeckIndex.value}, deckIds=${deckIds?.size ?: "null"}")
         // Pokud je vybrán konkrétní balíček ale nemá platná IDs, zablokuj
         if (selectedDeckIndex.value >= 0 && deckIds == null) {
-            errorMsg.value = "Vybraný balíček nemá 30 karet"
+            errorMsg.value = LanguageManager.currentStrings.lobbyDeckNot30
             return
         }
         val json = JSONObject().apply {
@@ -372,7 +373,7 @@ class OnlineLobbyViewModel(
         ws?.send(jsonStr)
         isSuperRandom.value = false
         phase.value     = OnlinePhase.QUEUING
-        statusMsg.value = "Hledám soupeře…"
+        statusMsg.value = LanguageManager.currentStrings.mpSearching
     }
 
     fun leaveQueue() {
@@ -556,7 +557,7 @@ class OnlineLobbyViewModel(
         // server přepíše gameResult svou GAME_OVER zprávou (stejná hodnota)
         gameResult.value = OnlineGameResult(
             winner     = "OPP",
-            winnerName = matchInfo.value?.opponentName ?: "Soupeř",
+            winnerName = matchInfo.value?.opponentName ?: LanguageManager.currentStrings.opponentDefault,
             youWin     = false
         )
         phase.value = OnlinePhase.GAME_OVER
@@ -620,7 +621,7 @@ class OnlineLobbyViewModel(
                     scheduleReconnect()
                 } else {
                     phase.value    = OnlinePhase.ERROR
-                    errorMsg.value = "Nepodařilo se připojit: ${t.czMessage()}"
+                    errorMsg.value = LanguageManager.currentStrings.lobbyConnectFailed.format(t.czMessage())
                     isReconnecting.value = false
                 }
             }
@@ -637,7 +638,7 @@ class OnlineLobbyViewModel(
                         scheduleReconnect()
                     } else {
                         phase.value    = OnlinePhase.ERROR
-                        errorMsg.value = "Spojení přerušeno (kód $code)"
+                        errorMsg.value = LanguageManager.currentStrings.lobbyConnectionLost.format(code.toString())
                         isReconnecting.value = false
                     }
                 }
@@ -704,7 +705,7 @@ class OnlineLobbyViewModel(
                                      phase.value == OnlinePhase.GAME_PLAYING
                         if (!inGame) {
                             phase.value      = OnlinePhase.LOBBY
-                            statusMsg.value  = "Připojeno ✓"
+                            statusMsg.value  = LanguageManager.currentStrings.lobbyConnected
                         }
                     }
                     android.util.Log.d("WELCOME", "WELCOME: isReconnecting=${isReconnecting.value} phase→${phase.value}")
@@ -719,7 +720,7 @@ class OnlineLobbyViewModel(
 
                 "QUEUE_OK" -> {
                     phase.value     = OnlinePhase.QUEUING
-                    statusMsg.value = "Ve frontě…"
+                    statusMsg.value = LanguageManager.currentStrings.lobbyInQueue
                 }
 
                 "MATCH_FOUND" -> {
@@ -747,7 +748,7 @@ class OnlineLobbyViewModel(
                     battleBackgroundResId.value = battleBackgroundDrawable(json.optString("background", "castle_background"))
                     matchInfo.value = OnlineMatchInfo(
                         gameId               = json.optString("gameId", ""),
-                        opponentName         = json.optString("opponentName", "Soupeř"),
+                        opponentName         = json.optString("opponentName", LanguageManager.currentStrings.opponentDefault),
                         opponentAvatar       = json.optString("opponentAvatar", "enemy_icon_1"),
                         opponentCardBackSkin = json.optString("opponentCardBackSkin", "card_back_frame"),
                         opponentCastleSkin   = json.optString("opponentCastleSkin",   "castle_player"),
@@ -764,7 +765,7 @@ class OnlineLobbyViewModel(
                     if (!json.isNull("opponentRating")) opponentRating.value = json.optInt("opponentRating", 1000)
                     ratingChange.value = null  // vyresetuj změnu z předchozího zápasu
                     // Nepřecházíme do GAME_MULLIGAN hned – čekáme na GAME_MULLIGAN ze serveru
-                    statusMsg.value = "Soupeř nalezen! Připravuji hru…"
+                    statusMsg.value = LanguageManager.currentStrings.lobbyOpponentFoundPreparing
                 }
 
                 "GAME_MULLIGAN" -> {
@@ -824,7 +825,7 @@ class OnlineLobbyViewModel(
                             battleBackgroundResId.value = battleBackgroundDrawable(json.optString("background", "castle_background"))
                             matchInfo.value = OnlineMatchInfo(
                                 gameId               = recoveredGameId,
-                                opponentName         = "Soupeř",
+                                opponentName         = LanguageManager.currentStrings.opponentDefault,
                                 opponentAvatar       = "enemy_icon_1",
                                 opponentCardBackSkin = "card_back_frame",
                                 opponentCastleSkin   = oppState?.optString("castleSkin", "castle_player") ?: "castle_player",
@@ -905,7 +906,7 @@ class OnlineLobbyViewModel(
                             if (card.id != lastLoggedPlayedCardId) {
                                 lastLoggedPlayedCardId = card.id
                                 val actorName = if (isMe) playerName.value
-                                                else (matchInfo.value?.opponentName ?: "Soupeř")
+                                                else (matchInfo.value?.opponentName ?: LanguageManager.currentStrings.opponentDefault)
                                 val turn = gameState.value.turnNumber
                                 gameLog.value = (gameLog.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
                             }
@@ -931,7 +932,7 @@ class OnlineLobbyViewModel(
                     val card        = template.copy(id = cardId, isGenerated = isGenerated)
                     val turn        = gameState.value.turnNumber
                     val myName      = playerName.value
-                    val oppName     = matchInfo.value?.opponentName ?: "Soupeř"
+                    val oppName     = matchInfo.value?.opponentName ?: LanguageManager.currentStrings.opponentDefault
 
                     val applyCardLost: suspend () -> Unit = {
                         val isBomb = baseId == "C37" || baseId == "C38"
@@ -1054,7 +1055,7 @@ class OnlineLobbyViewModel(
                         winnerName = playerName.value,
                         youWin     = true
                     )
-                    errorMsg.value = "Soupeř se odpojil – vyhráváš!"
+                    errorMsg.value = LanguageManager.currentStrings.lobbyOpponentLeftWin
                     phase.value    = OnlinePhase.GAME_OVER
                 }
 
@@ -1151,10 +1152,8 @@ class OnlineLobbyViewModel(
                     // Klient/server mají nekompatibilní protokol → hráč musí aktualizovat.
                     // Server spojení nezavírá, takže nehrozí reconnect smyčka – jen ukážeme chybu.
                     isReconnecting.value = false
-                    errorMsg.value = json.optString(
-                        "msg",
-                        "Tvá verze hry je zastaralá. Aktualizuj aplikaci pro hraní online."
-                    )
+                    // Text serveru je vždy česky – význam zprávy je jednoznačný, použij lokální překlad.
+                    errorMsg.value = LanguageManager.currentStrings.lobbyOutdated
                     phase.value = OnlinePhase.ERROR
                 }
 

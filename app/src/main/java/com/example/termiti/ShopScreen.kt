@@ -138,7 +138,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                         contentScale       = ContentScale.Fit
                     )
                     Text(
-                        "BALÍČKY",
+                        LocalStrings.current.shopPacks,
                         color = ShGold, fontSize = 22.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = 4.sp
                     )
@@ -150,7 +150,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text("5 karet • 1× vzácná nebo lepší garantována",
+                        Text(LocalStrings.current.shopPackInfo,
                             color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
 
                         // Rarity šance
@@ -166,7 +166,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                                 ) {
                                     Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
                                     Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                    Text(r.label, color = ShMuted, fontSize = 8.sp)
+                                    Text(r.displayLabel, color = ShMuted, fontSize = 8.sp)
                                 }
                             }
                         }
@@ -176,7 +176,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
 
                     // Tlačítko koupit
                     MenuButton(
-                        label    = "${CardCollectionManager.PACK_COST_GOLD}   KOUPIT BALÍČEK",
+                        label    = "${CardCollectionManager.PACK_COST_GOLD}   ${LocalStrings.current.shopBuyPack}",
                         accent   = if (canAfford) ShGold else ShMuted,
                         imageRes = R.drawable.button_7,
                         leadingIconRes = R.drawable.goldcoin_icon,
@@ -194,9 +194,9 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                     // Pomocný text
                     Text(
                         if (canAfford)
-                            "Můžeš koupit ${gold / CardCollectionManager.PACK_COST_GOLD}× balíček"
+                            LocalStrings.current.shopCanBuy.format(gold / CardCollectionManager.PACK_COST_GOLD)
                         else
-                            "Zlato získáš vítězstvím v bitvě",
+                            LocalStrings.current.shopEarnGold,
                         color = ShMuted, fontSize = 9.sp,
                         textAlign = TextAlign.Center
                     )
@@ -254,7 +254,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                "BALÍČEK OTEVŘEN!",
+                LocalStrings.current.shopPackOpened,
                 color = ShGold, fontSize = 18.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 3.sp
             )
@@ -274,7 +274,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
 
             Box(Modifier.height(80.dp), contentAlignment = Alignment.Center) {
                 if (!allRevealed) {
-                    Text("Klepni na kartu pro odkrytí", color = ShMuted, fontSize = 11.sp)
+                    Text(LocalStrings.current.shopTapToReveal, color = ShMuted, fontSize = 11.sp)
                 } else {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -296,13 +296,13 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                                     modifier           = Modifier.size(13.dp)
                                 )
                                 Text(
-                                    "Duplikáty → +${result.totalDustGained} prachu",
+                                    LocalStrings.current.shopDuplicates.format(result.totalDustGained),
                                     color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                         PlainButton(
-                            text      = "DOKONČIT",
+                            text      = LocalStrings.current.shopFinish,
                             textColor = ShGreen,
                             fontSize  = 13.sp,
                             paddingH  = 28.dp,

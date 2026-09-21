@@ -68,7 +68,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
             players      = result.first
             totalPlayers = result.second
         } catch (e: Exception) {
-            errorMsg = "Nepodařilo se načíst žebříček\n${e.message}"
+            errorMsg = LanguageManager.currentStrings.lbLoadFailed.format(e.message ?: "")
         } finally {
             isLoading = false
         }
@@ -91,7 +91,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 PlainButton(
-                    text      = "← Zpět",
+                    text      = LocalStrings.current.backShort,
                     textColor = LbMuted,
                     fontSize  = 10.sp,
                     paddingH  = 10.dp,
@@ -99,7 +99,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                     onClick   = onBack
                 )
                 Text(
-                    "🏆 ŽEBŘÍČEK",
+                    LocalStrings.current.lbTitle,
                     color         = LbGold,
                     fontSize      = 16.sp,
                     fontWeight    = FontWeight.Bold,
@@ -108,7 +108,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 if (totalPlayers > 0) {
                     Text(
-                        "$totalPlayers hráčů celkem",
+                        LocalStrings.current.lbTotalPlayers.format(totalPlayers),
                         color    = LbMuted,
                         fontSize = 9.sp
                     )
@@ -133,7 +133,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ModeChip("⚔️ Constructed",    "normal",       selectedMode) { selectedMode = it }
-                ModeChip("🌪️ Super Náhodný", "super_random", selectedMode) { selectedMode = it }
+                ModeChip(LocalStrings.current.lbModeSuperRandom, "super_random", selectedMode) { selectedMode = it }
             }
 
             HorizontalDivider(color = LbGold.copy(alpha = 0.1f))
@@ -145,7 +145,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = LbTeal, modifier = Modifier.size(40.dp))
                             Spacer(Modifier.height(12.dp))
-                            Text("Načítám žebříček…", color = LbMuted, fontSize = 11.sp)
+                            Text(LocalStrings.current.lbLoading, color = LbMuted, fontSize = 11.sp)
                         }
                     }
                 }
@@ -162,7 +162,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                             )
                             Spacer(Modifier.height(16.dp))
                             PlainButton(
-                                text      = "🔄 Zkusit znovu",
+                                text      = LocalStrings.current.lbRetry,
                                 textColor = LbTeal,
                                 fontSize  = 11.sp,
                                 paddingH  = 20.dp,
@@ -174,7 +174,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 }
                 players.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Žebříček je prázdný", color = LbMuted, fontSize = 13.sp)
+                        Text(LocalStrings.current.lbEmpty, color = LbMuted, fontSize = 13.sp)
                     }
                 }
                 else -> {
@@ -187,7 +187,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("#",       color = LbMuted, fontSize = 9.sp, modifier = Modifier.width(28.dp))
-                        Text("Hráč",    color = LbMuted, fontSize = 9.sp, modifier = Modifier.weight(1f))
+                        Text(LocalStrings.current.lbPlayer,    color = LbMuted, fontSize = 9.sp, modifier = Modifier.weight(1f))
                         Text("Rating",  color = LbMuted, fontSize = 9.sp, modifier = Modifier.width(60.dp), textAlign = TextAlign.End)
                         Text("W",       color = LbMuted, fontSize = 9.sp, modifier = Modifier.width(36.dp), textAlign = TextAlign.End)
                         Text("L",       color = LbMuted, fontSize = 9.sp, modifier = Modifier.width(36.dp), textAlign = TextAlign.End)

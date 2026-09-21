@@ -382,9 +382,9 @@ fun GameScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Opustit hru?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                    Text(LocalStrings.current.leaveGameQ, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
                     Spacer(Modifier.height(2.dp))
-                    Text("Rozehraná partie bude ztracena. Opravdu chceš odejít do menu?", color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                    Text(LocalStrings.current.leaveGameMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                     MenuButton(
                         label    = LocalStrings.current.settings,
                         imageRes = R.drawable.button_5,
@@ -394,7 +394,7 @@ fun GameScreen(
                     HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         PlainButton(
-                            text      = "Zůstat",
+                            text      = LocalStrings.current.stay,
                             textColor = TealLight,
                             fontSize  = 13.sp,
                             paddingH  = 20.dp,
@@ -402,7 +402,7 @@ fun GameScreen(
                             onClick   = { showMenuConfirm = false }
                         )
                         PlainButton(
-                            text      = "Odejít",
+                            text      = LocalStrings.current.leave,
                             textColor = Crimson,
                             fontSize  = 13.sp,
                             paddingH  = 20.dp,

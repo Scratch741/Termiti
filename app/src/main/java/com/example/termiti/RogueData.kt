@@ -63,13 +63,13 @@ object RogueConfig {
         "101", "102", "103"  // X-kost karty
     )
 
-    val ACT_TITLES = listOf("Hranice", "Válečná pole", "Citadela")
+    /** Lokalizované – čte se z jazykového balíčku (oddělovač "|"). */
+    val ACT_TITLES: List<String> get() = LanguageManager.currentStrings.rogueActTitles.split("|")
 
-    val ENEMY_NAMES = listOf(
-        listOf("Goblin zvěd", "Pěšák", "Nájezdník", "Lučištník", "Zloděj"),
-        listOf("Válečník", "Sabotér", "Temný učeň", "Obléhatel", "Žoldnéř"),
-        listOf("Generál", "Arcimág", "Pán citadely", "Válečný vládce", "Katan")
-    )
+    /** Jména soupeřů po aktech – lokalizovaná, jeden řetězec na akt (oddělovač "|"). */
+    val ENEMY_NAMES: List<List<String>> get() = LanguageManager.currentStrings.let { s ->
+        listOf(s.rogueEnemiesAct1, s.rogueEnemiesAct2, s.rogueEnemiesAct3).map { it.split("|") }
+    }
 }
 
 /**
@@ -110,5 +110,6 @@ data class RogueRun(
         (battleIndex % RogueConfig.BATTLES_PER_ACT) == RogueConfig.BATTLES_PER_ACT - 1
     val actTitle: String get() = RogueConfig.ACT_TITLES.getOrElse(act) { "?" }
     /** 1-based popis pokroku, např. "Bitva 3 / 12". */
-    val battleLabel: String get() = "Bitva ${(battleIndex + 1).coerceAtMost(RogueConfig.TOTAL_BATTLES)} / ${RogueConfig.TOTAL_BATTLES}"
+    val battleLabel: String get() = LanguageManager.currentStrings.rogueBattleLabel
+        .format((battleIndex + 1).coerceAtMost(RogueConfig.TOTAL_BATTLES), RogueConfig.TOTAL_BATTLES)
 }

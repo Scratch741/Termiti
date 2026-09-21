@@ -106,7 +106,7 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
             )
 
             Text(
-                "Zadej své jméno hrdiny",
+                LocalStrings.current.profileNamePrompt,
                 color    = PsTextPrimary.copy(alpha = 0.85f),
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
@@ -152,7 +152,7 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
                         .focusRequester(focusRequester),
                     decorationBox  = { inner ->
                         if (name.isEmpty()) {
-                            Text("Jméno hrdiny…", color = PsTextMuted, fontSize = 15.sp)
+                            Text(LocalStrings.current.profileNameHint, color = PsTextMuted, fontSize = 15.sp)
                         }
                         inner()
                     }
@@ -168,7 +168,7 @@ fun ProfileSetupScreen(onDone: () -> Unit) {
 
             // ── Potvrdit ──────────────────────────────────────────────────────
             PlainButton(
-                text      = "VSTOUPIT DO HRY",
+                text      = LocalStrings.current.profileEnterGame,
                 modifier  = Modifier.fillMaxWidth(),
                 textColor = PsTealLight,
                 fontSize  = 12.sp,

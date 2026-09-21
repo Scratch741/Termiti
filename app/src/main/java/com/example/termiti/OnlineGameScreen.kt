@@ -233,13 +233,13 @@ fun OnlineGameScreen(
                 ) {
                     Text("📡", fontSize = 48.sp)
                     Text(
-                        "Soupeř se odpojil",
+                        LocalStrings.current.onlineOppLeft,
                         color = OgTextPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Čekám na reconnect…",
+                        LocalStrings.current.onlineWaitReconnect,
                         color = OgTextMuted,
                         fontSize = 14.sp
                     )
@@ -273,13 +273,13 @@ fun OnlineGameScreen(
                 ) {
                     Text("🔄", fontSize = 48.sp)
                     Text(
-                        "Ztraceno připojení",
+                        LocalStrings.current.onlineConnLost,
                         color = OgTextPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Připojuji se zpět…",
+                        LocalStrings.current.onlineReconnecting,
                         color = OgTextMuted,
                         fontSize = 14.sp
                     )
@@ -309,7 +309,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
     val profile      = PlayerProfileManager.profile
 
     val mode      = match?.mode ?: "normal"
-    val modeLabel = if (mode == "super_random") "SUPER NÁHODNÝ" else "RYCHLÝ ZÁPAS"
+    val modeLabel = if (mode == "super_random") LocalStrings.current.mpSuperRandom else LocalStrings.current.mpQuickMatch
     // Skóre v daném módu: preferuj data z MATCH_FOUND, fallback na WELCOME statistiky
     val myStats   = match?.myStats ?: allModeStats[mode]
     val oppStats  = match?.opponentStats
@@ -353,7 +353,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
             // Já – přilétá zleva
             Box(Modifier.graphicsLayer { translationX = -(1f - enter.value) * slidePx }) {
                 VsSideColumn(
-                    name      = playerName.ifBlank { profile?.name ?: "Hráč" },
+                    name      = playerName.ifBlank { profile?.name ?: LocalStrings.current.lbPlayer },
                     avatar    = profile?.avatar ?: "player_icon_1",
                     level     = profile?.level ?: -1,
                     rating    = myRating,
@@ -379,7 +379,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
             // Soupeř – přilétá zprava
             Box(Modifier.graphicsLayer { translationX = (1f - enter.value) * slidePx }) {
                 VsSideColumn(
-                    name      = match?.opponentName ?: "Soupeř",
+                    name      = match?.opponentName ?: LocalStrings.current.opponentDefault,
                     avatar    = match?.opponentAvatar ?: "enemy_icon_1",
                     level     = match?.opponentLevel ?: -1,
                     rating    = oppRating,
@@ -392,7 +392,7 @@ private fun OnlineVersusIntro(vm: OnlineLobbyViewModel, onDone: () -> Unit) {
         }
         // Kdo začíná – dole
         Text(
-            if (match?.side == "A") "⚔ Ty začínáš první" else "⏳ Soupeř začíná první",
+            if (match?.side == "A") LocalStrings.current.onlineYouFirst else LocalStrings.current.onlineOppFirst,
             color      = if (match?.side == "A") OgTealLight else OgTextMuted,
             fontSize   = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -428,9 +428,9 @@ private fun VsSideColumn(
         // Skóre v daném módu: výhry / prohry (+ winrate od 5 her)
         if (stats != null && stats.games > 0) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("${stats.wins}V", color = Color(0xFF4CAF50), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("${stats.wins}" + LocalStrings.current.statWinShort, color = Color(0xFF4CAF50), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Text("·", color = OgTextMuted, fontSize = 11.sp)
-                Text("${stats.losses}P", color = OgCrimson, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("${stats.losses}" + LocalStrings.current.statLossShort, color = OgCrimson, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 if (stats.games >= 5) {
                     Text("(${stats.winRate} %)", color = OgTextMuted, fontSize = 10.sp)
                 }
@@ -512,7 +512,7 @@ private fun OnlineGameplay(
     // Resetuj pohled na soupeřovu ruku při zavření review módu
     LaunchedEffect(reviewMode) { if (!reviewMode) showOppHand = false }
 
-    val opponentName = matchInfo?.opponentName ?: "Soupeř"
+    val opponentName = matchInfo?.opponentName ?: LocalStrings.current.opponentDefault
 
     // ── Timer výpočet ─────────────────────────────────────────────────────────
     // Server posílá relativní časy (zbývající ms v čase odeslání).
@@ -642,7 +642,7 @@ private fun OnlineGameplay(
                 isPlayerTurn     = gs.isMyTurn,
                 isComboTurn      = isComboTurn,
                 currentTurn      = gs.turnNumber,
-                playerLabel      = PlayerProfileManager.profile?.name   ?: "Hráč",
+                playerLabel      = PlayerProfileManager.profile?.name   ?: LocalStrings.current.lbPlayer,
                 playerAvatar     = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel      = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel    = opponentName,
@@ -856,7 +856,7 @@ private fun OnlineGameplay(
                 Text("Menu", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "Vzdát se? Prohra bude zaznamenána a soupeř bude prohlášen vítězem.",
+                    LocalStrings.current.onlineSurrenderMsg,
                     color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center
                 )
                 HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
@@ -869,7 +869,7 @@ private fun OnlineGameplay(
                 HorizontalDivider(color = TextMuted.copy(alpha = 0.2f))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlainButton(
-                        text      = "Zůstat",
+                        text      = LocalStrings.current.stay,
                         textColor = TealLight,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
@@ -877,7 +877,7 @@ private fun OnlineGameplay(
                         onClick   = { SoundManager.playMenuTap(); showMenu = false }
                     )
                     PlainButton(
-                        text      = "Vzdát se",
+                        text      = LocalStrings.current.surrender,
                         textColor = Crimson,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
@@ -988,11 +988,11 @@ private fun OnlineGameOverOverlay(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             val (iconRes, headline, subline) = when {
-                result == null            -> Triple(R.drawable.clock_icon, "Konec hry", "")
-                result!!.winner == "DRAW_BOTH_DEAD" -> Triple(R.drawable.skull_icon, "Remíza!", "Oba hrady byly zničeny současně")
-                result!!.winner == "DRAW" -> Triple(R.drawable.shield_icon, "Remíza!", "Obě strany mají stejný hrad")
-                result!!.youWin           -> Triple(R.drawable.trophy_icon, "Vítězství!", "Porazil jsi ${vm.matchInfo.value?.opponentName ?: "soupeře"}")
-                else                      -> Triple(R.drawable.skull_icon, "Prohra", "${result!!.winnerName ?: "Soupeř"} zvítězil")
+                result == null            -> Triple(R.drawable.clock_icon, LocalStrings.current.onlineGameOver, "")
+                result!!.winner == "DRAW_BOTH_DEAD" -> Triple(R.drawable.skull_icon, LocalStrings.current.onlineDraw, LocalStrings.current.resultBothDead)
+                result!!.winner == "DRAW" -> Triple(R.drawable.shield_icon, LocalStrings.current.onlineDraw, LocalStrings.current.onlineDrawEqual)
+                result!!.youWin           -> Triple(R.drawable.trophy_icon, LocalStrings.current.onlineVictory, LocalStrings.current.onlineYouBeat.format(vm.matchInfo.value?.opponentName ?: LocalStrings.current.opponentAcc))
+                else                      -> Triple(R.drawable.skull_icon, LocalStrings.current.onlineDefeat, LocalStrings.current.onlineWinnerWon.format(result!!.winnerName ?: LocalStrings.current.opponentDefault))
             }
 
             // Ikona + nadpis na jednom řádku → ušetří výšku
@@ -1047,7 +1047,7 @@ private fun OnlineGameOverOverlay(
             }
 
             MenuButton(
-                label    = "Hrát znovu",
+                label    = LocalStrings.current.resultPlayAgain,
                 imageRes = R.drawable.button_1,
                 accent   = TealLight,
                 onClick  = {
@@ -1058,7 +1058,7 @@ private fun OnlineGameOverOverlay(
             )
 
             MenuButton(
-                label    = "Zpět do lobby",
+                label    = LocalStrings.current.onlineBackToLobby,
                 imageRes = R.drawable.button_3,
                 accent   = OgGold,
                 onClick  = { SoundManager.playMenuTap(); vm.returnToLobby() }
@@ -1072,7 +1072,7 @@ private fun OnlineGameOverOverlay(
             )
 
             PlainButton(
-                text      = "Odejít",
+                text      = LocalStrings.current.leave,
                 textColor = OgTextMuted,
                 fontSize  = 12.sp,
                 paddingH  = 20.dp,

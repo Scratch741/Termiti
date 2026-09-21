@@ -198,7 +198,7 @@ private fun LobbyPanel(
 
                     // Statistiky
                     Text(
-                        "STATISTIKY",
+                        LocalStrings.current.mpStats,
                         color = OnMuted, fontSize = 7.sp,
                         letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold
                     )
@@ -208,7 +208,7 @@ private fun LobbyPanel(
                         accent = OnTeal
                     )
                     ModeStatsBlock(
-                        label  = "Super Náhodný",
+                        label  = LocalStrings.current.mpModeSuperRandom,
                         stats  = allModeStats["super_random"],
                         accent = OnPurple
                     )
@@ -254,25 +254,25 @@ private fun LobbyPanel(
 
                     // Akční tlačítka – stejný styl jako v hlavním menu
                     MenuButton(
-                        label    = "RYCHLÝ ZÁPAS",
+                        label    = LocalStrings.current.mpQuickMatch,
                         imageRes = R.drawable.button_1,
                         accent   = TealLight,
                         onClick  = { vm.joinQueue(superRandom = false) }
                     )
                     MenuButton(
-                        label    = "SUPER NÁHODNÝ",
+                        label    = LocalStrings.current.mpSuperRandom,
                         imageRes = R.drawable.button_9,
                         accent   = OnPurple,
                         onClick  = { vm.joinQueue(superRandom = true) }
                     )
                     MenuButton(
-                        label    = "ŽEBŘÍČEK",
+                        label    = LocalStrings.current.mpLeaderboard,
                         imageRes = R.drawable.button_4,
                         accent   = OnGold,
                         onClick  = onLeaderboard
                     )
                     MenuButton(
-                        label    = "ODPOJIT",
+                        label    = LocalStrings.current.mpDisconnect,
                         imageRes = R.drawable.button_6,
                         accent   = OnMuted,
                         onClick  = { vm.disconnect(); onBack() }
@@ -317,14 +317,14 @@ private fun LobbyPanel(
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(queueSize.toString(), color = OnGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("Fronta", color = OnMuted, fontSize = 8.sp, letterSpacing = 0.5.sp)
+                            Text(LocalStrings.current.mpQueue, color = OnMuted, fontSize = 8.sp, letterSpacing = 0.5.sp)
                         }
                     }
 
                     LobbyDivider()
 
                     Text(
-                        "BALÍČEK",
+                        LocalStrings.current.mpDeckLabel,
                         color = OnMuted, fontSize = 7.sp,
                         letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold
                     )
@@ -387,7 +387,7 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Připoj se k lobby serveru a najdi soupeře",
+                LocalStrings.current.mpConnectHint,
                 color     = OnMuted,
                 fontSize  = 10.sp,
                 textAlign = TextAlign.Center
@@ -398,7 +398,7 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
             OutlinedTextField(
                 value         = name,
                 onValueChange = { vm.setName(it) },
-                label         = { Text("Přezdívka", color = OnMuted, fontSize = 11.sp) },
+                label         = { Text(LocalStrings.current.mpNickname, color = OnMuted, fontSize = 11.sp) },
                 singleLine    = true,
                 modifier      = Modifier.width(260.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -419,9 +419,9 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 
             Spacer(Modifier.height(16.dp))
 
-            OnBtn("PŘIPOJIT SE", OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
+            OnBtn(LocalStrings.current.mpConnect, OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
             Spacer(Modifier.height(8.dp))
-            OnBtn("← ZPĚT", OnMuted, Modifier.width(260.dp)) { onBack() }
+            OnBtn(LocalStrings.current.back, OnMuted, Modifier.width(260.dp)) { onBack() }
         }
     }
 }
@@ -434,12 +434,12 @@ private fun ConnectingPanel(onCancel: (() -> Unit)? = null) {
             CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(52.dp), strokeWidth = 3.dp)
             Spacer(Modifier.height(16.dp))
             Text(
-                "Připojuji k serveru…",
+                LocalStrings.current.mpConnecting,
                 color = OnText, fontSize = 13.sp, fontWeight = FontWeight.Bold
             )
             if (onCancel != null) {
                 Spacer(Modifier.height(20.dp))
-                OnBtn("← ZRUŠIT", OnMuted, Modifier.width(200.dp)) { onCancel() }
+                OnBtn(LocalStrings.current.mpCancel, OnMuted, Modifier.width(200.dp)) { onCancel() }
             }
         }
     }
@@ -452,7 +452,7 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
     val isSuperRandom by vm.isSuperRandom
 
     val accentColor = if (isSuperRandom) OnPurple else OnTeal
-    val modeLabel   = if (isSuperRandom) "Super Náhodný" else "Rychlý zápas"
+    val modeLabel   = if (isSuperRandom) LocalStrings.current.mpModeSuperRandom else LocalStrings.current.mpModeQuick
 
     var elapsedSec by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -517,7 +517,7 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                         contentScale       = ContentScale.FillWidth
                     )
                     Text(
-                        "Hledám soupeře…",
+                        LocalStrings.current.mpSearching,
                         color = OnText, fontSize = 18.sp, fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -526,7 +526,7 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                         fontSize = 13.sp, fontWeight = FontWeight.Bold
                     )
                     if (queueSize > 1) {
-                        Text("Ve frontě: $queueSize hráčů", color = OnMuted, fontSize = 11.sp)
+                        Text(LocalStrings.current.mpInQueue.format(queueSize), color = OnMuted, fontSize = 11.sp)
                     }
                 }
             }
@@ -550,7 +550,7 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                     }
                     IconMenuButton(
                         imageRes = R.drawable.button_6,
-                        label    = "ZPĚT",
+                        label    = LocalStrings.current.mpBackPlain,
                         size     = H * 0.12f,
                         onClick  = { vm.leaveQueue() }
                     )
@@ -571,7 +571,7 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "SOUPEŘ NALEZEN!",
+                LocalStrings.current.mpOpponentFound,
                 color         = OnGreen,
                 fontSize      = 20.sp,
                 fontWeight    = FontWeight.Bold,
@@ -605,7 +605,7 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
                     AvatarDisplay(match?.opponentAvatar ?: "enemy_icon_1", sizeDp = 36f)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        match?.opponentName ?: "Soupeř",
+                        match?.opponentName ?: LocalStrings.current.opponentDefault,
                         color = OnRed, fontSize = 11.sp, fontWeight = FontWeight.Bold
                     )
                     if (opponentRating != null) Text("$opponentRating", color = OnGold, fontSize = 10.sp)
@@ -614,14 +614,14 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
 
             Spacer(Modifier.height(10.dp))
             Text(
-                if (match?.side == "A") "Ty začínáš první" else "Soupeř začíná první",
+                if (match?.side == "A") LocalStrings.current.mulliganYouFirst else LocalStrings.current.mulliganOpponentFirst,
                 color    = if (match?.side == "A") OnTeal else OnMuted,
                 fontSize = 11.sp
             )
             Spacer(Modifier.height(16.dp))
             CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
             Spacer(Modifier.height(6.dp))
-            Text("Připravuji hru…", color = OnMuted, fontSize = 10.sp)
+            Text(LocalStrings.current.mpPreparing, color = OnMuted, fontSize = 10.sp)
         }
     }
 }
@@ -638,7 +638,7 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Text(
-                "CHYBA PŘIPOJENÍ",
+                LocalStrings.current.mpConnectionError,
                 color         = OnRed,
                 fontSize      = 18.sp,
                 fontWeight    = FontWeight.Bold,
@@ -660,9 +660,9 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
                 modifier  = Modifier.widthIn(max = 280.dp)
             )
             Spacer(Modifier.height(28.dp))
-            OnBtn("ZKUSIT ZNOVU", OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
+            OnBtn(LocalStrings.current.mpRetry, OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
             Spacer(Modifier.height(10.dp))
-            OnBtn("← ZPĚT", OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
+            OnBtn(LocalStrings.current.back, OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
         }
     }
 }
@@ -707,7 +707,7 @@ private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color
                 else            -> OnRed
             }
             Text(
-                if (s.games == 0) "–" else "${s.winRate}%  (${s.games} her)",
+                if (s.games == 0) "–" else "${s.winRate}%  " + LocalStrings.current.mpGamesSuffix.format(s.games),
                 color = wrColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
             )
         }

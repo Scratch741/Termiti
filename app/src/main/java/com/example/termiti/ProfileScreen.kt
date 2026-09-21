@@ -309,7 +309,7 @@ fun ProfileScreen(onBack: () -> Unit) {
 
         // ── Tlačítko Zpět (floating) ──────────────────────────────────────────
         PlainButton(
-            text      = "Zpět",
+            text      = LocalStrings.current.back2,
             modifier  = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(10.dp),
             textColor = PrMuted,
             fontSize  = 12.sp,

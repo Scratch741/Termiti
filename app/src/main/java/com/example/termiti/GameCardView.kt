@@ -1093,7 +1093,7 @@ fun CardFullPreviewOverlay(
         // Hint pro zavření – vždy přímo pod kartou
         Spacer(Modifier.height(14.dp))
         Text(
-            "Klepnutím zavřeš",
+            LocalStrings.current.tapToClose,
             color    = Color.White.copy(alpha = 0.35f),
             fontSize = 10.sp
         )

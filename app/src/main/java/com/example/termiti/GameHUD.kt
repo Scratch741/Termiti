@@ -810,12 +810,12 @@ fun HandPanel(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "RUKA (${hand.size})",
+                    text = LocalStrings.current.handCount.format(hand.size),
                     color = TextMuted,
                     fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
                 if (isPlayerTurn || isComboTurn) {
-                    ActionChip(label = "Čekat", color = TealLight, onClick = onWait)
+                    ActionChip(label = LocalStrings.current.actionWait, color = TealLight, onClick = onWait)
                 }
             }
         }

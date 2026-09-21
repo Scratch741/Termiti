@@ -72,7 +72,7 @@ fun ReplayOverlay(
                         fontWeight    = FontWeight.Bold,
                         letterSpacing = 2.sp
                     )
-                    val resultText  = if (replay.result.isPlayerWin()) "✔ ${replay.playerName} vyhrál" else "✘ ${replay.playerName} prohrál"
+                    val resultText  = if (replay.result.isPlayerWin()) "✔ ${replay.playerName} " + LocalStrings.current.replayWon else "✘ ${replay.playerName} " + LocalStrings.current.replayLost
                     val resultColor = if (replay.result.isPlayerWin()) TealLight else Crimson
                     Text(resultText, color = resultColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
@@ -86,7 +86,7 @@ fun ReplayOverlay(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Kolo ${frame.turnNumber}",
+                        LocalStrings.current.roundN.format(frame.turnNumber),
                         color    = Gold.copy(alpha = 0.65f),
                         fontSize = 9.sp
                     )
@@ -101,7 +101,7 @@ fun ReplayOverlay(
                         .clickable { onClose() }
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Text("✕ Zavřít", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(LocalStrings.current.closeX, color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -111,7 +111,7 @@ fun ReplayOverlay(
                 val actorColor = if (frame.isPlayer) TealLight else Crimson
                 val actorEmoji = if (frame.isPlayer) replay.playerAvatar else replay.opponentAvatar
                 val actorName  = if (frame.isPlayer) replay.playerName  else replay.opponentName
-                val actionText = if (frame.action == CardAction.PLAYED) "zahrál" else "zahodil"
+                val actionText = if (frame.action == CardAction.PLAYED) LocalStrings.current.logVerbPlayed else LocalStrings.current.logVerbDiscarded
                 Row(
                     modifier              = Modifier
                         .fillMaxWidth()
@@ -136,7 +136,7 @@ fun ReplayOverlay(
                         .padding(vertical = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Kolo ${frame.turnNumber}", color = TextMuted, fontSize = 10.sp)
+                    Text(LocalStrings.current.roundN.format(frame.turnNumber), color = TextMuted, fontSize = 10.sp)
                 }
             }
 

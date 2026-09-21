@@ -253,16 +253,16 @@ object CampaignData {
             description = "Mlžné tůně plné divoké magie. Neubijí tě – vysají tě.",
             opponents = listOf(
 
-                // 1 ── 24 karet, winTarget 60 ───────────────────────────────
+                // 1 ── 29 karet, winTarget 60 ───────────────────────────────
                 // Měkký vstup do lokace: jen mírné odsávání magie.
                 CampaignOpponent(
                     id = "swp_frog", name = "Bažinná Žába", title = "Skokan z tůní",
-                    avatar = "🐸", description = "Kváká a krade magii. Nic víc neumí.",
+                    avatar = "🐸", description = "Kváká a krade magii.",
                     aiCastle = 30, aiWall = 8, aiMaxWall = 8, aiStartMagic = 1,
                     deckCardCounts = mapOf(
-                        "004" to 3, "037" to 3, "137" to 3, "065" to 3,
-                        "008" to 3, "003" to 2, "010" to 3, "028" to 2,
-                        "049" to 2
+                        "127" to 2, "137" to 2, "004" to 2, "037" to 2,
+                        "065" to 2, "003" to 4, "010" to 3, "028" to 2,
+                        "049" to 3, "013" to 2, "084" to 3, "022" to 2
                     ),
                     winTarget = 60, aiWinTarget = 42,
                     rewardGold = 70

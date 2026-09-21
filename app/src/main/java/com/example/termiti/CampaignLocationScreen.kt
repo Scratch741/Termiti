@@ -59,7 +59,7 @@ fun CampaignLocationScreen(
         )
 
         PlainButton(
-            text      = "← Zpět",
+            text      = LocalStrings.current.backShort,
             modifier  = Modifier.padding(start = 28.dp, top = 16.dp, end = 16.dp, bottom = 16.dp).align(Alignment.TopStart),
             textColor = ClMuted,
             fontSize  = 12.sp,
@@ -391,9 +391,9 @@ private fun OpponentCard(
             Spacer(Modifier.width(4.dp))
             Text(
                 when {
-                    defeated  -> "Poražen"
-                    !unlocked -> "Zamčen"
-                    else      -> "Bojuj!"
+                    defeated  -> LocalStrings.current.campaignDefeated
+                    !unlocked -> LocalStrings.current.campaignOppLocked
+                    else      -> LocalStrings.current.campaignFight
                 },
                 color      = when {
                     defeated  -> ClGreen

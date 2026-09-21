@@ -154,8 +154,19 @@ private fun Card.category() = categories().first()
  */
 private val DEFAULT_DECK_NAME = Regex("^(?:Balíček|Deck) (\\d+)$")
 fun localizedDeckName(name: String): String {
+    val s = LanguageManager.currentStrings
+    // Vestavěné názvy (startovní balíček, šablony) jsou uložené česky – přelož je.
+    when (name) {
+        "Začátečník"  -> return s.deckStarter
+        "⚔️ Útočník"  -> return s.presetAttacker
+        "🔮 Mágik"    -> return s.presetMage
+        "🏰 Obránce"  -> return s.presetDefender
+        "🏰 Obránce2" -> return s.presetDefender2
+        "📚 Kartář"   -> return s.presetCardsmith
+        "🕵️ Sabotér"  -> return s.presetSaboteur
+    }
     val m = DEFAULT_DECK_NAME.find(name) ?: return name
-    return LanguageManager.currentStrings.deckDefaultName.format(m.groupValues[1].toInt())
+    return s.deckDefaultName.format(m.groupValues[1].toInt())
 }
 
 // ─── Root ────────────────────────────────────────────────────────────────────
@@ -554,7 +565,7 @@ private fun FilterBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            Text("Zdroj:", color = TextMuted, fontSize = 9.sp)
+            Text(LocalStrings.current.dbResourceLabel, color = TextMuted, fontSize = 9.sp)
             FilterChip(R.drawable.magie_icon,  LocalStrings.current.resMagic,  filterRes == ResourceType.MAGIC,  MagicBlue)   { onResFilter(ResourceType.MAGIC)  }
             FilterChip(R.drawable.utok_icon,   LocalStrings.current.resAttack, filterRes == ResourceType.ATTACK, AttackRed)   { onResFilter(ResourceType.ATTACK) }
             FilterChip(R.drawable.kamen_icon2, LocalStrings.current.resStone,  filterRes == ResourceType.STONES, StoneColor)  { onResFilter(ResourceType.STONES) }
@@ -966,7 +977,7 @@ private fun CardActionPanel(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
-                Text(card.rarity.label, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Text(card.rarity.displayLabel, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(4.dp))
                 Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(13.dp))
                 Text(
@@ -988,7 +999,7 @@ private fun CardActionPanel(
                 // ── Vyrobit ──────────────────────────────────────────────────
                 val craftAccent = Color(0xFFB39DDB)
                 ActionCounter(
-                    label       = "Vyrobit  ✨${card.rarity.craftCost}",
+                    label       = LocalStrings.current.dbCraft.format(card.rarity.craftCost),
                     iconRes     = R.drawable.hammer_icon,
                     accent      = craftAccent,
                     count       = pendingCraft,
@@ -1483,7 +1494,7 @@ private fun DeckPanel(
         ) {
             presetTemplates.forEachIndexed { i, (name, _) ->
                 PlainButton(
-                    text      = name,
+                    text      = localizedDeckName(name),
                     textColor = Gold.copy(alpha = 0.85f),
                     fontSize  = 8.sp,
                     paddingH  = 8.dp,
@@ -1748,7 +1759,7 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
     val maxCount = buckets.maxOrNull()?.coerceAtLeast(1) ?: 1
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text("Mana křivka", color = TextMuted, fontSize = 7.sp, letterSpacing = 0.8.sp)
+        Text(LocalStrings.current.dbManaCurve, color = TextMuted, fontSize = 7.sp, letterSpacing = 0.8.sp)
         // Bars
         Row(
             Modifier.fillMaxWidth().height(22.dp),

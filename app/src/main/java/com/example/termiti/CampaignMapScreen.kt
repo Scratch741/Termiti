@@ -58,7 +58,7 @@ fun CampaignMapScreen(
         )
 
         PlainButton(
-            text      = "← Zpět",
+            text      = LocalStrings.current.backShort,
             modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
             textColor = CmMuted,
             fontSize  = 12.sp,
@@ -89,7 +89,7 @@ fun CampaignMapScreen(
                 // text sedí o půl mezery vlevo od osy sloupce. padding(start = letterSpacing)
                 // to vyrovná na druhé straně → glyfy jsou přesně na ose (pod trofejí).
                 Text(
-                    "KAMPAŇ",
+                    LocalStrings.current.campaign,
                     color        = CmGold,
                     fontSize     = 26.sp,
                     fontWeight   = FontWeight.Bold,
@@ -97,7 +97,7 @@ fun CampaignMapScreen(
                     modifier     = Modifier.padding(start = 4.dp)
                 )
                 Text(
-                    "Vyber lokaci a poraž\nvšechny soupeře",
+                    LocalStrings.current.campaignPickHint,
                     color       = CmMuted,
                     fontSize    = 12.sp,
                     letterSpacing = 1.sp,
@@ -280,9 +280,9 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
                 Spacer(Modifier.width(4.dp))
                 Text(
                     when {
-                        cleared  -> "Vyčištěno"
+                        cleared  -> LocalStrings.current.campaignCleared
                         unlocked -> "$defeatedCount / ${location.opponents.size}"
-                        else     -> "Zamčeno"
+                        else     -> LocalStrings.current.campaignLocked
                     },
                     color      = when {
                         cleared  -> CmGreen

@@ -13,5 +13,16 @@ enum class Rarity(
     COMMON    ("Běžná",       3,    5,   40,  60),
     RARE      ("Vzácná",      2,   20,  100,  25),
     EPIC      ("Epická",      2,  100,  400,  10),
-    LEGENDARY ("Legendární",  1,  400, 1600,   5)
+    LEGENDARY ("Legendární",  1,  400, 1600,   5);
+
+    /** Lokalizovaný název rarity pro UI ([label] je jen český interní popis). */
+    val displayLabel: String get() {
+        val s = LanguageManager.currentStrings
+        return when (this) {
+            COMMON    -> s.rarityCommon
+            RARE      -> s.rarityRare
+            EPIC      -> s.rarityEpic
+            LEGENDARY -> s.rarityLegendary
+        }
+    }
 }
