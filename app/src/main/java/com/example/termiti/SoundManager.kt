@@ -27,10 +27,26 @@ object SoundManager {
     var sfxVolume: Float = 1.0f
         private set
 
+    /**
+     * Pod touto hodnotou se hudba bere jako vypnutá. Posuvník ukazuje zaokrouhlená
+     * procenta, takže "0 %" může reálně být 0,4 % – a to je ve sluchátkách slyšet.
+     */
+    private const val MUSIC_MUTE_THRESHOLD = 0.01f
+
+    /** True pokud má hudba nenulovou hlasitost, tj. má vůbec hrát. */
+    private val musicAudible: Boolean get() = musicVolume > 0f
+
     fun setMusicVolume(v: Float) {
-        musicVolume = v.coerceIn(0f, 1f)
-        bgPlayer?.setVolume(0.4f * musicVolume, 0.4f * musicVolume)
+        musicVolume = v.coerceIn(0f, 1f).let { if (it < MUSIC_MUTE_THRESHOLD) 0f else it }
         prefs?.edit()?.putFloat("music_volume", musicVolume)?.apply()
+        // Vypnutá hudba se skutečně zastaví – nehraje dál s nulovou hlasitostí, kde by ji
+        // mohlo cokoli (resume, obnovení hlasitosti systémem po změně audio výstupu)
+        // znovu zesílit. Zvednutí z nuly ji naopak znovu spustí.
+        when {
+            !musicAudible     -> stopBackgroundMusic()
+            bgPlayer == null  -> appContext?.let { startBackgroundMusic(it) }
+            else              -> bgPlayer?.setVolume(0.4f * musicVolume, 0.4f * musicVolume)
+        }
     }
 
     fun setSfxVolume(v: Float) {
@@ -59,7 +75,9 @@ object SoundManager {
     fun initSounds(context: Context) {
         appContext = context.applicationContext
         prefs = context.getSharedPreferences("termiti_settings", Context.MODE_PRIVATE)
-        musicVolume = prefs!!.getFloat("music_volume", 0.5f)
+        // Stejné prahování jako v setMusicVolume – starší uložené hodnoty typu 0,003
+        // ("0 %" na posuvníku) se berou jako vypnutá hudba.
+        musicVolume = prefs!!.getFloat("music_volume", 0.5f).let { if (it < MUSIC_MUTE_THRESHOLD) 0f else it }
         sfxVolume   = prefs!!.getFloat("sfx_volume",   1.0f)
         if (soundPool != null) return
         val attrs = AudioAttributes.Builder()
@@ -107,7 +125,7 @@ object SoundManager {
     // ── Hudba na pozadí ──────────────────────────────────────────────────────
 
     fun startBackgroundMusic(context: Context) {
-        if (!enabled) return
+        if (!enabled || !musicAudible) return
         if (bgPlayer != null) return
         
         // Začni náhodnou skladbou
@@ -118,7 +136,10 @@ object SoundManager {
     private fun playTrack(context: Context, resId: Int) {
         try {
             stopBackgroundMusic()
-            bgPlayer = MediaPlayer.create(context, resId)?.apply {
+            if (!musicAudible) return
+            // appContext, ne Activity: completion listener drží context po celou dobu
+            // hraní a přežije i zničení Activity.
+            bgPlayer = MediaPlayer.create(appContext ?: context, resId)?.apply {
                 setVolume(0.4f * musicVolume, 0.4f * musicVolume)
                 setOnCompletionListener {
                     // Po skončení pusť další v pořadí
@@ -146,12 +167,17 @@ object SoundManager {
 
     /** Dočasně ztlumí hudbu (duck) na [duckFrac] jejího objemu po dobu [durationMs] ms. */
     fun duckMusic(duckFrac: Float = 0.12f, durationMs: Long = 5000L) {
+        val player = bgPlayer ?: return
         val ducked = 0.4f * musicVolume * duckFrac
-        bgPlayer?.setVolume(ducked, ducked)
+        player.setVolume(ducked, ducked)
         Thread {
             Thread.sleep(durationMs)
-            val restored = 0.4f * musicVolume
-            bgPlayer?.setVolume(restored, restored)
+            // Obnov jen ten přehrávač, který jsme ztlumili – mezitím mohla hudba skončit
+            // nebo přejít na další skladbu (ta už má správnou hlasitost sama).
+            if (bgPlayer === player) {
+                val restored = 0.4f * musicVolume
+                runCatching { player.setVolume(restored, restored) }
+            }
         }.start()
     }
 
@@ -165,7 +191,7 @@ object SoundManager {
 
     fun resumeBackgroundMusic() {
         try {
-            if (enabled && bgPlayer != null) {
+            if (enabled && musicAudible && bgPlayer != null) {
                 bgPlayer?.start()
             }
         } catch (e: Exception) { e.printStackTrace() }
