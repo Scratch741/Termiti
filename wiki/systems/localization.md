@@ -50,10 +50,10 @@ Card game data (cost, effects, rarity) stays in `cards.json`; only **display nam
 
 ## Adding a UI string
 
-Every user-visible string goes through `AppStrings` — never a literal in a composable. Four places, all required:
+Every user-visible string goes through `AppStrings` — never a literal in a composable. Four places, all required (`AppStrings` delegates its properties to a map — **do not** turn it back into a constructor parameter per string: ART rejects calls with more than 255 argument registers, which crashed the app at startup with a VerifyError):
 
-1. `AppStrings.kt` — `val myKey: String,`
-2. `LanguagePack.kt` `buildStrings` — `myKey = str("myKey", "Czech default"),`
+1. `AppStrings.kt` — `val myKey: String by values`
+2. `LanguagePack.kt` `buildStrings` — `"myKey" to str("myKey", "Czech default"),`
 3. `assets/lang/cs.json` and `assets/lang/en.json` — `"myKey": "..."` under `strings`
 
 Read it with `LocalStrings.current.myKey` inside a composable, or `LanguageManager.currentStrings.myKey` outside one (ViewModels, coroutines inside `LaunchedEffect`, enum getters). Parameters use `%d`/`%s` + `.format(...)`.
