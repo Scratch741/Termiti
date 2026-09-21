@@ -118,7 +118,11 @@ In the `bothDecksEmpty` branch, if no card scores > 0 and the AI is losing, it t
 
 ## Discard rules
 
-The AI discards (`AiAction.Discard`) **only** when the hand is full (7) **and** its deck still has cards — freeing a slot for the next draw (a draw into a full hand would burn the card). In every other "stuck" situation it waits:
+There are two kinds of discard:
+
+**Deliberate discard (cards with `discardEffects`).** Playing and discarding both end the turn, so a card whose discard effect is worth more than the best play is discarded on purpose. `discardValueNow(card)` scores the discard effects on the same scale as `score()`: `DrawCard` = 5 per useful card (7 when ≤ 2 cards remain in hand after the discard; 0 with an empty deck, capped by free slots and deck size), positive `AddResource` = `3 + amount/2` (as in `scoreEffect`), everything else via `scoreDiscardEffect` so self-harm stays negative. `bestDeliberateDiscard()` returns the highest positive one; the AI discards it when its value beats `bestScore` of the best play (normal play, which also covers `bestScore ≤ 0`), or instead of waiting when nothing is affordable. Never in the both-decks-empty ENDGAME branch. Lethal plays score 1000 and always win. Resulting behaviour: Zapomenutá poznámka (`"137"`, play = net +1 magic ≈ 3, discard = draw ≈ 5–7) is now discarded unless something better is playable; Osudová mince (`"135"`) is discarded for +2 chaos only when the opponent has no chaos to steal; Zoufalý žold (`"132"`) is still played; self-harm cards (`"134"`, `"136"`, `"138"`, `"139"`) are never discarded on purpose.
+
+**Forced discard.** Otherwise the AI discards **only** when the hand is full (7) **and** its deck still has cards — freeing a slot for the next draw (a draw into a full hand would burn the card). In every other "stuck" situation it waits:
 
 - hand not full → waiting costs nothing, next turn draws a new card
 - own deck empty → discarding is a pure card loss (nothing to draw into the freed slot); resources grow every round, so unaffordable cards become affordable over time
@@ -143,3 +147,4 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 - 2026-07-12: Discard rules documented + fix: AI no longer discards with an empty deck (was a pure card loss — e.g. threw away Nedobytná pevnost instead of waiting); discard now only with a full hand + non-empty deck
 - 2026-07-12: Endgame last-chance fallback fix: AI no longer force-plays a zero-effect conditional card (e.g. Zásobník with unmet CastleBelow condition) as a "last chance" when losing with empty decks — `realizedAttackOrBuild()` now condition-aware, absolute fallback requires effectScore > 0
 - 2026-07-16: Fixed Inspirace/TOTO KOLO scoring: `totoKoloPenalty`/`totoBuff` used to key off `comboCardsInHand` (any `isCombo` card), but the actual trigger checks `card.type` against the effect's `cardType` filter — unrelated. Replaced with `matchingTypeCount()`; added new `waitForSetupPenalty` to stop the AI playing its Magie payoff cards before the Inspirace-style setup card
+- 2026-09-21: Deliberate discard — the AI now weighs a card's `discardEffects` against its best play (`discardValueNow`/`bestDeliberateDiscard`); previously discard was only a forced fallback, so Zapomenutá poznámka was always played even with a 2-card hand and plenty of magic.
