@@ -41,7 +41,9 @@ fun aiChooseAction(
     ai: PlayerState,
     opponent: PlayerState,
     aiWinTarget: Int = 70,
-    playerWinTarget: Int = 70
+    playerWinTarget: Int = 70,
+    /** Zahození je 1× za kolo (stejně jako u hráče) – false = už ho AI tento tah použila. */
+    canDiscard: Boolean = true
 ): AiAction {
     // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
     val playable = ai.hand.filter { card ->
@@ -536,10 +538,11 @@ fun aiChooseAction(
 
     // ── Záměrné zahození ────────────────────────────────────────────────────
     // Některé karty mají cennější efekt při ZAHOZENÍ než při zahrání (Zapomenutá
-    // poznámka: zahrát = +1 magie čistého, zahodit = líznout kartu). Zahození i
-    // zahrání ukončují tah, takže hodnotu zahození porovnáváme se skóre nejlepšího
-    // zahrání ve STEJNÉ škále jako score()/scoreEffect() – na rozdíl od
-    // scoreDiscardEffect(), která je bezkontextová a slouží k řazení v bestDiscard().
+    // poznámka: zahrát = +1 magie čistého, zahodit = líznout kartu). Zahození je
+    // stejně jako u hráče 1× za kolo a tah NEUKONČUJE – nestojí tedy zahrání, jen
+    // samotnou kartu. Hodnotu zahození proto porovnáváme s hodnotou PONECHÁNÍ té
+    // karty (co by přinesla zahraná), ve stejné škále jako score()/scoreEffect() –
+    // na rozdíl od scoreDiscardEffect(), která je bezkontextová (řazení v bestDiscard()).
     fun discardValueNow(card: Card): Int = card.discardEffects.sumOf { fx ->
         when (fx) {
             is CardEffect.DrawCard -> {
@@ -557,12 +560,20 @@ fun aiChooseAction(
         }
     }
 
-    /** Karta, jejíž zahození má teď nejvyšší kladnou hodnotu, nebo null. */
-    fun bestDeliberateDiscard(): Pair<Card, Int>? = ai.hand
+    /** Co by karta přinesla zahraná (bez šumu) – cena, o kterou zahozením přijdeme. */
+    fun keepValue(card: Card): Int =
+        card.effects.sumOf { scoreEffect(it, 0, card.id) } - card.effectiveCost
+
+    /**
+     * Karta, jejíž zahození je teď výhodnější než si ji nechat, nebo null.
+     * Null i tehdy, když už AI tento tah zahazovala ([canDiscard] = false).
+     */
+    fun bestDeliberateDiscard(): Card? = if (!canDiscard) null else ai.hand
         .filter { it.discardEffects.isNotEmpty() }
-        .map { it to discardValueNow(it) }
-        .filter { it.second > 0 }
+        .map { it to discardValueNow(it) - keepValue(it) }
+        .filter { (card, gain) -> gain > 0 && discardValueNow(card) > 0 }
         .maxByOrNull { it.second }
+        ?.first
 
     // ── Combo-chain lethal (1 krok dopředu) ───────────────────────────────────
     // Pokud zahrání combo karty (která NEUKONČÍ tah) vygeneruje zdroje tak, že
@@ -600,8 +611,8 @@ fun aiChooseAction(
     // =====================================================================
     // ENDGAME: oba balíčky prázdné
     // =====================================================================
-    // AI NESMÍ odhazovat – ztratila by tah a podmínka „oba čekají s prázdnými balíčky"
-    // (= resolveByHp) by se nikdy nevyvolala. Vždy zahraj nebo ČEKEJ.
+    // AI zde NEodhazuje: s prázdným balíčkem se nic nelízne, zahozením by jen přišla
+    // o kartu. Vždy zahraj nebo ČEKEJ – čekání obou s prázdnými balíčky spouští resolveByHp.
     if (bothDecksEmpty) {
         val aiIsLosing = ai.castleHP < opponent.castleHP
         if (affordable.isNotEmpty()) {
@@ -648,11 +659,11 @@ fun aiChooseAction(
     // NEMOHU SI DOVOLIT ŽÁDNOU KARTU
     // =====================================================================
     if (affordable.isEmpty()) {
-        // Zahození s užitečným efektem je lepší než čekat (obojí ukončí tah)
-        bestDeliberateDiscard()?.let { (card, _) -> return AiAction.Discard(card) }
+        // Užitečné zahození (tah nekončí – líznutá karta se může hned zahrát)
+        bestDeliberateDiscard()?.let { return AiAction.Discard(it) }
         // Plná ruka + balíček má karty → zahoď nejhorší kartu
         // (čekání by způsobilo spálení líznuté karty, protože ruka je plná)
-        if (handFull && ai.deck.isNotEmpty()) {
+        if (canDiscard && handFull && ai.deck.isNotEmpty()) {
             return bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
         }
         // Jinak čekej. Zahození je čistá ztráta karty: s volným místem v ruce
@@ -672,17 +683,15 @@ fun aiChooseAction(
     // Ignorujeme práh skóre a hrajeme nejlepší dostupnou kartu.
     if (ai.cloneNextPlayed != null) return AiAction.Play(best)
 
-    // Zahození s efektem je lepší tah než nejlepší zahrání (nebo než čekání, když
-    // je bestScore ≤ 0) → zahoď. Smrtící karty mají skóre 1000, takže je nepřebije.
-    bestDeliberateDiscard()?.let { (card, value) ->
-        if (value > bestScore) return AiAction.Discard(card)
-    }
+    // Užitečné zahození jde PŘED zahráním: tah nekončí a líznutá karta může být
+    // lepší než cokoli v ruce. Smrtící tah (skóre ≥ 1000) má ale vždy přednost.
+    if (bestScore < 1000) bestDeliberateDiscard()?.let { return AiAction.Discard(it) }
 
     // Pokud je i nejlepší karta nevýhodná (podmínka nesplněna, čisté náklady):
     // – plná ruka → zahoď nejhorší kartu (uvolni místo pro lepší líz)
     // – jinak → čekej
     if (bestScore <= 0) {
-        return if (handFull && ai.deck.isNotEmpty()) {
+        return if (canDiscard && handFull && ai.deck.isNotEmpty()) {
             bestDiscard()?.let { AiAction.Discard(it) } ?: AiAction.Wait
         } else {
             AiAction.Wait

@@ -1714,11 +1714,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             // aiChooseAction() volání, aby se predikce z peeku a skutečná akce nerozešly
             // (aiChooseAction má náhodný šum ve skóre, dvě volání by mohla dát jiný výsledek).
             var pendingAiChoice: AiAction? = null
+            // Zahození je 1× za kolo a tah NEukončuje – stejně jako u hráče (discardCard).
+            var aiDiscardUsed = false
             while (aiContinues) {
                 // Transformuj Shapeshiftery líznuté uprostřed tahu (DrawCard, Decision apod.)
                 // onlyNew = true → nemění formu již transformovaných instancí
                 transformShapeShifters(ai.hand, allCards, onlyNew = true)
-                val aiChoice = pendingAiChoice ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
+                val aiChoice = pendingAiChoice
+                    ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget, canDiscard = !aiDiscardUsed)
                 pendingAiChoice = null
                 when (aiChoice) {
                     is AiAction.Play -> {
@@ -1971,7 +1974,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             // Nakoukni, jestli combo pokračuje další kartou, nebo tahle byla
                             // poslední (AI teď skončí kolo) – použije se místo nového
                             // aiChooseAction() volání na začátku příští iterace (viz pendingAiChoice výš).
-                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget)
+                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget, canDiscard = !aiDiscardUsed)
                             pendingAiChoice = nextChoice
                             // Další karta comba přijde → 1s, aby ji hráč stihl přečíst.
                             // Tahle byla poslední → jen 0,5s, není na co čekat.
@@ -2022,7 +2025,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 scheduleGameEnd(result, midDiscard); return@launch
                             }
                         }
-                        aiContinues = false
+                        // Tah pokračuje (jako u hráče) – další zahození už tento tah ne.
+                        // Vizuální mezistav + pauza, ať hráč zahozenou kartu stihne vidět.
+                        aiDiscardUsed = true
+                        gameState.value = old.copy(
+                            playerState  = player.deepCopy(),
+                            aiState      = ai.deepCopy(),
+                            activePlayer = ActivePlayer.AI
+                        )
+                        delay(1000L)
                     }
                 }
             }
