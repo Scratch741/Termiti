@@ -253,61 +253,74 @@ object CampaignData {
             description = "Mlžné tůně plné divoké magie. Neubijí tě – vysají tě.",
             opponents = listOf(
 
-                // 1 ── 29 karet, winTarget 60 ───────────────────────────────
+                // 1 ── 27 karet, winTarget 60 ───────────────────────────────
                 // Měkký vstup do lokace: jen mírné odsávání magie.
                 CampaignOpponent(
                     id = "swp_frog", name = "Bažinná Žába", title = "Skokan z tůní",
                     avatar = "🐸", description = "Kváká a krade magii.",
                     aiCastle = 30, aiWall = 8, aiMaxWall = 8, aiStartMagic = 1,
                     deckCardCounts = mapOf(
-                        "127" to 2, "137" to 2, "004" to 2, "037" to 2,
-                        "065" to 2, "003" to 4, "010" to 3, "028" to 2,
-                        "049" to 3, "013" to 2, "084" to 3, "022" to 2
+                        "127" to 2, "137" to 2, "004" to 2, "065" to 2,
+                        "003" to 4, "010" to 3, "028" to 2, "049" to 3,
+                        "013" to 2, "084" to 3, "022" to 2
                     ),
                     winTarget = 60, aiWinTarget = 42,
                     rewardGold = 70
                 ),
 
-                // 2 ── 25 karet, winTarget 60 ───────────────────────────────
+                // 2 ── 29 karet, winTarget 60 ───────────────────────────────
                 CampaignOpponent(
                     id = "swp_leech", name = "Bahenní Pijavice", title = "Saje, co najde",
-                    avatar = "🩸", description = "Přisaje se ke tvým zásobám a nepustí.",
-                    aiCastle = 31, aiWall = 9, aiMaxWall = 9, aiStartMagic = 2,
-                    deckCardCounts = mapOf(
-                        "004" to 3, "037" to 3, "065" to 3, "066" to 2,
-                        "067" to 3, "049" to 3, "003" to 2, "029" to 3,
-                        "010" to 2, "C26" to 1
+                    avatar = "🩸",
+                    description = "Pije nejen krev.",
+                    aiCastle = 35, aiWall = 9, aiMaxWall = 9,
+                    aiStartMagic = 2,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC to 1, ResourceType.ATTACK to 1
                     ),
-                    winTarget = 60, aiWinTarget = 43,
+                    deckCardCounts = mapOf(
+                        "100" to 3, "137" to 2, "065" to 2, "029" to 2,
+                        "010" to 2, "C26" to 2, "C18" to 1, "071" to 2,
+                        "044" to 1, "C17" to 2, "099" to 3, "048" to 4,
+                        "059" to 3
+                    ),
+                    winTarget = 60, aiWinTarget = 47,
                     rewardGold = 75
                 ),
 
-                // 3 ── 26 karet, winTarget 62, AI má extra důl magie ─────────
+                // 3 ── 30 karet, winTarget 62, AI má extra důl magie ─────────
                 CampaignOpponent(
                     id = "swp_witch", name = "Močálová Čarodějka", title = "Vaří v kotli",
-                    avatar = "🧪", description = "Míchá lektvary z bahna. Extra důl magie.",
-                    aiCastle = 32, aiWall = 10, aiMaxWall = 12, aiStartMagic = 2,
-                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
-                    deckCardCounts = mapOf(
-                        "004" to 3, "037" to 3, "013" to 2, "003" to 3,
-                        "127" to 1, "067" to 2, "068" to 2, "049" to 2,
-                        "124" to 2, "029" to 3, "081" to 2, "C24" to 1
+                    avatar = "🧪",
+                    description = "Míchá lektvary a proklíná narušitele.",
+                    aiCastle = 37, aiWall = 10, aiMaxWall = 12,
+                    aiStartMagic = 1,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC to 1, ResourceType.STONES to 1
                     ),
-                    winTarget = 62, aiWinTarget = 44,
+                    deckCardCounts = mapOf(
+                        "107" to 3, "124" to 2, "127" to 3, "037" to 2,
+                        "013" to 1, "003" to 3, "049" to 3, "061" to 4,
+                        "091" to 3, "059" to 4, "087" to 2
+                    ),
+                    winTarget = 62, aiWinTarget = 52,
                     rewardGold = 80
                 ),
 
-                // 4 ── 27 karet, winTarget 62 ───────────────────────────────
-                // První soupeř, který ti sype bomby a krysy do balíčku.
+                // 4 ── 32 karet, winTarget 62 ───────────────────────────────
                 CampaignOpponent(
                     id = "swp_ratcatcher", name = "Krysí Zaklínač", title = "Pán zamořených tůní",
-                    avatar = "🐀", description = "Sype ti krysy a bomby do balíčku. Líži opatrně.",
-                    aiCastle = 33, aiWall = 10, aiMaxWall = 12, aiStartMagic = 2,
-                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
+                    avatar = "🐀",
+                    description = "Sype ti krysy a bomby do balíčku.",
+                    aiCastle = 33, aiWall = 10, aiMaxWall = 12,
+                    aiStartMagic = 1,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC to 1, ResourceType.CHAOS to 1
+                    ),
                     deckCardCounts = mapOf(
-                        "004" to 3, "037" to 3, "133" to 3, "C36" to 2,
-                        "003" to 3, "049" to 2, "065" to 2, "067" to 2,
-                        "029" to 3, "010" to 2, "D01" to 2
+                        "124" to 4, "129" to 2, "133" to 5, "C36" to 5,
+                        "049" to 2, "029" to 2, "091" to 3, "089" to 2,
+                        "087" to 2, "084" to 2, "C31" to 3
                     ),
                     winTarget = 62, aiWinTarget = 45,
                     rewardGold = 85
