@@ -68,6 +68,15 @@ AI auto-picks the first option for most Decision effects. Exceptions:
 - **`DecisionMine`** — AI picks the mine type it has the **least** of (minimizes `ai.mines[resType]`)
 - **`DecisionChooseResource`** — AI picks the resource it has the **least** of (minimizes `ai.resources[type]`)
 
+## Picking what to offer (`scoreCardForSituation`)
+
+`Magický žolík` (`"118"`, `SmartJoker`) offers one card per type — the best **Magie / Útok / Stavba / Chaos** card for the situation — and the same scorer picks the AI's own Decision options (`GameViewModel:1946/1959`). It must therefore see what a card really does **right now**:
+
+- **Conditional effects are resolved first.** `ConditionalEffect` is flattened against the current state via `checkCondition`: condition met → score the inner effect, not met → contribute nothing. (Before 2026-09-25 the whole `ConditionalEffect` fell through to `else -> 2.0`.)
+- **Lethality is summed over the whole card, not per effect.** Castle damage from every effect is added up — `AttackCastle`, `StealCastle`, the X-scaled variants, and the part of `AttackPlayer` that gets past the wall (an `AttackWall` on the same card lowers that wall first) — and only the total is compared with the opponent's castle HP. The same applies to building: total `BuildCastle` + `ConvertWallToCastle` + X-scaled vs. the HP still missing to `winTarget`. A winning card scores 200.
+
+Worked example (the bug that prompted this): opponent at 9 castle / 9 wall, player holding 7 attack. `Ostřelovač` (`"026"`, 5 castle damage + 5 more while attack > 5) deals 10 and wins, but per-effect scoring gave it 5×12/9 + 2.0 = **8.67** and offered `Přímý zásah` (8 damage, **10.67**) instead — a card that does not win. Now Ostřelovač returns 200; with only 4 attack its condition fails and it correctly drops to 6.67, below Přímý zásah.
+
 ## Online (GameSession.js)
 
 Server handles Decision via:
@@ -86,3 +95,4 @@ Server handles Decision via:
 - 2026-05-21: Page created; Průzkum dolů (117) added
 - 2026-05-28: Added `DecisionChooseResource` (Alchymistova volba 124)
 - 2026-05-29: `DecisionChooseResource` now renders options as placeholder cards (not buttons); localized titles
+- 2026-09-25: Documented `scoreCardForSituation` after fixing it — conditional effects were scored as a flat 2.0 and lethality was judged per effect, so Magický žolík could withhold the card that wins the game.

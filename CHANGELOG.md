@@ -17,6 +17,37 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.3.0] – 2026-09-25
+
+### Nové
+- **Nová kampaňová lokace „Magické bažiny"** mezi Goblinským táborem a
+  Trpasličími horami: 10 soupeřů s vlastními ilustracemi, vlastním hradem,
+  hradbou i pozadím bojiště. Soupeři nebijí silou — odsávají
+  zdroje, pálí karty z ruky a sypou do balíčku krysy a bomby.
+- **Angličtina v celé hře.** Multiplayer (lobby, přihlášení, chyby připojení),
+  obchod, žebříček, herní dialogy, aréna, kampaň, profil, tvorba balíčku
+  i roguelike — přes 180 textů, které byly dosud napsané natvrdo česky.
+  Texty posílané serverem (online log, chybové hlášky) zůstávají česky.
+- **„Prohlédnout hru" i v kampani.** Po bitvě se lze vrátit na dohranou desku
+  a projít si log, poslední tahy i soupeřovu ruku.
+- Profil → DEBUG: přepínač „Celá kampaň odemčena". Obchází jen zámky, skutečný
+  postup ani odměny nemění, takže vypnutím se nic neztratí.
+
+### Opravy
+- **Pád hry hned po startu** (jen ve verzi 0.2.x z GitHubu po překladech) —
+  Android odmítl načíst třídu s příliš mnoha parametry.
+- **Vypnutá hudba se konečně vypne.** Hlasitost 0 jen ztišila přehrávač, který
+  hrál dál — a některé telefony si ho pak samy zesílily.
+- **Magický žolík** nenabízel kartu, kterou šlo vyhrát hru, pokud vyhrávala
+  díky podmínce (např. Ostřelovač) nebo součtem dvou efektů.
+- **AI zahazuje podle stejných pravidel jako hráč** — 1× za kolo a tah tím
+  nekončí. Dřív po zahození přišla o celý tah. Navíc už pozná, že se některé
+  karty (Zapomenutá poznámka) vyplatí spíš zahodit než zahrát.
+- Kampaň: soupeři měli v balíčcích karty za chaos, na který neměli důl, takže
+  je nikdy nezahráli. Opraveno v Magických bažinách.
+
+---
+
 ## [0.2.1] – 2026-08-31
 
 ### Opravy

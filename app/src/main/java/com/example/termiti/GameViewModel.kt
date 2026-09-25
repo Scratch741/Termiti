@@ -702,7 +702,56 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val oppWall = opp.wallHP.coerceAtLeast(0)
         val xValue  = (self.resources[card.costType] ?: 0).toDouble()
 
-        for (fx in card.effects) {
+        // Podmínkový efekt se nesmí hodnotit naslepo: když podmínka PRÁVĚ TEĎ platí,
+        // rozhoduje jeho vnitřní efekt (Ostřelovač = 5 + dalších 5 na hrad), když ne,
+        // karta ten efekt neudělá vůbec. Bez tohohle spadl celý ConditionalEffect do
+        // větve `else -> 2.0` a karta, která vyhrává hru, prohrála s obyčejnou osmičkou.
+        fun flatten(effects: List<CardEffect>, depth: Int = 0): List<CardEffect> =
+            effects.flatMap { fx ->
+                if (fx is CardEffect.ConditionalEffect && depth < 3)
+                    if (checkCondition(fx.condition, self, opp)) flatten(listOf(fx.effect), depth + 1)
+                    else emptyList()
+                else listOf(fx)
+            }
+        val effects = flatten(card.effects)
+
+        // Vyhrává karta TEĎ? Poškození se sčítá přes VŠECHNY efekty karty, ne po jednom –
+        // Dvojitý úder (hrad 7 + hráč 7) i Ostřelovač (5 + podmíněných 5) zabíjí až součtem.
+        // Zeď pohltí jen útok na hráče, a to až po případném rozbití zdi na stejné kartě.
+        var wallLeft   = oppWall
+        var castleDmg  = 0.0
+        for (fx in effects) when (fx) {
+            is CardEffect.AttackWall          -> wallLeft = (wallLeft - fx.amount).coerceAtLeast(0)
+            is CardEffect.AttackCastle        -> castleDmg += fx.amount
+            is CardEffect.StealCastle         -> castleDmg += fx.amount
+            is CardEffect.XScaledAttackCastle -> castleDmg += xValue / fx.divisor
+            is CardEffect.AttackPlayer        -> {
+                val through = (fx.amount - wallLeft).coerceAtLeast(0)
+                wallLeft = (wallLeft - fx.amount).coerceAtLeast(0)
+                castleDmg += through
+            }
+            is CardEffect.XScaledAttackPlayer -> {
+                val dmg     = xValue / fx.divisor
+                val through = (dmg - wallLeft).coerceAtLeast(0.0)
+                wallLeft = (wallLeft - dmg).coerceAtLeast(0.0).toInt()
+                castleDmg += through
+            }
+            else -> {}
+        }
+        if (castleDmg >= oppHpLeft) return 200.0
+
+        // Dostaví karta hrad rovnou na vítěznou výšku?
+        val buildTotal = effects.sumOf { fx ->
+            when (fx) {
+                is CardEffect.BuildCastle        -> fx.amount.toDouble()
+                is CardEffect.ConvertWallToCastle -> self.wallHP.toDouble()
+                is CardEffect.XScaledBuildCastle  -> xValue / fx.divisor
+                else                              -> 0.0
+            }
+        }
+        if (buildTotal >= selfHpMissing) return 200.0
+
+        for (fx in effects) {
             score += when (fx) {
                 is CardEffect.AttackPlayer  -> {
                     // Zeď absorbuje útok první; pouze přebytek poškodí hrad
