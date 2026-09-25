@@ -66,7 +66,11 @@ fun GameScreen(
     onArenaLose: () -> Unit = {},
     onGameEnd: ((win: Boolean) -> Unit)? = null,
     randomDeck: Boolean = false,
-    superRandom: Boolean = false
+    superRandom: Boolean = false,
+    /** Otevřít rovnou v náhledu dohrané hry (kampaň: "Prohlédnout hru" z výsledku). */
+    startInReview: Boolean = false,
+    /** Odchod z náhledu. Null = chová se jako dřív (zavře náhled a ukáže dialog výsledku). */
+    onExitReview: (() -> Unit)? = null
 ) {
     val state            by viewModel.gameState
     val log              by viewModel.log
@@ -101,7 +105,7 @@ fun GameScreen(
     var showLostCards    by remember { mutableStateOf(false) }
     var showLog          by remember { mutableStateOf(false) }
     var showSettings     by remember { mutableStateOf(false) }
-    var reviewMode       by remember { mutableStateOf(false) }
+    var reviewMode       by remember { mutableStateOf(startInReview) }
     var showOppHand      by remember { mutableStateOf(false) }
     var cardPreview      by remember { mutableStateOf<Card?>(null) }
     // Resetuj pohled na soupeřovu ruku při zavření review módu
@@ -182,7 +186,13 @@ fun GameScreen(
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.displayName ?: LocalStrings.current.enemy,
                 opponentAvatar = campaignOpponent?.avatar ?: defaultEnemyAvatar,
-                onMenu         = { if (reviewMode) reviewMode = false else showMenuConfirm = true },
+                onMenu         = {
+                    when {
+                        reviewMode && onExitReview != null -> onExitReview()
+                        reviewMode                         -> reviewMode = false
+                        else                               -> showMenuConfirm = true
+                    }
+                },
                 playerPassives = playerPassives,
                 aiPassives     = if (campaignOpponent == null) aiPassives else emptyList()
             )

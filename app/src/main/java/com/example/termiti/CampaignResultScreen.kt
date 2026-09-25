@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,15 +39,13 @@ fun CampaignResultScreen(
     onRetry         : () -> Unit,
     onBackToLocation: () -> Unit,
     onBackToMap     : () -> Unit,
-    onNextOpponent  : (() -> Unit)? = null
+    onNextOpponent  : (() -> Unit)? = null,
+    /** True = odměna za první poražení byla právě teď vyplacena (řeší volající). */
+    rewardClaimed   : Boolean = false,
+    /** Náhled právě dohrané bitvy; null = tlačítko se nezobrazí. */
+    onReviewGame    : (() -> Unit)? = null
 ) {
     val s = LocalStrings.current
-    val rewardClaimed = remember(opponent.id, playerWon) {
-        if (playerWon) {
-            CampaignManager.markDefeated(opponent.id)
-            CampaignManager.claimReward(opponent)
-        } else false
-    }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // ── Texturované pozadí ────────────────────────────────────────────────
@@ -184,6 +185,17 @@ fun CampaignResultScreen(
                     paddingV  = 14.dp,
                     onClick   = onBackToLocation
                 )
+                if (onReviewGame != null) {
+                    PlainButton(
+                        text      = s.inspectGame,
+                        modifier  = Modifier,
+                        textColor = CrText,
+                        fontSize  = 13.sp,
+                        paddingH  = 20.dp,
+                        paddingV  = 14.dp,
+                        onClick   = onReviewGame
+                    )
+                }
                 if (playerWon && onNextOpponent != null) {
                     PlainButton(
                         text      = s.campaignNextOpponent,
@@ -197,6 +209,7 @@ fun CampaignResultScreen(
                 }
             }
         }
+
     }
 }
 

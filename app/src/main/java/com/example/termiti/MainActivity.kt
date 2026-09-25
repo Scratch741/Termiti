@@ -29,7 +29,7 @@ import com.example.termiti.ui.theme.TermitiTheme
 private enum class Screen {
     PROFILE_SETUP,
     MENU, PLAY_MENU, GAME, DECK_BUILDER, ARENA, ROGUELIKE, ONLINE_MP, SETTINGS, PROFILE,
-    CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT,
+    CAMPAIGN_MAP, CAMPAIGN_LOCATION, CAMPAIGN_GAME, CAMPAIGN_RESULT, CAMPAIGN_REVIEW,
     SHOP, LEADERBOARD
 }
 
@@ -83,6 +83,9 @@ class MainActivity : ComponentActivity() {
                     var campaignLocation by remember { mutableStateOf<CampaignLocation?>(null) }
                     val campaignOpponent by viewModel.activeCampaignOpponent
                     var campaignPlayerWon by remember { mutableStateOf(false) }
+                    // Odměna se vyplácí JEDNOU tady, ne v CampaignResultScreen: z výsledku
+                    // se dá odejít do náhledu a zpět, což by tamní remember spustil znovu.
+                    var campaignRewardClaimed by remember { mutableStateOf(false) }
 
                     // Sleduj aktuální obrazovku pro crash reporting
                     CrashReporter.lastScreen = screen.name
@@ -197,6 +200,13 @@ class MainActivity : ComponentActivity() {
                                 PlayerProfileManager.recordGameResult(win = win, online = false, campaign = true)
                                 if (win) QuestManager.onCampaignWin()
                                 campaignPlayerWon = win
+                                campaignRewardClaimed = if (win) {
+                                    val opp = viewModel.activeCampaignOpponent.value
+                                    if (opp != null) {
+                                        CampaignManager.markDefeated(opp.id)
+                                        CampaignManager.claimReward(opp)
+                                    } else false
+                                } else false
                                 screen = Screen.CAMPAIGN_RESULT
                             }
                         )
@@ -218,6 +228,8 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onBackToLocation = { screen = Screen.CAMPAIGN_LOCATION },
                                     onBackToMap      = { screen = Screen.CAMPAIGN_MAP },
+                                    rewardClaimed    = campaignRewardClaimed,
+                                    onReviewGame     = { screen = Screen.CAMPAIGN_REVIEW },
                                     onNextOpponent   = nextOpp?.let { next ->
                                         {
                                             viewModel.startCampaignBattle(next)
@@ -227,6 +239,16 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+
+                        // Náhled právě dohrané bitvy v kampani. Stav hry drží stejný
+                        // GameViewModel, takže stačí znovu vykreslit GameScreen v náhledu;
+                        // onGameEnd je null, aby se výsledek nezapsal podruhé.
+                        Screen.CAMPAIGN_REVIEW -> GameScreen(
+                            viewModel     = viewModel,
+                            onBackToMenu  = { screen = Screen.CAMPAIGN_RESULT },
+                            startInReview = true,
+                            onExitReview  = { screen = Screen.CAMPAIGN_RESULT }
+                        )
 
                         // ── Aréna ─────────────────────────────────────────────
                         Screen.ARENA -> when (arenaPhase) {
