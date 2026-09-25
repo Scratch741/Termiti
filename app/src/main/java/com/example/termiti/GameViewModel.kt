@@ -2513,8 +2513,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (finalStones > 0) it.resources[ResourceType.STONES] = finalStones
             if (extraChaos  > 0) it.resources[ResourceType.CHAOS]  = extraChaos
             // Hráčovy extra/malus doly z handicapu
+            // ?: 0, ne ?: 1 – mines mapa NEobsahuje CHAOS (nikdo s chaosovým dolem
+            // nezačíná), takže fallback 1 by z "CHAOS to 1" udělal dva doly.
             for ((resType, delta) in h.extraMines) {
-                it.mines[resType] = ((it.mines[resType] ?: 1) + delta).coerceAtLeast(0)
+                it.mines[resType] = ((it.mines[resType] ?: 0) + delta).coerceAtLeast(0)
             }
             // Posila balíčku z pasivních schopností
             fun boostCards(filter: (Card) -> Boolean, count: Int): List<Card> =
@@ -2551,8 +2553,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             wallHP   = opponent.aiWall,
             maxWall  = opponent.aiMaxWall
         ).also {
+            // ?: 0 – viz poznámka u handicapu hráče; CHAOS v mapě dolů chybí.
             for ((resType, bonus) in opponent.aiExtraMines) {
-                it.mines[resType] = (it.mines[resType] ?: 1) + bonus
+                it.mines[resType] = ((it.mines[resType] ?: 0) + bonus).coerceAtLeast(0)
             }
             if (opponent.aiStartMagic  > 0) it.resources[ResourceType.MAGIC]  = opponent.aiStartMagic
             if (opponent.aiStartAttack > 0) it.resources[ResourceType.ATTACK] = opponent.aiStartAttack
@@ -2901,7 +2904,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             castleHP = run.hp.coerceAtLeast(1),
             wallHP   = run.wall.coerceAtLeast(0)     // hradby = run stat (reset každou bitvu)
         ).also {
-            for ((t, d) in run.bonusMines) it.mines[t] = ((it.mines[t] ?: 1) + d).coerceAtLeast(0)
+            for ((t, d) in run.bonusMines) it.mines[t] = ((it.mines[t] ?: 0) + d).coerceAtLeast(0)
             it.deck.addAll(playerCards)
             it.drawCards(4)
         }
@@ -2912,7 +2915,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }.withUniqueIds().shuffled()
 
         val aiState = PlayerState(castleHP = enemy.aiCastle, wallHP = enemy.aiWall).also {
-            for ((t, b) in enemy.aiExtraMines) it.mines[t] = (it.mines[t] ?: 1) + b
+            for ((t, b) in enemy.aiExtraMines) it.mines[t] = ((it.mines[t] ?: 0) + b).coerceAtLeast(0)
             if (enemy.aiStartMagic  > 0) it.resources[ResourceType.MAGIC]  = enemy.aiStartMagic
             if (enemy.aiStartAttack > 0) it.resources[ResourceType.ATTACK] = enemy.aiStartAttack
             if (enemy.aiStartStones > 0) it.resources[ResourceType.STONES] = enemy.aiStartStones
