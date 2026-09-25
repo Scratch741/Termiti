@@ -1292,24 +1292,24 @@
       "desc": "Boss of the goblins. 32 cards, starts with 5 in hand. One-time reward: 200 XP."
     },
     "swp_frog": {
-      "name": "Bog Frog",
-      "title": "Leaper of the Pools",
-      "desc": "Croaks and steals magic. That's the whole act."
+      "name": "Magic Frog",
+      "title": "Leaper of the pools",
+      "desc": "Croaks and conjures magic."
     },
     "swp_leech": {
       "name": "Mud Leech",
       "title": "Sucks whatever it finds",
-      "desc": "Latches onto your supplies and won't let go."
+      "desc": "It drinks more than blood."
     },
     "swp_witch": {
       "name": "Marsh Witch",
       "title": "Stirring the cauldron",
-      "desc": "Brews potions out of mud. Extra magic mine."
+      "desc": "Brews potions and curses trespassers."
     },
     "swp_ratcatcher": {
       "name": "Rat Conjurer",
       "title": "Lord of the infested pools",
-      "desc": "Stuffs rats and bombs into your deck. Draw carefully."
+      "desc": "Stuffs rats and bombs into your deck."
     },
     "swp_alchemist": {
       "name": "Swamp Alchemist",
@@ -1324,22 +1324,22 @@
     "swp_serpent": {
       "name": "Marsh Serpent",
       "title": "Venom in every fang",
-      "desc": "Poisoned your magic spring. Magic mine −1."
+      "desc": "Poisoned your stone supply. Stone mine −1."
     },
     "swp_shade": {
-      "name": "Will-o'-the-Wisp",
-      "title": "The light that drowns you",
-      "desc": "Burns cards from your hand and steals them. Castle −3."
+      "name": "Cursed Will-o-Wisp",
+      "title": "Magic that burns you",
+      "desc": "Burns cards from your hand and steals them. Revels in chaos. Castle −5."
     },
     "swp_druid": {
       "name": "Wetland Druid",
       "title": "Speaks with the reeds",
-      "desc": "5 cards in hand, 2 magic mines. Casts without pause."
+      "desc": "He lets the swamp grow – mines, cards, spells. Castle −3, wall −3."
     },
     "swp_lord": {
       "name": "Lord of the Mist",
       "title": "Ruler of the magic swamps",
-      "desc": "36 cards, 5 to start. Dark Transfer takes your castle. One-time reward: 200 XP."
+      "desc": "The mist takes your shape and your castle. One-time reward: 200 XP."
     },
     "dwf_miner": {
       "name": "Miner",

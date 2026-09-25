@@ -424,7 +424,9 @@ private val FULL_ART_AVATARS = setOf(
     "goblin_pruzkumnik", "goblin_lucistnik", "goblin_saman", "goblin_valecnik", "goblin_drancovac",
     "goblin_berserk", "goblin_troll", "goblin_velitel", "goblin_valecny_nacelnik", "goblin_kral",
     "hory_hornik", "hory_tesar", "hory_strazce", "hory_kovar", "hory_ranger",
-    "hory_bojovnik", "hory_mag", "hory_general", "hory_kolos", "hory_thane"
+    "hory_bojovnik", "hory_mag", "hory_general", "hory_kolos", "hory_thane",
+    "bazina_zaba", "bazina_pijavice", "bazina_carodejka", "bazina_zaklinac", "bazina_alchymista",
+    "bazina_jezibaba", "bazina_had", "bazina_bludicka", "bazina_druid", "bazina_pan_mlhy"
 )
 
 /** Mapuje avatar ID na drawable resource, nebo null pokud jde o emoji řetězec. */
@@ -455,6 +457,16 @@ private fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
     "hory_general"            -> R.drawable.hory_general
     "hory_kolos"              -> R.drawable.hory_kolos
     "hory_thane"              -> R.drawable.hory_thane
+    "bazina_zaba"              -> R.drawable.bazina_zaba
+    "bazina_pijavice"          -> R.drawable.bazina_pijavice
+    "bazina_carodejka"         -> R.drawable.bazina_carodejka
+    "bazina_zaklinac"          -> R.drawable.bazina_zaklinac
+    "bazina_alchymista"        -> R.drawable.bazina_alchymista
+    "bazina_jezibaba"          -> R.drawable.bazina_jezibaba
+    "bazina_had"               -> R.drawable.bazina_had
+    "bazina_bludicka"          -> R.drawable.bazina_bludicka
+    "bazina_druid"             -> R.drawable.bazina_druid
+    "bazina_pan_mlhy"          -> R.drawable.bazina_pan_mlhy
     else           -> null
 }
 
@@ -490,6 +502,23 @@ private val TOP_ALIGNED_AVATARS = setOf(
 )
 
 /**
+ * Svislé doladění artu v okně karty: kladná hodnota = posun DOLŮ, jako podíl výšky
+ * art okna (0.10f = o 10 %). Pro avatary, kterým středový Crop sedí moc vysoko.
+ *
+ * Proč ne jen [Alignment]: ilustrace jsou čtvercové a okno je 148 × ~141 dp, takže
+ * po Cropu přečnívají svisle jen o pár dp – zarovnáním se dá posunout sotva o 2 %.
+ * Posun proto doprovází mírné přiblížení (viz [OpponentCardArt]), aby na opačné
+ * straně nevznikl prázdný pruh.
+ */
+private val ART_SHIFT_Y = mapOf(
+    "bazina_carodejka" to 0.10f,
+    "bazina_zaklinac"  to 0.10f,
+    "bazina_jezibaba"  to 0.10f,
+    "bazina_druid"     to 0.10f,
+    "bazina_pan_mlhy"  to 0.10f
+)
+
+/**
  * Art karty soupeře v art okně (celá šířka × artH), stejně jako u skutečných herních karet
  * (CardView) – Crop přes celou plochu, ne malá centrovaná ikonka. Pro avatary bez plné
  * ilustrace (staré enemy_icon_N, emoji lokace) padá zpátky na malou centrovanou AvatarView.
@@ -498,13 +527,32 @@ private val TOP_ALIGNED_AVATARS = setOf(
 private fun OpponentCardArt(avatar: String, artH: Dp, modifier: Modifier = Modifier) {
     val resId = avatarDrawableRes(avatar)
     if (avatar in FULL_ART_AVATARS && resId != null) {
-        Image(
-            painter            = painterResource(resId),
-            contentDescription = null,
-            modifier           = modifier.fillMaxWidth().height(artH),
-            contentScale       = ContentScale.Crop,
-            alignment           = if (avatar in TOP_ALIGNED_AVATARS) Alignment.TopCenter else Alignment.Center
-        )
+        val shift = ART_SHIFT_Y[avatar] ?: 0f
+        if (shift == 0f) {
+            Image(
+                painter            = painterResource(resId),
+                contentDescription = null,
+                modifier           = modifier.fillMaxWidth().height(artH),
+                contentScale       = ContentScale.Crop,
+                alignment           = if (avatar in TOP_ALIGNED_AVATARS) Alignment.TopCenter else Alignment.Center
+            )
+        } else {
+            // Art se kreslí do vyššího (o 2× posun) okna a celý se posune – přesah
+            // pokryje obě strany, takže po ořezu rodiče nikde nezůstane prázdno.
+            // requiredHeight: nesmí ho omezit výška rodiče, jinak by přesah nevznikl.
+            Box(modifier.fillMaxWidth().height(artH).clipToBounds()) {
+                Image(
+                    painter            = painterResource(resId),
+                    contentDescription = null,
+                    modifier           = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .requiredHeight(artH * (1f + 2f * kotlin.math.abs(shift)))
+                        .offset(y = artH * shift),
+                    contentScale       = ContentScale.Crop
+                )
+            }
+        }
     } else {
         Box(
             modifier = modifier.fillMaxWidth().height(artH),
@@ -535,7 +583,7 @@ private fun opponentRarityRes(order: Int, total: Int, isBoss: Boolean): Int {
 
 private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
-    "loc_swamp"   -> R.drawable.art_magicky_pramen
+    "loc_swamp"   -> R.drawable.magicke_baziny
     "loc_dwarves" -> R.drawable.trpaslici_hory
     "loc_citadel" -> R.drawable.art_temny_ritual
     "loc_dragon"  -> R.drawable.art_chaoticky_drak

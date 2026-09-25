@@ -638,6 +638,7 @@ fun castleSkinDrawable(skinId: String): Int = when (skinId) {
     "castle_player_11" -> R.drawable.castle_player_11
     "castle_player_12" -> R.drawable.castle_player_12
     "castle_player_13" -> R.drawable.castle_player_13
+    "castle_baziny"     -> R.drawable.castle_baziny
     "castle_hory"       -> R.drawable.castle_hory
     "castle_citadela"   -> R.drawable.castle_citadela
     "castle_drak"       -> R.drawable.castle_drak
@@ -652,6 +653,7 @@ fun wallSkinDrawable(skinId: String): Int = when (skinId) {
     "wall_player5" -> R.drawable.wall_player5
     "wall_player6" -> R.drawable.wall_player6
     "wall_goblin"  -> R.drawable.wall_goblin
+    "wall_baziny"   -> R.drawable.wall_baziny
     "wall_hory"     -> R.drawable.wall_hory
     "wall_citadela" -> R.drawable.wall_citadela
     "wall_drak"     -> R.drawable.wall_drak
