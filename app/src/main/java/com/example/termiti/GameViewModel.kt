@@ -1770,7 +1770,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // onlyNew = true → nemění formu již transformovaných instancí
                 transformShapeShifters(ai.hand, allCards, onlyNew = true)
                 val aiChoice = pendingAiChoice
-                    ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget, canDiscard = !aiDiscardUsed)
+                    ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
+                                      canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
                 pendingAiChoice = null
                 when (aiChoice) {
                     is AiAction.Play -> {
@@ -2023,7 +2024,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             // Nakoukni, jestli combo pokračuje další kartou, nebo tahle byla
                             // poslední (AI teď skončí kolo) – použije se místo nového
                             // aiChooseAction() volání na začátku příští iterace (viz pendingAiChoice výš).
-                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget, canDiscard = !aiDiscardUsed)
+                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
+                                                            canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
                             pendingAiChoice = nextChoice
                             // Další karta comba přijde → 1s, aby ji hráč stihl přečíst.
                             // Tahle byla poslední → jen 0,5s, není na co čekat.
@@ -2121,7 +2123,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 for (trap in drawResult.traps) {
                     reportTrap(trap, player, isPlayer = true)
-                    gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy())
+                    // activePlayer = AI i tady: `old` je stav z HRÁČOVA tahu, takže bez
+                    // něj by se na tu vteřinu odemklo ovládání. Hráč by stihl zahrát
+                    // kartu do stavu, který zbytek finishTurn vzápětí přepíše svou
+                    // (starší) kopií – zahraná karta by na okamžik skočila zpět do ruky.
+                    gameState.value = old.copy(
+                        playerState  = player.deepCopy(),
+                        aiState      = ai.deepCopy(),
+                        activePlayer = ActivePlayer.AI
+                    )
                     delay(1000L)
                 }
             }

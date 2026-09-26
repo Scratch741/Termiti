@@ -43,7 +43,9 @@ fun aiChooseAction(
     aiWinTarget: Int = 70,
     playerWinTarget: Int = 70,
     /** Zahození je 1× za kolo (stejně jako u hráče) – false = už ho AI tento tah použila. */
-    canDiscard: Boolean = true
+    canDiscard: Boolean = true,
+    /** Hráč právě pasoval. S prázdnými balíčky obou stran ukončí čekání AI hru (resolveByHp). */
+    playerWaited: Boolean = false
 ): AiAction {
     // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
     val playable = ai.hand.filter { card ->
@@ -77,6 +79,23 @@ fun aiChooseAction(
                 // instanci nedostane (transformShapeShifters běží dřív), tohle je
                 // pojistka pro okno, kdy se karta do ruky dostane jinudy.
                 is CardEffect.ShapeShift -> true
+
+                // Rozhodovací karty bez zásobníku, ze kterého vybírají: nabídka vyjde
+                // prázdná a karta jen zaplatí cenu. Stejný filtr jako v
+                // buildDecisionOptions (placeholdery se nenabízejí).
+                // Likvidace pálí ze soupeřova BALÍČKU – s prázdným balíčkem nemá co spálit.
+                is CardEffect.DecisionBurnOpponent -> opponent.deck.none { !it.isPlaceholder }
+                // Vzpomínka bere z vlastního odhazovacího balíčku.
+                is CardEffect.DecisionFromDiscard  -> ai.discardPile.none { !it.isPlaceholder }
+                // Intuice / líz z vlastního balíčku.
+                is CardEffect.DecisionFromDeck,
+                is CardEffect.DecisionDrawFromDeck -> ai.deck.none { !it.isPlaceholder }
+
+                // Krádež i pálení míří do soupeřovy RUKY – prázdná ruka = nic.
+                is CardEffect.StealCard,
+                is CardEffect.BurnCard,
+                is CardEffect.PeekAndStealHand -> opponent.hand.none { !it.isPlaceholder }
+
                 else -> false
             }
         }
@@ -522,7 +541,10 @@ fun aiChooseAction(
     // Silné karty (Démon, drak…) se drží i za cenu dlouhého čekání.
     // Slabé karty, na které se navíc čeká, jsou první kandidáti na zahození.
     fun bestDiscard(): Card? = ai.hand.minByOrNull { card ->
-        val effectScore   = card.effects.sumOf { scoreEffect(it) }.coerceAtLeast(0)
+        // Karta, která by teď neudělala nic (Likvidace bez soupeřova balíčku,
+        // Zrcadlo bez zdroje…), nemá v ruce hodnotu – zahoď ji jako první.
+        val effectScore   = if (isNoOpNow(card)) 0
+                            else card.effects.sumOf { scoreEffect(it) }.coerceAtLeast(0)
         val shortfall     = (card.effectiveCost - (ai.resources[card.costType] ?: 0)).coerceAtLeast(0)
         val mineRate      = (ai.mines[card.costType] ?: 0).coerceAtLeast(1)
         // Penalizace za nedostupnost je stropována na 4 tahy — drahé late-game karty
@@ -614,6 +636,12 @@ fun aiChooseAction(
     // AI zde NEodhazuje: s prázdným balíčkem se nic nelízne, zahozením by jen přišla
     // o kartu. Vždy zahraj nebo ČEKEJ – čekání obou s prázdnými balíčky spouští resolveByHp.
     if (bothDecksEmpty) {
+        // Hráč pasoval a oba balíčky jsou prázdné → čekání TEĎ vyvolá resolveByHp,
+        // který porovná hrady. S vyšším hradem je to jistá výhra: hrát cokoli dál
+        // jen dává hráči další kolo, ve kterém může náskok dorovnat.
+        // (Shoda hradů = remíza, tam se čekat nevyplatí a AI hraje dál.)
+        if (playerWaited && ai.castleHP > opponent.castleHP) return AiAction.Wait
+
         val aiIsLosing = ai.castleHP < opponent.castleHP
         if (affordable.isNotEmpty()) {
             val scored = affordable.map { it to score(it) }

@@ -71,6 +71,12 @@ This matches the general pattern already guarded against elsewhere in `finishTur
 
 **Fixed 2026-07-19:** the auto-pass branch now sets `activePlayer = ActivePlayer.AI` immediately (before any `delay`), closing the click window entirely, and adds a `delay(600L)` before the recursive `finishTurn()` call (on top of the existing `delay(700L)`) so consecutive AI-only rounds aren't back-to-back with no breathing room. Scoped to this branch only — normal turn transitions are unaffected.
 
+## Rule: any state pushed mid-AI-turn must keep `activePlayer = AI`
+
+`finishTurn()` receives `old` — the state from the **player's** turn — and pushes intermediate snapshots built with `old.copy(...)` so the player can watch what happens. Every such push must re-assert `activePlayer = ActivePlayer.AI`, because `old.activePlayer` is `PLAYER` and `playCard()`/`waitTurn()`/`endPlayerTurn()` guard on nothing else. Omitting it unlocks the UI for the length of the following `delay`, and whatever the player does then is built on a state the coroutine overwrites moments later with its own older copies.
+
+**Fixed 2026-09-26:** the trap-on-draw pause at the end of the AI's turn (player draws a `Bomba` seeded by `Skrytá bomba` / `Krysí Zaklínač`) pushed `old.copy(playerState, aiState)` without it and then slept 1 s. Playing a card in that window looked like this: the card left the hand, and ~half a second later `finishTurn`'s own snapshot put it **back in hand** before the next push removed it again — reported as "the played card jumps back into my hand for half a second". The two sibling trap loops on the player's own turn already set the flag; this one had been missed.
+
 ## Round limit
 
 After reaching **round 99** (`currentTurn >= 99`) the game ends: the player with the taller castle wins.
@@ -87,3 +93,4 @@ Implemented in `GameState.checkWinCondition()` and `GameSession.js` (server).
 - 2026-07-12: Discard rule changed — discarding no longer ends the turn; allowed 1× per turn (offline + online server-authoritative)
 - 2026-07-19: Documented auto-pass (empty hand + deck) recursive `finishTurn()` cascade; added extra `delay(600L)` to fix back-to-back AI-only rounds feeling like a glitch
 - 2026-07-19: Found and fixed the real root cause: the auto-pass branch exposed `activePlayer = PLAYER` during its delay window, letting the player click Wait/End Turn and start a second concurrent `finishTurn()` — two AI turns raced over separate state, replaying cards and double-firing `scheduleGameEnd()` (stale "lose" sound overwritten by the correct "win" result). Now locks `activePlayer = AI` immediately in that branch.
+- 2026-09-26: Documented the "mid-AI-turn pushes keep activePlayer = AI" rule after the trap pause let the player act during it, making a played card flash back into the hand.

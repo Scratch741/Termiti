@@ -109,12 +109,41 @@ val best = opts.minByOrNull { card ->
 
 > Example: `Vojenský rozkaz` (+6 ATTACK) → `Démon` becomes affordable and lethal. Without this lookahead the AI only saw single-step lethals and missed the win.
 
+## Endgame: passing can be the winning move (both decks empty, AI ahead)
+
+Waiting with both decks empty is not idling — in `GameViewModel`'s `AiAction.Wait` branch, `playerWaited && player.deck.isEmpty() && ai.deck.isEmpty()` immediately resolves the game through `resolveByHp()`, i.e. the taller castle wins. So when the player has just passed and the AI's castle is **strictly** higher, passing wins on the spot, and playing anything instead only hands the player another turn to catch up.
+
+`aiChooseAction` therefore takes `playerWaited` (threaded from `finishTurn`, including the mid-combo peek-ahead call) and returns `Wait` at the top of the `bothDecksEmpty` branch when `playerWaited && ai.castleHP > opponent.castleHP`. Equal castles are deliberately excluded — `resolveByHp` would call that a draw, so the AI keeps playing and tries to get ahead.
+
+Without this the AI knew only whether it was *losing* (see below) and would keep casting while sitting on a won position.
+
 ## Endgame last-chance fallback (both decks empty, AI losing)
 
 In the `bothDecksEmpty` branch, if no card scores > 0 and the AI is losing, it tries a "last chance" play rather than passively waiting (waiting when losing risks the empty-deck draw resolution locking in a loss). Two safeguards, both fixed 2026-07-12:
 
 1. **`realizedAttackOrBuild()`** — the candidate search recurses into `ConditionalEffect` and calls `checkCondition` before counting a card as "attacks/builds now". A shallow top-level check would miss cards like `Zásobník` (`ConditionalEffect(CastleBelow(40), BuildCastle(10))` — top-level effect is `ConditionalEffect`, not `BuildCastle`).
 2. **Absolute fallback gate** — if no card matches (1), the AI plays the highest-scored card ONLY if `card.effects.sumOf { scoreEffect(it) } > 0` (it does *something* right now). Without this, a conditional card with an unmet condition (effectScore = 0) still had a mildly-negative-but-not-catastrophic total score (`0 − cost + noise`, e.g. ≈ −3) — well above the `≤ −50` no-op threshold reserved for Mirror/Clone-without-source (`-100`) — so it slipped through and got force-played for **zero effect**, just wasting the cost.
+
+## Cards that would do nothing right now
+
+`isNoOpNow(card)` / `effectsDoNothing(effects, depth)` filter cards out of `affordable` **before** any decision path runs — deliberately structural, not score-based, because `scoreEffect` also returns 0 for effects it simply does not model. The filter has to sit there rather than at the score threshold, since two paths bypass that threshold (an active `CloneNextPlayed`, and the endgame last-chance fallback).
+
+Covered:
+
+| Effect | Does nothing when |
+|---|---|
+| `ConditionalEffect` | the condition is false now |
+| `Mirror` | the opponent has no last played card (or it does nothing) |
+| `Clone` | the copied card itself does nothing (no source = +2 magic fallback, so not a no-op) |
+| `ShapeShift` | untransformed instance — `applyEffects` is a no-op for it |
+| `DecisionBurnOpponent` | the opponent's **deck** is empty (Likvidace) |
+| `DecisionFromDiscard` | the AI's own discard pile is empty (Vzpomínka) |
+| `DecisionFromDeck`, `DecisionDrawFromDeck` | the AI's own deck is empty (Intuice) |
+| `StealCard`, `BurnCard`, `PeekAndStealHand` | the opponent's **hand** is empty |
+
+Each test uses the same `!isPlaceholder` filter as `buildDecisionOptions`, so it agrees with what the offer would actually contain. A card is only filtered when **all** its effects do nothing — `Strategická výstavba` (wall 5 + `DecisionDrawFromDeck`) still gets played with an empty deck, for the wall.
+
+`bestDiscard()` scores such a card's effects as 0, so it is the first thing thrown away when the hand is full.
 
 ## Discard rules
 
@@ -151,3 +180,5 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 - 2026-07-16: Fixed Inspirace/TOTO KOLO scoring: `totoKoloPenalty`/`totoBuff` used to key off `comboCardsInHand` (any `isCombo` card), but the actual trigger checks `card.type` against the effect's `cardType` filter — unrelated. Replaced with `matchingTypeCount()`; added new `waitForSetupPenalty` to stop the AI playing its Magie payoff cards before the Inspirace-style setup card
 - 2026-09-21: Deliberate discard — the AI now weighs a card's `discardEffects` against its best play (`discardValueNow`/`bestDeliberateDiscard`); previously discard was only a forced fallback, so Zapomenutá poznámka was always played even with a 2-card hand and plenty of magic.
 - 2026-09-21: AI discard now matches the player's rule — once per turn, does not end the turn (`canDiscard`/`aiDiscardUsed`); deliberate discard compares against the card's keep value instead of the best play.
+- 2026-09-26: Decision cards with an empty source (Likvidace against an empty deck, Vzpomínka with an empty discard, Intuice with an empty deck) and hand-targeting cards against an empty hand are now treated as no-ops — the AI no longer pays for them, and discards them first.
+- 2026-09-26: The AI now passes to win — with both decks empty, the player just passed and a higher castle, waiting resolves the game in its favour; it used to play on and give the lead away.
