@@ -267,7 +267,7 @@ object CampaignData {
                         "003" to 4, "010" to 3, "028" to 2, "049" to 3,
                         "013" to 2, "084" to 3, "022" to 2
                     ),
-                    winTarget = 60, aiWinTarget = 42,
+                    winTarget = 60, aiWinTarget = 45,
                     rewardGold = 70
                 ),
 
@@ -277,16 +277,15 @@ object CampaignData {
                     avatar = "🩸", cardArt = "bazina_pijavice",
                     description = "Pije nejen krev.",
                     aiCastle = 35, aiWall = 9, aiMaxWall = 9,
-                    aiStartMagic = 2,
-                    // CHAOS: bez dolu by Telekineze ani Krádež osudu nešly nikdy zahrát
-                    aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.CHAOS to 1),
+                    aiStartAttack = 1,
+                    aiExtraMines = mapOf(ResourceType.CHAOS to 1),
                     deckCardCounts = mapOf(
                         "100" to 3, "065" to 2, "029" to 2, "010" to 2,
                         "C26" to 2, "C18" to 1, "071" to 2, "044" to 1,
                         "C17" to 2, "099" to 3, "048" to 4, "059" to 3,
                         "013" to 2
                     ),
-                    winTarget = 60, aiWinTarget = 47,
+                    winTarget = 60, aiWinTarget = 54,
                     rewardGold = 75
                 ),
 
@@ -297,13 +296,11 @@ object CampaignData {
                     description = "Míchá lektvary a proklíná narušitele.",
                     aiCastle = 37, aiWall = 10, aiMaxWall = 12,
                     aiStartMagic = 1,
-                    aiExtraMines = mapOf(
-                        ResourceType.MAGIC to 1, ResourceType.STONES to 1
-                    ),
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
                         "107" to 3, "124" to 2, "127" to 3, "037" to 2,
-                        "013" to 1, "003" to 3, "049" to 3, "061" to 4,
-                        "091" to 3, "059" to 4, "087" to 2
+                        "013" to 1, "003" to 3, "049" to 3, "061" to 3,
+                        "091" to 3, "059" to 3, "087" to 2, "089" to 2
                     ),
                     winTarget = 62, aiWinTarget = 52,
                     rewardGold = 80
@@ -315,9 +312,9 @@ object CampaignData {
                     avatar = "🐀", cardArt = "bazina_zaklinac",
                     description = "Sype ti krysy a bomby do balíčku.",
                     aiCastle = 33, aiWall = 10, aiMaxWall = 12,
-                    aiStartMagic = 1,
+                    aiStartMagic = 3,
                     aiExtraMines = mapOf(
-                        ResourceType.MAGIC to 1, ResourceType.CHAOS to 1
+                        ResourceType.CHAOS to 1
                     ),
                     deckCardCounts = mapOf(
                         "124" to 4, "129" to 2, "133" to 5, "C36" to 5,
@@ -332,9 +329,9 @@ object CampaignData {
                 CampaignOpponent(
                     id = "swp_alchemist", name = "Bažinný Alchymista", title = "Míchá, co nemá",
                     avatar = "⚗️", cardArt = "bazina_alchymista",
-                    description = "Rozpustil ti část zásob. Startuješ s −2 magie.",
+                    description = "Po jeho lektvarech bývá agresivní.",
                     aiCastle = 34, aiWall = 11, aiMaxWall = 14,
-                    aiStartMagic = 3,
+                    aiStartMagic = 2,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
                         "104" to 1, "124" to 3, "129" to 2, "138" to 3,
@@ -353,16 +350,15 @@ object CampaignData {
                     avatar = "🧙", cardArt = "bazina_jezibaba",
                     description = "Prokletí a demoralizace. Zdroje ti mizí pod rukama.",
                     aiCastle = 35, aiWall = 12, aiMaxWall = 15,
-                    aiStartMagic = 3,
-                    aiExtraMines = mapOf(
-                        ResourceType.MAGIC to 1, ResourceType.ATTACK to 1
+                    aiStartMagic = 2,
+                    aiExtraMines = mapOf(ResourceType.ATTACK to 1
                     ),
                     deckCardCounts = mapOf(
                         "107" to 3, "109" to 7, "037" to 2, "068" to 3,
                         "003" to 3, "049" to 3, "065" to 2, "C28" to 2,
                         "029" to 3, "081" to 2, "013" to 1, "069" to 3
                     ),
-                    winTarget = 65, aiWinTarget = 47,
+                    winTarget = 65, aiWinTarget = 49,
                     rewardGold = 95
                 ),
 
@@ -371,9 +367,9 @@ object CampaignData {
                     id = "swp_serpent", name = "Močálový Had", title = "Jed v každém zubu",
                     avatar = "🐍", cardArt = "bazina_had", description = "Otrávil tvůj zdroj kamenů. Důl kamene −1.",
                     aiCastle = 36, aiWall = 12, aiMaxWall = 16,
-                    aiStartMagic = 3,
+                    aiStartMagic = 1,
                     aiExtraMines = mapOf(
-                        ResourceType.MAGIC to 1, ResourceType.ATTACK to 1
+                        ResourceType.ATTACK to 1
                     ),
                     deckCardCounts = mapOf(
                         "100" to 3, "109" to 2, "122" to 3, "049" to 4,
@@ -381,7 +377,7 @@ object CampaignData {
                         "041" to 3, "074" to 3, "023" to 3, "006" to 2,
                         "D04" to 2
                     ),
-                    winTarget = 66, aiWinTarget = 48,
+                    winTarget = 66, aiWinTarget = 54,
                     playerHandicap = PlayerHandicap(extraMines = mapOf(ResourceType.STONES to -1)),
                     rewardGold = 100
                 ),
@@ -390,7 +386,7 @@ object CampaignData {
                 CampaignOpponent(
                     id = "swp_shade", name = "Prokletá bludička", title = "Čaruje magii, která tě spálí",
                     avatar = "🔥", cardArt = "bazina_bludicka", description = "Pálí ti karty z ruky a krade je. Libuje si v chaosu. Hrad −5.",
-                    aiCastle = 37, aiWall = 13, aiMaxWall = 16, aiStartMagic = 4,
+                    aiCastle = 37, aiWall = 13, aiMaxWall = 16, aiStartMagic = 1,
                     aiExtraMines = mapOf(
                         ResourceType.MAGIC to 1, ResourceType.CHAOS to 1
                     ),
@@ -400,7 +396,7 @@ object CampaignData {
                         "C20" to 1, "059" to 2, "D05" to 2, "031" to 2,
                         "C31" to 3, "C22" to 5, "C11" to 3, "C28" to 2
                     ),
-                    winTarget = 66, aiWinTarget = 49,
+                    winTarget = 66, aiWinTarget = 67,
                     playerHandicap = PlayerHandicap(extraCastle = -5),
                     rewardGold = 110
                 ),
@@ -413,8 +409,8 @@ object CampaignData {
                     avatar = "🌿", cardArt = "bazina_druid",
                     description = "Nechá bažinu růst – doly, karty, kouzla. Hrad −3, hradby −3.",
                     aiCastle = 42, aiWall = 14, aiMaxWall = 18,
-                    aiStartMagic = 2,
-                    aiStartStones = 3,
+                    aiStartMagic = 1,
+                    aiStartStones = 1,
                     aiExtraMines = mapOf(
                         ResourceType.MAGIC to 1, ResourceType.ATTACK to -1
                     ),
@@ -436,8 +432,12 @@ object CampaignData {
                     avatar = "🌫️", cardArt = "bazina_pan_mlhy",
                     description = "Mlha bere tvou podobu i tvůj hrad. Jednorázová odměna: 200 XP.",
                     isBoss = true,
-                    aiCastle = 42, aiWall = 16, aiMaxWall = 20, aiStartMagic = 5,
-                    aiExtraMines = mapOf(ResourceType.MAGIC to 2, ResourceType.ATTACK to 1),
+                    aiCastle = 42, aiWall = 16, aiMaxWall = 20, aiStartMagic = 1,
+                    aiStartAttack = 1,
+                    aiStartStones = 1,
+                    aiExtraMines = mapOf(
+                        ResourceType.MAGIC to 1, ResourceType.STONES to 1
+                    ),
                     // Boss shrnuje lokaci: krade (Špión, Dvojitý agent, Temný přenos),
                     // zrcadlí tvé tahy (Zrcadlo, Klon) a pálí kouzly. Dělostřelectvo je
                     // jediná útočná karta – proto ten důl útoku navíc.
@@ -447,7 +447,7 @@ object CampaignData {
                         "021" to 2, "016" to 2, "037" to 3, "004" to 2,
                         "059" to 2, "029" to 3
                     ),
-                    winTarget = 70, aiStartHandSize = 5, aiWinTarget = 52,
+                    winTarget = 70, aiStartHandSize = 5, aiWinTarget = 62,
                     playerHandicap = PlayerHandicap(extraCastle = -4, extraWall = -4),
                     rewardGold = 190, rewardGems = 2, rewardXp = 200
                 )
