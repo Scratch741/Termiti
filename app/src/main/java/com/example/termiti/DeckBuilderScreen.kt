@@ -770,33 +770,42 @@ fun CardPreview(card: Card) {
                 .height(90.dp)
                 .clipToBounds()
         ) {
-            Image(
-                painter = painterResource(artResId),
-                contentDescription = null,
-                modifier = artModifier(card),
-                contentScale = ContentScale.Crop,
-                alignment = artAlignment(card)
-            )
+            // Bitmapy z CardBitmapCache: zmenšené na velikost dlaždice a dekódované
+            // mimo UI vlákno – painterResource je dekódoval zvětšené podle hustoty
+            // displeje a synchronně, což při rychlém rolování sekalo.
+            rememberCardBitmap(artResId, 100.dp, 90.dp)?.let { art ->
+                Image(
+                    bitmap = art,
+                    contentDescription = null,
+                    modifier = artModifier(card),
+                    contentScale = ContentScale.Crop,
+                    alignment = artAlignment(card)
+                )
+            }
         }
         // Rám
         if (frameResId != 0) {
-            Image(
-                painter = painterResource(frameResId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
+            rememberCardBitmap(frameResId, 100.dp, 140.dp)?.let { frame ->
+                Image(
+                    bitmap = frame,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
         }
 
         // Překryv rarity
         val rarityOverlayId = rarityOverlayResource(card.rarity)
         if (rarityOverlayId != 0) {
-            Image(
-                painter = painterResource(rarityOverlayId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
+            rememberCardBitmap(rarityOverlayId, 100.dp, 140.dp)?.let { overlay ->
+                Image(
+                    bitmap = overlay,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
         }
         // Cena
         Box(
@@ -848,7 +857,9 @@ fun CardPreview(card: Card) {
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(parseCardDesc(card.displayDescription), color = Color(0xFFDDD0B0), fontSize = 7.sp,
+            val descText = card.displayDescription
+            val parsedDesc = remember(descText) { parseCardDesc(descText) }
+            Text(parsedDesc, color = Color(0xFFDDD0B0), fontSize = 7.sp,
                 textAlign = TextAlign.Center, maxLines = 4, overflow = TextOverflow.Ellipsis, lineHeight = 9.sp,
                 style = LocalTextStyle.current.merge(
                     TextStyle(
