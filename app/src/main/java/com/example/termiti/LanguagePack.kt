@@ -506,6 +506,7 @@ data class LanguagePack(
                 "presetDefender2" to str("presetDefender2", "🏰 Obránce2"),
                 "presetCardsmith" to str("presetCardsmith", "📚 Kartář"),
                 "presetSaboteur" to str("presetSaboteur", "🕵️ Sabotér"),
+                "presetAttacker2" to str("presetAttacker2", "⚔️ Útočník2"),
             ))
         }
 

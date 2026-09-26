@@ -20,7 +20,7 @@
   },
   {
     "id": "008",
-    "name": "Šípy",
+    "name": "Déšť šípů",
     "cost": 1,
     "costType": "ATTACK",
     "isCombo": true,
@@ -2355,7 +2355,7 @@
   {
     "id": "C03",
     "name": "Chaotický důl",
-    "cost": 4,
+    "cost": 3,
     "costType": "MAGIC",
     "isCombo": false,
     "effects": [
@@ -4097,6 +4097,55 @@
     "isPlaceholder": false,
     "discardEffects": [],
     "baseId": "130"
+  },
+  {
+    "id": "C44",
+    "name": "Daň z chaosu",
+    "cost": 4,
+    "costType": "CHAOS",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 7
+      },
+      {
+        "type": "ConditionalEffect",
+        "condition": {
+          "type": "ResourceMoreThanOpponent",
+          "resType": "CHAOS"
+        },
+        "effect": {
+          "type": "StealCastle",
+          "amount": 4
+        }
+      }
+    ],
+    "rarity": "EPIC",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "discardEffects": [],
+    "baseId": "C44"
+  },
+  {
+    "id": "C45",
+    "name": "Chaotická šipka",
+    "cost": 1,
+    "costType": "CHAOS",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "StealCastle",
+        "amount": 3
+      }
+    ],
+    "rarity": "COMMON",
+    "maxCopies": 3,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "discardEffects": [],
+    "baseId": "C45"
   },
   {
     "id": "131",

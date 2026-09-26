@@ -69,7 +69,7 @@ const MAX_COPIES = { COMMON:3, RARE:2, EPIC:2, LEGENDARY:1 };
 const RAW = [
   // ── Útok (platí ATTACK) ──────────────────────────────────────────────────
   ['001','Rychlý útok',    2,'ATTACK',1,[ap(6)],               'COMMON'],
-  ['008','Šípy',           1,'ATTACK',1,[ac(3)],               'COMMON'],
+  ['008','Déšť šípů',      1,'ATTACK',1,[ac(3)],               'COMMON'],
   ['003','Ohnivá koule',   3,'MAGIC', 0,[ac(8)],               'RARE'],
   ['007','Silný úder',     4,'ATTACK',0,[ap(11)],              'COMMON'],
   ['006','Převaha síly',   3,'ATTACK',0,[cd(rMO('ATTACK'), ac(10))],   'RARE'],
@@ -194,7 +194,7 @@ const RAW = [
   // ── Chaos (platí CHAOS) ──────────────────────────────────────────────────
   ['C01','Chaotická jiskra',0,'CHAOS',1,[ar('CHAOS',2)],       'RARE'],
   ['C02','Entropie',        3,'MAGIC',0,[ar('CHAOS',5), dr('MAGIC',2)], 'EPIC'],
-  ['C03','Chaotický důl',   4,'MAGIC',0,[am('CHAOS',1)],       'LEGENDARY'],
+  ['C03','Chaotický důl',   3,'MAGIC',0,[am('CHAOS',1)],       'LEGENDARY'],
   ['C04','Krádež chaosu',   1,'MAGIC',1,[sr('CHAOS',3)],       'RARE'],
 
   // Karty platící Chaosem – silné efekty
@@ -295,6 +295,17 @@ const RAW = [
   // ── Nájezd ────────────────────────────────────────────────────────────────
   ['C43','Nájezd',             1,'ATTACK',1,[ap(2),{ type:'NextCardIsCombo' }], 'RARE'],
   ['130','Rabování',           0,'ATTACK',1,[ar('ATTACK',2), ar('STONES',-2)],  'RARE'],
+
+  // ── Daň z chaosu ──────────────────────────────────────────────────────────
+  // Odměna za chaosovou převahu: základ je slabý úder, ale kdo má víc chaosu
+  // než soupeř, urve si navíc kus hradu (poškození + léčení v jednom).
+  ['C44','Daň z chaosu',      4,'CHAOS', 0,[ac(7), cd(rMO('CHAOS'), sca(4))], 'EPIC'],
+
+  // ── Chaotická šipka ───────────────────────────────────────────────────────
+  // Nejlevnější chaosový útok ve hře a jediná chaosová COMMON karta. Krádež
+  // hradu = poškození i léčení, takže rozdíl ve skóre je 6 za jeden chaos –
+  // vysoká efektivita na surovinu, ale malý dopad na slot (viz wiki/log.md).
+  ['C45','Chaotická šipka',   1,'CHAOS', 1,[sca(3)], 'COMMON'],
 
   // ── Invaze ────────────────────────────────────────────────────────────────
   ['131','Invaze',             7,'ATTACK',0,[ap(8), dm('STONES',1)], 'EPIC'],

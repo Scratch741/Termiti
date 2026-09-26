@@ -159,6 +159,7 @@ fun localizedDeckName(name: String): String {
     when (name) {
         "Začátečník"  -> return s.deckStarter
         "⚔️ Útočník"  -> return s.presetAttacker
+        "⚔️ Útočník2" -> return s.presetAttacker2
         "🔮 Mágik"    -> return s.presetMage
         "🏰 Obránce"  -> return s.presetDefender
         "🏰 Obránce2" -> return s.presetDefender2

@@ -396,24 +396,25 @@
     "presetDefender": "🏰 Defender",
     "presetDefender2": "🏰 Defender 2",
     "presetCardsmith": "📚 Card Sharp",
-    "presetSaboteur": "🕵️ Saboteur"
+    "presetSaboteur": "🕵️ Saboteur",
+    "presetAttacker2": "⚔️ Attacker 2"
   },
   "cards": {
     "001": {
       "name": "Quick Strike",
-      "desc": "Attack the enemy\nfor 6.\n[Combo]"
+      "desc": "Attack for 6.\n[Combo]"
     },
     "008": {
-      "name": "Arrows",
-      "desc": "Attack the castle\nfor 3.\n[Combo]"
+      "name": "Arrow Rain",
+      "desc": "Castle damage −3.\n[Combo]"
     },
     "003": {
       "name": "Fireball",
-      "desc": "Hit castle -8."
+      "desc": "Castle damage −8."
     },
     "007": {
       "name": "Heavy Blow",
-      "desc": "Attack the enemy for 11."
+      "desc": "Attack for 11."
     },
     "006": {
       "name": "Show of Force",
@@ -473,23 +474,23 @@
     },
     "019": {
       "name": "Fire Arrows",
-      "desc": "Damage walls by 5.\n[Combo]"
+      "desc": "Wall damage −5.\n[Combo]"
     },
     "020": {
       "name": "Battering Ram",
-      "desc": "Damage only walls\nby 12.\n[Combo]"
+      "desc": "Wall damage −12.\n[Combo]"
     },
     "021": {
       "name": "Artillery",
-      "desc": "Attack the enemy for 15."
+      "desc": "Attack for 15."
     },
     "022": {
       "name": "Direct Hit",
-      "desc": "Castle damage -8."
+      "desc": "Castle damage −8."
     },
     "023": {
       "name": "Double Strike",
-      "desc": "Attack the castle for 7 and the opponent for 7."
+      "desc": "Castle damage −7, attack for 7."
     },
     "024": {
       "name": "Berserk",
@@ -585,7 +586,7 @@
     },
     "047": {
       "name": "Ogre",
-      "desc": "Attack the enemy\nfor 9."
+      "desc": "Attack for 9."
     },
     "048": {
       "name": "Vampire",
@@ -601,23 +602,23 @@
     },
     "051": {
       "name": "Dragon",
-      "desc": "Attack for 14, castle -8 direct, +3 Chaos."
+      "desc": "Attack for 14, castle damage −8, +3 Chaos."
     },
     "052": {
       "name": "Demon",
-      "desc": "Direct hit: castle -16. +4 Chaos."
+      "desc": "Castle damage −16. +4 Chaos."
     },
     "053": {
       "name": "Flamethrower",
-      "desc": "Damage only walls by 10, gain +2 Attack."
+      "desc": "Wall damage −10, gain +2 Attack."
     },
     "054": {
       "name": "War March",
-      "desc": "Attack the enemy for 13, +2 Attack."
+      "desc": "Attack for 13, +2 Attack."
     },
     "055": {
       "name": "Last Stand",
-      "desc": "Attack for 3, +1 Attack. If <5 walls: castle -8."
+      "desc": "Attack for 3, +1 Attack. If <5 walls: castle −8."
     },
     "056": {
       "name": "Raider",
@@ -709,7 +710,7 @@
     },
     "078": {
       "name": "Vampire Dragon",
-      "desc": "Direct hit: castle -10, steal 4 Magic and 4 Attack, +3 Chaos."
+      "desc": "Castle damage −10, steal 4 Magic and 4 Attack, +3 Chaos."
     },
     "079": {
       "name": "Siege",
@@ -721,7 +722,7 @@
     },
     "130": {
       "name": "Plunder",
-      "desc": "+2 Attack, -2 Stone.\n[Combo]"
+      "desc": "+2 Attack, −2 Stone.\n[Combo]"
     },
     "131": {
       "name": "Invasion",
@@ -789,7 +790,7 @@
     },
     "095": {
       "name": "Stone Trade",
-      "desc": "Gain +5 Stone."
+      "desc": "+5 Stone."
     },
     "096": {
       "name": "Impregnable Fortress",
@@ -817,11 +818,11 @@
     },
     "C05": {
       "name": "Chaos Blast",
-      "desc": "Direct hit: castle -14, ignores walls."
+      "desc": "Castle damage −14."
     },
     "C06": {
       "name": "Chaos Storm",
-      "desc": "Attack the enemy for 20."
+      "desc": "Attack for 20."
     },
     "C07": {
       "name": "Chaos Shield",
@@ -837,7 +838,7 @@
     },
     "C10": {
       "name": "Chaos Dragon",
-      "desc": "Attack for 15, castle -12 direct."
+      "desc": "Attack for 15, castle damage −12."
     },
     "C11": {
       "name": "Chaos and Order",
@@ -885,15 +886,15 @@
     },
     "C36": {
       "name": "Hidden Bomb",
-      "desc": "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE -5**."
+      "desc": "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE −5**."
     },
     "C37": {
       "name": "Bomb",
-      "desc": "**EXPLOSION! Castle -5. (trap - triggers on draw)**"
+      "desc": "**EXPLOSION! Castle −5. (trap - triggers on draw)**"
     },
     "C38": {
       "name": "Detonated Bomb",
-      "desc": "Play immediately. Draw a card and -5 castle."
+      "desc": "Play immediately. Draw a card and −5 castle."
     },
     "C39": {
       "name": "Great Confusion",
@@ -909,11 +910,11 @@
     },
     "C21": {
       "name": "Replication",
-      "desc": "Add 3 copies of 'Arrows' to your deck."
+      "desc": "Add 3 copies of 'Arrow Rain' to your deck."
     },
     "C22": {
       "name": "Chaos Factory",
-      "desc": "Add 2 'Chaos Blast'\nto your deck."
+      "desc": "Add 2 copies of 'Chaos Blast'\nto your deck."
     },
     "C23": {
       "name": "Cloning",
@@ -953,7 +954,7 @@
     },
     "C32": {
       "name": "Mutual Destruction",
-      "desc": "Opponent -10 castle, your own castle -10."
+      "desc": "Opponent −10 castle, your own castle −10."
     },
     "D01": {
       "name": "Scout",
@@ -993,11 +994,11 @@
     },
     "098": {
       "name": "Brick Throw",
-      "desc": "Your own walls -4, attack the enemy\nfor 11."
+      "desc": "Your own walls −4, attack the enemy\nfor 11."
     },
     "099": {
       "name": "Dark Transfer",
-      "desc": "Steal 10 castle HP from the opponent."
+      "desc": "Steal 10 castle HP."
     },
     "100": {
       "name": "Bloody Strike",
@@ -1091,6 +1092,14 @@
       "name": "Raid",
       "desc": "Deal 2 damage. The next card you play acts as [Combo]. [Combo]"
     },
+    "C44": {
+      "name": "Chaos Tribute",
+      "desc": "Castle damage −7.\nIf you have more Chaos than your opponent, steal 4 castle HP."
+    },
+    "C45": {
+      "name": "Chaos Dart",
+      "desc": "Steal 3 castle HP.\n[Combo]"
+    },
     "124": {
       "name": "Alchemist's Choice",
       "desc": "**Decision:** gain 4 Magic, 4 Attack, 4 Stone, or 4 Chaos. [Combo]"
@@ -1129,7 +1138,7 @@
     },
     "L01": {
       "name": "Darkmage",
-      "desc": "Steals 3 Magic, 3 Attack, and 3 Stone. -18 castle. Steals 5 castle HP."
+      "desc": "Steal 3 Magic, 3 Attack and 3 Stone. Castle damage −18. Steal 5 castle HP."
     },
     "133": {
       "name": "Infested Rats",
@@ -1141,11 +1150,11 @@
     },
     "135": {
       "name": "Coin of Fate",
-      "desc": "Steals **3 CHAOS** from the opponent. | **Discard:** +2 Chaos."
+      "desc": "Steal 3 Chaos from the opponent. | **Discard:** +2 Chaos."
     },
     "136": {
       "name": "Final Lunge",
-      "desc": "Attack the enemy for 10. | **Discard:** −4 walls."
+      "desc": "Attack for 10. | **Discard:** −4 walls."
     },
     "137": {
       "name": "Forgotten Note",

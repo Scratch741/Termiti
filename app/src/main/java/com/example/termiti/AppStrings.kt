@@ -470,6 +470,7 @@ class AppStrings(
     val presetDefender2: String by values
     val presetCardsmith: String by values
     val presetSaboteur: String by values
+    val presetAttacker2: String by values
 }
 
 // ── CompositionLocal ──────────────────────────────────────────────────────────
