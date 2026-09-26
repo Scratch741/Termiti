@@ -17,6 +17,13 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.4.1] – 2026-09-26
+
+### Vylepšeno
+- **Tvorba balíčku:** přepracovaný panel „Složení balíčku“ a „Mana křivka“ –
+  vlastní tmavý podklad, zlaté nadpisy, větší ikony a čísla surovin, výraznější
+  proužky, vyšší sloupce mana křivky s počtem karet nad každým a čitelnější osa.
+
 ## [0.4.0] – 2026-09-26
 
 ### Nové karty

@@ -1490,12 +1490,25 @@ private fun DeckPanel(
             Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-        // Složení + Mana křivka
+        // Složení + Mana křivka – vlastní tmavý podklad, ať to nesplývá s kamennou texturou
         Row(
-            Modifier.fillMaxWidth().padding(top = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp)
+                .height(IntrinsicSize.Min)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Black.copy(alpha = 0.50f))
+                .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             DeckStats(deck, deckCards, Modifier.weight(1f))
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .background(Gold.copy(alpha = 0.18f))
+            )
             ManaCurveChart(deck, deckCards, Modifier.weight(1f))
         }
 
@@ -1760,6 +1773,19 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     }
 }
 
+/** Nadpis sekce statistik balíčku – stejný styl pro složení i mana křivku. */
+@Composable
+private fun StatsHeader(text: String) {
+    Text(
+        text.uppercase(),
+        color         = Gold,
+        fontSize      = 9.sp,
+        fontWeight    = FontWeight.Bold,
+        letterSpacing = 1.2.sp,
+        maxLines      = 1
+    )
+}
+
 @Composable
 private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier = Modifier) {
     // Bucket cards by cost: 0,1,2,3,4,5,6,7+
@@ -1770,51 +1796,65 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
     }
     val maxCount = buckets.maxOrNull()?.coerceAtLeast(1) ?: 1
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(LocalStrings.current.dbManaCurve, color = TextMuted, fontSize = 7.sp, letterSpacing = 0.8.sp)
-        // Bars
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        StatsHeader(LocalStrings.current.dbManaCurve)
+        // Sloupce s počtem karet těsně nad každým. Číslo má pevnou výšku, sloupce se dělí
+        // o zbytek váhami – výška sloupce se tak počítá bez popisku a nepřekrývá ho.
         Row(
-            Modifier.fillMaxWidth().height(22.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            Modifier.fillMaxWidth().height(60.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             buckets.forEach { count ->
-                val fillFraction = if (maxCount > 0) count.toFloat() / maxCount.toFloat() else 0f
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
+                val fillFraction = if (count > 0) (count.toFloat() / maxCount).coerceAtLeast(0.06f) else 0f
+                Column(
+                    Modifier.weight(1f).fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
+                    Spacer(Modifier.weight((1f - fillFraction).coerceAtLeast(0.001f)))
+                    Text(
+                        if (count > 0) "$count" else "",
+                        color    = Color.White,
+                        maxLines = 1,
+                        modifier = Modifier.padding(bottom = 2.dp),
+                        style    = TextStyle(
+                            fontSize        = 9.sp,
+                            fontWeight      = FontWeight.Bold,
+                            lineHeight      = 10.sp,
+                            platformStyle   = PlatformTextStyle(includeFontPadding = false),
+                            lineHeightStyle = LineHeightStyle(
+                                alignment = LineHeightStyle.Alignment.Center,
+                                trim      = LineHeightStyle.Trim.Both
+                            )
+                        )
+                    )
+                    if (count > 0) Box(
                         Modifier
-                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .fillMaxHeight(fillFraction.coerceAtLeast(if (count > 0) 0.04f else 0f))
-                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .weight(fillFraction)
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(
                                 Brush.verticalGradient(
-                                    listOf(
-                                        Gold.copy(alpha = 0.90f),
-                                        Gold.copy(alpha = 0.45f)
-                                    )
+                                    listOf(Gold, Gold.copy(alpha = 0.55f))
                                 )
                             )
                     )
                 }
             }
         }
-        // X-axis labels
+        // Osa X
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             (0..7).forEach { i ->
                 Text(
                     if (i < 7) "$i" else "7+",
-                    modifier  = Modifier.weight(1f),
-                    color     = TextMuted.copy(alpha = 0.45f),
-                    fontSize  = 6.sp,
-                    textAlign = TextAlign.Center
+                    modifier   = Modifier.weight(1f),
+                    color      = if (buckets[i] > 0) Color.White.copy(alpha = 0.85f) else TextMuted,
+                    fontSize   = 8.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign  = TextAlign.Center
                 )
             }
         }
@@ -1828,44 +1868,48 @@ private fun DeckStats(deck: Deck, deckCards: List<Card>, modifier: Modifier = Mo
     }
     val total = deck.totalCards.coerceAtLeast(1).toFloat()
 
-    // 2×2 grid: pair resource types side by side
-    val pairs = ResourceType.entries.chunked(2)
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        pairs.forEach { row ->
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        StatsHeader(LocalStrings.current.dbComposition)
+        // 2×2: ikona + velké číslo, pod tím proužek = podíl na balíčku
+        ResourceType.entries.chunked(2).forEach { row ->
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 row.forEach { type ->
                     val count = byType[type] ?: 0
-                    Row(
+                    val color = resColor(type)
+                    Column(
                         Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
-                        Image(
-                            painterResource(resourceIconRes(type)),
-                            contentDescription = null,
-                            modifier = Modifier.size(10.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Image(
+                                painterResource(resourceIconRes(type)),
+                                contentDescription = null,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Text(
+                                "$count",
+                                color      = if (count > 0) Color.White else TextMuted,
+                                fontSize   = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         Box(
-                            Modifier.weight(1f).height(3.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(Color.White.copy(alpha = 0.06f))
+                            Modifier.fillMaxWidth().height(5.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(Color.White.copy(alpha = 0.08f))
                         ) {
                             Box(
                                 Modifier.fillMaxWidth(count / total).fillMaxHeight()
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(resColor(type).copy(alpha = 0.70f))
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(color)
                             )
                         }
-                        Text(
-                            "$count",
-                            color    = resColor(type),
-                            fontSize = 7.sp,
-                            modifier = Modifier.width(12.dp),
-                            textAlign = TextAlign.End
-                        )
                     }
                 }
             }
