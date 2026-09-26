@@ -928,70 +928,199 @@ let cardAdjustments = {}; // id -> {scale, bx, by}
 // Při přidání karty s ilustrací sem přidej i řádek, jinak designer
 // nenajde obrázek a hlásí "chybí art_<id>".
 const ART_MAP = {
-  '001':'art_zakladni_utok', '008':'art_sipy', '003':'art_ohniva_koule',
-  '007':'art_silny_uder', '006':'art_prevaha_sily', '017':'art_valecny_sekyrnik',
-  '002':'art_kamenna_zed', '010':'art_palisada', '005':'art_posila_hradu',
-  '009':'art_pevne_zaklady', '018':'art_mohutna_vez', '004':'art_magie',
-  '011':'art_zasoby_kamene', '012':'art_mobilizace', '013':'art_magicky_pramen',
-  '014':'art_kamenolom', '015':'art_vycvikovy_tabor', '016':'art_velky_pramen',
-  '019':'art_zapalne_sipy', '020':'art_beranidlo', '021':'art_delostrelectvo',
-  '022':'art_primy_zasah', '023':'art_dvojity_utok', '024':'art_berserk',
-  '025':'art_protiutok', '026':'art_ostrelovac', '027':'art_valecne_bubny',
-  '028':'art_zaplata', '029':'art_opevneni', '030':'art_kamenny_val',
-  '031':'art_renovace', '032':'art_citadela', '033':'art_zemni_val',
-  '034':'art_opravar', '035':'art_zakladni_kamen', '036':'art_hradni_prikop',
-  '037':'art_rychla_magie', '038':'art_vojensky_rozkaz', '039':'art_stavebni_boom',
-  '040':'art_alchymie', '041':'art_magicke_trio', '042':'art_velky_kamenolom',
-  '043':'art_vycvikove_centrum', '044':'art_trifekta_dolu', '045':'art_ocarovane_doly',
-  '046':'art_goblin', '047':'art_ogr', '048':'art_upir',
-  '049':'art_jed', '050':'art_podkopani_hradeb', '051':'art_drak',
-  '052':'art_demon', '053':'art_plamenomet', '054':'art_valecny_pochod',
-  '055':'art_posledni_vzdor', '056':'art_najezdnik', '057':'art_basta',
-  '058':'art_obranny_val', '059':'art_pevnostni_hrad', '060':'art_chram',
-  '061':'art_tunely', '062':'art_obranna_aliance', '063':'art_vez_strazni',
-  '064':'art_zasobnik', '065':'art_lupic', '066':'art_kamenna_dan',
-  '067':'art_saboter', '068':'art_demoralizace', '069':'art_dvojity_agent',
-  '070':'art_krize_zasobovani', '071':'art_spion', '072':'art_zbrojnice',
-  '073':'art_skola_magie', '074':'art_trziste', '075':'art_rozmach_tezby',
-  '076':'art_vojenska_zakladna', '077':'art_premena_magie', '078':'art_draci_upir',
-  '079':'art_oblehani', '080':'art_velkovyroba', '131':'art_invaze',
-  '130':'art_rabovani', '129':'art_priprava', '081':'art_rychla_hradba',
-  '082':'art_masivni_zed', '083':'art_nouzove_opevneni', '084':'art_velka_oprava',
-  '085':'art_kralovska_obnova', '086':'art_zednicka_rota', '087':'art_pevnost',
-  '088':'art_zesilene_hradby', '089':'art_architekt', '090':'art_rozsireni_tezby',
-  '091':'art_barikady', '092':'art_strategicka_vystavba', '093':'art_cihla_na_cihlu',
-  '094':'art_sklad_materialu', '095':'art_obchod_s_kamenem', '096':'art_nedobytna_pevnost',
-  '097':'art_obnova_kralovstvi', '098':'art_hod_cihlou', '099':'art_temny_prenos',
-  '100':'art_krvavy_uder', '101':'art_nahla_smrt', '102':'art_kamenny_prival',
-  '103':'art_magicke_rozdeleni', '132':'art_zoufaly_zold', '133':'art_zamorene_krysy',
-  '134':'art_zamorena_krysa', '135':'art_osudova_mince', '136':'art_posledni_vypad',
-  '137':'art_zapomenuta_poznamka', '138':'art_podkopane_valy', '139':'art_pohlceni_hradeb',
-  '108':'art_likvidace', '109':'art_rekrut', '112':'art_stavitel',
-  '110':'art_vzpominka', '111':'art_intuice', '104':'art_valecny_trenink',
-  '107':'art_prokleti', 'C01':'art_chaoticka_jiskra', 'C02':'art_entropie',
-  'C03':'art_chaoticky_dul', 'C04':'art_kradez_chaosu', 'C05':'art_chaoticky_vybuch',
-  'C06':'art_boure_chaosu', 'C07':'art_chaoticky_stit', 'C08':'art_zazrak_chaosu',
-  'C09':'art_chaoticka_krize', 'C10':'art_chaoticky_drak', 'C11':'art_chaos_a_rad',
-  'C12':'art_anarchie', 'C13':'art_sabotaz', 'C14':'art_niceni_kamenolomu',
-  'C15':'art_zakernost', 'C16':'art_velka_sabotaz', 'C17':'art_telekineze',
-  'C18':'art_kradez_osudu', 'C19':'art_spalena_knihovna', 'C20':'art_prazdna_mysl',
-  'C21':'art_replikace', 'C22':'art_chaos_manufaktura', 'C23':'art_klonovani',
-  'C24':'art_temny_ritual', 'C25':'art_nestabilni_vir', 'C26':'art_krvava_obet',
-  'C27':'art_odraz_magie', 'C28':'art_chaoticka_trofej', 'C29':'art_bourliva_mysl',
-  'C30':'art_chram_chaosu', 'C31':'art_chaoticky_vymenik', 'C32':'art_vzajemna_zkaza',
-  'C33':'art_kradez_identity', 'C34':'art_shapeshifter', 'C35':'art_chaoticka_premena',
-  'C36':'art_skryta_bomba', 'C37':'art_skryta_bomba', 'C38':'art_explodovana_bomba',
-  'C39':'art_velky_zmatek', 'D01':'art_pruzkumnik', 'D02':'art_vestba',
-  'D03':'art_kronika', 'D04':'art_bojova_taktika', 'D05':'art_stavebni_plany',
-  'D06':'art_elitni_zved', 'D07':'art_tajna_knihovna', 'D08':'art_vize',
-  'D09':'art_inspirace', '113':'art_goblin_saman', '114':'art_chaoticky_mudrc',
-  '115':'art_studna_vedomosti', '116':'art_chaoticka_replikace', '117':'art_pruzkum_dolu',
-  '118':'art_magicky_zolik', '120':'art_hromadna_sleva', '121':'art_kletba_cen',
-  '123':'art_momentum', '124':'art_alchymistova_volba', '125':'art_valecny_zapal',
-  '126':'art_magicky_proud', '127':'art_pyroblast', '128':'art_archmag',
-  'C43':'art_najezd', 'C42':'art_klon', 'C41':'art_zrcadlo',
-  'C40':'art_zakerny_speh', '119':'art_valecny_pokrik', '122':'art_stavebni_posila',
-  'L01':'art_darkmage'
+  // GENEROVÁNO z CardPresentation.kt – node tools/regen_deckbuilder_cards.js
+  "100":"art_krvavy_uder",
+  "101":"art_nahla_smrt",
+  "102":"art_kamenny_prival",
+  "103":"art_magicke_rozdeleni",
+  "104":"art_valecny_trenink",
+  "107":"art_prokleti",
+  "108":"art_likvidace",
+  "109":"art_rekrut",
+  "110":"art_vzpominka",
+  "111":"art_intuice",
+  "112":"art_stavitel",
+  "113":"art_goblin_saman",
+  "114":"art_chaoticky_mudrc",
+  "115":"art_studna_vedomosti",
+  "116":"art_chaoticka_replikace",
+  "117":"art_pruzkum_dolu",
+  "118":"art_magicky_zolik",
+  "119":"art_valecny_pokrik",
+  "120":"art_hromadna_sleva",
+  "121":"art_kletba_cen",
+  "122":"art_stavebni_posila",
+  "123":"art_momentum",
+  "124":"art_alchymistova_volba",
+  "125":"art_valecny_zapal",
+  "126":"art_magicky_proud",
+  "127":"art_pyroblast",
+  "128":"art_archmag",
+  "129":"art_priprava",
+  "130":"art_rabovani",
+  "131":"art_invaze",
+  "132":"art_zoufaly_zold",
+  "133":"art_zamorene_krysy",
+  "134":"art_zamorena_krysa",
+  "135":"art_osudova_mince",
+  "136":"art_posledni_vypad",
+  "137":"art_zapomenuta_poznamka",
+  "138":"art_podkopane_valy",
+  "139":"art_pohlceni_hradeb",
+  "001":"art_zakladni_utok",
+  "008":"art_sipy",
+  "003":"art_ohniva_koule",
+  "007":"art_silny_uder",
+  "006":"art_prevaha_sily",
+  "017":"art_valecny_sekyrnik",
+  "002":"art_kamenna_zed",
+  "010":"art_palisada",
+  "005":"art_posila_hradu",
+  "009":"art_pevne_zaklady",
+  "018":"art_mohutna_vez",
+  "004":"art_magie",
+  "011":"art_zasoby_kamene",
+  "012":"art_mobilizace",
+  "013":"art_magicky_pramen",
+  "014":"art_kamenolom",
+  "015":"art_vycvikovy_tabor",
+  "016":"art_velky_pramen",
+  "019":"art_zapalne_sipy",
+  "020":"art_beranidlo",
+  "021":"art_delostrelectvo",
+  "022":"art_primy_zasah",
+  "023":"art_dvojity_utok",
+  "024":"art_berserk",
+  "025":"art_protiutok",
+  "026":"art_ostrelovac",
+  "027":"art_valecne_bubny",
+  "028":"art_zaplata",
+  "029":"art_opevneni",
+  "030":"art_kamenny_val",
+  "031":"art_renovace",
+  "032":"art_citadela",
+  "033":"art_zemni_val",
+  "034":"art_opravar",
+  "035":"art_zakladni_kamen",
+  "036":"art_hradni_prikop",
+  "037":"art_rychla_magie",
+  "038":"art_vojensky_rozkaz",
+  "039":"art_stavebni_boom",
+  "040":"art_alchymie",
+  "041":"art_magicke_trio",
+  "042":"art_velky_kamenolom",
+  "043":"art_vycvikove_centrum",
+  "044":"art_trifekta_dolu",
+  "045":"art_ocarovane_doly",
+  "046":"art_goblin",
+  "047":"art_ogr",
+  "048":"art_upir",
+  "049":"art_jed",
+  "050":"art_podkopani_hradeb",
+  "051":"art_drak",
+  "052":"art_demon",
+  "053":"art_plamenomet",
+  "054":"art_valecny_pochod",
+  "055":"art_posledni_vzdor",
+  "056":"art_najezdnik",
+  "057":"art_basta",
+  "058":"art_obranny_val",
+  "059":"art_pevnostni_hrad",
+  "060":"art_chram",
+  "061":"art_tunely",
+  "062":"art_obranna_aliance",
+  "063":"art_vez_strazni",
+  "064":"art_zasobnik",
+  "065":"art_lupic",
+  "066":"art_kamenna_dan",
+  "067":"art_saboter",
+  "068":"art_demoralizace",
+  "069":"art_dvojity_agent",
+  "070":"art_krize_zasobovani",
+  "071":"art_spion",
+  "072":"art_zbrojnice",
+  "073":"art_skola_magie",
+  "074":"art_trziste",
+  "075":"art_rozmach_tezby",
+  "076":"art_vojenska_zakladna",
+  "077":"art_premena_magie",
+  "078":"art_draci_upir",
+  "079":"art_oblehani",
+  "080":"art_velkovyroba",
+  "081":"art_rychla_hradba",
+  "082":"art_masivni_zed",
+  "083":"art_nouzove_opevneni",
+  "084":"art_velka_oprava",
+  "085":"art_kralovska_obnova",
+  "086":"art_zednicka_rota",
+  "087":"art_pevnost",
+  "088":"art_zesilene_hradby",
+  "089":"art_architekt",
+  "090":"art_rozsireni_tezby",
+  "091":"art_barikady",
+  "092":"art_strategicka_vystavba",
+  "093":"art_cihla_na_cihlu",
+  "094":"art_sklad_materialu",
+  "095":"art_obchod_s_kamenem",
+  "096":"art_nedobytna_pevnost",
+  "097":"art_obnova_kralovstvi",
+  "098":"art_hod_cihlou",
+  "099":"art_temny_prenos",
+  "C01":"art_chaoticka_jiskra",
+  "C02":"art_entropie",
+  "C03":"art_chaoticky_dul",
+  "C04":"art_kradez_chaosu",
+  "C05":"art_chaoticky_vybuch",
+  "C06":"art_boure_chaosu",
+  "C07":"art_chaoticky_stit",
+  "C08":"art_zazrak_chaosu",
+  "C09":"art_chaoticka_krize",
+  "C10":"art_chaoticky_drak",
+  "C11":"art_chaos_a_rad",
+  "C12":"art_anarchie",
+  "C13":"art_sabotaz",
+  "C14":"art_niceni_kamenolomu",
+  "C15":"art_zakernost",
+  "C16":"art_velka_sabotaz",
+  "C17":"art_telekineze",
+  "C18":"art_kradez_osudu",
+  "C19":"art_spalena_knihovna",
+  "C20":"art_prazdna_mysl",
+  "C21":"art_replikace",
+  "C22":"art_chaos_manufaktura",
+  "C23":"art_klonovani",
+  "C24":"art_temny_ritual",
+  "C25":"art_nestabilni_vir",
+  "C26":"art_krvava_obet",
+  "C27":"art_odraz_magie",
+  "C28":"art_chaoticka_trofej",
+  "C44":"art_dan_z_chaosu",
+  "C45":"art_chaoticka_sipka",
+  "C29":"art_bourliva_mysl",
+  "C30":"art_chram_chaosu",
+  "C31":"art_chaoticky_vymenik",
+  "C32":"art_vzajemna_zkaza",
+  "C33":"art_kradez_identity",
+  "C34":"art_shapeshifter",
+  "C35":"art_chaoticka_premena",
+  "C36":"art_skryta_bomba",
+  "C37":"art_skryta_bomba",
+  "C38":"art_explodovana_bomba",
+  "C39":"art_velky_zmatek",
+  "D01":"art_pruzkumnik",
+  "D02":"art_vestba",
+  "D03":"art_kronika",
+  "D04":"art_bojova_taktika",
+  "D05":"art_stavebni_plany",
+  "D06":"art_elitni_zved",
+  "D07":"art_tajna_knihovna",
+  "D08":"art_vize",
+  "D09":"art_inspirace",
+  "C43":"art_najezd",
+  "C42":"art_klon",
+  "C41":"art_zrcadlo",
+  "C40":"art_zakerny_speh",
+  "L01":"art_darkmage"
 };
 
 // Default Global
@@ -999,8 +1128,26 @@ let globalScale = 1.1;
 let globalBX = 0.0;
 let globalBY = 0.25;
 
+// <<EMBEDDED_CARDS>>
+// GENEROVÁNO z server/game/cards.js + lang/cs.json – needituj ručně.
+// Regenerace: node tools/regen_deckbuilder_cards.js
+const EMBEDDED_CARDS_VERSION = "7a035e5db4";
+const EMBEDDED_CARDS = [{"id":"001","name":"Rychlý útok","cost":2,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":6}],"isCombo":true,"desc":"Zaútočí za 6.\n[Combo]"},{"id":"008","name":"Déšť šípů","cost":1,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackCastle","amount":3}],"isCombo":true,"desc":"Poškodí hrad −3.\n[Combo]"},{"id":"003","name":"Ohnivá koule","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AttackCastle","amount":8}],"desc":"Poškodí hrad −8."},{"id":"007","name":"Silný úder","cost":4,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":11}],"desc":"Zaútočí za 11."},{"id":"006","name":"Převaha síly","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"ResourceMoreThanOpponent","resType":"ATTACK"},"effect":{"type":"AttackCastle","amount":10}}],"desc":"Pokud máš více útoku než soupeř, udeř hrad za 10."},{"id":"017","name":"Válečný sekyrník","cost":4,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":8},{"type":"StealResource","resType":"ATTACK","amount":2}],"desc":"Zaútočí za 8, ukradni 2 útoku soupeři."},{"id":"002","name":"Kamenná zeď","cost":3,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildWall","amount":9},{"type":"AddResource","resType":"STONES","amount":1}],"desc":"Hradby +9, vrátí 1 kámen."},{"id":"010","name":"Palisáda","cost":2,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildWall","amount":6},{"type":"AddResource","resType":"STONES","amount":1}],"desc":"Hradby +6, vrátí 1 kámen."},{"id":"005","name":"Posila hradu","cost":2,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildCastle","amount":5}],"desc":"Hrad +5."},{"id":"009","name":"Pevné základy","cost":4,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildCastle","amount":8},{"type":"AddResource","resType":"STONES","amount":1}],"desc":"Hrad +8, kámen +1."},{"id":"018","name":"Mohutná věž","cost":5,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":15}],"desc":"Hradby +15."},{"id":"004","name":"Magie","cost":0,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"MAGIC","amount":2}],"isCombo":true,"desc":"Magie +2.\n[Combo]"},{"id":"011","name":"Zásoby kamene","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"STONES","amount":3}],"isCombo":true,"desc":"Kámen +3.\n[Combo]"},{"id":"012","name":"Mobilizace","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"ATTACK","amount":3}],"isCombo":true,"desc":"Útok +3.\n[Combo]"},{"id":"013","name":"Magický pramen","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddMine","resType":"MAGIC","amount":1}],"desc":"Důl magie +1."},{"id":"014","name":"Kamenolom","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Důl kamene +1."},{"id":"015","name":"Výcvikový tábor","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddMine","resType":"ATTACK","amount":1}],"desc":"Důl útoku +1."},{"id":"016","name":"Velký pramen","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"MAGIC","amount":2}],"desc":"Doly magie +2."},{"id":"019","name":"Zápalné šípy","cost":1,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackWall","amount":5}],"isCombo":true,"desc":"Poškodí hradby −5.\n[Combo]"},{"id":"020","name":"Beranidlo","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackWall","amount":12}],"isCombo":true,"desc":"Poškodí hradby −12.\n[Combo]"},{"id":"021","name":"Dělostřelectvo","cost":6,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":15}],"desc":"Zaútočí za 15."},{"id":"022","name":"Přímý zásah","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackCastle","amount":8}],"desc":"Poškodí hrad −8."},{"id":"023","name":"Dvojitý úder","cost":5,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":7},{"type":"AttackPlayer","amount":7}],"desc":"Poškodí hrad −7, zaútočí za 7."},{"id":"024","name":"Berserk","cost":4,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"WallBelow","threshold":5},"effect":{"type":"AttackCastle","amount":12}}],"desc":"Pokud máš <5 hradeb, udeř hrad za 12."},{"id":"025","name":"Protiútok","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"WallBelow","threshold":10},"effect":{"type":"AttackCastle","amount":10}}],"desc":"Pokud máš <10 hradeb, udeř hrad za 10."},{"id":"026","name":"Ostřelovač","cost":3,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":5},{"type":"ConditionalEffect","condition":{"type":"ResourceAbove","resType":"ATTACK","threshold":5},"effect":{"type":"AttackCastle","amount":5}}],"desc":"Poškodí hrad o 5. Pokud >5 útoku, +5."},{"id":"027","name":"Válečné bubny","cost":2,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":4},{"type":"GainResourcePerCardPlayed","resType":"ATTACK","amount":2,"cardType":"Útok"}],"isCombo":true,"desc":"Zaútočí za 4. **Toto kolo:** za každou zahranou **ÚTOK** +2 útoku. [Combo]"},{"id":"028","name":"Záplata","cost":1,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildCastle","amount":3}],"isCombo":true,"desc":"Hrad +3.\n[Combo]"},{"id":"029","name":"Opevnění","cost":2,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildWall","amount":6},{"type":"BuildCastle","amount":2}],"desc":"Hradby +6, hrad +2."},{"id":"030","name":"Kamenný val","cost":4,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":13}],"desc":"Hradby +13."},{"id":"031","name":"Renovace","cost":3,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildCastle","amount":7}],"desc":"Hrad +7."},{"id":"032","name":"Citadela","cost":6,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":13}],"desc":"Hrad +13."},{"id":"033","name":"Zemní val","cost":2,"costType":"STONES","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"WallBelow","threshold":8},"effect":{"type":"BuildWall","amount":11}}],"desc":"Pokud máš <8 hradeb, postav +11."},{"id":"034","name":"Opravář","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"WallAbove","threshold":15},"effect":{"type":"BuildCastle","amount":9}}],"desc":"Pokud máš >15 hradeb, oprav hrad o 9."},{"id":"035","name":"Základní kámen","cost":3,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildWall","amount":5},{"type":"BuildCastle","amount":4}],"desc":"Hradby +5 a hrad +4."},{"id":"036","name":"Hradní příkop","cost":3,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":7},{"type":"ConditionalEffect","condition":{"type":"CastleBelow","threshold":35},"effect":{"type":"BuildWall","amount":5}}],"desc":"Hradby +7. Pokud hrad <35, hradby +5."},{"id":"037","name":"Rychlá magie","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"MAGIC","amount":4}],"isCombo":true,"desc":"Magie +4.\n[Combo]"},{"id":"038","name":"Vojenský rozkaz","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"ATTACK","amount":6}],"isCombo":true,"desc":"Útok +6.\n[Combo]"},{"id":"039","name":"Stavební boom","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"STONES","amount":6}],"isCombo":true,"desc":"Kámen +6.\n[Combo]"},{"id":"040","name":"Alchymie","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"ResourceAbove","resType":"MAGIC","threshold":4},"effect":{"type":"AddResource","resType":"ATTACK","amount":8}}],"desc":"Pokud máš >4 magie, získej +8 útoku."},{"id":"041","name":"Magické trio","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"MAGIC","amount":2},{"type":"AddResource","resType":"ATTACK","amount":2},{"type":"AddResource","resType":"STONES","amount":2}],"isCombo":true,"desc":"Magie +2, útok +2, kámen +2.\n[Combo]"},{"id":"042","name":"Velký kamenolom","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"STONES","amount":2}],"desc":"Doly kamene +2."},{"id":"043","name":"Výcvikové centrum","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"ATTACK","amount":2}],"desc":"Doly útoku +2."},{"id":"044","name":"Trifekta dolů","cost":6,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"MAGIC","amount":1},{"type":"AddMine","resType":"ATTACK","amount":1},{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Důl magie, útoku i kamene +1."},{"id":"045","name":"Očarované doly","cost":7,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"AddMine","resType":"MAGIC","amount":3}],"desc":"Doly magie +3."},{"id":"046","name":"Goblin","cost":1,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":2},{"type":"StealResource","resType":"MAGIC","amount":1},{"type":"AddResource","resType":"CHAOS","amount":1}],"desc":"Zaútočí za 2, ukradni 1 magii, chaos +1."},{"id":"047","name":"Ogr","cost":3,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":9}],"desc":"Zaútočí za 9."},{"id":"048","name":"Upír","cost":4,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":6},{"type":"AddResource","resType":"MAGIC","amount":3}],"isCombo":true,"desc":"Zaútočí za 6, získej +3 magie.\n[Combo]"},{"id":"049","name":"Jed","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":3},{"type":"DrainResource","resType":"MAGIC","amount":3},{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Zaútočí za 3, soupeř ztratí 3 magie, chaos +2."},{"id":"050","name":"Podkopání hradeb","cost":4,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":8},{"type":"DrainResource","resType":"STONES","amount":4}],"desc":"Zaútočí za 8, soupeř ztratí 4 kameny."},{"id":"051","name":"Drak","cost":11,"costType":"ATTACK","rarity":"LEGENDARY","effects":[{"type":"AttackPlayer","amount":14},{"type":"AttackCastle","amount":8},{"type":"AddResource","resType":"CHAOS","amount":3}],"desc":"Zaútočí za 14, poškodí hrad −8, chaos +3."},{"id":"052","name":"Démon","cost":14,"costType":"ATTACK","rarity":"LEGENDARY","effects":[{"type":"AttackCastle","amount":16},{"type":"AddResource","resType":"CHAOS","amount":4}],"desc":"Poškodí hrad −16. Chaos +4."},{"id":"053","name":"Plamenomet","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackWall","amount":10},{"type":"AddResource","resType":"ATTACK","amount":2}],"desc":"Poškodí hradby −10, získej +2 útoku."},{"id":"054","name":"Válečný pochod","cost":5,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":13},{"type":"AddResource","resType":"ATTACK","amount":2}],"desc":"Zaútočí za 13, +2 útoku."},{"id":"055","name":"Poslední vzdor","cost":2,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":3},{"type":"AddResource","resType":"ATTACK","amount":1},{"type":"ConditionalEffect","condition":{"type":"WallBelow","threshold":5},"effect":{"type":"AttackCastle","amount":8}}],"desc":"Zaútočí za 3, +1 útok. Pokud <5 hradeb: hrad −8."},{"id":"056","name":"Nájezdník","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"StealResource","resType":"ATTACK","amount":3},{"type":"AttackPlayer","amount":4}],"desc":"Ukradni 3 útoku, zaútočí za 4."},{"id":"057","name":"Bašta","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":3},{"type":"BuildCastle","amount":5}],"desc":"Hradby +3, hrad +5."},{"id":"058","name":"Obranný val","cost":0,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":4}],"isCombo":true,"desc":"Hradby +4.\n[Combo]"},{"id":"059","name":"Pevnostní hrad","cost":4,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":4},{"type":"BuildCastle","amount":6},{"type":"DrainResource","resType":"ATTACK","amount":1}],"desc":"Hradby +4, hrad +6, soupeř ztratí 1 útok."},{"id":"060","name":"Chrám","cost":10,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":18}],"desc":"Hrad +18."},{"id":"061","name":"Tunely","cost":2,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":4},{"type":"BlockMine","resType":"ATTACK","turns":1}],"desc":"Hrad +4. Zablokuj soupeřův útočný důl na 1 kolo."},{"id":"062","name":"Obranná aliance","cost":5,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":6},{"type":"BuildCastle","amount":5},{"type":"AddResource","resType":"STONES","amount":2}],"desc":"Hradby +6, hrad +5, +2 kameny."},{"id":"063","name":"Věž strážní","cost":5,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":11},{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Hradby +11, důl kamene +1."},{"id":"064","name":"Zásobník","cost":3,"costType":"STONES","rarity":"EPIC","effects":[{"type":"ConditionalEffect","condition":{"type":"CastleBelow","threshold":40},"effect":{"type":"BuildCastle","amount":10}}],"desc":"Pokud hrad <40, oprav hrad o 10."},{"id":"065","name":"Lupič","cost":2,"costType":"MAGIC","rarity":"COMMON","effects":[{"type":"StealResource","resType":"ATTACK","amount":4}],"desc":"Ukradni 4 útoku od soupeře."},{"id":"066","name":"Kamenná daň","cost":2,"costType":"MAGIC","rarity":"COMMON","effects":[{"type":"StealResource","resType":"STONES","amount":4}],"desc":"Ukradni 4 kamene od soupeře."},{"id":"067","name":"Sabotér","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DrainResource","resType":"STONES","amount":5}],"desc":"Soupeř ztratí 5 kamenů."},{"id":"068","name":"Demoralizace","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DrainResource","resType":"ATTACK","amount":5}],"desc":"Soupeř ztratí 5 útoku."},{"id":"069","name":"Dvojitý agent","cost":4,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"StealResource","resType":"MAGIC","amount":3},{"type":"StealResource","resType":"ATTACK","amount":3},{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Ukradni 3 magie a 3 útoku, chaos +2."},{"id":"070","name":"Krize zásobování","cost":4,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DrainResource","resType":"STONES","amount":5},{"type":"DrainResource","resType":"ATTACK","amount":5}],"desc":"Soupeř ztratí 5 kamenů a 5 útoku."},{"id":"071","name":"Špión","cost":3,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"StealResource","resType":"MAGIC","amount":1},{"type":"StealResource","resType":"ATTACK","amount":1},{"type":"StealResource","resType":"STONES","amount":1},{"type":"StealResource","resType":"CHAOS","amount":1},{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Ukradni 1 od každého zdroje. +2 Chaos."},{"id":"072","name":"Zbrojnice","cost":4,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"ATTACK","amount":2},{"type":"AddMine","resType":"ATTACK","amount":1}],"desc":"Útok +2, důl útoku +1."},{"id":"073","name":"Škola magie","cost":4,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"MAGIC","amount":2},{"type":"AddMine","resType":"MAGIC","amount":1}],"desc":"Magie +2, důl magie +1."},{"id":"074","name":"Tržiště","cost":4,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"MAGIC","amount":3},{"type":"AddResource","resType":"ATTACK","amount":3},{"type":"AddResource","resType":"STONES","amount":3}],"isCombo":true,"desc":"Magie +3, útok +3, kámen +3.\n[Combo]"},{"id":"075","name":"Rozmach těžby","cost":6,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"MAGIC","amount":2},{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Doly magie +2, důl kamene +1."},{"id":"076","name":"Vojenská základna","cost":6,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddMine","resType":"ATTACK","amount":2},{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Doly útoku +2, důl kamene +1."},{"id":"077","name":"Přeměna magie","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"ResourceAbove","resType":"MAGIC","threshold":8},"effect":{"type":"AddResource","resType":"ATTACK","amount":10}}],"desc":"Pokud máš >8 magie, získej +10 útoku."},{"id":"078","name":"Upíří drak","cost":10,"costType":"ATTACK","rarity":"LEGENDARY","effects":[{"type":"AttackCastle","amount":10},{"type":"StealResource","resType":"MAGIC","amount":4},{"type":"StealResource","resType":"ATTACK","amount":4},{"type":"AddResource","resType":"CHAOS","amount":3}],"desc":"Poškodí hrad −10, ukradni 4 magie a 4 útoku, chaos +3."},{"id":"079","name":"Obléhání","cost":5,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":12},{"type":"DrainResource","resType":"MAGIC","amount":3},{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Zaútočí za 12, soupeř ztratí 3 magie, chaos +2."},{"id":"080","name":"Velkovýroba","cost":10,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"AddMine","resType":"MAGIC","amount":2},{"type":"AddMine","resType":"ATTACK","amount":2},{"type":"AddMine","resType":"STONES","amount":2}],"desc":"Důl magie, útoku i kamene +2."},{"id":"129","name":"Příprava","cost":1,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":2},{"type":"BuildCastle","amount":2},{"type":"DiscountRandomCard","delta":2,"cardType":"Stavba","count":1}],"desc":"Hradba +2 a hrad +2. Zlevní náhodnou **STAVBA** kartu v ruce o 2."},{"id":"081","name":"Rychlá hradba","cost":2,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":6}],"isCombo":true,"desc":"Hradby +6.\n[Combo]"},{"id":"082","name":"Masivní zeď","cost":6,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":18}],"desc":"Hradby +18."},{"id":"083","name":"Nouzové opevnění","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"WallBelow","threshold":10},"effect":{"type":"BuildWall","amount":14}}],"desc":"Pokud máš <10 hradeb, postav +14."},{"id":"084","name":"Velká oprava","cost":4,"costType":"STONES","rarity":"COMMON","effects":[{"type":"BuildWall","amount":5},{"type":"BuildCastle","amount":7}],"desc":"Hradby +5 a hrad +7."},{"id":"085","name":"Královská obnova","cost":7,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":15}],"desc":"Hrad +15."},{"id":"086","name":"Zednická rota","cost":5,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":8},{"type":"BuildCastle","amount":6}],"desc":"Hradby +8 a hrad +6."},{"id":"087","name":"Pevnost","cost":6,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":10},{"type":"BuildCastle","amount":8}],"desc":"Hradby +10 a hrad +8."},{"id":"088","name":"Zesílené hradby","cost":4,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":10},{"type":"ConditionalEffect","condition":{"type":"CastleAbove","threshold":30},"effect":{"type":"BuildWall","amount":6}}],"desc":"Hradby +10. Pokud máš >30 hradu, +6 navíc."},{"id":"089","name":"Architekt","cost":4,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":5},{"type":"AddMine","resType":"STONES","amount":1}],"desc":"Hradby +5, důl kamene +1."},{"id":"090","name":"Rozšíření těžby","cost":7,"costType":"STONES","rarity":"EPIC","effects":[{"type":"AddMine","resType":"STONES","amount":2}],"desc":"Doly kamene +2."},{"id":"091","name":"Barikády","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":9},{"type":"DrainResource","resType":"ATTACK","amount":2}],"desc":"Hradby +9. Soupeř ztratí 2 útoku."},{"id":"092","name":"Strategická výstavba","cost":2,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildWall","amount":5},{"type":"DecisionDrawFromDeck","picks":4}],"desc":"Hradby +5. Vyber si 1 kartu z horních 4 karet svého balíčku."},{"id":"093","name":"Cihla na cihlu","cost":3,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":5},{"type":"GainCastlePerCardPlayed","amount":3,"cardType":"Stavba"}],"isCombo":true,"desc":"Hrad +5. **Toto kolo:** za každou zahranou **STAVBU** +3 hrad. [Combo]"},{"id":"094","name":"Sklad materiálu","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":6},{"type":"AddResource","resType":"STONES","amount":2}],"isCombo":true,"desc":"Hradby +6, kámen +2.\n[Combo]"},{"id":"095","name":"Obchod s kamenem","cost":2,"costType":"STONES","rarity":"COMMON","effects":[{"type":"AddResource","resType":"STONES","amount":5}],"desc":"Kámen +5."},{"id":"096","name":"Nedobytná pevnost","cost":10,"costType":"STONES","rarity":"LEGENDARY","effects":[{"type":"BuildWall","amount":18},{"type":"BuildCastle","amount":8}],"desc":"Hradby +18, Hrad +8."},{"id":"097","name":"Obnova království","cost":14,"costType":"STONES","rarity":"LEGENDARY","effects":[{"type":"BuildCastle","amount":25}],"desc":"Hrad +25."},{"id":"C01","name":"Chaotická jiskra","cost":0,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"AddResource","resType":"CHAOS","amount":2}],"isCombo":true,"desc":"Chaos +2.\n[Combo]"},{"id":"C02","name":"Entropie","cost":3,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"CHAOS","amount":5},{"type":"DrainResource","resType":"MAGIC","amount":2}],"desc":"Chaos +5. Soupeř ztratí 2 magie."},{"id":"C03","name":"Chaotický důl","cost":3,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"AddMine","resType":"CHAOS","amount":1}],"desc":"Důl chaosu +1."},{"id":"C04","name":"Krádež chaosu","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"StealResource","resType":"CHAOS","amount":3}],"isCombo":true,"desc":"Ukradni 3 chaosu od soupeře.\n[Combo]"},{"id":"C05","name":"Chaotický výbuch","cost":6,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":14}],"desc":"Poškodí hrad −14."},{"id":"C06","name":"Bouře chaosu","cost":6,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":20}],"desc":"Zaútočí za 20."},{"id":"C07","name":"Chaotický štít","cost":4,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"BuildWall","amount":16}],"desc":"Hradby +16."},{"id":"C08","name":"Zázrak chaosu","cost":5,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"BuildCastle","amount":15}],"desc":"Hrad +15."},{"id":"C09","name":"Chaotická krize","cost":7,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"DrainResource","resType":"MAGIC","amount":6},{"type":"DrainResource","resType":"ATTACK","amount":6},{"type":"DrainResource","resType":"STONES","amount":6},{"type":"DrainResource","resType":"CHAOS","amount":6}],"desc":"Soupeř ztratí 6 od každého zdroje."},{"id":"C10","name":"Chaotický drak","cost":11,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"AttackPlayer","amount":15},{"type":"AttackCastle","amount":12}],"desc":"Zaútočí za 15, poškodí hrad −12."},{"id":"C11","name":"Chaos a řád","cost":4,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":8},{"type":"BuildWall","amount":8}],"desc":"Hrad +8 a hradby +8."},{"id":"C12","name":"Anarchie","cost":8,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"StealResource","resType":"MAGIC","amount":5},{"type":"StealResource","resType":"ATTACK","amount":5},{"type":"StealResource","resType":"STONES","amount":5},{"type":"StealResource","resType":"CHAOS","amount":5}],"desc":"Ukradni 5 od každého zdroje."},{"id":"C13","name":"Sabotáž","cost":5,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"DestroyMine","resType":"MAGIC","amount":1},{"type":"BlockMine","resType":"MAGIC","turns":2}],"desc":"Znič 1 důl magie (min. 1). Zablokuj produkci na 2 kola."},{"id":"C14","name":"Ničení kamenolomu","cost":5,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"DestroyMine","resType":"STONES","amount":1},{"type":"BlockMine","resType":"STONES","turns":2}],"desc":"Znič 1 důl kamene (min. 1). Zablokuj produkci na 2 kola."},{"id":"C15","name":"Zákeřnost","cost":5,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"DestroyMine","resType":"ATTACK","amount":1},{"type":"BlockMine","resType":"ATTACK","turns":2}],"desc":"Znič 1 útočný výcvik (min. 1). Zablokuj produkci na 2 kola."},{"id":"C16","name":"Velká sabotáž","cost":7,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"DestroyMine","resType":"MAGIC","amount":1},{"type":"BlockMine","resType":"MAGIC","turns":3},{"type":"DestroyMine","resType":"STONES","amount":1},{"type":"BlockMine","resType":"STONES","turns":3}],"desc":"Znič důl magie a kamene (min. 1). Zablokuj produkci na 3 kola."},{"id":"C17","name":"Telekineze","cost":3,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"StealCard","count":1}],"desc":"Ukradni 1 náhodnou kartu ze soupeřovy ruky."},{"id":"C18","name":"Krádež osudu","cost":5,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"StealCard","count":2}],"desc":"Ukradni 2 náhodné karty ze soupeřovy ruky."},{"id":"C33","name":"Krádež identity","cost":8,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"SwapHands"}],"desc":"Prohoď s oponentem celé ruce karet."},{"id":"C34","name":"Shapeshifter","cost":0,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"ShapeShift"}],"desc":"Na začátku každého tahu se promění v náhodnou kartu ze hry."},{"id":"C35","name":"Chaotická přeměna","cost":2,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"ConvertMine","from":"MAGIC","to":"CHAOS"}],"desc":"Zničí jeden vlastní **DŮL MAGIE** a přemění ho na **DŮL CHAOSU**. Nelze snížit pod 1."},{"id":"C36","name":"Skrytá bomba","cost":4,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"AddToOpponentDeck","cardId":"C37","count":3}],"desc":"Zamíchá **3 BOMBY** do soupeřova balíčku. Po líznutí bomby **HRAD −5**."},{"id":"C37","name":"Bomba","cost":0,"costType":"CHAOS","rarity":"COMMON","effects":[{"type":"TrapOnDraw","effect":{"type":"AttackCastle","amount":5}}],"isPlaceholder":true,"desc":"**VÝBUCH! Hrad −5. (past – spustí se při líznutí)**"},{"id":"C38","name":"Explodovaná bomba","cost":0,"costType":"CHAOS","rarity":"COMMON","effects":[],"isPlaceholder":true,"desc":"Okamžitě zahraj. Lízni kartu a −5 hradu."},{"id":"C39","name":"Velký zmatek","cost":7,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"RandomizeHands"}],"desc":"Oba hráči zahodí celou ruku a líznou stejný počet nových karet."},{"id":"C19","name":"Spálená knihovna","cost":4,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"BurnCard","count":2}],"desc":"Znič 2 náhodné karty ze soupeřovy ruky."},{"id":"C20","name":"Prázdná mysl","cost":7,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"BurnCard","count":3}],"desc":"Znič 3 náhodné karty ze soupeřovy ruky."},{"id":"C21","name":"Replikace","cost":1,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"AddCardsToDeck","cardId":"008","count":3}],"desc":"Přidej 3 kopie 'Déšť šípů' do svého balíčku."},{"id":"C22","name":"Chaos manufaktura","cost":2,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"AddCardsToDeck","cardId":"C05","count":2}],"desc":"Přidej 2 kopie 'Chaotický výbuch' do svého balíčku."},{"id":"C23","name":"Klonování","cost":1,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"AddCardsToDeck","cardId":"001","count":2}],"desc":"Přidej 2 kopie 'Rychlý útok' do svého balíčku."},{"id":"C24","name":"Temný rituál","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"CHAOS","amount":5}],"isCombo":true,"desc":"Chaos +5.\n[Combo]"},{"id":"C25","name":"Nestabilní vír","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"CHAOS","amount":2},{"type":"AddResource","resType":"MAGIC","amount":2}],"isCombo":true,"desc":"Chaos +2, magie +2.\n[Combo]"},{"id":"C26","name":"Krvavá oběť","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"AddResource","resType":"CHAOS","amount":3}],"isCombo":true,"desc":"Chaos +3.\n[Combo]"},{"id":"C27","name":"Odraz magie","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"ConditionalEffect","condition":{"type":"ResourceAbove","resType":"MAGIC","threshold":5},"effect":{"type":"AddResource","resType":"CHAOS","amount":7}}],"desc":"Pokud máš >5 magie, získej +7 chaosu."},{"id":"C28","name":"Chaotická trofej","cost":1,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"StealResource","resType":"ATTACK","amount":2},{"type":"AddResource","resType":"CHAOS","amount":2}],"isCombo":true,"desc":"Ukradni 2 útoku, chaos +2.\n[Combo]"},{"id":"C29","name":"Bouřlivá mysl","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"CHAOS","amount":3},{"type":"AddMine","resType":"CHAOS","amount":1}],"desc":"Chaos +3, důl chaosu +1."},{"id":"C30","name":"Chrám chaosu","cost":7,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"AddMine","resType":"CHAOS","amount":2}],"desc":"Doly chaosu +2."},{"id":"C31","name":"Chaotický výměník","cost":4,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"CHAOS","amount":4},{"type":"DrainResource","resType":"MAGIC","amount":2},{"type":"DrainResource","resType":"ATTACK","amount":2},{"type":"DrainResource","resType":"STONES","amount":2},{"type":"DrainResource","resType":"CHAOS","amount":2}],"desc":"Chaos +4, soupeř ztratí 2 od každého zdroje."},{"id":"C32","name":"Vzájemná zkáza","cost":3,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":10},{"type":"BuildCastle","amount":-10}],"desc":"Soupeř −10 hrad, vlastní hrad −10."},{"id":"D01","name":"Průzkumník","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DrawCard","count":1}],"isCombo":true,"desc":"Lízni 1 kartu.\n[Combo]"},{"id":"D02","name":"Věštba","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DrawCard","count":2}],"desc":"Lízni 2 karty."},{"id":"D03","name":"Kronika","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DrawCard","count":3}],"desc":"Lízni 3 karty."},{"id":"D04","name":"Bojová taktika","cost":2,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":4},{"type":"DrawCard","count":1}],"desc":"Zaútočí za 4. Lízni 1 kartu."},{"id":"D05","name":"Stavební plány","cost":2,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":4},{"type":"DrawCard","count":1}],"isCombo":true,"desc":"Hradby +4. Lízni 1 kartu.\n[Combo]"},{"id":"D06","name":"Elitní zvěd","cost":4,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":8},{"type":"DrawCard","count":1}],"desc":"Zaútočí za 8. Lízni 1 kartu."},{"id":"D07","name":"Tajná knihovna","cost":5,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DrawCard","count":2},{"type":"AddMine","resType":"MAGIC","amount":1}],"desc":"Lízni 2 karty. Důl magie +1."},{"id":"D08","name":"Vize","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"ConditionalEffect","condition":{"type":"ResourceAbove","resType":"MAGIC","threshold":4},"effect":{"type":"DrawCard","count":2}}],"desc":"Pokud máš >4 magie, lízni 2 karty."},{"id":"D09","name":"Inspirace","cost":3,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DrawPerCardPlayed","cardType":"Magie"}],"isCombo":true,"desc":"**Toto kolo:** za každou další zahranou **MAGII** lízni 1. [Combo]"},{"id":"098","name":"Hod cihlou","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"BuildWall","amount":-4},{"type":"AttackPlayer","amount":11}],"desc":"Vlastní hradby −4, zaútočí na nepřítele za 11."},{"id":"099","name":"Temný přenos","cost":8,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"StealCastle","amount":10}],"desc":"Ukradni 10 hradu."},{"id":"100","name":"Krvavý úder","cost":6,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":5},{"type":"StealCastle","amount":6}],"desc":"Zaútočí za 5, ukradni 6 hradu."},{"id":"104","name":"Válečný trénink","cost":4,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":5},{"type":"AddMine","resType":"ATTACK","amount":1}],"desc":"Zaútočí za 5, důl útoku +1."},{"id":"107","name":"Prokletí","cost":3,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":3},{"type":"DrainResource","resType":"ATTACK","amount":3},{"type":"DrainResource","resType":"STONES","amount":3},{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Zaútočí za 3, soupeř ztratí 3 útoku a 3 kamenů. Chaos +2."},{"id":"108","name":"Likvidace","cost":3,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"DecisionBurnOpponent","picks":4}],"desc":"**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu."},{"id":"109","name":"Rekrut","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"DecisionChooseType","cardType":"Útok","picks":4,"costReduction":2}],"isCombo":true,"desc":"**Rozhodnutí:** Vyber si 1 kartu **ÚTOK** ze hry. Zlevni ji o 2. [Combo]"},{"id":"110","name":"Vzpomínka","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DecisionFromDiscard","picks":4}],"desc":"**Rozhodnutí:** Vyber si 1 kartu z odhazovacího balíčku."},{"id":"111","name":"Intuice","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DecisionFromDeck","picks":4}],"desc":"**Rozhodnutí:** Prohledej vlastní balíček a vyber si 1 kopii karty."},{"id":"112","name":"Stavitel","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"DecisionChooseType","cardType":"Stavba","picks":4,"costReduction":2}],"isCombo":true,"desc":"**Rozhodnutí:** Vyber si 1 kartu **STAVBA** ze hry. Zlevni ji o 2. [Combo]"},{"id":"113","name":"Goblin šaman","cost":3,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DecisionChooseType","cardType":"Magie","picks":4,"costReduction":2}],"isCombo":true,"desc":"**Rozhodnutí:** Vyber si 1 kartu **MAGIE** ze hry. Zlevni ji o 2. [Combo]"},{"id":"114","name":"Chaotický mudrc","cost":3,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"DecisionChooseType","cardType":"Chaos","picks":4,"costReduction":2}],"isCombo":true,"desc":"**Rozhodnutí:** Vyber si 1 kartu **CHAOS** ze hry. Zlevni ji o 2. [Combo]"},{"id":"115","name":"Studna vědomostí","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DrawBoth","count":2}],"isCombo":true,"desc":"Oba hráči líznou 2 karty.\n[Combo]"},{"id":"116","name":"Chaotická replikace","cost":2,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"CloneNextPlayed","count":2}],"isCombo":true,"desc":"**Toto kolo:** příští karta, co zahraješ, se 2× zkopíruje do balíčku. [Combo]"},{"id":"117","name":"Průzkum dolů","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"DecisionMine"}],"isCombo":true,"desc":"**Rozhodnutí:** vyber si 1 ze 4 různých dolů. [Combo]"},{"id":"118","name":"Magický žolík","cost":4,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"SmartJoker"}],"isCombo":true,"desc":"**Rozhodnutí:** vyber si kartu, která se hodí do situace. [Combo]"},{"id":"119","name":"Válečný pokřik","cost":4,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":7},{"type":"GiveRandomCard","costType":"ATTACK"}],"isCombo":true,"desc":"Zaútočí za 7. Dostaneš náhodnou kartu **ÚTOK** do ruky. [Combo]"},{"id":"120","name":"Hromadná sleva","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"ModifyHandCost","delta":-1}],"desc":"Všechny karty v tvé ruce zlevní o 1."},{"id":"121","name":"Kletba cen","cost":2,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"ModifyHandCost","delta":1,"targetOpponent":true}],"desc":"Všechny karty v soupeřově ruce zdraží o 1."},{"id":"122","name":"Stavební posila","cost":4,"costType":"STONES","rarity":"EPIC","effects":[{"type":"BuildCastle","amount":7},{"type":"GiveRandomCard","costType":"STONES"}],"isCombo":true,"desc":"Hrad +7. Dostaneš náhodnou kartu **STAVBA** do ruky. [Combo]"},{"id":"123","name":"Momentum","cost":3,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"MomentumAttack","base":2,"bonusPerAttack":4}],"desc":"Zaútočí za 2 + 4 za každou kartu **ÚTOK** zahranou v tomto tahu."},{"id":"C40","name":"Zákeřný špeh","cost":4,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"PeekAndStealHand"}],"desc":"Vidíš celou soupeřovu ruku. Vyber jednu kartu a ukradni ji."},{"id":"C41","name":"Zrcadlo","cost":3,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"Mirror"}],"isCombo":true,"desc":"Zkopíruje efekt poslední soupeřovy karty. [Combo]"},{"id":"C42","name":"Klon","cost":2,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"Clone"}],"isCombo":true,"desc":"Zkopíruje efekt poslední karty, co jsi zahrál. Cena +1. [Combo]"},{"id":"124","name":"Alchymistova volba","cost":2,"costType":"MAGIC","rarity":"RARE","effects":[{"type":"DecisionChooseResource","options":[{"resType":"MAGIC","amount":4},{"resType":"ATTACK","amount":4},{"resType":"STONES","amount":4},{"resType":"CHAOS","amount":4}]}],"isCombo":true,"desc":"**Rozhodnutí:** získej 4 magie, 4 útok, 4 kameny, nebo 4 chaos. [Combo]"},{"id":"125","name":"Válečný zápal","cost":2,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":4},{"type":"GainResourcePerCardPlayed","resType":"CHAOS","amount":2,"cardType":"Útok"}],"isCombo":true,"desc":"Zaútočí za 4. **Toto kolo:** každá zahraná **ÚTOK** karta přidá 2 chaos. [Combo]"},{"id":"126","name":"Magický proud","cost":2,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AddResource","resType":"CHAOS","amount":2},{"type":"GainResourcePerCardPlayed","resType":"CHAOS","amount":2,"cardType":"Magie"}],"isCombo":true,"desc":"Chaos +2. **Toto kolo:** každá karta **MAGIE** přidá 2 chaos. [Combo]"},{"id":"127","name":"Pyroblast","cost":6,"costType":"MAGIC","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":10},{"type":"DrainResource","resType":"MAGIC","amount":2}],"desc":"Přímý zásah hradu za 10, znič 2 magie soupeři."},{"id":"128","name":"Archmág","cost":9,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"DrawPerCardPlayed"},{"type":"GainResourcePerCardPlayed","resType":"MAGIC","amount":1}],"isCombo":true,"desc":"**Toto kolo:** za každou další zahranou kartu lízni 1 a získej 1 magii. [Combo]"},{"id":"L01","name":"Temný mág","cost":13,"costType":"CHAOS","rarity":"LEGENDARY","effects":[{"type":"StealResource","resType":"MAGIC","amount":3},{"type":"StealResource","resType":"ATTACK","amount":3},{"type":"StealResource","resType":"STONES","amount":3},{"type":"AttackCastle","amount":18},{"type":"StealCastle","amount":5}],"desc":"Ukradni 3 magie, útoku a kamene. Poškodí hrad −18. Ukradni 5 hradu."},{"id":"C43","name":"Nájezd","cost":1,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":2},{"type":"NextCardIsCombo"}],"isCombo":true,"desc":"Zaútočí za 2. Příští karta, kterou zahraješ, se chová jako [Combo]. [Combo]"},{"id":"130","name":"Rabování","cost":0,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AddResource","resType":"ATTACK","amount":2},{"type":"AddResource","resType":"STONES","amount":-2}],"isCombo":true,"desc":"Útok +2, kameny −2.\n[Combo]"},{"id":"C44","name":"Daň z chaosu","cost":4,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"AttackCastle","amount":7},{"type":"ConditionalEffect","condition":{"type":"ResourceMoreThanOpponent","resType":"CHAOS"},"effect":{"type":"StealCastle","amount":4}}],"desc":"Poškodí hrad −7.\nPokud máš více chaosu než soupeř, ukradni 4 hradu."},{"id":"C45","name":"Chaotická šipka","cost":1,"costType":"CHAOS","rarity":"COMMON","effects":[{"type":"StealCastle","amount":3}],"isCombo":true,"desc":"Ukradni 3 hradu.\n[Combo]"},{"id":"131","name":"Invaze","cost":7,"costType":"ATTACK","rarity":"EPIC","effects":[{"type":"AttackPlayer","amount":8},{"type":"DestroyMine","resType":"STONES","amount":1}],"desc":"Zaútočí za 8. Zničí 1 kamenný důl soupeře (min. 1)."},{"id":"101","name":"Náhlá smrt","cost":0,"costType":"ATTACK","rarity":"LEGENDARY","effects":[{"type":"XScaledAttackCastle","divisor":2}],"isXCost":true,"desc":"Spotřebuje veškerý útok. Přímý zásah hradu za X/2."},{"id":"102","name":"Kamenný příval","cost":0,"costType":"STONES","rarity":"LEGENDARY","effects":[{"type":"XScaledBuildCastle","divisor":2}],"isXCost":true,"desc":"Spotřebuje veškerý kámen. Opraví hrad o X/2."},{"id":"103","name":"Magické rozdělení","cost":0,"costType":"MAGIC","rarity":"LEGENDARY","effects":[{"type":"XScaledDualResource","typeA":"ATTACK","typeB":"STONES","divisor":2}],"isXCost":true,"desc":"Spotřebuje veškerou magii. Přidá X/2 útoku a X/2 kamene."},{"id":"132","name":"Zoufalý žold","cost":2,"costType":"ATTACK","rarity":"COMMON","effects":[{"type":"AttackPlayer","amount":5}],"discardEffects":[{"type":"AddResource","resType":"ATTACK","amount":3}],"desc":"Zaútočí za 5. | **Zahození:** +3 útoku."},{"id":"133","name":"Zamořené krysy","cost":3,"costType":"CHAOS","rarity":"RARE","effects":[{"type":"AddToOpponentDeck","cardId":"134","count":3}],"desc":"Zamíchá **3× Zamořená Krysa** do soupeřova balíčku."},{"id":"134","name":"Zamořená Krysa","cost":3,"costType":"CHAOS","rarity":"COMMON","effects":[],"isPlaceholder":true,"discardEffects":[{"type":"BuildCastle","amount":-4},{"type":"BuildWall","amount":-4}],"desc":"Bez efektu. | **Zahození:** −4 hrad i hradby."},{"id":"135","name":"Osudová mince","cost":1,"costType":"CHAOS","rarity":"EPIC","effects":[{"type":"StealResource","resType":"CHAOS","amount":3}],"discardEffects":[{"type":"AddResource","resType":"CHAOS","amount":2}],"desc":"Ukradni 3 chaosu od soupeře. | **Zahození:** +2 chaosu."},{"id":"136","name":"Poslední výpad","cost":3,"costType":"ATTACK","rarity":"RARE","effects":[{"type":"AttackPlayer","amount":10}],"discardEffects":[{"type":"BuildWall","amount":-4}],"desc":"Zaútočí za 10. | **Zahození:** −4 hradby."},{"id":"137","name":"Zapomenutá poznámka","cost":1,"costType":"MAGIC","rarity":"COMMON","effects":[{"type":"AddResource","resType":"MAGIC","amount":2}],"discardEffects":[{"type":"DrawCard","count":1}],"desc":"Magie +2. | **Zahození:** lízni 1 kartu."},{"id":"138","name":"Podkopané valy","cost":3,"costType":"STONES","rarity":"RARE","effects":[{"type":"BuildWall","amount":7},{"type":"DrainResource","resType":"STONES","amount":3}],"discardEffects":[{"type":"BuildWall","amount":-5}],"desc":"Hradby +7, soupeř ztratí 3 kameny. | **Zahození:** −5 hradeb."},{"id":"139","name":"Pohlcení hradeb","cost":8,"costType":"STONES","rarity":"LEGENDARY","effects":[{"type":"ConvertWallToCastle"}],"discardEffects":[{"type":"BuildCastle","amount":-8}],"desc":"Převede všechny hradby na hrad. | **Zahození:** −8 hradu."}];
+// <</EMBEDDED_CARDS>>
+
 async function init() {
-  restoreFromStorage();
+  // 1) Vestavěné karty jako PRVNÍ – nesmí záviset na úložišti prohlížeče.
+  if (typeof EMBEDDED_CARDS !== 'undefined' && EMBEDDED_CARDS.length) {
+    CARDS    = parseJsonCards(JSON.stringify(EMBEDDED_CARDS));
+    CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
+    const info = document.getElementById('sourceInfo');
+    info.textContent = `vestavěné karty (${CARDS.length}, verze ${EMBEDDED_CARDS_VERSION})`;
+    info.classList.add('loaded');
+  }
+  // 2) Uložený stav (balíček, úpravy artu). localStorage umí vyhodit výjimku –
+  //    data: URL, anonymní režim, zablokované úložiště – a to nesmí shodit stránku.
+  try { restoreFromStorage(); }
+  catch (e) { console.warn('Úložiště prohlížeče nedostupné – pokračuji bez uloženého stavu.', e); }
   try {
     const n = await restoreArtFromDB();
     if (n > 0) {
@@ -1191,6 +1338,14 @@ function generateCardDesc(card) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Popis karty do HTML: escapuje, **tučné** -> <b>, nový řádek -> <br>. */
+function fmtDesc(d) {
+  return String(d || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\n/g, '<br>');
+}
+
 function parseJsonCards(jsonText) {
   const data = JSON.parse(jsonText);
   const newEffectsDb = {};
@@ -1200,7 +1355,7 @@ function parseJsonCards(jsonText) {
     cards.push({
       id:       card.id,
       name:     card.name,
-      desc:     generateCardDesc(card),
+      desc:     card.desc || generateCardDesc(card),   // herní text z cs.json, jinak z efektů
       cost:     card.cost,
       type:     card.costType,
       rarity:   card.rarity,
@@ -1268,6 +1423,7 @@ function convertJsonEffect(fx) {
     case 'DecisionFromDeck':         return { t:'DFK', pr:fx.picks||4 };
     case 'DecisionDrawFromDeck':     return { t:'DFKD', pr:fx.picks||4 };
     case 'SmartJoker':               return { t:'SJ' };
+    case 'ConvertWallToCastle':      return { t:'CWC' };
     case 'Mirror':                   return { t:'MIR' };
     case 'Clone':                    return { t:'CLN' };
     case 'DiscountRandomCard':       return { t:'DRC', d:fx.delta||2, ct:fx.cardType||null, r:fx.costType||null, n:fx.count||1 };
@@ -1374,7 +1530,7 @@ function renderBrowser() {
           <div class="cost-badge cost-${c.type.toLowerCase()}">${c.cost}</div>
           <div class="card-name">${c.name}</div>
         </div>
-        <div class="card-desc">${c.desc}</div>
+        <div class="card-desc">${fmtDesc(c.desc)}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px">
           <span style="color:${col}">${rarityLabel[c.rarity] || c.rarity}</span>
           ${mode === 'builder'  ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">${inDeck}/${cap}</span>` : ''}
@@ -1398,7 +1554,7 @@ function selectCard(id) {
     selectedCardId = id;
     const card = CARD_MAP[id];
     document.getElementById('preview-name').textContent = card.name;
-    document.getElementById('preview-desc').textContent = card.desc;
+    document.getElementById('preview-desc').textContent = String(card.desc || '').replace(/\*\*/g, '');
     document.getElementById('selected-card-id').textContent = id;
 
     // Load adjustments
@@ -2314,191 +2470,200 @@ function copyCampaignOpponentCode() {
 // Podmínky: RA=ResourceAbove, WA=WallAbove, WB=WallBelow, CA=CastleAbove, CB=CastleBelow
 // ═══════════════════════════════════════════════════════════
 let CARD_EFFECTS_DB = {
-  "001":{ct:"ATTACK",fx:[{t:"AP",a:5}]},
-  "002":{ct:"STONES",fx:[{t:"BW",a:9}]},
-  "003":{ct:"MAGIC", fx:[{t:"AC",a:8}]},
-  "004":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2}],combo:true},
-  "005":{ct:"STONES",fx:[{t:"BC",a:4}]},
-  "006":{ct:"ATTACK",fx:[{t:"CE",c:{t:"RA",r:"ATTACK",v:5},e:{t:"AC",a:10}}]},
-  "007":{ct:"ATTACK",fx:[{t:"AP",a:11}]},
-  "008":{ct:"ATTACK",fx:[{t:"AC",a:3}]},
-  "009":{ct:"STONES",fx:[{t:"BC",a:8}]},
-  "010":{ct:"STONES",fx:[{t:"BW",a:5},{t:"AR",r:"STONES",a:1}]},
-  "011":{ct:"MAGIC", fx:[{t:"AR",r:"STONES",a:4}],combo:true},
-  "012":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:3}],combo:true},
-  "013":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:1}]},
-  "014":{ct:"MAGIC", fx:[{t:"AM",r:"STONES",a:1}]},
-  "015":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:1}]},
-  "016":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2}]},
-  "017":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"SR",r:"ATTACK",a:2}]},
-  "018":{ct:"STONES",fx:[{t:"BW",a:15}]},
-  "019":{ct:"ATTACK",fx:[{t:"AW",a:5}]},
-  "020":{ct:"ATTACK",fx:[{t:"AW",a:11}]},
-  "021":{ct:"ATTACK",fx:[{t:"AP",a:15}]},
-  "022":{ct:"ATTACK",fx:[{t:"AC",a:8}]},
-  "023":{ct:"ATTACK",fx:[{t:"AC",a:7},{t:"AP",a:7}]},
-  "024":{ct:"ATTACK",fx:[{t:"CE",c:{t:"WB",v:5},e:{t:"AC",a:13}}]},
-  "025":{ct:"ATTACK",fx:[{t:"CE",c:{t:"WB",v:10},e:{t:"AC",a:10}}]},
-  "026":{ct:"ATTACK",fx:[{t:"AC",a:5},{t:"CE",c:{t:"RA",r:"ATTACK",v:5},e:{t:"AC",a:5}}]},
-  "027":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"AR",r:"ATTACK",a:2}],combo:true},
-  "028":{ct:"STONES",fx:[{t:"BC",a:3}]},
-  "029":{ct:"STONES",fx:[{t:"BW",a:6}],combo:true},
-  "030":{ct:"STONES",fx:[{t:"BW",a:14}]},
-  "031":{ct:"STONES",fx:[{t:"BC",a:6}]},
-  "032":{ct:"STONES",fx:[{t:"BC",a:13}]},
-  "033":{ct:"STONES",fx:[{t:"CE",c:{t:"WB",v:8},e:{t:"BW",a:12}}]},
-  "034":{ct:"STONES",fx:[{t:"CE",c:{t:"WA",v:15},e:{t:"BC",a:8}}]},
-  "035":{ct:"STONES",fx:[{t:"BW",a:5},{t:"BC",a:3}]},
-  "036":{ct:"STONES",fx:[{t:"BW",a:7},{t:"CE",c:{t:"CB",v:35},e:{t:"BW",a:5}}]},
-  "037":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:4}],combo:true},
-  "038":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:6}],combo:true},
-  "039":{ct:"MAGIC", fx:[{t:"AR",r:"STONES",a:6}],combo:true},
-  "040":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"AR",r:"ATTACK",a:8}}]},
-  "041":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2},{t:"AR",r:"ATTACK",a:2},{t:"AR",r:"STONES",a:2}],combo:true},
-  "042":{ct:"MAGIC", fx:[{t:"AM",r:"STONES",a:2}]},
-  "043":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:2}]},
-  "044":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:1},{t:"AM",r:"ATTACK",a:1},{t:"AM",r:"STONES",a:1}]},
-  "045":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:3}]},
-  "046":{ct:"ATTACK",fx:[{t:"AP",a:2},{t:"SR",r:"MAGIC",a:1},{t:"AR",r:"CHAOS",a:1}]},
-  "047":{ct:"ATTACK",fx:[{t:"AP",a:9}]},
-  "048":{ct:"ATTACK",fx:[{t:"AP",a:6},{t:"AR",r:"MAGIC",a:3}],combo:true},
-  "049":{ct:"ATTACK",fx:[{t:"AP",a:3},{t:"DR",r:"MAGIC",a:3},{t:"AR",r:"CHAOS",a:2}]},
-  "050":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DR",r:"STONES",a:4}]},
-  "051":{ct:"ATTACK",fx:[{t:"AP",a:14},{t:"AC",a:8},{t:"AR",r:"CHAOS",a:3}]},
-  "052":{ct:"ATTACK",fx:[{t:"AC",a:16},{t:"AR",r:"CHAOS",a:4}]},
-  "053":{ct:"ATTACK",fx:[{t:"AW",a:10},{t:"AR",r:"ATTACK",a:2}]},
-  "054":{ct:"ATTACK",fx:[{t:"AP",a:13},{t:"AR",r:"ATTACK",a:2}]},
-  "055":{ct:"ATTACK",fx:[{t:"AP",a:3},{t:"AR",r:"ATTACK",a:1},{t:"CE",c:{t:"WB",v:5},e:{t:"AC",a:8}}]},
-  "056":{ct:"ATTACK",fx:[{t:"SR",r:"ATTACK",a:3},{t:"AP",a:4}]},
-  "057":{ct:"STONES",fx:[{t:"BW",a:7},{t:"AR",r:"STONES",a:1}]},
-  "058":{ct:"STONES",fx:[{t:"BW",a:4}],combo:true},
-  "059":{ct:"STONES",fx:[{t:"BW",a:4},{t:"BC",a:6}]},
-  "060":{ct:"STONES",fx:[{t:"BC",a:18}]},
-  "061":{ct:"STONES",fx:[{t:"CE",c:{t:"CB",v:40},e:{t:"BW",a:12}}]},
-  "062":{ct:"STONES",fx:[{t:"BW",a:7},{t:"BC",a:4},{t:"AR",r:"STONES",a:2}]},
-  "063":{ct:"STONES",fx:[{t:"BW",a:14},{t:"AM",r:"STONES",a:1}]},
-  "064":{ct:"STONES",fx:[{t:"CE",c:{t:"CB",v:50},e:{t:"BC",a:10}}]},
-  "065":{ct:"MAGIC", fx:[{t:"SR",r:"ATTACK",a:3}]},
-  "066":{ct:"MAGIC", fx:[{t:"SR",r:"STONES",a:4}]},
-  "067":{ct:"MAGIC", fx:[{t:"DR",r:"STONES",a:5}]},
-  "068":{ct:"MAGIC", fx:[{t:"DR",r:"ATTACK",a:5}]},
-  "069":{ct:"MAGIC", fx:[{t:"SR",r:"MAGIC",a:3},{t:"SR",r:"ATTACK",a:3},{t:"AR",r:"CHAOS",a:2}]},
-  "070":{ct:"MAGIC", fx:[{t:"DR",r:"STONES",a:5},{t:"DR",r:"ATTACK",a:5}]},
-  "071":{ct:"MAGIC", fx:[{t:"SR",r:"MAGIC",a:1},{t:"SR",r:"ATTACK",a:1},{t:"SR",r:"STONES",a:1},{t:"SR",r:"CHAOS",a:1},{t:"AR",r:"CHAOS",a:2}]},
-  "072":{ct:"MAGIC", fx:[{t:"AR",r:"ATTACK",a:2},{t:"AM",r:"ATTACK",a:1}]},
-  "073":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:2},{t:"AM",r:"MAGIC",a:1}]},
-  "074":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:3},{t:"AR",r:"ATTACK",a:3},{t:"AR",r:"STONES",a:3}],combo:true},
-  "075":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2},{t:"AM",r:"STONES",a:1}]},
-  "076":{ct:"MAGIC", fx:[{t:"AM",r:"ATTACK",a:2},{t:"AM",r:"STONES",a:1}]},
-  "077":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:8},e:{t:"AR",r:"ATTACK",a:10}}]},
-  "078":{ct:"ATTACK",fx:[{t:"AC",a:10},{t:"SR",r:"MAGIC",a:4},{t:"SR",r:"ATTACK",a:4},{t:"AR",r:"CHAOS",a:3}]},
-  "079":{ct:"ATTACK",fx:[{t:"AP",a:12},{t:"DR",r:"MAGIC",a:3},{t:"AR",r:"CHAOS",a:2}]},
-  "080":{ct:"MAGIC", fx:[{t:"AM",r:"MAGIC",a:2},{t:"AM",r:"ATTACK",a:2},{t:"AM",r:"STONES",a:2}]},
-  "081":{ct:"STONES",fx:[{t:"BW",a:7}]},
-  "082":{ct:"STONES",fx:[{t:"BW",a:16}]},
-  "083":{ct:"STONES",fx:[{t:"CE",c:{t:"WB",v:10},e:{t:"BW",a:16}}]},
-  "084":{ct:"STONES",fx:[{t:"BW",a:3},{t:"BC",a:7}]},
-  "085":{ct:"STONES",fx:[{t:"BC",a:15}]},
-  "086":{ct:"STONES",fx:[{t:"BW",a:8},{t:"BC",a:6}]},
-  "087":{ct:"STONES",fx:[{t:"BW",a:10},{t:"BC",a:8}]},
-  "088":{ct:"STONES",fx:[{t:"BW",a:10},{t:"CE",c:{t:"CA",v:30},e:{t:"BW",a:6}}]},
-  "089":{ct:"STONES",fx:[{t:"BW",a:5},{t:"AM",r:"STONES",a:1}]},
-  "090":{ct:"STONES",fx:[{t:"AM",r:"STONES",a:2}]},
-  "091":{ct:"STONES",fx:[{t:"BW",a:9},{t:"DR",r:"ATTACK",a:2}]},
-  "092":{ct:"STONES",fx:[{t:"CE",c:{t:"WA",v:20},e:{t:"BW",a:15}}]},
-  "094":{ct:"STONES",fx:[{t:"BW",a:6},{t:"AR",r:"STONES",a:2}],combo:true},
-  "095":{ct:"STONES",fx:[{t:"AR",r:"STONES",a:5}],combo:true},
-  "096":{ct:"STONES",fx:[{t:"BW",a:25}]},
-  "097":{ct:"STONES",fx:[{t:"BC",a:25}]},
-  "098":{ct:"ATTACK",fx:[{t:"BW",a:-4},{t:"AP",a:11}]},
-  "099":{ct:"MAGIC", fx:[{t:"SC",a:10}]},
-  "100":{ct:"ATTACK",fx:[{t:"AP",a:5},{t:"SC",a:6}]},
-  "101":{ct:"ATTACK",fx:[{t:"XAC",div:2}],xCost:true},
-  "102":{ct:"STONES",fx:[{t:"XBC",div:2}],xCost:true},
-  "103":{ct:"MAGIC", fx:[{t:"XDR",rA:"ATTACK",rB:"STONES",div:2}],xCost:true},
-  // ── Mechanika "Zahození" (testovací karty) ──────────────────────────────
-  "132":{ct:"ATTACK",fx:[{t:"AP",a:5}],dfx:[{t:"AR",r:"ATTACK",a:3}]},
-  "T01":{ct:"MAGIC", fx:[{t:"AR",r:"MAGIC",a:5}]},
-  "C01":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2}],combo:true},
-  "C02":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:5},{t:"DR",r:"MAGIC",a:2}]},
-  "C03":{ct:"MAGIC", fx:[{t:"AM",r:"CHAOS",a:1}]},
-  "C04":{ct:"MAGIC", fx:[{t:"SR",r:"CHAOS",a:3}],combo:true},
-  "C05":{ct:"CHAOS", fx:[{t:"AC",a:14}]},
-  "C06":{ct:"CHAOS", fx:[{t:"AP",a:20}]},
-  "C07":{ct:"CHAOS", fx:[{t:"BW",a:20}]},
-  "C08":{ct:"CHAOS", fx:[{t:"BC",a:15}]},
-  "C09":{ct:"CHAOS", fx:[{t:"DR",r:"MAGIC",a:6},{t:"DR",r:"ATTACK",a:6},{t:"DR",r:"STONES",a:6},{t:"DR",r:"CHAOS",a:6}]},
-  "C10":{ct:"CHAOS", fx:[{t:"AP",a:15},{t:"AC",a:12}]},
-  "C11":{ct:"CHAOS", fx:[{t:"BC",a:8},{t:"BW",a:8}]},
-  "C12":{ct:"CHAOS", fx:[{t:"SR",r:"MAGIC",a:5},{t:"SR",r:"ATTACK",a:5},{t:"SR",r:"STONES",a:5},{t:"SR",r:"CHAOS",a:5}]},
-  "C13":{ct:"CHAOS", fx:[{t:"DM",r:"MAGIC",a:1},{t:"BLK",r:"MAGIC",turns:2}]},
-  "C14":{ct:"CHAOS", fx:[{t:"DM",r:"STONES",a:1},{t:"BLK",r:"STONES",turns:2}]},
-  "C15":{ct:"CHAOS", fx:[{t:"DM",r:"ATTACK",a:1},{t:"BLK",r:"ATTACK",turns:2}]},
-  "C16":{ct:"CHAOS", fx:[{t:"DM",r:"MAGIC",a:1},{t:"BLK",r:"MAGIC",turns:3},{t:"DM",r:"STONES",a:1},{t:"BLK",r:"STONES",turns:3}]},
-  "C17":{ct:"CHAOS", fx:[{t:"StealC",a:1}]},
-  "C18":{ct:"CHAOS", fx:[{t:"StealC",a:2}]},
-  "C19":{ct:"CHAOS", fx:[{t:"BurnC",a:2}]},
-  "C20":{ct:"CHAOS", fx:[{t:"BurnC",a:3}]},
-  "C21":{ct:"CHAOS", fx:[{t:"AddD",id:"008",count:3}]},
-  "C22":{ct:"CHAOS", fx:[{t:"AddD",id:"C05",count:2}]},
-  "C23":{ct:"CHAOS", fx:[{t:"AddD",id:"001",count:2}]},
-  "C24":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:5}],combo:true},
-  "C25":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2},{t:"AR",r:"MAGIC",a:2}],combo:true},
-  "C26":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4}],combo:true},
-  "C27":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:5},e:{t:"AR",r:"CHAOS",a:7}}]},
-  "C28":{ct:"MAGIC", fx:[{t:"SR",r:"ATTACK",a:2},{t:"AR",r:"CHAOS",a:2}],combo:true},
-  "C29":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:3},{t:"AM",r:"CHAOS",a:1}]},
-  "C30":{ct:"MAGIC", fx:[{t:"AM",r:"CHAOS",a:2}]},
-  "C31":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:4},{t:"DR",r:"MAGIC",a:2},{t:"DR",r:"ATTACK",a:2},{t:"DR",r:"STONES",a:2},{t:"DR",r:"CHAOS",a:2}]},
-  "C32":{ct:"CHAOS", fx:[{t:"AC",a:10},{t:"BC",a:-10}]},
-  "C33":{ct:"CHAOS", fx:[{t:"SW"}]},
-  "C39":{ct:"CHAOS", fx:[{t:"RH"}]},
-  "119":{ct:"ATTACK",fx:[{t:"AP",a:7},{t:"GRC",ct:"ATTACK"}],combo:true},
-  "120":{ct:"MAGIC", fx:[{t:"MHC",d:-1,opp:false}]},
-  "121":{ct:"CHAOS", fx:[{t:"MHC",d:1, opp:true}]},
-  "C34":{ct:"CHAOS", fx:[{t:"SS"}]},
-  "C35":{ct:"CHAOS", fx:[{t:"CM",from:"MAGIC",to:"CHAOS"}]},
-  "D01":{ct:"MAGIC", fx:[{t:"DC",a:1}],combo:true},
-  "D02":{ct:"MAGIC", fx:[{t:"DC",a:2}]},
-  "D03":{ct:"MAGIC", fx:[{t:"DC",a:3}]},
-  "D04":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"DC",a:1}]},
-  "D05":{ct:"STONES",fx:[{t:"BW",a:4},{t:"DC",a:1}],combo:true},
-  "D06":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DC",a:1}]},
-  "D07":{ct:"MAGIC", fx:[{t:"DC",a:2},{t:"AM",r:"MAGIC",a:1}]},
-  "D08":{ct:"MAGIC", fx:[{t:"CE",c:{t:"RA",r:"MAGIC",v:4},e:{t:"DC",a:2}}]},
-  "D09":{ct:"MAGIC", fx:[{t:"?",raw:"DrawPerCardPlayed"}],combo:true},
-  "104":{ct:"ATTACK",fx:[{t:"AP",a:5},{t:"AM",r:"ATTACK",a:1}],combo:true},
-  "107":{ct:"MAGIC", fx:[{t:"AP",a:3},{t:"DR",r:"ATTACK",a:3},{t:"DR",r:"STONES",a:3},{t:"AR",r:"CHAOS",a:2}]},
-  "108":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionBurnOpponent"}]},
-  "109":{ct:"ATTACK",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "110":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionFromDiscard"}]},
-  "111":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionFromDeck"}]},
-  "112":{ct:"STONES",fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "113":{ct:"MAGIC", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "114":{ct:"CHAOS", fx:[{t:"?",raw:"DecisionChooseType"}],combo:true},
-  "115":{ct:"MAGIC", fx:[{t:"DB",a:2}],combo:true},
-  "116":{ct:"CHAOS", fx:[{t:"?",raw:"CloneNextPlayed"}],combo:true},
-  "117":{ct:"MAGIC", fx:[{t:"DMINE"}],combo:true},
-  "C36":{ct:"CHAOS", fx:[{t:"AddOpp",id:"C37",count:3}]},
-  "C37":{ct:"CHAOS", fx:[{t:"Trap",e:{t:"AC",a:5}}]},
-  "123":{ct:"ATTACK",fx:[{t:"MMA",b:2,bon:4}],combo:false},
-  "093":{ct:"STONES",fx:[{t:"BC",a:5},{t:"GCP",a:3,ct:"Stavba"}],combo:true},
-  "118":{ct:"MAGIC", fx:[{t:"SJ"}],combo:true},
-  "122":{ct:"STONES",fx:[{t:"BC",a:7},{t:"GRC",ct:"STONES"}],combo:true},
-  "124":{ct:"MAGIC", fx:[{t:"DCR",opts:[{resType:"MAGIC",amount:4},{resType:"ATTACK",amount:4},{resType:"STONES",amount:4},{resType:"CHAOS",amount:4}]}],combo:true},
-  "125":{ct:"ATTACK",fx:[{t:"AP",a:4},{t:"GRP",r:"CHAOS",a:2,ct:"Útok"}],combo:true},
-  "126":{ct:"MAGIC", fx:[{t:"AR",r:"CHAOS",a:2},{t:"GRP",r:"CHAOS",a:2,ct:"Magie"}],combo:true},
-  "127":{ct:"MAGIC", fx:[{t:"AC",a:10},{t:"DR",r:"MAGIC",a:2}]},
-  "128":{ct:"MAGIC", fx:[{t:"DPC",ct:null},{t:"GRP",r:"MAGIC",a:1,ct:null}],combo:true},
-  "129":{ct:"STONES",fx:[{t:"BW",a:2},{t:"BC",a:2},{t:"DRC",d:2,ct:"Stavba",n:1}]},
-  "130":{ct:"ATTACK",fx:[{t:"AR",r:"ATTACK",a:2},{t:"AR",r:"STONES",a:-2}],combo:true},
-  "131":{ct:"ATTACK",fx:[{t:"AP",a:8},{t:"DM",r:"STONES",a:1}]},
-  "C38":{ct:"CHAOS", fx:[]},
-  "C41":{ct:"MAGIC", fx:[{t:"MIR"}],combo:true},
-  "C42":{ct:"MAGIC", fx:[{t:"CLN"}],combo:true},
-  "C40":{ct:"CHAOS", fx:[{t:"PSH"}]},
-  "C43":{ct:"ATTACK",fx:[{t:"AP",a:2},{t:"NCC"}],combo:true},
-  "L01":{ct:"CHAOS", fx:[{t:"SR",r:"MAGIC",a:3},{t:"SR",r:"ATTACK",a:3},{t:"SR",r:"STONES",a:3},{t:"AC",a:18},{t:"SC",a:5}]},
+  // GENEROVÁNO ze server/game/cards.js – needituj ručně.
+  // Regenerace: node tools/regen_sim_db.js
+  "001":{ct:"ATTACK",fx:[{"t":"AP","a":6}],combo:true},
+  "008":{ct:"ATTACK",fx:[{"t":"AC","a":3}],combo:true},
+  "003":{ct:"MAGIC",fx:[{"t":"AC","a":8}]},
+  "007":{ct:"ATTACK",fx:[{"t":"AP","a":11}]},
+  "006":{ct:"ATTACK",fx:[{"t":"CE","c":{"t":"RMO","r":"ATTACK"},"e":{"t":"AC","a":10}}]},
+  "017":{ct:"ATTACK",fx:[{"t":"AP","a":8},{"t":"SR","r":"ATTACK","a":2}]},
+  "002":{ct:"STONES",fx:[{"t":"BW","a":9},{"t":"AR","r":"STONES","a":1}]},
+  "010":{ct:"STONES",fx:[{"t":"BW","a":6},{"t":"AR","r":"STONES","a":1}]},
+  "005":{ct:"STONES",fx:[{"t":"BC","a":5}]},
+  "009":{ct:"STONES",fx:[{"t":"BC","a":8},{"t":"AR","r":"STONES","a":1}]},
+  "018":{ct:"STONES",fx:[{"t":"BW","a":15}]},
+  "004":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":2}],combo:true},
+  "011":{ct:"MAGIC",fx:[{"t":"AR","r":"STONES","a":3}],combo:true},
+  "012":{ct:"MAGIC",fx:[{"t":"AR","r":"ATTACK","a":3}],combo:true},
+  "013":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":1}]},
+  "014":{ct:"MAGIC",fx:[{"t":"AM","r":"STONES","a":1}]},
+  "015":{ct:"MAGIC",fx:[{"t":"AM","r":"ATTACK","a":1}]},
+  "016":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":2}]},
+  "019":{ct:"ATTACK",fx:[{"t":"AW","a":5}],combo:true},
+  "020":{ct:"ATTACK",fx:[{"t":"AW","a":12}],combo:true},
+  "021":{ct:"ATTACK",fx:[{"t":"AP","a":15}]},
+  "022":{ct:"ATTACK",fx:[{"t":"AC","a":8}]},
+  "023":{ct:"ATTACK",fx:[{"t":"AC","a":7},{"t":"AP","a":7}]},
+  "024":{ct:"ATTACK",fx:[{"t":"CE","c":{"t":"WB","v":5},"e":{"t":"AC","a":12}}]},
+  "025":{ct:"ATTACK",fx:[{"t":"CE","c":{"t":"WB","v":10},"e":{"t":"AC","a":10}}]},
+  "026":{ct:"ATTACK",fx:[{"t":"AC","a":5},{"t":"CE","c":{"t":"RA","r":"ATTACK","v":5},"e":{"t":"AC","a":5}}]},
+  "027":{ct:"ATTACK",fx:[{"t":"AP","a":4},{"t":"GRP","r":"ATTACK","a":2,"ct":"Útok"}],combo:true},
+  "028":{ct:"STONES",fx:[{"t":"BC","a":3}],combo:true},
+  "029":{ct:"STONES",fx:[{"t":"BW","a":6},{"t":"BC","a":2}]},
+  "030":{ct:"STONES",fx:[{"t":"BW","a":13}]},
+  "031":{ct:"STONES",fx:[{"t":"BC","a":7}]},
+  "032":{ct:"STONES",fx:[{"t":"BC","a":13}]},
+  "033":{ct:"STONES",fx:[{"t":"CE","c":{"t":"WB","v":8},"e":{"t":"BW","a":11}}]},
+  "034":{ct:"STONES",fx:[{"t":"CE","c":{"t":"WA","v":15},"e":{"t":"BC","a":9}}]},
+  "035":{ct:"STONES",fx:[{"t":"BW","a":5},{"t":"BC","a":4}]},
+  "036":{ct:"STONES",fx:[{"t":"BW","a":7},{"t":"CE","c":{"t":"CB","v":35},"e":{"t":"BW","a":5}}]},
+  "037":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":4}],combo:true},
+  "038":{ct:"MAGIC",fx:[{"t":"AR","r":"ATTACK","a":6}],combo:true},
+  "039":{ct:"MAGIC",fx:[{"t":"AR","r":"STONES","a":6}],combo:true},
+  "040":{ct:"MAGIC",fx:[{"t":"CE","c":{"t":"RA","r":"MAGIC","v":4},"e":{"t":"AR","r":"ATTACK","a":8}}]},
+  "041":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":2},{"t":"AR","r":"ATTACK","a":2},{"t":"AR","r":"STONES","a":2}],combo:true},
+  "042":{ct:"MAGIC",fx:[{"t":"AM","r":"STONES","a":2}]},
+  "043":{ct:"MAGIC",fx:[{"t":"AM","r":"ATTACK","a":2}]},
+  "044":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":1},{"t":"AM","r":"ATTACK","a":1},{"t":"AM","r":"STONES","a":1}]},
+  "045":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":3}]},
+  "046":{ct:"ATTACK",fx:[{"t":"AP","a":2},{"t":"SR","r":"MAGIC","a":1},{"t":"AR","r":"CHAOS","a":1}]},
+  "047":{ct:"ATTACK",fx:[{"t":"AP","a":9}]},
+  "048":{ct:"ATTACK",fx:[{"t":"AP","a":6},{"t":"AR","r":"MAGIC","a":3}],combo:true},
+  "049":{ct:"ATTACK",fx:[{"t":"AP","a":3},{"t":"DR","r":"MAGIC","a":3},{"t":"AR","r":"CHAOS","a":2}]},
+  "050":{ct:"ATTACK",fx:[{"t":"AP","a":8},{"t":"DR","r":"STONES","a":4}]},
+  "051":{ct:"ATTACK",fx:[{"t":"AP","a":14},{"t":"AC","a":8},{"t":"AR","r":"CHAOS","a":3}]},
+  "052":{ct:"ATTACK",fx:[{"t":"AC","a":16},{"t":"AR","r":"CHAOS","a":4}]},
+  "053":{ct:"ATTACK",fx:[{"t":"AW","a":10},{"t":"AR","r":"ATTACK","a":2}]},
+  "054":{ct:"ATTACK",fx:[{"t":"AP","a":13},{"t":"AR","r":"ATTACK","a":2}]},
+  "055":{ct:"ATTACK",fx:[{"t":"AP","a":3},{"t":"AR","r":"ATTACK","a":1},{"t":"CE","c":{"t":"WB","v":5},"e":{"t":"AC","a":8}}]},
+  "056":{ct:"ATTACK",fx:[{"t":"SR","r":"ATTACK","a":3},{"t":"AP","a":4}]},
+  "057":{ct:"STONES",fx:[{"t":"BW","a":3},{"t":"BC","a":5}]},
+  "058":{ct:"STONES",fx:[{"t":"BW","a":4}],combo:true},
+  "059":{ct:"STONES",fx:[{"t":"BW","a":4},{"t":"BC","a":6},{"t":"DR","r":"ATTACK","a":1}]},
+  "060":{ct:"STONES",fx:[{"t":"BC","a":18}]},
+  "061":{ct:"STONES",fx:[{"t":"BC","a":4},{"t":"BLK","r":"ATTACK","turns":1}]},
+  "062":{ct:"STONES",fx:[{"t":"BW","a":6},{"t":"BC","a":5},{"t":"AR","r":"STONES","a":2}]},
+  "063":{ct:"STONES",fx:[{"t":"BW","a":11},{"t":"AM","r":"STONES","a":1}]},
+  "064":{ct:"STONES",fx:[{"t":"CE","c":{"t":"CB","v":40},"e":{"t":"BC","a":10}}]},
+  "065":{ct:"MAGIC",fx:[{"t":"SR","r":"ATTACK","a":4}]},
+  "066":{ct:"MAGIC",fx:[{"t":"SR","r":"STONES","a":4}]},
+  "067":{ct:"MAGIC",fx:[{"t":"DR","r":"STONES","a":5}]},
+  "068":{ct:"MAGIC",fx:[{"t":"DR","r":"ATTACK","a":5}]},
+  "069":{ct:"MAGIC",fx:[{"t":"SR","r":"MAGIC","a":3},{"t":"SR","r":"ATTACK","a":3},{"t":"AR","r":"CHAOS","a":2}]},
+  "070":{ct:"MAGIC",fx:[{"t":"DR","r":"STONES","a":5},{"t":"DR","r":"ATTACK","a":5}]},
+  "071":{ct:"MAGIC",fx:[{"t":"SR","r":"MAGIC","a":1},{"t":"SR","r":"ATTACK","a":1},{"t":"SR","r":"STONES","a":1},{"t":"SR","r":"CHAOS","a":1},{"t":"AR","r":"CHAOS","a":2}]},
+  "072":{ct:"MAGIC",fx:[{"t":"AR","r":"ATTACK","a":2},{"t":"AM","r":"ATTACK","a":1}]},
+  "073":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":2},{"t":"AM","r":"MAGIC","a":1}]},
+  "074":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":3},{"t":"AR","r":"ATTACK","a":3},{"t":"AR","r":"STONES","a":3}],combo:true},
+  "075":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":2},{"t":"AM","r":"STONES","a":1}]},
+  "076":{ct:"MAGIC",fx:[{"t":"AM","r":"ATTACK","a":2},{"t":"AM","r":"STONES","a":1}]},
+  "077":{ct:"MAGIC",fx:[{"t":"CE","c":{"t":"RA","r":"MAGIC","v":8},"e":{"t":"AR","r":"ATTACK","a":10}}]},
+  "078":{ct:"ATTACK",fx:[{"t":"AC","a":10},{"t":"SR","r":"MAGIC","a":4},{"t":"SR","r":"ATTACK","a":4},{"t":"AR","r":"CHAOS","a":3}]},
+  "079":{ct:"ATTACK",fx:[{"t":"AP","a":12},{"t":"DR","r":"MAGIC","a":3},{"t":"AR","r":"CHAOS","a":2}]},
+  "080":{ct:"MAGIC",fx:[{"t":"AM","r":"MAGIC","a":2},{"t":"AM","r":"ATTACK","a":2},{"t":"AM","r":"STONES","a":2}]},
+  "129":{ct:"STONES",fx:[{"t":"BW","a":2},{"t":"BC","a":2},{"t":"DRC","d":2,"ct":"Stavba","n":1}]},
+  "081":{ct:"STONES",fx:[{"t":"BW","a":6}],combo:true},
+  "082":{ct:"STONES",fx:[{"t":"BW","a":18}]},
+  "083":{ct:"STONES",fx:[{"t":"CE","c":{"t":"WB","v":10},"e":{"t":"BW","a":14}}]},
+  "084":{ct:"STONES",fx:[{"t":"BW","a":5},{"t":"BC","a":7}]},
+  "085":{ct:"STONES",fx:[{"t":"BC","a":15}]},
+  "086":{ct:"STONES",fx:[{"t":"BW","a":8},{"t":"BC","a":6}]},
+  "087":{ct:"STONES",fx:[{"t":"BW","a":10},{"t":"BC","a":8}]},
+  "088":{ct:"STONES",fx:[{"t":"BW","a":10},{"t":"CE","c":{"t":"CA","v":30},"e":{"t":"BW","a":6}}]},
+  "089":{ct:"STONES",fx:[{"t":"BW","a":5},{"t":"AM","r":"STONES","a":1}]},
+  "090":{ct:"STONES",fx:[{"t":"AM","r":"STONES","a":2}]},
+  "091":{ct:"STONES",fx:[{"t":"BW","a":9},{"t":"DR","r":"ATTACK","a":2}]},
+  "092":{ct:"STONES",fx:[{"t":"BW","a":5},{"t":"DFKD","pr":4}]},
+  "093":{ct:"STONES",fx:[{"t":"BC","a":5},{"t":"GCP","a":3,"ct":"Stavba"}],combo:true},
+  "094":{ct:"STONES",fx:[{"t":"BW","a":6},{"t":"AR","r":"STONES","a":2}],combo:true},
+  "095":{ct:"STONES",fx:[{"t":"AR","r":"STONES","a":5}]},
+  "096":{ct:"STONES",fx:[{"t":"BW","a":18},{"t":"BC","a":8}]},
+  "097":{ct:"STONES",fx:[{"t":"BC","a":25}]},
+  "C01":{ct:"CHAOS",fx:[{"t":"AR","r":"CHAOS","a":2}],combo:true},
+  "C02":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":5},{"t":"DR","r":"MAGIC","a":2}]},
+  "C03":{ct:"MAGIC",fx:[{"t":"AM","r":"CHAOS","a":1}]},
+  "C04":{ct:"MAGIC",fx:[{"t":"SR","r":"CHAOS","a":3}],combo:true},
+  "C05":{ct:"CHAOS",fx:[{"t":"AC","a":14}]},
+  "C06":{ct:"CHAOS",fx:[{"t":"AP","a":20}]},
+  "C07":{ct:"CHAOS",fx:[{"t":"BW","a":16}]},
+  "C08":{ct:"CHAOS",fx:[{"t":"BC","a":15}]},
+  "C09":{ct:"CHAOS",fx:[{"t":"DR","r":"MAGIC","a":6},{"t":"DR","r":"ATTACK","a":6},{"t":"DR","r":"STONES","a":6},{"t":"DR","r":"CHAOS","a":6}]},
+  "C10":{ct:"CHAOS",fx:[{"t":"AP","a":15},{"t":"AC","a":12}]},
+  "C11":{ct:"CHAOS",fx:[{"t":"BC","a":8},{"t":"BW","a":8}]},
+  "C12":{ct:"CHAOS",fx:[{"t":"SR","r":"MAGIC","a":5},{"t":"SR","r":"ATTACK","a":5},{"t":"SR","r":"STONES","a":5},{"t":"SR","r":"CHAOS","a":5}]},
+  "C13":{ct:"CHAOS",fx:[{"t":"DM","r":"MAGIC","a":1},{"t":"BLK","r":"MAGIC","turns":2}]},
+  "C14":{ct:"CHAOS",fx:[{"t":"DM","r":"STONES","a":1},{"t":"BLK","r":"STONES","turns":2}]},
+  "C15":{ct:"CHAOS",fx:[{"t":"DM","r":"ATTACK","a":1},{"t":"BLK","r":"ATTACK","turns":2}]},
+  "C16":{ct:"CHAOS",fx:[{"t":"DM","r":"MAGIC","a":1},{"t":"BLK","r":"MAGIC","turns":3},{"t":"DM","r":"STONES","a":1},{"t":"BLK","r":"STONES","turns":3}]},
+  "C17":{ct:"CHAOS",fx:[{"t":"StealC","a":1}]},
+  "C18":{ct:"CHAOS",fx:[{"t":"StealC","a":2}]},
+  "C33":{ct:"CHAOS",fx:[{"t":"SW"}]},
+  "C34":{ct:"CHAOS",fx:[{"t":"SS"}]},
+  "C35":{ct:"CHAOS",fx:[{"t":"CM","from":"MAGIC","to":"CHAOS"}]},
+  "C36":{ct:"CHAOS",fx:[{"t":"AddOpp","id":"C37","count":3}]},
+  "C37":{ct:"CHAOS",fx:[{"t":"Trap","e":{"t":"AC","a":5}}]},
+  "C38":{ct:"CHAOS",fx:[]},
+  "C39":{ct:"CHAOS",fx:[{"t":"RH"}]},
+  "C19":{ct:"CHAOS",fx:[{"t":"BurnC","a":2}]},
+  "C20":{ct:"CHAOS",fx:[{"t":"BurnC","a":3}]},
+  "C21":{ct:"CHAOS",fx:[{"t":"AddD","id":"008","count":3}]},
+  "C22":{ct:"CHAOS",fx:[{"t":"AddD","id":"C05","count":2}]},
+  "C23":{ct:"CHAOS",fx:[{"t":"AddD","id":"001","count":2}]},
+  "C24":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":5}],combo:true},
+  "C25":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":2},{"t":"AR","r":"MAGIC","a":2}],combo:true},
+  "C26":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":3}],combo:true},
+  "C27":{ct:"MAGIC",fx:[{"t":"CE","c":{"t":"RA","r":"MAGIC","v":5},"e":{"t":"AR","r":"CHAOS","a":7}}]},
+  "C28":{ct:"MAGIC",fx:[{"t":"SR","r":"ATTACK","a":2},{"t":"AR","r":"CHAOS","a":2}],combo:true},
+  "C29":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":3},{"t":"AM","r":"CHAOS","a":1}]},
+  "C30":{ct:"MAGIC",fx:[{"t":"AM","r":"CHAOS","a":2}]},
+  "C31":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":4},{"t":"DR","r":"MAGIC","a":2},{"t":"DR","r":"ATTACK","a":2},{"t":"DR","r":"STONES","a":2},{"t":"DR","r":"CHAOS","a":2}]},
+  "C32":{ct:"CHAOS",fx:[{"t":"AC","a":10},{"t":"BC","a":-10}]},
+  "D01":{ct:"MAGIC",fx:[{"t":"DC","a":1}],combo:true},
+  "D02":{ct:"MAGIC",fx:[{"t":"DC","a":2}]},
+  "D03":{ct:"MAGIC",fx:[{"t":"DC","a":3}]},
+  "D04":{ct:"ATTACK",fx:[{"t":"AP","a":4},{"t":"DC","a":1}]},
+  "D05":{ct:"STONES",fx:[{"t":"BW","a":4},{"t":"DC","a":1}],combo:true},
+  "D06":{ct:"ATTACK",fx:[{"t":"AP","a":8},{"t":"DC","a":1}]},
+  "D07":{ct:"MAGIC",fx:[{"t":"DC","a":2},{"t":"AM","r":"MAGIC","a":1}]},
+  "D08":{ct:"MAGIC",fx:[{"t":"CE","c":{"t":"RA","r":"MAGIC","v":4},"e":{"t":"DC","a":2}}]},
+  "D09":{ct:"MAGIC",fx:[{"t":"DPC","ct":"Magie"}],combo:true},
+  "098":{ct:"ATTACK",fx:[{"t":"BW","a":-4},{"t":"AP","a":11}]},
+  "099":{ct:"MAGIC",fx:[{"t":"SC","a":10}]},
+  "100":{ct:"ATTACK",fx:[{"t":"AP","a":5},{"t":"SC","a":6}]},
+  "104":{ct:"ATTACK",fx:[{"t":"AP","a":5},{"t":"AM","r":"ATTACK","a":1}]},
+  "107":{ct:"MAGIC",fx:[{"t":"AP","a":3},{"t":"DR","r":"ATTACK","a":3},{"t":"DR","r":"STONES","a":3},{"t":"AR","r":"CHAOS","a":2}]},
+  "108":{ct:"CHAOS",fx:[{"t":"DBO","pr":4}]},
+  "109":{ct:"ATTACK",fx:[{"t":"DCT","ct":"Útok","pr":4,"cr":2}],combo:true},
+  "110":{ct:"MAGIC",fx:[{"t":"DFD","pr":4}]},
+  "111":{ct:"MAGIC",fx:[{"t":"DFK","pr":4}]},
+  "112":{ct:"STONES",fx:[{"t":"DCT","ct":"Stavba","pr":4,"cr":2}],combo:true},
+  "113":{ct:"MAGIC",fx:[{"t":"DCT","ct":"Magie","pr":4,"cr":2}],combo:true},
+  "114":{ct:"CHAOS",fx:[{"t":"DCT","ct":"Chaos","pr":4,"cr":2}],combo:true},
+  "115":{ct:"MAGIC",fx:[{"t":"DB","a":2}],combo:true},
+  "116":{ct:"CHAOS",fx:[{"t":"CNP","n":2}],combo:true},
+  "117":{ct:"MAGIC",fx:[{"t":"DMINE"}],combo:true},
+  "118":{ct:"MAGIC",fx:[{"t":"SJ"}],combo:true},
+  "119":{ct:"ATTACK",fx:[{"t":"AP","a":7},{"t":"GRC","ct":"ATTACK"}],combo:true},
+  "120":{ct:"MAGIC",fx:[{"t":"MHC","d":-1,"opp":false}]},
+  "121":{ct:"CHAOS",fx:[{"t":"MHC","d":1,"opp":true}]},
+  "122":{ct:"STONES",fx:[{"t":"BC","a":7},{"t":"GRC","ct":"STONES"}],combo:true},
+  "123":{ct:"ATTACK",fx:[{"t":"MMA","b":2,"bon":4}]},
+  "C40":{ct:"CHAOS",fx:[{"t":"PSH"}]},
+  "C41":{ct:"MAGIC",fx:[{"t":"MIR"}],combo:true},
+  "C42":{ct:"MAGIC",fx:[{"t":"CLN"}],combo:true},
+  "124":{ct:"MAGIC",fx:[{"t":"DCR","opts":[{"resType":"MAGIC","amount":4},{"resType":"ATTACK","amount":4},{"resType":"STONES","amount":4},{"resType":"CHAOS","amount":4}]}],combo:true},
+  "125":{ct:"ATTACK",fx:[{"t":"AP","a":4},{"t":"GRP","r":"CHAOS","a":2,"ct":"Útok"}],combo:true},
+  "126":{ct:"MAGIC",fx:[{"t":"AR","r":"CHAOS","a":2},{"t":"GRP","r":"CHAOS","a":2,"ct":"Magie"}],combo:true},
+  "127":{ct:"MAGIC",fx:[{"t":"AC","a":10},{"t":"DR","r":"MAGIC","a":2}]},
+  "128":{ct:"MAGIC",fx:[{"t":"DPC","ct":null},{"t":"GRP","r":"MAGIC","a":1,"ct":null}],combo:true},
+  "L01":{ct:"CHAOS",fx:[{"t":"SR","r":"MAGIC","a":3},{"t":"SR","r":"ATTACK","a":3},{"t":"SR","r":"STONES","a":3},{"t":"AC","a":18},{"t":"SC","a":5}]},
+  "C43":{ct:"ATTACK",fx:[{"t":"AP","a":2},{"t":"NCC"}],combo:true},
+  "130":{ct:"ATTACK",fx:[{"t":"AR","r":"ATTACK","a":2},{"t":"AR","r":"STONES","a":-2}],combo:true},
+  "C44":{ct:"CHAOS",fx:[{"t":"AC","a":7},{"t":"CE","c":{"t":"RMO","r":"CHAOS"},"e":{"t":"SC","a":4}}]},
+  "C45":{ct:"CHAOS",fx:[{"t":"SC","a":3}],combo:true},
+  "131":{ct:"ATTACK",fx:[{"t":"AP","a":8},{"t":"DM","r":"STONES","a":1}]},
+  "101":{ct:"ATTACK",fx:[{"t":"XAC","div":2}],xCost:true},
+  "102":{ct:"STONES",fx:[{"t":"XBC","div":2}],xCost:true},
+  "103":{ct:"MAGIC",fx:[{"t":"XDR","rA":"ATTACK","rB":"STONES","div":2}],xCost:true},
+  "132":{ct:"ATTACK",fx:[{"t":"AP","a":5}],dfx:[{"t":"AR","r":"ATTACK","a":3}]},
+  "133":{ct:"CHAOS",fx:[{"t":"AddOpp","id":"134","count":3}]},
+  "134":{ct:"CHAOS",fx:[],dfx:[{"t":"BC","a":-4},{"t":"BW","a":-4}]},
+  "135":{ct:"CHAOS",fx:[{"t":"SR","r":"CHAOS","a":3}],dfx:[{"t":"AR","r":"CHAOS","a":2}]},
+  "136":{ct:"ATTACK",fx:[{"t":"AP","a":10}],dfx:[{"t":"BW","a":-4}]},
+  "137":{ct:"MAGIC",fx:[{"t":"AR","r":"MAGIC","a":2}],dfx:[{"t":"DC","a":1}]},
+  "138":{ct:"STONES",fx:[{"t":"BW","a":7},{"t":"DR","r":"STONES","a":3}],dfx:[{"t":"BW","a":-5}]},
+  "139":{ct:"STONES",fx:[{"t":"CWC"}],dfx:[{"t":"BC","a":-8}]},
 };
 
 // Předpřipravené balíčky (shodné s Kotlin presetTemplates)
@@ -3213,6 +3378,7 @@ function simFx(fx, me, opp, xv) {
     case 'GRC': { const pool=Object.keys(CARD_EFFECTS_DB).filter(id=>CARD_EFFECTS_DB[id].ct===fx.ct); if(pool.length&&me.hand.length<7){const id=pool[Math.floor(Math.random()*pool.length)];const c=makeSimCard(id);if(c)me.hand.push(c);} break; }
     case 'MHC': { const tgt=fx.opp?opp:me; for(let i=0;i<tgt.hand.length;i++) tgt.hand[i]={...tgt.hand[i],costModifier:(tgt.hand[i].costModifier||0)+fx.d}; break; }
     case 'CM': { const flr=fx.from==='CHAOS'?0:1; const cur=me.mines[fx.from]||0; me.mines[fx.to]=Math.min(10,(me.mines[fx.to]||0)+1); if(cur>flr)me.mines[fx.from]=cur-1; break; }
+    case 'CWC': { me.castleHP = Math.min(100, me.castleHP + me.wallHP); me.wallHP = 0; break; }
     case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
     case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
     case 'DMINE': { const types=['MAGIC','ATTACK','STONES','CHAOS']; const best=types.reduce((b,r)=>(me.mines[r]||0)<(me.mines[b]||0)?r:b,types[0]); me.mines[best]=(me.mines[best]||0)+1; break; }
@@ -3287,7 +3453,10 @@ function simWin(pA, pB) {
 }
 
 // ── AI heuristika (portováno z GameViewModel.kt) ─────────────
-function simAI(ai, opp) {
+function simAI(ai, opp, canDiscard) {
+  // Zahození je 1× za kolo a tah NEUKONČUJE (stejné pravidlo jako u hráče
+  // i v appce – viz AiEngine.canDiscard).
+  if (canDiscard === undefined) canDiscard = true;
   const aLH=ai.castleHP<15, aLW=ai.wallHP<5, oLH=opp.castleHP<20;
   const oCW=opp.castleHP>=50, aCW=ai.castleHP>=50;
   const chaos=ai.res.CHAOS||0;
@@ -3308,6 +3477,8 @@ function simAI(ai, opp) {
         const room=Math.max(0,50-ai.wallHP), g=Math.min(fx.a||0,room);
         return g===0?-5:aLW?16:(g<(fx.a||0)?2+Math.floor(g/3):5);
       }
+      case 'CWC': { const g=ai.wallHP; return g===0?-5:(aLH?20:aCW?12:5)+Math.floor(g/5); }
+      case 'NCC': return aff.length>1?5:-3;   // další karta zdarma jako combo – jen když je co zahrát
       case 'AM': return 9;
       case 'SR': return 7;
       case 'DR': return 6;
@@ -3457,7 +3628,7 @@ function simAI(ai, opp) {
 
   const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
   if(!best||best.s<=0){
-    if(hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
+    if(canDiscard&&hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
     return{type:'wait'};
   }
   return{type:'play',card:best.c};
@@ -3507,10 +3678,11 @@ function simOneGame(deckA, deckB, trackCards) {
     // Reset per-turn efektů
     me.attackCards = 0;
     me.grp = []; me.gcp = []; me.dpc = false; me.cnp = 0; me.ncc = false;
+    let discardUsed = false;   // zahození 1× za kolo, tah jím nekončí
 
     let waited=false, go=true;
     while(go){
-      const act=simAI(me,opp);
+      const act=simAI(me,opp,!discardUsed);
       if(act.type==='play'){
         const c=act.card;
         const idx=me.hand.indexOf(c);
@@ -3547,7 +3719,7 @@ function simOneGame(deckA, deckB, trackCards) {
           const w2=simWin(pA,pB);
           if(w2!==null)return{winner:w2,turns:t,playedA,playedB};
         }
-        go=false;
+        discardUsed=true;   // tah pokračuje – zahození ho neukončuje
       } else { waited=true; go=false; }
     }
 
@@ -3830,24 +4002,23 @@ function showSimResults(lA,lB,wA,wB,dr,tot,totT,cardStatsA,cardStatsB){
 }
 
 function saveToStorage() {
-  localStorage.setItem('termiti_cards', JSON.stringify(CARDS));
-  localStorage.setItem('termiti_effects_db', JSON.stringify(CARD_EFFECTS_DB));
+  try { _saveToStorage(); }
+  catch (e) { console.warn('Úložiště prohlížeče nedostupné – stav se neuloží.', e); }
+}
+
+function _saveToStorage() {
   localStorage.setItem('termiti_adjustments', JSON.stringify(cardAdjustments));
   localStorage.setItem('termiti_globals', JSON.stringify({s: globalScale, x: globalBX, y: globalBY}));
   localStorage.setItem('termiti_deck', JSON.stringify(DECK));
 }
 
 function restoreFromStorage() {
-  const c = localStorage.getItem('termiti_cards');
-  if (c) {
-    CARDS = JSON.parse(c);
-    CARD_MAP = Object.fromEntries(CARDS.map(c => [c.id, c]));
-    const info = document.getElementById('sourceInfo');
-    info.textContent = `cache (${CARDS.length} karet)`;
-    info.classList.add('loaded');
-  }
-  const e = localStorage.getItem('termiti_effects_db');
-  if (e) CARD_EFFECTS_DB = Object.assign(CARD_EFFECTS_DB, JSON.parse(e));
+  // Karty a databáze efektů se z cache ZÁMĚRNĚ neobnovují: jsou to odvozená
+  // data a stará cache (třeba z dřívějšího načtení cards.json) by přebila
+  // aktuální vestavěné karty – proto se vždy startuje z EMBEDDED_CARDS.
+  // Ručně načtený cards.json platí jen do obnovení stránky.
+  localStorage.removeItem('termiti_cards');
+  localStorage.removeItem('termiti_effects_db');
   const a = localStorage.getItem('termiti_adjustments');
   if (a) cardAdjustments = JSON.parse(a);
   const g = localStorage.getItem('termiti_globals');
