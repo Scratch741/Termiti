@@ -17,6 +17,37 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.4.0] – 2026-09-26
+
+### Nové karty
+- **Daň z chaosu** (4 chaos, epická) – poškodí hrad −7; máš-li víc chaosu
+  než soupeř, ukradne navíc 4 hradu.
+- **Chaotická šipka** (1 chaos, běžná, combo) – ukradne 3 hradu. První levný
+  chaosový útok a první běžná chaosová karta, kterou lze vyrobit.
+
+### Balanc
+- **Chaotický důl** zlevněn ze 4 na 3 magie.
+- **Šablony balíčků:** nový **Útočník2**, přepracovaný **Chaos**.
+- **Magické bažiny:** upravené startovní suroviny, doly a cíle soupeřů.
+
+### Změny
+- **Šípy** přejmenovány na **Déšť šípů**.
+- **Sjednocené popisy karet** – stejný efekt se všude píše stejně
+  (např. „Poškodí hrad −14." místo „Přímý zásah: hrad −14, ignoruje hradby.").
+- **Tvorba balíčku roluje plynule** – obrázky se už nedekódují zbytečně
+  zvětšené a na hlavním vlákně (zaseknuté snímky 25 % → 9 %).
+
+### Opravy
+- AI už nehraje **Likvidaci** a podobné karty, když není z čeho vybírat
+  (prázdný balíček nebo ruka soupeře), a takové karty zahazuje jako první.
+- AI v koncovce **ukončí kolo a vyhraje**, když má vyšší hrad a oba balíčky
+  jsou prázdné – dřív hrála dál a náskok zbytečně pouštěla.
+- Po výbuchu pasti se zahraná karta na okamžik **nevracela zpět do ruky**.
+- Kampaň: **„CHAOS to 1"** u soupeře dávalo dva chaosové doly místo jednoho.
+- Tvorba balíčku v interním nástroji: seznam karet se už nesráží na nulu.
+
+---
+
 ## [0.3.0] – 2026-09-25
 
 ### Nové
