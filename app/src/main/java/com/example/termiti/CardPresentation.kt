@@ -64,7 +64,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.10f),
         "017" to CardPres("Zaútočí za 8, ukradni 2 útoku soupeři.",
             R.drawable.art_valecny_sekyrnik, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.valecny_sekyrnik),
 
         // ── Stavba (platí STONES) ─────────────────────────────────────────────
         "002" to CardPres("Hradby +9, vrátí 1 kámen.",
@@ -119,7 +119,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
         "022" to CardPres("Poškodí hrad −8.",
             R.drawable.art_primy_zasah, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.primy_zasah),
         "023" to CardPres("Poškodí hrad −7, zaútočí za 7.",
             R.drawable.art_dvojity_utok, "Útok",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -131,7 +131,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.50f),
         "026" to CardPres("Poškodí hrad o 5. Pokud >5 útoku, +5.",
             R.drawable.art_ostrelovac, "Útok",
-            artScale = 0.85f, artBiasY = 0.10f),
+            artScale = 0.85f, artBiasY = 0.10f, soundResId = R.raw.ostrelovac),
         "027" to CardPres("Zaútočí za 4. **Toto kolo:** za každou zahranou **ÚTOK** +2 útoku. [Combo]",
             R.drawable.art_valecne_bubny, "Útok",
             artScale = 0.80f, artBiasY = -0.60f, soundResId = R.raw.drums_of_war),
@@ -197,7 +197,7 @@ object CardPresentation {
 
         // ── Útok – Arcomage/Mravenci inspirace ────────────────────────────────
         "046" to CardPres("Zaútočí za 2, ukradni 1 magii, chaos +1.",
-            R.drawable.art_goblin, "Útok", artScale = 0.80f),
+            R.drawable.art_goblin, "Útok", artScale = 0.80f, soundResId = R.raw.goblin),
         "047" to CardPres("Zaútočí za 9.",
             R.drawable.art_ogr, "Útok",
             artScale = 0.80f, isBasic = true, soundResId = R.raw.ogr),
@@ -218,7 +218,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.demon_laugh, listBiasY = -0.75f),
         "053" to CardPres("Poškodí hradby −10, získej +2 útoku.",
             R.drawable.art_plamenomet, "Útok",
-            artBiasX = -1.00f, artBiasY = -0.05f, artScale = 0.80f),
+            artBiasX = -1.00f, artBiasY = -0.05f, artScale = 0.80f, soundResId = R.raw.plamenomet),
         "054" to CardPres("Zaútočí za 13, +2 útoku.",
             R.drawable.art_valecny_pochod, "Útok",
             artScale = 0.80f, artBiasY = -0.30f),
@@ -460,7 +460,7 @@ object CardPresentation {
         // ── Chaos – karty platící chaosem ────────────────────────────────────
         "C05" to CardPres("Poškodí hrad −14.",
             R.drawable.art_chaoticky_vybuch, "Chaos",
-            artScale = 0.80f, artBiasY = 0.30f),
+            artScale = 0.80f, artBiasY = 0.30f, soundResId = R.raw.chaoticky_vybuch),
         "C06" to CardPres("Zaútočí za 20.",
             R.drawable.art_boure_chaosu, "Chaos",
             artScale = 0.75f, artBiasY = -0.60f),
@@ -506,7 +506,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.75f),
         "C19" to CardPres("Znič 2 náhodné karty ze soupeřovy ruky.",
             R.drawable.art_spalena_knihovna, "Chaos",
-            artScale = 0.80f, artBiasY = 0.10f),
+            artScale = 0.80f, artBiasY = 0.10f, soundResId = R.raw.spalena_knihovna),
         "C20" to CardPres("Znič 3 náhodné karty ze soupeřovy ruky.",
             R.drawable.art_prazdna_mysl, "Chaos",
             artScale = 0.80f, artBiasY = -0.45f),

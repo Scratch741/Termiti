@@ -556,7 +556,7 @@ function _addBoostCards(state, typeFilter, count) {
  * @returns {'A'|'B'|'DRAW'|null}  strana výherce, nebo null = pokračuj
  * @param {object} stateA
  * @param {object} stateB
- * @param {number} winTargetA – hrad A musí dosáhnout ≥ teto hodnoty (default 60, s extra_castle 65)
+ * @param {number} winTargetA – hrad A musí dosáhnout ≥ teto hodnoty (default 70, s extra_castle nebo soupeřovým iron_bastion 75)
  * @param {number} winTargetB – hrad B musí dosáhnout ≥ teto hodnoty
  */
 function checkWin(stateA, stateB, winTargetA = 60, winTargetB = 60) {

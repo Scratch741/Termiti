@@ -17,7 +17,7 @@ enum class PassiveAbility(
     EXTRA_CASTLE(
         id          = "extra_castle",
         title       = "Pevný hrad",
-        description = "+5 startovní hrad, ale vítězný cíl se zvýší z 60 na 65.",
+        description = "+5 startovní hrad, ale vítězný cíl se zvýší ze 70 na 75.",
         icon        = "🏰",
         unlockLevel = 2,
         goldCost    = 150

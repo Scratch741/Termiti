@@ -1,4 +1,4 @@
-﻿package com.example.termiti
+package com.example.termiti
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -173,7 +173,6 @@ fun GameScreen(
             )
 
             // ── Top bar ───────────────────────────────────────────────────────
-            val defaultEnemyAvatar = remember { randomEnemyAvatar() }
             NewTopBar(
                 playerDeckSize = state.playerState.deck.size,
                 aiDeckSize     = state.aiState.deck.size,
@@ -185,7 +184,7 @@ fun GameScreen(
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.displayName ?: LocalStrings.current.enemy,
-                opponentAvatar = campaignOpponent?.avatar ?: defaultEnemyAvatar,
+                opponentAvatar = campaignOpponent?.avatar ?: viewModel.randomOpponentAvatar.value,
                 onMenu         = {
                     when {
                         reviewMode && onExitReview != null -> onExitReview()

@@ -207,6 +207,7 @@
     "logPlayerSkip": "You skipped the turn",
     "logAiDiscardFromDeck": "AI discarded from your deck: %s",
     "logAiJoker": "AI chose a joker: %s",
+    "logVerbAbility": "passive ability",
     "logAiStoleFromHand": "AI stole from your hand: %s",
     "logAiChoseResource": "AI chose %d× %s",
     "logAiWaited": "AI waited",
@@ -1172,7 +1173,7 @@
   "abilities": {
     "extra_castle": {
       "name": "Sturdy Castle",
-      "desc": "+5 starting castle, but the win target rises from 60 to 65."
+      "desc": "+5 starting castle, but the win target rises from 70 to 75."
     },
     "extra_wall": {
       "name": "Strong Walls",

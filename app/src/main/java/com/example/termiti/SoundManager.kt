@@ -71,6 +71,7 @@ object SoundManager {
     private var sndBuild: Int = 0
     private var sndWinBattle: Int = 0
     private var sndLostBattle: Int = 0
+    private var sndResource: Int = 0
 
     fun initSounds(context: Context) {
         appContext = context.applicationContext
@@ -100,6 +101,7 @@ object SoundManager {
         sndBuild        = soundPool!!.load(context, R.raw.build,                   1)
         sndWinBattle    = soundPool!!.load(context, R.raw.win_battle,              1)
         sndLostBattle   = soundPool!!.load(context, R.raw.lost_battle,             1)
+        sndResource     = soundPool!!.load(context, R.raw.card_resource,           1)
     }
 
     fun releaseSounds() {
@@ -239,7 +241,20 @@ object SoundManager {
             playAsync { toneEnv(freq = 260f, dur = 0.18f, vol = 0.30f) }
         }
     }
-    fun playResource()  = playAsync { toneEnv(freq = 660f,  dur = 0.09f, vol = 0.20f) }
+    /**
+     * Karta se zdroji / lízáním bez vlastního zvuku (Rychlá magie, Tržiště…) – card_resource.
+     * Dřív tu byl jen krátký generovaný tón 660 Hz („pop“); ten zůstává jako záloha,
+     * kdyby se soubor nenačetl.
+     */
+    fun playResource() {
+        if (!enabled) return
+        val pool = soundPool
+        if (pool != null && sndResource != 0) {
+            pool.play(sndResource, sfx(0.70f), sfx(0.70f), 1, 0, 1.0f)
+        } else {
+            playAsync { toneEnv(freq = 660f, dur = 0.09f, vol = 0.20f) }
+        }
+    }
 
     /** Zničení dolu – mine_destroy. */
     fun playMineDestroy() {

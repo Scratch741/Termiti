@@ -207,6 +207,7 @@
     "logPlayerSkip": "Hráč přeskočil kolo",
     "logAiDiscardFromDeck": "AI zahodila z tvého balíku: %s",
     "logAiJoker": "AI zvolila žolíka: %s",
+    "logVerbAbility": "pasivní schopnost",
     "logAiStoleFromHand": "AI ukradla z tvé ruky: %s",
     "logAiChoseResource": "AI si vybrala %d× %s",
     "logAiWaited": "AI čekala",
@@ -1172,7 +1173,7 @@
   "abilities": {
     "extra_castle": {
       "name": "Pevný hrad",
-      "desc": "+5 startovní hrad, ale vítězný cíl se zvýší z 60 na 65."
+      "desc": "+5 startovní hrad, ale vítězný cíl se zvýší ze 70 na 75."
     },
     "extra_wall": {
       "name": "Silné hradby",

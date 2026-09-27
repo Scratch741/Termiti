@@ -279,6 +279,7 @@ class AppStrings(
     val logPlayerSkip: String by values
     val logAiDiscardFromDeck: String by values
     val logAiJoker: String by values
+    val logVerbAbility: String by values
     val logAiStoleFromHand: String by values
     val logAiChoseResource: String by values
     val logAiWaited: String by values

@@ -316,6 +316,7 @@ data class LanguagePack(
                 "logPlayerSkip" to str("logPlayerSkip",        "Hráč přeskočil kolo"),
                 "logAiDiscardFromDeck" to str("logAiDiscardFromDeck", "AI zahodila z tvého balíku: %s"),
                 "logAiJoker" to str("logAiJoker",           "AI zvolila žolíka: %s"),
+                "logVerbAbility" to str("logVerbAbility",   "pasivní schopnost"),
                 "logAiStoleFromHand" to str("logAiStoleFromHand",   "AI ukradla z tvé ruky: %s"),
                 "logAiChoseResource" to str("logAiChoseResource",   "AI si vybrala %d× %s"),
                 "logAiWaited" to str("logAiWaited",          "AI čekala"),

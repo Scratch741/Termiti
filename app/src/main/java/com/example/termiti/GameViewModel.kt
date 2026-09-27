@@ -1,4 +1,4 @@
-﻿package com.example.termiti
+package com.example.termiti
 
 import android.app.Application
 import android.content.Context
@@ -410,24 +410,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         ),
 
         "🏰 Obránce" to mapOf(
-            "107" to 1,
-            "043" to 2,
-            "050" to 2,
-            "048" to 1,
-            "D04" to 2,
-            "020" to 1,
-            "098" to 2,
-            "017" to 2,
-            "024" to 2,
-            "047" to 2,
-            "008" to 2,
-            "010" to 2,
-            "036" to 2,
-            "004" to 1,
-            "037" to 1,
-            "074" to 2,
-            "015" to 2,
-            "D06" to 1,
+            "122" to 2,
+            "129" to 2,
+            "139" to 1,
+            "D05" to 2,
+            "092" to 2,
+            "096" to 1,
+            "095" to 3,
+            "061" to 2,
+            "089" to 2,
+            "059" to 2,
+            "084" to 2,
+            "086" to 2,
+            "087" to 2,
+            "090" to 2,
+            "097" to 1,
+            "042" to 2,
         ),
 
         "🏰 Obránce2" to mapOf(
@@ -540,6 +538,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Pasivní schopnosti, které AI dostala na začátku aktuální (offline) hry.
      *  Musí být inicializováno PŘED gameState, protože createInitialState() do něj zapisuje. */
     var aiPassiveAbilities = androidx.compose.runtime.mutableStateOf<List<PassiveAbility>>(emptyList())
+        private set
+
+    /** Avatar soupeře bez kampaňové identity (rychlá hra, aréna) – losuje se jednou za hru.
+     *  Top bar i log ho čtou odsud, aby ukazovaly stejnou ikonu. */
+    var randomOpponentAvatar = androidx.compose.runtime.mutableStateOf(randomEnemyAvatar())
         private set
 
     var gameState = androidx.compose.runtime.mutableStateOf(createInitialState())
@@ -1418,7 +1421,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         player.hand.remove(card)
         player.discardPile.add(card)
         recordCard(card, CardAction.PLAYED, isPlayer = true)
-        addCardLog("Hráč", card, CardAction.PLAYED, isMe = true)
+        // nextCardIsCombo se vynuluje až níž – tady ještě říká, jestli karta jde jako combo
+        addCardLog("Hráč", card, CardAction.PLAYED, isMe = true,
+            paidCost = if (card.isXCost) xValue else card.effectiveCost,
+            asCombo  = card.isCombo || player.nextCardIsCombo)
         playSoundForCard(card)
 
         // 2. Efekty (vč. podmínek) se vyhodnotí AŽ PO odebrání karty z ruky
@@ -2013,7 +2019,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
                         addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
-                        addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false)
+                        addCardLog("AI", aiCard, CardAction.PLAYED, isMe = false,
+                            paidCost = if (aiCard.isXCost) aiXValue else aiCard.effectiveCost,
+                            asCombo  = aiCard.isCombo || aiNextComboBoost)
                         revealedAiCard.value    = aiCard
                         revealedAiCardIdx.value = aiCardHandIdx.takeIf { it >= 0 }
                         playSoundForCard(aiCard)
@@ -2332,9 +2340,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         return "$who $cardName! $dmgDesc"
     }
 
-    private fun addCardLog(actorName: String, card: Card, action: CardAction, isMe: Boolean) {
+    private fun addCardLog(
+        actorName: String, card: Card, action: CardAction, isMe: Boolean,
+        paidCost: Int? = null, asCombo: Boolean = false
+    ) {
         val turn = gameState.value.currentTurn
-        log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn)).takeLast(50)
+        log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn, paidCost, asCombo)).takeLast(50)
     }
 
     /**
@@ -2417,6 +2428,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = null
+        randomOpponentAvatar.value   = randomEnemyAvatar()
         battleBackgroundResId.value  = randomBattleBackground()
         // Náhodný vzhled soupeřova hradu/hradby – "Vlastní balíček" i "Super-random"
         // volají restartGame() (nikoli campaign), takže sem spadá vždy mimo kampaň.
@@ -2450,12 +2462,26 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value         = createInitialState(randomDeck, superRandom)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
-        // Zaloguj AI schopnosti, aby hráč věděl, co AI dostala
-        val aiAbilities = aiPassiveAbilities.value
-        if (aiAbilities.isNotEmpty()) {
-            val names = aiAbilities.joinToString(", ") { "${it.icon} ${it.title}" }
-            log.value = listOf(LogEntry.SystemEvent("🤖 AI dostala schopnosti: $names"))
+        logStartAbilities()
+    }
+
+    /**
+     * Na začátek logu vypíše pasivní schopnosti obou stran – každou zvlášť i s popisem,
+     * aby bylo jasné, co dělají (dřív tu byly jen názvy AI schopností).
+     */
+    private fun logStartAbilities() {
+        val profile = PlayerProfileManager.profile
+        val playerAbilities = profile?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
+        // V kampani portrét soupeře (cardArt) – jeho avatar bývá jen emoji; jinak ikona z top baru.
+        val opponentAvatar = activeCampaignOpponent.value?.let { it.cardArt ?: it.avatar }
+            ?: randomOpponentAvatar.value
+        val playerAvatar = profile?.avatar ?: "player_icon_1"
+        val entries = aiPassiveAbilities.value.map {
+            LogEntry.AbilityEvent(it, actorName = "AI", isMe = false, ownerAvatar = opponentAvatar)
+        } + playerAbilities.map {
+            LogEntry.AbilityEvent(it, actorName = "Hráč", isMe = true, ownerAvatar = playerAvatar)
         }
+        if (entries.isNotEmpty()) log.value = log.value + entries
     }
 
     /** Spustí bitvu v kampani proti danému soupeři. */
@@ -2499,6 +2525,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameState.value         = createCampaignState(opponent)
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
+        logStartAbilities()
     }
 
     /** Sestaví GameState pro kampaňovou bitvu s konkrétním soupeřem. */
@@ -2632,6 +2659,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun startArenaBattle() {
         arenaPhase.value = ArenaPhase.BATTLE
         activeCampaignOpponent.value = null
+        randomOpponentAvatar.value   = randomEnemyAvatar()
         battleBackgroundResId.value  = randomBattleBackground()
         replayFrames.clear()
         val ps = PlayerState().also {

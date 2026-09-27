@@ -430,7 +430,7 @@ private val FULL_ART_AVATARS = setOf(
 )
 
 /** Mapuje avatar ID na drawable resource, nebo null pokud jde o emoji řetězec. */
-private fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
+internal fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
     "enemy_icon_1" -> R.drawable.enemy_icon_1
     "enemy_icon_2" -> R.drawable.enemy_icon_2
     "enemy_icon_3" -> R.drawable.enemy_icon_3
