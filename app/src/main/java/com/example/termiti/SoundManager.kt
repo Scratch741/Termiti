@@ -64,6 +64,8 @@ object SoundManager {
     private var sndCardPlayFile: Int = 0
     private var sndCardAttack1: Int = 0
     private var sndCardAttack2: Int = 0
+    private var sndCardAttack3: Int = 0
+    private var sndCardAttack4: Int = 0
     private var sndCardDiscard: Int = 0
     private var sndMineDestroy: Int = 0
     private var sndMenuTap: Int = 0
@@ -94,6 +96,8 @@ object SoundManager {
         sndCardPlayFile = soundPool!!.load(context, R.raw.card_play,            1)
         sndCardAttack1  = soundPool!!.load(context, R.raw.card_attack,          1)
         sndCardAttack2  = soundPool!!.load(context, R.raw.card_attack_2,        1)
+        sndCardAttack3  = soundPool!!.load(context, R.raw.card_attack_3,        1)
+        sndCardAttack4  = soundPool!!.load(context, R.raw.card_attack_4,        1)
         sndCardDiscard  = soundPool!!.load(context, R.raw.card_discard,         1)
         sndMineDestroy  = soundPool!!.load(context, R.raw.mine_destroy,            1)
         sndMenuTap      = soundPool!!.load(context, R.raw.menu_tap,               1)
@@ -219,13 +223,13 @@ object SoundManager {
             playAsync { toneEnv(freq = 520f, dur = 0.12f, vol = 0.35f) }
         }
     }
-    /** Útočná karta – náhodně vybere card_attack nebo card_attack_2. */
+    /** Útočná karta – náhodně vybere jeden z card_attack … card_attack_4. */
     fun playAttack() {
         if (!enabled) return
         val pool = soundPool
-        if (pool != null && sndCardAttack1 != 0) {
-            val id = if (Random.nextBoolean()) sndCardAttack1 else sndCardAttack2
-            pool.play(id, sfx(0.70f), sfx(0.70f), 1, 0, 1.0f)
+        val ids = listOf(sndCardAttack1, sndCardAttack2, sndCardAttack3, sndCardAttack4).filter { it != 0 }
+        if (pool != null && ids.isNotEmpty()) {
+            pool.play(ids.random(), sfx(0.70f), sfx(0.70f), 1, 0, 1.0f)
         } else {
             playAsync { sweep(freqFrom = 280f, freqTo = 90f, dur = 0.14f, vol = 0.40f) +
                         toneEnv(freq = 95f, dur = 0.10f, vol = 0.30f) }
