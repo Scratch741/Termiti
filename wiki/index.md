@@ -8,6 +8,7 @@
 |------|-------------|---------|
 | [[overview]] | CZ: game overview, loop, platforms, localization | 2026-05-29 |
 | [[architecture]] | Tech stack, key files, versioning, Compose gotchas | 2026-05-29 |
+| [[proposals]] | Agreed ideas not implemented yet + open decisions (dual-colour cards) | 2026-09-28 |
 
 ## Cards
 

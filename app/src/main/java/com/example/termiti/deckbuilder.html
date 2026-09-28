@@ -3568,6 +3568,68 @@ function simAI(ai, opp, canDiscard) {
     },null)?.c||null;
   }
 
+  // Záměrné zahození – port AiEngine.discardValueNow / keepValue / bestDeliberateDiscard.
+  // Karta, jejíž zahození je teď cennější než si ji nechat (Zoufalý žold, Zapomenutá
+  // poznámka, Osudová mince…). Zahození je 1× za kolo a tah nekončí.
+  function discardValueNow(c){
+    return (c.discardEffects||[]).reduce((sum,fx)=>{
+      if(fx.t==='DC'){
+        if(!ai.deck.length) return sum;
+        const handAfter=ai.hand.length-1, slots=Math.max(0,7-handAfter);
+        const useful=Math.min(fx.a||0, slots, ai.deck.length);
+        return sum+useful*(handAfter<=2?7:5);
+      }
+      if(fx.t==='AR') return sum+((fx.a||0)>0 ? 3+Math.floor((fx.a||0)/2) : sde(fx));
+      return sum+sde(fx);
+    },0);
+  }
+  function keepValue(c){ return c.effects.reduce((s,fx)=>s+se(fx,0),0)-effC(c); }
+  function bestDeliberateDiscard(){
+    if(!canDiscard) return null;
+    let best=null;
+    for(const c of ai.hand){
+      if(!(c.discardEffects&&c.discardEffects.length)) continue;
+      const dv=discardValueNow(c), gain=dv-keepValue(c);
+      if(gain>0&&dv>0&&(!best||gain>best.gain)) best={c,gain};
+    }
+    return best?best.c:null;
+  }
+  // Zahození, aby si AI něco dovolila – port AiEngine.discardToAfford: zahození s „+N
+  // suroviny" (Zoufalý žold, Osudová mince) zpřístupní kartu, na kterou teď AI nemá.
+  function discardToAfford(bestNow){
+    if(!canDiscard) return null;
+    let pick=null;
+    for(const d of ai.hand){
+      const gains=(d.discardEffects||[]).filter(fx=>fx.t==='AR'&&(fx.a||0)>0);
+      if(!gains.length) continue;
+      const after={...ai.res}; for(const g of gains) after[g.r]=(after[g.r]||0)+g.a;
+      for(const t of ai.hand){
+        if(t===d||t.isXCost) continue;
+        const need=effC(t);
+        if((ai.res[t.costType]||0)>=need) continue;
+        if((after[t.costType]||0)<need) continue;
+        const v=isLethal(t,after)?1000:sc(t);
+        const net=v-keepValue(d);
+        if(net>0&&net>bestNow&&(!pick||net>pick.net)) pick={d,net};
+      }
+    }
+    return pick?pick.d:null;
+  }
+  // Zahození pro suroviny – port AiEngine.discardForResources: „+N suroviny" při zahození
+  // je zdarma a má-li AI v ruce jinou kartu té suroviny, přidané suroviny využije.
+  function discardForResources(){
+    if(!canDiscard) return null;
+    let pick=null, pickGain=0;
+    for(const d of ai.hand){
+      const g=(d.discardEffects||[]).find(fx=>fx.t==='AR'&&(fx.a||0)>0);
+      if(!g) continue;
+      if(!ai.hand.some(t=>t!==d&&!t.isXCost&&t.costType===g.r)) continue;
+      const gain=(d.discardEffects||[]).reduce((s,fx)=>s+(fx.t==='AR'?Math.max(0,fx.a||0):0),0);
+      if(!pick||gain>pickGain){pick=d;pickGain=gain;}
+    }
+    return pick;
+  }
+
   if(bothE){
     if(aff.length){
       const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
@@ -3585,6 +3647,9 @@ function simAI(ai, opp, canDiscard) {
   }
 
   if(!aff.length){
+    const da=discardToAfford(0); if(da) return{type:'discard',card:da};
+    const dr=discardForResources(); if(dr) return{type:'discard',card:dr};
+    const dd=bestDeliberateDiscard(); if(dd) return{type:'discard',card:dd};
     if(hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
     if(ai.deck.length)return{type:'wait'};
     const d=bd();return d?{type:'discard',card:d}:{type:'wait'};
@@ -3627,6 +3692,12 @@ function simAI(ai, opp, canDiscard) {
   }
 
   const best=aff.reduce((b,c)=>{const s=sc(c);return(!b||s>b.s)?{c,s}:b},null);
+  // Užitečné zahození jde PŘED zahráním (tah nekončí); smrtící tah má přednost.
+  if(!best||best.s<1000){
+    const da=discardToAfford(Math.max(0,best?best.s:0)); if(da) return{type:'discard',card:da};
+    const dr=discardForResources(); if(dr) return{type:'discard',card:dr};
+    const dd=bestDeliberateDiscard(); if(dd) return{type:'discard',card:dd};
+  }
   if(!best||best.s<=0){
     if(canDiscard&&hFull&&ai.deck.length){const d=bd();return d?{type:'discard',card:d}:{type:'wait'};}
     return{type:'wait'};

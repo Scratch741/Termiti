@@ -47,6 +47,7 @@ fun aiChooseAction(
     /** Hráč právě pasoval. S prázdnými balíčky obou stran ukončí čekání AI hru (resolveByHp). */
     playerWaited: Boolean = false
 ): AiAction {
+
     // X-kost karty jsou vždy zahratelné (spotřebují všechen dostupný zdroj, i 0)
     val playable = ai.hand.filter { card ->
         if (card.isXCost) true
@@ -597,6 +598,50 @@ fun aiChooseAction(
         .maxByOrNull { it.second }
         ?.first
 
+    // ── Zahození, aby si AI něco dovolila ───────────────────────────────────
+    // Zahození s efektem „+N suroviny" (Zoufalý žold: útok +3, Osudová mince: chaos +2)
+    // tah neukončí a přidané suroviny jdou utratit hned. Pokud tím AI zpřístupní kartu,
+    // na kterou teď nemá, a ta má větší hodnotu než zahazovaná karta i než to, co by
+    // jinak zahrála ([bestNow]), vyplatí se zahodit – herní smyčka pak zpřístupněnou
+    // kartu zahraje. Smrtící karta má skóre ≥ 1000, takže zahození kvůli výhře projde vždy.
+    fun discardToAfford(bestNow: Int): Card? {
+        if (!canDiscard) return null
+        var pick: Card? = null
+        var pickNet = 0
+        for (d in ai.hand) {
+            val gains = d.discardEffects.filterIsInstance<CardEffect.AddResource>().filter { it.amount > 0 }
+            if (gains.isEmpty()) continue
+            val after = ai.resources.toMutableMap()
+            gains.forEach { g -> after[g.type] = (after[g.type] ?: 0) + g.amount }
+            for (t in ai.hand) {
+                if (t === d || t.isXCost || isNoOpNow(t)) continue
+                if ((ai.resources[t.costType] ?: 0) >= t.effectiveCost) continue   // dostupná už teď
+                if ((after[t.costType] ?: 0) < t.effectiveCost) continue           // ani po zahození ne
+                val net = score(t) - keepValue(d)
+                if (net > 0 && net > bestNow && net > pickNet) { pick = d; pickNet = net }
+            }
+        }
+        return pick
+    }
+
+    // ── Zahození pro suroviny ───────────────────────────────────────────────
+    // Zahození „+N suroviny" je zdarma (tah nekončí) a surovina jde hned utratit. Má-li
+    // AI v ruce jinou kartu té suroviny, přidané suroviny opravdu využije – zahodit se
+    // pak vyplatí víc než kartu zahrát (Zoufalý žold: útok +3 místo „zaútoč za 5 za 2").
+    // score() to nevidí: každý útok dostává pevný základ, malý útok tak přebije suroviny.
+    // Ověřeno v simulátoru (deckbuilder.html): Žold zahazovaný tímto pravidlem je v AI
+    // Útočníkovi lepší než Rabování i Válečný sekyrník (+3,5 bodu), hraný jen −2,4.
+    fun discardForResources(): Card? {
+        if (!canDiscard) return null
+        return ai.hand.filter { d ->
+            val gain = d.discardEffects.filterIsInstance<CardEffect.AddResource>()
+                .firstOrNull { it.amount > 0 } ?: return@filter false
+            ai.hand.any { t -> t !== d && !t.isXCost && t.costType == gain.type }
+        }.maxByOrNull { d ->
+            d.discardEffects.filterIsInstance<CardEffect.AddResource>().sumOf { it.amount.coerceAtLeast(0) }
+        }
+    }
+
     // ── Combo-chain lethal (1 krok dopředu) ───────────────────────────────────
     // Pokud zahrání combo karty (která NEUKONČÍ tah) vygeneruje zdroje tak, že
     // se teď NEDOSTUPNÁ karta stane dostupnou A je smrtící, zahraj nejdřív tu
@@ -687,6 +732,9 @@ fun aiChooseAction(
     // NEMOHU SI DOVOLIT ŽÁDNOU KARTU
     // =====================================================================
     if (affordable.isEmpty()) {
+        // Zahození, které zpřístupní kartu (tah nekončí – hned se zahraje)
+        discardToAfford(0)?.let { return AiAction.Discard(it) }
+        discardForResources()?.let { return AiAction.Discard(it) }
         // Užitečné zahození (tah nekončí – líznutá karta se může hned zahrát)
         bestDeliberateDiscard()?.let { return AiAction.Discard(it) }
         // Plná ruka + balíček má karty → zahoď nejhorší kartu
@@ -713,7 +761,11 @@ fun aiChooseAction(
 
     // Užitečné zahození jde PŘED zahráním: tah nekončí a líznutá karta může být
     // lepší než cokoli v ruce. Smrtící tah (skóre ≥ 1000) má ale vždy přednost.
-    if (bestScore < 1000) bestDeliberateDiscard()?.let { return AiAction.Discard(it) }
+    if (bestScore < 1000) {
+        discardToAfford(bestScore.coerceAtLeast(0))?.let { return AiAction.Discard(it) }
+        discardForResources()?.let { return AiAction.Discard(it) }
+        bestDeliberateDiscard()?.let { return AiAction.Discard(it) }
+    }
 
     // Pokud je i nejlepší karta nevýhodná (podmínka nesplněna, čisté náklady):
     // – plná ruka → zahoď nejhorší kartu (uvolni místo pro lepší líz)
