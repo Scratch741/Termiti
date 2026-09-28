@@ -16,7 +16,7 @@
     "soundEffects": "🔊  Sound Effects",
     "languageLabel": "🌐  Language",
     "play": "PLAY",
-    "buildDeck": "DECK",
+    "buildDeck": "DECKBUILDER",
     "multiplayer": "MULTIPLAYER",
     "profile": "PROFILE",
     "shop": "SHOP",
@@ -419,19 +419,19 @@
     },
     "006": {
       "name": "Show of Force",
-      "desc": "If you have more Attack than the opponent, hit the castle for 10."
+      "desc": "If you have more Attack than the opponent, castle damage −10."
     },
     "017": {
       "name": "War Axeman",
-      "desc": "Attack for 8, steal 2 Attack from the opponent."
+      "desc": "Attack for 8, steal 2 Attack."
     },
     "002": {
       "name": "Stone Wall",
-      "desc": "Walls +9, refund 1 Stone."
+      "desc": "Walls +9, +1 Stone."
     },
     "010": {
       "name": "Palisade",
-      "desc": "Walls +6, refund 1 Stone."
+      "desc": "Walls +6, +1 Stone."
     },
     "005": {
       "name": "Castle Reinforcement",
@@ -439,7 +439,7 @@
     },
     "009": {
       "name": "Solid Foundations",
-      "desc": "Castle +8, refund 1 Stone."
+      "desc": "Castle +8, +1 Stone."
     },
     "018": {
       "name": "Mighty Tower",
@@ -459,19 +459,19 @@
     },
     "013": {
       "name": "Mana Spring",
-      "desc": "Permanently +1 Magic mine."
+      "desc": "+1 Magic mine."
     },
     "014": {
       "name": "Quarry",
-      "desc": "Permanently +1 Stone mine."
+      "desc": "+1 Stone mine."
     },
     "015": {
       "name": "Training Camp",
-      "desc": "Permanently\n+1 Attack mine."
+      "desc": "+1 Attack mine."
     },
     "016": {
       "name": "Great Spring",
-      "desc": "Permanently +2 Magic mines."
+      "desc": "+2 Magic mines."
     },
     "019": {
       "name": "Fire Arrows",
@@ -495,19 +495,19 @@
     },
     "024": {
       "name": "Berserk",
-      "desc": "If you have <5 walls, hit the castle for 12."
+      "desc": "If you have <5 walls, castle damage −12."
     },
     "025": {
       "name": "Counterattack",
-      "desc": "If you have <10 walls, hit the castle for 10."
+      "desc": "If you have <10 walls, castle damage −10."
     },
     "026": {
       "name": "Sniper",
-      "desc": "Damage the castle by 5. If >5 Attack, +5."
+      "desc": "Castle damage −5. If you have >5 Attack, another −5."
     },
     "027": {
       "name": "War Drums",
-      "desc": "Attack for 4. **This turn:** for each **ATTACK** played, +2 Attack. [Combo]"
+      "desc": "Attack for 4. **This turn:** +2 Attack per **ATTACK** card played. [Combo]"
     },
     "028": {
       "name": "Patch",
@@ -531,7 +531,7 @@
     },
     "033": {
       "name": "Earthen Rampart",
-      "desc": "If you have <8 walls, build +11."
+      "desc": "If you have <8 walls, walls +11."
     },
     "034": {
       "name": "Repairman",
@@ -539,11 +539,11 @@
     },
     "035": {
       "name": "Cornerstone",
-      "desc": "Walls +5 and\ncastle +4."
+      "desc": "Walls +5, castle +4."
     },
     "036": {
       "name": "Castle Moat",
-      "desc": "Walls +7. If castle <35, walls +5."
+      "desc": "Walls +7. If you have <35 castle, walls +5."
     },
     "037": {
       "name": "Quick Magic",
@@ -559,7 +559,7 @@
     },
     "040": {
       "name": "Alchemy",
-      "desc": "If you have >4 Magic, gain +8 Attack."
+      "desc": "If you have >4 Magic, +8 Attack."
     },
     "041": {
       "name": "Magic Trio",
@@ -567,23 +567,23 @@
     },
     "042": {
       "name": "Great Quarry",
-      "desc": "Permanently +2 Stone mines."
+      "desc": "+2 Stone mines."
     },
     "043": {
       "name": "Training Center",
-      "desc": "Permanently +2 Attack mines."
+      "desc": "+2 Attack mines."
     },
     "044": {
       "name": "Mine Trifecta",
-      "desc": "+1 Magic, Attack and Stone mine."
+      "desc": "+1 to each mine (Magic, Attack, Stone)."
     },
     "045": {
       "name": "Enchanted Mines",
-      "desc": "Permanently +3 Magic mines."
+      "desc": "+3 Magic mines."
     },
     "046": {
       "name": "Goblin",
-      "desc": "Attack for 2, steal\n1 Magic, +1 Chaos."
+      "desc": "Attack for 2, steal 1 Magic, +1 Chaos."
     },
     "047": {
       "name": "Ogre",
@@ -591,11 +591,11 @@
     },
     "048": {
       "name": "Vampire",
-      "desc": "Attack for 6, gain\n+3 Magic.\n[Combo]"
+      "desc": "Attack for 6, +3 Magic.\n[Combo]"
     },
     "049": {
       "name": "Poison",
-      "desc": "Attack for 3, opponent loses 3 Magic,\n+2 Chaos."
+      "desc": "Attack for 3, opponent loses 3 Magic, +2 Chaos."
     },
     "050": {
       "name": "Undermining",
@@ -611,7 +611,7 @@
     },
     "053": {
       "name": "Flamethrower",
-      "desc": "Wall damage −10, gain +2 Attack."
+      "desc": "Wall damage −10, +2 Attack."
     },
     "054": {
       "name": "War March",
@@ -619,7 +619,7 @@
     },
     "055": {
       "name": "Last Stand",
-      "desc": "Attack for 3, +1 Attack. If <5 walls: castle −8."
+      "desc": "Attack for 3, +1 Attack. If you have <5 walls, castle damage −8."
     },
     "056": {
       "name": "Raider",
@@ -651,27 +651,27 @@
     },
     "063": {
       "name": "Watchtower",
-      "desc": "Walls +11, permanently +1 Stone mine."
+      "desc": "Walls +11, +1 Stone mine."
     },
     "064": {
       "name": "Reserve",
-      "desc": "If castle <40, castle +10."
+      "desc": "If you have <40 castle, castle +10."
     },
     "065": {
       "name": "Robber",
-      "desc": "Steal 4 Attack from the opponent."
+      "desc": "Steal 4 Attack."
     },
     "066": {
       "name": "Stone Tribute",
-      "desc": "Steal 4 Stone from the opponent."
+      "desc": "Steal 4 Stone."
     },
     "067": {
       "name": "Saboteur",
-      "desc": "Opponent loses\n5 Stone."
+      "desc": "Opponent loses 5 Stone."
     },
     "068": {
       "name": "Demoralization",
-      "desc": "Opponent loses\n5 Attack."
+      "desc": "Opponent loses 5 Attack."
     },
     "069": {
       "name": "Double Agent",
@@ -687,11 +687,11 @@
     },
     "072": {
       "name": "Armory",
-      "desc": "+2 Attack, permanently +1 Attack mine."
+      "desc": "+2 Attack, +1 Attack mine."
     },
     "073": {
       "name": "School of Magic",
-      "desc": "+2 Magic, permanently +1 Magic mine."
+      "desc": "+2 Magic, +1 Magic mine."
     },
     "074": {
       "name": "Marketplace",
@@ -699,15 +699,15 @@
     },
     "075": {
       "name": "Mining Expansion",
-      "desc": "Permanently +2 Magic mines and +1 Stone mine."
+      "desc": "+2 Magic mines, +1 Stone mine."
     },
     "076": {
       "name": "Military Base",
-      "desc": "Permanently +2 Attack mines and +1 Stone mine."
+      "desc": "+2 Attack mines, +1 Stone mine."
     },
     "077": {
       "name": "Magic Conversion",
-      "desc": "If you have >8 Magic, gain +10 Attack."
+      "desc": "If you have >8 Magic, +10 Attack."
     },
     "078": {
       "name": "Vampire Dragon",
@@ -719,7 +719,7 @@
     },
     "080": {
       "name": "Mass Production",
-      "desc": "+2 Magic, Attack and Stone mine."
+      "desc": "+2 to each mine (Magic, Attack, Stone)."
     },
     "130": {
       "name": "Plunder",
@@ -727,11 +727,11 @@
     },
     "131": {
       "name": "Invasion",
-      "desc": "Attack for 8. Destroy 1 of the opponent's Stone mines (min. 1)."
+      "desc": "Attack for 8. Destroy 1 Stone mine (min. 1)."
     },
     "129": {
       "name": "Preparation",
-      "desc": "Walls +2 and castle +2. Discounts a random **BUILD** card in hand by 2."
+      "desc": "Walls +2, castle +2. Discounts a random **BUILD** card in hand by 2."
     },
     "081": {
       "name": "Quick Wall",
@@ -743,11 +743,11 @@
     },
     "083": {
       "name": "Emergency Fortification",
-      "desc": "If you have <10 walls, build +14."
+      "desc": "If you have <10 walls, walls +14."
     },
     "084": {
       "name": "Major Repair",
-      "desc": "Walls +5 and castle +7."
+      "desc": "Walls +5, castle +7."
     },
     "085": {
       "name": "Royal Restoration",
@@ -755,23 +755,23 @@
     },
     "086": {
       "name": "Mason Company",
-      "desc": "Walls +8 and castle +6."
+      "desc": "Walls +8, castle +6."
     },
     "087": {
       "name": "Fortress",
-      "desc": "Walls +10 and castle +8."
+      "desc": "Walls +10, castle +8."
     },
     "088": {
       "name": "Reinforced Walls",
-      "desc": "Walls +10. If you have >30 castle, +6 extra."
+      "desc": "Walls +10. If you have >30 castle, walls +6 more."
     },
     "089": {
       "name": "Architect",
-      "desc": "Walls +5, permanently +1 Stone mine."
+      "desc": "Walls +5, +1 Stone mine."
     },
     "090": {
       "name": "Mining Extension",
-      "desc": "Permanently +2 Stone mines."
+      "desc": "+2 Stone mines."
     },
     "091": {
       "name": "Barricades",
@@ -779,15 +779,15 @@
     },
     "092": {
       "name": "Strategic Construction",
-      "desc": "Walls +5. Draw 1 card from the top 4 cards of your deck."
+      "desc": "Walls +5. Choose 1 of the top 4 cards of your deck and draw it."
     },
     "093": {
       "name": "Brick by Brick",
-      "desc": "+5 castle. **This turn:** for each **BUILD** played, +3 castle. [Combo]"
+      "desc": "Castle +5. **This turn:** for each **BUILD** played, castle +3. [Combo]"
     },
     "094": {
       "name": "Material Storehouse",
-      "desc": "Walls +6, gain\n+2 Stone.\n[Combo]"
+      "desc": "Walls +6, +2 Stone.\n[Combo]"
     },
     "095": {
       "name": "Stone Trade",
@@ -811,11 +811,11 @@
     },
     "C03": {
       "name": "Chaos Mine",
-      "desc": "Permanently +1 Chaos mine."
+      "desc": "+1 Chaos mine."
     },
     "C04": {
       "name": "Chaos Theft",
-      "desc": "Steal 3 Chaos from the opponent.\n[Combo]"
+      "desc": "Steal 3 Chaos.\n[Combo]"
     },
     "C05": {
       "name": "Chaos Blast",
@@ -843,7 +843,7 @@
     },
     "C11": {
       "name": "Chaos and Order",
-      "desc": "Castle +8 and walls +8."
+      "desc": "Castle +8, walls +8."
     },
     "C12": {
       "name": "Anarchy",
@@ -851,19 +851,19 @@
     },
     "C13": {
       "name": "Sabotage",
-      "desc": "Destroy 1 Magic mine (min. 1). Block production for 2 turns."
+      "desc": "Destroy 1 Magic mine (min. 1). Block its production for 2 turns."
     },
     "C14": {
       "name": "Quarry Destruction",
-      "desc": "Destroy 1 Stone mine (min. 1). Block production for 2 turns."
+      "desc": "Destroy 1 Stone mine (min. 1). Block its production for 2 turns."
     },
     "C15": {
       "name": "Treachery",
-      "desc": "Destroy 1 Attack camp (min. 1). Block production for 2 turns."
+      "desc": "Destroy 1 Attack mine (min. 1). Block its production for 2 turns."
     },
     "C16": {
       "name": "Grand Sabotage",
-      "desc": "Destroy a Magic and a Stone mine (min. 1). Block production for 3 turns."
+      "desc": "Destroy 1 Magic and 1 Stone mine (min. 1). Block both for 3 turns."
     },
     "C17": {
       "name": "Telekinesis",
@@ -879,15 +879,15 @@
     },
     "C34": {
       "name": "Shapeshifter",
-      "desc": "At the start of each turn it transforms into a random card from the game."
+      "desc": "Each turn, transforms into a random card from the game."
     },
     "C35": {
       "name": "Chaotic Conversion",
-      "desc": "Destroys one of your own **MAGIC MINES** and converts it into a **CHAOS MINE**. Cannot drop below 1."
+      "desc": "Converts 1 of your **MAGIC MINES** into a **CHAOS MINE** (min. 1)."
     },
     "C36": {
       "name": "Hidden Bomb",
-      "desc": "Shuffles **3 BOMBS** into the opponent's deck. Drawing a bomb deals **CASTLE −5**."
+      "desc": "Shuffles **3 BOMBS** into the opponent's deck. Drawn bomb: **CASTLE −5**."
     },
     "C37": {
       "name": "Bomb",
@@ -899,7 +899,7 @@
     },
     "C39": {
       "name": "Great Confusion",
-      "desc": "Both players discard their entire hand and draw the same number of new cards."
+      "desc": "Both players discard their hand and draw as many new cards."
     },
     "C19": {
       "name": "Burned Library",
@@ -915,7 +915,7 @@
     },
     "C22": {
       "name": "Chaos Factory",
-      "desc": "Add 2 copies of 'Chaos Blast'\nto your deck."
+      "desc": "Add 2 copies of 'Chaos Blast' to your deck."
     },
     "C23": {
       "name": "Cloning",
@@ -927,7 +927,7 @@
     },
     "C25": {
       "name": "Unstable Vortex",
-      "desc": "+2 Chaos and +2 Magic.\n[Combo]"
+      "desc": "+2 Chaos, +2 Magic.\n[Combo]"
     },
     "C26": {
       "name": "Blood Sacrifice",
@@ -935,19 +935,19 @@
     },
     "C27": {
       "name": "Magic Reflection",
-      "desc": "If you have >5 Magic, gain +7 Chaos."
+      "desc": "If you have >5 Magic, +7 Chaos."
     },
     "C28": {
       "name": "Chaos Trophy",
-      "desc": "Steal 2 Attack,\n+2 Chaos.\n[Combo]"
+      "desc": "Steal 2 Attack, +2 Chaos.\n[Combo]"
     },
     "C29": {
       "name": "Stormy Mind",
-      "desc": "+3 Chaos and permanently +1 Chaos mine."
+      "desc": "+3 Chaos, +1 Chaos mine."
     },
     "C30": {
       "name": "Temple of Chaos",
-      "desc": "Permanently +2 Chaos mines."
+      "desc": "+2 Chaos mines."
     },
     "C31": {
       "name": "Chaos Exchanger",
@@ -955,7 +955,7 @@
     },
     "C32": {
       "name": "Mutual Destruction",
-      "desc": "Opponent −10 castle, your own castle −10."
+      "desc": "Castle damage −10, your own castle −10."
     },
     "D01": {
       "name": "Scout",
@@ -971,7 +971,7 @@
     },
     "D04": {
       "name": "Battle Tactics",
-      "desc": "Attack for 4. Draw\n1 card."
+      "desc": "Attack for 4. Draw 1 card."
     },
     "D05": {
       "name": "Building Plans",
@@ -983,7 +983,7 @@
     },
     "D07": {
       "name": "Secret Library",
-      "desc": "Draw 2 cards. Permanently +1 Magic mine."
+      "desc": "Draw 2 cards. +1 Magic mine."
     },
     "D08": {
       "name": "Vision",
@@ -995,7 +995,7 @@
     },
     "098": {
       "name": "Brick Throw",
-      "desc": "Your own walls −4, attack the enemy\nfor 11."
+      "desc": "Your own walls −4, attack for 11."
     },
     "099": {
       "name": "Dark Transfer",
@@ -1011,7 +1011,7 @@
     },
     "107": {
       "name": "Curse",
-      "desc": "Attack for 3, opponent loses 3 Attack and\n3 Stone. +2 Chaos."
+      "desc": "Attack for 3, opponent loses 3 Attack and 3 Stone. +2 Chaos."
     },
     "108": {
       "name": "Disposal",
@@ -1019,7 +1019,7 @@
     },
     "109": {
       "name": "Recruit",
-      "desc": "**Decision:** choose 1 **ATTACK** card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **ATTACK** card from the game, 2 cheaper. [Combo]"
     },
     "110": {
       "name": "Recollection",
@@ -1031,19 +1031,19 @@
     },
     "112": {
       "name": "Builder",
-      "desc": "**Decision:** choose 1 **BUILD** card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **BUILD** card from the game, 2 cheaper. [Combo]"
     },
     "113": {
       "name": "Goblin Shaman",
-      "desc": "**Decision:** choose 1 **MAGIC** card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **MAGIC** card from the game, 2 cheaper. [Combo]"
     },
     "114": {
       "name": "Chaos Sage",
-      "desc": "**Decision:** choose 1 **CHAOS** card from the game. Make it 2 cheaper. [Combo]"
+      "desc": "**Decision:** choose 1 **CHAOS** card from the game, 2 cheaper. [Combo]"
     },
     "115": {
       "name": "Well of Knowledge",
-      "desc": "Both players draw\n2 cards.\n[Combo]"
+      "desc": "Both players draw 2 cards.\n[Combo]"
     },
     "116": {
       "name": "Chaotic Replication",
@@ -1051,7 +1051,7 @@
     },
     "117": {
       "name": "Mine Exploration",
-      "desc": "**Decision:** choose 1\nof 4 different mines. [Combo]"
+      "desc": "**Decision:** choose 1 of 4 different mines. [Combo]"
     },
     "118": {
       "name": "Magic Joker",
@@ -1091,11 +1091,11 @@
     },
     "C43": {
       "name": "Raid",
-      "desc": "Deal 2 damage. The next card you play acts as [Combo]. [Combo]"
+      "desc": "Attack for 2. The next card you play acts as [Combo]. [Combo]"
     },
     "C44": {
       "name": "Chaos Tribute",
-      "desc": "Castle damage −7.\nIf you have more Chaos than your opponent, steal 4 castle HP."
+      "desc": "Castle damage −7.\nIf you have more Chaos, steal 4 castle HP."
     },
     "C45": {
       "name": "Chaos Dart",
@@ -1103,35 +1103,35 @@
     },
     "124": {
       "name": "Alchemist's Choice",
-      "desc": "**Decision:** gain 4 Magic, 4 Attack, 4 Stone, or 4 Chaos. [Combo]"
+      "desc": "**Decision:** +4 Magic, Attack, Stone or Chaos. [Combo]"
     },
     "125": {
       "name": "War Zeal",
-      "desc": "Attack for 4. **This turn:** each **ATTACK**\ncard played adds 2 Chaos. [Combo]"
+      "desc": "Attack for 4. **This turn:** each **ATTACK** card played adds 2 Chaos. [Combo]"
     },
     "126": {
       "name": "Magic Current",
-      "desc": "Chaos +2. **This turn:** each **MAGIC** card adds 2 Chaos. [Combo]"
+      "desc": "+2 Chaos. **This turn:** each **MAGIC** card played adds 2 Chaos. [Combo]"
     },
     "127": {
       "name": "Pyroblast",
-      "desc": "Direct castle hit for 10, destroy 2 of the opponent's Magic."
+      "desc": "Castle damage −10, opponent loses 2 Magic."
     },
     "128": {
       "name": "Archmage",
-      "desc": "**This turn:** for each additional card played, draw 1 and gain 1 Magic. [Combo]"
+      "desc": "**This turn:** each further card played draws 1 and gives +1 Magic. [Combo]"
     },
     "101": {
       "name": "Sudden Death",
-      "desc": "Consumes all Attack. Direct castle hit for X/2."
+      "desc": "Consumes all Attack. Castle damage −X/2."
     },
     "102": {
       "name": "Stone Surge",
-      "desc": "Consumes all Stone. Repair castle by X/2."
+      "desc": "Consumes all Stone. Castle +X/2."
     },
     "103": {
       "name": "Mana Split",
-      "desc": "Consumes all Magic. Add X/2 Attack and X/2 Stone."
+      "desc": "Consumes all Magic. +X/2 Attack, +X/2 Stone."
     },
     "132": {
       "name": "Desperate Wages",
@@ -1139,7 +1139,7 @@
     },
     "L01": {
       "name": "Darkmage",
-      "desc": "Steal 3 Magic, 3 Attack and 3 Stone. Castle damage −18. Steal 5 castle HP."
+      "desc": "Steal 3 Magic, Attack and Stone. Castle damage −18. Steal 5 castle HP."
     },
     "133": {
       "name": "Infested Rats",
@@ -1147,27 +1147,27 @@
     },
     "134": {
       "name": "Infested Rat",
-      "desc": "No effect. | **Discard:** −4 castle & walls."
+      "desc": "No effect. | **Discard:** castle and walls −4."
     },
     "135": {
       "name": "Coin of Fate",
-      "desc": "Steal 3 Chaos from the opponent. | **Discard:** +2 Chaos."
+      "desc": "Steal 3 Chaos. | **Discard:** +2 Chaos."
     },
     "136": {
       "name": "Final Lunge",
-      "desc": "Attack for 10. | **Discard:** −4 walls."
+      "desc": "Attack for 10. | **Discard:** walls −4."
     },
     "137": {
       "name": "Forgotten Note",
-      "desc": "Magic +2. | **Discard:** draw 1 card."
+      "desc": "+2 Magic. | **Discard:** draw 1 card."
     },
     "138": {
       "name": "Undermined Ramparts",
-      "desc": "Walls +7, sabotages 3 stone from the opponent. | **Discard:** −5 walls."
+      "desc": "Walls +7, opponent loses 3 Stone. | **Discard:** walls −5."
     },
     "139": {
       "name": "Absorption of the Walls",
-      "desc": "Converts all walls into castle. | **Discard:** −8 castle."
+      "desc": "Converts all walls into castle. | **Discard:** castle −8."
     }
   },
   "abilities": {
