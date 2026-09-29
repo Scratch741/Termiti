@@ -319,12 +319,7 @@ fun MulliganOverlay(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    s.mulliganTitle,
-                    color = Gold, fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 5.sp,
-                    modifier = Modifier.padding(start = 5.dp)   // kompenzace letterSpacing
-                )
+                CampaignTitle(s.mulliganTitle, fontSize = 26.sp, modifier = Modifier.padding(top = 6.dp))
                 if (secondsLeft != null) {
                     // Po odeslání se timer jen ZPRŮHLEDNÍ, nemizí – jinak by se
                     // panel po potvrzení zúžil a vycentrovaný obsah poskočil.
@@ -580,12 +575,7 @@ fun CardLimitChangeOverlay(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                s.limitChangeTitle,
-                color = Gold, fontSize = 18.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 4.sp,
-                modifier = Modifier.padding(start = 4.dp)   // kompenzace letterSpacing
-            )
+            CampaignTitle(s.limitChangeTitle, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
             Text(
                 s.limitChangeSubtitle,
                 color = TextPrimary, fontSize = 10.sp,
@@ -689,11 +679,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
         ) {
             // Nadpis
             Spacer(Modifier.height(4.dp))
-            Text(
-                LocalStrings.current.lostCardsTitle,
-                color = Gold, fontSize = 14.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 3.sp
-            )
+            CampaignTitle(LocalStrings.current.lostCardsTitle, fontSize = 20.sp, modifier = Modifier.padding(top = 6.dp))
             Text(
                 LocalStrings.current.lostCardsSubtitle,
                 color = TextMuted, fontSize = 10.sp

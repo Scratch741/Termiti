@@ -391,7 +391,7 @@ fun GameScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(LocalStrings.current.leaveGameQ, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                    CampaignTitle(LocalStrings.current.leaveGameQ, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
                     Spacer(Modifier.height(2.dp))
                     Text(LocalStrings.current.leaveGameMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                     MenuButton(

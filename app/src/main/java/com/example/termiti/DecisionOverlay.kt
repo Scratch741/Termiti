@@ -110,11 +110,7 @@ fun DecisionOverlay(
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        decision.title,
-                        color = Gold, fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 5.sp
-                    )
+                    CampaignTitle(decision.title, fontSize = 26.sp, modifier = Modifier.padding(top = 6.dp))
                     if (secondsLeft != null) {
                         val timerColor = if (secondsLeft <= 10) Color(0xFFFF4444) else TextMuted
                         Text(

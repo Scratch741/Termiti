@@ -442,8 +442,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("★ BONUS ZA BOSSE ★", color = Gold, fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                    CampaignTitle("BONUS ZA BOSSE", fontSize = 20.sp)
                     Text(LocalStrings.current.roguePickExtra, color = TextMuted, fontSize = 10.sp)
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -483,7 +482,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(LocalStrings.current.surrenderQ, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                CampaignTitle(LocalStrings.current.surrenderQ, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
                 Spacer(Modifier.height(2.dp))
                 Text(LocalStrings.current.rogueSurrenderMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(4.dp))

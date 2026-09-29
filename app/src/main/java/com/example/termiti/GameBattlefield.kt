@@ -1,4 +1,4 @@
-﻿package com.example.termiti
+package com.example.termiti
 
 import com.example.termiti.R
 import androidx.compose.animation.core.*
@@ -859,8 +859,7 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(LocalStrings.current.gameLog, color = Gold, fontSize = 13.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+            CampaignTitle(LocalStrings.current.gameLog, fontSize = 20.sp)
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
             if (lostCards.isNotEmpty() && onShowLostCards != null) {

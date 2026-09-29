@@ -800,7 +800,10 @@ fun HandPanel(
     animateDraws: Boolean = true,    // false = review mód (přepínání rukou nemá „přilétat")
     canDiscard: Boolean = true       // false = zahození už v tomto kole použito (1× za kolo)
 ) {
-    Column(modifier = modifier.padding(vertical = 6.dp)) {
+    // clipToBounds: karta tažená nahoru k zahození (a přilétající líznutá karta) mizí
+    // pod dělicí čárou nad rukou, nekreslí se přes herní plán. LazyRow ořezává jen
+    // do stran. Zahrání karty letí ve vlastní vrstvě (FlightOverlay), ořez ho neomezí.
+    Column(modifier = modifier.clipToBounds().padding(vertical = 6.dp)) {
 
         // ── Záhlaví ruky ─────────────────────────────────────────────────────
         if (showHeader) {

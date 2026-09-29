@@ -170,13 +170,14 @@ private val CinzelBold = FontFamily(
 internal fun CampaignTitle(
     text: String,
     fontSize: TextUnit = 30.sp,
-    gradient: List<Color> = TitleGold
+    gradient: List<Color> = TitleGold,
+    modifier: Modifier = Modifier
 ) {
     // letterSpacing přidává mezeru i ZA poslední písmeno → padding(start) o stejnou
     // hodnotu vrací glyfy přesně na osu.
     Text(
         text.uppercase(),
-        modifier = Modifier.padding(start = 3.dp),
+        modifier = modifier.padding(start = 3.dp),
         style = TextStyle(
             fontFamily    = CinzelBold,
             fontWeight    = FontWeight.Bold,

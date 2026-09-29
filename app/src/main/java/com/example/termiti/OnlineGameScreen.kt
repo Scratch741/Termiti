@@ -853,7 +853,7 @@ private fun OnlineGameplay(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Menu", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp, letterSpacing = 2.sp)
+                CampaignTitle("Menu", fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
                 Spacer(Modifier.height(2.dp))
                 Text(
                     LocalStrings.current.onlineSurrenderMsg,
