@@ -62,10 +62,7 @@ fun ArenaDraftScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        LocalStrings.current.arenaTitleDraft, color = Gold,
-                        fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp
-                    )
+                    CampaignTitle(LocalStrings.current.arenaTitleDraft, fontSize = 20.sp)
                     Text("$draftCount / 30 karet", color = TextMuted, fontSize = 9.sp)
                 }
 
@@ -316,17 +313,7 @@ fun ArenaEndScreen(wins: Int, onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Image(painterResource(R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(32.dp))
-                Text(
-                    LocalStrings.current.arenaEnded,
-                    color = Crimson, fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold, letterSpacing = 3.sp
-                )
-            }
+            CampaignTitle(LocalStrings.current.arenaEnded, fontSize = 26.sp, gradient = TitleBlood)
 
             // Win counter badge
             Box(

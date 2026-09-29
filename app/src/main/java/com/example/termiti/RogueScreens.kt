@@ -378,7 +378,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     PlainButton(LocalStrings.current.surrender, textColor = TextMuted, fontSize = 9.sp, paddingH = 8.dp, paddingV = 4.dp, onClick = { showExitConfirm = true })
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(LocalStrings.current.rogueVictory, color = TealLight, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+                    CampaignTitle(LocalStrings.current.rogueVictory, fontSize = 22.sp)
                     Text(LocalStrings.current.rogueNext.format(run.actTitle, run.battleLabel), color = TextMuted, fontSize = 9.sp)
                     if (run.rewardCardPicksLeft > 0) {
                         Spacer(Modifier.height(6.dp))
@@ -618,14 +618,11 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Image(
-                painterResource(if (victory) R.drawable.trophy_icon else R.drawable.skull_icon),
-                contentDescription = null, modifier = Modifier.size(40.dp)
-            )
-            Text(
+            // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez poháru/lebky
+            CampaignTitle(
                 if (victory) LocalStrings.current.rogueRunComplete else LocalStrings.current.rogueRunOver,
-                color = if (victory) Gold else Crimson,
-                fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp
+                fontSize = 28.sp,
+                gradient = if (victory) TitleGold else TitleBlood
             )
             Text(
                 if (victory) LocalStrings.current.rogueAllBattles.format(RogueConfig.TOTAL_BATTLES)

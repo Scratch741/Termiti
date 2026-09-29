@@ -987,28 +987,15 @@ private fun OnlineGameOverOverlay(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val (iconRes, headline, subline) = when {
-                result == null            -> Triple(R.drawable.clock_icon, LocalStrings.current.onlineGameOver, "")
-                result!!.winner == "DRAW_BOTH_DEAD" -> Triple(R.drawable.skull_icon, LocalStrings.current.onlineDraw, LocalStrings.current.resultBothDead)
-                result!!.winner == "DRAW" -> Triple(R.drawable.shield_icon, LocalStrings.current.onlineDraw, LocalStrings.current.onlineDrawEqual)
-                result!!.youWin           -> Triple(R.drawable.trophy_icon, LocalStrings.current.onlineVictory, LocalStrings.current.onlineYouBeat.format(vm.matchInfo.value?.opponentName ?: LocalStrings.current.opponentAcc))
-                else                      -> Triple(R.drawable.skull_icon, LocalStrings.current.onlineDefeat, LocalStrings.current.onlineWinnerWon.format(result!!.winnerName ?: LocalStrings.current.opponentDefault))
+            // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez ikon
+            val (gradient, headline, subline) = when {
+                result == null            -> Triple(TitleSilver, LocalStrings.current.onlineGameOver, "")
+                result!!.winner == "DRAW_BOTH_DEAD" -> Triple(TitleSilver, LocalStrings.current.onlineDraw, LocalStrings.current.resultBothDead)
+                result!!.winner == "DRAW" -> Triple(TitleSilver, LocalStrings.current.onlineDraw, LocalStrings.current.onlineDrawEqual)
+                result!!.youWin           -> Triple(TitleGold, LocalStrings.current.onlineVictory, LocalStrings.current.onlineYouBeat.format(vm.matchInfo.value?.opponentName ?: LocalStrings.current.opponentAcc))
+                else                      -> Triple(TitleBlood, LocalStrings.current.onlineDefeat, LocalStrings.current.onlineWinnerWon.format(result!!.winnerName ?: LocalStrings.current.opponentDefault))
             }
-
-            // Ikona + nadpis na jednom řádku → ušetří výšku
-            androidx.compose.foundation.layout.Row(
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-                verticalAlignment     = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Image(painterResource(iconRes), contentDescription = null, modifier = androidx.compose.ui.Modifier.size(30.dp))
-                Text(
-                    text       = headline,
-                    color      = OgGold,
-                    fontSize   = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign  = TextAlign.Center
-                )
-            }
+            CampaignTitle(headline, fontSize = 26.sp, gradient = gradient)
             if (subline.isNotEmpty()) {
                 Text(
                     text      = subline,

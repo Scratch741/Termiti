@@ -17,6 +17,35 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.4.2] – 2026-09-29
+
+### Nové
+- **Zvuky karet:** Chaotický výbuch, Přímý zásah, Ostřelovač, Goblin, Plamenomet,
+  Spálená knihovna a Válečný sekyrník mají vlastní zvuk; surovinové karty bez
+  vlastního zvuku místo „pop“ tónu nový zvuk, útočné karty náhodně ze 4 zvuků.
+- **Herní log:** cena karty (skutečně zaplacená, u X-karet X=n) v kolečku u náhledu,
+  odznaky vygenerovaná / combo / zahození, výraznější popis a číslo kola;
+  pasivní schopnosti obou stran na začátku hry s ikonou a popisem.
+- **Šablony balíčků:** nový Obránce a Sabotér, testovací AI Chaos a AI Útočník.
+
+### Vylepšeno
+- **AI:** zahazuje karty, jejichž zahození dá suroviny (Zoufalý žold), když je hned
+  využije nebo si tím zpřístupní dražší kartu.
+- **Kampaň:** nové pozadí, výběr lokace i detail lokace uvnitř rámu, všech 5 lokací
+  vedle sebe, nadpisy písmem Cinzel se zlatým přechodem, oblé rohy karet a záře
+  podle stavu (zelená hotovo, žlutá rozehráno, červená zamčeno), přehlednější
+  obrazovka výsledku bitvy s portrétem soupeře.
+- **Výsledek hry ve všech módech:** nadpis výhry / prohry / remízy písmem Cinzel
+  (zlatý / červený / stříbrný) místo poháru a lebky.
+- **Texty karet:** sjednocené české i anglické popisy („+1 kámen“ místo „vrátí
+  1 kámen“, jedno „Poškodí hrad −N“, doly vždy „důl útoku/magie/kamene“), dlouhé
+  anglické popisy zkrácené na 4 řádky karty.
+- **Menu:** „Tvorba balíčku“ v angličtině DECKBUILDER; v menu Hrát „Constructed“
+  a „Super náhodný mód“.
+
+### Opraveno
+- Popis schopnosti **Pevný hrad** (cíl 70 → 75, ne 60 → 65).
+
 ## [0.4.1] – 2026-09-26
 
 ### Vylepšeno

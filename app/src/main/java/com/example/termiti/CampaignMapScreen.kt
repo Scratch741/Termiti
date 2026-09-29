@@ -5,8 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +17,18 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -24,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -59,91 +74,188 @@ fun CampaignMapScreen(
                 .background(Color(0x4009070D))
         )
 
-        PlainButton(
-            text      = LocalStrings.current.backShort,
-            modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
-            textColor = CmMuted,
-            fontSize  = 12.sp,
-            paddingH  = 14.dp,
-            paddingV  = 8.dp,
-            onClick   = onBack
-        )
+        // Obsah drží UVNITŘ vykresleného kamenného rámu. Pozadí je FillBounds, takže
+        // rám roste s obrazovkou – odsazení je proto v procentech (změřeno na
+        // bg_campaign.png: boky ~4,5 % šířky, nahoře ~6 %, dole ~7,5 % výšky) + rezerva.
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val insetX      = campaignInsetX(maxWidth)
+            val insetTop    = campaignInsetTop(maxHeight)
+            val insetBottom = campaignInsetBottom(maxHeight)
 
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 20.dp),
-            verticalAlignment         = Alignment.CenterVertically,
-            horizontalArrangement     = Arrangement.spacedBy(32.dp)
-        ) {
-            // Levý panel – název kampaně
+            // Karty: všechny lokace vedle sebe. Zmenší se, aby se vešly na šířku i na výšku
+            // (výška bez nadpisu ~ 60 dp); min. 72 % – menší by nešel přečíst popisek.
+            val count  = CampaignData.locations.size
+            val gap    = 14.dp
+            val innerW = maxWidth - insetX * 2
+            val innerH = maxHeight - insetTop - insetBottom
+            val fitW   = (innerW - gap * (count - 1) - LOCATION_GLOW * 2) / (LOCATION_CARD_W * count)
+            val fitH   = (innerH - 60.dp) / LOCATION_CARD_H
+            val scale  = minOf(fitW, fitH, 1.1f).coerceAtLeast(0.72f)
+
+            // Nadpis a karty: SpaceEvenly rozdělí volné místo na stejné mezery nad nadpisem,
+            // mezi nadpisem a kartami a pod kartami → nadpis sedí mezi rámem a lokacemi.
             Column(
-                modifier                = Modifier.weight(1f),
-                horizontalAlignment     = Alignment.CenterHorizontally,
-                verticalArrangement     = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = insetX, end = insetX, top = insetTop, bottom = insetBottom),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Image(
-                    painter            = painterResource(R.drawable.trophy_icon),
-                    contentDescription = null,
-                    modifier           = Modifier.size(52.dp)
-                )
-                // letterSpacing přidává mezeru i ZA poslední písmeno, takže vycentrovaný
-                // text sedí o půl mezery vlevo od osy sloupce. padding(start = letterSpacing)
-                // to vyrovná na druhé straně → glyfy jsou přesně na ose (pod trofejí).
-                Text(
-                    LocalStrings.current.campaign,
-                    color        = CmGold,
-                    fontSize     = 26.sp,
-                    fontWeight   = FontWeight.Bold,
-                    letterSpacing = 4.sp,
-                    modifier     = Modifier.padding(start = 4.dp)
-                )
-                Text(
-                    LocalStrings.current.campaignPickHint,
-                    color       = CmMuted,
-                    fontSize    = 12.sp,
-                    letterSpacing = 1.sp,
-                    textAlign   = TextAlign.Center,
-                    lineHeight  = 18.sp,
-                    modifier    = Modifier.padding(start = 1.dp)
-                )
-            }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    CampaignTitle(LocalStrings.current.campaign)
+                    Text(
+                        LocalStrings.current.campaignPickHint,
+                        color         = CmMuted,
+                        fontSize      = 11.sp,
+                        letterSpacing = 1.sp,
+                        textAlign     = TextAlign.Center,
+                        maxLines      = 1,
+                        modifier      = Modifier.padding(start = 1.dp)
+                    )
+                }
 
-            // Pravý panel – lokace jako karty
-            LazyRow(
-                modifier              = Modifier.weight(2f),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding        = PaddingValues(horizontal = 4.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                itemsIndexed(CampaignData.locations) { index, location ->
-                    LocationCard(location, order = index + 1) {
-                        if (CampaignManager.isLocationUnlocked(location)) {
-                            SoundManager.playMenuTap()
-                            onLocationSelected(location)
+                Row(
+                    // padding UVNITŘ posuvné řady: horizontalScroll ořezává na šířku řady,
+                    // záře krajních karet by jinak byla useknutá
+                    modifier              = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = LOCATION_GLOW),
+                    horizontalArrangement = Arrangement.spacedBy(gap),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    CampaignData.locations.forEachIndexed { index, location ->
+                        LocationCard(location, order = index + 1, scale = scale) {
+                            if (CampaignManager.isLocationUnlocked(location)) {
+                                SoundManager.playMenuTap()
+                                onLocationSelected(location)
+                            }
                         }
                     }
                 }
             }
+
+            CampaignBackButton(insetX, insetTop, onBack)
         }
     }
 }
 
+/** Zlatý přechod nadpisů kampaně (světlá horní hrana → bronzový spodek), jako logo DARKMAGE. */
+internal val TitleGold = listOf(Color(0xFFFFF1C1), Color(0xFFE8C467), Color(0xFFB07A2A), Color(0xFF7A4E1C))
+/** Krvavě červený přechod (nadpis prohry). */
+internal val TitleBlood = listOf(Color(0xFFFFC4B8), Color(0xFFE5574A), Color(0xFFA3261E), Color(0xFF5E1210))
+/** Stříbrný přechod (remíza / neutrální výsledek). */
+internal val TitleSilver = listOf(Color(0xFFF4F4F4), Color(0xFFC9CED6), Color(0xFF8E96A3), Color(0xFF596170))
+
+/**
+ * Cinzel (Google Fonts, SIL OFL 1.1 – licence v assets/licenses). Soubor je variabilní font
+ * vložený beze změny; tloušťka Bold se volí přes variationSettings (API 26+ = minSdk).
+ */
+@OptIn(ExperimentalTextApi::class)
+private val CinzelBold = FontFamily(
+    Font(
+        R.font.cinzel,
+        weight            = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(700))
+    )
+)
+
+/**
+ * Nadpis kampaně ve stylu loga DARKMAGE z hlavního menu: římské verzálky (Cinzel),
+ * zlatý přechod (světlá horní hrana → bronzový spodek) a tmavý stín.
+ */
 @Composable
-private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> Unit) {
+internal fun CampaignTitle(
+    text: String,
+    fontSize: TextUnit = 30.sp,
+    gradient: List<Color> = TitleGold
+) {
+    // letterSpacing přidává mezeru i ZA poslední písmeno → padding(start) o stejnou
+    // hodnotu vrací glyfy přesně na osu.
+    Text(
+        text.uppercase(),
+        modifier = Modifier.padding(start = 3.dp),
+        style = TextStyle(
+            fontFamily    = CinzelBold,
+            fontWeight    = FontWeight.Bold,
+            fontSize      = fontSize,
+            letterSpacing = 3.sp,
+            brush         = Brush.verticalGradient(gradient),
+            shadow        = Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 3f), blurRadius = 8f)
+        )
+    )
+}
+
+// Odsazení obsahu od kamenného rámu v bg_campaign.png (sdílí výběr lokace i detail lokace).
+// Pozadí je FillBounds → rám roste s obrazovkou, proto procenta (změřeno: boky ~4,5 % šířky,
+// nahoře ~6 %, dole ~7,5 % výšky) + malá rezerva.
+internal fun campaignInsetX(width: Dp): Dp       = width  * 0.045f + 10.dp
+internal fun campaignInsetTop(height: Dp): Dp    = height * 0.06f  + 8.dp
+internal fun campaignInsetBottom(height: Dp): Dp = height * 0.075f + 8.dp
+
+/** Tlačítko Zpět v levém horním rohu uvnitř rámu – stejné místo na obou obrazovkách kampaně. */
+@Composable
+internal fun BoxScope.CampaignBackButton(insetX: Dp, insetTop: Dp, onBack: () -> Unit) {
+    PlainButton(
+        text      = LocalStrings.current.backShort,
+        modifier  = Modifier
+            .align(Alignment.TopStart)
+            .padding(start = insetX + 8.dp, top = insetTop + 16.dp),
+        textColor = CmMuted,
+        fontSize  = 12.sp,
+        paddingH  = 14.dp,
+        paddingV  = 8.dp,
+        onClick   = onBack
+    )
+}
+
+// Návrhová velikost karty lokace – všechny pozice uvnitř karty jsou pro ni spočítané
+// (viz komentáře u vrstev); na obrazovce se karta jen celá zmenší/zvětší přes [scale].
+internal val LOCATION_CARD_W = 160.dp
+internal val LOCATION_CARD_H = 240.dp
+/** Zaoblení rohů karty lokace (v návrhové velikosti); vnitřní okraj záře navazuje. */
+internal val LOCATION_CORNER = 14.dp
+/** Jak daleko za okraj karty sahá záře stavu lokace. */
+internal val LOCATION_GLOW   = 12.dp
+
+internal val GlowCleared    = Color(0xFF4CAF50)   // hotovo / poražen
+internal val GlowInProgress = Color(0xFFFFC107)   // rozehráno / na řadě
+internal val GlowLocked     = Color(0xFFE53935)   // zatím nedosažitelné
+
+@Composable
+private fun LocationCard(location: CampaignLocation, order: Int, scale: Float, onClick: () -> Unit) {
     val unlocked      = CampaignManager.isLocationUnlocked(location)
     val cleared       = CampaignManager.isLocationCleared(location)
     val defeatedCount = location.opponents.count { CampaignManager.isDefeated(it.id) }
 
-    val cardH = 240.dp
+    val cardH = LOCATION_CARD_H
     val artH  = (cardH.value * ART_RATIO).dp   // ~154 dp
 
+    // Vnější box zabírá zmenšenou velikost (layout i klik), vnitřní se kreslí v návrhové
+    // velikosti a graphicsLayer ho zmenší – rozvržení karty tak zůstane beze změny.
+    val glowColor = when {
+        cleared   -> GlowCleared
+        unlocked  -> GlowInProgress
+        else      -> GlowLocked
+    }
     Box(
         modifier = Modifier
-            .width(160.dp)
-            .height(cardH)
+            .size(LOCATION_CARD_W * scale, LOCATION_CARD_H * scale)
+            .drawBehind { drawStatusGlow(glowColor, LOCATION_GLOW.toPx(), LOCATION_CORNER.toPx() * scale) }
             .alpha(if (unlocked) 1f else 0.42f)
-            .then(if (unlocked) Modifier.clickable { onClick() } else Modifier)
+            .then(if (unlocked) Modifier.clickable { onClick() } else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
+    Box(
+        modifier = Modifier
+            .requiredSize(LOCATION_CARD_W, LOCATION_CARD_H)
+            .graphicsLayer {
+                scaleX = scale; scaleY = scale
+                // oblé rohy karty – rám card_frame_* má rohy ostré
+                shape = RoundedCornerShape(LOCATION_CORNER); clip = true
+            }
     ) {
         // ── Vrstva 0: tmavé pozadí art okna ──────────────────────────────────
         Box(
@@ -296,6 +408,28 @@ private fun LocationCard(location: CampaignLocation, order: Int, onClick: () -> 
                 )
             }
         }
+    }
+    }
+}
+
+/**
+ * Statická záře kolem karty: soustředné zaoblené rámečky, které směrem ven slábnou.
+ * Bez BlurMaskFilter – ten na hardwarovém plátně funguje až od Androidu 9 (minSdk 26).
+ */
+internal fun DrawScope.drawStatusGlow(color: Color, spread: Float, corner: Float) {
+    val steps = 12
+    for (i in 0 until steps) {
+        val t     = i / (steps - 1f)                 // 0 = u karty, 1 = nejdál
+        val grow  = spread * t
+        val alpha = 0.55f * (1f - t) * (1f - t)
+        drawRoundRect(
+            color        = color.copy(alpha = alpha),
+            topLeft      = Offset(-grow, -grow),
+            size         = Size(size.width + grow * 2, size.height + grow * 2),
+            // zaoblení roste rychleji než záře → směrem ven čím dál oblejší obrys
+            cornerRadius = CornerRadius(corner + grow * 1.6f),
+            style        = Stroke(width = spread / steps * 1.6f)
+        )
     }
 }
 

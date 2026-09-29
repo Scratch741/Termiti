@@ -98,13 +98,7 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                     paddingV  = 5.dp,
                     onClick   = onBack
                 )
-                Text(
-                    LocalStrings.current.lbTitle,
-                    color         = LbGold,
-                    fontSize      = 16.sp,
-                    fontWeight    = FontWeight.Bold,
-                    letterSpacing = 3.sp
-                )
+                CampaignTitle(LocalStrings.current.lbTitle, fontSize = 22.sp)
                 Spacer(Modifier.weight(1f))
                 if (totalPlayers > 0) {
                     Text(

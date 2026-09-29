@@ -124,7 +124,7 @@ fun MenuScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(H * 0.025f)
                     ) {
-                        ProfileInfo(profile, H)
+                        ProfileInfo(profile, H, onAvatarClick = onProfile)
                     }
                 }
             }
@@ -188,15 +188,19 @@ fun MenuScreen(
 // ── Profilový sloupec ─────────────────────────────────────────────────────────
 
 @Composable
-fun ProfileInfo(profile: PlayerProfile, H: Dp) {
+fun ProfileInfo(profile: PlayerProfile, H: Dp, onAvatarClick: (() -> Unit)? = null) {
     val fs = (H.value * 0.035f).sp
-    // Avatar
+    // Avatar – klik otevře profil (je-li onAvatarClick zadán)
     Box(
         modifier = Modifier
             .size(H * 0.162f)
             .clip(RoundedCornerShape(H * 0.036f))
             .background(Gold.copy(alpha = 0.15f))
-            .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(H * 0.036f)),
+            .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(H * 0.036f))
+            .then(
+                if (onAvatarClick != null) Modifier.clickable { SoundManager.playMenuTap(); onAvatarClick() }
+                else Modifier
+            ),
         contentAlignment = Alignment.Center
     ) {
         AvatarDisplay(profile.avatar, sizeDp = H.value * 0.144f)

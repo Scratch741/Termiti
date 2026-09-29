@@ -124,11 +124,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        s.settings,
-                        color = StGold, fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                    )
+                    CampaignTitle(s.settings, fontSize = 26.sp)
                     SettingsSlider(
                         label = s.music,
                         value = musicVol,

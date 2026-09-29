@@ -4,8 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -28,7 +32,6 @@ import androidx.compose.ui.unit.sp
 
 private val ClGold  = Color(0xFFD4A843)
 private val ClTeal  = Color(0xFF3DBFAD)
-private val ClText  = Color(0xFFEDE0C4)
 private val ClMuted = Color(0xFF7A6E5F)
 private val ClGreen = Color(0xFF4CAF50)
 private val ClXp    = Color(0xFF7EE8A2)   // stejná zelená jako XP badge na obrazovce výsledku
@@ -60,162 +63,110 @@ fun CampaignLocationScreen(
                 .background(Color(0x4009070D))
         )
 
-        PlainButton(
-            text      = LocalStrings.current.backShort,
-            // Stejné odsazení jako v CampaignMapScreen, aby tlačítko mezi
-            // výběrem lokace a jejím detailem neposkakovalo.
-            modifier  = Modifier.padding(16.dp).align(Alignment.TopStart),
-            textColor = ClMuted,
-            fontSize  = 12.sp,
-            paddingH  = 14.dp,
-            paddingV  = 8.dp,
-            onClick   = onBack
-        )
+        // Stejné rozložení jako výběr lokace (CampaignMapScreen): obsah uvnitř rámu,
+        // nahoře název lokace, pod ním řada karet soupeřů.
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val insetX      = campaignInsetX(maxWidth)
+            val insetTop    = campaignInsetTop(maxHeight)
+            val insetBottom = campaignInsetBottom(maxHeight)
 
-        Row(
-            modifier              = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 20.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            // Levý panel – info o lokaci (s card_frame lokace)
-            val locCardH = 220.dp
-            val locArtH  = (locCardH.value * ART_RATIO).dp
+            // Karty soupeřů stejně velké jako karty lokací na předchozí obrazovce:
+            // měřítko pro 5 karet vedle sebe, převedené na návrhovou výšku karty soupeře.
+            val gap      = 14.dp
+            val innerW   = maxWidth - insetX * 2
+            val innerH   = maxHeight - insetTop - insetBottom
+            val fitW     = (innerW - gap * 4 - LOCATION_GLOW * 2) / (LOCATION_CARD_W * 5)
+            val fitH     = (innerH - 60.dp) / LOCATION_CARD_H
+            val mapScale = minOf(fitW, fitH, 1.1f).coerceAtLeast(0.72f)
+            val scale    = mapScale * (LOCATION_CARD_H / OPP_CARD_H)
 
-            Box(
+            val defeated = location.opponents.count { CampaignManager.isDefeated(it.id) }
+            val total    = location.opponents.size
+
+            // Posun řady na prvního neporaženého soupeře (a jednoho před ním),
+            // ať po návratu z bitvy není nutné hledat, kde hráč skončil.
+            val scrollState = rememberScrollState()
+            val density     = LocalDensity.current
+            val firstOpen   = location.opponents.indexOfFirst { !CampaignManager.isDefeated(it.id) }
+            LaunchedEffect(location.id) {
+                if (firstOpen > 0) {
+                    val step = with(density) { (OPP_CARD_W * scale + gap).toPx() }
+                    scrollState.scrollTo(((firstOpen - 1) * step).toInt())
+                }
+            }
+
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .wrapContentWidth()
-                    .align(Alignment.CenterVertically)
+                    .fillMaxSize()
+                    .padding(start = insetX, end = insetX, top = insetTop, bottom = insetBottom),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Box(
-                    modifier = Modifier
-                        .width(150.dp)
-                        .height(locCardH)
-                        .align(Alignment.Center)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    // Art pozadí lokace
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(locArtH)
-                            .align(Alignment.TopStart)
-                            .background(Color(0xFF0D0A14))
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(locArtH)
-                            .align(Alignment.TopStart)
-                            .clipToBounds()
-                    ) {
-                        Image(
-                            painter            = painterResource(locationArtRes(location.id)),
-                            contentDescription = null,
-                            modifier           = Modifier.fillMaxSize(),
-                            contentScale       = ContentScale.Crop
-                        )
-                    }
-                    // Card frame
-                    Image(
-                        painter            = painterResource(locationFrameRes(location.id)),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxSize(),
-                        contentScale       = ContentScale.FillBounds
-                    )
-                    // Rarity overlay
-                    Image(
-                        painter            = painterResource(locationRarityRes(location.id)),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxSize(),
-                        contentScale       = ContentScale.FillBounds
-                    )
-                    // Jméno – zakřivený text na stejném místě jako u karet.
-                    // 220 dp / 12 sp → baseline 135,0 dp = offset 110 dp + 0,78 × 32 dp
-                    // (odvození vzorce viz CampaignMapScreen.LocationCard).
-                    ArcCardName(
-                        name         = location.displayName,
-                        modifier     = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(y = 110.dp)
-                            .fillMaxWidth()
-                            .height(32.dp),
-                        fontSizeSp   = 12f,
-                        arcRadiusDp  = 520f,
-                        baselineFrac = 0.78f
-                    )
-
-                    // Popisek – pevné, ořezané místo jako popis karty.
-                    // Mezera od jména: ArcCardName končí na y=142dp (offset 110 + výška 32),
-                    // popisek proto začíná až na 145dp, ne 140dp (dřív se s ním překrýval).
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(y = 145.dp)
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .clipToBounds()
-                            .padding(horizontal = 14.dp),
-                        contentAlignment = Alignment.Center
+                    CampaignTitle(location.displayName)
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
                             location.displayDescription,
-                            color      = ClText,
-                            fontSize   = 9.sp,
-                            textAlign  = TextAlign.Center,
-                            lineHeight = 12.sp,
-                            maxLines   = 4,
-                            overflow   = TextOverflow.Ellipsis
+                            color         = ClMuted,
+                            fontSize      = 11.sp,
+                            letterSpacing = 0.5.sp,
+                            maxLines      = 1,
+                            overflow      = TextOverflow.Ellipsis,
+                            modifier      = Modifier.weight(1f, fill = false)
                         )
-                    }
-
-                    // Status – stejné místo jako typ karty
-                    run {
-                        val defeated = location.opponents.count { CampaignManager.isDefeated(it.id) }
-                        val total    = location.opponents.size
                         Text(
                             "$defeated / $total",
                             color      = if (defeated == total) ClGreen else ClTeal,
-                            fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign  = TextAlign.Center,
-                            modifier   = Modifier
-                                .align(Alignment.TopStart)
-                                .offset(y = 200.dp)
-                                .fillMaxWidth()
+                            fontSize   = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Row(
+                    // padding UVNITŘ posuvné řady: horizontalScroll ořezává na šířku řady,
+                    // záře krajních karet by jinak byla useknutá
+                    modifier              = Modifier
+                        .horizontalScroll(scrollState)
+                        .padding(horizontal = LOCATION_GLOW),
+                    horizontalArrangement = Arrangement.spacedBy(gap),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    location.opponents.forEachIndexed { index, opponent ->
+                        OpponentCard(
+                            opponent   = opponent,
+                            locationId = location.id,
+                            order      = index + 1,
+                            total      = total,
+                            unlocked   = CampaignManager.isUnlocked(location, opponent),
+                            defeated   = CampaignManager.isDefeated(opponent.id),
+                            scale      = scale,
+                            onClick    = {
+                                SoundManager.playMenuTap()
+                                onOpponentSelected(opponent)
+                            }
                         )
                     }
                 }
             }
 
-            // Pravý panel – soupeři jako karty
-            LazyRow(
-                modifier              = Modifier.weight(3f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding        = PaddingValues(horizontal = 4.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                itemsIndexed(location.opponents) { index, opponent ->
-                    val unlocked   = CampaignManager.isUnlocked(location, opponent)
-                    val isDefeated = CampaignManager.isDefeated(opponent.id)
-                    OpponentCard(
-                        opponent   = opponent,
-                        locationId = location.id,
-                        order      = index + 1,
-                        total      = location.opponents.size,
-                        unlocked   = unlocked,
-                        defeated   = isDefeated,
-                        onClick    = {
-                            SoundManager.playMenuTap()
-                            onOpponentSelected(opponent)
-                        }
-                    )
-                }
-            }
+            CampaignBackButton(insetX, insetTop, onBack)
         }
     }
 }
+
+// Návrhová velikost karty soupeře – pozice uvnitř karty jsou spočítané pro ni;
+// na obrazovce se karta celá zmenší/zvětší přes scale (stejně jako karta lokace).
+// Šířka z poměru karty lokace (160 : 240) – dřív pevných 148 dp (poměr 0,673 místo 0,667),
+// takže při stejné výšce na obrazovce byl soupeř o ~1 dp širší než lokace.
+private val OPP_CARD_H = 220.dp
+private val OPP_CARD_W = OPP_CARD_H * (LOCATION_CARD_W / LOCATION_CARD_H)
 
 @Composable
 private fun OpponentCard(
@@ -225,17 +176,37 @@ private fun OpponentCard(
     total     : Int,
     unlocked  : Boolean,
     defeated  : Boolean,
+    scale     : Float,
     onClick   : () -> Unit
 ) {
-    val cardH = 220.dp
+    val cardH = OPP_CARD_H
     val artH  = (cardH.value * ART_RATIO).dp   // ~141 dp
+
+    // Záře podle stavu: poražen / na řadě / zamčený. Kreslí se PŘED alpha,
+    // aby ji ztmavení zamčené karty neztlumilo.
+    val glowColor = when {
+        defeated -> GlowCleared
+        unlocked -> GlowInProgress
+        else     -> GlowLocked
+    }
+    // Poměr zaoblení stejný jako u karty lokace (14 dp na 240 dp výšky)
+    val corner = LOCATION_CORNER * (OPP_CARD_H / LOCATION_CARD_H)
 
     Box(
         modifier = Modifier
-            .width(148.dp)
-            .height(cardH)
+            .size(OPP_CARD_W * scale, OPP_CARD_H * scale)
+            .drawBehind { drawStatusGlow(glowColor, LOCATION_GLOW.toPx(), corner.toPx() * scale) }
             .alpha(if (unlocked) 1f else 0.4f)
-            .then(if (unlocked) Modifier.clickable { onClick() } else Modifier)
+            .then(if (unlocked) Modifier.clickable { onClick() } else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
+    Box(
+        modifier = Modifier
+            .requiredSize(OPP_CARD_W, OPP_CARD_H)
+            .graphicsLayer {
+                scaleX = scale; scaleY = scale
+                shape = RoundedCornerShape(corner); clip = true
+            }
     ) {
         // ── Vrstva 0: tmavé pozadí art okna ──────────────────────────────────
         Box(
@@ -343,7 +314,8 @@ private fun OpponentCard(
                 .fillMaxWidth()
                 .height(41.dp)
                 .clipToBounds()
-                .padding(horizontal = 14.dp),
+                // 13 dp (dřív 14): karta je o 1,3 dp užší (poměr stran jako karta lokace)
+                .padding(horizontal = 13.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -408,6 +380,7 @@ private fun OpponentCard(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
     }
 }
 
@@ -583,22 +556,4 @@ private fun opponentRarityRes(order: Int, total: Int, isBoss: Boolean): Int {
         frac < 2f / 3f -> R.drawable.rarity_rare
         else           -> R.drawable.rarity_epic
     }
-}
-
-private fun locationArtRes(id: String): Int = when (id) {
-    "loc_goblins" -> R.drawable.goblin_tabor
-    "loc_swamp"   -> R.drawable.magicke_baziny
-    "loc_dwarves" -> R.drawable.trpaslici_hory
-    "loc_citadel" -> R.drawable.art_temny_ritual
-    "loc_dragon"  -> R.drawable.art_chaoticky_drak
-    else          -> R.drawable.art_magie
-}
-
-private fun locationRarityRes(id: String): Int = when (id) {
-    "loc_goblins" -> R.drawable.rarity_common
-    "loc_swamp"   -> R.drawable.rarity_rare
-    "loc_dwarves" -> R.drawable.rarity_rare
-    "loc_citadel" -> R.drawable.rarity_epic
-    "loc_dragon"  -> R.drawable.rarity_legendary
-    else          -> R.drawable.rarity_common
 }

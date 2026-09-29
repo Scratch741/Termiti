@@ -235,13 +235,7 @@ private fun LobbyPanel(
                     verticalArrangement = Arrangement.spacedBy(H * 0.008f)
                 ) {
                     // Nadpis
-                    Text(
-                        "ONLINE",
-                        color         = OnTeal,
-                        fontSize      = (centerW.value * 0.085f).sp,
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 5.sp
-                    )
+                    CampaignTitle("ONLINE", fontSize = (centerW.value * 0.085f).sp)
                     Text(
                         "LOBBY",
                         color         = OnGold,
@@ -371,13 +365,7 @@ private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "ONLINE MULTIPLAYER",
-                color         = OnGold,
-                fontSize      = 18.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 3.sp
-            )
+            CampaignTitle("ONLINE MULTIPLAYER", fontSize = 26.sp)
             Spacer(Modifier.height(4.dp))
             Image(
                 painter            = painterResource(R.drawable.bg_separator),
@@ -570,13 +558,7 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                LocalStrings.current.mpOpponentFound,
-                color         = OnGreen,
-                fontSize      = 20.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 3.sp
-            )
+            CampaignTitle(LocalStrings.current.mpOpponentFound, fontSize = 28.sp)
             Spacer(Modifier.height(4.dp))
             Image(
                 painter            = painterResource(R.drawable.bg_separator),
@@ -637,13 +619,7 @@ private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            Text(
-                LocalStrings.current.mpConnectionError,
-                color         = OnRed,
-                fontSize      = 18.sp,
-                fontWeight    = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
+            CampaignTitle(LocalStrings.current.mpConnectionError, fontSize = 24.sp, gradient = TitleBlood)
             Spacer(Modifier.height(4.dp))
             Image(
                 painter            = painterResource(R.drawable.bg_separator),

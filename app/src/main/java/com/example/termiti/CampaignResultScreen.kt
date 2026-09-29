@@ -2,6 +2,14 @@ package com.example.termiti
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -72,48 +80,45 @@ fun CampaignResultScreen(
                 .fillMaxWidth()
                 .heightIn(min = screenHeight)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 32.dp),
+                // odsazení od kamenného rámu jako na ostatních obrazovkách kampaně + rezerva,
+                // aby nadpis ani tlačítka nelícovaly s rámem
+                .padding(
+                    start  = campaignInsetX(maxWidth),
+                    end    = campaignInsetX(maxWidth),
+                    top    = campaignInsetTop(maxHeight) + 8.dp,
+                    bottom = campaignInsetBottom(maxHeight) + 8.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ── Výsledek ──────────────────────────────────────────────────────
-            Image(
-                painterResource(if (playerWon) R.drawable.trophy_icon else R.drawable.skull_icon),
-                contentDescription = null,
-                modifier           = Modifier.size(64.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
+            // ── Výsledek – stejný nadpis jako na ostatních obrazovkách kampaně ─────
+            CampaignTitle(
                 if (playerWon) s.campaignVictory else s.campaignDefeat,
-                color        = if (playerWon) CrGold else CrRed,
-                fontSize     = 32.sp,
-                fontWeight   = FontWeight.Bold,
-                letterSpacing = 4.sp
+                fontSize = 36.sp,
+                gradient = if (playerWon) TitleGold else TitleBlood
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // ── Soupeř ────────────────────────────────────────────────────────
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                AvatarView(opponent.avatar, size = 40.dp)
-                Column {
-                    Text(
-                        opponent.displayName,
-                        color      = CrText,
-                        fontSize   = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        opponent.displayTitle,
-                        color    = CrMuted,
-                        fontSize = 11.sp
-                    )
-                }
-            }
+            // ── Soupeř: portrét, jméno, titul – vše na ose ────────────────────
+            OpponentPortrait(opponent, ringColor = if (playerWon) CrGold else CrRed)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                opponent.displayName,
+                color      = CrText,
+                fontSize   = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign  = TextAlign.Center,
+                style      = TextStyle(shadow = Shadow(Color.Black, Offset(0f, 2f), 6f))
+            )
+            Text(
+                opponent.displayTitle,
+                color     = CrGold.copy(alpha = 0.85f),
+                fontSize  = 12.sp,
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // ── Odměna (pouze při výhře) ──────────────────────────────────────
             if (playerWon && rewardClaimed) {
@@ -131,10 +136,11 @@ fun CampaignResultScreen(
                     ) {
                         Text(
                             s.campaignRewardFirstKill,
-                            color        = CrGold,
-                            fontSize     = 11.sp,
-                            fontWeight   = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                            color         = CrGold,
+                            fontSize      = 13.sp,
+                            fontWeight    = FontWeight.Bold,
+                            letterSpacing = 1.5.sp,
+                            textAlign     = TextAlign.Center
                         )
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -154,19 +160,28 @@ fun CampaignResultScreen(
                         .paint(
                             painterResource(R.drawable.plain_button_longer),
                             contentScale = ContentScale.FillBounds,
-                            alpha        = 0.6f
+                            alpha        = 0.85f
                         )
-                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                        .padding(horizontal = 32.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        s.campaignRewardAlreadyClaimed,
-                        color    = CrMuted,
-                        fontSize = 11.sp
-                    )
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Image(painterResource(R.drawable.check_icon), contentDescription = null, modifier = Modifier.size(14.dp))
+                        Text(
+                            s.campaignRewardAlreadyClaimed,
+                            color      = CrText.copy(alpha = 0.9f),
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign  = TextAlign.Center
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
             // ── Tlačítka ──────────────────────────────────────────────────────
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -177,7 +192,7 @@ fun CampaignResultScreen(
                         textColor = CrText,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
-                        paddingV  = 14.dp,
+                        paddingV  = 12.dp,
                         onClick   = onRetry
                     )
                 }
@@ -187,7 +202,7 @@ fun CampaignResultScreen(
                     textColor = CrText,
                     fontSize  = 13.sp,
                     paddingH  = 20.dp,
-                    paddingV  = 14.dp,
+                    paddingV  = 12.dp,
                     onClick   = onBackToLocation
                 )
                 if (onReviewGame != null) {
@@ -197,7 +212,7 @@ fun CampaignResultScreen(
                         textColor = CrText,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
-                        paddingV  = 14.dp,
+                        paddingV  = 12.dp,
                         onClick   = onReviewGame
                     )
                 }
@@ -208,7 +223,7 @@ fun CampaignResultScreen(
                         textColor = CrGold,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
-                        paddingV  = 14.dp,
+                        paddingV  = 12.dp,
                         onClick   = onNextOpponent
                     )
                 }
@@ -229,41 +244,27 @@ private fun RewardBadge(@DrawableRes iconRes: Int, value: String, color: Color) 
     }
 }
 
-// Avatar: resource string → Image, emoji string → Text
+/**
+ * Kulatý portrét soupeře: ilustrace z karty soupeře (cardArt – goblin_*, hory_*, bazina_*),
+ * jinak jeho avatar; soupeři bez obrázku (starší emoji avatary) dostanou ikonu nepřítele.
+ * Rámeček v barvě výsledku (zlatá výhra / červená prohra).
+ */
 @Composable
-private fun AvatarView(avatar: String, size: Dp) {
-    val resId: Int? = when (avatar) {
-        "enemy_icon_1" -> R.drawable.enemy_icon_1
-        "enemy_icon_2" -> R.drawable.enemy_icon_2
-        "enemy_icon_3" -> R.drawable.enemy_icon_3
-        "hammer_icon"  -> R.drawable.hammer_icon
-        "player_icon_10"          -> R.drawable.player_icon_10
-        "goblin_pruzkumnik"       -> R.drawable.goblin_pruzkumnik
-        "goblin_lucistnik"        -> R.drawable.goblin_lucistnik
-        "goblin_saman"            -> R.drawable.goblin_saman
-        "goblin_valecnik"         -> R.drawable.goblin_valecnik
-        "goblin_drancovac"        -> R.drawable.goblin_drancovac
-        "goblin_berserk"          -> R.drawable.goblin_berserk
-        "goblin_troll"            -> R.drawable.goblin_troll
-        "goblin_velitel"          -> R.drawable.goblin_velitel
-        "goblin_valecny_nacelnik" -> R.drawable.goblin_valecny_nacelnik
-        "goblin_kral_profil"      -> R.drawable.goblin_kral_profil
-        else           -> null
-    }
-    if (resId != null) {
-        Image(
-            painterResource(resId),
-            contentDescription = null,
-            modifier           = Modifier.size(size)
-        )
-    } else {
-        Text(
-            text      = avatar,
-            fontSize  = (size.value * 0.65f).sp,
-            textAlign = TextAlign.Center,
-            modifier  = Modifier
-                .size(size)
-                .wrapContentHeight(Alignment.CenterVertically)
-        )
-    }
+private fun OpponentPortrait(opponent: CampaignOpponent, ringColor: Color) {
+    val resId = opponent.cardArt?.let { avatarDrawableRes(it) }
+        ?: avatarDrawableRes(opponent.avatar)
+        ?: avatarResId(opponent.avatar)
+        ?: R.drawable.enemy_icon_1
+    Image(
+        painter            = painterResource(resId),
+        contentDescription = null,
+        contentScale       = ContentScale.Crop,
+        alignment          = Alignment.TopCenter,
+        modifier           = Modifier
+            .size(64.dp)
+            .shadow(10.dp, CircleShape, ambientColor = ringColor, spotColor = ringColor)
+            .clip(CircleShape)
+            .background(Color.Black)
+            .border(2.dp, ringColor, CircleShape)
+    )
 }

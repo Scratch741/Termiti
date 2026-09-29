@@ -110,8 +110,8 @@ data class LanguagePack(
                 "shop" to str("shop",         "OBCHOD"),
                 "exit" to str("exit",         "KONEC"),
 
-                "ownDeck" to str("ownDeck",     "VLASTNÍ BALÍČEK"),
-                "superRandom" to str("superRandom", "SUPER NÁHODNÉ"),
+                "ownDeck" to str("ownDeck",     "CONSTRUCTED"),
+                "superRandom" to str("superRandom", "SUPER NÁHODNÝ MÓD"),
                 "arena" to str("arena",       "Aréna"),
                 "campaign" to str("campaign",    "KAMPAŇ"),
 
@@ -451,7 +451,7 @@ data class LanguagePack(
                 "resultYourCastleDestroyed" to str("resultYourCastleDestroyed", "Tvůj hrad byl zničen."),
                 "resultEnemyCastleBuilt" to str("resultEnemyCastleBuilt", "Nepřítel dokončil svůj hrad."),
                 "resultDrawEqual" to str("resultDrawEqual", "Balíčky došly – hrady jsou stejně vysoké."),
-                "campaignPickHint" to str("campaignPickHint", "Vyber lokaci a poraž\nvšechny soupeře"),
+                "campaignPickHint" to str("campaignPickHint", "Vyber lokaci a poraž všechny soupeře"),
                 "campaignCleared" to str("campaignCleared", "Vyčištěno"),
                 "campaignLocked" to str("campaignLocked", "Zamčeno"),
                 "campaignDefeated" to str("campaignDefeated", "Poražen"),

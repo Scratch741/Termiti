@@ -137,11 +137,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                         modifier           = Modifier.size(H * 0.12f),
                         contentScale       = ContentScale.Fit
                     )
-                    Text(
-                        LocalStrings.current.shopPacks,
-                        color = ShGold, fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 4.sp
-                    )
+                    CampaignTitle(LocalStrings.current.shopPacks, fontSize = 28.sp)
 
                     Spacer(Modifier.height(H * 0.01f))
 
@@ -253,11 +249,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(24.dp)
         ) {
-            Text(
-                LocalStrings.current.shopPackOpened,
-                color = ShGold, fontSize = 18.sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 3.sp
-            )
+            CampaignTitle(LocalStrings.current.shopPackOpened, fontSize = 26.sp)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),

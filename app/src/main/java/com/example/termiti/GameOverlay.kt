@@ -1,4 +1,4 @@
-﻿package com.example.termiti
+package com.example.termiti
 
 
 import androidx.compose.animation.core.*
@@ -796,10 +796,13 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(painterResource(if (isWin) R.drawable.trophy_icon else R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(44.dp))
-            Spacer(Modifier.height(10.dp))
-            Text(title.uppercase(), color = if (isWin) TealLight else Crimson,
-                fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+            // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez poháru/lebky
+            val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD
+            CampaignTitle(
+                title,
+                fontSize = 30.sp,
+                gradient = when { isWin -> TitleGold; isDraw -> TitleSilver; else -> TitleBlood }
+            )
             Spacer(Modifier.height(8.dp))
             Text(sub, color = TextPrimary, fontSize = 13.sp, textAlign = TextAlign.Center)
             Spacer(Modifier.height(12.dp))
@@ -871,11 +874,11 @@ fun ArenaGameOverDialog(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Image(painterResource(if (isPlayerWin) R.drawable.trophy_icon else R.drawable.skull_icon), contentDescription = null, modifier = Modifier.size(40.dp))
-            Text(
-                title.uppercase(),
-                color = if (isPlayerWin) TealLight else Crimson,
-                fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp
+            val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD
+            CampaignTitle(
+                title,
+                fontSize = 28.sp,
+                gradient = when { isPlayerWin -> TitleGold; isDraw -> TitleSilver; else -> TitleBlood }
             )
             Text(sub, color = TextPrimary, fontSize = 12.sp, textAlign = TextAlign.Center)
 
