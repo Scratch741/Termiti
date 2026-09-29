@@ -203,7 +203,6 @@ class AppStrings(
     val castleClassic: String by values
     val castleStone: String by values
     val castleDark: String by values
-    val castleOutlawCamp: String by values
     val castleVariant: String by values
     val wallClassic: String by values
     val wallVariant: String by values

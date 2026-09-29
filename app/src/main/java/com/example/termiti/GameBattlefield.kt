@@ -604,7 +604,7 @@ fun battleBackgroundDrawable(id: String): Int = when (id) {
  * aiWallSkin (roguelike – viz generateRogueEnemy()), ne přímo jako resource ID.
  */
 private val RANDOM_OPPONENT_CASTLE_SKIN_IDS = listOf(
-    "castle_player", "castle_player_2", "castle_player_3", "castle_player_4", "castle_player_5",
+    "castle_player", "castle_player_2", "castle_player_3", "castle_player_5",
     "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
     "castle_player_11", "castle_player_12", "castle_player_13"
 )

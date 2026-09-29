@@ -49,16 +49,21 @@ fun CampaignResultScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // ── Texturované pozadí ────────────────────────────────────────────────
+        // bg_campaign.png má vykreslený kamenný rám po obvodu, takže se nesmí
+        // ořezávat (Crop) – rám by z části vypadl mimo obrazovku. FillBounds ho
+        // udrží přilepený k okrajům; mírné roztažení malby není poznat.
         Image(
-            painter            = painterResource(R.drawable.bg_game),
+            painter            = painterResource(R.drawable.bg_campaign),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
-            contentScale       = ContentScale.Crop
+            contentScale       = ContentScale.FillBounds
         )
+        // Stejný jemný overlay jako na ostatních obrazovkách kampaně – bg_campaign
+        // je samo o sobě tmavé, původních 0xCC (kvůli světlému bg_game) by ho zakrylo.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xCC09070D))
+                .background(Color(0x4009070D))
         )
 
         val screenHeight = maxHeight

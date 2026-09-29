@@ -42,15 +42,17 @@ fun CampaignMapScreen(
     onBack: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // Texturované pozadí
+        // bg_campaign.png má vykreslený kamenný rám po obvodu, takže se nesmí
+        // ořezávat (Crop) – rám by z části vypadl mimo obrazovku. FillBounds ho
+        // udrží přilepený k okrajům; mírné roztažení malby není poznat.
         Image(
-            painter      = painterResource(R.drawable.bg_plain),
+            painter      = painterResource(R.drawable.bg_campaign),
             contentDescription = null,
             modifier     = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.FillBounds
         )
-        // Tmavý overlay pro čitelnost – bg_plain.png je samo o sobě už tmavé/tlumené,
-        // silný overlay (dřív 0xBF) ho prakticky celé překryl. Jen jemné dolazení.
+        // Tmavý overlay pro čitelnost – bg_campaign.png je samo o sobě už tmavé,
+        // silný overlay (dřív 0xBF) by ho prakticky celé překryl. Jen jemné dolazení.
         Box(
             modifier = Modifier
                 .fillMaxSize()

@@ -703,7 +703,8 @@ wss.on('connection', (ws, req) => {
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
         // Skin hradu – přijmi jen povolené hodnoty
         const KNOWN_CASTLE_SKINS = new Set([
-          'castle_player', 'castle_player_2', 'castle_player_3', 'castle_player_4', 'castle_player_5',
+          // castle_player_4 = kampaňový hrad goblinů, hráč si ho vybrat nemůže
+          'castle_player', 'castle_player_2', 'castle_player_3', 'castle_player_5',
           'castle_player_6', 'castle_player_7', 'castle_player_8', 'castle_player_9', 'castle_player_10',
           'castle_player_11', 'castle_player_12', 'castle_player_13'
         ]);

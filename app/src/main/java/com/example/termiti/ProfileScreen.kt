@@ -476,8 +476,10 @@ private fun AvatarPicker(
 
 // ── Castle skin picker ────────────────────────────────────────────────────────
 
+// castle_player_4 (Tábor psanců) tu záměrně chybí – je to hrad goblinské lokace
+// v kampani (CampaignData.kt: loc_goblins), ne skin volitelný hráčem.
 private val CASTLE_SKINS = listOf(
-    "castle_player", "castle_player_2", "castle_player_3", "castle_player_4", "castle_player_5",
+    "castle_player", "castle_player_2", "castle_player_3", "castle_player_5",
     "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
     "castle_player_11", "castle_player_12", "castle_player_13"
 )
@@ -489,7 +491,6 @@ private fun castleSkinLabel(id: String): String {
         "castle_player"   -> s.castleClassic
         "castle_player_2" -> s.castleStone
         "castle_player_3" -> s.castleDark
-        "castle_player_4" -> s.castleOutlawCamp
         else              -> s.castleVariant.format(id.substringAfterLast('_').toIntOrNull() ?: 0)
     }
 }

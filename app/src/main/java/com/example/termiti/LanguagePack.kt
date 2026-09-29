@@ -248,7 +248,6 @@ data class LanguagePack(
                 "castleClassic" to str("castleClassic",            "Klasický"),
                 "castleStone" to str("castleStone",              "Kamenný"),
                 "castleDark" to str("castleDark",               "Temný"),
-                "castleOutlawCamp" to str("castleOutlawCamp",         "Tábor psanců"),
                 "castleVariant" to str("castleVariant",            "Hrad %d"),
                 "wallClassic" to str("wallClassic",              "Klasická"),
                 "wallVariant" to str("wallVariant",              "Hradba %d"),

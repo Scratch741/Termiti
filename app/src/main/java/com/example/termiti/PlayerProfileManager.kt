@@ -181,8 +181,17 @@ object PlayerProfileManager {
 
     private fun loadFromPrefs(): PlayerProfile? {
         val raw = prefs?.getString(KEY_PROFILE, null) ?: return null
-        return runCatching { json.decodeFromString(PlayerProfile.serializer(), raw) }.getOrNull()
+        val loaded = runCatching { json.decodeFromString(PlayerProfile.serializer(), raw) }.getOrNull()
+        return loaded?.let(::migrate)
     }
+
+    /**
+     * Úpravy profilů uložených starší verzí hry.
+     * castle_player_4 (Tábor psanců) šel dřív vybrat v Profilu, než se z něj stal
+     * výhradně kampaňový hrad goblinů – kdo ho má uložený, dostane zpět klasiku.
+     */
+    private fun migrate(p: PlayerProfile): PlayerProfile =
+        if (p.castleSkin == "castle_player_4") p.copy(castleSkin = "castle_player") else p
 }
 
 /** Výsledek přidání odměn – pro zobrazení hráči po hře. */
