@@ -236,13 +236,7 @@ private fun LobbyPanel(
                 ) {
                     // Nadpis
                     CampaignTitle("ONLINE", fontSize = (centerW.value * 0.085f).sp)
-                    Text(
-                        "LOBBY",
-                        color         = OnGold,
-                        fontSize      = (centerW.value * 0.115f).sp,
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 8.sp
-                    )
+                    CampaignTitle("LOBBY", fontSize = (centerW.value * 0.115f).sp)
 
                     Spacer(Modifier.height(H * 0.018f))
 
