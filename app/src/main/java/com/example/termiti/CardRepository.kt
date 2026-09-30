@@ -31,7 +31,7 @@ object CardRepository {
     fun init(context: Context) {
         try {
             val json = context.assets.open("cards.json").bufferedReader().readText()
-            _allCards = parseCards(JSONArray(json))
+            _allCards = parseCardsJson(json)
             Log.i("CardRepository", "Načteno ${_allCards.size} karet z cards.json")
         } catch (e: Exception) {
             Log.e("CardRepository", "Nepodařilo se načíst cards.json", e)
@@ -39,6 +39,12 @@ object CardRepository {
     }
 
     // ── Parsování karet ──────────────────────────────────────────────────────
+
+    /**
+     * Karty z obsahu cards.json. Oddělené od [init], aby šly načíst i bez Android
+     * Contextu – JVM testy a simulace s herním enginem (EngineSimulation v src/test).
+     */
+    internal fun parseCardsJson(json: String): List<Card> = parseCards(JSONArray(json))
 
     private fun parseCards(arr: JSONArray): List<Card> = buildList {
         for (i in 0 until arr.length()) {

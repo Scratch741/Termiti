@@ -171,6 +171,24 @@ Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-c
 
 > The standalone game **simulator** mirrors this logic (combo-chain lethal ported) so balance sims match real AI behavior.
 
+## Simulating with the real engine (EngineSimulation)
+
+`app/src/test/java/com/example/termiti/EngineSimulation.kt` plays AI vs AI on the **game's own code**: cards from cards.json via `CardRepository.parseCardsJson`, `applyEffects`, `aiChooseAction`, `PlayerState`, `GameState.checkWinCondition`, `decisionOptions`/`scoreCardForSituation` (AiDecisions.kt) and `PRESET_DECKS` (PresetDecks.kt). Only the turn orchestration is its own - a port of the AI branch of `GameViewModel.finishTurn` without UI, sound, log and delays (`playTurn`, `resolveDecisions`); keep it in step when the turn rules change. Setup = constructed: castle 35, wall 15, target 70, hand 4, max hand 7, random first player, **no passive abilities** (the in-game AI gets 2 random ones).
+
+Skipped in normal test runs. Round robin of all presets (~1000 games/s):
+
+```
+ENGINE_SIM=1 ENGINE_SIM_GAMES=2000 ./gradlew testDebugUnitTest --tests "*EngineSimulation*" --rerun-tasks
+```
+
+Ablation (card groups replaced by a blank card that the AI never plays, measured against the other presets):
+
+```
+ENGINE_SIM_ABLATION="label=id,id;label2=id" ENGINE_SIM_DECK="🌀 AI Chaos" ./gradlew testDebugUnitTest --tests "*EngineSimulation.ablation" --rerun-tasks
+```
+
+Two more gated tests: `cardVariants` (ENGINE_SIM_VARIANTS=1 - card what-ifs defined in code: overrides of cost/effects, a wall-conversion hook for Pohlcení caps, deck edits) and `pohlceniCost` (ENGINE_SIM_POHLCENI=1 - Pohlcení at several costs plus how often each deck plays/discards it). Round robins run the pairs in parallel. Output goes to stdout and `app/build/engine-sim.txt` / `engine-ablation.txt` / `engine-variants.txt` / `engine-pohlceni.txt`. The deckbuilder.html simulator is a separate JavaScript port of the rules and AI - fine for quick what-ifs, but decks tuned in it can overfit its AI (AI Chaos: 90.8 % there, 80.7 % in the engine), so confirm important results here.
+
 ## Related pages
 - [[cards/effects]] — effects and their values
 - [[cards/decisions]] — AI with Decision cards

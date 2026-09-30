@@ -59,6 +59,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    testOptions {
+        // android.util.Log a spol. v JVM testech vrací výchozí hodnoty místo výjimky
+        // "not mocked" – CardRepository loguje chyby parsování.
+        unitTests.isReturnDefaultValues = true
+    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -119,6 +124,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
+    // android.jar má org.json jen jako stub ("Stub!") – skutečná implementace pro JVM testy,
+    // které načítají cards.json přes CardRepository (EngineSimulation).
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
