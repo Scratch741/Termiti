@@ -135,6 +135,12 @@ fun NewBattlefield(
         val lossFx      = LocalFlightOverlay.current
         // Kurzor do oppLossQueue – konzumováno FIFO, jedna položka na jeden odebraný slot.
         var oppLossCursor by remember { mutableIntStateOf(0) }
+        // Index ve frontě → (slot, pozice rubu), odkud ghost té ztráty odletí. Přiděluje
+        // se všem čekajícím ztrátám NARÁZ, dřív než první delay – viz níž.
+        val lossOrigins  = remember { mutableMapOf<Int, Pair<Int, Rect>>() }
+        // Sloty, ze kterých ghost odletěl/odletí. Zmenšení ruky odebere přednostně je,
+        // takže zmizí právě ten rub, nad kterým hořel ghost, a ne jiný náhodný.
+        val lossSlotKeys = remember { mutableListOf<Int>() }
 
         // Ghost ztracené karty se pouští PODLE FRONTY, ne podle zmenšení stripu.
         // Server pošle CARD_LOST hned, ale počet karet v soupeřově ruce se často
@@ -144,14 +150,33 @@ fun NewBattlefield(
         // u úplně jiné akce.
         LaunchedEffect(oppLossQueue.size) {
             // Fronta se resetovala (nová hra) → kurzor taky, jinak by zůstal za koncem
-            if (oppLossQueue.size < oppLossCursor) oppLossCursor = 0
+            if (oppLossQueue.size < oppLossCursor) {
+                oppLossCursor = 0; lossOrigins.clear(); lossSlotKeys.clear()
+            }
+            // Ruby jsou anonymní (neznáme slot konkrétní karty) → každá ztráta dostane
+            // náhodný rub, ale pokaždé JINÝ, a pozice se zachytí hned teď.
+            //
+            // Dřív se rub losoval až těsně před každým ghostem. Spálená knihovna na
+            // soupeře se 2 kartami: ghost 1 vyletěl, pak delay(220) – mezitím zmenšení
+            // ruky (2 → 0) odebralo oba ruby i s pozicemi, takže ghost 2 neměl odkud
+            // vyletět a `continue` ho tiše zahodil. Vizuálně shořela jen 1 karta.
+            // Při víc kartách v ruce zas mohl ghost 2 padnout na stejný rub jako ghost 1.
+            lossSlotKeys.retainAll(aiSlotIds)
+            val busy = lossSlotKeys.toSet() + lossOrigins.values.map { it.first }
+            val free = aiSlotIds.filter { it !in busy && it in aiSlotRects }.shuffled().toMutableList()
+            for (i in oppLossCursor until oppLossQueue.size) {
+                if (i in lossOrigins) continue
+                val key = free.removeFirstOrNull() ?: break
+                lossOrigins[i] = key to aiSlotRects.getValue(key)
+                lossSlotKeys.add(key)
+            }
             while (oppLossCursor < oppLossQueue.size) {
-                val entry = oppLossQueue[oppLossCursor]
+                val idx   = oppLossCursor
+                val entry = oppLossQueue[idx]
                 oppLossCursor++
-                // Ruby jsou anonymní (neznáme slot konkrétní karty) → ghost odletí
-                // z náhodného známého rubu; strip se sesune sám, až dorazí nová
-                // velikost ruky.
-                val rect = aiSlotIds.mapNotNull { aiSlotRects[it] }.randomOrNull() ?: continue
+                // Záloha, kdyby na ztrátu nezbyl volný rub (víc ztrát než karet)
+                val rect = lossOrigins.remove(idx)?.second
+                    ?: aiSlotIds.mapNotNull { aiSlotRects[it] }.randomOrNull() ?: continue
                 // Líc ve velikosti odhalené karty (31×44) na pozici rubu (22×32)
                 val w = rect.width  * (31f / 22f)
                 val h = rect.height * (44f / 32f)
@@ -171,6 +196,9 @@ fun NewBattlefield(
             if (aiSlotIds.size < aiHandSize) {
                 // Líznutí: přidej nové klíče na konec a označ je pro fly-in animaci
                 val added = mutableSetOf<Int>()
+                // Ruka rostla → čekající odebrání z dřívější ztráty už nepřijde (soupeř
+                // si v témže stavu dolízl a velikost vyšla nastejno); nedrž je dál.
+                lossSlotKeys.clear()
                 while (aiSlotIds.size < aiHandSize) {
                     aiSlotIds.add(aiNextSlotId)
                     added.add(aiNextSlotId)
@@ -185,10 +213,13 @@ fun NewBattlefield(
                     // zahození nemá známou pozici (herní logika vybírá kartu náhodně
                     // podle identity, ne podle slotu ve stripu) → NÁHODNÝ slot, jinak
                     // by vizuálně vždy mizela ta úplně poslední (nejvíc vpravo) karta.
+                    // Ztráta z fronty má svůj slot už přidělený (ghost nad ním hořel).
                     val removeAt = revealedAiCardIdx?.takeIf { it < aiSlotIds.size }
+                        ?: lossSlotKeys.firstNotNullOfOrNull { k -> aiSlotIds.indexOf(k).takeIf { it >= 0 } }
                         ?: aiSlotIds.indices.random()
                     val removedKey = aiSlotIds[removeAt]
                     aiSlotIds.removeAt(removeAt)
+                    lossSlotKeys.remove(removedKey)
                     // Rub zmizel bez odhalení + poslední akce = spálení/krádež →
                     // ghost efekt (oranžová/fialová), aby bylo vidět, že soupeř
                     // přišel o kartu z ruky a jak.
