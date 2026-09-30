@@ -59,6 +59,13 @@ import kotlinx.coroutines.launch
 
 // ─── Log Entry Row ─────────────────────────────────────────────────────────────
 
+// Řádek „kdo · co udělal“ nad názvem karty/schopnosti. Dřív 8 sp / 7 sp – v logu
+// (online i offline) byl špatně čitelný. Šířka jména je strop pro dlouhá jména
+// z profilu/kampaně; log má ~360 dp, takže se vejde i s koly vpravo.
+private val LOG_ACTOR_SIZE     = 10.sp
+private val LOG_VERB_SIZE      = 9.5.sp
+private val LOG_ACTOR_MAX_W    = 110.dp
+
 @Composable
 private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
     when (entry) {
@@ -140,16 +147,17 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
                         Text(
                             text       = actorLabel,
                             color      = if (entry.isMe) TealLight else Crimson,
-                            fontSize   = 8.sp,
+                            fontSize   = LOG_ACTOR_SIZE,
                             fontWeight = FontWeight.Bold,
                             maxLines   = 1,
                             overflow   = TextOverflow.Ellipsis,
-                            modifier   = Modifier.widthIn(max = 60.dp)
+                            modifier   = Modifier.widthIn(max = LOG_ACTOR_MAX_W)
                         )
                         Text(
-                            text  = " · $actionLabel",
-                            color = actionColor.copy(alpha = 0.85f),
-                            fontSize = 7.sp
+                            text     = " · $actionLabel",
+                            color    = actionColor.copy(alpha = 0.85f),
+                            fontSize = LOG_VERB_SIZE,
+                            maxLines = 1
                         )
                         Spacer(Modifier.weight(1f))
                         if (entry.turn > 0) {
@@ -247,16 +255,17 @@ private fun LogAbilityRow(entry: LogEntry.AbilityEvent, rowAlpha: Float) {
                 Text(
                     text       = logActorLabel(entry.actorName),
                     color      = ownerColor,
-                    fontSize   = 8.sp,
+                    fontSize   = LOG_ACTOR_SIZE,
                     fontWeight = FontWeight.Bold,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis,
-                    modifier   = Modifier.widthIn(max = 60.dp)
+                    modifier   = Modifier.widthIn(max = LOG_ACTOR_MAX_W)
                 )
                 Text(
                     text     = " · ${LocalStrings.current.logVerbAbility}",
                     color    = ownerColor.copy(alpha = 0.85f),
-                    fontSize = 7.sp
+                    fontSize = LOG_VERB_SIZE,
+                    maxLines = 1
                 )
             }
             Text(
