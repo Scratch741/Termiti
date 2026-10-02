@@ -10,13 +10,17 @@ const MAX_MINES    = 99;
 // Strop hradu – nad každým cílem výhry (constructed 100 + 5 z pasivních schopností),
 // jinak by se stavbou nedalo vyhrát. Stejně jako MAX_CASTLE v PlayerState.kt.
 const MAX_CASTLE   = 150;
+/** Výchozí strop hradeb (náhodné módy). Constructed má nižší – viz GameSession.startGame. */
+const MAX_WALL     = 50;
 
 // ── PlayerState ───────────────────────────────────────────────────────────────
 
-function createPlayerState(deckCards, startCastle = 30) {
+function createPlayerState(deckCards, startCastle = 30, maxWall = MAX_WALL) {
   return {
     castleHP: startCastle,
-    wallHP:   15,
+    wallHP:   Math.min(15, maxWall),
+    /** Strop hradeb – constructed 40, super_random 50 (MAX_WALL). */
+    maxWall,
     resources: { MAGIC: 0, ATTACK: 0, STONES: 0, CHAOS: 0 },
     mines:     { MAGIC: 1, ATTACK: 1, STONES: 1 },
     /** Zbývající kola blokády produkce pro každý typ dolu. */
@@ -189,7 +193,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
 
       case 'BuildWall':
-        self.wallHP = Math.min(50, Math.max(0, self.wallHP + fx.amount));
+        self.wallHP = Math.min(self.maxWall || MAX_WALL, Math.max(0, self.wallHP + fx.amount));
         break;
 
       case 'BuildCastle':

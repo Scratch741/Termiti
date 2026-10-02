@@ -88,6 +88,7 @@ private fun OnlinePlayerState.toPlayerState(oppHandSize: Int = -1): PlayerState 
     return PlayerState(
         castleHP         = castleHP,
         wallHP           = wallHP,
+        maxWall          = maxWall,
         resources        = resMap,
         mines            = mineMap,
         mineBlockedTurns = blockedMap,

@@ -21,9 +21,11 @@
 
 | Mode | Start castle | Win target (build) | Start wall | Wall cap |
 |------|--------------|--------------------|------------|----------|
-| Constructed – own deck offline, online `normal` | 50 (`CONSTRUCTED_START_CASTLE`) | 100 (`CONSTRUCTED_WIN_TARGET`) | 15 | 50 |
-| Random balanced, super-random (offline and online `super_random`) | 30 | 70 | 15 | 50 |
+| Constructed – own deck offline, online `normal` | 50 (`CONSTRUCTED_START_CASTLE`) | 100 (`CONSTRUCTED_WIN_TARGET`) | 15 | 40 (`CONSTRUCTED_MAX_WALL`) |
+| Random balanced, super-random (offline and online `super_random`) | 30 | 70 | 15 | 50 (`MAX_WALL`) |
 | Campaign, roguelike, arena | per opponent / run | per opponent / run | | |
+
+The constructed wall cap went from 50 to 40 later on 2026-10-02 (35 was tried first; measurements in wiki/log.md).
 
 Constructed went from 35 / 70 to 50 / 100 on 2026-10-02 so that a weak draw does not lose the game in two turns: both routes now need 50 (kill 50, build +50). Measured before the change (engine, `EngineSimulation.pacing`): games over by round 12 21.9 % -> 6.3 %, the side behind by >= 15 after round 8 wins 33.0 % -> 39.3 %, average 17.7 -> 21.5 rounds; cost: games decided on castle height 9 % -> 25 %, build presets without big finishers (Kartář, Obránce2) much weaker.
 

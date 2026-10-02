@@ -356,3 +356,19 @@ Nalezeno při testu Prastarého kolosu:
 2. **Probuzení kolosu šlo získat z Průzkumu dolů** (hlášeno jako „rozhodovací karty typu Rekrut“). `DecisionMine` bral z celé databáze všechny karty s `AddMine` bez filtru placeholderů a Probuzení dává 3 doly. Doplněn filtr `!isPlaceholder` (Kotlin i server). Rekrut/Stavitel/Goblin šaman/Chaotický mudrc filtr už měly.
 
 Test `ChainCardDecisionTest` (5 testů nad skutečným `cards.json`). Pravidla v [[cards/decisions]].
+
+## [2026-10-02] rules | Constructed: strop hradeb 35
+
+Strop hradeb v constructed snížen z 50 na 35 (`CONSTRUCTED_MAX_WALL` v `PlayerState.kt`; server `GameSession.startGame` → `createPlayerState(deck, start, maxWall)`, `engine.js` BuildWall bere `self.maxWall`). Náhodné módy, super-random, kampaň, roguelike a aréna zůstávají na 50 (`MAX_WALL`). Server posílá `maxWall` v `myState`/`oppState`, online klient ho zobrazí (`wallHP/maxWall`); starý server ho neposílá → klient použije 50. Hodnocení BuildWall v AI serveru (`_scoreCardForSituation`) počítá s `self.maxWall`. `EngineSimulation` má výchozí strop `CONSTRUCTED_MAX_WALL`, náhodné módy v ní hrají s `MAX_WALL`. Simulátor v `deckbuilder.html` má strop 50 (a cíl 70) dál napevno.
+
+Měření `EngineSimulation.pacing` (1000 her na dvojici, 10 presetů), strop 50 → 35:
+- délka hry beze změny (21,5 → 21,6 kola), výhry boření 51,5 → 51,7 %, stavbou 24,2 → 22,2 %, výškou hradu 24,3 → 26,1 %
+- obraty (vedení ≥ 15 po 8. kole otočí slabší) 39,5 → 36,3 %
+- Obránce 52,1 → 42,7 %, Sabotér 39,1 → 43,6 %, ostatní presety ±2; rozptyl presetů SD 22,1 beze změny (Mágik 80 %, AI Útočník 77 %, Kartář 15 %, Obránce2 15 % zůstávají mimo)
+
+## [2026-10-03] rules | Constructed: strop hradeb 40 (místo 35)
+
+`CONSTRUCTED_MAX_WALL` a server (`GameSession.startGame`) 35 → 40. Měření `EngineSimulation.pacing` (1000 her na dvojici) pro strop 50 / 35 / **40**:
+- obraty (vedení ≥ 15 po 8. kole otočí slabší): 39,5 / 36,3 / **38,3 %**
+- výhry stavbou: 24,2 / 22,2 / **23,4 %**, výškou hradu 24,3 / 26,1 / **25,3 %**, délka beze změny (~21,5 kola)
+- Obránce: 52,1 / 42,7 / **47,9 %**, Sabotér 39,1 / 43,6 / **42,5 %**, ostatní ±2; rozptyl presetů SD 22,1 / 22,1 / **21,9**

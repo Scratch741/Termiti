@@ -101,6 +101,7 @@ data class OnlinePendingResource(
 data class OnlinePlayerState(
     val castleHP         : Int                       = 30,
     val wallHP           : Int                       = 15,   // musí sedět se serverem (engine.js)
+    val maxWall          : Int                       = MAX_WALL,      // strop hradeb (constructed 40); starý server ho neposílá
     val resources        : Map<String, Int>          = emptyMap(),
     val mines            : Map<String, Int>          = emptyMap(),
     val mineBlockedTurns : Map<String, Int>          = emptyMap(),
@@ -1312,6 +1313,7 @@ class OnlineLobbyViewModel(
         return OnlinePlayerState(
             castleHP         = obj.optInt("castleHP",   30),
             wallHP           = obj.optInt("wallHP",      10),
+            maxWall          = obj.optInt("maxWall",     MAX_WALL),
             resources        = resources,
             mines            = mines,
             mineBlockedTurns = mineBlockedTurns,

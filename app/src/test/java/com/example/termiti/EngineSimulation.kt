@@ -20,7 +20,7 @@ import kotlin.random.Random
  * v GameViewModel (pořadí platby, combo, zahození, rozhodovací karty) je
  * potřeba [playTurn] srovnat.
  *
- * Start odpovídá hře s vlastním balíčkem (constructed): hrad 50, hradby 15,
+ * Start odpovídá hře s vlastním balíčkem (constructed): hrad 50, hradby 15 se stropem 40,
  * cíl 100 (CONSTRUCTED_* v PlayerState.kt), ruka 4, max. ruka 7, náhodně kdo začíná.
  * Náhodné módy (randomModeCards / randomModeRanking) hrají jako ve hře 30 / 70. BEZ pasivních schopností –
  * ve hře dostane AI 2 náhodné, tady by jen přidaly šum, který HTML simulátor nemá.
@@ -35,8 +35,8 @@ class EngineSimulation {
     // Pravidla hry – výchozí = constructed ve hře; přepsatelné pro what-if simulace
     /** Cíl výhry stavbou v constructed (ENGINE_SIM_WIN, výchozí CONSTRUCTED_WIN_TARGET). Hrad má strop MAX_CASTLE. */
     private val winTarget = System.getenv("ENGINE_SIM_WIN")?.toIntOrNull() ?: CONSTRUCTED_WIN_TARGET
-    /** Strop hradeb (ENGINE_SIM_MAXWALL, výchozí MAX_WALL = 50). */
-    private val maxWall   = System.getenv("ENGINE_SIM_MAXWALL")?.toIntOrNull() ?: MAX_WALL
+    /** Strop hradeb v constructed (ENGINE_SIM_MAXWALL, výchozí CONSTRUCTED_MAX_WALL). Náhodné módy mají MAX_WALL. */
+    private val maxWall   = System.getenv("ENGINE_SIM_MAXWALL")?.toIntOrNull() ?: CONSTRUCTED_MAX_WALL
     /** Start hradu v constructed (ENGINE_SIM_START, výchozí CONSTRUCTED_START_CASTLE). Náhodné módy mají vlastních 30 / 70. */
     private val startCastleConstructed = System.getenv("ENGINE_SIM_START")?.toIntOrNull() ?: CONSTRUCTED_START_CASTLE
     /** Start hradeb (ENGINE_SIM_STARTWALL, výchozí 15). */
@@ -96,8 +96,8 @@ class EngineSimulation {
     private val blank = Card(id = "BLANK", name = "(prázdná)", description = "", cost = 0,
                              costType = ResourceType.MAGIC, effects = emptyList())
 
-    private fun newSide(counts: Map<String, Int>, startCastle: Int = 35) =
-        PlayerState(castleHP = startCastle, wallHP = minOf(startWall, maxWall), maxWall = maxWall).also { s ->
+    private fun newSide(counts: Map<String, Int>, startCastle: Int = 35, wallCap: Int = maxWall) =
+        PlayerState(castleHP = startCastle, wallHP = minOf(startWall, wallCap), maxWall = wallCap).also { s ->
         s.deck.addAll(deckEdit(counts).flatMap { (id, n) ->
             List(n) { if (id == "BLANK") blank else overrides[id] ?: byId.getValue(id) }
         }.withUniqueIds())
@@ -106,9 +106,10 @@ class EngineSimulation {
     }
 
     private fun playGame(deckA: Map<String, Int>, deckB: Map<String, Int>,
-                         startCastle: Int = startCastleConstructed, target: Int = winTarget): Outcome {
-        val a = newSide(deckA, startCastle)
-        val b = newSide(deckB, startCastle)
+                         startCastle: Int = startCastleConstructed, target: Int = winTarget,
+                         wallCap: Int = maxWall): Outcome {
+        val a = newSide(deckA, startCastle, wallCap)
+        val b = newSide(deckB, startCastle, wallCap)
         val gs = GameState(playerState = a, aiState = b, currentTurn = 1,
                            playerWinTarget = target, aiWinTarget = target)
         val aStarts = Random.nextBoolean()
@@ -640,7 +641,7 @@ class EngineSimulation {
                         val baseB = if (mode == "balanced") buildBalancedDeck(allCards) else baseA
                         // Nahrazuje se náhodná instance karty (vážená počtem kopií)
                         fun slots(d: Map<String, Int>) = d.flatMap { (id, k) -> List(k) { id } }.shuffled().take(copies)
-                        val o = playGame(replace(baseA, slots(baseA), xId), replace(baseB, slots(baseB), yId), startCastle = 30, target = 70)
+                        val o = playGame(replace(baseA, slots(baseA), xId), replace(baseB, slots(baseB), yId), startCastle = 30, target = 70, wallCap = MAX_WALL)
                         p += if (isWinA(o.result)) 1.0 else if (isWinB(o.result)) 0.0 else 0.5
                     }
                     p

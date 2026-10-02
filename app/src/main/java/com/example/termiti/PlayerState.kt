@@ -23,6 +23,8 @@ const val MAX_CASTLE   = 150
  */
 const val CONSTRUCTED_START_CASTLE = 50
 const val CONSTRUCTED_WIN_TARGET   = 100
+/** Strop hradeb v constructed (ostatní módy [MAX_WALL]). Server: GameSession.startGame. */
+const val CONSTRUCTED_MAX_WALL     = 40
 
 /** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */
 data class PendingResource(

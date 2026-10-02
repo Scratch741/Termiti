@@ -965,6 +965,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val constructed      = !randomDeck && !superRandom
         val baseCastle       = if (constructed) CONSTRUCTED_START_CASTLE else 30
         val baseWinTarget    = if (constructed) CONSTRUCTED_WIN_TARGET else 70
+        val baseMaxWall      = if (constructed) CONSTRUCTED_MAX_WALL else MAX_WALL
         val startCastle      = baseCastle + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
         val startWall        = 15 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
         val extraMagic       =       if (PassiveAbility.EXTRA_MAGIC      in actives) 1 else 0
@@ -1005,7 +1006,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val playerState = PlayerState(
             castleHP  = startCastle,
-            wallHP    = startWall
+            wallHP    = startWall,
+            maxWall   = baseMaxWall
         ).also {
             if (extraMagic  > 0) it.resources[ResourceType.MAGIC]  = extraMagic
             if (extraAttack > 0) it.resources[ResourceType.ATTACK] = extraAttack
@@ -1018,7 +1020,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         val aiState = PlayerState(
             castleHP = aiStartCastle,
-            wallHP   = aiStartWall
+            wallHP   = aiStartWall,
+            maxWall  = baseMaxWall
         ).also {
             if (aiExtraMagic  > 0) it.resources[ResourceType.MAGIC]  = aiExtraMagic
             if (aiExtraAttack > 0) it.resources[ResourceType.ATTACK] = aiExtraAttack
