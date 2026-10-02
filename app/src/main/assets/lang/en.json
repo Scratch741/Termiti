@@ -1167,6 +1167,18 @@
     "139": {
       "name": "Absorption of the Walls",
       "desc": "Converts all walls into castle. | **Discard:** castle −8."
+    },
+    "140": {
+      "name": "Ancient Colossus",
+      "desc": "Walls +20, castle +10. Shuffles **Colossus Awakening** into your deck."
+    },
+    "141": {
+      "name": "Colossus Awakening",
+      "desc": "+1 to each mine (Magic, Attack, Stone). Shuffles **Colossus Strike** into your deck."
+    },
+    "142": {
+      "name": "Colossus Strike",
+      "desc": "Castle damage −100."
     }
   },
   "abilities": {

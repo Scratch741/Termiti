@@ -1167,6 +1167,18 @@
     "139": {
       "name": "Pohlcení hradeb",
       "desc": "Převede všechny hradby na hrad. | **Zahození:** hrad −8."
+    },
+    "140": {
+      "name": "Prastarý kolos",
+      "desc": "Hradby +20, hrad +10. Zamíchá **Probuzení kolosu** do tvého balíčku."
+    },
+    "141": {
+      "name": "Probuzení kolosu",
+      "desc": "Důl magie, útoku i kamene +1. Zamíchá **Úder kolosu** do tvého balíčku."
+    },
+    "142": {
+      "name": "Úder kolosu",
+      "desc": "Poškodí hrad −100."
     }
   },
   "abilities": {

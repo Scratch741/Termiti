@@ -328,6 +328,12 @@ const RAW = [
   ['137','Zapomenutá poznámka',1,'MAGIC',0,[ar('MAGIC',2)],    'COMMON', false, undefined, false, [dc(1)]],
   ['138','Podkopané valy',  3,'STONES',0,[bw(7),dr('STONES',3)],'RARE',  false, undefined, false, [bw(-5)]],
   ['139','Pohlcení hradeb', 8,'STONES',0,[cwtc()],             'LEGENDARY', false, undefined, false, [bc(-8)]],
+
+  // ── Rituál kolosu: 3 kroky, každý zamíchá další do vlastního balíčku ─────────
+  // 141 a 142 jsou placeholdery (nesbíratelné) – vkládá je jen předchozí krok.
+  ['140','Prastarý kolos',  20,'STONES',0,[bw(20), bc(10), ad('141',1)], 'LEGENDARY'],
+  ['141','Probuzení kolosu',20,'MAGIC', 0,[am('MAGIC'), am('ATTACK'), am('STONES'), ad('142',1)], 'LEGENDARY', false, 0, true],
+  ['142','Úder kolosu',     20,'ATTACK',0,[ac(100)],             'LEGENDARY', false, 0, true],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────

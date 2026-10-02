@@ -7,6 +7,9 @@ package com.example.termiti
  * nedrží žádný stav — lze volat z libovolného ViewModel nebo testů.
  */
 
+/** Karty, které vkládá rituál kolosu (140 Prastarý kolos → 141 → 142). */
+private val RITUAL_STAGE_IDS = setOf("141", "142")
+
 sealed class AiAction {
     data class Play(val card: Card)    : AiAction()
     data class Discard(val card: Card) : AiAction()
@@ -242,7 +245,9 @@ fun aiChooseAction(
             if (slotsLeft == 0) -4 else 8   // plná ruka → ukradená karta jen shoří
         }
         is CardEffect.BurnCard            -> if (opponent.hand.isEmpty()) -8 else 6
-        is CardEffect.AddCardsToDeck      -> 4
+        // Krok rituálu kolosu (141 → 142 → úder za 100): vysoká hodnota, jinak by AI
+        // kartu za 20 nikdy nezahrála a v plné ruce ji zahodila jako první.
+        is CardEffect.AddCardsToDeck      -> if (fx.cardId in RITUAL_STAGE_IDS) 20 else 4
         is CardEffect.AddToOpponentDeck   -> fx.count * 5  // 3× Bomba = potenciál 15 dmg na hrad
         is CardEffect.TrapOnDraw          -> 0  // pasca se nehraje přímo
         is CardEffect.DrawCard            -> {

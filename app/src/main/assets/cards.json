@@ -4424,5 +4424,87 @@
       }
     ],
     "baseId": "139"
+  },
+  {
+    "id": "140",
+    "name": "Prastarý kolos",
+    "cost": 20,
+    "costType": "STONES",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "BuildWall",
+        "amount": 20
+      },
+      {
+        "type": "BuildCastle",
+        "amount": 10
+      },
+      {
+        "type": "AddCardsToDeck",
+        "cardId": "141",
+        "count": 1
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "discardEffects": [],
+    "baseId": "140"
+  },
+  {
+    "id": "141",
+    "name": "Probuzení kolosu",
+    "cost": 20,
+    "costType": "MAGIC",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AddMine",
+        "resType": "MAGIC",
+        "amount": 1
+      },
+      {
+        "type": "AddMine",
+        "resType": "ATTACK",
+        "amount": 1
+      },
+      {
+        "type": "AddMine",
+        "resType": "STONES",
+        "amount": 1
+      },
+      {
+        "type": "AddCardsToDeck",
+        "cardId": "142",
+        "count": 1
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 0,
+    "isXCost": false,
+    "isPlaceholder": true,
+    "discardEffects": [],
+    "baseId": "141"
+  },
+  {
+    "id": "142",
+    "name": "Úder kolosu",
+    "cost": 20,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackCastle",
+        "amount": 100
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 0,
+    "isXCost": false,
+    "isPlaceholder": true,
+    "discardEffects": [],
+    "baseId": "142"
   }
 ]
