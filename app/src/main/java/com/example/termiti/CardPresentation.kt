@@ -421,15 +421,15 @@ object CardPresentation {
             R.drawable.art_pohlceni_hradeb, "Stavba",
             artScale = 0.80f),
 
-        // Rituál kolosu – art zatím zástupný (art_placeholder_*)
+        // Rituál kolosu
         "140" to CardPres("Hradby +20, hrad +10. Zamíchá **Probuzení kolosu** do tvého balíčku.",
-            R.drawable.art_placeholder_kamen, "Stavba",
+            R.drawable.art_prastary_kolos, "Stavba",
             artScale = 0.80f),
         "141" to CardPres("Důl magie, útoku i kamene +1. Zamíchá **Úder kolosu** do tvého balíčku.",
-            R.drawable.art_placeholder_magie, "Magie",
+            R.drawable.art_probuzeni_kolosu, "Magie",
             artScale = 0.80f),
         "142" to CardPres("Poškodí hrad −100.",
-            R.drawable.art_placeholder_utok, "Útok",
+            R.drawable.art_uder_kolosu, "Útok",
             artScale = 0.80f),
 
         "108" to CardPres("**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu.",
