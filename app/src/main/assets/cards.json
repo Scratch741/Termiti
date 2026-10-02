@@ -2902,7 +2902,7 @@
   },
   {
     "id": "C21",
-    "name": "Replikace",
+    "name": "Bezedný toulec",
     "cost": 1,
     "costType": "CHAOS",
     "isCombo": false,
@@ -2942,15 +2942,15 @@
   },
   {
     "id": "C23",
-    "name": "Klonování",
+    "name": "Nepodařený experiment",
     "cost": 1,
     "costType": "CHAOS",
     "isCombo": false,
     "effects": [
       {
         "type": "AddCardsToDeck",
-        "cardId": "001",
-        "count": 2
+        "cardId": "C34",
+        "count": 3
       }
     ],
     "rarity": "RARE",

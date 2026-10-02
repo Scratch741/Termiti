@@ -518,7 +518,7 @@ object CardPresentation {
         "C22" to CardPres("Přidej 2 kopie 'Chaotický výbuch' do svého balíčku.",
             R.drawable.art_chaos_manufaktura, "Chaos",
             artScale = 0.80f),
-        "C23" to CardPres("Přidej 2 kopie 'Rychlý útok' do svého balíčku.",
+        "C23" to CardPres("Zamíchá **3× Shapeshifter** do tvého balíčku.",
             R.drawable.art_klonovani, "Chaos",
             artScale = 0.75f, artBiasY = -0.20f),
 

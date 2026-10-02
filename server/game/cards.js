@@ -229,9 +229,9 @@ const RAW = [
   ['C20','Prázdná mysl',    7,'CHAOS',0,[bn(3)],               'LEGENDARY'],
 
   // ── Chaos – přidání karet do balíčku ──────────────────────────────────────
-  ['C21','Replikace',       1,'CHAOS',0,[ad('008',3)],         'RARE'],
+  ['C21','Bezedný toulec',  1,'CHAOS',0,[ad('008',3)],         'RARE'],
   ['C22','Chaos manufaktura',2,'CHAOS',0,[ad('C05',2)],        'EPIC'],
-  ['C23','Klonování',       1,'CHAOS',0,[ad('001',2)],         'RARE'],
+  ['C23','Nepodařený experiment',1,'CHAOS',0,[ad('C34',3)],    'RARE'],
 
   // ── Chaos – nové generátory ───────────────────────────────────────────────
   ['C24','Temný rituál',    2,'MAGIC', 1,[ar('CHAOS',5)],       'RARE'],

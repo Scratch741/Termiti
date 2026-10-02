@@ -909,7 +909,7 @@
       "desc": "Destroy 3 random cards from the opponent's hand."
     },
     "C21": {
-      "name": "Replication",
+      "name": "Bottomless Quiver",
       "desc": "Add 3 copies of 'Arrow Rain' to your deck."
     },
     "C22": {
@@ -917,8 +917,8 @@
       "desc": "Add 2 copies of 'Chaos Blast' to your deck."
     },
     "C23": {
-      "name": "Cloning",
-      "desc": "Add 2 copies of 'Quick Strike' to your deck."
+      "name": "Failed Experiment",
+      "desc": "Shuffles **3× Shapeshifter** into your deck."
     },
     "C24": {
       "name": "Dark Ritual",

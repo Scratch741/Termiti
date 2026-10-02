@@ -909,7 +909,7 @@
       "desc": "Znič 3 náhodné karty ze soupeřovy ruky."
     },
     "C21": {
-      "name": "Replikace",
+      "name": "Bezedný toulec",
       "desc": "Přidej 3 kopie 'Déšť šípů' do svého balíčku."
     },
     "C22": {
@@ -917,8 +917,8 @@
       "desc": "Přidej 2 kopie 'Chaotický výbuch' do svého balíčku."
     },
     "C23": {
-      "name": "Klonování",
-      "desc": "Přidej 2 kopie 'Rychlý útok' do svého balíčku."
+      "name": "Nepodařený experiment",
+      "desc": "Zamíchá **3× Shapeshifter** do tvého balíčku."
     },
     "C24": {
       "name": "Temný rituál",
