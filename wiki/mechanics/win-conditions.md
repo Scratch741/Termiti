@@ -17,14 +17,17 @@
 | Higher castle after round 99 (AI) | AI_HP_WINS |
 | Equal castles after round 99 | DRAW |
 
-## Win target (default: 70)
+## Win target and starting castle
 
-```kotlin
-val playerWinTarget: Int = 70
-val aiWinTarget: Int = 70
-```
+| Mode | Start castle | Win target (build) | Start wall | Wall cap |
+|------|--------------|--------------------|------------|----------|
+| Constructed – own deck offline, online `normal` | 50 (`CONSTRUCTED_START_CASTLE`) | 100 (`CONSTRUCTED_WIN_TARGET`) | 15 | 50 |
+| Random balanced, super-random (offline and online `super_random`) | 30 | 70 | 15 | 50 |
+| Campaign, roguelike, arena | per opponent / run | per opponent / run | | |
 
-A passive ability `extra_castle` (if implemented) could raise the target to 75.
+Constructed went from 35 / 70 to 50 / 100 on 2026-10-02 so that a weak draw does not lose the game in two turns: both routes now need 50 (kill 50, build +50). Measured before the change (engine, `EngineSimulation.pacing`): games over by round 12 21.9 % -> 6.3 %, the side behind by >= 15 after round 8 wins 33.0 % -> 39.3 %, average 17.7 -> 21.5 rounds; cost: games decided on castle height 9 % -> 25 %, build presets without big finishers (Kartář, Obránce2) much weaker.
+
+Passive abilities add **+5** to a target: `extra_castle` to its owner (and +5 start castle), `iron_bastion` to the opponent. Offline the two can stack for the AI (+10); online they do not (max +5). The castle cap is `MAX_CASTLE` = 150 (client `PlayerState.kt`, server `engine.js`) – it must stay above every target, otherwise a 105 target would be unreachable.
 
 ## 99-round limit
 

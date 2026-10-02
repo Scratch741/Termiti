@@ -1172,7 +1172,7 @@
   "abilities": {
     "extra_castle": {
       "name": "Pevný hrad",
-      "desc": "+5 startovní hrad, ale vítězný cíl se zvýší ze 70 na 75."
+      "desc": "+5 startovní hrad, ale vítězný cíl se zvýší o 5."
     },
     "extra_wall": {
       "name": "Silné hradby",
@@ -1200,7 +1200,7 @@
     },
     "iron_bastion": {
       "name": "Nedobytná pevnost",
-      "desc": "Soupeř potřebuje dosáhnout 75 bodů hradu k výhře výstavbou (místo 70)."
+      "desc": "Soupeř potřebuje k výhře výstavbou o 5 bodů hradu víc."
     },
     "quick_draw": {
       "name": "Rychlý tah",

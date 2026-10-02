@@ -959,17 +959,19 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
 
-        // Constructed (vlastní balíček): start hradu 35 – vyrovnává asymetrii
-        // kill (−30) vs build (+40), kde destrukce byla numericky blíž.
-        // Náhodné módy zůstávají na 30 (kvótované balíčky, ověřená balance).
-        val baseCastle       = if (!randomDeck && !superRandom) 35 else 30
+        // Constructed (vlastní balíček): start hradu 50 a cíl 100 – k výhře je to 50
+        // bořením i stavbou a hra po slabším dobírání neskončí za 2 kola.
+        // Náhodné módy zůstávají na 30 / 70 (kvótované balíčky, ověřená balance).
+        val constructed      = !randomDeck && !superRandom
+        val baseCastle       = if (constructed) CONSTRUCTED_START_CASTLE else 30
+        val baseWinTarget    = if (constructed) CONSTRUCTED_WIN_TARGET else 70
         val startCastle      = baseCastle + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
         val startWall        = 15 + if (PassiveAbility.EXTRA_WALL       in actives) 5 else 0
         val extraMagic       =       if (PassiveAbility.EXTRA_MAGIC      in actives) 1 else 0
         val extraAttack      =       if (PassiveAbility.EXTRA_ATTACK     in actives) 1 else 0
         val extraStones      =       if (PassiveAbility.EXTRA_STONES     in actives) 1 else 0
         val extraChaos       =       if (PassiveAbility.EXTRA_CHAOS      in actives) 1 else 0
-        val playerWinTarget  =  70 + if (PassiveAbility.EXTRA_CASTLE     in actives) 5 else 0
+        val playerWinTarget  = baseWinTarget + if (PassiveAbility.EXTRA_CASTLE in actives) 5 else 0
         val playerMaxHand    =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in actives) 1 else 0
 
         // ── Pasivní schopnosti AI (2 náhodné, mimo IRON_BASTION který je jen pro hráče) ──
@@ -988,7 +990,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val aiMaxHand        =   7 + if (PassiveAbility.EXTRA_HAND_CARD  in aiPassives) 1 else 0
         // aiWinTarget: EXTRA_CASTLE AI zvýší její cíl o 5 (stejný tradeoff jako u hráče),
         //              IRON_BASTION hráče přidá dalších +5 na cíl AI.
-        val aiWinTarget      = (70 + if (PassiveAbility.EXTRA_CASTLE  in aiPassives) 5 else 0) +
+        val aiWinTarget      = (baseWinTarget + if (PassiveAbility.EXTRA_CASTLE in aiPassives) 5 else 0) +
                                     (if (PassiveAbility.IRON_BASTION  in actives)    5 else 0)
 
         // Posila balíčku z hráčových pasivních schopností
@@ -1135,7 +1137,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou (s filtrem typu)
         for (gcpp in player.gainCastlePerCardPlayed) {
             if (gcpp.cardType == null || gcpp.cardType == card.type) {
-                player.castleHP = (player.castleHP + gcpp.amount).coerceAtMost(100)
+                player.castleHP = (player.castleHP + gcpp.amount).coerceAtMost(MAX_CASTLE)
             }
         }
         val aiCastleHpBefore = ai.castleHP
@@ -1505,7 +1507,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou AI (s filtrem typu)
                         for (gcpp in ai.gainCastlePerCardPlayed) {
                             if (gcpp.cardType == null || gcpp.cardType == aiCard.type) {
-                                ai.castleHP = (ai.castleHP + gcpp.amount).coerceAtMost(100)
+                                ai.castleHP = (ai.castleHP + gcpp.amount).coerceAtMost(MAX_CASTLE)
                             }
                         }
                         // Odeber kartu z ruky PŘED efekty – stejně jako hráčův playCard.

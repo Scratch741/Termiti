@@ -7,7 +7,7 @@ const {
   CARD_MAP, ALL_CARDS, makeInstance, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
-  MAX_RESOURCE,
+  MAX_RESOURCE, MAX_CASTLE,
   createPlayerState, generateResources, drawCards,
   applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp,
   transformShapeShifters
@@ -254,9 +254,13 @@ class GameSession {
     const deckA = buildDeck(this.deckIds.A);
     const deckB = buildDeck(this.deckIds.B);
 
-    // Constructed ('normal'): start hradu 35 – vyrovnává asymetrii kill (−30)
-    // vs build (+40). super_random zůstává na 30 (kvótovaný balíček, ověřená balance).
-    const startCastle = this.mode === 'super_random' ? 30 : 35;
+    // Constructed ('normal'): start hradu 50 a cíl 100 – k výhře je to 50 bořením
+    // i stavbou a hra po slabším dobírání neskončí za 2 kola (stejně jako offline,
+    // CONSTRUCTED_START_CASTLE / CONSTRUCTED_WIN_TARGET v PlayerState.kt).
+    // super_random zůstává na 30 / 70 (kvótovaný balíček, ověřená balance).
+    const constructed = this.mode !== 'super_random';
+    const startCastle = constructed ? 50 : 30;
+    const baseTarget  = constructed ? 100 : 70;
     this.state.A = createPlayerState(deckA, startCastle);
     this.state.B = createPlayerState(deckB, startCastle);
 
@@ -264,14 +268,13 @@ class GameSession {
     applyPassiveAbilities(this.state.A, this.abilities.A);
     applyPassiveAbilities(this.state.B, this.abilities.B);
 
-    // Vítězný cíl hradu:
-    //   extra_castle  → vlastní cíl 75 (výměna za 5 HP navíc při startu)
-    //   iron_bastion  → soupeřův cíl 75 (soupeř musí postavit více)
-    // Obě schopnosti NESTACKUJÍ – max je vždy 75, ne 80.
-    // (Obě jsou popsané jako "cíl 65", nikoli "+5")
+    // Vítězný cíl hradu (základ 100 constructed / 70 super_random):
+    //   extra_castle  → vlastní cíl +5 (výměna za 5 HP navíc při startu)
+    //   iron_bastion  → soupeřův cíl +5 (soupeř musí postavit více)
+    // Obě schopnosti NESTACKUJÍ – navíc je vždy jen +5, ne +10.
     this.winTarget = {
-      A: (this.abilities.A.includes('extra_castle') || this.abilities.B.includes('iron_bastion')) ? 75 : 70,
-      B: (this.abilities.B.includes('extra_castle') || this.abilities.A.includes('iron_bastion')) ? 75 : 70
+      A: baseTarget + ((this.abilities.A.includes('extra_castle') || this.abilities.B.includes('iron_bastion')) ? 5 : 0),
+      B: baseTarget + ((this.abilities.B.includes('extra_castle') || this.abilities.A.includes('iron_bastion')) ? 5 : 0)
     };
 
     // Deal opening hands
@@ -737,7 +740,7 @@ class GameSession {
     // GainCastlePerCardPlayed: přidej HP hradu nastavené předchozí kartou (s filtrem typu)
     for (const gcpp of (self.gainCastlePerCardPlayed || [])) {
       if (!gcpp.cardType || gcpp.cardType === cardType) {
-        self.castleHP = Math.min(100, self.castleHP + gcpp.amount);
+        self.castleHP = Math.min(MAX_CASTLE, self.castleHP + gcpp.amount);
       }
     }
 

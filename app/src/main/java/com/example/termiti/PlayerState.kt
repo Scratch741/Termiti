@@ -9,6 +9,21 @@ const val MAX_RESOURCE = 999
 const val MAX_MINES    = 99
 const val MAX_WALL     = 50
 
+/**
+ * Strop hradu. Musí být nad každým cílem výhry – constructed 100 + 5 z pasivních
+ * schopností (Pevný hrad / Nedobytná pevnost) –, jinak by se stavbou nedalo vyhrát.
+ * V ostatních módech hra skončí dřív, než by na strop došlo.
+ */
+const val MAX_CASTLE   = 150
+
+/**
+ * Constructed (hra s vlastním balíčkem offline, online mód „normal"): start hradu a cíl
+ * výhry. Vyšší čísla než v náhodných módech (30 / 70) prodlužují hru a dávají šanci na
+ * obrat po slabším dobírání – viz wiki/log.md 2026-10-02 (pacing).
+ */
+const val CONSTRUCTED_START_CASTLE = 50
+const val CONSTRUCTED_WIN_TARGET   = 100
+
 /** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */
 data class PendingResource(
     val type     : ResourceType,
@@ -174,7 +189,7 @@ class PlayerState(
                         wallHP -= dmg
                         castleHP -= (e.amount - dmg)
                     }
-                    is CardEffect.BuildCastle  -> castleHP = (castleHP + e.amount).coerceAtMost(100)
+                    is CardEffect.BuildCastle  -> castleHP = (castleHP + e.amount).coerceAtMost(MAX_CASTLE)
                     else -> {}
                 }
                 discardPile.add(card)

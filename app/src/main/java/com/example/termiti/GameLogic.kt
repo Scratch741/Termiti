@@ -44,10 +44,10 @@ fun applyEffects(
             self.wallHP = (self.wallHP + effect.amount).coerceIn(0, self.maxWall)
 
         is CardEffect.BuildCastle   ->
-            self.castleHP = (self.castleHP + effect.amount).coerceAtMost(100)
+            self.castleHP = (self.castleHP + effect.amount).coerceAtMost(MAX_CASTLE)
 
         is CardEffect.ConvertWallToCastle -> {
-            self.castleHP = (self.castleHP + self.wallHP).coerceAtMost(100)
+            self.castleHP = (self.castleHP + self.wallHP).coerceAtMost(MAX_CASTLE)
             self.wallHP = 0
         }
 
@@ -196,7 +196,7 @@ fun applyEffects(
         is CardEffect.StealCastle -> {
             val stolen = minOf(effect.amount, opponent.castleHP.coerceAtLeast(0))
             opponent.castleHP -= stolen
-            self.castleHP = (self.castleHP + stolen).coerceAtMost(100)
+            self.castleHP = (self.castleHP + stolen).coerceAtMost(MAX_CASTLE)
         }
 
         is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay = effect.cardType ?: ""
@@ -272,7 +272,7 @@ fun applyEffects(
             opponent.castleHP -= xValue / effect.divisor
 
         is CardEffect.XScaledBuildCastle ->
-            self.castleHP = (self.castleHP + xValue / effect.divisor).coerceAtMost(100)
+            self.castleHP = (self.castleHP + xValue / effect.divisor).coerceAtMost(MAX_CASTLE)
 
         is CardEffect.XScaledDualResource -> {
             val amount = xValue / effect.divisor

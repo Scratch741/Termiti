@@ -3277,10 +3277,14 @@ function buildSimDeck(presetIdx) {
 // Mapování "typ karty" (CZ string z GRP/DPC/GCP) → costType
 const SIM_CARD_TYPE = {'Útok':'ATTACK','Magie':'MAGIC','Stavba':'STONES','Chaos':'CHAOS','Důl':'MAGIC'};
 
+// Pravidla constructed – stejně jako CONSTRUCTED_START_CASTLE / CONSTRUCTED_WIN_TARGET
+// a MAX_CASTLE v PlayerState.kt.
+const SIM_START_CASTLE = 50, SIM_WIN_TARGET = 100, SIM_MAX_CASTLE = 150;
+
 function createSimState() {
   return {
-    // Constructed startuje s hradem 35 (kill 35 vs build +35); náhodné módy mají 30
-    castleHP: 35, wallHP: 15,
+    // Constructed: hrad 50, cíl 100 (k výhře 50 bořením i stavbou); náhodné módy mají 30 / 70
+    castleHP: SIM_START_CASTLE, wallHP: 15,
     lastPlayed: null,   // poslední zahraná karta (Zrcadlo/Klon)
     res: { MAGIC:0, ATTACK:0, STONES:0, CHAOS:0 },
     mines: { MAGIC:1, ATTACK:1, STONES:1 },
@@ -3351,14 +3355,14 @@ function simFx(fx, me, opp, xv) {
     case 'AP': { const d=Math.min(fx.a,opp.wallHP); opp.wallHP-=d; const ov=fx.a-d; if(ov>0)opp.castleHP-=ov; break; }
     case 'AC': opp.castleHP -= fx.a; break;
     case 'AW': opp.wallHP = Math.max(0, opp.wallHP - fx.a); break;
-    case 'BC': me.castleHP = Math.min(100, me.castleHP + fx.a); break;
+    case 'BC': me.castleHP = Math.min(SIM_MAX_CASTLE, me.castleHP + fx.a); break;
     case 'BW': me.wallHP = Math.max(0, Math.min(50, me.wallHP + fx.a)); break;
     case 'AR': me.res[fx.r] = Math.max(0, Math.min(999, (me.res[fx.r]||0) + fx.a)); break;
     case 'AM': me.mines[fx.r] = (me.mines[fx.r]||0) + fx.a; break;
     case 'SR': { const tk=Math.min(fx.a,opp.res[fx.r]||0); opp.res[fx.r]=(opp.res[fx.r]||0)-tk; me.res[fx.r]=(me.res[fx.r]||0)+tk; break; }
     case 'DR': opp.res[fx.r] = Math.max(0,(opp.res[fx.r]||0)-fx.a); break;
     case 'DC': simDraw(me, fx.a); break;
-    case 'SC': { const st=Math.min(fx.a,Math.max(0,opp.castleHP)); opp.castleHP-=st; me.castleHP=Math.min(100,me.castleHP+st); break; }
+    case 'SC': { const st=Math.min(fx.a,Math.max(0,opp.castleHP)); opp.castleHP-=st; me.castleHP=Math.min(SIM_MAX_CASTLE,me.castleHP+st); break; }
     case 'DM': { const cur=opp.mines[fx.r]||0,min=fx.r==='CHAOS'?0:1; if(cur>min)opp.mines[fx.r]=Math.max(min,cur-fx.a); break; }
     case 'BLK': { opp.mineBlocked[fx.r]=Math.min(5,(opp.mineBlocked[fx.r]||0)+fx.turns); break; }
     case 'StealC': for(let i=0;i<fx.a;i++){if(opp.hand.length&&me.hand.length<7){const idx=Math.floor(Math.random()*opp.hand.length);me.hand.push(opp.hand.splice(idx,1)[0]);}} break;
@@ -3371,14 +3375,14 @@ function simFx(fx, me, opp, xv) {
     case 'CE': if(simCond(fx.c,me,opp)) simFx(fx.e,me,opp,xv); break;
     case 'XAP': { const d=Math.floor(xv/fx.div),wd=Math.min(d,opp.wallHP); opp.wallHP-=wd; const ov=d-wd; if(ov>0)opp.castleHP-=ov; break; }
     case 'XAC': opp.castleHP -= Math.floor(xv/fx.div); break;
-    case 'XBC': me.castleHP = Math.min(100, me.castleHP + Math.floor(xv/fx.div)); break;
+    case 'XBC': me.castleHP = Math.min(SIM_MAX_CASTLE, me.castleHP + Math.floor(xv/fx.div)); break;
     case 'XDR': { const a=Math.floor(xv/fx.div); me.res[fx.rA]=(me.res[fx.rA]||0)+a; me.res[fx.rB]=(me.res[fx.rB]||0)+a; break; }
     case 'SW': { const tmp=[...me.hand]; me.hand.splice(0,me.hand.length,...opp.hand.map(c=>({...c}))); opp.hand.splice(0,opp.hand.length,...tmp.map(c=>({...c}))); break; }
     case 'RH': { const mc=me.hand.length,oc=opp.hand.length; me.discard.push(...me.hand); me.hand.length=0; opp.discard.push(...opp.hand); opp.hand.length=0; simDraw(me,mc); simDraw(opp,oc); break; }
     case 'GRC': { const pool=Object.keys(CARD_EFFECTS_DB).filter(id=>CARD_EFFECTS_DB[id].ct===fx.ct); if(pool.length&&me.hand.length<7){const id=pool[Math.floor(Math.random()*pool.length)];const c=makeSimCard(id);if(c)me.hand.push(c);} break; }
     case 'MHC': { const tgt=fx.opp?opp:me; for(let i=0;i<tgt.hand.length;i++) tgt.hand[i]={...tgt.hand[i],costModifier:(tgt.hand[i].costModifier||0)+fx.d}; break; }
     case 'CM': { const flr=fx.from==='CHAOS'?0:1; const cur=me.mines[fx.from]||0; me.mines[fx.to]=Math.min(10,(me.mines[fx.to]||0)+1); if(cur>flr)me.mines[fx.from]=cur-1; break; }
-    case 'CWC': { me.castleHP = Math.min(100, me.castleHP + me.wallHP); me.wallHP = 0; break; }
+    case 'CWC': { me.castleHP = Math.min(SIM_MAX_CASTLE, me.castleHP + me.wallHP); me.wallHP = 0; break; }
     case 'SS': break; // ShapeShift – no-op; transform happens at start of each turn
     case 'DB': simDraw(me,fx.a); simDraw(opp,fx.a); break;
     case 'DMINE': { const types=['MAGIC','ATTACK','STONES','CHAOS']; const best=types.reduce((b,r)=>(me.mines[r]||0)<(me.mines[b]||0)?r:b,types[0]); me.mines[best]=(me.mines[best]||0)+1; break; }
@@ -3445,7 +3449,7 @@ function simApply(effects, me, opp, xv) {
 }
 
 function simWin(pA, pB) {
-  const aD=pA.castleHP<=0, bD=pB.castleHP<=0, aB=pA.castleHP>=70, bB=pB.castleHP>=70;
+  const aD=pA.castleHP<=0, bD=pB.castleHP<=0, aB=pA.castleHP>=SIM_WIN_TARGET, bB=pB.castleHP>=SIM_WIN_TARGET;
   if(aD&&bD||aB&&bB) return 'draw';
   if(aD) return 'B'; if(bD) return 'A';
   if(aB) return 'A'; if(bB) return 'B';
@@ -3458,7 +3462,7 @@ function simAI(ai, opp, canDiscard) {
   // i v appce – viz AiEngine.canDiscard).
   if (canDiscard === undefined) canDiscard = true;
   const aLH=ai.castleHP<15, aLW=ai.wallHP<5, oLH=opp.castleHP<20;
-  const oCW=opp.castleHP>=50, aCW=ai.castleHP>=50;
+  const oCW=opp.castleHP>=SIM_WIN_TARGET-20, aCW=ai.castleHP>=SIM_WIN_TARGET-20;  // AiEngine: cíl − 20
   const chaos=ai.res.CHAOS||0;
   const bothE=ai.deck.length===0&&opp.deck.length===0;
   const hFull=ai.hand.length>=7;
@@ -3765,7 +3769,7 @@ function simOneGame(deckA, deckB, trackCards) {
         const nccBoost = !!me.ncc;
         if(nccBoost) me.ncc = false;
         for(const g of me.grp) if(!g.ct||SIM_CARD_TYPE[g.ct]===c.costType) me.res[g.r]=Math.min(999,(me.res[g.r]||0)+g.a);
-        for(const g of me.gcp) if(!g.ct||SIM_CARD_TYPE[g.ct]===c.costType) me.castleHP=Math.min(100,me.castleHP+g.a);
+        for(const g of me.gcp) if(!g.ct||SIM_CARD_TYPE[g.ct]===c.costType) me.castleHP=Math.min(SIM_MAX_CASTLE,me.castleHP+g.a);
         if(me.dpc) simDraw(me,1);
         if(me.cnp>0){me.deck.push({...c});simShuffle(me.deck);me.cnp--;}
         me.preCostRes={...me.res};

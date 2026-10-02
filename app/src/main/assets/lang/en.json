@@ -1172,7 +1172,7 @@
   "abilities": {
     "extra_castle": {
       "name": "Sturdy Castle",
-      "desc": "+5 starting castle, but the win target rises from 70 to 75."
+      "desc": "+5 starting castle, but the win target rises by 5."
     },
     "extra_wall": {
       "name": "Strong Walls",
@@ -1200,7 +1200,7 @@
     },
     "iron_bastion": {
       "name": "Iron Bastion",
-      "desc": "The opponent needs 75 castle points to win by building (instead of 70)."
+      "desc": "The opponent needs 5 more castle points to win by building."
     },
     "quick_draw": {
       "name": "Quick Draw",

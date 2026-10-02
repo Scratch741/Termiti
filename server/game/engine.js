@@ -7,6 +7,9 @@ const { ALL_CARDS, makeInstance, shuffle } = require('./cards');
 
 const MAX_RESOURCE = 999;
 const MAX_MINES    = 99;
+// Strop hradu – nad každým cílem výhry (constructed 100 + 5 z pasivních schopností),
+// jinak by se stavbou nedalo vyhrát. Stejně jako MAX_CASTLE v PlayerState.kt.
+const MAX_CASTLE   = 150;
 
 // ── PlayerState ───────────────────────────────────────────────────────────────
 
@@ -107,7 +110,7 @@ function drawCards(state, count, maxHand = 7) {
           state.castleHP -= (e.amount - dmg);
           break;
         }
-        case 'BuildCastle': state.castleHP = Math.min(100, state.castleHP + e.amount); break;
+        case 'BuildCastle': state.castleHP = Math.min(MAX_CASTLE, state.castleHP + e.amount); break;
       }
       state.discardPile.push(card);
       traps.push(card);
@@ -190,11 +193,11 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
         break;
 
       case 'BuildCastle':
-        self.castleHP = Math.min(100, self.castleHP + fx.amount);
+        self.castleHP = Math.min(MAX_CASTLE, self.castleHP + fx.amount);
         break;
 
       case 'ConvertWallToCastle':
-        self.castleHP = Math.min(100, self.castleHP + self.wallHP);
+        self.castleHP = Math.min(MAX_CASTLE, self.castleHP + self.wallHP);
         self.wallHP = 0;
         break;
 
@@ -341,7 +344,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       case 'StealCastle': {
         const stolen = Math.min(fx.amount, Math.max(0, opponent.castleHP));
         opponent.castleHP -= stolen;
-        self.castleHP = Math.min(100, self.castleHP + stolen);
+        self.castleHP = Math.min(MAX_CASTLE, self.castleHP + stolen);
         break;
       }
 
@@ -496,7 +499,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
 
       case 'XScaledBuildCastle': {
         const amount = Math.floor(xValue / (fx.divisor || 2));
-        self.castleHP = Math.min(100, self.castleHP + amount);
+        self.castleHP = Math.min(MAX_CASTLE, self.castleHP + amount);
         break;
       }
 
@@ -614,6 +617,7 @@ function transformShapeShifters(hand, cardPool, onlyNew = false) {
 }
 
 module.exports = {
+  MAX_CASTLE,
   MAX_RESOURCE,
   createPlayerState, generateResources, drawCards,
   checkCondition, deriveCardType, applyEffects,
