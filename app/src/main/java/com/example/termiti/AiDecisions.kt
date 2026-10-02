@@ -148,12 +148,12 @@ internal fun decisionOptions(
     /** Karta pro volbu suroviny (DecisionChooseResource) – ve hře s artem a lokalizací. */
     resourceCard: (ResourceType, Int) -> Card
 ): List<Card> = when (fx) {
-    is CardEffect.DecisionBurnOpponent -> opponent.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
+    is CardEffect.DecisionBurnOpponent -> opponent.deck.filter { !it.isPileJunk }.shuffled().take(fx.picks)
     is CardEffect.DecisionChooseType   -> allCards.filter { it.type == fx.cardType && !it.isPlaceholder }.shuffled().take(fx.picks)
         .map { if (fx.costReduction > 0) it.copy(costModifier = -fx.costReduction) else it }
-    is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPlaceholder }.shuffled().take(fx.picks)
-    is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPlaceholder }.shuffled().take(fx.picks)
-    is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPlaceholder }.take(fx.picks)
+    is CardEffect.DecisionFromDiscard  -> self.discardPile.filter { it.id != excludeId && !it.isPileJunk }.shuffled().take(fx.picks)
+    is CardEffect.DecisionFromDeck     -> self.deck.filter { !it.isPileJunk }.shuffled().take(fx.picks)
+    is CardEffect.DecisionDrawFromDeck -> self.deck.filter { !it.isPileJunk }.take(fx.picks)
     is CardEffect.DecisionMine         -> {
         // Vždy 4 možnosti (1 důl od každého typu). Dedup karet s více AddMine
         // efekty (Trifekta dolů, Velkovýroba…) musí probíhat BĚHEM výběru –
@@ -163,7 +163,7 @@ internal fun decisionOptions(
             ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS
         ).mapNotNull { resType ->
             allCards.filter { card ->
-                card.baseId !in seen &&
+                card.baseId !in seen && !card.isPlaceholder &&
                     card.effects.any { e -> e is CardEffect.AddMine && e.type == resType }
             }.shuffled().firstOrNull()?.also { seen.add(it.baseId) }
         }
@@ -181,7 +181,7 @@ internal fun decisionOptions(
         val candidates = affordable.ifEmpty { pool }
         candidates.maxByOrNull { scoreCardForSituation(it, self, opponent, selfWinTarget) }
     }
-    is CardEffect.PeekAndStealHand      -> opponent.hand.filter { !it.isPlaceholder }
+    is CardEffect.PeekAndStealHand      -> opponent.hand.filter { !it.isPileJunk }
     is CardEffect.DecisionChooseResource -> fx.options.map { opt -> resourceCard(opt.type, opt.amount) }
     else -> emptyList()
 }

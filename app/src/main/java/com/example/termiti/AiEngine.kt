@@ -86,19 +86,19 @@ fun aiChooseAction(
 
                 // Rozhodovací karty bez zásobníku, ze kterého vybírají: nabídka vyjde
                 // prázdná a karta jen zaplatí cenu. Stejný filtr jako v
-                // buildDecisionOptions (placeholdery se nenabízejí).
+                // decisionOptions (pasti a mrtvé karty se nenabízejí – Card.isPileJunk).
                 // Likvidace pálí ze soupeřova BALÍČKU – s prázdným balíčkem nemá co spálit.
-                is CardEffect.DecisionBurnOpponent -> opponent.deck.none { !it.isPlaceholder }
+                is CardEffect.DecisionBurnOpponent -> opponent.deck.none { !it.isPileJunk }
                 // Vzpomínka bere z vlastního odhazovacího balíčku.
-                is CardEffect.DecisionFromDiscard  -> ai.discardPile.none { !it.isPlaceholder }
+                is CardEffect.DecisionFromDiscard  -> ai.discardPile.none { !it.isPileJunk }
                 // Intuice / líz z vlastního balíčku.
                 is CardEffect.DecisionFromDeck,
-                is CardEffect.DecisionDrawFromDeck -> ai.deck.none { !it.isPlaceholder }
+                is CardEffect.DecisionDrawFromDeck -> ai.deck.none { !it.isPileJunk }
 
                 // Krádež i pálení míří do soupeřovy RUKY – prázdná ruka = nic.
                 is CardEffect.StealCard,
                 is CardEffect.BurnCard,
-                is CardEffect.PeekAndStealHand -> opponent.hand.none { !it.isPlaceholder }
+                is CardEffect.PeekAndStealHand -> opponent.hand.none { !it.isPileJunk }
 
                 else -> false
             }

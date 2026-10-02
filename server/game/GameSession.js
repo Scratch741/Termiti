@@ -4,7 +4,7 @@
  * Manages one complete game between two WebSocket clients.
  */
 const {
-  CARD_MAP, ALL_CARDS, makeInstance, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
+  CARD_MAP, ALL_CARDS, isPileJunk, makeInstance, balancedDeck, superBalancedDeck, buildDeckFromIds, shuffle
 } = require('./cards');
 const {
   MAX_RESOURCE, MAX_CASTLE,
@@ -965,7 +965,7 @@ class GameSession {
       case 'DecisionBurnOpponent': {
         // N náhodných karet ze soupeřova balíčku (hráč si vybere, která shoří)
         return [...opp.deck]
-          .filter(c => !c.isPlaceholder)
+          .filter(c => !isPileJunk(c))
           .sort(() => Math.random() - 0.5).slice(0, n);
       }
       case 'DecisionChooseType': {
@@ -981,20 +981,20 @@ class GameSession {
         // Vyloučí právě zahranou kartu – ta sice fyzicky leží v discardu, ale efekt
         // Vzpomínky by měl proběhnout "před" zahozením (hráč si nemůže vzít sám sebe)
         return [...self.discardPile]
-          .filter(c => c.id !== playedCardId && !c.isPlaceholder)
+          .filter(c => c.id !== playedCardId && !isPileJunk(c))
           .sort(() => Math.random() - 0.5)
           .slice(0, n);
       }
       case 'DecisionFromDeck': {
-        // N náhodných karet z vlastního balíčku – bez placeholderů (Bomba/C37 přidaná přes C36)
+        // N náhodných karet z vlastního balíčku – bez pastí a mrtvých karet (Bomba/C37 přidaná přes C36)
         return [...self.deck]
-          .filter(c => !c.isPlaceholder)
+          .filter(c => !isPileJunk(c))
           .sort(() => Math.random() - 0.5).slice(0, n);
       }
       case 'DecisionDrawFromDeck': {
         // Horních N karet z vlastního balíčku (pravý draw – bez shuffle, pořadí balíčku zachováno)
         return self.deck
-          .filter(c => !c.isPlaceholder)
+          .filter(c => !isPileJunk(c))
           .slice(0, n);
       }
       case 'DecisionMine': {
@@ -1006,7 +1006,7 @@ class GameSession {
         return mineTypes
           .map(resType => {
             const pool = ALL_CARDS.filter(c =>
-              !seen.has(c.id) &&
+              !seen.has(c.id) && !c.isPlaceholder &&
               c.effects.some(e => e.type === 'AddMine' && e.resType === resType)
             );
             if (pool.length === 0) return null;
@@ -1044,7 +1044,7 @@ class GameSession {
       }
       case 'PeekAndStealHand': {
         // Zobrazí celou ruku soupeře (bez placeholderů)
-        return opp.hand.filter(c => !c.isPlaceholder);
+        return opp.hand.filter(c => !isPileJunk(c));
       }
       case 'DecisionChooseResource':
         // Žádné karty – možnosti jsou resource options, posílají se zvlášť

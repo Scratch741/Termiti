@@ -351,6 +351,18 @@ const ALL_CARDS = RAW.map(([id, name, cost, costType, isCombo, effects, rarity, 
 
 const CARD_MAP = new Map(ALL_CARDS.map(c => [c.id, c]));
 
+/**
+ * Karta, kterou rozhodnutí nad hromádkou (balíček, odhozené, ruka) nenabízí:
+ * past (Bomba) nebo mrtvá karta bez efektu zahrání (Krysa, Explodovaná bomba).
+ * Nesbíratelné kroky řetězu (Probuzení/Úder kolosu) jsou skutečné karty – nabízejí se.
+ * Nabídky z celé databáze (Rekrut, Průzkum dolů…) dál vylučují každý isPlaceholder.
+ * Zrcadlo Card.isPileJunk v Kotlinu.
+ */
+function isPileJunk(c) {
+  return !!c.isPlaceholder &&
+    (c.effects.length === 0 || c.effects.some(fx => fx.type === 'TrapOnDraw'));
+}
+
 /** Pomocné: resType prvního AddMine efektu karty, nebo null */
 function mineResType(card) {
   const fx = card.effects.find(f => f.type === 'AddMine');
@@ -534,4 +546,4 @@ function shuffle(arr) {
   return arr;
 }
 
-module.exports = { ALL_CARDS, CARD_MAP, randomDeck, balancedDeck, superBalancedDeck, buildDeckFromIds, makeInstance, shuffle, MAX_COPIES };
+module.exports = { ALL_CARDS, CARD_MAP, isPileJunk, randomDeck, balancedDeck, superBalancedDeck, buildDeckFromIds, makeInstance, shuffle, MAX_COPIES };

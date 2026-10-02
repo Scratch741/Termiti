@@ -348,3 +348,11 @@ Karty 140–142 dostaly místo zástupných `art_placeholder_*` vlastní art (o�
 - 142 Úder kolosu → `art_uder_kolosu.png` (kolos3.png)
 
 Upraveno v `CardPresentation.kt` a v mapě artů `deckbuilder.html`.
+
+## [2026-10-02] fix | Rituál kolosu v rozhodnutích
+
+Nalezeno při testu Prastarého kolosu:
+1. **Strategická výstavba nenabídla Probuzení kolosu**, i když leželo nahoře v balíčku. Rozhodnutí nad hromádkou (balíček, odhozené, ruka) vyřazovala každou `isPlaceholder` kartu – a kroky rituálu 141/142 jsou nesbíratelné, tedy placeholdery. Nový `Card.isPileJunk` (server `isPileJunk` v `cards.js`) vyřadí jen pasti (`TrapOnDraw` – Bomba) a mrtvé karty bez efektu zahrání (Krysa, Explodovaná bomba). Použito v `decisionOptions` (Likvidace, Vzpomínka, Intuice, Strategická výstavba, Zákeřný špeh), v kontrole „rozhodnutí nemá z čeho vybírat“ v `AiEngine` a v `GameSession._buildDecisionOptions`.
+2. **Probuzení kolosu šlo získat z Průzkumu dolů** (hlášeno jako „rozhodovací karty typu Rekrut“). `DecisionMine` bral z celé databáze všechny karty s `AddMine` bez filtru placeholderů a Probuzení dává 3 doly. Doplněn filtr `!isPlaceholder` (Kotlin i server). Rekrut/Stavitel/Goblin šaman/Chaotický mudrc filtr už měly.
+
+Test `ChainCardDecisionTest` (5 testů nad skutečným `cards.json`). Pravidla v [[cards/decisions]].

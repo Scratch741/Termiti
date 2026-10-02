@@ -9,6 +9,16 @@
 3. UI shows `DecisionState` overlay (4 options)
 4. Player picks → `resolveDecision(chosen)` → effect applied → turn continues
 
+### Which cards an offer may contain
+Non-collectible cards (`isPlaceholder`) are split by `Card.isPileJunk` (server `isPileJunk` in `cards.js`):
+
+| Offer source | Rule | Effects |
+|---|---|---|
+| Full card pool | never any `isPlaceholder` card | `DecisionChooseType`, `DecisionMine`, `SmartJoker` |
+| A concrete pile (deck, discard, hand) | hide only `isPileJunk` = trap (`TrapOnDraw`, Bomba) or dead card with no play effect (Krysa, Explodovaná bomba) | `DecisionBurnOpponent`, `DecisionFromDiscard`, `DecisionFromDeck`, `DecisionDrawFromDeck`, `PeekAndStealHand` |
+
+Chain steps such as Probuzení kolosu (141) and Úder kolosu (142) are real playable cards once they are in a pile, so pile decisions offer them; full-pool offers must not, otherwise Rekrut or Průzkum dolů could create them out of nothing.
+
 ### Critical implementation note
 If a Decision card also has `DrawPerCardPlayed` or other accumulated draws, they are saved to `decisionPendingDraws` and executed **after** the player's choice inside `resolveDecision()`.
 
@@ -96,3 +106,4 @@ Server handles Decision via:
 - 2026-05-28: Added `DecisionChooseResource` (Alchymistova volba 124)
 - 2026-05-29: `DecisionChooseResource` now renders options as placeholder cards (not buttons); localized titles
 - 2026-09-25: Documented `scoreCardForSituation` after fixing it — conditional effects were scored as a flat 2.0 and lethality was judged per effect, so Magický žolík could withhold the card that wins the game.
+- 2026-10-02: Pile decisions offer chain steps (Probuzení/Úder kolosu) via `isPileJunk`; Průzkum dolů (`DecisionMine`) no longer offers non-collectible cards.

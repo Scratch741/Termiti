@@ -85,9 +85,10 @@ data class Card(
      */
     val costModifier: Int = 0,
     /**
-     * True = karta je pouze gameplay-placeholder (např. "Explodovaná bomba").
-     * Nesmí se zobrazovat v katalogu karet, ani být targetem Decision efektů
-     * (DecisionBurnOpponent, DecisionFromDeck, DecisionFromDiscard).
+     * True = karta je nesbíratelná – vzniká jen efektem jiné karty (Bomba, Krysa,
+     * kroky rituálu kolosu…). Nesmí být v katalogu, v balíčcích ani v nabídkách
+     * z celé databáze karet (Rekrut, Průzkum dolů, Žolík, náhodná karta…).
+     * V konkrétní hromádce (balíček, odhozené, ruka) rozhoduje [isPileJunk].
      */
     val isPlaceholder: Boolean = false,
     /**
@@ -123,6 +124,14 @@ data class Card(
      */
     val effectiveCost: Int get() =
         if (isXCost) 0 else (cost + costModifier).coerceIn(0, 99)
+
+    /**
+     * Karta, kterou rozhodnutí nad hromádkou (balíček, odhozené, ruka) nenabízí:
+     * past (Bomba) nebo mrtvá karta bez efektu zahrání (Krysa, Explodovaná bomba).
+     * Nesbíratelné kroky řetězu (Probuzení/Úder kolosu) jsou skutečné karty – nabízejí se.
+     */
+    val isPileJunk: Boolean get() =
+        isPlaceholder && (effects.isEmpty() || effects.any { it is CardEffect.TrapOnDraw })
 
     /**
      * Base card id stripped of any runtime suffix (clone/stolen/decision copies are
