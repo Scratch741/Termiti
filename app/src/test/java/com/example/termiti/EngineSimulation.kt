@@ -13,15 +13,16 @@ import kotlin.random.Random
  * Z herního kódu se bere: karty (cards.json přes CardRepository), efekty
  * (applyEffects), rozhodování AI (aiChooseAction), stav hráče a lízání
  * (PlayerState), vyhodnocení výhry (GameState), rozhodovací karty
- * (decisionOptions / scoreCardForSituation) a presety (PRESET_DECKS).
+ * (decisionOptions / scoreCardForSituation) a presety (presetDecks).
  *
  * Vlastní je jen orchestrace tahu: port AI větve GameViewModel.finishTurn bez UI,
  * zvuků, logu a pauz. Obě strany hrají jako AI. Při změně pravidel tahu
  * v GameViewModel (pořadí platby, combo, zahození, rozhodovací karty) je
  * potřeba [playTurn] srovnat.
  *
- * Start odpovídá hře s vlastním balíčkem (constructed): hrad 35, hradby 15,
- * cíl 70, ruka 4, max. ruka 7, náhodně kdo začíná. BEZ pasivních schopností –
+ * Start odpovídá hře s vlastním balíčkem (constructed): hrad 50, hradby 15,
+ * cíl 100 (CONSTRUCTED_* v PlayerState.kt), ruka 4, max. ruka 7, náhodně kdo začíná.
+ * Náhodné módy (randomModeCards / randomModeRanking) hrají jako ve hře 30 / 70. BEZ pasivních schopností –
  * ve hře dostane AI 2 náhodné, tady by jen přidaly šum, který HTML simulátor nemá.
  *
  * Normálně se přeskakuje (trvá desítky sekund). Spuštění:
@@ -31,7 +32,15 @@ import kotlin.random.Random
  */
 class EngineSimulation {
 
-    private val winTarget = 70
+    // Pravidla hry – výchozí = constructed ve hře; přepsatelné pro what-if simulace
+    /** Cíl výhry stavbou v constructed (ENGINE_SIM_WIN, výchozí CONSTRUCTED_WIN_TARGET). Hrad má strop MAX_CASTLE. */
+    private val winTarget = System.getenv("ENGINE_SIM_WIN")?.toIntOrNull() ?: CONSTRUCTED_WIN_TARGET
+    /** Strop hradeb (ENGINE_SIM_MAXWALL, výchozí MAX_WALL = 50). */
+    private val maxWall   = System.getenv("ENGINE_SIM_MAXWALL")?.toIntOrNull() ?: MAX_WALL
+    /** Start hradu v constructed (ENGINE_SIM_START, výchozí CONSTRUCTED_START_CASTLE). Náhodné módy mají vlastních 30 / 70. */
+    private val startCastleConstructed = System.getenv("ENGINE_SIM_START")?.toIntOrNull() ?: CONSTRUCTED_START_CASTLE
+    /** Start hradeb (ENGINE_SIM_STARTWALL, výchozí 15). */
+    private val startWall = System.getenv("ENGINE_SIM_STARTWALL")?.toIntOrNull() ?: 15
     private val maxHand   = 7
 
     private val allCards: List<Card> by lazy {
@@ -49,11 +58,17 @@ class EngineSimulation {
     private class Track {
         val playedRound = IntArray(2)
         val discarded = IntArray(2)
+        /** Hrad A, hrad B, hradby A, hradby B na konci každého dokončeného kola. */
+        val castles = mutableListOf<IntArray>()
     }
 
     // ── Háčky pro varianty karet (viz cardVariants) – nastavují se před během, během hry jen čtou ──
-    /** Náhrada karty podle id (jiná cena / efekty). */
+    /** Náhrada karty podle id (jiná cena / efekty). Platí i pro karty vytvořené za hry (AddCardsToDeck…). */
     @Volatile private var overrides: Map<String, Card> = emptyMap()
+        set(value) { field = value; effectivePool = if (value.isEmpty()) null else allCards.map { value[it.id] ?: it } }
+    /** allCards s [overrides] – šablony pro efekty, které vytváří karty (jinak by vznikla původní verze). */
+    @Volatile private var effectivePool: List<Card>? = null
+    private val pool: List<Card> get() = effectivePool ?: allCards
     /**
      * Náhrada ConvertWallToCastle (Pohlcení hradeb). AI kartu boduje jako originál,
      * jen efekt při zahrání je jiný – převod s limitem se ze stávajících efektů
@@ -65,11 +80,24 @@ class EngineSimulation {
     /** Úprava balíčků před hrou (např. výměna karty za jinou ve všech presetech). */
     @Volatile private var deckEdit: (Map<String, Int>) -> Map<String, Int> = { it }
 
+    /**
+     * Presety ze hry + volitelně balíček navíc pro testování (ENGINE_SIM_EXTRA_DECK="Název=id:n,id:n,…").
+     * Balíček navíc hraje round robin spolu s presety, ve hře se nemění nic.
+     */
+    private val presetDecks: List<Pair<String, Map<String, Int>>> by lazy {
+        val extra = System.getenv("ENGINE_SIM_EXTRA_DECK")?.let { spec ->
+            val (name, list) = spec.split('=', limit = 2)
+            listOf(name.trim() to list.split(',').associate { it.trim().split(':').let { (id, k) -> id to k.toInt() } })
+        } ?: emptyList()
+        PRESET_DECKS + extra
+    }
+
     /** Prázdná karta pro ablaci – AI ji nezahraje (nic nedělá), jen zabírá místo v balíčku. */
     private val blank = Card(id = "BLANK", name = "(prázdná)", description = "", cost = 0,
                              costType = ResourceType.MAGIC, effects = emptyList())
 
-    private fun newSide(counts: Map<String, Int>, startCastle: Int = 35) = PlayerState(castleHP = startCastle, wallHP = 15).also { s ->
+    private fun newSide(counts: Map<String, Int>, startCastle: Int = 35) =
+        PlayerState(castleHP = startCastle, wallHP = minOf(startWall, maxWall), maxWall = maxWall).also { s ->
         s.deck.addAll(deckEdit(counts).flatMap { (id, n) ->
             List(n) { if (id == "BLANK") blank else overrides[id] ?: byId.getValue(id) }
         }.withUniqueIds())
@@ -77,11 +105,12 @@ class EngineSimulation {
         s.drawCards(4)
     }
 
-    private fun playGame(deckA: Map<String, Int>, deckB: Map<String, Int>, startCastle: Int = 35): Outcome {
+    private fun playGame(deckA: Map<String, Int>, deckB: Map<String, Int>,
+                         startCastle: Int = startCastleConstructed, target: Int = winTarget): Outcome {
         val a = newSide(deckA, startCastle)
         val b = newSide(deckB, startCastle)
         val gs = GameState(playerState = a, aiState = b, currentTurn = 1,
-                           playerWinTarget = winTarget, aiWinTarget = winTarget)
+                           playerWinTarget = target, aiWinTarget = target)
         val aStarts = Random.nextBoolean()
         var aTurn = aStarts
         var first = true
@@ -123,7 +152,7 @@ class EngineSimulation {
             me.nextCardIsCombo = false
 
             // Kolo končí tahem druhého hráče
-            if (aTurn != aStarts) gs.currentTurn++
+            if (aTurn != aStarts) { gs.currentTurn++; track.castles.add(intArrayOf(a.castleHP, b.castleHP, a.wallHP, b.wallHP)) }
             if (a.hand.isEmpty() && a.deck.isEmpty() && b.hand.isEmpty() && b.deck.isEmpty())
                 return Outcome(gs.resolveByHp(), gs.currentTurn, null, track)
             gs.checkWinCondition()?.let { return Outcome(it, gs.currentTurn, null, track) }
@@ -144,7 +173,7 @@ class EngineSimulation {
         var discardUsed = false
         while (true) {
             transformShapeShifters(me.hand, allCards, onlyNew = true)
-            val choice = pending ?: aiChooseAction(me, opp, winTarget, winTarget,
+            val choice = pending ?: aiChooseAction(me, opp, gs.playerWinTarget, gs.aiWinTarget,
                                                    canDiscard = !discardUsed, playerWaited = oppWaited)
             pending = null
             when (choice) {
@@ -186,12 +215,12 @@ class EngineSimulation {
                     val convert = wallConvert
                     if (convert != null && card.effects.any { it is CardEffect.ConvertWallToCastle }) convert(me)
                     else applyEffects(
-                        card.effects, me, opp, allCards, xValue = xValue,
+                        card.effects, me, opp, pool, xValue = xValue,
                         onDrawCard = { state, count -> repeat(count) { state.drawCards(1, maxHand) } },
                         maxHandSize = maxHand,
                         opponentMaxHandSize = maxHand
                     )
-                    resolveDecisions(card, me, opp)
+                    resolveDecisions(card, me, opp, gs.playerWinTarget)
                     me.preCostResources = null
                     if (card.costType == ResourceType.ATTACK) me.attackCardsThisTurn++
                     val prevLast = me.lastPlayedCard
@@ -207,7 +236,7 @@ class EngineSimulation {
 
                     gs.checkWinCondition()?.let { return TurnEnd(result = it, finisher = card.name) }
                     if (card.isCombo || comboBoost) {
-                        pending = aiChooseAction(me, opp, winTarget, winTarget,
+                        pending = aiChooseAction(me, opp, gs.playerWinTarget, gs.aiWinTarget,
                                                  canDiscard = !discardUsed, playerWaited = oppWaited)
                     } else {
                         return TurnEnd()
@@ -224,7 +253,7 @@ class EngineSimulation {
                     me.hand.remove(card)
                     me.discardPile.add(card)
                     if (card.discardEffects.isNotEmpty()) {
-                        applyEffects(card.discardEffects, me, opp, allCards,
+                        applyEffects(card.discardEffects, me, opp, pool,
                                      maxHandSize = maxHand, opponentMaxHandSize = maxHand)
                         gs.checkWinCondition()?.let { return TurnEnd(result = it, finisher = card.name + " (zahození)") }
                     }
@@ -235,7 +264,7 @@ class EngineSimulation {
     }
 
     /** AI volba u rozhodovacích karet – port stejného bloku z GameViewModel.finishTurn. */
-    private fun resolveDecisions(card: Card, me: PlayerState, opp: PlayerState) {
+    private fun resolveDecisions(card: Card, me: PlayerState, opp: PlayerState, target: Int) {
         fun isDecision(fx: CardEffect) =
             fx is CardEffect.DecisionBurnOpponent || fx is CardEffect.DecisionChooseType  ||
             fx is CardEffect.DecisionFromDiscard  || fx is CardEffect.DecisionFromDeck    ||
@@ -248,7 +277,7 @@ class EngineSimulation {
             else -> emptyList()
         }
         fun options(fx: CardEffect, excludeId: String? = null) =
-            decisionOptions(fx, me, opp, allCards, excludeId, winTarget) { _, _ -> error("DecisionChooseResource AI nevolá") }
+            decisionOptions(fx, me, opp, allCards, excludeId, target) { _, _ -> error("DecisionChooseResource AI nevolá") }
         for (fx in card.effects + copied) when (fx) {
             is CardEffect.DecisionBurnOpponent -> options(fx).firstOrNull()?.let { opp.deck.remove(it); opp.discardPile.add(it) }
             is CardEffect.DecisionChooseType   -> options(fx).firstOrNull()?.let { chosen ->
@@ -268,10 +297,10 @@ class EngineSimulation {
             is CardEffect.DecisionMine -> options(fx).minByOrNull { c ->
                 me.mines[c.effects.filterIsInstance<CardEffect.AddMine>().firstOrNull()?.type] ?: 0
             }?.let { if (me.hand.size < maxHand) me.hand.add(it.copy(id = "${it.id}_${java.util.UUID.randomUUID()}", isGenerated = true)) }
-            is CardEffect.SmartJoker -> options(fx).maxByOrNull { scoreCardForSituation(it, me, opp, winTarget) }?.let {
+            is CardEffect.SmartJoker -> options(fx).maxByOrNull { scoreCardForSituation(it, me, opp, target) }?.let {
                 if (me.hand.size < maxHand) me.hand.add(it.copy(id = "${it.id}_${java.util.UUID.randomUUID()}", isGenerated = true))
             }
-            is CardEffect.PeekAndStealHand -> options(fx).maxByOrNull { scoreCardForSituation(it, me, opp, winTarget) }?.let {
+            is CardEffect.PeekAndStealHand -> options(fx).maxByOrNull { scoreCardForSituation(it, me, opp, target) }?.let {
                 opp.hand.remove(it)
                 if (me.hand.size < maxHand) me.hand.add(it.copy(id = "${it.id}_stolen_${java.util.UUID.randomUUID()}", isGenerated = true))
             }
@@ -322,8 +351,8 @@ class EngineSimulation {
         assumeTrue("Ablace se spouští jen s ENGINE_SIM_ABLATION", spec != null)
         val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 1000
         val deckName = System.getenv("ENGINE_SIM_DECK") ?: "🌀 AI Chaos"
-        val base = PRESET_DECKS.first { it.first == deckName }.second
-        val others = PRESET_DECKS.filter { it.first != deckName }
+        val base = presetDecks.first { it.first == deckName }.second
+        val others = presetDecks.filter { it.first != deckName }
         fun avg(deck: Map<String, Int>): Double = others.sumOf { (_, opp) ->
             var pts = 0.0
             repeat(n) {
@@ -361,7 +390,7 @@ class EngineSimulation {
 
     /** Průměrná úspěšnost každého presetu proti ostatním; dvojice běží paralelně. */
     private fun roundRobinAvg(n: Int): Map<String, Double> {
-        val presets = PRESET_DECKS
+        val presets = presetDecks
         val pairs = presets.indices.flatMap { i -> (i + 1 until presets.size).map { j -> i to j } }
         val pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
         try {
@@ -452,7 +481,7 @@ class EngineSimulation {
         }
         overrides = emptyMap(); wallConvert = null; deckEdit = { it }
 
-        val decks = PRESET_DECKS.map { it.first }
+        val decks = presetDecks.map { it.first }
         val base = results.getValue("výchozí")
         val out = StringBuilder()
         out.appendLine("Herní engine – varianty karet, round robin ${decks.size} presetů, $n her na dvojici " +
@@ -482,8 +511,8 @@ class EngineSimulation {
         val k4 = byId.getValue("100").copy(effects = listOf(CardEffect.AttackPlayer(5), CardEffect.StealCastle(4)))
         val runs = listOf(8, 11, 13, 15, 16).map { "cena $it" to listOf(p.copy(cost = it)) } +
                    listOf(15, 16).map { "cena $it + Krvavý úder krádež 4" to listOf(p.copy(cost = it), k4) }
-        val decks = PRESET_DECKS.map { it.first }
-        val users = PRESET_DECKS.filter { (it.second["139"] ?: 0) > 0 }.map { it.first }
+        val decks = presetDecks.map { it.first }
+        val users = presetDecks.filter { (it.second["139"] ?: 0) > 0 }.map { it.first }
         val t0 = System.currentTimeMillis()
         var base: Map<String, Double>? = null
         val rows = mutableListOf<String>()
@@ -611,7 +640,7 @@ class EngineSimulation {
                         val baseB = if (mode == "balanced") buildBalancedDeck(allCards) else baseA
                         // Nahrazuje se náhodná instance karty (vážená počtem kopií)
                         fun slots(d: Map<String, Int>) = d.flatMap { (id, k) -> List(k) { id } }.shuffled().take(copies)
-                        val o = playGame(replace(baseA, slots(baseA), xId), replace(baseB, slots(baseB), yId), startCastle = 30)
+                        val o = playGame(replace(baseA, slots(baseA), xId), replace(baseB, slots(baseB), yId), startCastle = 30, target = 70)
                         p += if (isWinA(o.result)) 1.0 else if (isWinB(o.result)) 0.0 else 0.5
                     }
                     p
@@ -712,8 +741,10 @@ class EngineSimulation {
             }
         }
         val tracked = (variants.first().second.map { it.id } + swapsOf(variants.first().first).map { it.second }).distinct()
-        val decks = PRESET_DECKS.map { it.first }
-        val users = PRESET_DECKS.filter { d ->
+        val decks = presetDecks.map { it.first }
+        // ENGINE_SIM_TRACK (např. krok rituálu, který v žádném balíčku není) → sleduj jen balíček navíc
+        val users = if (System.getenv("ENGINE_SIM_TRACK") != null) presetDecks.drop(PRESET_DECKS.size).map { it.first }
+        else presetDecks.filter { d ->
             tracked.any { (d.second[it] ?: 0) > 0 } ||
                 swapsOf(variants.first().first).any { (from, _) -> (d.second[from] ?: 0) > 0 }
         }.map { it.first }
@@ -730,7 +761,7 @@ class EngineSimulation {
                     if (n == 0) c else (c - from) + (to to (c[to] ?: 0) + n)
                 }
             }
-            trackId = tracked.singleOrNull()
+            trackId = System.getenv("ENGINE_SIM_TRACK") ?: tracked.singleOrNull()
             val r = roundRobinAvg(n)
             val b = base ?: r.also { base = it }
             rows += String.format("%-22s", name) + decks.joinToString("") { dk ->
@@ -752,18 +783,130 @@ class EngineSimulation {
         rows.forEach(out::appendLine)
         if (trackRows.isNotEmpty()) {
             out.appendLine()
-            out.appendLine("Jak často balíčky kartu ${tracked.single()} zahrají:")
+            out.appendLine("Jak často balíčky kartu ${System.getenv("ENGINE_SIM_TRACK") ?: tracked.single()} zahrají:")
             trackRows.forEach(out::appendLine)
         }
         println(out)
         File("build").takeIf { it.isDirectory }?.let { File(it, "engine-costs.txt").writeText(out.toString()) }
     }
 
+    /**
+     * Tempo hry: jak rychle a jak „najednou" se hry rozhodují. Round robin presetů s aktuálními
+     * pravidly (ENGINE_SIM_WIN / MAXWALL / START / STARTWALL). Spuštění: ENGINE_SIM_PACING=1.
+     *  - délka: kola, podíl her do 12. kola
+     *  - přejetí: kolik vítězi chybělo k výhře 2 kola před koncem (min(cíl − jeho hrad, hrad soupeře));
+     *    velká hodnota = rozhodl jeden nápor
+     *  - obraty: hry, kde po 8. kole jeden vede o ≥ 15 (rozdíl vzdáleností k výhře) – jak často vyhraje druhý
+     */
+    @Test
+    fun pacing() {
+        assumeTrue("Spouští se jen s ENGINE_SIM_PACING=1", System.getenv("ENGINE_SIM_PACING") != null)
+        val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 1000
+        val presets = presetDecks
+        val pairs = presets.indices.flatMap { i -> (i + 1 until presets.size).map { j -> i to j } }
+        class Acc {
+            val rounds = mutableListOf<Int>()
+            var decided = 0; var burstSum = 0.0; var burst25 = 0; var burstN = 0
+            var lead = 0; var comeback = 0
+            var destroy = 0; var build = 0; var hp = 0
+            // Stavy (hráč na konci kola od 15. kola): kolik z nich přežije útok za 100 (hrad + hradby > 100)
+            var late = 0; var survive100 = 0; var survive60 = 0
+            val deckPts = DoubleArray(presets.size)
+        }
+        fun dist(own: Int, other: Int) = minOf(winTarget - own, other).coerceAtLeast(0)
+        val pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+        val t0 = System.currentTimeMillis()
+        val parts = try {
+            pairs.map { (i, j) ->
+                pool.submit<Acc> {
+                    val acc = Acc()
+                    repeat(n) {
+                        val o = playGame(presets[i].second, presets[j].second)
+                        val aWon = isWinA(o.result); val bWon = isWinB(o.result)
+                        acc.deckPts[i] += if (aWon) 1.0 else if (bWon) 0.0 else 0.5
+                        acc.deckPts[j] += if (bWon) 1.0 else if (aWon) 0.0 else 0.5
+                        val h = o.track.castles
+                        for (k in 14 until h.size) for (side in 0..1) {
+                            val hp = h[k][side] + h[k][2 + side]
+                            acc.late++
+                            if (hp > 100) acc.survive100++
+                            if (hp > 60) acc.survive60++
+                        }
+                        acc.rounds += h.size + 1
+                        when (o.result) {
+                            GameResult.AI_CASTLE_DESTROYED, GameResult.PLAYER_CASTLE_DESTROYED -> acc.destroy++
+                            GameResult.PLAYER_CASTLE_BUILT, GameResult.AI_CASTLE_BUILT         -> acc.build++
+                            else -> if (aWon || bWon) acc.hp++
+                        }
+                        val decisive = o.result in setOf(GameResult.AI_CASTLE_DESTROYED, GameResult.PLAYER_CASTLE_DESTROYED,
+                                                         GameResult.PLAYER_CASTLE_BUILT, GameResult.AI_CASTLE_BUILT)
+                        if (decisive) {
+                            acc.decided++
+                            // 2 kola před koncem: poslední záznam je konec předposledního dokončeného kola
+                            val k = h.size - 2
+                            val (cw, cl) = when {
+                                k < 0 -> 35 to 35  // hra skončila do 2. kola – vzdálenost ze startu
+                                aWon  -> h[k][0] to h[k][1]
+                                else  -> h[k][1] to h[k][0]
+                            }
+                            val d = if (k < 0) dist(startCastleConstructed, startCastleConstructed) else dist(cw, cl)
+                            acc.burstSum += d; acc.burstN++
+                            if (d >= 25) acc.burst25++
+                        }
+                        if (h.size >= 8 && (aWon || bWon)) {
+                            val (ca, cb) = h[7][0] to h[7][1]
+                            val da = dist(ca, cb); val db = dist(cb, ca)
+                            if (kotlin.math.abs(da - db) >= 15) {
+                                acc.lead++
+                                val aLeads = da < db
+                                if ((aLeads && bWon) || (!aLeads && aWon)) acc.comeback++
+                            }
+                        }
+                    }
+                    acc
+                }
+            }.map { it.get() }
+        } finally { pool.shutdown() }
+        val all = Acc()
+        for (a in parts) {
+            all.rounds += a.rounds; all.decided += a.decided; all.burstSum += a.burstSum; all.burst25 += a.burst25
+            all.burstN += a.burstN; all.lead += a.lead; all.comeback += a.comeback
+            all.destroy += a.destroy; all.build += a.build; all.hp += a.hp
+            all.late += a.late; all.survive100 += a.survive100; all.survive60 += a.survive60
+            for (k in presets.indices) all.deckPts[k] += a.deckPts[k]
+        }
+        val r = all.rounds.sorted()
+        val games = r.size
+        val winRates = presets.indices.map { 100 * all.deckPts[it] / (n * (presets.size - 1)) }
+        val mean = winRates.average()
+        val sd = Math.sqrt(winRates.sumOf { (it - mean) * (it - mean) } / winRates.size)
+        val wins = (all.destroy + all.build + all.hp).coerceAtLeast(1)
+        val out = StringBuilder()
+        out.appendLine("Tempo hry – cíl $winTarget, strop hradeb $maxWall, start hradu $startCastleConstructed, " +
+                       "hradby $startWall; $n her na dvojici, ${(System.currentTimeMillis() - t0) / 1000} s")
+        out.appendLine(String.format("  délka: průměr %.1f kola, medián %d, 10 %% her do %d. kola, do 12. kola %.1f %% her",
+            r.average(), r[games / 2], r[games / 10], 100.0 * r.count { it <= 12 } / games))
+        out.appendLine(String.format("  přejetí: vítězi 2 kola před koncem chybělo v průměru %.1f, ≥ 25 v %.1f %% rozhodnutých her",
+            all.burstSum / all.burstN.coerceAtLeast(1), 100.0 * all.burst25 / all.burstN.coerceAtLeast(1)))
+        out.appendLine(String.format("  obraty: po 8. kole vede jeden o ≥ 15 v %.1f %% her, z nich vyhraje ten druhý %.1f %%",
+            100.0 * all.lead / games, 100.0 * all.comeback / all.lead.coerceAtLeast(1)))
+        out.appendLine(String.format("  od 15. kola: hrad + hradby > 100 v %.1f %% stavů hráče, > 60 v %.1f %% (%d stavů)",
+            100.0 * all.survive100 / all.late.coerceAtLeast(1), 100.0 * all.survive60 / all.late.coerceAtLeast(1), all.late))
+        out.appendLine(String.format("  výhry: boření %.1f %%, stavba %.1f %%, výška hradu %.1f %%",
+            100.0 * all.destroy / wins, 100.0 * all.build / wins, 100.0 * all.hp / wins))
+        out.appendLine(String.format("  balance: rozptyl úspěšnosti presetů SD %.1f (min %.1f, max %.1f)",
+            sd, winRates.min(), winRates.max()))
+        out.appendLine("  presety: " + presets.indices.joinToString(", ") {
+            "${presets[it].first.substringAfter(' ')} ${"%.1f".format(winRates[it])}" })
+        println(out)
+        File("build").takeIf { it.isDirectory }?.let { File(it, "engine-pacing.txt").writeText(out.toString()) }
+    }
+
     @Test
     fun roundRobinOfPresets() {
         assumeTrue("Simulace se spouští jen s ENGINE_SIM=1", System.getenv("ENGINE_SIM") != null)
         val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 400
-        val presets = PRESET_DECKS
+        val presets = presetDecks
         val stats = presets.associate { it.first to DeckStats() }
         val pair = Array(presets.size) { DoubleArray(presets.size) }
         val t0 = System.currentTimeMillis()
@@ -781,7 +924,8 @@ class EngineSimulation {
         val ms = System.currentTimeMillis() - t0
 
         val out = StringBuilder()
-        out.appendLine("Herní engine, round robin ${presets.size} presetů, $n her na dvojici (${ms / 1000} s)")
+        out.appendLine("Herní engine, round robin ${presets.size} presetů, $n her na dvojici (${ms / 1000} s), " +
+                       "cíl $winTarget, strop hradeb $maxWall, start hradu $startCastleConstructed")
         out.appendLine()
         out.appendLine(String.format("%-16s %6s  %8s %8s %6s  %6s", "balíček", "výhry", "boření", "stavba", "hrad", "kola"))
         for ((name, _) in presets.sortedByDescending { stats.getValue(it.first).points }) {
