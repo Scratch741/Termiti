@@ -69,7 +69,7 @@ class EngineSimulation {
     private val blank = Card(id = "BLANK", name = "(prázdná)", description = "", cost = 0,
                              costType = ResourceType.MAGIC, effects = emptyList())
 
-    private fun newSide(counts: Map<String, Int>) = PlayerState(castleHP = 35, wallHP = 15).also { s ->
+    private fun newSide(counts: Map<String, Int>, startCastle: Int = 35) = PlayerState(castleHP = startCastle, wallHP = 15).also { s ->
         s.deck.addAll(deckEdit(counts).flatMap { (id, n) ->
             List(n) { if (id == "BLANK") blank else overrides[id] ?: byId.getValue(id) }
         }.withUniqueIds())
@@ -77,9 +77,9 @@ class EngineSimulation {
         s.drawCards(4)
     }
 
-    private fun playGame(deckA: Map<String, Int>, deckB: Map<String, Int>): Outcome {
-        val a = newSide(deckA)
-        val b = newSide(deckB)
+    private fun playGame(deckA: Map<String, Int>, deckB: Map<String, Int>, startCastle: Int = 35): Outcome {
+        val a = newSide(deckA, startCastle)
+        val b = newSide(deckB, startCastle)
         val gs = GameState(playerState = a, aiState = b, currentTurn = 1,
                            playerWinTarget = winTarget, aiWinTarget = winTarget)
         val aStarts = Random.nextBoolean()
@@ -526,11 +526,144 @@ class EngineSimulation {
      *   ENGINE_SIM_COSTS="100=6:AP7+SC4"       – cena i efekty
      *   ENGINE_SIM_COSTS="C25=nocombo"          – bez combo (combo = naopak přidat)
      *   ENGINE_SIM_COSTS="C25>C26"              – výměna karty ve všech presetech (i s dalšími změnami)
+     *   ENGINE_SIM_COSTS="C23=fx:DECK.C34.3"    – karty do balíčku (OPP.<id>.<n> = do soupeřova)
      * Kódy efektů viz [fxFromCode]. U karet z první varianty se sleduje, jak často je
      * balíčky zahrají. Volitelně ENGINE_SIM_GAMES (výchozí 2000).
      */
+    /** Karta ze zápisu "id" nebo "id=cena:combo:efekty" (viz costVariants); "BLANK" = prázdná. */
+    private fun cardFromSpec(spec: String): Card {
+        if (spec == "BLANK") return blank
+        val (id, value) = spec.split('=', limit = 2).let { it[0].trim() to it.getOrNull(1) }
+        var card = byId.getValue(id)
+        for (part in (value ?: "").split(':').map { it.trim() }.filter { it.isNotEmpty() && it != "fx" }) {
+            card = when {
+                part.toIntOrNull() != null -> card.copy(cost = part.toInt())
+                part == "combo"            -> card.copy(isCombo = true)
+                part == "nocombo"          -> card.copy(isCombo = false)
+                else                       -> card.copy(effects = part.split('+').map(::fxFromCode))
+            }
+        }
+        return card
+    }
+
+    /**
+     * Hodnota karty v NÁHODNÝCH módech (párové měření). Pro každou hru se vygeneruje
+     * balíček daného módu a [copies] jeho karet se nahradí: hráč A dostane kartu X,
+     * hráč B kartu Y, jinak mají oba stejný balíček (supernáhodný ho ve hře taky sdílí).
+     * Výhry A − 50 % ≈ o kolik je X lepší než Y.
+     *
+     *   ENGINE_SIM_RANDOM="popis=X|Y;popis2=X|Y"   X, Y = "id", "id=cena:combo:efekty" nebo "BLANK"
+     *   ENGINE_SIM_MODE=super (výchozí, 50 karet sdílených, hrad 30) | balanced (30 karet, každý vlastní, hrad 30)
+     *   ENGINE_SIM_GAMES (výchozí 20000 her na řádek), ENGINE_SIM_COPIES (výchozí 2)
+     */
+    @Test
+    fun randomModeCards() {
+        val spec = System.getenv("ENGINE_SIM_RANDOM")
+        assumeTrue("Spouští se jen s ENGINE_SIM_RANDOM", spec != null)
+        val n      = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 20000
+        val copies = System.getenv("ENGINE_SIM_COPIES")?.toIntOrNull() ?: 2
+        val mode   = System.getenv("ENGINE_SIM_MODE") ?: "super"
+        val out = StringBuilder()
+        out.appendLine("Herní engine – hodnota karty v módu '$mode', $n her na řádek, $copies kopie nahrazeny " +
+                       "(hrad 30). Výhry hráče s kartou X proti hráči s kartou Y, jinak stejný balíček.")
+        val t0 = System.currentTimeMillis()
+        for (row in spec!!.split(';').filter { it.isNotBlank() }) {
+            val (label, pair) = row.split('=', limit = 2)
+            val (xs, ys) = pair.split('|').map { it.trim() }
+            // Upravená karta dostane syntetické id, ať X a Y mohou být tatáž karta s jinými
+            // efekty. Neupravená drží skutečné id – Shapeshifter se pozná podle "C34_".
+            val xId = if ('=' in xs) "XSIM" else xs
+            val yId = if ('=' in ys) "YSIM" else ys
+            overrides = buildMap {
+                if (xId == "XSIM") put(xId, cardFromSpec(xs).copy(id = xId))
+                if (yId == "YSIM") put(yId, cardFromSpec(ys).copy(id = yId))
+            }
+            val pct = pairedWinPct(xId, yId, n, mode, copies)
+            val se = 100 * Math.sqrt(0.25 / n)
+            out.appendLine(String.format("  %-46s X %5.1f %%  (%+.1f ± %.1f)", label, pct, pct - 50, 2 * se))
+            println("hotovo: $label (${(System.currentTimeMillis() - t0) / 1000} s)")
+        }
+        overrides = emptyMap()
+        println(out)
+        File("build").takeIf { it.isDirectory }?.let { File(it, "engine-random.txt").writeText(out.toString()) }
+    }
+
+    /**
+     * Párové měření v náhodném módu: v každé hře se vygeneruje balíček módu a [copies]
+     * náhodných karet se nahradí – hráč A dostane [xId], hráč B [yId], jinak stejný balíček
+     * (super = sdílený, balanced = každý vlastní). Vrátí výhry A v %. Paralelně.
+     */
+    private fun pairedWinPct(xId: String, yId: String, n: Int, mode: String, copies: Int): Double {
+        fun replace(deck: Map<String, Int>, slots: List<String>, with: String): Map<String, Int> {
+            val d = deck.toMutableMap()
+            for (id in slots) { val k = d.getValue(id); if (k == 1) d.remove(id) else d[id] = k - 1 }
+            d[with] = (d[with] ?: 0) + copies
+            return d
+        }
+        val threads = Runtime.getRuntime().availableProcessors()
+        val pool = Executors.newFixedThreadPool(threads)
+        val pts = try {
+            (0 until threads).map { t ->
+                pool.submit<Double> {
+                    var p = 0.0
+                    repeat(n / threads + if (t < n % threads) 1 else 0) {
+                        val baseA = if (mode == "balanced") buildBalancedDeck(allCards) else buildSuperRandomDeck(allCards)
+                        val baseB = if (mode == "balanced") buildBalancedDeck(allCards) else baseA
+                        // Nahrazuje se náhodná instance karty (vážená počtem kopií)
+                        fun slots(d: Map<String, Int>) = d.flatMap { (id, k) -> List(k) { id } }.shuffled().take(copies)
+                        val o = playGame(replace(baseA, slots(baseA), xId), replace(baseB, slots(baseB), yId), startCastle = 30)
+                        p += if (isWinA(o.result)) 1.0 else if (isWinB(o.result)) 0.0 else 0.5
+                    }
+                    p
+                }
+            }.sumOf { it.get() }
+        } finally { pool.shutdown() }
+        return 100 * pts / n
+    }
+
+    /**
+     * Žebříček všech karet v náhodném módu: každá karta (2 kopie) proti prázdné kartě,
+     * párově jako [randomModeCards]. Průměrná karta (Shapeshifter) vychází kolem +8.
+     *   ENGINE_SIM_RANK=1, ENGINE_SIM_MODE=super|balanced, ENGINE_SIM_GAMES (výchozí 4000 na kartu)
+     * Výsledek: app/build/engine-rank-<mode>.txt (seřazeno) a .csv
+     */
+    @Test
+    fun randomModeRanking() {
+        assumeTrue("Spouští se jen s ENGINE_SIM_RANK=1", System.getenv("ENGINE_SIM_RANK") != null)
+        val n    = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 4000
+        val mode = System.getenv("ENGINE_SIM_MODE") ?: "super"
+        val cards = allCards.filter { !it.isPlaceholder && !it.id.startsWith("T") }
+        val ci = 2 * 100 * Math.sqrt(0.25 / n)
+        val t0 = System.currentTimeMillis()
+        val rows = cards.mapIndexed { i, c ->
+            val v = pairedWinPct(c.id, "BLANK", n, mode, 2) - 50
+            if (i % 10 == 9) println("hotovo ${i + 1}/${cards.size} (${(System.currentTimeMillis() - t0) / 1000} s)")
+            c to v
+        }.sortedByDescending { it.second }
+        val out = StringBuilder()
+        out.appendLine("Herní engine – žebříček karet v módu '$mode': 2 kopie karty proti 2 prázdným, $n her na kartu, " +
+                       "±${"%.1f".format(ci)} (95 %). ${(System.currentTimeMillis() - t0) / 1000} s.")
+        rows.forEachIndexed { i, (c, v) ->
+            out.appendLine(String.format("%3d. %-4s %-24s %-6s %2d %-9s %+6.1f", i + 1, c.id, c.name,
+                c.costType.name.take(6), c.cost, c.rarity.name, v))
+        }
+        println(out)
+        File("build").takeIf { it.isDirectory }?.let { dir ->
+            File(dir, "engine-rank-$mode.txt").writeText(out.toString())
+            File(dir, "engine-rank-$mode.csv").writeText("id;name;costType;cost;rarity;value\n" +
+                rows.joinToString("\n") { (c, v) -> "${c.id};${c.name};${c.costType};${c.cost};${c.rarity};${"%.2f".format(v)}" })
+        }
+    }
+
     /** Krátké kódy efektů pro ENGINE_SIM_COSTS (stejné zkratky jako v deckbuilder.html). */
     private fun fxFromCode(code: String): CardEffect {
+        // Karty do balíčku: DECK.<id>.<počet> (vlastní), OPP.<id>.<počet> (soupeřův)
+        if (code.startsWith("DECK.") || code.startsWith("OPP.")) {
+            val (kind, id, n) = code.split('.')
+            require(id in byId) { "Karta $id neexistuje" }
+            return if (kind == "DECK") CardEffect.AddCardsToDeck(id, n.toInt())
+                   else CardEffect.AddToOpponentDeck(id, n.toInt())
+        }
         val t = code.takeWhile { it.isLetter() }
         val a = code.drop(t.length).toInt()
         return when (t) {
@@ -578,7 +711,7 @@ class EngineSimulation {
                 card
             }
         }
-        val tracked = variants.first().second.map { it.id } + swapsOf(variants.first().first).map { it.second }
+        val tracked = (variants.first().second.map { it.id } + swapsOf(variants.first().first).map { it.second }).distinct()
         val decks = PRESET_DECKS.map { it.first }
         val users = PRESET_DECKS.filter { d ->
             tracked.any { (d.second[it] ?: 0) > 0 } ||
