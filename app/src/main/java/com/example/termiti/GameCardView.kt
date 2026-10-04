@@ -866,18 +866,8 @@ private fun CardViewTextured(
                 contentAlignment = Alignment.Center
             ) { if (progress > 0.35f) Image(painterResource(R.drawable.cross_icon), contentDescription = null, modifier = Modifier.size((12 + progress * 16).dp)) }
         } else if (discardMode) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-                    .background(DiscardRed.copy(alpha = 0.35f)),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                Box(
-                    Modifier.padding(4.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(DiscardRed.copy(alpha = 0.7f))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) { Image(painterResource(R.drawable.cross_icon), contentDescription = null, modifier = Modifier.size(8.dp)) }
-            }
+            // Jen červený nádech – křížek kreslí volající (mulligan ho má uprostřed karty)
+            Box(Modifier.fillMaxSize().background(DiscardRed.copy(alpha = 0.35f)))
         }
     }
 }

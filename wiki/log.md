@@ -372,3 +372,7 @@ Měření `EngineSimulation.pacing` (1000 her na dvojici, 10 presetů), strop 50
 - obraty (vedení ≥ 15 po 8. kole otočí slabší): 39,5 / 36,3 / **38,3 %**
 - výhry stavbou: 24,2 / 22,2 / **23,4 %**, výškou hradu 24,3 / 26,1 / **25,3 %**, délka beze změny (~21,5 kola)
 - Obránce: 52,1 / 42,7 / **47,9 %**, Sabotér 39,1 / 43,6 / **42,5 %**, ostatní ±2; rozptyl presetů SD 22,1 / 22,1 / **21,9**
+
+## [2026-10-03] ui | Mulligan bez malého křížku v rohu
+
+`CardView` v `discardMode` už nekreslí malý odznak s křížkem vpravo nahoře, jen červený nádech. Jediný volající s `discardMode = true` je mulligan, který má vlastní velký křížek uprostřed karty – vybraná karta tak měla křížky dva.
