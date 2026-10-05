@@ -528,3 +528,33 @@ Ostatní presety se hýbou o 0–3 body (nejvíc Mágik a AI Chaos, +3 až +5 u 
 Karta 142: `ac(100)` → `ap(70)` (`cards.js`, `CardPresentation.kt`, cs/en; `cards.json`, `card_data.json` a `EMBEDDED_CARDS` přegenerovány). Úder teď jde přes hradby – soupeř s hradbami 40 a hradem 50 přežije s 20 body hradu, takže stavět obranu proti rituálu má smysl. Dřív byl úder jistá výhra bez odpovědi (mimo hradby, víc než strop hradu).
 
 Round robin po změně (1000 her na dvojici): Kolos 68,9 → 64,6 % (Úder dokončuje 38 → 27 % jeho výher), AI Obránce 78,6 → 77,1 % (Úder 17 → 6 % výher), Mágik 65,5 %, AI Útočník 63,6 %, AI Chaos 61,0 %; ostatní beze změny v rámci šumu.
+
+## [2026-10-06] ui | Potvrzení před nahráním šablony
+
+Výběr šablony v Tvorbě balíčku se nejdřív zeptá (`PresetConfirmOverlay`: „Použít šablonu? Šablona „X“ přepíše všechny karty v balíčku „Y“.“, Zrušit / Použít). Do prázdného balíčku se šablona nahraje rovnou. Nové texty `dbPresetConfirmTitle`, `dbPresetConfirmMsg`, `dbPresetConfirmYes`.
+
+## [2026-10-06] sim | Podíl rychlých výher v round robinu
+
+`EngineSimulation.roundRobinOfPresets` vypisuje navíc podíl her, které balíček vyhraje do 10. a do 12. kola. AI Obránce 5,4 % / 18,0 %, AI Útočník 4,8 % / 14,7 %, ostatní presety do 1 % / do 4 %. Podnět: hráč hlásil výhru AI Obránce v 9. kole constructed.
+
+## [2026-10-06] ui | Tvorba balíčku: bez tlačítka „Aktivní balíček“
+
+Tlačítko „Nastavit aktivní / ✓ Aktivní balíček“ odstraněno. Upravovaný balíček se stává aktivním sám, jakmile má 30 karet (`LaunchedEffect(editingIdx, editingDeck.isValid)` v `DeckBuilderScreen`) – po výběru hotového balíčku i po doplnění poslední karty nebo nahrání šablony. Nedokončený balíček aktivní balíček nemění. Pod seznamem zůstávají Šablony a Vymazat; označení „aktivní“ je ve výběru balíčku. Texty `dbActiveDeck` / `dbSetActive` zůstaly nepoužité.
+
+## [2026-10-06] ui | Počet karet u „Složení balíčku“
+
+Počet karet se přesunul z hlavičky panelu balíčku do nadpisu statistik: „SLOŽENÍ BALÍČKU  X/30“ – zeleně při 30 kartách, jinak červeně (dřív zlatě při neúplném balíčku). Hlavička teď nese jen název balíčku s ikonou a přejmenování.
+
+## [2026-10-06] ui | Tvorba balíčku: bez spodního řádku, Šablony v hlavičce
+
+Spodní řádek tlačítek pod seznamem karet zrušen – seznam jde až ke spodnímu okraji. Tlačítko Šablony je vpravo v hlavičce panelu balíčku. Tlačítko Vymazat odstraněno (`GameViewModel.clearDeck` zůstává nepoužité); balíček se vyprázdní odebíráním karet nebo přepíše šablonou. Název balíčku v hlavičce už nemá `weight` (dělil se o místo s mezerou a zkracoval se), jen `widthIn(max = 170.dp)`.
+
+## [2026-10-06] ui | Tvorba balíčku: širší název balíčku, hledání u zámku
+
+Tlačítko s názvem balíčku má minimální šířku 150dp (max 190dp). Ve spodní liště katalogu se hledání přesunulo doprava k zámku a číslu strany a je o něco širší (110 → 130dp); volné místo je mezi chipy ceny a hledáním.
+
+## [2026-10-06] feat | Doplnění rozdělaného balíčku, constructed s nedokončeným balíčkem
+
+- **`completeDeck()`** (`DeckGenerator.kt`): doplní balíček na 30 karet, stávající karty nechá. Drží poměr surovin, který v balíčku už je (kartu za chaos přidá jen tam, kde nějaká je), vybírá váženě s předností ceně 2–4, jen z vlastněných kopií, bez X-karet, pastí a nesbíratelných. Test `CompleteDeckTest`.
+- **Odchod z Tvorby balíčku s 1–29 kartami** (tlačítko Zpět): dotaz „Balíček není kompletní“ s volbami Zůstat / Odejít / Doplnit. Doplnit zavolá `GameViewModel.autoCompleteDeck` a zůstane v editoru. `ChoiceOverlay` nahradil `PresetConfirmOverlay` (sdílí ho i potvrzení šablony). Nové texty `dbIncomplete*`.
+- **Constructed s nedokončeným aktivním balíčkem** (`createInitialState`): hráčův balíček se pro hru doplní přes `completeDeck` (dřív čistě náhodnými vlastněnými kartami) a soupeř dostane šablonu jako vždy (dřív dostal při nedokončeném balíčku náhodný vyvážený balíček `balancedDeck()`). Uložený balíček se nemění.

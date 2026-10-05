@@ -194,6 +194,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
 
     var showPresets    by remember { mutableStateOf(false) }
     var showDeckPicker by remember { mutableStateOf(false) }
+    /** Šablona čekající na potvrzení (přepsala by neprázdný balíček). */
+    var pendingPreset  by remember { mutableStateOf<Int?>(null) }
+    /** Dotaz při odchodu s rozdělaným balíčkem (1–29 karet). */
+    var showIncomplete by remember { mutableStateOf(false) }
+    val requestBack = {
+        if (editingDeck.totalCards in 1..29) showIncomplete = true else onBack()
+    }
 
     val filteredCards = remember(filterRes, filterUnlocked, searchQuery, filterCost, profile) {
         viewModel.allCards
@@ -214,6 +221,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             .sortedWith(compareBy({ it.cost }, { it.costType.ordinal }, { it.displayName }))
     }
 
+    // Upravovaný balíček se stává aktivním (hraje se s ním), jakmile má 30 karet –
+    // po výběru hotového balíčku i po doplnění poslední karty. Samostatné tlačítko
+    // „Nastavit aktivní" proto není potřeba.
+    LaunchedEffect(editingIdx, editingDeck.isValid) {
+        if (editingDeck.isValid && editingIdx != activeDeckIdx) viewModel.setActiveDeck(editingIdx)
+    }
+
     Box(Modifier.fillMaxSize()) {
         // Hnědá kůže z bg_plain (stejná rodina jako menu a profil). Zvětšení odsune
         // kamenný rám textury za okraj obrazovky – obsah jde až do kraje.
@@ -230,7 +244,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 ResourceTabBar(
                     filterRes   = filterRes,
                     onResFilter = { filterRes = if (filterRes == it) null else it },
-                    onBack      = onBack
+                    onBack      = requestBack
                 )
                 SectionSeparator()
 
@@ -307,16 +321,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     editingDeck = editingDeck,
                     deckIconRes = deckIconRes(editingDeck, viewModel.allCards),
                     onPickDeck  = { showDeckPicker = true },
+                    onShowPresets = { showPresets = true },
                     onRename    = { viewModel.renameDeck(editingIdx, it) }
                 )
                 SectionSeparator()
                 DeckPanel(
                     deck            = editingDeck,
                     allCards        = viewModel.allCards,
-                    isActive        = editingIdx == activeDeckIdx,
-                    onShowPresets   = { showPresets = true },
-                    onClear         = { viewModel.clearDeck(editingIdx) },
-                    onSetActive     = { viewModel.setActiveDeck(editingIdx) },
                     onRemove        = { cardId ->
                         val c = editingDeck.cardCounts[cardId] ?: 0
                         if (c > 0) viewModel.setCardCount(editingIdx, cardId, c - 1)
@@ -395,8 +406,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 editingIdx = editingIdx,
                 activeIdx  = activeDeckIdx,
                 onPick     = { idx ->
-                    editingIdx = idx
-                    if (decks[idx].isValid) viewModel.setActiveDeck(idx)
+                    editingIdx = idx          // aktivním se stane sám, je-li hotový (viz LaunchedEffect)
                     showDeckPicker = false
                 },
                 onDismiss  = { showDeckPicker = false }
@@ -407,8 +417,40 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
         if (showPresets) {
             PresetOverlay(
                 presets   = viewModel.presetTemplates.map { it.first },
-                onPick    = { viewModel.loadPreset(editingIdx, it); showPresets = false },
+                onPick    = {
+                    showPresets = false
+                    // Prázdný balíček není co přepsat → rovnou; jinak se nejdřív zeptej
+                    if (editingDeck.totalCards == 0) viewModel.loadPreset(editingIdx, it) else pendingPreset = it
+                },
                 onDismiss = { showPresets = false }
+            )
+        }
+        pendingPreset?.let { idx ->
+            val s = LocalStrings.current
+            ChoiceOverlay(
+                title     = s.dbPresetConfirmTitle,
+                message   = s.dbPresetConfirmMsg.format(deckTitle(viewModel.presetTemplates[idx].first), deckTitle(editingDeck.name)),
+                onDismiss = { pendingPreset = null },
+                choices   = listOf(
+                    Choice(s.cancel, TextMuted) { pendingPreset = null },
+                    Choice(s.dbPresetConfirmYes, Gold) { viewModel.loadPreset(editingIdx, idx); pendingPreset = null }
+                )
+            )
+        }
+
+        // ── Odchod s rozdělaným balíčkem ──────────────────────────────────────
+        if (showIncomplete) {
+            val s = LocalStrings.current
+            ChoiceOverlay(
+                title     = s.dbIncompleteTitle,
+                message   = s.dbIncompleteMsg.format(deckTitle(editingDeck.name), editingDeck.totalCards),
+                onDismiss = { showIncomplete = false },
+                choices   = listOf(
+                    Choice(s.dbIncompleteStay, TextMuted) { showIncomplete = false },
+                    Choice(s.dbIncompleteLeave, AttackRed.copy(alpha = 0.85f)) { showIncomplete = false; onBack() },
+                    // Doplní a zůstane v editoru, ať hráč vidí, co přibylo
+                    Choice(s.dbIncompleteFill, Gold) { viewModel.autoCompleteDeck(editingIdx); showIncomplete = false }
+                )
             )
         }
 
@@ -454,17 +496,12 @@ private fun TopBar(
     editingDeck: Deck,
     @DrawableRes deckIconRes: Int,
     onPickDeck: () -> Unit,
+    onShowPresets: () -> Unit,
     onRename: (String) -> Unit
 ) {
     var isEditingName  by remember(editingDeck.id) { mutableStateOf(false) }
     var nameInput      by remember(editingDeck.name) { mutableStateOf(editingDeck.name) }
     val focusRequester = remember { FocusRequester() }
-
-    val validColor = when {
-        editingDeck.isValid         -> HpGreen
-        editingDeck.totalCards > 30 -> AttackRed
-        else                        -> Gold.copy(alpha = 0.7f)
-    }
 
     Row(
         Modifier.fillMaxWidth().height(TOP_BAR_HEIGHT).background(DbBar.copy(alpha = 0.55f))
@@ -509,7 +546,7 @@ private fun TopBar(
             // Ikona převládající suroviny + název; klik otevře výběr balíčku
             Box(
                 Modifier
-                    .weight(1f, fill = false)
+                    .widthIn(min = 150.dp, max = 190.dp)   // bez weight: jinak by se o místo dělil s mezerou před Šablonami
                     .height(28.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -551,13 +588,14 @@ private fun TopBar(
         }
 
         Spacer(Modifier.weight(1f))
-
-        // Počet karet
-        Text(
-            "${editingDeck.totalCards} / 30",
-            color      = validColor,
-            fontSize   = 11.sp,
-            fontWeight = FontWeight.Bold
+        PlainButton(
+            text      = LocalStrings.current.dbTemplates,
+            modifier  = Modifier.width(84.dp).height(28.dp),
+            textColor = Gold.copy(alpha = 0.9f),
+            fontSize  = 9.sp,
+            paddingH  = 4.dp,
+            paddingV  = 0.dp,
+            onClick   = onShowPresets
         )
     }
 }
@@ -845,7 +883,8 @@ private fun CatalogBottomBar(
         (0..7).forEach { cost ->
             CostChip(label = if (cost == 7) "7+" else "$cost", active = filterCost == cost, width = 27.dp) { onCostFilter(cost) }
         }
-        Spacer(Modifier.width(8.dp))
+        // Vlevo skupina cen, vpravo hledání + zámek + strana; volné místo je mezi nimi
+        Spacer(Modifier.weight(1f))
         BasicTextField(
             value           = searchQuery,
             onValueChange   = onSearchChange,
@@ -853,7 +892,7 @@ private fun CatalogBottomBar(
             textStyle       = TextStyle(color = TextPrimary, fontSize = 10.sp),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             modifier        = Modifier
-                .width(110.dp)
+                .width(130.dp)
                 .clip(RoundedCornerShape(5.dp))
                 .background(Color.White.copy(alpha = 0.06f))
                 .border(
@@ -883,7 +922,7 @@ private fun CatalogBottomBar(
                 onClick   = { onSearchChange("") }
             )
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(4.dp))
         IconChip(R.drawable.lock_icon, filterUnlocked, size = 27.dp, onClick = onUnlocked)
         Text(
             "$page / $pageCount",
@@ -976,6 +1015,50 @@ private fun DeckPickerOverlay(
                 paddingV  = 0.dp,
                 onClick   = onDismiss
             )
+        }
+    }
+}
+
+// ─── Dotaz s volbami ──────────────────────────────────────────────────────────
+private class Choice(val label: String, val color: Color, val onClick: () -> Unit)
+
+/** Překryv s nadpisem, větou a řadou tlačítek (potvrzení šablony, odchod s rozdělaným balíčkem). */
+@Composable
+private fun ChoiceOverlay(title: String, message: String, onDismiss: () -> Unit, choices: List<Choice>) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.82f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            CampaignTitle(title, fontSize = 24.sp)
+            Text(
+                message,
+                color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(max = 380.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                choices.forEach { c ->
+                    PlainButton(
+                        text      = c.label,
+                        modifier  = Modifier.width(120.dp).height(34.dp),
+                        textColor = c.color,
+                        fontSize  = 11.sp,
+                        paddingH  = 6.dp,
+                        paddingV  = 0.dp,
+                        onClick   = c.onClick
+                    )
+                }
+            }
         }
     }
 }
@@ -1773,10 +1856,6 @@ internal fun DeckCountStepper(
 private fun DeckPanel(
     deck: Deck,
     allCards: List<Card>,
-    isActive: Boolean,
-    onShowPresets: () -> Unit,
-    onClear: () -> Unit,
-    onSetActive: () -> Unit,
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1870,42 +1949,6 @@ private fun DeckPanel(
             item(key = "bottom_pad") { Spacer(Modifier.height(4.dp)) }
         }
 
-        // Akce – vždy viditelné pod seznamem
-        SectionSeparator()
-        Row(
-            Modifier.fillMaxWidth().height(32.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            PlainButton(
-                text      = s.dbTemplates,
-                modifier  = Modifier.weight(1f).fillMaxHeight(),
-                textColor = Gold.copy(alpha = 0.9f),
-                fontSize  = 9.sp,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-                onClick   = onShowPresets
-            )
-            PlainButton(
-                text      = s.deckClear,
-                modifier  = Modifier.weight(1f).fillMaxHeight(),
-                textColor = AttackRed.copy(alpha = 0.8f),
-                fontSize  = 9.sp,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-                onClick   = onClear
-            )
-            PlainButton(
-                text      = if (isActive) s.dbActiveDeck else s.dbSetActive,
-                modifier  = Modifier.weight(1.5f).fillMaxHeight(),
-                textColor = if (isActive || deck.isValid) TealLight else TextMuted,
-                fontSize  = 9.sp,
-                enabled   = !isActive && deck.isValid,
-                selected  = isActive,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-                onClick   = onSetActive
-            )
-        }
         }
     }
 }
@@ -2164,7 +2207,21 @@ private fun DeckStats(deck: Deck, deckCards: List<Card>, modifier: Modifier = Mo
     val total = deck.totalCards.coerceAtLeast(1).toFloat()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        StatsHeader(LocalStrings.current.dbComposition)
+        // Nadpis + počet karet: zelený = hotový balíček (30), červený = chybí nebo přebývá
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            StatsHeader(LocalStrings.current.dbComposition)
+            Text(
+                "${deck.totalCards}/30",
+                color      = if (deck.isValid) HpGreen else AttackRed,
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1
+            )
+        }
         // 2×2: ikona + velké číslo, pod tím proužek = podíl na balíčku
         ResourceType.entries.chunked(2).forEach { row ->
             Row(

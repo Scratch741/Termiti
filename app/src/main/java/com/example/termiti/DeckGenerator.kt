@@ -158,3 +158,49 @@ fun buildSuperRandomDeck(allCards: List<Card>): Map<String, Int> = buildDeck(
         // COMMON: bez stropu
     )
 )
+
+// ─── Doplnění rozdělaného balíčku ─────────────────────────────────────────────
+
+/**
+ * Doplní rozdělaný balíček na [target] karet a stávající karty nechá být.
+ *
+ * Drží poměr surovin, který v balíčku už je (prázdný balíček → magie / útok / kámen
+ * rovným dílem): přidává vždy kartu té suroviny, které proti tomu poměru nejvíc chybí.
+ * Karty za chaos tedy přidá jen tam, kde už nějaké jsou. Vybírá váženě jako generátor
+ * balíčků (přednost ceně 2–4), bez X-karet, pastí a nesbíratelných karet.
+ *
+ * @param usable kolik kopií karty smí hráč v balíčku mít (vlastněné, nejvýš limit vzácnosti)
+ * @return nové počty; méně než [target] karet jen tehdy, když už není z čeho brát
+ */
+fun completeDeck(
+    counts  : Map<String, Int>,
+    allCards: List<Card>,
+    target  : Int = 30,
+    usable  : (Card) -> Int
+): Map<String, Int> {
+    val result = counts.toMutableMap()
+    val byId   = allCards.associateBy { it.id }
+    val pool   = allCards.filterNot { c ->
+        c.id.startsWith("T") || c.isPlaceholder || c.isXCost || c.effects.any { it is CardEffect.TrapOnDraw }
+    }
+    fun countOf(type: ResourceType, of: Map<String, Int>) =
+        of.entries.sumOf { (id, k) -> if (byId[id]?.costType == type) k else 0 }
+
+    val start = ResourceType.entries.associateWith { countOf(it, counts) }
+    val base  = if (start.values.sum() > 0) start
+                else ResourceType.entries.associateWith { if (it == ResourceType.CHAOS) 0 else 1 }
+    val baseSum = base.values.sum().toDouble()
+
+    while (result.values.sum() < target) {
+        fun free(type: ResourceType?) =
+            pool.filter { (type == null || it.costType == type) && (result[it.id] ?: 0) < usable(it) }
+        val type = ResourceType.entries
+            .filter { base.getValue(it) > 0 && free(it).isNotEmpty() }
+            .maxByOrNull { base.getValue(it) / baseSum * target - countOf(it, result) }
+        val candidates = free(type).ifEmpty { free(null) }
+        if (candidates.isEmpty()) break
+        val pick = weightedShuffle(candidates).first()
+        result[pick.id] = (result[pick.id] ?: 0) + 1
+    }
+    return result
+}

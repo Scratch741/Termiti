@@ -344,6 +344,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         saveDeck(deckIndex)
     }
 
+    /** Doplní rozdělaný balíček na 30 karet z těch, které hráč vlastní – viz [completeDeck]. */
+    fun autoCompleteDeck(deckIndex: Int) {
+        val filled = completeDeck(decks[deckIndex].cardCounts, allCards) { CardCollectionManager.usableCopies(it) }
+        decks[deckIndex] = decks[deckIndex].copy(cardCounts = filled)
+        saveDeck(deckIndex)
+    }
+
     fun clearDeck(deckIndex: Int) {
         decks[deckIndex] = decks[deckIndex].copy(cardCounts = emptyMap())
         saveDeck(deckIndex)
@@ -937,22 +944,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             superRandom  -> sharedSuperDeck!!
             randomDeck   -> balancedDeck()
             else         -> {
-                val base = activeDeck.toCardList(allCards)
-                val missing = 30 - base.size
-                if (missing <= 0) base
-                else {
-                    // Doplň chybějící karty náhodnými vlastněnými kartami.
-                    // canAdd = maxCopies − kopie už v balíčku, aby se nepřekročil rarity limit.
-                    val baseCounts = base.groupingBy { it.id }.eachCount()
-                    val ownedPool = allCards
-                        .filter { !it.isPlaceholder && CardCollectionManager.usableCopies(it) > 0 }
-                        .flatMap { card ->
-                            val canAdd = card.rarity.maxCopies - (baseCounts[card.id] ?: 0)
-                            if (canAdd > 0) List(canAdd) { card } else emptyList()
-                        }
-                        .shuffled()
-                    base + ownedPool.take(missing)
-                }
+                // Nedokončený balíček se doplní na 30 stejně jako tlačítkem „Doplnit" v Tvorbě
+                // balíčku (completeDeck: drží poměr surovin, jen vlastněné karty). Uložený
+                // balíček se tím nemění – doplnění platí jen pro tuto hru.
+                if (activeDeck.isValid) activeDeck.toCardList(allCards)
+                else activeDeck.copy(
+                    cardCounts = completeDeck(activeDeck.cardCounts, allCards) { CardCollectionManager.usableCopies(it) }
+                ).toCardList(allCards)
             }
         }.withUniqueIds()   // ještě NEZAMÍCHÁNO – shuffle se provede uvnitř also{} níže
 
@@ -1032,7 +1030,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (aiExtraChaos  > 0) it.resources[ResourceType.CHAOS]  = aiExtraChaos
             val aiBaseCards = when {
                 superRandom  -> sharedSuperDeck!!.withUniqueIds()
-                !randomDeck && activeDeck.isValid -> presetDeck().withUniqueIds()
+                // Constructed: soupeř má vždy šablonu, i když hráčův balíček není hotový
+                // (dřív dostal při nedokončeném balíčku náhodný vyvážený balíček).
+                !randomDeck  -> presetDeck().withUniqueIds()
                 else         -> balancedDeck().withUniqueIds()
             }
             // Posila balíčku z AI pasivních schopností

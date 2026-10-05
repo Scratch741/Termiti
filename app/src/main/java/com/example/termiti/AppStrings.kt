@@ -145,6 +145,14 @@ class AppStrings(
     val dbBadgeNew: String by values
     val dbTemplates: String by values
     val dbPickDeck: String by values
+    val dbIncompleteTitle: String by values
+    val dbIncompleteMsg: String by values
+    val dbIncompleteFill: String by values
+    val dbIncompleteLeave: String by values
+    val dbIncompleteStay: String by values
+    val dbPresetConfirmTitle: String by values
+    val dbPresetConfirmMsg: String by values
+    val dbPresetConfirmYes: String by values
     val dbSetActive: String by values
     val dbActiveDeck: String by values
     val dbComposition: String by values

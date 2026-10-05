@@ -321,6 +321,8 @@ class EngineSimulation {
         var games = 0; var points = 0.0; var wins = 0
         var winDestroy = 0; var winBuild = 0; var winHp = 0
         var roundsOfWins = 0
+        /** Výhry do 10. / do 12. kola – jak často balíček soupeře „přejede". */
+        var winsBy10 = 0; var winsBy12 = 0
         val finishers = mutableMapOf<String, Int>()
     }
 
@@ -336,6 +338,8 @@ class EngineSimulation {
         st.points += if (won) 1.0 else if (lost) 0.0 else 0.5
         if (!won) return
         st.wins++; st.roundsOfWins += o.rounds
+        if (o.rounds <= 10) st.winsBy10++
+        if (o.rounds <= 12) st.winsBy12++
         when (o.result) {
             GameResult.AI_CASTLE_DESTROYED, GameResult.PLAYER_CASTLE_DESTROYED -> st.winDestroy++
             GameResult.PLAYER_CASTLE_BUILT, GameResult.AI_CASTLE_BUILT         -> st.winBuild++
@@ -1034,13 +1038,14 @@ class EngineSimulation {
         out.appendLine("Herní engine, round robin ${presets.size} presetů, $n her na dvojici (${ms / 1000} s), " +
                        "cíl $winTarget, strop hradeb $maxWall, start hradu $startCastleConstructed")
         out.appendLine()
-        out.appendLine(String.format("%-16s %6s  %8s %8s %6s  %6s", "balíček", "výhry", "boření", "stavba", "hrad", "kola"))
+        out.appendLine(String.format("%-16s %6s  %8s %8s %6s  %6s  %7s %7s", "balíček", "výhry", "boření", "stavba", "hrad", "kola", "≤10. k.", "≤12. k."))
         for ((name, _) in presets.sortedByDescending { stats.getValue(it.first).points }) {
             val s = stats.getValue(name)
             val w = s.wins.coerceAtLeast(1)
-            out.appendLine(String.format("%-16s %5.1f %%  %7.1f%% %7.1f%% %5.1f%%  %6.1f",
+            out.appendLine(String.format("%-16s %5.1f %%  %7.1f%% %7.1f%% %5.1f%%  %6.1f  %6.1f%% %6.1f%%",
                 name, 100 * s.points / s.games, 100.0 * s.winDestroy / w, 100.0 * s.winBuild / w,
-                100.0 * s.winHp / w, s.roundsOfWins.toDouble() / w))
+                100.0 * s.winHp / w, s.roundsOfWins.toDouble() / w,
+                100.0 * s.winsBy10 / s.games, 100.0 * s.winsBy12 / s.games))
         }
         out.appendLine()
         out.appendLine("Dvojice (řádek proti sloupci, % výher řádku):")
