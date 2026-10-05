@@ -353,8 +353,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Předdefinované balíčky – viz [PRESET_DECKS] (PresetDecks.kt). */
     val presetTemplates: List<Pair<String, Map<String, Int>>> = PRESET_DECKS
 
+    /** Nahraje šablonu do slotu [deckIndex] a balíček po ní pojmenuje. */
     fun loadPreset(deckIndex: Int, presetIndex: Int) {
-        val template = presetTemplates[presetIndex].second
+        val (presetName, template) = presetTemplates[presetIndex]
         // Filtruj šablonu podle skutečně vlastněných karet
         val filtered = template.mapNotNull { (cardId, wantedCount) ->
             val card    = allCards.find { it.id == cardId } ?: return@mapNotNull null
@@ -363,6 +364,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }.toMap()
         decks[deckIndex] = decks[deckIndex].copy(cardCounts = filtered)
         saveDeck(deckIndex)
+        // Název se ukládá česky i s ikonou šablony – localizedDeckName ho podle něj přeloží.
+        renameDeck(deckIndex, presetName)
     }
 
     /** Vygeneruje vyvážený náhodný balíček (9/9/9/3) a uloží ho do slotu [deckIndex]. */

@@ -426,3 +426,19 @@ Svislý pruh filtrů a scrollovací mřížka nahrazeny albem (`DeckBuilderScree
 - **Ikona balíčku** – `Deck.dominantResource()`: surovina s nejvíc kartami (bez shody na 1. místě); jinak `card_icon`. V hlavičce i ve výběru.
 
 Poměr šířek katalog : balíček 1,5 : 1. Nový text `dbPickDeck`. Původní `CatalogCardItem` (s −/+) zůstává pro roguelike draft.
+
+## [2026-10-05] fix | Šablona pojmenuje balíček
+
+`GameViewModel.loadPreset` po nahrání karet přejmenuje balíček na název šablony (`renameDeck`). Dřív zůstal původní název („Balíček 2“), i když obsah byl třeba Útočník. Název se ukládá česky i s ikonou šablony, `localizedDeckName` ho přeloží.
+
+## [2026-10-05] fix | Výběr balíčku: obsah dlaždice uvnitř rámu
+
+V `DeckPickerOverlay` přetékal obsah dlaždice přes zdobený rám `mulligan_background` (ikona nahoře, „aktivní“ dole) – výchozí řádkování `Text` je vyšší než písmo. Řádky mají pevné `lineHeight`, ikona 30 → 22dp, dlaždice 184×124dp.
+
+## [2026-10-05] fix | Název balíčku ze šablony bez druhé ikony
+
+Balíček pojmenovaný po šabloně nesl její emoji („🪞 Iluzionista“) a vedle ikony převládající suroviny tak měl ikony dvě. Nový `deckTitle()` v `DeckBuilderScreen.kt` úvodní emoji při zobrazení odřízne (hlavička panelu balíčku, `DeckPickerOverlay`). Uložený název se nemění – `localizedDeckName` podle něj dál překládá a online výběr balíčku ho ukazuje celý.
+
+## [2026-10-05] ui | Tvorba balíčku: doladění lišt alba
+
+`ResourceTabBar`: Zpět větší (76×30dp, 9sp) a dál od okraje; záložky surovin mají pevnou šířku 82dp a sedí uprostřed zbylého místa (dřív roztažené přes celou lištu). `CatalogBottomBar`: hledání má pevnou šířku 110dp, zámek a číslo strany zůstávají vpravo. Obě lišty začínají na `BAR_INSET` (33dp), takže Zpět i chipy ceny jsou v zákrytu s levým okrajem první karty alba.

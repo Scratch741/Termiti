@@ -441,6 +441,13 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     }
 }
 
+/**
+ * Název balíčku vedle ikony převládající suroviny (hlavička, výběr balíčku): bez
+ * úvodního emoji, které si název nese ze šablony („⚔️ Útočník") – jinak by měl ikony dvě.
+ */
+private fun deckTitle(name: String): String =
+    localizedDeckName(name).dropWhile { !it.isLetterOrDigit() }.ifEmpty { localizedDeckName(name) }
+
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
 @Composable
 private fun TopBar(
@@ -523,7 +530,7 @@ private fun TopBar(
                 ) {
                     Image(painterResource(deckIconRes), contentDescription = null, modifier = Modifier.size(15.dp), contentScale = ContentScale.Fit)
                     Text(
-                        localizedDeckName(editingDeck.name),
+                        deckTitle(editingDeck.name),
                         color      = TextPrimary,
                         fontSize   = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -578,6 +585,8 @@ private const val CATALOG_WEIGHT = 1.5f
 private const val DECK_WEIGHT    = 1f
 /** Album: karet na řádek a na stránku (2 řádky). */
 private const val CARDS_PER_ROW  = 4
+/** Levé odsazení obsahu horní i spodní lišty – v zákrytu s levým okrajem první karty alba. */
+private val BAR_INSET = 33.dp
 private const val CARDS_PER_PAGE = 8
 private val RAIL_CHIP  = 30.dp
 /** Výška horní lišty katalogu i hlavičky balíčku – oddělovače pod nimi musí být v jedné lince. */
@@ -599,15 +608,15 @@ private fun ResourceTabBar(
             .fillMaxWidth()
             .height(TOP_BAR_HEIGHT)
             .background(DbBar.copy(alpha = 0.55f))
-            .padding(horizontal = 6.dp),
+            .padding(start = BAR_INSET, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         PlainButton(
             text      = s.back,
-            modifier  = Modifier.width(62.dp).height(28.dp),
+            modifier  = Modifier.width(76.dp).height(30.dp),
             textColor = TextMuted,
-            fontSize  = 8.sp,
+            fontSize  = 9.sp,
             paddingH  = 4.dp,
             paddingV  = 0.dp,
             onClick   = onBack
@@ -618,7 +627,7 @@ private fun ResourceTabBar(
             PlainButtonWithIcon(
                 text         = label,
                 iconRes      = resourceIconRes(type),
-                modifier     = Modifier.weight(1f).height(28.dp),
+                modifier     = Modifier.width(82.dp).height(28.dp),
                 textColor    = if (active) color else TextPrimary,
                 fontSize     = 9.sp,
                 selected     = active,
@@ -628,10 +637,13 @@ private fun ResourceTabBar(
                 onClick      = { onResFilter(type) }
             )
         }
+        // Záložky drží pevnou šířku a sedí uprostřed zbylého místa
+        Spacer(Modifier.weight(1f))
         Tab(ResourceType.MAGIC,  s.resMagic,  MagicBlue)
         Tab(ResourceType.ATTACK, s.resAttack, AttackRed)
         Tab(ResourceType.STONES, s.resStone,  StoneColor)
         Tab(ResourceType.CHAOS,  s.resChaos,  ChaosOrange)
+        Spacer(Modifier.weight(1f))
     }
 }
 
@@ -826,14 +838,14 @@ private fun CatalogBottomBar(
             .fillMaxWidth()
             .height(TOP_BAR_HEIGHT)
             .background(DbBar.copy(alpha = 0.55f))
-            .padding(horizontal = 6.dp),
+            .padding(start = BAR_INSET, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         (0..7).forEach { cost ->
             CostChip(label = if (cost == 7) "7+" else "$cost", active = filterCost == cost, width = 27.dp) { onCostFilter(cost) }
         }
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(8.dp))
         BasicTextField(
             value           = searchQuery,
             onValueChange   = onSearchChange,
@@ -841,7 +853,7 @@ private fun CatalogBottomBar(
             textStyle       = TextStyle(color = TextPrimary, fontSize = 10.sp),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             modifier        = Modifier
-                .weight(1f)
+                .width(110.dp)
                 .clip(RoundedCornerShape(5.dp))
                 .background(Color.White.copy(alpha = 0.06f))
                 .border(
@@ -871,7 +883,7 @@ private fun CatalogBottomBar(
                 onClick   = { onSearchChange("") }
             )
         }
-        Spacer(Modifier.width(2.dp))
+        Spacer(Modifier.weight(1f))
         IconChip(R.drawable.lock_icon, filterUnlocked, size = 27.dp, onClick = onUnlocked)
         Text(
             "$page / $pageCount",
@@ -916,7 +928,7 @@ private fun DeckPickerOverlay(
                     val shape   = RoundedCornerShape(8.dp)
                     Box(
                         Modifier
-                            .size(width = 178.dp, height = 112.dp)
+                            .size(width = 184.dp, height = 124.dp)
                             .then(if (i == editingIdx) Modifier.border(2.dp, Gold, shape) else Modifier)
                             .clip(shape)
                             .clickable { SoundManager.playMenuTap(); onPick(i) },
@@ -928,25 +940,28 @@ private fun DeckPickerOverlay(
                             modifier           = Modifier.matchParentSize(),
                             contentScale       = ContentScale.FillBounds
                         )
+                        // Pevné výšky řádků: výchozí řádkování Textu je vyšší než písmo a obsah
+                        // pak přetekl přes zdobený rám (ikona nahoře, „aktivní" dole).
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(30.dp), contentScale = ContentScale.Fit)
+                            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit)
                             Text(
-                                localizedDeckName(deck.name),
-                                color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                deckTitle(deck.name),
+                                color = TextPrimary, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 140.dp)
+                                modifier = Modifier.widthIn(max = 130.dp)
                             )
                             Text(
                                 "${deck.totalCards} / 30",
                                 color = if (deck.isValid) HpGreen else Gold.copy(alpha = 0.8f),
-                                fontSize = 10.sp, fontWeight = FontWeight.Bold
+                                fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold
                             )
+                            // Řádek drží místo i u neaktivních balíčků, ať jsou všechny dlaždice stejně rozložené
                             Text(
-                                if (i == activeIdx) s.dbActiveShort else "",
-                                color = TealLight, fontSize = 8.sp
+                                if (i == activeIdx) s.dbActiveShort else " ",
+                                color = TealLight, fontSize = 8.sp, lineHeight = 10.sp
                             )
                         }
                     }
