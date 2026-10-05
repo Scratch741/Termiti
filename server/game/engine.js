@@ -33,8 +33,9 @@ function createPlayerState(deckCards, startCastle = 30, maxWall = MAX_WALL) {
     lastPlayedType: null,
     /** Maximální velikost ruky – výchozí 7, extra_hand_card → 8. */
     maxHandSize: 7,
-    /** null = neaktivní; '' = libovolný typ; 'Magie' = jen Magie. Resetuje se při přechodu na nový tah. */
-    drawCardOnPlay: null,
+    /** Aktivní DrawPerCardPlayed filtry ('' = libovolný typ, 'Magie' = jen Magie); sčítají se
+     *  (Inspirace + Archmág = 2 líznutí za kartu Magie). Resetuje se při přechodu na nový tah. */
+    drawCardOnPlay: [],
     /** Seznam aktivních GainResourcePerCardPlayed efektů pro toto kolo. */
     gainResourcePerCardPlayed: [],
     /** Seznam aktivních GainCastlePerCardPlayed efektů pro toto kolo. */
@@ -353,7 +354,7 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'DrawPerCardPlayed':
-        self.drawCardOnPlay = fx.cardType || '';
+        (self.drawCardOnPlay = self.drawCardOnPlay || []).push(fx.cardType || '');
         break;
 
       case 'GainResourcePerCardPlayed':

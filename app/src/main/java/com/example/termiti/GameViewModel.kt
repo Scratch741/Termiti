@@ -1128,9 +1128,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             player.cloneNextPlayed = null
             log.appendLog(ls.logReplication.format(cloneCount, card.displayName))
         }
-        // DrawPerCardPlayed: flag byl nastaven předchozí kartou → tato karta triggeruje líz (s volitelným filtrem typu)
-        val drawFilter = player.drawCardOnPlay
-        if (drawFilter != null && (drawFilter.isEmpty() || drawFilter == card.type)) pendingDrawCount += 1
+        // DrawPerCardPlayed: efekty nastavené předchozími kartami → líz 1 za každý odpovídající filtr
+        pendingDrawCount += player.drawCardOnPlay.count { it.isEmpty() || it == card.type }
         // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou (s filtrem typu)
         for (grp in player.gainResourcePerCardPlayed) {
             if (grp.cardType == null || grp.cardType == card.type) {
@@ -1498,9 +1497,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             ai.deck.shuffle()
                             ai.cloneNextPlayed = null
                         }
-                        // DrawPerCardPlayed: flag nastaven předchozí kartou AI → líz (s volitelným filtrem typu)
-                        val aiDrawFilter = ai.drawCardOnPlay
-                        if (aiDrawFilter != null && (aiDrawFilter.isEmpty() || aiDrawFilter == aiCard.type)) { ai.drawCards(1); SoundManager.playCardDraw() }
+                        // DrawPerCardPlayed: efekty nastavené předchozími kartami AI → líz 1 za každý odpovídající filtr
+                        repeat(ai.drawCardOnPlay.count { it.isEmpty() || it == aiCard.type }) { ai.drawCards(1); SoundManager.playCardDraw() }
                         // GainResourcePerCardPlayed: přidej zdroje nastavené předchozí kartou AI (s filtrem typu)
                         for (grp in ai.gainResourcePerCardPlayed) {
                             if (grp.cardType == null || grp.cardType == aiCard.type) {
@@ -1875,7 +1873,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             // Reset per-card-played efektů – platí jen pro toto kolo
-            player.drawCardOnPlay = null;               ai.drawCardOnPlay = null
+            player.drawCardOnPlay.clear();              ai.drawCardOnPlay.clear()
             player.gainResourcePerCardPlayed.clear();   ai.gainResourcePerCardPlayed.clear()
             player.gainCastlePerCardPlayed.clear();     ai.gainCastlePerCardPlayed.clear()
             player.cloneNextPlayed = null;              ai.cloneNextPlayed = null

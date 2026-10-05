@@ -145,7 +145,7 @@ class EngineSimulation {
 
             // Konec tahu: jednotahové efekty (ve hře se mažou na konci kola, platí jen
             // pro karty strany, která je nastavila – vychází to nastejno)
-            me.drawCardOnPlay = null
+            me.drawCardOnPlay.clear()
             me.gainResourcePerCardPlayed.clear()
             me.gainCastlePerCardPlayed.clear()
             me.cloneNextPlayed = null
@@ -201,8 +201,7 @@ class EngineSimulation {
                         me.deck.shuffle()
                         me.cloneNextPlayed = null
                     }
-                    val drawFilter = me.drawCardOnPlay
-                    if (drawFilter != null && (drawFilter.isEmpty() || drawFilter == card.type)) me.drawCards(1)
+                    repeat(me.drawCardOnPlay.count { it.isEmpty() || it == card.type }) { me.drawCards(1) }
                     for (grp in me.gainResourcePerCardPlayed) {
                         if (grp.cardType == null || grp.cardType == card.type)
                             me.resources[grp.type] = ((me.resources[grp.type] ?: 0) + grp.amount).coerceAtMost(MAX_RESOURCE)

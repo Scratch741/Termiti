@@ -199,7 +199,8 @@ fun applyEffects(
             self.castleHP = (self.castleHP + stolen).coerceAtMost(MAX_CASTLE)
         }
 
-        is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay = effect.cardType ?: ""
+        // Přidá filtr – víc efektů v jednom tahu se sčítá (Inspirace + Archmág), nepřepisuje
+        is CardEffect.DrawPerCardPlayed -> self.drawCardOnPlay.add(effect.cardType ?: "")
 
         is CardEffect.GainResourcePerCardPlayed ->
             self.gainResourcePerCardPlayed.add(effect)

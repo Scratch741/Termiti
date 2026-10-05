@@ -703,9 +703,9 @@ class GameSession {
       shuffle(self.deck);
       self.cloneNextPlayed = 0;
     }
-    // DrawPerCardPlayed: flag nastaven předchozí kartou → líz 1 kartu (s volitelným filtrem typu)
-    const drawFilter = self.drawCardOnPlay;
-    if (drawFilter !== null && drawFilter !== undefined && (drawFilter === '' || drawFilter === cardType)) {
+    // DrawPerCardPlayed: efekty nastavené předchozími kartami → líz 1 za každý odpovídající filtr
+    const drawCount = (self.drawCardOnPlay || []).filter(f => f === '' || f === cardType).length;
+    for (let _dpc = 0; _dpc < drawCount; _dpc++) {
       const { burned: drawBurned, traps: drawTraps } = drawCards(self, 1, self.maxHandSize || 7);
       const oppSideForDrawBurn = side === 'A' ? 'B' : 'A';
       for (const bc of drawBurned) {
@@ -1414,7 +1414,7 @@ class GameSession {
   _advanceTurn(keepLastPlayed = false) {
     // Reset per-card-played efektů pro hráče, který právě skončil tah
     const prevState = this.state[this.activeSide];
-    prevState.drawCardOnPlay = null;
+    prevState.drawCardOnPlay = [];
     prevState.gainResourcePerCardPlayed = [];
     prevState.gainCastlePerCardPlayed = [];
     prevState.cloneNextPlayed = 0;

@@ -78,11 +78,12 @@ class PlayerState(
      */
     var preCostResources: Map<ResourceType, Int>? = null,
     /**
-     * true = efekt DrawPerCardPlayed je aktivní: za každou DALŠÍ zahranou kartu v tomto kole
-     * líznout 1 kartu. Resetuje se při přechodu na nový tah (v finishTurn / startMyTurn).
+     * Aktivní efekty DrawPerCardPlayed v tomto kole (Inspirace, Archmág): za každou DALŠÍ
+     * zahranou kartu se líže 1 karta za KAŽDÝ odpovídající filtr – efekty se sčítají
+     * (Inspirace + Archmág = 2 líznutí za kartu MAGIE). Resetuje se při přechodu na nový tah.
      */
-    /** null = neaktivní; "" = aktivní pro libovolný typ; "Magie" = jen Magie atd. */
-    var drawCardOnPlay: String? = null,
+    /** Filtry typu: "" = libovolný typ, "Magie" = jen Magie atd. Prázdný seznam = neaktivní. */
+    var drawCardOnPlay: MutableList<String> = mutableListOf(),
     /**
      * Seznam aktivních GainResourcePerCardPlayed efektů v tomto kole.
      * Každý efekt se triggeruje na každou DALŠÍ zahranou kartu (s volitelným filtrem cardType).
@@ -130,7 +131,7 @@ class PlayerState(
         discardPile              = discardPile.toMutableList(),
         lastPlayedType           = lastPlayedType,
         preCostResources         = preCostResources?.toMap(),
-        drawCardOnPlay           = drawCardOnPlay,
+        drawCardOnPlay           = drawCardOnPlay.toMutableList(),
         gainResourcePerCardPlayed = gainResourcePerCardPlayed.toMutableList(),
         gainCastlePerCardPlayed         = gainCastlePerCardPlayed.toMutableList(),
         cloneNextPlayed                 = cloneNextPlayed,

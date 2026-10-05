@@ -83,7 +83,7 @@ object RogueBattleCodec {
         put("hand",    cardsToJson(p.hand))
         put("discard", cardsToJson(p.discardPile))
         p.lastPlayedType?.let { put("lastType", it) }
-        p.drawCardOnPlay?.let { put("drawOnPlay", it) }
+        if (p.drawCardOnPlay.isNotEmpty()) put("drawOnPlayList", JSONArray(p.drawCardOnPlay))
         p.cloneNextPlayed?.let { put("cloneNext", it) }
         if (p.attackCardsThisTurn != 0) put("attackCards", p.attackCardsThisTurn)
         if (p.nextCardIsCombo) put("nextCombo", true)
@@ -120,7 +120,12 @@ object RogueBattleCodec {
         ps.hand.addAll(cardsFromJson(o.optJSONArray("hand"), all))
         ps.discardPile.addAll(cardsFromJson(o.optJSONArray("discard"), all))
         ps.lastPlayedType  = if (o.has("lastType")) o.getString("lastType") else null
-        ps.drawCardOnPlay  = if (o.has("drawOnPlay")) o.getString("drawOnPlay") else null
+        // drawOnPlayList = seznam filtrů; drawOnPlay = jeden filtr ze starších uložených bitev
+        ps.drawCardOnPlay  = when {
+            o.has("drawOnPlayList") -> o.getJSONArray("drawOnPlayList").let { a -> MutableList(a.length()) { a.getString(it) } }
+            o.has("drawOnPlay")     -> mutableListOf(o.getString("drawOnPlay"))
+            else                    -> mutableListOf()
+        }
         ps.cloneNextPlayed = if (o.has("cloneNext")) o.getInt("cloneNext") else null
         ps.attackCardsThisTurn = o.optInt("attackCards", 0)
         ps.nextCardIsCombo = o.optBoolean("nextCombo", false)

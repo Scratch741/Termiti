@@ -133,7 +133,7 @@ fun aiChooseAction(
     val handFull       = ai.hand.size >= 7
 
     // TOTO KOLO buffery – aktivní pokud AI již zahrála TOTO KOLO kartu tento tah
-    val buffDrawActive     = ai.drawCardOnPlay != null
+    val buffDrawActive     = ai.drawCardOnPlay.isNotEmpty()
     val buffResourceActive = ai.gainResourcePerCardPlayed.isNotEmpty()
     val buffCastleActive   = ai.gainCastlePerCardPlayed.isNotEmpty()
     val anyBuffActive      = buffDrawActive || buffResourceActive || buffCastleActive
@@ -512,7 +512,7 @@ fun aiChooseAction(
         // filtru, dostane bonus (bez ohledu na isCombo – i nekombo karta buff spustí).
         val totoBuff = run {
             var bonus = 0
-            if (buffDrawActive && typeMatches(ai.drawCardOnPlay, card.type)) bonus += 10
+            bonus += 10 * ai.drawCardOnPlay.count { typeMatches(it, card.type) }   // každý aktivní líz zvlášť
             if (ai.gainResourcePerCardPlayed.any { typeMatches(it.cardType, card.type) }) bonus += 6
             if (ai.gainCastlePerCardPlayed.any { typeMatches(it.cardType, card.type) }) bonus += 6
             bonus
