@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -273,12 +274,11 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (result.totalDustGained > 0) {
+                            // Herní panel (stejná textura a FillBounds jako PlainButton / toast odměn)
                             Row(
                                 Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(ShDust.copy(alpha = 0.10f))
-                                    .border(1.dp, ShDust.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 12.dp, vertical = 5.dp),
+                                    .paint(painterResource(R.drawable.plain_button_longer), contentScale = ContentScale.FillBounds)
+                                    .padding(horizontal = 16.dp, vertical = 7.dp),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {

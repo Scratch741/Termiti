@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
@@ -934,20 +935,20 @@ private fun CardActionPanel(
     val maxCraft     = if (collectible) minOf(card.rarity.maxCopies - realOwned, if (card.rarity.craftCost > 0) dust / card.rarity.craftCost else 0) else 0
     val maxDismantle = if (collectible) realOwned else 0
 
-    // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape)
+    // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape).
+    // Herní textura bočního panelu (bronzový rám s medailony v rozích); FillBounds drží rám
+    // na okrajích při jakékoli výšce, větší padding drží text mimo rám a medailony.
     Box(
         modifier = Modifier
             .width(210.dp)
             .heightIn(max = 340.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(BgPanel)
-            .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(14.dp))
+            .paint(painterResource(R.drawable.bg_side_panels), contentScale = ContentScale.FillBounds)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(14.dp),
+                .padding(horizontal = 18.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // ── Jméno + počet kopií ──────────────────────────────────────────

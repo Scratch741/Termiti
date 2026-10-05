@@ -657,7 +657,7 @@ fun CardLimitChangeOverlay(
 
 // ─── Lost Cards Overlay ───────────────────────────────────────────────────────
 @Composable
-fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, onMenu: (() -> Unit)? = null) {
+fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -728,29 +728,15 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit, o
                 }
             }
 
-            // Tlačítka
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (onMenu != null) {
-                    PlainButton(
-                        text      = "Menu",
-                        textColor = Crimson,
-                        fontSize  = 11.sp,
-                        paddingH  = 20.dp,
-                        paddingV  = 9.dp,
-                        buttonRes = R.drawable.plain_button_longer,
-                        onClick   = onMenu
-                    )
-                }
-                PlainButton(
-                    text      = LocalStrings.current.close,
-                    textColor = TextMuted,
-                    fontSize  = 11.sp,
-                    paddingH  = 28.dp,
-                    paddingV  = 9.dp,
-                    buttonRes = R.drawable.plain_button_longer,
-                    onClick   = onDismiss
-                )
-            }
+            PlainButton(
+                text      = LocalStrings.current.close,
+                textColor = TextMuted,
+                fontSize  = 11.sp,
+                paddingH  = 28.dp,
+                paddingV  = 9.dp,
+                buttonRes = R.drawable.plain_button_longer,
+                onClick   = onDismiss
+            )
         }
     }
 }
