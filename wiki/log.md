@@ -383,3 +383,46 @@ Měření `EngineSimulation.pacing` (1000 her na dvojici, 10 presetů), strop 50
 ## [2026-10-05] fix | Inspirace (D09, this turn: draw 1 per further MAGIE card) and Archmág (128, this turn: draw 1 per further card + 1 magic) overwrote each other - reported by the user. PlayerState.drawCardOnPlay was a single type filter (String?: null off, "" any, "Magie"), so the second card replaced the first: Inspirace -> Archmág gave 1 draw per magic card instead of 2; Archmág -> Inspirace narrowed the filter to Magie, so non-magic cards drew nothing; two Inspirations drew once. (Archmágs +1 magic was already a list - GainResourcePerCardPlayed - and stacked fine.) Now drawCardOnPlay is a list of filters and each matching filter draws 1: offline player and AI paths in GameViewModel, GameLogic (add instead of assign), AiEngine (buffDrawActive = list not empty; the this-turn draw bonus +10 per matching filter), roguelike save (new key drawOnPlayList, old single drawOnPlay still read), server engine.js / GameSession.js (array, draw loop per matching filter, reset to []), EngineSimulation. New test DrawPerCardPlayedStackTest (both orders, two Inspirations, deepCopy not sharing the list). Build and unit tests pass; server JS not run (no node). deckbuilder.html simulator keeps its single boolean dpc (not changed).
 ## [2026-10-05] ui | Log -> Spálené & ukradené (LostCardsOverlay): removed the "Menu" button (hard-coded, not localized; it was shown offline only, online never passed onMenu). The overlay now has just Zavřít; onMenu parameter removed, GameScreen updated. Compiled.
 ## [2026-10-05] ui | Two hand-made (flat colour + 1 dp border + rounded) panels replaced with game textures: (1) pack opening, the "Duplikáty -> +N prachu" strip (ShopScreen) now uses plain_button_longer with FillBounds like PlainButton / the reward toast, padding 16/7 dp; (2) deck builder, the card action panel opened by a long press (DeckBuilderScreen.CardActionPanel, 210 x up to 340 dp, was BgPanel + gold border) now uses bg_side_panels (the tall side-panel texture, bronze frame with corner medallions, already used in the HUD side panels and the profile) with FillBounds; padding 14 -> 18/20 dp so text clears the frame and medallions. Checked with an HTML mock at 340 and 240 dp height: frame and medallions stay clean (slightly wider at the shorter height). Compiled, not seen on a device.
+
+## [2026-10-05] ui | Obchod: „Duplikáty → X prachu“ na střed panelu
+
+Po otevření balíčku byl text s ikonou prachu přilepený vlevo: textura `plain_button_longer` roztáhne řádek na svou šířku a `Arrangement.spacedBy(6.dp)` řadí od začátku. Opraveno na `spacedBy(6.dp, Alignment.CenterHorizontally)` v `PackOpeningOverlay` (`ShopScreen.kt`). Text zkrácen na „Duplikáty +X“ (bez šipky) a ikona prachu přesunuta za číslo (`shopDuplicates` v cs/en + fallback). Panel má `sizeToIntrinsics = false`, takže obepíná text a není širší než tlačítko Dokončit; to je větší (15sp, padding 40×10). Odznak prachu na duplikátní kartě zvětšen (text 8 → 13sp, ikona 9 → 14dp, barva prachu místo šedé, ikona za číslem).
+
+## [2026-10-05] ui | Profil přestavěn na záložky
+
+`ProfileScreen.kt` přepsán. Dřív dva dlouhé scrollovací sloupce (vlevo jméno/měny/statistiky/questy/debug, vpravo ikony, skiny s vodorovným scrollem, schopnosti). Nově stejná scéna jako hlavní menu a obchod (`menu_bg`, pochodně, vlevo `ProfileInfo`, vpravo Zpět `button_6`) a ve středním rámu záložky:
+- **Přehled** – jméno (Cinzel), úroveň + XP s ukazatelem, 4 dlaždice statistik (výhry, online výhry, odehráno, úspěšnost), denní úkoly jako řádky s ukazatelem postupu, odměnami a tlačítkem Převzít / přelosovat.
+- **Vzhled** – podzáložky Ikona / Hrad / Hradby / Rub karet; mřížka 6 dlaždic na řádek (`LookGrid`), bez vodorovného scrollu; vybraná má zlatý rámeček a `check_icon`, pod mřížkou název vybraného skinu.
+- **Schopnosti** – řádky s ikonou, popisem a tlačítkem stavu (Lv. X / cena / ZAP / VYP / PLNO); aktivní má zelený rámeček.
+- **Debug** – +500 zlata, +50 drahokamů, +500 prachu, +100 XP, přepínače „všechny karty“ a „celá kampaň“.
+
+Jen stávající textury: `plain_button` (dlaždice statistik, tlačítka), `plain_button_longer` (řádky), `plain_button_mini` (dlaždice vzhledu), `bg_separator`. Pomocný `TexturedPanel` kreslí texturu přes `matchParentSize`, takže velikost určuje obsah (ne intrinsics textury jako u `Modifier.paint`). Střed je širší než v menu (`W * 0.53`), boční sloupce se proto posouvají o `sideFix`, aby zůstaly ve výklencích pozadí.
+
+Nové texty (cs/en + fallback): `profileTabOverview/Look/Abilities/Debug`, `profileLookAvatar/Castle/Wall/CardBack`, `profileWinsOnline`, `profileWinRate`, `questsAllDone`.
+
+## [2026-10-05] ui | Tvorba balíčku: pruh filtrů, jedna lišta, víc místa na karty
+
+`DeckBuilderScreen.kt`:
+- **Filtr „Efekt“ odstraněn** (Útok/Obrana/Zdroje/Doly/Kombo/Rozhodnutí) i se stavem `filterCat`. Roguelike draft (`RogueScreens.kt`) má vlastní filtry a nemění se.
+- **`FilterRail`** – svislý pruh u levého okraje (38dp): Zpět, 4 ikonové chipy surovin (`IconChip`), dole přepínač „jen odemčené“ (`check_icon`). Nahrazuje dva vodorovné řádky filtrů.
+- **`CatalogTopBar`** – jediná lišta nad katalogem: chipy ceny 0–7+, hledání přes zbylou šířku, počet zobrazených karet. Spodní lišta (`ManaCostFilterBar`) zrušena. Nápověda hledání bez emoji (`dbSearchHint` „Hledat…“).
+- **Panel balíčku** – složení + mana křivka jsou první položkou seznamu karet (odjedou se scrollem, seznam pak má celou výšku). Tlačítka Šablony / Vymazat / Aktivní balíček jsou v pevném řádku pod seznamem (dřív až na konci scrollu). Šablony se vybírají v překryvu `PresetOverlay` místo vodorovně scrollovaného řádku.
+- Poměr šířek katalog : balíček 3 : 2 → 1,62 : 1 (`CATALOG_WEIGHT`), aby se vedle pruhu vešly 4 karty na řádek.
+
+Profil: nadpis „PROFIL“ nad záložkami (Cinzel 28sp).
+
+## [2026-10-05] ui | Tvorba balíčku: hnědé pozadí
+
+Modročerný kámen (`deckbuild_bg`, `deckbuild_bg2`) nahrazen texturami z rodiny menu/profilu: celá obrazovka `bg_plain` (zvětšená přes `graphicsLayer`, aby kamenný rám skončil za okrajem), panel balíčku jen ztmavuje společné pozadí (textura `bg_side_panels` měla rám těsně vedle dělicí čáry a zdvojovala ji). Horní lišta katalogu i hlavička balíčku mají stejnou výšku `TOP_BAR_HEIGHT`, takže oddělovače pod nimi navazují přes svislou dělicí čáru. Lišty a pruh filtrů mají teplou tmavou `DbBar` místo `BgPanel`, dlaždice karet v katalogu `0xE60E0A08`. `deckbuild_bg` dál používá roguelike draft.
+
+## [2026-10-05] ui | Tvorba balíčku: album se stránkami (varianta B)
+
+Svislý pruh filtrů a scrollovací mřížka nahrazeny albem (`DeckBuilderScreen.kt`):
+- **`ResourceTabBar`** – nahoře Zpět + záložky Magie / Útok / Kámen / Chaos (ikona + text). Záložka „Vše“ není: klik na aktivní záložku filtr zruší.
+- **`HorizontalPager` + `AlbumPage`** – stránka = 2 řádky po 4 kartách (`CARDS_PER_PAGE = 8`), karty zmenšené tak, aby se vešly celé. Listuje se tažením nebo šipkami (`PageArrow`); změna filtru vrací na 1. stranu.
+- **`AlbumCard`** – bez řádku −/+: klik přidá kopii, a když přidat nejde (zamčená, plný počet kopií, plný balíček), otevře detail; podržení otevře detail vždy (výroba, rozebrání, přidat/odebrat). Tečky kopií (`CopyDots`) jsou v rohu karty. Odebírá se klikem na řádek v seznamu balíčku nebo v detailu.
+- **`CatalogBottomBar`** – cena 0–7+, hledání slova v názvu i textu karty, zámek (`lock_icon`, jen odemčené karty), číslo strany.
+- **Výběr balíčku** – sloty 1/2/3 zrušeny. Klik na název balíčku v hlavičce otevře `DeckPickerOverlay` (dlaždice s `mulligan_background`: ikona, název, počet karet, „aktivní“). Výběr platného balíčku ho jako dřív nastaví aktivním.
+- **Ikona balíčku** – `Deck.dominantResource()`: surovina s nejvíc kartami (bez shody na 1. místě); jinak `card_icon`. V hlavičce i ve výběru.
+
+Poměr šířek katalog : balíček 1,5 : 1. Nový text `dbPickDeck`. Původní `CatalogCardItem` (s −/+) zůstává pro roguelike draft.
