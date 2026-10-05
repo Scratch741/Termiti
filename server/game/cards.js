@@ -333,7 +333,7 @@ const RAW = [
   // 141 a 142 jsou placeholdery (nesbíratelné) – vkládá je jen předchozí krok.
   ['140','Prastarý kolos',  20,'STONES',0,[bw(20), bc(10), ad('141',1)], 'LEGENDARY'],
   ['141','Probuzení kolosu',20,'MAGIC', 0,[am('MAGIC'), am('ATTACK'), am('STONES'), ad('142',1)], 'LEGENDARY', false, 0, true],
-  ['142','Úder kolosu',     20,'ATTACK',0,[ac(100)],             'LEGENDARY', false, 0, true],
+  ['142','Úder kolosu',     20,'ATTACK',0,[ap(70)],              'LEGENDARY', false, 0, true],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────

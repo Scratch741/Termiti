@@ -428,7 +428,7 @@ object CardPresentation {
         "141" to CardPres("Důl magie, útoku i kamene +1. Zamíchá **Úder kolosu** do tvého balíčku.",
             R.drawable.art_probuzeni_kolosu, "Magie",
             artScale = 0.80f),
-        "142" to CardPres("Poškodí hrad −100.",
+        "142" to CardPres("Zaútočí za 70.",
             R.drawable.art_uder_kolosu, "Útok",
             artScale = 0.80f),
 

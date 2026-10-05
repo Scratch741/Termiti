@@ -442,3 +442,89 @@ Balíček pojmenovaný po šabloně nesl její emoji („🪞 Iluzionista“) a 
 ## [2026-10-05] ui | Tvorba balíčku: doladění lišt alba
 
 `ResourceTabBar`: Zpět větší (76×30dp, 9sp) a dál od okraje; záložky surovin mají pevnou šířku 82dp a sedí uprostřed zbylého místa (dřív roztažené přes celou lištu). `CatalogBottomBar`: hledání má pevnou šířku 110dp, zámek a číslo strany zůstávají vpravo. Obě lišty začínají na `BAR_INSET` (33dp), takže Zpět i chipy ceny jsou v zákrytu s levým okrajem první karty alba.
+
+## [2026-10-06] preset | Smazány šablony Kartář a Obránce2
+
+Z `PRESET_DECKS` odebrány „📚 Kartář“ a „🏰 Obránce2“ (dlouhodobě ~15 % výher). Zůstává 9 šablon. Texty `presetCardsmith` / `presetDefender2` a překlad v `localizedDeckName` zůstávají kvůli balíčkům, které si hráč po šabloně dřív pojmenoval.
+
+Round robin 9 šablon (`EngineSimulation.roundRobinOfPresets`, 1000 her na dvojici, cíl 100, strop hradeb 40, start hradu 50):
+
+| Šablona | Výhry | Bořením | Stavbou | Výškou hradu | Kola |
+|---|---|---|---|---|---|
+| Mágik | 71,6 % | 62,9 % | 19,1 % | 18,0 % | 20,6 |
+| AI Útočník | 70,6 % | 89,1 % | 0,0 % | 10,9 % | 17,1 |
+| AI Chaos | 63,8 % | 49,6 % | 29,4 % | 20,9 % | 22,4 |
+| Chaos | 47,0 % | 73,9 % | 1,0 % | 25,1 % | 23,5 |
+| Iluzionista | 45,8 % | 25,1 % | 38,4 % | 36,5 % | 25,0 |
+| Obránce | 44,2 % | 0,1 % | 88,7 % | 11,2 % | 20,2 |
+| Útočník2 | 43,9 % | 79,5 % | 0,0 % | 20,5 % | 20,5 |
+| Útočník | 35,9 % | 93,6 % | 0,0 % | 6,4 % | 17,6 |
+| Sabotér | 27,1 % | 20,7 % | 31,4 % | 48,0 % | 25,2 |
+
+Nejvyhraněnější dvojice: Mágik × Sabotér 94 : 6, AI Útočník × Sabotér 95 : 5, Chaos × Sabotér 90 : 10, Mágik × Útočník 84 : 16. Mágik × AI Chaos 50,5 : 49,5; AI Útočník poráží Mágika 54 : 46 i AI Chaos 67 : 33.
+
+## [2026-10-06] preset | AI Obránce a Kolos, hledání balíčku v simulaci
+
+- **`EngineSimulation.deckSearch`** (`ENGINE_SIM_SEARCH="<název presetu>"`): horolezení nad herním enginem – výměna jedné kopie karty, kritérium průměr výher proti všem presetům, krok se přijme jen po opakovaném měření. Balíček drží jako stavitelský (žádná karta za útok ani s útočným efektem, ≥ 15 karet za kámen). Volby `ENGINE_SIM_SEARCH_SECONDS`, `ENGINE_SIM_SEARCH_STONES`, výstup `app/build/engine-search.txt`.
+- **„🏰 AI Obránce“** – výsledek hledání ze šablony Obránce (450 s, 1117 kroků, 21 přijatých): 45 % → 82 % proti tehdejším 9 presetům. Hlavní změny: víc dolů a zdrojů (Velký kamenolom, Trifekta dolů, Rozmach těžby, Rychlá magie), Královská obnova ×2, Citadela, Temný přenos, Prastarý kolos; pryč Tunely, Pevnostní hrad, Strategická výstavba, Nedobytná pevnost.
+- **„🗿 Kolos“** – balíček od uživatele kolem rituálu Prastarého kolosu.
+
+Round robin 11 presetů (1000 her na dvojici, cíl 100, strop hradeb 40, start hradu 50):
+
+| Šablona | Výhry | Bořením | Stavbou | Výškou hradu | Kola |
+|---|---|---|---|---|---|
+| AI Obránce | 78,6 % | 16,6 % | 81,0 % | 2,4 % | 17,5 |
+| Kolos | 68,9 % | 61,1 % | 30,0 % | 8,9 % | 21,6 |
+| Mágik | 64,8 % | 57,9 % | 23,5 % | 18,5 % | 20,6 |
+| AI Útočník | 64,1 % | 90,4 % | 0,0 % | 9,6 % | 17,1 |
+| AI Chaos | 58,7 % | 43,6 % | 34,9 % | 21,5 % | 21,9 |
+| Chaos | 41,8 % | 73,8 % | 1,0 % | 25,2 % | 23,6 |
+| Iluzionista | 41,1 % | 23,3 % | 43,9 % | 32,8 % | 24,2 |
+| Obránce | 38,3 % | 0,1 % | 89,3 % | 10,6 % | 19,7 |
+| Útočník2 | 36,4 % | 78,0 % | 0,0 % | 22,0 % | 20,8 |
+| Útočník | 30,2 % | 93,4 % | 0,0 % | 6,6 % | 17,7 |
+| Sabotér | 27,0 % | 17,5 % | 34,0 % | 48,5 % | 25,1 |
+
+AI Obránce prohrává jen s Kolosem (44,5 %); s Mágikem 54,7 %, s AI Chaosem 56,8 %, s AI Útočníkem 91,3 %, s oběma Útočníky 97–100 %. Úder kolosu dokončuje 38 % výher Kolosu a 17 % výher AI Obránce.
+
+## [2026-10-06] sim | Ablace Prastarého kolosu
+
+`EngineSimulation.ablation` (karta nahrazena prázdnou, 2000 her proti každému z 10 ostatních presetů):
+
+| Balíček | Bez karty | Výhry | Změna |
+|---|---|---|---|
+| AI Obránce | – | 78,8 % | |
+| AI Obránce | Prastarý kolos | 66,2 % | −12,6 |
+| AI Obránce | Pohlcení hradeb | 67,8 % | −11,0 |
+| AI Obránce | Obnova království | 74,1 % | −4,7 |
+| AI Obránce | Královská obnova (1 ze 2) | 74,7 % | −4,0 |
+| AI Obránce | Citadela | 75,3 % | −3,5 |
+| AI Obránce | Temný přenos | 75,5 % | −3,3 |
+| Kolos | – | 68,6 % | |
+| Kolos | Prastarý kolos | 41,4 % | −27,2 |
+| Kolos | Pohlcení hradeb | 48,5 % | −20,1 |
+
+Běžná silná karta má v AI Obránci hodnotu 3–5 bodů; Prastarý kolos a Pohlcení hradeb 11–13. AI Obránce bez kolosu (66 %) zůstává nad Mágikem a AI Útočníkem (~64 %).
+
+## [2026-10-06] sim | Varianty oslabení rituálu kolosu
+
+`EngineSimulation.costVariants`, 1000 her na dvojici, 11 presetů. Úspěšnost balíčku Kolos / AI Obránce (výchozí 69,5 / 78,3 %):
+
+| Varianta | Kolos | AI Obránce |
+|---|---|---|
+| Úder: zaútočí za 100 (přes hradby) | 68,0 | 78,0 |
+| Úder: zaútočí za 70 | 65,0 | 77,4 |
+| Úder: hrad −50 | 63,0 | 78,0 |
+| Úder: zaútočí za 50 | 58,5 | 77,2 |
+| Prastarý kolos: jen hradby +20 (bez hradu +10) | 63,6 | 75,8 |
+| Prastarý kolos: jen hradby +10 | 62,4 | 74,4 |
+| Probuzení: bez dolů (jen zamíchá Úder) | 64,5 | 78,1 |
+| Prastarý kolos hradby +10 a Probuzení bez dolů | 57,3 | 75,1 |
+
+Ostatní presety se hýbou o 0–3 body (nejvíc Mágik a AI Chaos, +3 až +5 u nejsilnějších oslabení). AI Obránce na oslabení Úderu skoro nereaguje – jeho síla je ve stavbě, ne v rituálu.
+
+## [2026-10-06] balance | Úder kolosu: „Zaútočí za 70“ místo „hrad −100“
+
+Karta 142: `ac(100)` → `ap(70)` (`cards.js`, `CardPresentation.kt`, cs/en; `cards.json`, `card_data.json` a `EMBEDDED_CARDS` přegenerovány). Úder teď jde přes hradby – soupeř s hradbami 40 a hradem 50 přežije s 20 body hradu, takže stavět obranu proti rituálu má smysl. Dřív byl úder jistá výhra bez odpovědi (mimo hradby, víc než strop hradu).
+
+Round robin po změně (1000 her na dvojici): Kolos 68,9 → 64,6 % (Úder dokončuje 38 → 27 % jeho výher), AI Obránce 78,6 → 77,1 % (Úder 17 → 6 % výher), Mágik 65,5 %, AI Útočník 63,6 %, AI Chaos 61,0 %; ostatní beze změny v rámci šumu.

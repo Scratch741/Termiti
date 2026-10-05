@@ -4496,8 +4496,8 @@
     "isCombo": false,
     "effects": [
       {
-        "type": "AttackCastle",
-        "amount": 100
+        "type": "AttackPlayer",
+        "amount": 70
       }
     ],
     "rarity": "LEGENDARY",
