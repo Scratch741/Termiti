@@ -165,6 +165,15 @@ Discard follows the **same rule as the player's** (`GameViewModel.discardCard`):
 
 `bestDiscard()` picks the card with the lowest hand value: `effectScore × 2 − turnsToAfford × 2 + costBonus` (strong/expensive cards are kept even if currently unaffordable; the affordability penalty is capped at 4 turns).
 
+## Chaotická replikace (CloneNextPlayed)
+
+The next card played this turn is copied N× (2) into the own deck, so the copies only matter if the AI draws them in time and if they move the game. `cloneValue(card, copies)` = copies × `cloneQuality(card)` × draw chance:
+- `turnsLeftEstimate()` = min(distance to win of either side, by destruction or building) / 6, clamped 1..12 – an average turn moves a castle by about 6;
+- draw chance = turns left / (deck size + copies), capped at 1;
+- `cloneQuality` = sum of `scoreEffect` without cost, except resources (AddResource/Delayed) = 1, mines = full value only with >= 6 turns left (else 2), and copy effects / AddCardsToDeck = 0.
+
+Playing Replikace: `score()` adds the best `cloneValue` among cards still affordable after paying it; below 5 it is -15 (no worthwhile target or the game is ending), no follow-up at all -30. While the flag is active, the AI picks the card with the highest `score + cloneValue` (a lethal play still wins) and waits instead of playing when even the best combination is <= 0. Test `CloneNextPlayedAiTest`. The deckbuilder.html simulator models CloneNextPlayed differently (one copy per following card) and was not changed.
+
 ## AI and Combo vs. Non-combo
 
 Combo cards receive a bonus score (AI prefers to chain Combo sequences). A non-combo card ends the AI's turn.

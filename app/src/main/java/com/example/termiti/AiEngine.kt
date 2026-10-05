@@ -117,8 +117,8 @@ fun aiChooseAction(
         card.effects.isNotEmpty() && effectsDoNothing(card.effects, depth = 0)
 
     // Filtruje se HNED tady, ne až v rozhodovacím prahu — jinak by karta prošla
-    // průchody, které práh skóre obcházejí (aktivní CloneNextPlayed hraje
-    // nejlepší kartu bez ohledu na skóre, stejně tak endgame fallback).
+    // průchody, které práh skóre obcházejí (aktivní CloneNextPlayed vybírá
+    // podle zahrání + hodnoty kopií, endgame fallback bez prahu).
     val affordable = playable.filterNot { isNoOpNow(it) }
 
     // Situační příznaky
@@ -336,7 +336,7 @@ fun aiChooseAction(
             val burned    = fx.count - useful
             useful * 5 - burned * 4 - fx.count * 2
         }
-        // Klonování: hodnotné pokud AI má silné karty v ruce (přidá 2 kopie příští zahrané karty)
+        // Chaotická replikace: základ; cenu kopií dopočítá score() podle nejlepšího cíle (cloneValue)
         is CardEffect.CloneNextPlayed -> 6
         is CardEffect.SmartJoker      -> 8   // Rozhodnutí: silná situační karta
         is CardEffect.MomentumAttack  ->
@@ -406,6 +406,36 @@ fun aiChooseAction(
 
     // Celkové skóre karty = suma efektů − cena + šum ±2
     // Pro X-kost karty: cena = aktuální zásoby daného zdroje (to se spotřebuje)
+    // ── Chaotická replikace (CloneNextPlayed): vyplatí se kopírovat? ─────────
+    // Kopie jdou do balíčku. Mají cenu jen tehdy, když je AI stihne líznout a když
+    // jde o karty, které hru posunou – kopie Rychlé magie v pozdní hře jen ředí balíček.
+
+    /** Odhad, kolik tahů hra ještě potrvá: kolik kterémukoli hráči chybí k výhře
+     *  (bořením i stavbou), průměrný tah posune hrad zhruba o 6. */
+    fun turnsLeftEstimate(): Double {
+        val aiDist  = minOf(aiWinTarget - ai.castleHP, opponent.castleHP).coerceAtLeast(0)
+        val oppDist = minOf(playerWinTarget - opponent.castleHP, ai.castleHP).coerceAtLeast(0)
+        return (minOf(aiDist, oppDist) / 6.0).coerceIn(1.0, 12.0)
+    }
+
+    /** Jak moc karta posune hru, když se lízne později (bez ceny). Suroviny a doly
+     *  z pozdních kopií za moc nestojí, kopírovací efekty kopírovat nemá smysl. */
+    fun cloneQuality(card: Card): Int = card.effects.sumOf { fx ->
+        when (fx) {
+            is CardEffect.AddResource, is CardEffect.AddResourceDelayed -> 1
+            is CardEffect.AddMine -> if (turnsLeftEstimate() >= 6.0) scoreEffect(fx, 0, card.id) else 2
+            is CardEffect.CloneNextPlayed, is CardEffect.Clone, is CardEffect.Mirror,
+            is CardEffect.AddCardsToDeck -> 0
+            else -> scoreEffect(fx, 0, card.id).coerceAtLeast(0)
+        }
+    }
+
+    /** Hodnota [copies] kopií karty v balíčku = síla × šance, že se kopie stihnou líznout. */
+    fun cloneValue(card: Card, copies: Int): Int {
+        val drawChance = (turnsLeftEstimate() / (ai.deck.size + copies)).coerceIn(0.0, 1.0)
+        return Math.round(copies * cloneQuality(card) * drawChance).toInt()
+    }
+
     fun score(card: Card): Int {
         val xVal = if (card.isXCost) (ai.resources[card.costType] ?: 0) else 0
 
@@ -488,10 +518,11 @@ fun aiChooseAction(
             if (pendingSetup) -8 else 0
         } else 0
 
-        // ── CloneNextPlayed skóre: zahraj jen pokud po zaplacení zbydou zdroje na další kartu ──
-        // CloneNextPlayed (Chaotická replikace atd.) nemá žádný efekt, pokud AI nezahraje
-        // po ní alespoň jednu další kartu.
-        val hasCloneNextPlayed = card.effects.any { it is CardEffect.CloneNextPlayed }
+        // ── CloneNextPlayed skóre: hraj jen s hodnotným cílem, na který po zaplacení zbydou zdroje ──
+        // CloneNextPlayed (Chaotická replikace) nemá efekt, pokud AI po ní nezahraje další kartu,
+        // a škodí, když zkopíruje kartu, která se nestihne líznout nebo nic nepřinese.
+        val cloneNext = card.effects.filterIsInstance<CardEffect.CloneNextPlayed>().firstOrNull()
+        val hasCloneNextPlayed = cloneNext != null
         val clonePenalty = if (hasCloneNextPlayed) {
             val residualRes = ai.resources.toMutableMap()
             residualRes[card.costType] = ((residualRes[card.costType] ?: 0) - card.effectiveCost).coerceAtLeast(0)
@@ -500,10 +531,12 @@ fun aiChooseAction(
             }
             when {
                 followUpCards.isEmpty() -> -30  // žádná follow-up karta → silná penalta
-                // Bonus za hodnotný cíl klonu (nejlepší follow-up karta)
-                else -> followUpCards.maxOfOrNull { other ->
-                    other.effects.sumOf { scoreEffect(it, 0, other.id) }
-                }?.let { bestFollowScore -> (bestFollowScore / 3).coerceIn(0, 12) } ?: 0
+                else -> {
+                    // Hodnota kopií nejlepšího cíle; bez hodnotného cíle (nudná karta,
+                    // konec hry) se Replikace nehraje – kopie by jen ředily balíček.
+                    val bestClone = followUpCards.maxOf { cloneValue(it, cloneNext!!.count) }
+                    if (bestClone < 5) -15 else bestClone
+                }
             }
         } else 0
 
@@ -760,9 +793,16 @@ fun aiChooseAction(
     val scored = affordable.map { it to score(it) }
     val (best, bestScore) = scored.maxByOrNull { it.second } ?: return AiAction.Wait
 
-    // CloneNextPlayed je aktivní — musíme zahrát kartu, jinak klon přijde vniveč.
-    // Ignorujeme práh skóre a hrajeme nejlepší dostupnou kartu.
-    if (ai.cloneNextPlayed != null) return AiAction.Play(best)
+    // CloneNextPlayed je aktivní – další zahraná karta se zkopíruje do balíčku. Vyber
+    // kartu podle toho, co přinese teď, I podle hodnoty jejích kopií (Temný přenos,
+    // ne Rychlá magie). Smrtící tah (≥ 1000) vyhraje vždy. Když nic nestojí za to,
+    // radši nehraj nic, než nakopírovat do balíčku kartu, která jen ředí.
+    val pendingClones = ai.cloneNextPlayed
+    if (pendingClones != null) {
+        val (pick, combined) = scored.map { (c, s) -> c to s + cloneValue(c, pendingClones) }
+            .maxByOrNull { it.second } ?: return AiAction.Wait
+        return if (combined > 0) AiAction.Play(pick) else AiAction.Wait
+    }
 
     // Užitečné zahození jde PŘED zahráním: tah nekončí a líznutá karta může být
     // lepší než cokoli v ruce. Smrtící tah (skóre ≥ 1000) má ale vždy přednost.

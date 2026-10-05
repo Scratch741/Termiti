@@ -161,6 +161,9 @@ class EngineSimulation {
         }
     }
 
+    /** Karty zkopírované Chaotickou replikací (CloneNextPlayed): jméno → [počet, součet kol]. */
+    private val cloneStats = java.util.concurrent.ConcurrentHashMap<String, IntArray>()
+
     private class TurnEnd(val waited: Boolean = false, val result: GameResult? = null, val finisher: String? = null)
 
     /** Port AI tahu z GameViewModel.finishTurn (od transformShapeShifters po konec smyčky). */
@@ -195,6 +198,7 @@ class EngineSimulation {
                     if (comboBoost) me.nextCardIsCombo = false
                     val cloneCount = me.cloneNextPlayed
                     if (cloneCount != null && cloneCount > 0) {
+                        cloneStats.merge(card.name, intArrayOf(1, gs.currentTurn)) { a, b -> intArrayOf(a[0] + b[0], a[1] + b[1]) }
                         repeat(cloneCount) {
                             me.deck.add(card.copy(id = "${card.id}_clone_${java.util.UUID.randomUUID()}", isGenerated = true))
                         }
@@ -907,6 +911,7 @@ class EngineSimulation {
         assumeTrue("Simulace se spouští jen s ENGINE_SIM=1", System.getenv("ENGINE_SIM") != null)
         val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 400
         val presets = presetDecks
+        cloneStats.clear()
         val stats = presets.associate { it.first to DeckStats() }
         val pair = Array(presets.size) { DoubleArray(presets.size) }
         val t0 = System.currentTimeMillis()
@@ -949,6 +954,14 @@ class EngineSimulation {
             val top = s.finishers.entries.sortedByDescending { it.value }.take(6)
                 .joinToString(", ") { "${it.key} ${"%.0f".format(100.0 * it.value / s.wins.coerceAtLeast(1))} %" }
             out.appendLine("  $name: $top")
+        }
+        if (cloneStats.isNotEmpty()) {
+            val total = cloneStats.values.sumOf { it[0] }
+            out.appendLine()
+            out.appendLine("Chaotická replikace – co AI zkopírovala ($total× celkem; podíl, průměrné kolo):")
+            cloneStats.entries.sortedByDescending { it.value[0] }.take(40).forEach { (name, v) ->
+                out.appendLine(String.format("  %-24s %5.1f %%  kolo %4.1f", name, 100.0 * v[0] / total, v[1].toDouble() / v[0]))
+            }
         }
         println(out)
         File("build").takeIf { it.isDirectory }?.let { File(it, "engine-sim.txt").writeText(out.toString()) }
