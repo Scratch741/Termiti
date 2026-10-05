@@ -906,6 +906,108 @@ class EngineSimulation {
         File("build").takeIf { it.isDirectory }?.let { File(it, "engine-pacing.txt").writeText(out.toString()) }
     }
 
+    /**
+     * Hledání balíčku horolezením: start = preset, jehož název obsahuje ENGINE_SIM_SEARCH,
+     * krok = výměna jedné kopie karty za jinou, kritérium = průměr výher proti všem presetům.
+     * Krok se přijme, jen když vyjde lépe i v opakovaném měření (šum simulace).
+     *
+     * Balíček zůstává „stavitelský": žádné karty za útok ani s útočným efektem a aspoň
+     * ENGINE_SIM_SEARCH_STONES (výchozí 15) karet za kámen.
+     * Volitelně ENGINE_SIM_SEARCH_SECONDS (výchozí 300), ENGINE_SIM_GAMES (her na soupeře, výchozí 300).
+     * Výsledek: stdout testu + app/build/engine-search.txt
+     */
+    @Test
+    fun deckSearch() {
+        val seedName = System.getenv("ENGINE_SIM_SEARCH")
+        assumeTrue("Spouští se jen s ENGINE_SIM_SEARCH", seedName != null)
+        val seconds   = System.getenv("ENGINE_SIM_SEARCH_SECONDS")?.toIntOrNull() ?: 300
+        val n         = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 300
+        val minStones = System.getenv("ENGINE_SIM_SEARCH_STONES")?.toIntOrNull() ?: 15
+        val opponents = PRESET_DECKS
+        val seed = PRESET_DECKS.first { it.first.contains(seedName!!) }.second
+
+        fun attacks(fx: CardEffect): Boolean = when (fx) {
+            is CardEffect.AttackPlayer, is CardEffect.AttackCastle, is CardEffect.AttackWall,
+            is CardEffect.MomentumAttack, is CardEffect.XScaledAttackPlayer,
+            is CardEffect.XScaledAttackCastle -> true
+            is CardEffect.ConditionalEffect   -> attacks(fx.effect)
+            else -> false
+        }
+        val candidates = allCards.filter { c ->
+            !c.isPlaceholder && c.costType != ResourceType.ATTACK &&
+                c.effects.none { it is CardEffect.TrapOnDraw || attacks(it) }
+        }
+        fun stones(d: Map<String, Int>) =
+            d.entries.sumOf { (id, k) -> if (byId.getValue(id).costType == ResourceType.STONES) k else 0 }
+
+        val pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+        fun eval(deck: Map<String, Int>, games: Int): Double =
+            opponents.map { (_, opp) ->
+                pool.submit<Double> {
+                    var pts = 0.0
+                    repeat(games) {
+                        val o = playGame(deck, opp)
+                        pts += if (isWinA(o.result)) 1.0 else if (isWinB(o.result)) 0.0 else 0.5
+                    }
+                    100 * pts / games
+                }
+            }.map { it.get() }.average()
+
+        val out = StringBuilder()
+        try {
+            var cur = seed
+            var curScore = eval(cur, n * 2)
+            out.appendLine("Hledání balíčku ze „$seedName“: $seconds s, $n her na soupeře, ≥ $minStones karet za kámen, " +
+                           "${candidates.size} kandidátů; start ${"%.1f".format(curScore)} %")
+            val deadline = System.currentTimeMillis() + seconds * 1000L
+            var steps = 0
+            var accepted = 0
+            while (System.currentTimeMillis() < deadline) {
+                val outId = cur.keys.random()
+                val inCard = candidates.filter { it.id != outId && (cur[it.id] ?: 0) < it.rarity.maxCopies }.random()
+                val next = cur.toMutableMap()
+                if (next.getValue(outId) == 1) next.remove(outId) else next[outId] = next.getValue(outId) - 1
+                next[inCard.id] = (next[inCard.id] ?: 0) + 1
+                if (stones(next) < minStones) continue
+                steps++
+                if (eval(next, n) <= curScore + 1.0) continue
+                // Kandidát vypadá lépe → změř oba znovu, ať nepřijmeme šum
+                val nextScore = eval(next, n * 2)
+                val curAgain  = eval(cur, n * 2)
+                if (nextScore > curAgain + 0.5) {
+                    out.appendLine(String.format("  %4d  %-22s → %-22s %5.1f → %5.1f %%", steps,
+                        byId.getValue(outId).name, inCard.name, curAgain, nextScore))
+                    cur = next; curScore = nextScore; accepted++
+                } else curScore = (curScore + curAgain) / 2
+            }
+            val finalScore = eval(cur, 2000)
+            val seedScore  = eval(seed, 2000)
+            out.appendLine()
+            out.appendLine(String.format("Kroků %d, přijato %d. Výsledek %.1f %% (start %.1f %%), 2000 her na soupeře.",
+                steps, accepted, finalScore, seedScore))
+            out.appendLine("Proti jednotlivým presetům (nový / start):")
+            for ((name, opp) in opponents) {
+                fun vs(d: Map<String, Int>) = pool.submit<Double> {
+                    var pts = 0.0
+                    repeat(2000) { val o = playGame(d, opp); pts += if (isWinA(o.result)) 1.0 else if (isWinB(o.result)) 0.0 else 0.5 }
+                    pts / 20
+                }
+                val a = vs(cur); val b = vs(seed)
+                out.appendLine(String.format("  %-16s %5.1f %%  / %5.1f %%", name, a.get(), b.get()))
+            }
+            out.appendLine()
+            val sorted = cur.entries.sortedWith(compareBy({ byId.getValue(it.key).costType.ordinal }, { byId.getValue(it.key).cost }))
+            for ((id, k) in sorted) {
+                val c = byId.getValue(id)
+                out.appendLine(String.format("  %-4s ×%d  %-6s %2d  %s", id, k, c.costType, c.cost, c.name))
+            }
+            out.appendLine()
+            out.appendLine(sorted.joinToString(",") { "${it.key}:${it.value}" })
+        } finally { pool.shutdown() }
+        println(out)
+        File("build").takeIf { it.isDirectory }?.let { File(it, "engine-search.txt").writeText(out.toString()) }
+    }
+
     @Test
     fun roundRobinOfPresets() {
         assumeTrue("Simulace se spouští jen s ENGINE_SIM=1", System.getenv("ENGINE_SIM") != null)
