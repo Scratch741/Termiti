@@ -144,6 +144,7 @@ class AppStrings(
     val dbDustCost: String by values               // %d = dust
     val dbBadgeNew: String by values
     val dbTemplates: String by values
+    val dbPickDeck: String by values
     val dbSetActive: String by values
     val dbActiveDeck: String by values
     val dbComposition: String by values
@@ -180,6 +181,17 @@ class AppStrings(
     // ── Profile ──────────────────────────────────────────────────────────────
     val profileTitle: String by values
     val profileWins: String by values
+    val profileTabOverview: String by values
+    val profileTabLook: String by values
+    val profileTabAbilities: String by values
+    val profileTabDebug: String by values
+    val profileLookAvatar: String by values
+    val profileLookCastle: String by values
+    val profileLookWall: String by values
+    val profileLookCardBack: String by values
+    val profileWinsOnline: String by values
+    val profileWinRate: String by values
+    val questsAllDone: String by values
     val profileLosses: String by values
     val profileGames: String by values
     val profileLevel: String by values             // %d

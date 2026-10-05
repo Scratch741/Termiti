@@ -6,11 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,12 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -32,6 +31,8 @@ private val PrText   = Color(0xFFEDE0C4)
 private val PrMuted  = Color(0xFF7A6E5F)
 private val PrGems   = Color(0xFF7EC8E3)
 private val PrGreen  = Color(0xFF3DBFAD)
+private val PrDust   = Color(0xFFB39DDB)
+private val PrDebug  = Color(0xFFCC6655)
 
 /** Hráčské ikony — všechny odemčeny na levelu 1. */
 private val AVATARS = listOf(
@@ -95,386 +96,349 @@ fun AvatarDisplay(avatar: String, sizeDp: Float, modifier: Modifier = Modifier) 
     }
 }
 
+// ── Obrazovka profilu ─────────────────────────────────────────────────────────
+//
+// Stejná scéna jako hlavní menu a obchod (menu_bg, pochodně, vlevo karta hráče,
+// vpravo Zpět). Střední rám drží záložky:
+//   PŘEHLED     – jméno, úroveň, XP, statistiky a denní úkoly
+//   VZHLED      – ikona, hrad, hradby, rub karet (mřížka bez vodorovného scrollu)
+//   SCHOPNOSTI  – pasivní schopnosti (koupě, zapnutí)
+//   DEBUG       – testovací tlačítka
+
+private enum class ProfileTab { OVERVIEW, LOOK, ABILITIES, DEBUG }
+private enum class LookTab { AVATAR, CASTLE, WALL, CARD_BACK }
+
 @Composable
 fun ProfileScreen(onBack: () -> Unit) {
     var profile by remember { mutableStateOf(PlayerProfileManager.profile) }
+    var tab     by remember { mutableStateOf(ProfileTab.OVERVIEW) }
+    val s = LocalStrings.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Textured background
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val W = maxWidth
+        val H = maxHeight
+
         Image(
-            painter            = painterResource(R.drawable.bg_plain),
+            painter            = painterResource(R.drawable.menu_bg),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
         )
 
-        if (profile != null) {
+        // Pochodně – stejný výpočet jako v hlavním menu a obchodu
+        val imgAR  = 1791f / 975f
+        val dispAR = W.value / H.value.coerceAtLeast(1f)
+        val imgDispW: Dp
+        val imgDispH: Dp
+        val cropX: Dp
+        val cropY: Dp
+        if (dispAR >= imgAR) {
+            imgDispW = W; imgDispH = W / imgAR; cropX = 0.dp; cropY = (imgDispH - H) / 2f
+        } else {
+            imgDispW = H * imgAR; imgDispH = H; cropX = (imgDispW - W) / 2f; cropY = 0.dp
+        }
+        val torchSize = H * 0.15f
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.112f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ), size = torchSize, seed = 0f
+        )
+        TorchFlame(
+            modifier = Modifier.align(Alignment.TopStart).offset(
+                x = imgDispW * 0.898f - cropX - torchSize / 2,
+                y = imgDispH * 0.17f  - cropY - torchSize * 0.80f
+            ), size = torchSize, seed = 1.7f
+        )
+
+        val p = profile
+        if (p != null) {
+            // Střední rám menu_bg je širší než sloupec tlačítek v menu – profil ho využije celý.
+            val centerW  = minOf(W * 0.53f, H * 1.25f)
+            val iconSize = H * 0.12f
+            // Širší střed zužuje boční sloupce → jejich obsah by ujel ke kraji. Posun ho
+            // vrací na stejné místo (do výklenků pozadí) jako v menu a obchodu.
+            val sideFix  = (centerW - minOf(W * 0.46f, H)) / 4
+
             Row(
-                modifier          = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .padding(top = 52.dp),
+                modifier          = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                                        .padding(vertical = H * 0.02f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ── Levý sloupec ─────────────────────────────────────────────────
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    Image(
-                        painter            = painterResource(R.drawable.bg_side_panels),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxSize(),
-                        contentScale       = ContentScale.Crop
-                    )
-                    Box(Modifier.fillMaxSize().background(Color(0x66000000)))
+                // ── Levý sloupec – karta hráče (stejná jako v menu) ───────────
+                Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.Center) {
                     Column(
-                        modifier            = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier            = Modifier.offset(x = (-5).dp + sideFix, y = 30.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(H * 0.025f)
                     ) {
-                        // Avatar + jméno + level
-                        Row(
-                            verticalAlignment   = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            AvatarDisplay(profile!!.avatar, sizeDp = 42f)
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(profile!!.name, color = PrText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                Text(
-                                    LocalStrings.current.profileLevel.format(profile!!.level),
-                                    color = PrGold, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        // XP bar
-                        val xpFrac = (profile!!.xp.toFloat() / profile!!.xpNeeded()).coerceIn(0f, 1f)
-                        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            LinearProgressIndicator(
-                                progress   = { xpFrac },
-                                modifier   = Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)),
-                                color      = PrGold,
-                                trackColor = PrMuted.copy(alpha = 0.2f),
-                                strokeCap  = StrokeCap.Round
-                            )
-                            Text(
-                                "${profile!!.xp} / ${profile!!.xpNeeded()} XP",
-                                color    = PrMuted, fontSize = 9.sp,
-                                modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center
-                            )
-                        }
-
-                        // Měna
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            CurrencyBadge(R.drawable.goldcoin_icon, profile!!.gold,  PrGold,              LocalStrings.current.profileGold, Modifier.weight(1f))
-                            CurrencyBadge(R.drawable.diamond_icon,  profile!!.gems,  PrGems,              LocalStrings.current.profileGems, Modifier.weight(1f))
-                            CurrencyBadge(R.drawable.dust_icon,     profile!!.dust,  Color(0xFFB39DDB),   LocalStrings.current.shopDust,    Modifier.weight(1f))
-                        }
-
-                        // Statistiky
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            StatBadge(R.drawable.utok_icon, "${profile!!.winsOffline + profile!!.winsOnline}", LocalStrings.current.profileWins,   Modifier.weight(1f))
-                            StatBadge(R.drawable.card_icon, "${profile!!.totalGames}",                         LocalStrings.current.profilePlayed, Modifier.weight(1f))
-                        }
-
-                        // Denní questy
-                        QuestSection(onProfileChanged = { profile = PlayerProfileManager.profile })
-
-                        // DEBUG
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0x33CC3333), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 8.dp, vertical = 6.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            Text(
-                                "DEBUG",
-                                color         = Color(0xFFCC3333).copy(alpha = 0.7f),
-                                fontSize      = 7.sp,
-                                fontWeight    = FontWeight.Bold,
-                                letterSpacing = 1.5.sp
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                                DebugBtn("+500 zl", PrGold, Modifier.weight(1f)) {
-                                    profile = PlayerProfileManager.addRewards(xp = 0, gold = 500, gems = 0)
-                                }
-                                DebugBtn("+50 diam", PrGems, Modifier.weight(1f)) {
-                                    profile = PlayerProfileManager.addRewards(xp = 0, gold = 0, gems = 50)
-                                }
-                                DebugBtn("+100 XP", PrGreen, Modifier.weight(1f)) {
-                                    profile = PlayerProfileManager.addRewards(xp = 100, gold = 0, gems = 0)
-                                }
-                            }
-                            val allUnlocked = profile!!.allCardsUnlocked
-                            val dustColor   = Color(0xFFB39DDB)
-                            Row(
-                                modifier              = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    LocalStrings.current.profileUnlockAll,
-                                    color    = PrMuted,
-                                    fontSize = 9.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                DebugToggle(checked = allUnlocked) {
-                                    CardCollectionManager.setAllCardsUnlocked(!allUnlocked)
-                                    profile = PlayerProfileManager.profile
-                                }
-                                DebugBtn("+500 pr", dustColor, Modifier) {
-                                    val p = PlayerProfileManager.profile!!
-                                    PlayerProfileManager.save(p.copy(dust = p.dust + 500))
-                                    profile = PlayerProfileManager.profile
-                                }
-                            }
-                            // Odemkne všechny lokace i soupeře kampaně. Nemění postup
-                            // (počitadla "X/10" ani odměny) – jen obchází zámky, takže
-                            // vypnutím se hráč vrátí přesně tam, kde skutečně je.
-                            var campaignUnlocked by remember { mutableStateOf(CampaignManager.allUnlocked) }
-                            Row(
-                                modifier              = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    LocalStrings.current.profileUnlockCampaign,
-                                    color    = PrMuted,
-                                    fontSize = 9.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                DebugToggle(checked = campaignUnlocked) {
-                                    CampaignManager.setAllUnlocked(!campaignUnlocked)
-                                    campaignUnlocked = CampaignManager.allUnlocked
-                                }
-                            }
-                        }
-
-                        Spacer(Modifier.height(8.dp))
+                        ProfileInfo(p, H)
                     }
                 }
 
-                // ── Pravý sloupec ─────────────────────────────────────────────────
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    Image(
-                        painter            = painterResource(R.drawable.bg_side_panels),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxSize().graphicsLayer { scaleX = -1f },
-                        contentScale       = ContentScale.Crop
-                    )
-                    Box(Modifier.fillMaxSize().background(Color(0x66000000)))
+                // ── Střed – záložky a obsah ───────────────────────────────────
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(centerW)
+                        .offset(x = 12.dp)
+                        .padding(top = H * 0.05f, bottom = H * 0.085f),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    CampaignTitle(s.profileTitle, fontSize = 28.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ProfileTab.entries.forEach { t ->
+                            val selected = t == tab
+                            PlainButton(
+                                text = when (t) {
+                                    ProfileTab.OVERVIEW  -> s.profileTabOverview
+                                    ProfileTab.LOOK      -> s.profileTabLook
+                                    ProfileTab.ABILITIES -> s.profileTabAbilities
+                                    ProfileTab.DEBUG     -> s.profileTabDebug
+                                }.uppercase(),
+                                modifier  = Modifier.weight(1f).height(30.dp),
+                                textColor = when {
+                                    t == ProfileTab.DEBUG -> PrDebug
+                                    selected              -> PrGold
+                                    else                  -> PrText
+                                },
+                                fontSize  = 10.sp,
+                                selected  = selected,
+                                paddingH  = 4.dp,
+                                onClick   = { tab = t }
+                            )
+                        }
+                    }
+                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                        when (tab) {
+                            ProfileTab.OVERVIEW  -> OverviewTab(p) { profile = PlayerProfileManager.profile }
+                            ProfileTab.LOOK      -> LookTabContent(p) { profile = it }
+                            ProfileTab.ABILITIES -> AbilitiesTab(p) { profile = it }
+                            ProfileTab.DEBUG     -> DebugTab(p) { profile = PlayerProfileManager.profile }
+                        }
+                    }
+                }
+
+                // ── Pravý sloupec – Zpět na stejném místě jako v obchodu ──────
+                Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.Center) {
                     Column(
-                        modifier            = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier            = Modifier.offset(x = 25.dp - sideFix, y = 35.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                     ) {
-                        SectionHeader(LocalStrings.current.profileSectionAvatar)
-                        AvatarPicker(current = profile!!.avatar, level = profile!!.level, onChanged = { profile = it })
-
-                        SectionHeader(LocalStrings.current.profileSectionCastle)
-                        CastleSkinPicker(current = profile!!.castleSkin, onChanged = { profile = it })
-
-                        SectionHeader(LocalStrings.current.profileSectionWall)
-                        WallSkinPicker(current = profile!!.wallSkin, onChanged = { profile = it })
-
-                        SectionHeader(LocalStrings.current.profileSectionCardBack)
-                        CardBackSkinPicker(current = profile!!.cardBackSkin, onChanged = { profile = it })
-
-                        SectionHeader(LocalStrings.current.profileSectionAbilities)
-                        val activeCount = profile!!.activeAbilities.size
-                        Text(
-                            LocalStrings.current.profileActiveCount.format(activeCount, PassiveAbility.MAX_ACTIVE),
-                            color    = if (activeCount >= PassiveAbility.MAX_ACTIVE) PrGold else PrMuted,
-                            fontSize = 8.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.End
-                        )
-                        PassiveAbility.entries.forEach { ability ->
-                            AbilityRow(ability = ability, profile = profile!!, onChanged = { profile = it })
+                        Box(Modifier.graphicsLayer { alpha = 0f }) {
+                            IconMenuButton(imageRes = R.drawable.button_7, label = s.shop, size = iconSize, onClick = {})
                         }
-
-                        SectionHeader(LocalStrings.current.profileSectionCosmetics)
-                        ComingSoonCard(LocalStrings.current.profileCosmeticsSoon)
-
-                        Spacer(Modifier.height(8.dp))
+                        Box(Modifier.graphicsLayer { alpha = 0f }) {
+                            IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = {})
+                        }
+                        IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
                     }
                 }
             }
         }
-
-        // ── Tlačítko Zpět (floating) ──────────────────────────────────────────
-        PlainButton(
-            text      = LocalStrings.current.back2,
-            modifier  = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(10.dp),
-            textColor = PrMuted,
-            fontSize  = 12.sp,
-            paddingH  = 14.dp,
-            paddingV  = 8.dp,
-            onClick   = { SoundManager.playMenuTap(); onBack() }
-        )
     }
 }
 
-// ── Ability row ───────────────────────────────────────────────────────────────
+// ── Sdílené stavební prvky ────────────────────────────────────────────────────
 
+/** Panel s herní texturou jako podkladem – velikost určuje obsah / modifier, ne textura. */
 @Composable
-private fun AbilityRow(
-    ability: PassiveAbility,
-    profile: PlayerProfile,
-    onChanged: (PlayerProfile) -> Unit
+private fun TexturedPanel(
+    @DrawableRes textureRes: Int,
+    modifier: Modifier = Modifier,
+    contentAlignment: Alignment = Alignment.Center,
+    content: @Composable BoxScope.() -> Unit
 ) {
-    val isUnlocked = ability.id in profile.unlockedAbilities
-    val isActive   = ability.id in profile.activeAbilities
-    val canUnlock  = profile.level >= ability.unlockLevel
-    val slotsLeft  = profile.activeAbilities.size < PassiveAbility.MAX_ACTIVE
-
-    val bgColor = when {
-        isActive   -> PrGreen.copy(alpha = 0.10f)
-        isUnlocked -> PrGold.copy(alpha = 0.06f)
-        else       -> Color(0x22000000)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(bgColor, RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 5.dp),
-        verticalAlignment   = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
+    Box(modifier, contentAlignment = contentAlignment) {
         Image(
-            painter            = painterResource(ability.iconRes),
+            painter            = painterResource(textureRes),
             contentDescription = null,
-            modifier           = Modifier.size(18.dp).alpha(if (canUnlock) 1f else 0.35f)
+            modifier           = Modifier.matchParentSize(),
+            contentScale       = ContentScale.FillBounds
         )
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(
-                ability.localizedTitle(),
-                color      = if (canUnlock) PrText else PrMuted,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(ability.localizedDescription(), color = PrMuted, fontSize = 8.sp, lineHeight = 11.sp)
-        }
-        when {
-            !canUnlock -> {
-                Box(
-                    modifier         = Modifier.background(PrMuted.copy(alpha = 0.15f), RoundedCornerShape(5.dp)).padding(horizontal = 6.dp, vertical = 3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Lv.${ability.unlockLevel}", color = PrMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            !isUnlocked -> {
-                val canAfford = profile.gold >= ability.goldCost
-                Box(
-                    modifier = Modifier
-                        .background(
-                            if (canAfford) PrGold.copy(alpha = 0.18f) else PrMuted.copy(alpha = 0.10f),
-                            RoundedCornerShape(5.dp)
-                        )
-                        .clickable(enabled = canAfford) {
-                            SoundManager.playMenuTap()
-                            if (PlayerProfileManager.buyAbility(ability.id)) {
-                                onChanged(PlayerProfileManager.profile!!)
-                            }
-                        }
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(10.dp))
-                        Text("${ability.goldCost}", color = if (canAfford) PrGold else PrMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-            isActive -> {
-                Box(
-                    modifier = Modifier
-                        .background(PrGreen.copy(alpha = 0.20f), RoundedCornerShape(5.dp))
-                        .clickable {
-                            SoundManager.playMenuTap()
-                            val newList = profile.activeAbilities - ability.id
-                            PlayerProfileManager.setActiveAbilities(newList)
-                            onChanged(PlayerProfileManager.profile!!)
-                        }
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("ON", color = PrGreen, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            else -> {
-                Box(
-                    modifier = Modifier
-                        .background(PrMuted.copy(alpha = 0.12f), RoundedCornerShape(5.dp))
-                        .clickable(enabled = slotsLeft) {
-                            SoundManager.playMenuTap()
-                            val newList = profile.activeAbilities + ability.id
-                            PlayerProfileManager.setActiveAbilities(newList)
-                            onChanged(PlayerProfileManager.profile!!)
-                        }
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        if (slotsLeft) "OFF" else LocalStrings.current.slotFull,
-                        color      = if (slotsLeft) PrText else PrMuted,
-                        fontSize   = 8.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
+        content()
     }
 }
-
-// ── Avatar picker ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun AvatarPicker(
-    current:   String,
-    level:     Int,
-    onChanged: (PlayerProfile) -> Unit
-) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment     = Alignment.CenterVertically
+private fun SectionHeader(title: String, trailing: String? = null, trailingColor: Color = PrMuted) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.Bottom
+        ) {
+            Text(title.uppercase(), color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            if (trailing != null) Text(trailing, color = trailingColor, fontSize = 9.sp)
+        }
+        Image(
+            painter            = painterResource(R.drawable.bg_separator),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxWidth(),
+            contentScale       = ContentScale.FillWidth
+        )
+    }
+}
+
+@Composable
+private fun ProgressBar(fraction: Float, color: Color, modifier: Modifier = Modifier, height: Dp = 6.dp) {
+    val shape = RoundedCornerShape(height / 2)
+    Box(
+        modifier
+            .height(height)
+            .clip(shape)
+            .background(Color(0xFF14100C))
+            .border(0.5.dp, color.copy(alpha = 0.35f), shape)
     ) {
-        AVATARS.forEach { (avatarId, unlockLevel) ->
-            val unlocked = level >= unlockLevel
-            val selected = avatarId == current
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .background(
-                        if (selected) PrGold.copy(alpha = 0.20f) else Color.Transparent,
-                        RoundedCornerShape(8.dp)
-                    )
-                    .then(if (selected) Modifier.border(1.5.dp, PrGold, RoundedCornerShape(8.dp)) else Modifier)
-                    .alpha(if (unlocked) 1f else 0.30f)
-                    .clickable(enabled = unlocked && !selected) {
-                        SoundManager.playMenuTap()
-                        val updated = PlayerProfileManager.profile!!.copy(avatar = avatarId)
-                        PlayerProfileManager.save(updated)
-                        onChanged(updated)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                AvatarDisplay(avatarId, sizeDp = 28f)
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(fraction.coerceIn(0f, 1f))
+                .background(Brush.horizontalGradient(listOf(color.copy(alpha = 0.55f), color)))
+        )
+    }
+}
+
+// ── Záložka PŘEHLED ───────────────────────────────────────────────────────────
+
+@Composable
+private fun OverviewTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
+    val s = LocalStrings.current
+    Column(
+        modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Jméno, úroveň a XP
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.Bottom
+        ) {
+            CampaignTitle(profile.name, fontSize = 17.sp)
+            Text(
+                "${s.profileLevel.format(profile.level)}  ·  ${profile.xp} / ${profile.xpNeeded()} XP",
+                color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold
+            )
+        }
+        ProgressBar(profile.xp.toFloat() / profile.xpNeeded(), PrGold, Modifier.fillMaxWidth())
+
+        // Statistiky
+        val wins    = profile.winsOffline + profile.winsOnline
+        val winRate = if (profile.totalGames > 0) wins * 100 / profile.totalGames else 0
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            StatTile(R.drawable.trophy_icon, "$wins",                  s.profileWins,       Modifier.weight(1f))
+            StatTile(R.drawable.utok_icon,   "${profile.winsOnline}",  s.profileWinsOnline, Modifier.weight(1f))
+            StatTile(R.drawable.card_icon,   "${profile.totalGames}",  s.profilePlayed,     Modifier.weight(1f))
+            StatTile(R.drawable.star_icon,   "$winRate %",             s.profileWinRate,    Modifier.weight(1f))
+        }
+
+        QuestSection(onProfileChanged)
+    }
+}
+
+@Composable
+private fun StatTile(@DrawableRes iconRes: Int, value: String, label: String, modifier: Modifier = Modifier) {
+    TexturedPanel(R.drawable.plain_button, modifier.height(46.dp)) {
+        Row(
+            modifier              = Modifier.padding(horizontal = 10.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(20.dp), contentScale = ContentScale.Fit)
+            Column {
+                Text(value, color = PrText, fontSize = 13.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(label, color = PrMuted, fontSize = 8.sp, lineHeight = 10.sp, maxLines = 1)
             }
         }
     }
 }
 
-// ── Castle skin picker ────────────────────────────────────────────────────────
+// ── Denní úkoly ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun QuestSection(onProfileChanged: () -> Unit) {
+    var quests    by remember { mutableStateOf(QuestManager.quests) }
+    val canReroll = QuestManager.canReroll()
+    val s = LocalStrings.current
+
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SectionHeader(s.questsTitle, trailing = s.questsReset)
+
+        val open = quests.filter { !it.claimed }
+        if (open.isEmpty()) {
+            Text(
+                s.questsAllDone,
+                color = PrMuted, fontSize = 10.sp,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), textAlign = TextAlign.Center
+            )
+        }
+        open.forEach { quest ->
+            QuestRow(
+                quest     = quest,
+                canReroll = canReroll && !quest.completed,
+                onClaim   = {
+                    QuestManager.claimQuest(quest.id)
+                    quests = QuestManager.quests
+                    onProfileChanged()
+                },
+                onReroll  = {
+                    QuestManager.reroll(quest.id)
+                    quests = QuestManager.quests
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuestRow(quest: DailyQuest, canReroll: Boolean, onClaim: () -> Unit, onReroll: () -> Unit) {
+    val accent = if (quest.completed) PrGreen else PrGold
+    TexturedPanel(R.drawable.plain_button_longer, Modifier.fillMaxWidth()) {
+        Row(
+            modifier              = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Image(painterResource(quest.iconRes()), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit)
+
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(quest.label(), color = PrText, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ProgressBar(quest.progress.toFloat() / quest.target, accent, Modifier.weight(1f), height = 5.dp)
+                    Text("${quest.progress.coerceAtMost(quest.target)} / ${quest.target}", color = PrMuted, fontSize = 8.sp)
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                if (quest.rewardXp   > 0) Reward(R.drawable.star_icon,     "${quest.rewardXp} XP", Color(0xFF7EE8A2))
+                if (quest.rewardGold > 0) Reward(R.drawable.goldcoin_icon, "${quest.rewardGold}",  PrGold)
+                if (quest.rewardGems > 0) Reward(R.drawable.diamond_icon,  "${quest.rewardGems}",  PrGems)
+            }
+
+            when {
+                quest.canClaim -> PlainButton(
+                    text = LocalStrings.current.questClaim, modifier = Modifier.width(72.dp).height(26.dp),
+                    textColor = PrGreen, fontSize = 9.sp, paddingH = 4.dp, onClick = onClaim
+                )
+                canReroll -> PlainButton(
+                    text = "↺", modifier = Modifier.size(26.dp), buttonRes = R.drawable.plain_button_mini,
+                    textColor = PrMuted, fontSize = 12.sp, paddingH = 0.dp, paddingV = 0.dp, onClick = onReroll
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun Reward(@DrawableRes iconRes: Int, text: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
+        Text(text, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ── Záložka VZHLED ────────────────────────────────────────────────────────────
 
 // castle_player_4 (Tábor psanců) tu záměrně chybí – je to hrad goblinské lokace
 // v kampani (CampaignData.kt: loc_goblins), ne skin volitelný hráčem.
@@ -483,6 +447,145 @@ private val CASTLE_SKINS = listOf(
     "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
     "castle_player_11", "castle_player_12", "castle_player_13"
 )
+private val WALL_SKINS = listOf("wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
+private val CARD_BACK_SKINS = listOf("card_back_frame", "card_back_frame_2", "card_back_frame_3")
+
+/** Kolik dlaždic se vejde na řádek mřížky vzhledu. */
+private const val LOOK_COLUMNS = 6
+
+@Composable
+private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) -> Unit) {
+    var look by remember { mutableStateOf(LookTab.AVATAR) }
+    val s = LocalStrings.current
+
+    fun save(updated: PlayerProfile) {
+        PlayerProfileManager.save(updated)
+        onChanged(updated)
+    }
+
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            LookTab.entries.forEach { t ->
+                PlainButton(
+                    text = when (t) {
+                        LookTab.AVATAR    -> s.profileLookAvatar
+                        LookTab.CASTLE    -> s.profileLookCastle
+                        LookTab.WALL      -> s.profileLookWall
+                        LookTab.CARD_BACK -> s.profileLookCardBack
+                    },
+                    modifier  = Modifier.weight(1f).height(24.dp),
+                    textColor = if (t == look) PrGold else PrText,
+                    fontSize  = 9.sp,
+                    selected  = t == look,
+                    paddingH  = 4.dp,
+                    paddingV  = 2.dp,
+                    onClick   = { look = t }
+                )
+            }
+        }
+        Image(
+            painter            = painterResource(R.drawable.bg_separator),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxWidth(),
+            contentScale       = ContentScale.FillWidth
+        )
+
+        BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+            val gap   = 6.dp
+            val tileW = (maxWidth - gap * (LOOK_COLUMNS - 1)) / LOOK_COLUMNS
+            Column(
+                modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                when (look) {
+                    LookTab.AVATAR -> LookGrid(AVATARS.map { it.first }, profile.avatar, tileW, tileW, gap,
+                        onPick = { save(profile.copy(avatar = it)) }
+                    ) { id -> AvatarDisplay(id, sizeDp = (tileW - 12.dp).value, modifier = Modifier.clip(RoundedCornerShape(4.dp))) }
+
+                    LookTab.CASTLE -> {
+                        LookGrid(CASTLE_SKINS, profile.castleSkin, tileW, tileW * 1.25f, gap,
+                            onPick = { save(profile.copy(castleSkin = it)) }
+                        ) { id -> SkinImage(castleSkinDrawable(id)) }
+                        SelectedLabel(castleSkinLabel(profile.castleSkin))
+                    }
+
+                    LookTab.WALL -> {
+                        LookGrid(WALL_SKINS, profile.wallSkin, tileW, tileW * 1.25f, gap,
+                            onPick = { save(profile.copy(wallSkin = it)) }
+                        ) { id -> SkinImage(wallSkinDrawable(id)) }
+                        SelectedLabel(wallSkinLabel(profile.wallSkin))
+                    }
+
+                    LookTab.CARD_BACK -> {
+                        LookGrid(CARD_BACK_SKINS, profile.cardBackSkin, tileW, tileW * 1.4f, gap,
+                            onPick = { save(profile.copy(cardBackSkin = it)) }
+                        ) { id ->
+                            Image(
+                                painter            = painterResource(cardBackSkinDrawable(id)),
+                                contentDescription = null,
+                                modifier           = Modifier.fillMaxSize().padding(7.dp),
+                                contentScale       = ContentScale.FillBounds
+                            )
+                        }
+                        SelectedLabel(cardBackLabel(profile.cardBackSkin))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Mřížka dlaždic vzhledu: [LOOK_COLUMNS] na řádek, neúplný řádek na střed. */
+@Composable
+private fun LookGrid(
+    ids: List<String>,
+    current: String,
+    tileW: Dp,
+    tileH: Dp,
+    gap: Dp,
+    onPick: (String) -> Unit,
+    preview: @Composable BoxScope.(String) -> Unit
+) {
+    ids.chunked(LOOK_COLUMNS).forEach { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+            row.forEach { id ->
+                val selected = id == current
+                val shape    = RoundedCornerShape(6.dp)
+                TexturedPanel(
+                    R.drawable.plain_button_mini,
+                    Modifier
+                        .size(tileW, tileH)
+                        .then(if (selected) Modifier.border(1.5.dp, PrGold, shape) else Modifier)
+                        .clip(shape)
+                        .clickable(enabled = !selected) { SoundManager.playMenuTap(); onPick(id) }
+                ) {
+                    preview(id)
+                    if (selected) Image(
+                        painter            = painterResource(R.drawable.check_icon),
+                        contentDescription = null,
+                        modifier           = Modifier.align(Alignment.TopEnd).padding(4.dp).size(12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkinImage(@DrawableRes resId: Int) {
+    Image(
+        painter            = painterResource(resId),
+        contentDescription = null,
+        modifier           = Modifier.fillMaxSize().padding(7.dp),
+        contentScale       = ContentScale.Fit
+    )
+}
+
+@Composable
+private fun SelectedLabel(label: String) {
+    Text(label, color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+}
 
 @Composable
 private fun castleSkinLabel(id: String): String {
@@ -496,54 +599,6 @@ private fun castleSkinLabel(id: String): String {
 }
 
 @Composable
-private fun CastleSkinPicker(
-    current:   String,
-    onChanged: (PlayerProfile) -> Unit
-) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CASTLE_SKINS.forEach { skinId ->
-            val label    = castleSkinLabel(skinId)
-            val selected = skinId == current
-            val resId    = castleSkinDrawable(skinId)
-            Column(
-                modifier = Modifier
-                    .width(84.dp)
-                    .background(
-                        if (selected) PrGold.copy(alpha = 0.15f) else Color(0x22000000),
-                        RoundedCornerShape(8.dp)
-                    )
-                    .then(if (selected) Modifier.border(1.5.dp, PrGold, RoundedCornerShape(8.dp)) else Modifier)
-                    .clickable(enabled = !selected) {
-                        SoundManager.playMenuTap()
-                        val updated = PlayerProfileManager.profile!!.copy(castleSkin = skinId)
-                        PlayerProfileManager.save(updated)
-                        onChanged(updated)
-                    }
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Image(
-                    painter            = painterResource(resId),
-                    contentDescription = label,
-                    modifier           = Modifier.fillMaxWidth().height(60.dp),
-                    contentScale       = ContentScale.Fit
-                )
-                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
-                if (selected) Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
-            }
-        }
-    }
-}
-
-// ── Wall skin picker ──────────────────────────────────────────────────────────
-
-private val WALL_SKINS = listOf("wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
-
-@Composable
 private fun wallSkinLabel(id: String): String {
     val s = LocalStrings.current
     return when (id) {
@@ -551,54 +606,6 @@ private fun wallSkinLabel(id: String): String {
         else          -> s.wallVariant.format(id.removePrefix("wall_player").toIntOrNull() ?: 0)
     }
 }
-
-@Composable
-private fun WallSkinPicker(
-    current:   String,
-    onChanged: (PlayerProfile) -> Unit
-) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        WALL_SKINS.forEach { skinId ->
-            val label    = wallSkinLabel(skinId)
-            val selected = skinId == current
-            val resId    = wallSkinDrawable(skinId)
-            Column(
-                modifier = Modifier
-                    .width(84.dp)
-                    .background(
-                        if (selected) PrGold.copy(alpha = 0.15f) else Color(0x22000000),
-                        RoundedCornerShape(8.dp)
-                    )
-                    .then(if (selected) Modifier.border(1.5.dp, PrGold, RoundedCornerShape(8.dp)) else Modifier)
-                    .clickable(enabled = !selected) {
-                        SoundManager.playMenuTap()
-                        val updated = PlayerProfileManager.profile!!.copy(wallSkin = skinId)
-                        PlayerProfileManager.save(updated)
-                        onChanged(updated)
-                    }
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Image(
-                    painter            = painterResource(resId),
-                    contentDescription = label,
-                    modifier           = Modifier.fillMaxWidth().height(60.dp),
-                    contentScale       = ContentScale.Fit
-                )
-                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, maxLines = 1)
-                if (selected) Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
-            }
-        }
-    }
-}
-
-// ── Card back skin picker ─────────────────────────────────────────────────────
-
-private val CARD_BACK_SKINS = listOf("card_back_frame", "card_back_frame_2", "card_back_frame_3")
 
 @Composable
 private fun cardBackLabel(id: String): String {
@@ -610,289 +617,150 @@ private fun cardBackLabel(id: String): String {
     }
 }
 
+// ── Záložka SCHOPNOSTI ────────────────────────────────────────────────────────
+
 @Composable
-private fun CardBackSkinPicker(
-    current:   String,
-    onChanged: (PlayerProfile) -> Unit
-) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+private fun AbilitiesTab(profile: PlayerProfile, onChanged: (PlayerProfile) -> Unit) {
+    val s = LocalStrings.current
+    val activeCount = profile.activeAbilities.size
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SectionHeader(
+            s.profileSectionAbilities,
+            trailing      = s.profileActiveCount.format(activeCount, PassiveAbility.MAX_ACTIVE),
+            trailingColor = if (activeCount >= PassiveAbility.MAX_ACTIVE) PrGold else PrMuted
+        )
+        Column(
+            modifier            = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            PassiveAbility.entries.forEach { ability ->
+                AbilityRow(ability, profile, onChanged)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AbilityRow(ability: PassiveAbility, profile: PlayerProfile, onChanged: (PlayerProfile) -> Unit) {
+    val isUnlocked = ability.id in profile.unlockedAbilities
+    val isActive   = ability.id in profile.activeAbilities
+    val canUnlock  = profile.level >= ability.unlockLevel
+    val slotsLeft  = profile.activeAbilities.size < PassiveAbility.MAX_ACTIVE
+    val shape      = RoundedCornerShape(6.dp)
+    val btn        = Modifier.width(66.dp).height(26.dp)
+
+    TexturedPanel(
+        R.drawable.plain_button_longer,
+        Modifier.fillMaxWidth().then(if (isActive) Modifier.border(1.5.dp, PrGreen.copy(alpha = 0.8f), shape) else Modifier)
     ) {
-        CARD_BACK_SKINS.forEach { skinId ->
-            val label    = cardBackLabel(skinId)
-            val selected = skinId == current
-            val resId    = cardBackSkinDrawable(skinId)
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        if (selected) PrGold.copy(alpha = 0.15f) else Color(0x22000000),
-                        RoundedCornerShape(8.dp)
-                    )
-                    .then(if (selected) Modifier.border(1.5.dp, PrGold, RoundedCornerShape(8.dp)) else Modifier)
-                    .clickable(enabled = !selected) {
-                        SoundManager.playMenuTap()
-                        val updated = PlayerProfileManager.profile!!.copy(cardBackSkin = skinId)
-                        PlayerProfileManager.save(updated)
-                        onChanged(updated)
-                    }
-                    .padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Image(
-                    painter            = painterResource(resId),
-                    contentDescription = label,
-                    modifier           = Modifier.width(36.dp).height(52.dp),
-                    contentScale       = ContentScale.FillBounds
+        Row(
+            modifier              = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Image(
+                painter            = painterResource(ability.iconRes),
+                contentDescription = null,
+                modifier           = Modifier.size(22.dp).alpha(if (canUnlock) 1f else 0.35f),
+                contentScale       = ContentScale.Fit
+            )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(ability.localizedTitle(), color = if (canUnlock) PrText else PrMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(ability.localizedDescription(), color = PrMuted, fontSize = 8.sp, lineHeight = 11.sp)
+            }
+            when {
+                !canUnlock -> PlainButton(
+                    text = "Lv. ${ability.unlockLevel}", modifier = btn, enabled = false,
+                    textColor = PrMuted, fontSize = 9.sp, paddingH = 4.dp
                 )
-                Text(label, color = if (selected) PrGold else PrMuted, fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                if (selected) Text(LocalStrings.current.profileActive, color = PrGold, fontSize = 8.sp)
-            }
-        }
-    }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-@Composable
-private fun CurrencyBadge(
-    @DrawableRes iconRes: Int,
-    amount: Int,
-    color: Color,
-    label: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier            = modifier.padding(vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(1.dp)
-    ) {
-        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
-        Text("$amount", color = color, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = PrMuted, fontSize = 8.sp)
-    }
-}
-
-@Composable
-private fun StatBadge(
-    @DrawableRes iconRes: Int,
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier            = modifier.padding(vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(1.dp)
-    ) {
-        Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
-        Text(value, color = PrText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = PrMuted, fontSize = 8.sp)
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String) {
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(title, color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxWidth(),
-            contentScale       = ContentScale.FillWidth
-        )
-    }
-}
-
-/** ZAP/VYP přepínač v DEBUG bloku – stejný vzhled jako [DebugBtn], jen dvoustavový. */
-@Composable
-private fun DebugToggle(checked: Boolean, onToggle: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .background(
-                if (checked) PrGreen.copy(alpha = 0.2f) else PrMuted.copy(alpha = 0.12f),
-                RoundedCornerShape(5.dp)
-            )
-            .clickable {
-                SoundManager.playMenuTap()
-                onToggle()
-            }
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            if (checked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
-            color      = if (checked) PrGreen else PrMuted,
-            fontSize   = 9.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-private fun DebugBtn(label: String, accent: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Box(
-        modifier = modifier
-            .background(accent.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-            .clickable { SoundManager.playMenuTap(); onClick() }
-            .padding(vertical = 5.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(label, color = accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-// ── Denní questy ─────────────────────────────────────────────────────────────
-
-@Composable
-private fun QuestSection(onProfileChanged: () -> Unit) {
-    var quests    by remember { mutableStateOf(QuestManager.quests) }
-    val canReroll = QuestManager.canReroll()
-    val QuestGold  = Color(0xFFD4A843)
-    val QuestGreen = Color(0xFF4DB86E)
-    val QuestMuted = Color(0xFF7A6E5F)
-
-    Column(
-        modifier            = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Text(LocalStrings.current.questsTitle, color = QuestGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-            Text(LocalStrings.current.questsReset, color = QuestMuted, fontSize = 8.sp)
-        }
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxWidth(),
-            contentScale       = ContentScale.FillWidth
-        )
-
-        quests.filter { !it.claimed }.forEach { quest ->
-            QuestCard(
-                quest      = quest,
-                canReroll  = canReroll && !quest.completed,
-                onClaim    = {
-                    QuestManager.claimQuest(quest.id)
-                    quests = QuestManager.quests
-                    onProfileChanged()
-                },
-                onReroll   = {
-                    QuestManager.reroll(quest.id)
-                    quests = QuestManager.quests
-                },
-                questGold  = QuestGold,
-                questGreen = QuestGreen,
-                questMuted = QuestMuted
-            )
-        }
-    }
-}
-
-@Composable
-private fun QuestCard(
-    quest     : DailyQuest,
-    canReroll : Boolean,
-    onClaim   : () -> Unit,
-    onReroll  : () -> Unit,
-    questGold : Color,
-    questGreen: Color,
-    questMuted: Color
-) {
-    val progress = quest.progress.toFloat() / quest.target.toFloat()
-    val accent   = when {
-        quest.claimed   -> questMuted
-        quest.completed -> questGreen
-        else            -> questGold
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(accent.copy(alpha = if (quest.completed) 0.10f else 0.06f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 10.dp, vertical = 7.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                modifier              = Modifier.weight(1f)
-            ) {
-                Image(painterResource(quest.iconRes()), contentDescription = null, modifier = Modifier.size(16.dp))
-                Text(quest.label(), color = if (quest.claimed) questMuted else PrText, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-            }
-            if (canReroll) {
-                Box(
-                    modifier = Modifier
-                        .background(questMuted.copy(alpha = 0.15f), RoundedCornerShape(5.dp))
-                        .clickable { SoundManager.playMenuTap(); onReroll() }
-                        .padding(horizontal = 6.dp, vertical = 3.dp)
-                ) {
-                    Text("↺", fontSize = 10.sp, color = questMuted)
+                !isUnlocked -> {
+                    val canAfford = profile.gold >= ability.goldCost
+                    PlainButtonWithIcon(
+                        text = "${ability.goldCost}", iconRes = R.drawable.goldcoin_icon, modifier = btn,
+                        enabled = canAfford, textColor = PrGold, fontSize = 9.sp, paddingH = 4.dp,
+                        onClick = {
+                            if (PlayerProfileManager.buyAbility(ability.id)) onChanged(PlayerProfileManager.profile!!)
+                        }
+                    )
                 }
-            }
-        }
-
-        LinearProgressIndicator(
-            progress   = { progress.coerceIn(0f, 1f) },
-            modifier   = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
-            color      = accent,
-            trackColor = questMuted.copy(alpha = 0.15f),
-            strokeCap  = androidx.compose.ui.graphics.StrokeCap.Round
-        )
-
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Text("${quest.progress} / ${quest.target}", color = questMuted, fontSize = 8.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (quest.rewardXp > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Image(painterResource(R.drawable.star_icon), contentDescription = null, modifier = Modifier.size(10.dp))
-                    Text("${quest.rewardXp} XP", color = Color(0xFF7EE8A2), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
-                if (quest.rewardGold > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(10.dp))
-                    Text("${quest.rewardGold}", color = questGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
-                if (quest.rewardGems > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Image(painterResource(R.drawable.diamond_icon), contentDescription = null, modifier = Modifier.size(10.dp))
-                    Text("${quest.rewardGems}", color = Color(0xFF6EE0F0), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
-                if (quest.canClaim) {
-                    Box(
-                        modifier = Modifier
-                            .background(questGreen.copy(alpha = 0.18f), RoundedCornerShape(5.dp))
-                            .clickable { SoundManager.playMenuTap(); onClaim() }
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(LocalStrings.current.questClaim, color = questGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                isActive -> PlainButton(
+                    text = LocalStrings.current.toggleOn, modifier = btn,
+                    textColor = PrGreen, fontSize = 9.sp, paddingH = 4.dp,
+                    onClick = {
+                        PlayerProfileManager.setActiveAbilities(profile.activeAbilities - ability.id)
+                        onChanged(PlayerProfileManager.profile!!)
                     }
-                }
+                )
+                else -> PlainButton(
+                    text = if (slotsLeft) LocalStrings.current.toggleOff else LocalStrings.current.slotFull, modifier = btn,
+                    enabled = slotsLeft, textColor = PrText, fontSize = 9.sp, paddingH = 4.dp,
+                    onClick = {
+                        PlayerProfileManager.setActiveAbilities(profile.activeAbilities + ability.id)
+                        onChanged(PlayerProfileManager.profile!!)
+                    }
+                )
             }
         }
     }
 }
 
+// ── Záložka DEBUG ─────────────────────────────────────────────────────────────
+
 @Composable
-private fun ComingSoonCard(description: String) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+private fun DebugTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
+    val s = LocalStrings.current
+    Column(
+        modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Image(painterResource(R.drawable.lock_icon), contentDescription = null, modifier = Modifier.size(16.dp))
-        Text(description, color = PrMuted, fontSize = 9.sp, lineHeight = 13.sp)
+        SectionHeader(s.profileTabDebug)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            val btn = Modifier.weight(1f).height(30.dp)
+            PlainButtonWithIcon("+500", R.drawable.goldcoin_icon, btn, textColor = PrGold, fontSize = 10.sp, paddingH = 4.dp) {
+                PlayerProfileManager.addRewards(xp = 0, gold = 500, gems = 0); onProfileChanged()
+            }
+            PlainButtonWithIcon("+50", R.drawable.diamond_icon, btn, textColor = PrGems, fontSize = 10.sp, paddingH = 4.dp) {
+                PlayerProfileManager.addRewards(xp = 0, gold = 0, gems = 50); onProfileChanged()
+            }
+            PlainButtonWithIcon("+500", R.drawable.dust_icon, btn, textColor = PrDust, fontSize = 10.sp, paddingH = 4.dp) {
+                PlayerProfileManager.save(profile.copy(dust = profile.dust + 500)); onProfileChanged()
+            }
+            PlainButtonWithIcon("+100 XP", R.drawable.star_icon, btn, textColor = PrGreen, fontSize = 10.sp, paddingH = 4.dp) {
+                PlayerProfileManager.addRewards(xp = 100, gold = 0, gems = 0); onProfileChanged()
+            }
+        }
+
+        DebugToggleRow(s.profileUnlockAll, profile.allCardsUnlocked) {
+            CardCollectionManager.setAllCardsUnlocked(!profile.allCardsUnlocked)
+            onProfileChanged()
+        }
+        // Odemkne všechny lokace i soupeře kampaně. Nemění postup (počitadla "X/10"
+        // ani odměny) – jen obchází zámky, takže vypnutím se hráč vrátí přesně tam,
+        // kde skutečně je.
+        var campaignUnlocked by remember { mutableStateOf(CampaignManager.allUnlocked) }
+        DebugToggleRow(s.profileUnlockCampaign, campaignUnlocked) {
+            CampaignManager.setAllUnlocked(!campaignUnlocked)
+            campaignUnlocked = CampaignManager.allUnlocked
+        }
+    }
+}
+
+@Composable
+private fun DebugToggleRow(label: String, checked: Boolean, onToggle: () -> Unit) {
+    TexturedPanel(R.drawable.plain_button_longer, Modifier.fillMaxWidth()) {
+        Row(
+            modifier          = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(label, color = PrText, fontSize = 10.sp, modifier = Modifier.weight(1f))
+            PlainButton(
+                text      = if (checked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
+                modifier  = Modifier.width(66.dp).height(26.dp),
+                textColor = if (checked) PrGreen else PrMuted,
+                fontSize  = 9.sp,
+                paddingH  = 4.dp,
+                onClick   = onToggle
+            )
+        }
     }
 }
