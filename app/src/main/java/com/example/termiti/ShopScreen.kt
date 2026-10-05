@@ -265,7 +265,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                 }
             }
 
-            Box(Modifier.height(80.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.height(92.dp), contentAlignment = Alignment.Center) {
                 if (!allRevealed) {
                     Text(LocalStrings.current.shopTapToReveal, color = ShMuted, fontSize = 11.sp)
                 } else {
@@ -274,31 +274,39 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (result.totalDustGained > 0) {
-                            // Herní panel (stejná textura a FillBounds jako PlainButton / toast odměn)
-                            Row(
-                                Modifier
-                                    .paint(painterResource(R.drawable.plain_button_longer), contentScale = ContentScale.FillBounds)
-                                    .padding(horizontal = 16.dp, vertical = 7.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            // Herní panel (stejná textura jako PlainButton / toast odměn). Textura je
+                            // podklad přes matchParentSize, takže panel obepíná text. (Modifier.paint by ho
+                            // roztáhl: s intrinsics na šířku textury, bez nich na celou obrazovku.)
+                            Box(contentAlignment = Alignment.Center) {
                                 Image(
-                                    painter            = painterResource(R.drawable.dust_icon),
+                                    painter            = painterResource(R.drawable.plain_button_longer),
                                     contentDescription = null,
-                                    modifier           = Modifier.size(13.dp)
+                                    contentScale       = ContentScale.FillBounds,
+                                    modifier           = Modifier.matchParentSize()
                                 )
-                                Text(
-                                    LocalStrings.current.shopDuplicates.format(result.totalDustGained),
-                                    color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                                )
+                                Row(
+                                    Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        LocalStrings.current.shopDuplicates.format(result.totalDustGained),
+                                        color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                                    )
+                                    Image(
+                                        painter            = painterResource(R.drawable.dust_icon),
+                                        contentDescription = null,
+                                        modifier           = Modifier.size(13.dp)
+                                    )
+                                }
                             }
                         }
                         PlainButton(
                             text      = LocalStrings.current.shopFinish,
                             textColor = ShGreen,
-                            fontSize  = 13.sp,
-                            paddingH  = 28.dp,
-                            paddingV  = 8.dp,
+                            fontSize  = 15.sp,
+                            paddingH  = 40.dp,
+                            paddingV  = 10.dp,
                             onClick   = onDismiss
                         )
                     }
@@ -369,20 +377,20 @@ private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -
                                 .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-                                .background(Color.Black.copy(alpha = 0.72f))
-                                .padding(vertical = 3.dp),
+                                .background(Color.Black.copy(alpha = 0.82f))
+                                .padding(vertical = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(
                                 verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
+                                Text("+${gain.dustGained}", color = ShDust, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                 Image(
                                     painter            = painterResource(R.drawable.dust_icon),
                                     contentDescription = null,
-                                    modifier           = Modifier.size(9.dp)
+                                    modifier           = Modifier.size(14.dp)
                                 )
-                                Text("+${gain.dustGained}", color = ShMuted, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
