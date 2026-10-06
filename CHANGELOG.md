@@ -17,6 +17,53 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.5.0] – 2026-10-06
+
+### Nové karty
+- **Prastarý kolos** (20 kamene, legendární) – rituál o třech krocích, každý zamíchá
+  další do tvého balíčku: Prastarý kolos (hradby +20, hrad +10) → Probuzení kolosu
+  (důl magie, útoku i kamene +1) → Úder kolosu (zaútočí za 70).
+- **Nepodařený experiment** a **Bezedný toulec** – přidávají karty do vlastního balíčku.
+- Karta 026 se jmenuje **Odstřelovač**.
+
+### Pravidla
+- **Constructed:** hrad začíná na 50 a staví se do 100 (dřív 35 / 70), strop hradeb
+  je 40 (dřív 50). Náhodné módy zůstávají na 30 / 70 a hradbách do 50.
+- **Constructed s nedokončeným balíčkem:** soupeř má vždy šablonu a tvůj balíček
+  se pro hru doplní z vlastněných karet se zachováním poměru surovin.
+
+### Nové
+- **Tvorba balíčku jako album:** karty se listují po stránkách 4×2, nahoře filtr
+  surovin a vzácnosti, dole cena, hledání a zámek (jen odemčené). Klik kartu přidá,
+  podržení otevře detail. Balíček se vybírá v okně po kliknutí na jeho název a má
+  ikonu převládající suroviny. Šablona se před přepsáním balíčku zeptá, při odchodu
+  s rozdělaným balíčkem se nabídne automatické doplnění.
+- **Roguelike:** balíček se sestavuje v Tvorbě balíčku (20 karet, rozpočet vzácností).
+- **Profil na záložky:** Přehled (úroveň, statistiky, denní úkoly), Vzhled (ikona,
+  hrad, hradby, rub karet), Schopnosti a Debug – ve stejné scéně jako hlavní menu.
+- **Otazník s pravidly** u každého režimu v menu Hrát, včetně výhry vyšším hradem.
+- **Kontrola celého balíčku** před hrou.
+- **Šablony:** nový Mágik, Sabotér, Iluzionista, AI Obránce a Kolos; Kartář
+  a Obránce2 odstraněny.
+- **Kampaň:** vlastní obrázky Temné citadely a jejích deseti soupeřů.
+
+### Vylepšeno
+- **AI:** Chaotická replikace kopíruje jen karty, které za to stojí.
+- **Obchod:** po otevření balíčku „Duplikáty +X“ s ikonou prachu, větší číslo
+  prachu na duplikátní kartě; nadpis s oddělovačem místo obrázku balíčku.
+- **Herní log:** větší jméno a činnost.
+- Nadpisy dialogů ve hře a v lobby písmem Cinzel; textury tlačítek bez
+  roztažených rohů; toast s odměnami na herní textuře.
+
+### Opraveno
+- **Rituál kolosu v rozhodnutích:** Strategická výstavba a další karty vybírající
+  z balíčku nabízejí Probuzení i Úder kolosu; Průzkum dolů je už nenabízí.
+- **Inspirace a Archmág** se navzájem přepisovaly.
+- **Spálená knihovna** na 2 karty v ruce soupeře ukázala jen 1 spálení.
+- Rozebraná karta mizí z balíčků; mulligan bez druhého křížku v rohu karty;
+  karta při zahazování mizí pod dělicí čarou.
+- **Server:** pád jednou zprávou, výběr mimo nabídku, nesbíratelné karty v balíčku.
+
 ## [0.4.2] – 2026-09-29
 
 ### Nové

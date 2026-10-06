@@ -172,11 +172,11 @@ fun MenuScreen(
             }
         }
 
-        // ── Verze – nenápadně v pravém dolním rohu ────────────────────────────
+        // ── Verze v pravém dolním rohu ────────────────────────────────────────
         Text(
             text     = "v${BuildConfig.VERSION_NAME}",
-            color    = TextMuted.copy(alpha = 0.45f),
-            fontSize = 9.sp,
+            color    = TextPrimary.copy(alpha = 0.75f),
+            fontSize = 10.sp,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
