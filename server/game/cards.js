@@ -521,6 +521,12 @@ function buildDeckFromIds(baseIds) {
       console.warn(`[buildDeckFromIds] FAIL: neznámé ID "${id}", fallback na náhodný`);
       return randomDeck();
     }
+    // Jen karty, které jdou dát do balíčku v klientu (DeckBuilderScreen): žádné zástupné /
+    // nesbíratelné (fáze rituálu 141/142, Krysa, Explodovaná bomba…) ani pasti (TrapOnDraw).
+    if (tmpl.isPlaceholder || tmpl.effects.some(fx => fx.type === 'TrapOnDraw')) {
+      console.warn(`[buildDeckFromIds] FAIL: ID "${id}" není karta do balíčku, fallback na náhodný`);
+      return randomDeck();
+    }
     counts[id] = (counts[id] || 0) + 1;
     if (counts[id] > tmpl.maxCopies) {
       console.warn(`[buildDeckFromIds] FAIL: ID "${id}" překročilo maxCopies=${tmpl.maxCopies} (count=${counts[id]}), fallback na náhodný`);

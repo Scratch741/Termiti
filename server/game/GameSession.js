@@ -1069,6 +1069,15 @@ class GameSession {
     if (this._decisionTimer) { clearTimeout(this._decisionTimer); this._decisionTimer = null; }
 
     const { effect, isCombo } = this.pendingDecision;
+    // Anti-cheat: vybrat lze jen kartu z NABÍDKY, kterou server poslal. Dřív se chosenId
+    // hledalo rovnou v databázi karet / v celém balíčku – upravený klient si tak mohl
+    // vzít libovolnou kartu ve hře. Neplatná volba = žádný výběr (efekt propadne).
+    // DecisionChooseResource nemá karty; resType se ověřuje proti effect.options níž.
+    if (effect.type !== 'DecisionChooseResource'
+        && !this.pendingDecision.options.some(c => c.id === chosenId)) {
+      if (chosenId != null) console.warn(`[Decision ${this.gameId}] ${this.name[side]}: volba mimo nabídku (${String(chosenId).slice(0, 40)}) – ignoruji`);
+      chosenId = null;
+    }
     // Zaloguj rozhodnutí ještě před vymazáním pendingDecision
     const _chosenCard = this.pendingDecision.options.find(c => c.id === chosenId);
     this._logger.logDecision(side, effect.type, chosenId || null, _chosenCard?.name || null);

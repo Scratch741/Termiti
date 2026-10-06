@@ -548,6 +548,15 @@ function tryMatch() {
 
 // ── Příchozí spojení ──────────────────────────────────────────────────────────
 
+// Poslední záchrana: neošetřená výjimka (i z časovače hry) nesmí ukončit proces –
+// spadly by všechny rozehrané hry. Zaloguj ji a běž dál.
+process.on('uncaughtException', (err) => {
+  log('ERR', `uncaughtException: ${err && err.stack || err}`);
+});
+process.on('unhandledRejection', (err) => {
+  log('ERR', `unhandledRejection: ${err && err.stack || err}`);
+});
+
 wss.on('connection', (ws, req) => {
   const url = req.url || '';
   if (!url.startsWith(PATH)) {
@@ -585,6 +594,9 @@ wss.on('connection', (ws, req) => {
     let msg;
     try { msg = JSON.parse(raw); }
     catch { return; }
+    // Platný JSON nemusí být objekt ("null", číslo, pole) – msg.type by pak vyhodilo
+    // výjimku a bez záchytu shodilo celý server.
+    if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return;
 
     const player = players.get(ws);
 
@@ -795,7 +807,9 @@ wss.on('connection', (ws, req) => {
         }
 
         const returnIds = Array.isArray(msg.returnIds) ? msg.returnIds : [];
-        session.handleMulligan(player.side, returnIds);
+        // Chyba v jedné hře nesmí shodit server (viz uncaughtException níže) – zaloguj a pokračuj.
+        try { session.handleMulligan(player.side, returnIds); }
+        catch (err) { log('ERR', `handleMulligan ${player.gameId}: ${err.stack || err}`); }
         break;
       }
 
@@ -817,7 +831,12 @@ wss.on('connection', (ws, req) => {
           return;
         }
 
-        session.handleAction(player.side, msg.action, msg.data || {});
+        const data = (msg.data && typeof msg.data === 'object' && !Array.isArray(msg.data)) ? msg.data : {};
+        try { session.handleAction(player.side, msg.action, data); }
+        catch (err) {
+          log('ERR', `handleAction ${player.gameId} (${msg.action}): ${err.stack || err}`);
+          send(ws, { type: 'GAME_ERROR', msg: 'Chyba při zpracování akce.' });
+        }
         break;
       }
 
