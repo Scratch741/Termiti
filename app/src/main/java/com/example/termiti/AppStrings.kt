@@ -152,6 +152,11 @@ class AppStrings(
     val dbIncompleteStay: String by values
     val deckIncompletePlayMsg: String by values
     val deckIncompleteEdit: String by values
+    val rulesTitle: String by values
+    val rulesConstructed: String by values
+    val rulesSuperRandom: String by values
+    val rulesRoguelike: String by values
+    val rulesCampaign: String by values
     val dbPresetConfirmTitle: String by values
     val dbPresetConfirmMsg: String by values
     val dbPresetConfirmYes: String by values

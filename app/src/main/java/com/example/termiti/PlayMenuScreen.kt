@@ -1,5 +1,14 @@
 package com.example.termiti
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -73,6 +82,9 @@ fun PlayMenuScreen(
             ), size = torchSize, seed = 1.7f
         )
 
+        // Pravidla režimu (název tlačítka → text), otevřená otazníkem vedle tlačítka
+        var rules by remember { mutableStateOf<Pair<String, String>?>(null) }
+
         // ── Stejný 3-sloupcový layout jako hlavní menu ────────────────────────
         val centerW          = minOf(W * 0.46f, H * 1.0f)
         val iconSize         = H * 0.12f
@@ -122,11 +134,20 @@ fun PlayMenuScreen(
                         contentScale       = ContentScale.FillWidth
                     )
                     Spacer(Modifier.height(H * 0.01f))
-                    MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         onClick = onOwnDeck)
-                    MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), onClick = onSuperRandom)
+                    val helpSize = H * 0.075f
+                    ModeRow(helpSize, onHelp = { rules = s.ownDeck to s.rulesConstructed }) {
+                        MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         onClick = onOwnDeck)
+                    }
+                    ModeRow(helpSize, onHelp = { rules = s.superRandom to s.rulesSuperRandom }) {
+                        MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), onClick = onSuperRandom)
+                    }
                     // Aréna dočasně skryta (nevejde se; ponechána jako záloha – onArena/routing zůstává)
-                    MenuButton("ROGUELIKE",   imageRes = R.drawable.button_2, accent = Color(0xFFB388FF), onClick = onRoguelike)
-                    MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), onClick = onCampaign)
+                    ModeRow(helpSize, onHelp = { rules = "ROGUELIKE" to s.rulesRoguelike }) {
+                        MenuButton("ROGUELIKE",   imageRes = R.drawable.button_2, accent = Color(0xFFB388FF), onClick = onRoguelike)
+                    }
+                    ModeRow(helpSize, onHelp = { rules = s.campaign to s.rulesCampaign }) {
+                        MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), onClick = onCampaign)
+                    }
                 }
             }
 
@@ -145,6 +166,67 @@ fun PlayMenuScreen(
                     IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
                 }
             }
+        }
+
+        rules?.let { (mode, text) -> RulesOverlay(s.rulesTitle.format(mode), text, s.close) { rules = null } }
+    }
+}
+
+/**
+ * Řádek režimu: tlačítko uprostřed jako dřív a vpravo VEDLE něj otazník s pravidly.
+ * Otazník je posunutý za okraj sloupce, takže tlačítka zůstávají stejně široká a vystředěná.
+ */
+@Composable
+private fun ModeRow(helpSize: Dp, onHelp: () -> Unit, button: @Composable () -> Unit) {
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        button()
+        PlainButton(
+            text      = "?",
+            modifier  = Modifier.align(Alignment.CenterEnd).offset(x = helpSize * 0.8f).size(helpSize),
+            textColor = Gold,
+            fontSize  = (helpSize.value * 0.5f).sp,
+            paddingH  = 0.dp,
+            paddingV  = 0.dp,
+            buttonRes = R.drawable.plain_button_mini,
+            onClick   = onHelp
+        )
+    }
+}
+
+/** Překryv s pravidly režimu – zavře se tlačítkem i klepnutím mimo. */
+@Composable
+private fun RulesOverlay(title: String, text: String, closeLabel: String, onDismiss: () -> Unit) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.85f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            Modifier.fillMaxHeight(0.92f).widthIn(max = 460.dp).padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
+        ) {
+            CampaignTitle(title, fontSize = 22.sp)
+            Text(
+                text,
+                color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp,
+                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+            )
+            PlainButton(
+                text      = closeLabel,
+                modifier  = Modifier.width(120.dp).height(34.dp),
+                textColor = Gold,
+                fontSize  = 11.sp,
+                paddingH  = 6.dp,
+                paddingV  = 0.dp,
+                onClick   = onDismiss
+            )
         }
     }
 }
