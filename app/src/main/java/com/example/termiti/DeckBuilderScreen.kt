@@ -182,13 +182,35 @@ fun localizedDeckName(name: String): String {
 }
 
 // ─── Root ────────────────────────────────────────────────────────────────────
+/**
+ * @param rogue Roguelike režim: stejná obrazovka, ale upravují se tři uložené roguelike
+ *   balíčky ([GameViewModel.roguePresets]) místo konstruovaných. Balíček má
+ *   [RogueConfig.DECK_SIZE] karet a rozpočet vzácností [RogueConfig.BUDGET]; místo Šablon
+ *   je v hlavičce tlačítko, které s hotovým balíčkem zahájí běh.
+ */
 @Composable
-fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
-    val decks          = viewModel.decks
-    val activeDeckIdx  by viewModel.activeDeckIndex
+fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boolean = false) {
+    val decks: List<Deck> =
+        if (rogue) viewModel.roguePresets.mapIndexed { i, p -> Deck(i, p.name, p.cardCounts) }
+        else viewModel.decks
+    val activeDeckIdx  = if (rogue) viewModel.rogueSlot.value else viewModel.activeDeckIndex.value
+    val deckSize       = if (rogue) RogueConfig.DECK_SIZE else 30
 
     var editingIdx     by remember { mutableIntStateOf(activeDeckIdx) }
     val editingDeck    = decks[editingIdx]
+
+    val setCount: (String, Int) -> Unit = { id, n ->
+        if (rogue) viewModel.setRogueCardCount(editingIdx, id, n) else viewModel.setCardCount(editingIdx, id, n)
+    }
+    // Rozpočet vzácností (jen roguelike): legendární 4 · epická 2 · vzácná 1 · běžná 0
+    val cardById    = remember(viewModel.allCards) { viewModel.allCards.associateBy { it.id } }
+    val budgetSpent = if (!rogue) 0 else editingDeck.cardCounts.entries.sumOf { (id, n) ->
+        (cardById[id]?.let { RogueConfig.rarityBudgetCost(it.rarity) } ?: 0) * n
+    }
+    val fitsBudget: (Card) -> Boolean = { c ->
+        !rogue || budgetSpent + RogueConfig.rarityBudgetCost(c.rarity) <= RogueConfig.BUDGET
+    }
+    val deckComplete = editingDeck.totalCards == deckSize && (!rogue || budgetSpent <= RogueConfig.BUDGET)
 
     var previewCard    by remember { mutableStateOf<Card?>(null) }
     var profile        by remember { mutableStateOf(PlayerProfileManager.profile) }
@@ -198,6 +220,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     var filterUnlocked by remember { mutableStateOf(false) }
     var searchQuery    by remember { mutableStateOf("") }
     var filterCost     by remember { mutableStateOf<Int?>(null) }
+    var filterRarity   by remember { mutableStateOf<Rarity?>(null) }
 
     var showPresets    by remember { mutableStateOf(false) }
     var showDeckPicker by remember { mutableStateOf(false) }
@@ -206,15 +229,17 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     /** Dotaz při odchodu s rozdělaným balíčkem (1–29 karet). */
     var showIncomplete by remember { mutableStateOf(false) }
     val requestBack = {
-        if (editingDeck.totalCards in 1..29) showIncomplete = true else onBack()
+        // Roguelike balíček se ukládá průběžně a nikam se „nedoplňuje" → bez dotazu
+        if (!rogue && editingDeck.totalCards in 1..29) showIncomplete = true else onBack()
     }
 
-    val filteredCards = remember(filterRes, filterUnlocked, searchQuery, filterCost, profile) {
+    val filteredCards = remember(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity, profile) {
         viewModel.allCards
             .filter { card ->
                 card.effects.none { it is CardEffect.TrapOnDraw } &&
                 !card.isPlaceholder &&
                 (filterRes == null || card.costType == filterRes) &&
+                (filterRarity == null || card.rarity == filterRarity) &&
                 (!filterUnlocked || run {
                     profile?.allCardsUnlocked == true ||
                     CardCollectionManager.isBasicCard(card) ||
@@ -232,7 +257,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     // po výběru hotového balíčku i po doplnění poslední karty. Samostatné tlačítko
     // „Nastavit aktivní" proto není potřeba.
     LaunchedEffect(editingIdx, editingDeck.isValid) {
-        if (editingDeck.isValid && editingIdx != activeDeckIdx) viewModel.setActiveDeck(editingIdx)
+        if (rogue) viewModel.setRogueSlot(editingIdx)   // roguelike: vybraný balíček = ten, se kterým se půjde do běhu
+        else if (editingDeck.isValid && editingIdx != activeDeckIdx) viewModel.setActiveDeck(editingIdx)
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -251,6 +277,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 ResourceTabBar(
                     filterRes   = filterRes,
                     onResFilter = { filterRes = if (filterRes == it) null else it },
+                    filterRarity   = filterRarity,
+                    onRarityFilter = { filterRarity = if (filterRarity == it) null else it },
                     onBack      = requestBack
                 )
                 SectionSeparator()
@@ -259,7 +287,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 val pagerState = rememberPagerState(pageCount = { pageCount })
                 val scope      = rememberCoroutineScope()
                 // Nový filtr = jiná sada karet → zpět na první stranu
-                LaunchedEffect(filterRes, filterUnlocked, searchQuery, filterCost) { pagerState.scrollToPage(0) }
+                LaunchedEffect(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity) { pagerState.scrollToPage(0) }
 
                 Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     PageArrow("‹", enabled = pagerState.currentPage > 0) {
@@ -271,7 +299,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     ) { page ->
                         AlbumPage(filteredCards.drop(page * CARDS_PER_PAGE).take(CARDS_PER_PAGE)) { card, scale ->
                             val count  = editingDeck.cardCounts[card.id] ?: 0
-                            val isFull = editingDeck.totalCards >= 30
+                            val isFull = editingDeck.totalCards >= deckSize || !fitsBudget(card)
                             val usable = when {
                                 profile?.allCardsUnlocked == true ||
                                 CardCollectionManager.isBasicCard(card) -> card.rarity.maxCopies
@@ -291,7 +319,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                                 isNew    = isNew,
                                 canAdd   = count < usable && !isFull,
                                 scale    = scale,
-                                onAdd    = { viewModel.setCardCount(editingIdx, card.id, count + 1) },
+                                onAdd    = { setCount(card.id, count + 1) },
                                 onDetail = {
                                     if (isNew) {
                                         PlayerProfileManager.markCardsSeen(setOf(card.id))
@@ -329,7 +357,10 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     deckIconRes = deckIconRes(editingDeck, viewModel.allCards),
                     onPickDeck  = { showDeckPicker = true },
                     onShowPresets = { showPresets = true },
-                    onRename    = { viewModel.renameDeck(editingIdx, it) }
+                    onRename    = { if (rogue) viewModel.renameRoguePreset(editingIdx, it) else viewModel.renameDeck(editingIdx, it) },
+                    // Roguelike: místo Šablon tlačítko, které s hotovým balíčkem zahájí běh
+                    startRunEnabled = if (rogue) deckComplete else null,
+                    onStartRun  = { viewModel.setRogueSlot(editingIdx); viewModel.startRogueRun() }
                 )
                 SectionSeparator()
                 DeckPanel(
@@ -337,8 +368,11 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     allCards        = viewModel.allCards,
                     onRemove        = { cardId ->
                         val c = editingDeck.cardCounts[cardId] ?: 0
-                        if (c > 0) viewModel.setCardCount(editingIdx, cardId, c - 1)
+                        if (c > 0) setCount(cardId, c - 1)
                     },
+                    deckSize        = deckSize,
+                    complete        = deckComplete,
+                    budget          = if (rogue) budgetSpent to RogueConfig.BUDGET else null,
                     modifier        = Modifier.weight(1f).fillMaxWidth()
                 )
             }
@@ -394,12 +428,12 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                         onClose = { previewCard = null },
                         deckCount    = pvCount,
                         deckMax      = pvUsable,
-                        canAddToDeck = pvCount < pvUsable && editingDeck.totalCards < 30,
+                        canAddToDeck = pvCount < pvUsable && editingDeck.totalCards < deckSize && fitsBudget(card),
                         onAddToDeck  = {
-                            viewModel.setCardCount(editingIdx, card.id, pvCount + 1)
+                            setCount(card.id, pvCount + 1)
                         },
                         onRemoveFromDeck = {
-                            if (pvCount > 0) viewModel.setCardCount(editingIdx, card.id, pvCount - 1)
+                            if (pvCount > 0) setCount(card.id, pvCount - 1)
                         }
                     )
                 }
@@ -413,6 +447,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 allCards   = viewModel.allCards,
                 editingIdx = editingIdx,
                 activeIdx  = activeDeckIdx,
+                deckSize   = deckSize,
                 onPick     = { idx ->
                     editingIdx = idx          // aktivním se stane sám, je-li hotový (viz LaunchedEffect)
                     showDeckPicker = false
@@ -505,7 +540,10 @@ private fun TopBar(
     @DrawableRes deckIconRes: Int,
     onPickDeck: () -> Unit,
     onShowPresets: () -> Unit,
-    onRename: (String) -> Unit
+    onRename: (String) -> Unit,
+    /** null = konstruovaný režim (tlačítko Šablony); jinak roguelike tlačítko pro zahájení běhu. */
+    startRunEnabled: Boolean? = null,
+    onStartRun: () -> Unit = {}
 ) {
     var isEditingName  by remember(editingDeck.id) { mutableStateOf(false) }
     var nameInput      by remember(editingDeck.name) { mutableStateOf(editingDeck.name) }
@@ -592,15 +630,28 @@ private fun TopBar(
         }
 
         Spacer(Modifier.weight(1f))
-        PlainButton(
-            text      = LocalStrings.current.dbTemplates,
-            modifier  = Modifier.width(84.dp).height(28.dp),
-            textColor = Gold.copy(alpha = 0.9f),
-            fontSize  = 9.sp,
-            paddingH  = 4.dp,
-            paddingV  = 0.dp,
-            onClick   = onShowPresets
-        )
+        if (startRunEnabled != null) {
+            PlainButton(
+                text      = LocalStrings.current.rogueStartRun,
+                modifier  = Modifier.width(96.dp).height(28.dp),
+                textColor = TealLight,
+                fontSize  = 9.sp,
+                paddingH  = 4.dp,
+                paddingV  = 0.dp,
+                enabled   = startRunEnabled,
+                onClick   = onStartRun
+            )
+        } else {
+            PlainButton(
+                text      = LocalStrings.current.dbTemplates,
+                modifier  = Modifier.width(84.dp).height(28.dp),
+                textColor = Gold.copy(alpha = 0.9f),
+                fontSize  = 9.sp,
+                paddingH  = 4.dp,
+                paddingV  = 0.dp,
+                onClick   = onShowPresets
+            )
+        }
     }
 }
 
@@ -637,11 +688,17 @@ private val TOP_BAR_HEIGHT = 40.dp
 private val DbBar = Color(0xFF0C0806)
 
 // ─── Záložky surovin ──────────────────────────────────────────────────────────
-/** Horní lišta katalogu: Zpět a záložky surovin. Klik na aktivní záložku filtr zruší. */
+/**
+ * Horní lišta katalogu: Zpět, filtr suroviny a filtr vzácnosti. Suroviny jsou jen ikony
+ * (dřív tlačítka s názvem), aby se vedle nich vešly čtyři drahokamy vzácností.
+ * Klik na aktivní filtr ho zruší.
+ */
 @Composable
 private fun ResourceTabBar(
     filterRes: ResourceType?,
     onResFilter: (ResourceType) -> Unit,
+    filterRarity: Rarity?,
+    onRarityFilter: (Rarity) -> Unit,
     onBack: () -> Unit
 ) {
     val s = LocalStrings.current
@@ -663,29 +720,42 @@ private fun ResourceTabBar(
             paddingV  = 0.dp,
             onClick   = onBack
         )
-        @Composable
-        fun Tab(type: ResourceType, label: String, color: Color) {
-            val active = filterRes == type
-            PlainButtonWithIcon(
-                text         = label,
-                iconRes      = resourceIconRes(type),
-                modifier     = Modifier.width(82.dp).height(28.dp),
-                textColor    = if (active) color else TextPrimary,
-                fontSize     = 9.sp,
-                selected     = active,
-                outlineColor = ChaosOrange,
-                paddingH     = 4.dp,
-                paddingV     = 0.dp,
-                onClick      = { onResFilter(type) }
-            )
+        // Obě skupiny drží pevnou šířku a sedí uprostřed zbylého místa
+        Spacer(Modifier.weight(1f))
+        ResourceType.entries.forEach { type ->
+            IconChip(resourceIconRes(type), filterRes == type, size = 30.dp) { onResFilter(type) }
         }
-        // Záložky drží pevnou šířku a sedí uprostřed zbylého místa
+        Spacer(Modifier.width(10.dp))
+        Rarity.entries.forEach { r ->
+            RarityChip(r, filterRarity == r, size = 30.dp) { onRarityFilter(r) }
+        }
         Spacer(Modifier.weight(1f))
-        Tab(ResourceType.MAGIC,  s.resMagic,  MagicBlue)
-        Tab(ResourceType.ATTACK, s.resAttack, AttackRed)
-        Tab(ResourceType.STONES, s.resStone,  StoneColor)
-        Tab(ResourceType.CHAOS,  s.resChaos,  ChaosOrange)
-        Spacer(Modifier.weight(1f))
+    }
+}
+
+/** Filtr vzácnosti: destička s drahokamem dané vzácnosti (výřez z rámu karty – [RarityGem]). */
+@Composable
+private fun RarityChip(rarity: Rarity, active: Boolean, size: Dp, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { SoundManager.playMenuTap(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini, alpha = if (active) 1f else 0.6f))
+        Box(Modifier.alpha(if (active) 1f else 0.6f)) { RarityGem(rarity, size * 0.56f) }
+        if (active) {
+            androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                drawRoundRect(
+                    color        = ChaosOrange,
+                    style        = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+                )
+            }
+        }
     }
 }
 
@@ -960,6 +1030,7 @@ private fun DeckPickerOverlay(
     allCards: List<Card>,
     editingIdx: Int,
     activeIdx: Int,
+    deckSize: Int = 30,
     onPick: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -1012,8 +1083,8 @@ private fun DeckPickerOverlay(
                                 modifier = Modifier.widthIn(max = 130.dp)
                             )
                             Text(
-                                "${deck.totalCards} / 30",
-                                color = if (deck.isValid) HpGreen else Gold.copy(alpha = 0.8f),
+                                "${deck.totalCards} / $deckSize",
+                                color = if (deck.totalCards == deckSize) HpGreen else Gold.copy(alpha = 0.8f),
                                 fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold
                             )
                             // Řádek drží místo i u neaktivních balíčků, ať jsou všechny dlaždice stejně rozložené
@@ -1987,6 +2058,10 @@ private fun DeckPanel(
     deck: Deck,
     allCards: List<Card>,
     onRemove: (String) -> Unit,
+    deckSize: Int = 30,
+    complete: Boolean = deck.isValid,
+    /** Roguelike rozpočet vzácností (utraceno, strop), jinak null. */
+    budget: Pair<Int, Int>? = null,
     modifier: Modifier = Modifier
 ) {
     val s = LocalStrings.current
@@ -2025,7 +2100,7 @@ private fun DeckPanel(
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    DeckStats(deck, deckCards, Modifier.weight(1f))
+                    DeckStats(deck, deckCards, Modifier.weight(1f), deckSize, complete, budget)
                     Box(
                         Modifier
                             .fillMaxHeight()
@@ -2330,7 +2405,10 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
 }
 
 @Composable
-private fun DeckStats(deck: Deck, deckCards: List<Card>, modifier: Modifier = Modifier) {
+private fun DeckStats(
+    deck: Deck, deckCards: List<Card>, modifier: Modifier = Modifier,
+    deckSize: Int = 30, complete: Boolean = deck.isValid, budget: Pair<Int, Int>? = null
+) {
     val byType = ResourceType.entries.associateWith { type ->
         deckCards.filter { it.costType == type }.sumOf { deck.cardCounts[it.id] ?: 0 }
     }
@@ -2345,9 +2423,18 @@ private fun DeckStats(deck: Deck, deckCards: List<Card>, modifier: Modifier = Mo
         ) {
             StatsHeader(LocalStrings.current.dbComposition)
             Text(
-                "${deck.totalCards}/30",
-                color      = if (deck.isValid) HpGreen else AttackRed,
+                "${deck.totalCards}/$deckSize",
+                color      = if (complete) HpGreen else AttackRed,
                 fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1
+            )
+        }
+        if (budget != null) {
+            Text(
+                LocalStrings.current.rogueBudget.format(budget.first, budget.second),
+                color      = if (budget.first > budget.second) AttackRed else Gold,
+                fontSize   = 9.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines   = 1
             )

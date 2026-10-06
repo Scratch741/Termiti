@@ -90,6 +90,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     // Musí být deklarováno PŘED init{} – ten volá loadRoguePresets(), a Kotlin
     // inicializuje vlastnosti v pořadí výskytu v souboru. Kdyby byl tento seznam
     // deklarovaný níž (jako předtím), byl by v okamžiku init{} ještě null → NPE.
+    /** Roguelike balíček vybraný v Tvorbě balíčku – s ním se zahajuje běh.
+     *  Také PŘED init{}: loadRoguePresets() do něj zapisuje. */
+    val rogueSlot = androidx.compose.runtime.mutableStateOf(0)
     val roguePresets = androidx.compose.runtime.mutableStateListOf(
         RoguePreset("Balíček 1"), RoguePreset("Balíček 2"), RoguePreset("Balíček 3")
     )
@@ -354,6 +357,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val allowed = CardCollectionManager.usableCopies(card)
         decks.indices.forEach { i ->
             if ((decks[i].cardCounts[cardId] ?: 0) > allowed) setCardCount(i, cardId, allowed)
+        }
+        roguePresets.indices.forEach { i ->
+            if ((roguePresets[i].cardCounts[cardId] ?: 0) > allowed) setRogueCardCount(i, cardId, allowed)
         }
     }
 
@@ -2416,8 +2422,43 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     else null
                 }.toMap()
             } else emptyMap()
-            roguePresets[i] = preset.copy(cardCounts = counts)
+            val name = prefs.getString("rogue_preset_name_$i", preset.name) ?: preset.name
+            roguePresets[i] = preset.copy(name = name, cardCounts = counts)
         }
+        rogueSlot.value = prefs.getInt("rogue_slot", 0).coerceIn(0, roguePresets.lastIndex)
+    }
+
+    /** Vybere roguelike balíček a postaví z něj [rogueDraft] (ten čte startRogueRun). */
+    fun setRogueSlot(index: Int) {
+        if (rogueSlot.value != index) prefs.edit().putInt("rogue_slot", index).apply()
+        rogueSlot.value = index
+        syncRogueDraft()
+    }
+
+    private fun syncRogueDraft() {
+        rogueDraft.clear()
+        roguePresets[rogueSlot.value].cardCounts.forEach { (baseId, count) ->
+            val card = allCards.find { it.id == baseId } ?: return@forEach
+            repeat(count) { rogueDraft.add(card) }
+        }
+    }
+
+    /** Nastaví počet kopií karty v roguelike balíčku [slot] a hned ho uloží (jako setCardCount). */
+    fun setRogueCardCount(slot: Int, cardId: String, count: Int) {
+        val maxCopies = allCards.find { it.id == cardId }?.rarity?.maxCopies ?: 1
+        val counts = roguePresets[slot].cardCounts.toMutableMap()
+        if (count <= 0) counts.remove(cardId) else counts[cardId] = count.coerceAtMost(maxCopies)
+        roguePresets[slot] = roguePresets[slot].copy(cardCounts = counts)
+        prefs.edit()
+            .putString("rogue_preset_$slot", counts.entries.joinToString(";") { "${it.key}:${it.value}" })
+            .apply()
+        if (slot == rogueSlot.value) syncRogueDraft()
+    }
+
+    fun renameRoguePreset(index: Int, name: String) {
+        val trimmed = name.trim().take(20).ifEmpty { "Balíček ${index + 1}" }
+        roguePresets[index] = roguePresets[index].copy(name = trimmed)
+        prefs.edit().putString("rogue_preset_name_$index", trimmed).apply()
     }
 
     /** Uloží aktuální rozestavěný draft (rogueDraft) do slotu [index], přepíše starý obsah. */
@@ -2473,9 +2514,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (idx >= 0) rogueDraft.removeAt(idx)
     }
 
-    /** Spustí run z hotového balíčku (musí mít přesně DECK_SIZE karet). */
+    /** Spustí run z hotového balíčku (přesně DECK_SIZE karet, v rozpočtu, jen vlastněné kopie). */
     fun startRogueRun() {
-        if (rogueDraft.size == RogueConfig.DECK_SIZE) beginRogueRun()
+        val owned = rogueDraft.groupingBy { it.baseId }.eachCount().all { (id, n) ->
+            val card = allCards.find { it.id == id } ?: return@all false
+            n <= CardCollectionManager.usableCopies(card)
+        }
+        if (rogueDraft.size == RogueConfig.DECK_SIZE && rogueBudgetSpent() <= RogueConfig.BUDGET && owned) beginRogueRun()
     }
 
     private fun beginRogueRun() {
