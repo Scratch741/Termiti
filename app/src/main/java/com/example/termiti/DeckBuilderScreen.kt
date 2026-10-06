@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -37,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -487,7 +489,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
  * Název balíčku vedle ikony převládající suroviny (hlavička, výběr balíčku): bez
  * úvodního emoji, které si název nese ze šablony („⚔️ Útočník") – jinak by měl ikony dvě.
  */
-private fun deckTitle(name: String): String =
+internal fun deckTitle(name: String): String =
     localizedDeckName(name).dropWhile { !it.isLetterOrDigit() }.ifEmpty { localizedDeckName(name) }
 
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
@@ -554,12 +556,7 @@ private fun TopBar(
                     ) { SoundManager.playMenuTap(); onPickDeck() },
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter            = painterResource(R.drawable.plain_button),
-                    contentDescription = null,
-                    modifier           = Modifier.matchParentSize(),
-                    contentScale       = ContentScale.FillBounds
-                )
+                Box(Modifier.matchParentSize().buttonTexture(R.drawable.plain_button))
                 Row(
                     Modifier.padding(horizontal = 12.dp),
                     verticalAlignment     = Alignment.CenterVertically,
@@ -789,12 +786,7 @@ private fun IconChip(@DrawableRes iconRes: Int, active: Boolean, size: Dp = RAIL
             ) { SoundManager.playMenuTap(); onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter            = painterResource(R.drawable.plain_button_mini),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxSize().alpha(if (active) 1f else 0.6f),
-            contentScale       = ContentScale.FillBounds
-        )
+        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini, alpha = if (active) 1f else 0.6f))
         Image(
             painter            = painterResource(iconRes),
             contentDescription = null,
@@ -833,12 +825,7 @@ internal fun CostChip(
             ) { SoundManager.playMenuTap(); onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter      = painterResource(R.drawable.plain_button_mini),
-            contentDescription = null,
-            modifier     = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
+        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini))
         Text(
             text       = label,
             color      = if (active) Gold else if (dimInactive) TextMuted else TextPrimary,
@@ -1020,11 +1007,12 @@ private fun DeckPickerOverlay(
 }
 
 // ─── Dotaz s volbami ──────────────────────────────────────────────────────────
-private class Choice(val label: String, val color: Color, val onClick: () -> Unit)
+internal class Choice(val label: String, val color: Color, val onClick: () -> Unit)
 
-/** Překryv s nadpisem, větou a řadou tlačítek (potvrzení šablony, odchod s rozdělaným balíčkem). */
+/** Překryv s nadpisem, větou a řadou tlačítek (potvrzení šablony, odchod s rozdělaným balíčkem,
+ *  hláška o neúplném balíčku před hrou – MainActivity). */
 @Composable
-private fun ChoiceOverlay(title: String, message: String, onDismiss: () -> Unit, choices: List<Choice>) {
+internal fun ChoiceOverlay(title: String, message: String, onDismiss: () -> Unit, choices: List<Choice>) {
     Box(
         Modifier
             .fillMaxSize()
@@ -1331,29 +1319,49 @@ private fun CardActionPanel(
     val maxDismantle = if (collectible) realOwned else 0
 
     // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape).
-    // Herní textura bočního panelu (bronzový rám s medailony v rozích); FillBounds drží rám
-    // na okrajích při jakékoli výšce, větší padding drží text mimo rám a medailony.
+    // Herní textura bočního panelu (bronzový rám s medailony v rozích) kreslená po částech,
+    // aby se rohy nedeformovaly – viz sidePanelBackground. Větší padding drží text mimo rám.
     Box(
         modifier = Modifier
             .width(210.dp)
             .heightIn(max = 340.dp)
-            .paint(painterResource(R.drawable.bg_side_panels), contentScale = ContentScale.FillBounds)
+            .sidePanelBackground()
     ) {
+        // Vnější sloupec: obsah (roluje se, když se nevejde) + tlačítko připnuté dole.
+        // Tlačítko je mimo rolování, takže ho žádná změna obsahu neodsune z dohledu.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // ── Jméno + počet kopií ──────────────────────────────────────────
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // ── Název – na střed a stejně jako na kartě (bílý, černý obrys) ────
+            OutlinedTitle(card.displayName, Modifier.fillMaxWidth())
+
+            // ── Rarita (drahokam z rámu karty) · cena · vlastněné kopie ──────
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally)
             ) {
-                Text(card.displayName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                    lineHeight = 18.sp, modifier = Modifier.weight(1f))
-                if (!isBasic && !allUnlocked) {
+                RarityGem(card.rarity, 15.dp)
+                Text(card.rarity.displayLabel, color = rc, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(5.dp))
+                Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(14.dp))
+                Text(
+                    if (card.isXCost) "X" else "${card.cost}",
+                    color = costColor, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                )
+                if (collectible) {
+                    Spacer(Modifier.width(5.dp))
+                    Image(painterResource(R.drawable.card_icon), contentDescription = null, modifier = Modifier.size(13.dp))
                     Text(
                         "$realOwned/${card.rarity.maxCopies}",
                         color = if (realOwned >= card.rarity.maxCopies) HpGreen else TealLight,
@@ -1361,6 +1369,9 @@ private fun CardActionPanel(
                     )
                 }
             }
+
+            PanelSeparator()
+
             // ── V balíčku ────────────────────────────────────────────────────
             Row(
                 Modifier.fillMaxWidth(),
@@ -1380,85 +1391,164 @@ private fun CardActionPanel(
                 )
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(rc))
-                Text(card.rarity.displayLabel, color = rc, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(4.dp))
-                Image(painterResource(resourceIconRes(card.costType)), contentDescription = null, modifier = Modifier.size(13.dp))
-                Text(
-                    if (card.isXCost) "X" else "${card.cost}",
-                    color = costColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
-                )
-                if (!isBasic && !allUnlocked) {
-                    Spacer(Modifier.weight(1f))
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
-                        Text("$dust", color = TextMuted, fontSize = 9.sp)
+            if (!isBasic) {
+                PanelSeparator()
+
+                val dismantleAccent = Color(0xFFE57373)
+                // Zůstatek prachu – jen když se s ním dá něco dělat. Čekající výrobu / rozebrání
+                // ukazuje TADY jako „135 → 95", ne v novém řádku: řádek navíc by po kliknutí
+                // na + posunul všechno pod sebou včetně tlačítka Potvrdit.
+                if (collectible) {
+                    val dustAfter = dust - pendingCraft * card.rarity.craftCost + pendingDismantle * card.rarity.dustValue
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.End)
+                    ) {
+                        Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(12.dp))
+                        Text("$dust", color = if (hasPending) TextMuted else DustColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        if (hasPending) {
+                            Text("→", color = TextMuted, fontSize = 10.sp)
+                            Text(
+                                "$dustAfter",
+                                color = if (pendingCraft > 0) DustColor else dismantleAccent,
+                                fontSize = 10.sp, fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
-            }
 
-            HorizontalDivider(color = Gold.copy(alpha = 0.15f))
-
-            if (!isBasic) {
                 // ── Vyrobit ──────────────────────────────────────────────────
-                val craftAccent = Color(0xFFB39DDB)
                 ActionCounter(
-                    label       = LocalStrings.current.dbCraft.format(card.rarity.craftCost),
+                    label       = LocalStrings.current.dbCraft,
+                    dustText    = "${card.rarity.craftCost}",
                     iconRes     = R.drawable.hammer_icon,
-                    accent      = craftAccent,
+                    accent      = DustColor,
                     count       = pendingCraft,
                     maxCount    = maxCraft,
                     onDecrement = { pendingCraft-- },
                     onIncrement = { pendingCraft++; pendingDismantle = 0 }
                 )
-                if (pendingCraft > 0) {
-                    Text(
-                        LocalStrings.current.dbDustCost.format(pendingCraft * card.rarity.craftCost),
-                        color = craftAccent, fontSize = 9.sp
-                    )
-                }
-
                 // ── Rozebrat ──────────────────────────────────────────────────
-                val dismantleAccent = Color(0xFFE57373)
                 ActionCounter(
-                    label       = LocalStrings.current.dbDisassemble.format(card.rarity.dustValue),
+                    label       = LocalStrings.current.dbDisassemble,
+                    dustText    = "+${card.rarity.dustValue}",
+                    iconRes     = R.drawable.explode_icon,
                     accent      = dismantleAccent,
                     count       = pendingDismantle,
                     maxCount    = maxDismantle,
                     onDecrement = { pendingDismantle-- },
-                    onIncrement = { pendingDismantle++; pendingCraft = 0 },
-                    iconRes     = R.drawable.explode_icon
+                    onIncrement = { pendingDismantle++; pendingCraft = 0 }
                 )
-                if (pendingDismantle > 0) {
-                    Text(
-                        LocalStrings.current.dbDustGain.format(pendingDismantle * card.rarity.dustValue),
-                        color = dismantleAccent, fontSize = 9.sp
-                    )
-                }
             }
+        }   // konec rolované části
 
-            Spacer(Modifier.height(2.dp))
-
-            // ── Hotovo – aplikuje pending akci a zavře panel ─────────────────
-            PlainButton(
-                text      = if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
-                modifier  = Modifier.fillMaxWidth(),
-                textColor = Gold,
-                fontSize  = 11.sp,
-                paddingH  = 0.dp,
-                paddingV  = 9.dp,
-                onClick   = {
-                    repeat(pendingCraft) { onCraft() }
-                    repeat(pendingDismantle) { onDismantle() }
-                    onClose()
-                }
-            )
+            // ── Hotovo – aplikuje pending akci a zavře panel (připnuté dole) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .buttonTexture(R.drawable.plain_button_longer)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        SoundManager.playMenuTap()
+                        repeat(pendingCraft) { onCraft() }
+                        repeat(pendingDismantle) { onDismantle() }
+                        onClose()
+                    }
+                    .padding(vertical = 9.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)
+            ) {
+                Image(painterResource(R.drawable.check_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+                Text(
+                    if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
+                    color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
+}
+
+private val DustColor = Color(0xFFB39DDB)
+
+/**
+ * Pozadí z bg_side_panels.png (336×704) pro panel libovolné výšky bez deformace rohů.
+ *
+ * FillBounds by obrázek 1 : 2,1 natáhl do tvaru panelu (např. 210×300 = 1 : 1,4) a kulaté
+ * medailony v rozích by byly šišaté. Proto se kreslí po třech pásech v jednotném měřítku
+ * podle šířky: horní a dolní pás s rohy a ornamenty v přesném poměru stran, natahuje se
+ * jen střední pás – rovné bočnice.
+ */
+@Composable
+private fun Modifier.sidePanelBackground(): Modifier {
+    val bmp = ImageBitmap.imageResource(R.drawable.bg_side_panels)
+    return drawBehind {
+        val scale  = size.width / bmp.width
+        // Rohy s ornamenty zabírají horních a dolních ~112 px z výšky 704
+        val capSrc = (bmp.height * 112f / 704f).roundToInt()
+        val w      = size.width.roundToInt()
+        val h      = size.height.roundToInt()
+        val capDst = (capSrc * scale).roundToInt().coerceAtMost(h / 2)
+        drawImage(bmp, IntOffset(0, 0), IntSize(bmp.width, capSrc),
+                  IntOffset(0, 0), IntSize(w, capDst))
+        drawImage(bmp, IntOffset(0, capSrc), IntSize(bmp.width, bmp.height - 2 * capSrc),
+                  IntOffset(0, capDst), IntSize(w, (h - 2 * capDst).coerceAtLeast(0)))
+        drawImage(bmp, IntOffset(0, bmp.height - capSrc), IntSize(bmp.width, capSrc),
+                  IntOffset(0, h - capDst), IntSize(w, capDst))
+    }
+}
+
+/** Název ve stylu názvu na kartě (ArcCardName): tučný bílý s černým obrysem, na střed. */
+@Composable
+private fun OutlinedTitle(text: String, modifier: Modifier = Modifier) {
+    val base = TextStyle(
+        fontSize = 17.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center
+    )
+    val strokePx = with(LocalDensity.current) { 17.sp.toPx() * 0.28f }
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Text(
+            text, maxLines = 2, modifier = Modifier.fillMaxWidth(),
+            style = base.copy(
+                color = Color.Black,
+                drawStyle = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = strokePx, join = androidx.compose.ui.graphics.StrokeJoin.Round
+                )
+            )
+        )
+        Text(text, maxLines = 2, modifier = Modifier.fillMaxWidth(), style = base.copy(color = Color.White))
+    }
+}
+
+/**
+ * Drahokam rarity – výřez z overlaye rámu karty (rarity_*.png, 800×1195, drahokam
+ * nahoře uprostřed: x 355–445, y 4–94). Stejný postup jako CardCostBadge.
+ */
+@Composable
+private fun RarityGem(rarity: Rarity, size: Dp) {
+    val bmp = ImageBitmap.imageResource(rarityOverlayResource(rarity))
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val sx = bmp.width / 800f
+        val sy = bmp.height / 1195f
+        drawImage(
+            image     = bmp,
+            srcOffset = IntOffset((355 * sx).roundToInt(), (4 * sy).roundToInt()),
+            srcSize   = IntSize((90 * sx).roundToInt(), (90 * sy).roundToInt()),
+            dstSize   = IntSize(this.size.width.roundToInt(), this.size.height.roundToInt())
+        )
+    }
+}
+
+/** Oddělovač sekcí panelu – herní textura místo čáry. */
+@Composable
+private fun PanelSeparator() {
+    Image(
+        painter            = painterResource(R.drawable.bg_separator),
+        contentDescription = null,
+        modifier           = Modifier.fillMaxWidth().height(3.dp),
+        contentScale       = ContentScale.FillBounds
+    )
 }
 
 @Composable
@@ -1481,42 +1571,50 @@ private fun PanelActionBtn(
 }
 
 // ─── Action Counter (−  N  + řádek pro craft/dismantle) ──────────────────────
+/** Řádek na herním panelu: ikona akce, název, cena/zisk v prachu (ikona prachu) a [−] n [+]. */
 @Composable
 private fun ActionCounter(
     label      : String,
+    dustText   : String,
     accent     : Color,
     count      : Int,
     maxCount   : Int,
     onDecrement: () -> Unit,
     onIncrement: () -> Unit,
-    @DrawableRes iconRes: Int? = null
+    @DrawableRes iconRes: Int
 ) {
-    val active = count > 0
+    val active    = count > 0
+    val available = active || maxCount > 0
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (active) accent.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.04f))
-            .border(1.dp, if (active) accent.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
-            .padding(horizontal = 8.dp, vertical = 5.dp),
+            .buttonTexture(R.drawable.plain_button_longer)
+            .padding(horizontal = 9.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        if (iconRes != null) {
-            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
-        }
-        Text(
-            label,
-            color    = if (active || maxCount > 0) accent else TextMuted,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
+        Image(
+            painterResource(iconRes), contentDescription = null,
+            modifier = Modifier.size(18.dp).alpha(if (available) 1f else 0.45f)
         )
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                label,
+                color      = if (available) accent else TextMuted,
+                fontSize   = 10.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
+                Text(dustText, color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            }
+        }
         CountBtn("−", enabled = count > 0, onClick = onDecrement)
         Text(
             "$count",
             color    = if (active) accent else TextMuted,
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(min = 14.dp)

@@ -150,6 +150,8 @@ class AppStrings(
     val dbIncompleteFill: String by values
     val dbIncompleteLeave: String by values
     val dbIncompleteStay: String by values
+    val deckIncompletePlayMsg: String by values
+    val deckIncompleteEdit: String by values
     val dbPresetConfirmTitle: String by values
     val dbPresetConfirmMsg: String by values
     val dbPresetConfirmYes: String by values

@@ -87,6 +87,15 @@ class MainActivity : ComponentActivity() {
                     // se dá odejít do náhledu a zpět, což by tamní remember spustil znovu.
                     var campaignRewardClaimed by remember { mutableStateOf(false) }
 
+                    // Hra s vlastním balíčkem (rychlá hra, kampaň) potřebuje celý balíček 30/30.
+                    // Neúplný se dřív potichu doplnil (rychlá hra) nebo nahradil náhodným (kampaň) –
+                    // hráč pak hrál s něčím jiným, než si postavil. Teď se hra nespustí a ukáže hlášku.
+                    var incompleteDeck by remember { mutableStateOf<Deck?>(null) }
+                    fun withFullDeck(start: () -> Unit) {
+                        val deck = viewModel.decks[viewModel.activeDeckIndex.value]
+                        if (deck.isValid) start() else incompleteDeck = deck
+                    }
+
                     // Sleduj aktuální obrazovku pro crash reporting
                     CrashReporter.lastScreen = screen.name
 
@@ -114,7 +123,7 @@ class MainActivity : ComponentActivity() {
 
                         // ── Výběr herního módu ────────────────────────────────
                         Screen.PLAY_MENU -> PlayMenuScreen(
-                            onOwnDeck     = { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false);                    screen = Screen.GAME },
+                            onOwnDeck     = { withFullDeck { gameRandom = false; gameSuperRandom = false; viewModel.restartGame(randomDeck = false); screen = Screen.GAME } },
                             onSuperRandom = { gameRandom = false; gameSuperRandom = true;  viewModel.restartGame(randomDeck = false, superRandom = true); screen = Screen.GAME },
                             onArena       = { viewModel.startArena(); screen = Screen.ARENA },
                             onRoguelike   = {
@@ -184,8 +193,10 @@ class MainActivity : ComponentActivity() {
                                 CampaignLocationScreen(
                                     location = loc,
                                     onOpponentSelected = { opp ->
-                                        viewModel.startCampaignBattle(opp)
-                                        screen = Screen.CAMPAIGN_GAME
+                                        withFullDeck {
+                                            viewModel.startCampaignBattle(opp)
+                                            screen = Screen.CAMPAIGN_GAME
+                                        }
                                     },
                                     onBack = { screen = Screen.CAMPAIGN_MAP }
                                 )
@@ -223,8 +234,10 @@ class MainActivity : ComponentActivity() {
                                     opponent        = opp,
                                     playerWon       = campaignPlayerWon,
                                     onRetry         = {
-                                        viewModel.startCampaignBattle(opp)
-                                        screen = Screen.CAMPAIGN_GAME
+                                        withFullDeck {
+                                            viewModel.startCampaignBattle(opp)
+                                            screen = Screen.CAMPAIGN_GAME
+                                        }
                                     },
                                     onBackToLocation = { screen = Screen.CAMPAIGN_LOCATION },
                                     onBackToMap      = { screen = Screen.CAMPAIGN_MAP },
@@ -232,8 +245,10 @@ class MainActivity : ComponentActivity() {
                                     onReviewGame     = { screen = Screen.CAMPAIGN_REVIEW },
                                     onNextOpponent   = nextOpp?.let { next ->
                                         {
-                                            viewModel.startCampaignBattle(next)
-                                            screen = Screen.CAMPAIGN_GAME
+                                            withFullDeck {
+                                                viewModel.startCampaignBattle(next)
+                                                screen = Screen.CAMPAIGN_GAME
+                                            }
                                         }
                                     }
                                 )
@@ -301,6 +316,19 @@ class MainActivity : ComponentActivity() {
                             )
                             null -> { screen = Screen.PLAY_MENU }
                         }
+                    }
+                    // Hláška o neúplném balíčku – nad obrazovkou, ze které se hra spouštěla
+                    incompleteDeck?.let { deck ->
+                        val s = LocalStrings.current
+                        ChoiceOverlay(
+                            title     = s.dbIncompleteTitle,
+                            message   = s.deckIncompletePlayMsg.format(deckTitle(deck.name), deck.totalCards),
+                            onDismiss = { incompleteDeck = null },
+                            choices   = listOf(
+                                Choice(s.close, TextMuted) { incompleteDeck = null },
+                                Choice(s.deckIncompleteEdit, Gold) { incompleteDeck = null; screen = Screen.DECK_BUILDER }
+                            )
+                        )
                     }
                     // Toast overlay – musí být poslední, aby byl nad vším ostatním
                     RewardToastOverlay()
