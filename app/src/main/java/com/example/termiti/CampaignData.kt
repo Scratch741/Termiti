@@ -638,7 +638,7 @@ object CampaignData {
                 // 1 ── 30 karet, winTarget 62 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_knight", name = "Stínový Rytíř", title = "Zloděj zdrojů",
-                    avatar = "🗡️", description = "Krade ti zdroje a ještě se směje. Začínáš s méně magií.",
+                    avatar = "🗡️", cardArt = "citadela_rytir", description = "Krade ti zdroje a ještě se směje. Začínáš s méně magií.",
                     aiCastle = 33, aiWall = 15,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -653,7 +653,7 @@ object CampaignData {
                 // 2 ── 30 karet, winTarget 63 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_archer", name = "Temný Lučištník", title = "Sniper citadely",
-                    avatar = "🏹", description = "Zápalné šípy na hradby, přímé zásahy na hrad.",
+                    avatar = "🏹", cardArt = "citadela_lucistnik", description = "Zápalné šípy na hradby, přímé zásahy na hrad.",
                     aiCastle = 33, aiWall = 12,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -667,7 +667,7 @@ object CampaignData {
                 // 3 ── 33 karet, winTarget 65 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_mage", name = "Temný Čaroděj", title = "Mistr ohně",
-                    avatar = "🧙", description = "Ovládá magii temnoty. Začínáš s méně útokem.",
+                    avatar = "🧙", cardArt = "citadela_carodej", description = "Ovládá magii temnoty. Začínáš s méně útokem.",
                     aiCastle = 35, aiWall = 12,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2),
                     deckCardCounts = mapOf(
@@ -683,7 +683,7 @@ object CampaignData {
                 // Nekromant sabotuje hráčův důl magie.
                 CampaignOpponent(
                     id = "cit_necromancer", name = "Nekromant", title = "Pán jedů a stínů",
-                    avatar = "🦇", description = "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1.",
+                    avatar = "🦇", cardArt = "citadela_nekromant", description = "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1.",
                     aiCastle = 35, aiWall = 12,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
@@ -703,7 +703,7 @@ object CampaignData {
                 // útoku, že postavit 999 HP je fyzicky nemožné.
                 CampaignOpponent(
                     id = "cit_warrior", name = "Temný Válečník", title = "Sekáč bez milosti",
-                    avatar = "💀", description = "35 karet čistého útoku. Výstavba nestačí — zaútočíš nebo zemřeš.",
+                    avatar = "💀", cardArt = "citadela_valecnik", description = "35 karet čistého útoku. Výstavba nestačí — zaútočíš nebo zemřeš.",
                     aiCastle = 36, aiWall = 14,
                     deckCardCounts = mapOf(
                         "021" to 5, "007" to 5, "054" to 5, "022" to 5,
@@ -717,7 +717,7 @@ object CampaignData {
                 // Strážce je obranný – výstavba se vrátí jako možnost, ale target je 70.
                 CampaignOpponent(
                     id = "cit_guardian", name = "Temný Strážce", title = "Pevná ruka temnoty",
-                    avatar = "🛡️", description = "Útočí i brání. Výstavba na 70 je tvá jediná alternativa.",
+                    avatar = "🛡️", cardArt = "citadela_strazce", description = "Útočí i brání. Výstavba na 70 je tvá jediná alternativa.",
                     aiCastle = 36, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.STONES to 1),
                     deckCardCounts = mapOf(
@@ -732,7 +732,7 @@ object CampaignData {
                 // Sabotér tě překvapí – méně karet, méně útoku i kamenů.
                 CampaignOpponent(
                     id = "cit_saboteur", name = "Sabotér", title = "Mistr sabotáže",
-                    avatar = "🕵️", description = "Okrade tě ještě před startem. Ruka 3 karty, bez útoku a kamenů.",
+                    avatar = "🕵️", cardArt = "citadela_saboter", description = "Okrade tě ještě před startem. Ruka 3 karty, bez útoku a kamenů.",
                     aiCastle = 37, aiWall = 15,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2),
                     deckCardCounts = mapOf(
@@ -752,7 +752,7 @@ object CampaignData {
                 // 8 ── 38 karet, winTarget 999, AI lízne 5 karet ────────────
                 CampaignOpponent(
                     id = "cit_dragon", name = "Ohnivý Drak", title = "Dech zkázy",
-                    avatar = "🐉", description = "38 karet ohně. Startuje s 5 v ruce. Zabudovat nelze.",
+                    avatar = "🐉", cardArt = "citadela_drak", description = "38 karet ohně. Startuje s 5 v ruce. Zabudovat nelze.",
                     aiCastle = 38, aiWall = 18,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
@@ -766,7 +766,7 @@ object CampaignData {
                 // 9 ── 42 karet, winTarget 999, AI lízne 6 karet, hrad −3, hradby −3
                 CampaignOpponent(
                     id = "cit_general", name = "Temný Generál", title = "Pravá ruka Pána",
-                    avatar = "👿", description = "42 karet, startuje se 6. Začínáš oslaben. Útočíš nebo prohraješ.",
+                    avatar = "👿", cardArt = "citadela_general", description = "42 karet, startuje se 6. Začínáš oslaben. Útočíš nebo prohraješ.",
                     aiCastle = 40, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -783,7 +783,7 @@ object CampaignData {
                 // Démon + Drak v balíčku. Absolutní konec výstavbové strategie.
                 CampaignOpponent(
                     id = "cit_lord", name = "Temný Pán", title = "Vládce temnoty",
-                    avatar = "☠️", description = "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt. Jednorázová odměna: 200 XP.",
+                    avatar = "☠️", cardArt = "citadela_pan", description = "48 karet, 7 startovních. Démon i Drak. Výstavba = smrt. Jednorázová odměna: 200 XP.",
                     isBoss = true,
                     aiCastle = 45, aiWall = 25,
                     aiExtraMines = mapOf(

@@ -471,7 +471,7 @@ private fun locationArtRes(id: String): Int = when (id) {
     "loc_goblins" -> R.drawable.goblin_tabor
     "loc_swamp"   -> R.drawable.magicke_baziny
     "loc_dwarves" -> R.drawable.trpaslici_hory
-    "loc_citadel" -> R.drawable.art_temny_ritual
+    "loc_citadel" -> R.drawable.temna_citadela
     "loc_dragon"  -> R.drawable.art_chaoticky_drak
     else          -> R.drawable.art_magie
 }
