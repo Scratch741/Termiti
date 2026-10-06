@@ -1,5 +1,10 @@
 ﻿package com.example.termiti
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -384,6 +389,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                         onDismantle = {
                             CardCollectionManager.dismantleCard(card.id, viewModel.allCards)
                             profile = PlayerProfileManager.profile
+                            viewModel.trimDecksToOwned(card.id)
                         },
                         onClose = { previewCard = null },
                         deckCount    = pvCount,
@@ -526,13 +532,14 @@ private fun TopBar(
                 keyboardActions = KeyboardActions(onDone = {
                     onRename(nameInput); isEditingName = false
                 }),
+                cursorBrush     = SolidColor(Gold),
                 modifier = Modifier
-                    .width(90.dp)
+                    .width(150.dp)
                     .focusRequester(focusRequester)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.07f))
-                    .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .height(28.dp)
+                    .buttonTexture(R.drawable.plain_button)
+                    .wrapContentHeight()
+                    .padding(horizontal = 10.dp)
             )
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
             PlainButton(
@@ -872,43 +879,7 @@ private fun CatalogBottomBar(
         }
         // Vlevo skupina cen, vpravo hledání + zámek + strana; volné místo je mezi nimi
         Spacer(Modifier.weight(1f))
-        BasicTextField(
-            value           = searchQuery,
-            onValueChange   = onSearchChange,
-            singleLine      = true,
-            textStyle       = TextStyle(color = TextPrimary, fontSize = 10.sp),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            modifier        = Modifier
-                .width(130.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(Color.White.copy(alpha = 0.06f))
-                .border(
-                    1.dp,
-                    if (searchQuery.isNotBlank()) Gold.copy(alpha = 0.5f)
-                    else Color.White.copy(alpha = 0.10f),
-                    RoundedCornerShape(5.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            decorationBox   = { inner ->
-                Box {
-                    if (searchQuery.isBlank()) {
-                        Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.5f), fontSize = 10.sp)
-                    }
-                    inner()
-                }
-            }
-        )
-        if (searchQuery.isNotBlank()) {
-            PlainButton(
-                text      = "×",
-                modifier  = Modifier.size(24.dp),
-                textColor = TextMuted,
-                fontSize  = 12.sp,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-                onClick   = { onSearchChange("") }
-            )
-        }
+        SearchField(searchQuery, onSearchChange)
         Spacer(Modifier.width(4.dp))
         IconChip(R.drawable.lock_icon, filterUnlocked, size = 27.dp, onClick = onUnlocked)
         Text(
@@ -918,6 +889,67 @@ private fun CatalogBottomBar(
             textAlign  = TextAlign.End,
             modifier   = Modifier.width(38.dp)
         )
+    }
+}
+
+/**
+ * Hledání na herní destičce (plain_button_longer) místo plochého rámečku: lupa vlevo,
+ * text uprostřed, křížek (cross_icon) vpravo uvnitř pole – pole tak při psaní nemění šířku.
+ */
+@Composable
+private fun SearchField(query: String, onChange: (String) -> Unit) {
+    val active = query.isNotBlank()
+    BasicTextField(
+        value           = query,
+        onValueChange   = onChange,
+        singleLine      = true,
+        textStyle       = TextStyle(color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold),
+        cursorBrush     = SolidColor(Gold),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        modifier        = Modifier.width(150.dp).height(27.dp),
+        decorationBox   = { inner ->
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .buttonTexture(R.drawable.plain_button_longer)
+                    .padding(start = 9.dp, end = 7.dp),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                MagnifierIcon(if (active) Gold else TextMuted, Modifier.size(12.dp))
+                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    if (!active) {
+                        Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1)
+                    }
+                    inner()
+                }
+                if (active) {
+                    Image(
+                        painterResource(R.drawable.cross_icon),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(13.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { SoundManager.playMenuTap(); onChange("") }
+                    )
+                }
+            }
+        }
+    )
+}
+
+/** Lupa kreslená čarou – mezi ikonami hry žádná není. */
+@Composable
+private fun MagnifierIcon(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val stroke = size.minDimension * 0.15f
+        val r      = size.minDimension * 0.32f
+        val c      = Offset(r + stroke / 2, r + stroke / 2)
+        drawCircle(color, r, c, style = Stroke(stroke))
+        val k = r * 0.7071f
+        drawLine(color, Offset(c.x + k, c.y + k), Offset(size.width - stroke / 2, size.height - stroke / 2), stroke, StrokeCap.Round)
     }
 }
 

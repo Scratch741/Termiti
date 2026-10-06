@@ -344,6 +344,19 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         saveDeck(deckIndex)
     }
 
+    /**
+     * Po rozebrání karty: ve VŠECH balíčcích srovná počet kopií [cardId] na to, co hráč
+     * ještě vlastní. Bez toho rozebraná karta v balíčku zůstala a dalo se s ní dál hrát.
+     * Balíček tím může klesnout pod 30 – hra s ním se pak nespustí (MainActivity.withFullDeck).
+     */
+    fun trimDecksToOwned(cardId: String) {
+        val card    = allCards.find { it.id == cardId } ?: return
+        val allowed = CardCollectionManager.usableCopies(card)
+        decks.indices.forEach { i ->
+            if ((decks[i].cardCounts[cardId] ?: 0) > allowed) setCardCount(i, cardId, allowed)
+        }
+    }
+
     /** Doplní rozdělaný balíček na 30 karet z těch, které hráč vlastní – viz [completeDeck]. */
     fun autoCompleteDeck(deckIndex: Int) {
         val filled = completeDeck(decks[deckIndex].cardCounts, allCards) { CardCollectionManager.usableCopies(it) }
