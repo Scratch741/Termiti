@@ -504,7 +504,18 @@ private val ART_SHIFT_Y = mapOf(
     "bazina_zaklinac"  to 0.10f,
     "bazina_jezibaba"  to 0.10f,
     "bazina_druid"     to 0.10f,
-    "bazina_pan_mlhy"  to 0.10f
+    "bazina_pan_mlhy"  to 0.10f,
+    // Temná citadela: postavy mají hlavu u horního okraje ilustrace
+    "citadela_rytir"     to 0.20f,
+    "citadela_lucistnik" to 0.20f,
+    "citadela_carodej"   to 0.20f,
+    "citadela_nekromant" to 0.20f,
+    "citadela_valecnik"  to 0.20f,
+    "citadela_strazce"   to 0.20f,
+    "citadela_saboter"   to 0.20f,
+    "citadela_drak"      to 0.20f,
+    "citadela_general"   to 0.20f,
+    "citadela_pan"       to 0.20f
 )
 
 /**

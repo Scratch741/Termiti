@@ -2431,13 +2431,23 @@ private fun DeckStats(
             )
         }
         if (budget != null) {
-            Text(
-                LocalStrings.current.rogueBudget.format(budget.first, budget.second),
-                color      = if (budget.first > budget.second) AttackRed else Gold,
-                fontSize   = 9.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines   = 1
-            )
+            // Stejný řádek jako nadpis výše: popisek verzálkami, hodnota zeleně (vejde se)
+            // nebo červeně (přes rozpočet). Text „Rozpočet: 12 / 20 bodů" se dělí u dvojtečky.
+            val label = LocalStrings.current.rogueBudget.format(budget.first, budget.second).uppercase()
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                StatsHeader(label.substringBefore(':'))
+                Text(
+                    label.substringAfter(':', label).trim(),
+                    color      = if (budget.first > budget.second) AttackRed else HpGreen,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines   = 1
+                )
+            }
         }
         // 2×2: ikona + velké číslo, pod tím proužek = podíl na balíčku
         ResourceType.entries.chunked(2).forEach { row ->

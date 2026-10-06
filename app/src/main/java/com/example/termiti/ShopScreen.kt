@@ -131,14 +131,14 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.012f)
                 ) {
-                    // Titulek
-                    Image(
-                        painter            = painterResource(R.drawable.deck_logo),
-                        contentDescription = null,
-                        modifier           = Modifier.size(H * 0.12f),
-                        contentScale       = ContentScale.Fit
-                    )
+                    // Titulek + oddělovač (stejný jako v lobby multiplayeru)
                     CampaignTitle(LocalStrings.current.shopPacks, fontSize = 28.sp)
+                    Image(
+                        painter            = painterResource(R.drawable.bg_separator),
+                        contentDescription = null,
+                        modifier           = Modifier.fillMaxWidth(),
+                        contentScale       = ContentScale.FillWidth
+                    )
 
                     Spacer(Modifier.height(H * 0.01f))
 

@@ -186,6 +186,13 @@ fun ProfileScreen(onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     CampaignTitle(s.profileTitle, fontSize = 28.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    // Stejný oddělovač jako v lobby multiplayeru
+                    Image(
+                        painter            = painterResource(R.drawable.bg_separator),
+                        contentDescription = null,
+                        modifier           = Modifier.fillMaxWidth(),
+                        contentScale       = ContentScale.FillWidth
+                    )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ProfileTab.entries.forEach { t ->
                             val selected = t == tab
