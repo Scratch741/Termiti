@@ -85,7 +85,7 @@ AI auto-picks the first option for most Decision effects. Exceptions:
 - **Conditional effects are resolved first.** `ConditionalEffect` is flattened against the current state via `checkCondition`: condition met → score the inner effect, not met → contribute nothing. (Before 2026-09-25 the whole `ConditionalEffect` fell through to `else -> 2.0`.)
 - **Lethality is summed over the whole card, not per effect.** Castle damage from every effect is added up — `AttackCastle`, `StealCastle`, the X-scaled variants, and the part of `AttackPlayer` that gets past the wall (an `AttackWall` on the same card lowers that wall first) — and only the total is compared with the opponent's castle HP. The same applies to building: total `BuildCastle` + `ConvertWallToCastle` + X-scaled vs. the HP still missing to `winTarget`. A winning card scores 200.
 
-Worked example (the bug that prompted this): opponent at 9 castle / 9 wall, player holding 7 attack. `Ostřelovač` (`"026"`, 5 castle damage + 5 more while attack > 5) deals 10 and wins, but per-effect scoring gave it 5×12/9 + 2.0 = **8.67** and offered `Přímý zásah` (8 damage, **10.67**) instead — a card that does not win. Now Ostřelovač returns 200; with only 4 attack its condition fails and it correctly drops to 6.67, below Přímý zásah.
+Worked example (the bug that prompted this): opponent at 9 castle / 9 wall, player holding 7 attack. `Odstřelovač` (`"026"`, 5 castle damage + 5 more while attack > 5) deals 10 and wins, but per-effect scoring gave it 5×12/9 + 2.0 = **8.67** and offered `Přímý zásah` (8 damage, **10.67**) instead — a card that does not win. Now Odstřelovač returns 200; with only 4 attack its condition fails and it correctly drops to 6.67, below Přímý zásah.
 
 ## Online (GameSession.js)
 

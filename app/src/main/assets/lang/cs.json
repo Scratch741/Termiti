@@ -523,7 +523,7 @@
       "desc": "Pokud máš <10 hradeb, poškodí hrad −10."
     },
     "026": {
-      "name": "Ostřelovač",
+      "name": "Odstřelovač",
       "desc": "Poškodí hrad −5. Pokud máš >5 útoku, další −5."
     },
     "027": {

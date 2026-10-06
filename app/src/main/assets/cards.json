@@ -528,7 +528,7 @@
   },
   {
     "id": "026",
-    "name": "Ostřelovač",
+    "name": "Odstřelovač",
     "cost": 3,
     "costType": "ATTACK",
     "isCombo": false,

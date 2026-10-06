@@ -23,7 +23,7 @@ internal fun scoreCardForSituation(
     val xValue  = (self.resources[card.costType] ?: 0).toDouble()
 
     // Podmínkový efekt se nesmí hodnotit naslepo: když podmínka PRÁVĚ TEĎ platí,
-    // rozhoduje jeho vnitřní efekt (Ostřelovač = 5 + dalších 5 na hrad), když ne,
+    // rozhoduje jeho vnitřní efekt (Odstřelovač = 5 + dalších 5 na hrad), když ne,
     // karta ten efekt neudělá vůbec. Bez tohohle spadl celý ConditionalEffect do
     // větve `else -> 2.0` a karta, která vyhrává hru, prohrála s obyčejnou osmičkou.
     fun flatten(effects: List<CardEffect>, depth: Int = 0): List<CardEffect> =
@@ -36,7 +36,7 @@ internal fun scoreCardForSituation(
     val effects = flatten(card.effects)
 
     // Vyhrává karta TEĎ? Poškození se sčítá přes VŠECHNY efekty karty, ne po jednom –
-    // Dvojitý úder (hrad 7 + hráč 7) i Ostřelovač (5 + podmíněných 5) zabíjí až součtem.
+    // Dvojitý úder (hrad 7 + hráč 7) i Odstřelovač (5 + podmíněných 5) zabíjí až součtem.
     // Zeď pohltí jen útok na hráče, a to až po případném rozbití zdi na stejné kartě.
     var wallLeft   = oppWall
     var castleDmg  = 0.0
