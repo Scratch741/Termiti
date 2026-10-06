@@ -68,11 +68,11 @@ fun RewardToastOverlay() {
 @Composable
 private fun RewardToastCard(ev: RewardNotifier.RewardEvent) {
     // Herní panel (tmavá textura s bronzovým rámem a nýty v rozích) – stejná textura
-    // a FillBounds jako PlainButton. Padding drží obsah uvnitř rámu i u nýtů.
+    // a kreslení jako PlainButton (rohy v poměru). Padding drží obsah uvnitř rámu i u nýtů.
     Column(
         modifier = Modifier
             .widthIn(min = 160.dp, max = 260.dp)
-            .paint(painterResource(R.drawable.plain_button_longer), contentScale = ContentScale.FillBounds)
+            .buttonTexture(R.drawable.plain_button_longer)
             .padding(horizontal = 16.dp, vertical = 11.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {

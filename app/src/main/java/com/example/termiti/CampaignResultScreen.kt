@@ -124,10 +124,7 @@ fun CampaignResultScreen(
             if (playerWon && rewardClaimed) {
                 Box(
                     modifier = Modifier
-                        .paint(
-                            painterResource(R.drawable.plain_button_longer),
-                            contentScale = ContentScale.FillBounds
-                        )
+                        .buttonTexture(R.drawable.plain_button_longer)
                         .padding(horizontal = 32.dp, vertical = 18.dp)
                 ) {
                     Column(
@@ -157,11 +154,7 @@ fun CampaignResultScreen(
             } else if (playerWon) {
                 Box(
                     modifier = Modifier
-                        .paint(
-                            painterResource(R.drawable.plain_button_longer),
-                            contentScale = ContentScale.FillBounds,
-                            alpha        = 0.85f
-                        )
+                        .buttonTexture(R.drawable.plain_button_longer, alpha = 0.85f)
                         .padding(horizontal = 32.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {

@@ -578,7 +578,7 @@ private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String,
         modifier = Modifier
             .width(96.dp)
             .height(108.dp)
-            .paint(painterResource(R.drawable.plain_button_mini), contentScale = ContentScale.FillBounds)
+            .buttonTexture(R.drawable.plain_button_mini)
             .clickable { SoundManager.playMenuTap(); onClick() }
             .padding(vertical = 12.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

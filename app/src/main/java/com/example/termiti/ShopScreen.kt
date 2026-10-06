@@ -278,12 +278,7 @@ private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
                             // podklad přes matchParentSize, takže panel obepíná text. (Modifier.paint by ho
                             // roztáhl: s intrinsics na šířku textury, bez nich na celou obrazovku.)
                             Box(contentAlignment = Alignment.Center) {
-                                Image(
-                                    painter            = painterResource(R.drawable.plain_button_longer),
-                                    contentDescription = null,
-                                    contentScale       = ContentScale.FillBounds,
-                                    modifier           = Modifier.matchParentSize()
-                                )
+                                Box(Modifier.matchParentSize().buttonTexture(R.drawable.plain_button_longer))
                                 Row(
                                     Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
                                     horizontalArrangement = Arrangement.spacedBy(5.dp),

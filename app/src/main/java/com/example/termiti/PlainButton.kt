@@ -14,6 +14,11 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -26,6 +31,51 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+/**
+ * Podklad z textury plain_button* bez deformace rohů.
+ *
+ * FillBounds roztáhne celou texturu do tvaru prvku – plain_button (297×107) na tlačítku
+ * 190×28 dp má pak rohové ozdoby s nýty dvakrát širší než vyšší. Tady se textura kreslí
+ * devítidílně: čtyři rohy v jednom měřítku (podle výšky prvku), natahují se jen rovné hrany
+ * a střed. Když je prvek užší než dva rohy, měřítko se řídí šířkou a natahuje se svislý střed.
+ *
+ * Rozměry prvku určuje dál neviditelný paint() – tlačítka bez vlastní velikosti se odjakživa
+ * měří podle textury, takže se rozložení obrazovek nemění, jen vykreslení.
+ */
+@Composable
+fun Modifier.buttonTexture(
+    @DrawableRes res: Int,
+    colorFilter: ColorFilter? = null,
+    alpha: Float = 1f
+): Modifier {
+    val bmp = ImageBitmap.imageResource(res)
+    return paint(painterResource(res), contentScale = ContentScale.FillBounds, alpha = 0f).drawBehind {
+        val w = size.width.roundToInt(); val h = size.height.roundToInt()
+        if (w <= 0 || h <= 0) return@drawBehind
+        // Roh = čtverec 40/107 výšky textury (ozdoba s nýtem sahá ~36 px od kraje)
+        val c  = (bmp.height * 40f / 107f).roundToInt()
+        val s  = minOf(size.height / bmp.height, size.width / (2f * c))
+        val cd = (c * s).roundToInt().coerceAtMost(minOf(w, h) / 2)
+        val srcX = intArrayOf(0, c, bmp.width - c, bmp.width)
+        val srcY = intArrayOf(0, c, bmp.height - c, bmp.height)
+        val dstX = intArrayOf(0, cd, w - cd, w)
+        val dstY = intArrayOf(0, cd, h - cd, h)
+        for (iy in 0..2) for (ix in 0..2) {
+            val dw = dstX[ix + 1] - dstX[ix]; val dh = dstY[iy + 1] - dstY[iy]
+            if (dw <= 0 || dh <= 0) continue
+            drawImage(
+                image       = bmp,
+                srcOffset   = IntOffset(srcX[ix], srcY[iy]),
+                srcSize     = IntSize(srcX[ix + 1] - srcX[ix], srcY[iy + 1] - srcY[iy]),
+                dstOffset   = IntOffset(dstX[ix], dstY[iy]),
+                dstSize     = IntSize(dw, dh),
+                alpha       = alpha,
+                colorFilter = colorFilter
+            )
+        }
+    }
+}
 
 /**
  * Herní tlačítko s texturou plain_button.png (nebo plain_button_longer.png pro širší variantu).
@@ -72,7 +122,7 @@ fun PlainButton(
         modifier = modifier
             .alpha(alpha)
             .then(outlineMod)
-            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds, colorFilter = cf)
+            .buttonTexture(buttonRes, colorFilter = cf)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center
@@ -130,7 +180,7 @@ fun PlainButtonWithIcon(
         modifier = modifier
             .alpha(alpha)
             .then(outlineMod)
-            .paint(painterResource(buttonRes), contentScale = ContentScale.FillBounds, colorFilter = cf)
+            .buttonTexture(buttonRes, colorFilter = cf)
             .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
             .padding(horizontal = paddingH, vertical = paddingV),
         contentAlignment = Alignment.Center

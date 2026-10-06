@@ -251,12 +251,7 @@ private fun TexturedPanel(
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier, contentAlignment = contentAlignment) {
-        Image(
-            painter            = painterResource(textureRes),
-            contentDescription = null,
-            modifier           = Modifier.matchParentSize(),
-            contentScale       = ContentScale.FillBounds
-        )
+        Box(Modifier.matchParentSize().buttonTexture(textureRes))
         content()
     }
 }
