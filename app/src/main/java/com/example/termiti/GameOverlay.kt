@@ -244,7 +244,11 @@ fun MulliganOverlay(
      * zůstane viset a čeká na soupeře; jakmile server hru rozjede, přepne se
      * na true a overlay teprve teď dorozdá a předá karty do ruky.
      */
-    startHandoff: Boolean? = null
+    startHandoff: Boolean? = null,
+    /** Tutoriál: text místo běžného pokynu pod nadpisem. */
+    tutorialHint: String? = null,
+    /** Tutoriál: karta (baseId), kterou je třeba vyměnit – svítí zlatě a „Hrát bez výměny" nejde. */
+    forcedCardBaseId: String? = null
 ) {
     val s = LocalStrings.current
 
@@ -365,6 +369,11 @@ fun MulliganOverlay(
                             s.mulliganWaitingOpponent,
                         color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
                     )
+                    tutorialHint != null -> Text(
+                        tutorialHint,
+                        color = Gold, fontSize = 11.sp, lineHeight = 15.sp, textAlign = TextAlign.Center,
+                        modifier = Modifier.widthIn(max = 430.dp)
+                    )
                     else -> Text(
                         parseCardDesc(
                             if (selectedIds.isEmpty())
@@ -456,6 +465,10 @@ fun MulliganOverlay(
                             onClick     = { if (!submitted && !busy) onToggle(card.id) },
                             showGlow    = false
                         )
+                        // Tutoriál: karta, kterou je třeba vyměnit
+                        if (forcedCardBaseId != null && card.baseId == forcedCardBaseId && !isSelected && !busy) {
+                            Box(Modifier.matchParentSize().tutorialGlow(true))
+                        }
                         // Overlay na vybrané kartě
                         if (isSelected) {
                             Box(
@@ -491,11 +504,12 @@ fun MulliganOverlay(
             val locked     = submitted || busy
             val canConfirm = selectedIds.isNotEmpty() && !locked
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                val canSkip = !locked && forcedCardBaseId == null
                 PlainButton(
                     text      = s.mulliganPlayNoSwap,
-                    textColor = if (locked) TextMuted.copy(alpha = 0.3f) else Gold,
+                    textColor = if (canSkip) Gold else TextMuted.copy(alpha = 0.3f),
                     fontSize  = 11.sp,
-                    enabled   = !locked,
+                    enabled   = canSkip,
                     paddingH  = 22.dp,
                     paddingV  = 10.dp,
                     onClick   = {
@@ -507,6 +521,7 @@ fun MulliganOverlay(
                 )
                 PlainButton(
                     text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
+                    modifier  = Modifier.tutorialGlow(forcedCardBaseId != null && canConfirm, corner = 5.dp),
                     textColor = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
                     fontSize  = 11.sp,
                     enabled   = canConfirm,

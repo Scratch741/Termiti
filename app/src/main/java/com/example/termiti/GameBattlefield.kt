@@ -80,6 +80,7 @@ fun NewBattlefield(
     playerMaxHand: Int = 7,           // max. velikost ruky hráče (7 nebo 8 s extra_hand_card)
     aiMaxHand: Int = 7,               // max. velikost ruky soupeře/AI (7 nebo 8 s extra_hand_card)
     opponentCardBackResId: Int = R.drawable.card_back_frame,  // skin rubu karet soupeře/AI
+    tutorialTargets: Set<TutTarget> = emptySet(),             // tutoriál: co má svítit zlatě
     playerCastleResId: Int = R.drawable.castle_player,        // skin hradu hráče
     opponentCastleResId: Int = R.drawable.castle_player,      // skin hradu soupeře/AI
     playerWallResId: Int = R.drawable.wall_player,             // skin hradby hráče
@@ -407,6 +408,8 @@ fun NewBattlefield(
             maxWall     = playerState.maxWall,
             castleResId = playerCastleResId,
             wallResId   = playerWallResId,
+            glowCastle  = TutTarget.PLAYER_CASTLE in tutorialTargets,
+            glowWall    = TutTarget.PLAYER_WALL in tutorialTargets,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp)
@@ -419,6 +422,7 @@ fun NewBattlefield(
             maxWall     = aiState.maxWall,
             castleResId = opponentCastleResId,
             wallResId   = opponentWallResId,
+            glowCastle  = TutTarget.ENEMY_CASTLE in tutorialTargets,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 8.dp)
@@ -700,6 +704,8 @@ private fun NewCastleStructure(
     maxWall: Int = MAX_WALL,
     castleResId: Int = R.drawable.castle_player,
     wallResId: Int = R.drawable.wall_player,
+    glowCastle: Boolean = false,   // tutoriál: zlatý rám kolem hradu
+    glowWall: Boolean = false,     // tutoriál: zlatý rám kolem hradeb
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isPlayer) Teal    else Crimson
@@ -718,11 +724,19 @@ private fun NewCastleStructure(
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         if (isPlayer) {
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId)
-            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true, wallResId = wallResId, maxWall = maxWall)
+            Box(Modifier.tutorialGlow(glowCastle)) {
+                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId)
+            }
+            Box(Modifier.tutorialGlow(glowWall)) {
+                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true, wallResId = wallResId, maxWall = maxWall)
+            }
         } else {
-            WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false, wallResId = wallResId, maxWall = maxWall)
-            CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId)
+            Box(Modifier.tutorialGlow(glowWall)) {
+                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false, wallResId = wallResId, maxWall = maxWall)
+            }
+            Box(Modifier.tutorialGlow(glowCastle)) {
+                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId)
+            }
         }
     }
 }

@@ -499,6 +499,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private var awaitingDecisionOverlay : Boolean   = false
 
     fun toggleMulliganCard(cardId: String) {
+        // Tutoriál: vybrat jde jen karta, kterou skript chce vyměnit
+        (tutorialExpect as? TutExpect.Mulligan)?.let { m ->
+            val card = gameState.value.playerState.hand.firstOrNull { it.id == cardId }
+            if (card?.baseId != m.baseId) return
+        }
         val cur = mulliganSelected.value
         mulliganSelected.value = if (cardId in cur) cur - cardId else cur + cardId
     }
@@ -548,7 +553,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         player.deck.addAll(returned)
-        player.deck.shuffle()
+        // Tutoriál: vrácená karta jde dospod a balíček se nemíchá (pořadí je dané skriptem)
+        if (!tutorialActive.value) player.deck.shuffle()
 
         gameState.value        = old.copy(playerState = player)
         mulliganSelected.value = emptySet()
@@ -567,6 +573,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (!isMulligan.value) return
         isMulligan.value       = false
         mulliganSelected.value = emptySet()
+        if (tutorialExpect is TutExpect.Mulligan) tutorialNext()
         // Karty do ruky přenesl overlay (HANDOFF) a HandPanel je znovu nerozdává,
         // takže stačí krátký nádech, ne čekání na animaci celého lízání.
         maybeStartAiFirstTurn(startDelayMs = 300L)
@@ -896,7 +903,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (!quickDrawUsed) {
                 val actives = PlayerProfileManager.profile
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
-                if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
+                if (!tutorialActive.value && PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
                     val qdr1 = player.drawCards(1, old.playerMaxHand)
                     qdr1.burned.forEach { b ->
@@ -1098,6 +1105,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             log.appendLog(ls.logNotEnough.format(resLabel(card.costType), card.displayName))
             return
         }
+
+        // Tutoriál: zahrát jde jen karta, kterou skript právě čeká
+        if (tutorialBlocks(TutExpect.Play(card.baseId))) return
+        tutorialDid(TutExpect.Play(card.baseId))
 
         // 1. Zaplatit a přesunout kartu z ruky PŘED aplikací efektů
         // (aby karta "lízni kartu" nejdřív zmizela z ruky, pak se líže nová)
@@ -1339,6 +1350,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun endPlayerTurn() {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.PLAYER) return
+        if (tutorialExpect != null) return   // skript tutoriálu ukončení tahu nikde nečeká
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
         isPlayerComboTurn.value = false
@@ -1349,6 +1361,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun waitTurn() {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.PLAYER || gameOver.value != null) return
+        if (tutorialExpect != null) return   // skript tutoriálu ukončení tahu nikde nečeká
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
@@ -1363,6 +1376,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val old = gameState.value
         if (old.activePlayer != ActivePlayer.PLAYER) return
         if (playerDiscardUsed.value) return   // zahození jen 1× za kolo
+        // Tutoriál: zahodit jde jen karta, kterou skript právě čeká
+        if (tutorialBlocks(TutExpect.Discard(card.baseId))) return
+        tutorialDid(TutExpect.Discard(card.baseId))
         val player = old.playerState.deepCopy()
         val ai     = old.aiState.deepCopy()
 
@@ -1489,6 +1505,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // onlyNew = true → nemění formu již transformovaných instancí
                 transformShapeShifters(ai.hand, allCards, onlyNew = true)
                 val aiChoice = pendingAiChoice
+                    ?: tutorialAiChoice(ai)
                     ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
                                       canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
                 pendingAiChoice = null
@@ -1744,7 +1761,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             // Nakoukni, jestli combo pokračuje další kartou, nebo tahle byla
                             // poslední (AI teď skončí kolo) – použije se místo nového
                             // aiChooseAction() volání na začátku příští iterace (viz pendingAiChoice výš).
-                            val nextChoice = aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
+                            val nextChoice = tutorialAiChoice(ai)
+                                ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
                                                             canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
                             pendingAiChoice = nextChoice
                             // Další karta comba přijde → 1s, aby ji hráč stihl přečíst.
@@ -1859,7 +1877,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             if (!quickDrawUsed) {
                 val actives = PlayerProfileManager.profile
                     ?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
-                if (PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
+                if (!tutorialActive.value && PassiveAbility.QUICK_DRAW in actives && player.deck.isNotEmpty()) {
                     quickDrawUsed = true
                     val qdr2 = player.drawCards(1, old.playerMaxHand)
                     qdr2.burned.forEach { b ->
@@ -2176,8 +2194,50 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (entries.isNotEmpty()) log.value = log.value + entries
     }
 
-    /** Běží interaktivní tutoriál (TutorialOverlay) – bitva proti prvnímu soupeři kampaně. */
+    /** Běží skriptovaný tutoriál (TutorialOverlay) – bitva proti prvnímu soupeři kampaně. */
     val tutorialActive = androidx.compose.runtime.mutableStateOf(false)
+
+    /** Aktuální krok skriptu – index do [TUTORIAL_STEPS]. */
+    val tutorialStep = androidx.compose.runtime.mutableStateOf(0)
+
+    /** Karty, které má soupeř v tutoriálu zahrát, v pořadí (viz [tutorialAiChoice]). */
+    private val tutorialAiQueue = ArrayDeque<String>()
+
+    /** Co skript právě čeká; null = tutoriál neběží nebo už skončil → hra není omezená. */
+    internal val tutorialExpect: TutExpect?
+        get() = if (tutorialActive.value) TUTORIAL_STEPS.getOrNull(tutorialStep.value)?.expect else null
+
+    /** Posun na další krok; po posledním kroku tutoriál končí. */
+    fun tutorialNext() {
+        if (!tutorialActive.value) return
+        tutorialStep.value++
+        if (tutorialStep.value >= TUTORIAL_STEPS.size) tutorialActive.value = false
+    }
+
+    /** True = skript čeká něco jiného než [action] a akci je třeba ignorovat. */
+    private fun tutorialBlocks(action: TutExpect): Boolean {
+        val expected = tutorialExpect ?: return false
+        return expected != action
+    }
+
+    /** Hráč provedl [action]; pokud ji skript čekal, jde se na další krok. */
+    private fun tutorialDid(action: TutExpect) {
+        if (tutorialExpect == action) tutorialNext()
+    }
+
+    /**
+     * Tah soupeře podle skriptu: další karta z fronty, pokud ji má v ruce a zaplatí ji.
+     * null = skript už nic nechce (nebo tutoriál neběží) → rozhodne běžná AI.
+     */
+    private fun tutorialAiChoice(ai: PlayerState): AiAction? {
+        if (!tutorialActive.value) return null
+        val id   = tutorialAiQueue.firstOrNull() ?: return null
+        val card = ai.hand.firstOrNull {
+            it.baseId == id && (ai.resources[it.costType] ?: 0) >= it.effectiveCost
+        } ?: return null
+        tutorialAiQueue.removeFirst()
+        return AiAction.Play(card)
+    }
 
     /** Spustí tutoriál: první soupeř kampaně, pevný balíček [TUTORIAL_DECK], nápověda ve hře. */
     fun startTutorial() =
@@ -2188,6 +2248,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Spustí bitvu v kampani proti danému soupeři. */
     fun startCampaignBattle(opponent: CampaignOpponent, tutorial: Boolean = false) {
         tutorialActive.value = tutorial   // běžná bitva (i „Zkusit znovu") tutoriál vypne
+        tutorialStep.value   = 0
+        tutorialAiQueue.clear()
+        if (tutorial) tutorialAiQueue.addAll(TUTORIAL_AI_ORDER)
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
@@ -2234,14 +2297,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun createCampaignState(opponent: CampaignOpponent): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
         val playerCards = when {
-            // Tutoriál nezávisí na hráčově balíčku – vždy stejné jednoduché karty
-            tutorialActive.value -> Deck(-1, "", TUTORIAL_DECK).toCardList(allCards)
+            // Tutoriál nezávisí na hráčově balíčku – vždy stejné karty v pevném pořadí
+            tutorialActive.value -> tutorialPlayerDeck(allCards)
             activeDeck.isValid   -> activeDeck.toCardList(allCards)
             else                 -> balancedDeck()
         }
 
         // ── Pasivní schopnosti hráče ──────────────────────────────────────────
-        val actives = PlayerProfileManager.profile
+        // V tutoriálu se neuplatní: skript počítá s přesnými surovinami a kartami.
+        val actives = if (tutorialActive.value) emptyList() else PlayerProfileManager.profile
             ?.activeAbilities
             ?.mapNotNull { PassiveAbility.fromId(it) }
             ?: emptyList()
@@ -2298,7 +2362,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     addAll(boostCards({ it.type != "Důl" }, 3))
             }
 
-            it.deck.addAll((playerCards + deckBoost.map { c -> c.copy(isGenerated = true) }).withUniqueIds().shuffled())
+            val deckCards = (playerCards + deckBoost.map { c -> c.copy(isGenerated = true) }).withUniqueIds()
+            // Tutoriál: balíček se nemíchá, skript ví, co hráč lízne
+            it.deck.addAll(if (tutorialActive.value) deckCards else deckCards.shuffled())
             it.drawCards(opponent.playerStartHandSize.coerceIn(1, 7))
         }
 
@@ -2310,6 +2376,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
             .withUniqueIds()
             .shuffled()
+            .let { shuffled ->
+                // Tutoriál: karty podle skriptu jdou navrch (= do úvodní ruky), zbytek zamíchaný
+                if (!tutorialActive.value) shuffled
+                else {
+                    val scripted = TUTORIAL_AI_ORDER.mapNotNull { id -> allCards.find { it.id == id } }.withUniqueIds()
+                    scripted + shuffled
+                }
+            }
 
         val aiState = PlayerState(
             castleHP = opponent.aiCastle,
@@ -2330,7 +2404,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         return GameState(
             playerState     = playerState,
             aiState         = aiState,
-            activePlayer    = if (Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI,
+            // Tutoriál: začíná vždy hráč
+            activePlayer    = if (tutorialActive.value || Random.nextBoolean()) ActivePlayer.PLAYER else ActivePlayer.AI,
             playerWinTarget = playerWinTarget,
             aiWinTarget     = aiWinTarget,
             playerMaxHand   = playerMaxHand

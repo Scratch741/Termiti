@@ -224,12 +224,24 @@ class AppStrings(
     val tutGoal: String by values
     val tutCastle: String by values
     val tutResources: String by values
+    val tutMines: String by values
     val tutPlayCard: String by values
     val tutOpponentTurn: String by values
     val tutCombo: String by values
     val tutDiscard: String by values
     val tutEndTurn: String by values
     val tutDone: String by values
+    val tutMulligan: String by values
+    val tutPlayMobilize: String by values
+    val tutPlayStrike: String by values
+    val tutOpponentAgain: String by values
+    val tutWallHit: String by values
+    val tutPlayPalisade: String by values
+    val tutOpponentCombo: String by values
+    val tutDiscardMerc: String by values
+    val tutPlayQuick: String by values
+    val tutPlayOgre: String by values
+    val tutFinisher: String by values
     val profileUnlockCampaign: String by values
     val profileSectionAvatar: String by values
     val profileSectionCastle: String by values

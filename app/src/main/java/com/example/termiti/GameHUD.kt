@@ -302,6 +302,9 @@ fun NewResourcePanel(
     playerState: PlayerState,
     isAi: Boolean,
     modifier: Modifier = Modifier,
+    /** Tutoriál: zlatý rám kolem čísel dolů / kolem zásob surovin. */
+    glowMines: Boolean = false,
+    glowAmounts: Boolean = false,
     bottomSlot: @Composable ColumnScope.() -> Unit = {}
 ) {
     val magic     = playerState.resources[ResourceType.MAGIC]  ?: 0
@@ -333,10 +336,10 @@ fun NewResourcePanel(
                 )
         )
         Column(Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 5.dp)) {
-            NewResourceSection(R.drawable.magie_icon,  s.resMagic,  mineMagic, magic,  MagicBlue,   isAi = isAi, blockedTurns = blkMagic)
-            NewResourceSection(R.drawable.utok_icon,   s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk)
-            NewResourceSection(R.drawable.kamen_icon2, s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto)
-            NewResourceSection(R.drawable.chaos_icon,  s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true)
+            NewResourceSection(R.drawable.magie_icon,  s.resMagic,  mineMagic, magic,  MagicBlue,   isAi = isAi, blockedTurns = blkMagic, glowMine = glowMines, glowAmount = glowAmounts)
+            NewResourceSection(R.drawable.utok_icon,   s.resAttack, mineAtk,   attack, AttackRed,   isAi = isAi, blockedTurns = blkAtk, glowMine = glowMines, glowAmount = glowAmounts)
+            NewResourceSection(R.drawable.kamen_icon2, s.resStone,  mineSto,   stones, StoneColor,  isAi = isAi, blockedTurns = blkSto, glowMine = glowMines, glowAmount = glowAmounts)
+            NewResourceSection(R.drawable.chaos_icon,  s.resChaos,  mineChaos, chaos,  ChaosOrange, isAi = isAi, blockedTurns = blkChaos, isLast = true, glowMine = glowMines, glowAmount = glowAmounts)
             Spacer(Modifier.weight(1f))
             bottomSlot()
         }
@@ -377,7 +380,9 @@ fun NewResourceSection(
     color: Color,
     isAi: Boolean = false,
     isLast: Boolean = false,
-    blockedTurns: Int = 0
+    blockedTurns: Int = 0,
+    glowMine: Boolean = false,     // tutoriál: zlatý rám kolem čísla dolů
+    glowAmount: Boolean = false    // tutoriál: zlatý rám kolem zásoby
 ) {
     val blocked = blockedTurns > 0
     val mineColor = rememberChangeFlashColor(mine, if (blocked) Color(0xFFE53935) else Gold)
@@ -393,7 +398,7 @@ fun NewResourceSection(
             color      = mineColor,
             fontSize   = size,
             fontWeight = FontWeight.Bold,
-            modifier   = Modifier.widthIn(min = 14.dp),
+            modifier   = Modifier.tutorialGlow(glowMine, corner = 4.dp).widthIn(min = 14.dp),
             textAlign  = if (align == Alignment.End) TextAlign.End else TextAlign.Start
         )
     }
@@ -427,8 +432,8 @@ fun NewResourceSection(
             )
             Box {
                 Text("$amount", color = amountColor, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End, maxLines = 1,
-                    modifier = Modifier.widthIn(min = 24.dp))
+                    textAlign = if (glowAmount) TextAlign.Center else TextAlign.End, maxLines = 1,
+                    modifier = Modifier.tutorialGlow(glowAmount, corner = 4.dp).widthIn(min = 24.dp))
                 // delta se vykreslí VPRAVO za číslem (offset = šířka čísla + odstup), layout ho nezahrnuje
                 Box(Modifier.offset(x = 34.dp).width(0.dp).wrapContentWidth(unbounded = true)) {
                     ResourceDelta(amount)
@@ -811,7 +816,13 @@ fun HandPanel(
     lastPlayedType: String? = null,
     onLongPressCard: ((Card) -> Unit)? = null,
     animateDraws: Boolean = true,    // false = review mód (přepínání rukou nemá „přilétat")
-    canDiscard: Boolean = true       // false = zahození už v tomto kole použito (1× za kolo)
+    canDiscard: Boolean = true,      // false = zahození už v tomto kole použito (1× za kolo)
+    /**
+     * Tutoriál: karta (baseId), kterou má hráč teď zahrát nebo zahodit – svítí zlatě a jen ona
+     * vypadá jako hratelná. Prázdný řetězec = krok žádnou kartu nečeká (nehratelné jsou všechny).
+     * null = tutoriál neběží.
+     */
+    tutorialCardBaseId: String? = null
 ) {
     // clipToBounds: karta tažená nahoru k zahození (a přilétající líznutá karta) mizí
     // pod dělicí čárou nad rukou, nekreslí se přes herní plán. LazyRow ořezává jen
@@ -900,7 +911,8 @@ fun HandPanel(
                 ) {
                     CardView(
                         card          = card,
-                        canPlay       = isPlayerTurn && affordable,
+                        canPlay       = isPlayerTurn && affordable &&
+                                        (tutorialCardBaseId == null || card.baseId == tutorialCardBaseId),
                         isComboCard   = card.isCombo,
                         discardMode   = false,
                         onClick       = { onPlayCard(card) },
@@ -916,6 +928,9 @@ fun HandPanel(
                             lastPlayedType
                         )
                     )
+                    if (tutorialCardBaseId != null && card.baseId == tutorialCardBaseId) {
+                        Box(Modifier.matchParentSize().tutorialGlow(true, corner = 7.dp))
+                    }
                 }
             }
         }

@@ -600,3 +600,29 @@ Verze vpravo dole (`MenuScreen.kt`): světlá béžová `TextPrimary` na 75 % m�
 ## [2026-10-07] art | Ruby karet bez bílých rohů
 
 Osm nových rubů (`card_back_baziny`, `_citadela`, `_drak`, `_frame_5`, `_frame_6`, `_frame_7`, `_goblin`, `_trpaslik`) mělo kolem zaoblených rohů neprůhledné bílé pozadí (RGB bez alfy). Pozadí odstraněno záplavovým vyplněním od okrajů (skoro bílé pixely spojené s okrajem), hrana stažena o 1 px a zjemněna, obrázky uloženy jako RGBA a oříznuty těsně na kartu (bažiny 256×412, trpaslík 256×411, ostatní 256×416). `card_back_frame_4` a starší ruby bílé pozadí neměly.
+
+## [2026-10-07] ui | Rub karet u počítadla balíčku
+
+Počítadla balíčků v horní liště hry (`NewTopBar` v `GameHUD.kt`) ukazují místo obecné ikony karty rub karet daného hráče: u hráče jeho zvolený rub (`playerCardBackResId()`), u soupeře nový parametr `opponentCardBackResId` – v kampani rub lokace, online rub ze soupeřova profilu (`matchInfo.opponentCardBackSkin`), jinak základní. Nový `DeckCountChip` (56×34dp, rub 16×26dp + počet) nahradil `PlainButtonWithIcon` s ikonou 9dp. Platí offline i online.
+
+## [2026-10-07] feat | Skriptovaný tutoriál
+
+Tutoriál (Profil → Debug) je nově celý skriptovaný zápas proti prvnímu soupeři kampaně (`TutorialOverlay.kt`):
+- **Pevný průběh:** hráč vždy začíná, oba balíčky mají dané pořadí (`TUTORIAL_PLAYER_ORDER`, `TUTORIAL_AI_ORDER`, nemíchá se), pasivní schopnosti hráče se neuplatní, soupeř hraje karty z fronty (`GameViewModel.tutorialAiChoice`, zavěšeno před `aiChooseAction`).
+- **Kroky `TUTORIAL_STEPS`** (16): mulligan (vyměnit Draka) → cíl hry, hradby, suroviny → Mobilizace (kombo) + Silný úder → tah soupeře (Goblin) → Palisáda → soupeř Mobilizace + Ogr → zahodit Zoufalého žolda (+3 útok) → Rychlý útok + Ogr → soupeř Zoufalý žold → Ohnivá koule přímo do hradu = výhra ve 4. kole.
+- **Vynucení:** `tutorialExpect` (`TutExpect.Mulligan / Play / Discard / Info / Opponent`). `playCard`, `discardCard`, `waitTurn`, `endPlayerTurn` a `toggleMulliganCard` ignorují cokoli, co krok nečeká; „Hrát bez výměny“ je v mulliganu vypnuté. Správná akce posune krok.
+- **Zvýraznění:** `Modifier.tutorialGlow` (zlatý pulzující rám) – karta v ruce (`HandPanel.tutorialCardBaseId`), karta a tlačítko Vyměnit v mulliganu (`MulliganOverlay.forcedCardBaseId`, text kroku v `tutorialHint`), hrad / hradby / soupeřův hrad (`NewBattlefield.tutorialTargets`), panel surovin, tlačítko Pokračovat.
+- **Pojistky:** „Ukončit tutoriál“ kdykoli vypne skript a hra pokračuje volně; když karta, kterou krok chce, není v ruce, tutoriál se ukončí sám.
+- **Test `TutorialScriptTest`:** přehraje skript nad herním enginem – každá karta je v ruce a zaplatitelná, soupeř zahraje celou frontu, skript končí zničením hradu. Spadne při změně ceny/efektu karet 012, 007, 010, 051, 001, 132, 047, 003, 046.
+
+Nové texty `tutMulligan`, `tutPlayMobilize`, `tutPlayStrike`, `tutOpponentAgain`, `tutWallHit`, `tutPlayPalisade`, `tutOpponentCombo`, `tutDiscardMerc`, `tutPlayQuick`, `tutPlayOgre`, `tutFinisher`. Staré `tutPlayCard`, `tutCombo`, `tutDiscard`, `tutEndTurn`, `tutDone` zůstaly nepoužité.
+
+## [2026-10-07] ui | Tutoriál: doladění po prvním průchodu
+
+- **Destička s textem** je užší (max 290dp) a úplně nahoře: překrývá „Kolo“ a „Váš tah“ v horní liště místo středu bojiště se zahranou kartou a nezasahuje do odznaku soupeřova hradu.
+- **Zásoby a doly zvlášť** (17 kroků): `TutTarget.RES_AMOUNTS` zvýrazní bílá čísla zásob vpravo, `RES_MINES` zlatá čísla dolů vlevo (`NewResourcePanel.glowAmounts / glowMines`), každý krok má vlastní text (`tutResources`, nový `tutMines`).
+- **„Combo“ místo „Kombo“** ve všech českých textech (tutoriál i `catCombo`).
+- **Jen karta ze skriptu vypadá hratelně** – ostatní karty v ruce nemají rámeček hratelné karty (`HandPanel.tutorialCardBaseId`, prázdný řetězec = krok žádnou kartu nečeká).
+- **Rychlé líznutí (QUICK_DRAW)** se v tutoriálu neuplatní ani na druhém místě v `finishTurn` – hráč s touto schopností dostal ve 2. kole kartu navíc.
+
+Celý tutoriál projet na zařízení přes adb od mulliganu po obrazovku vítězství.

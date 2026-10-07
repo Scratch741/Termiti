@@ -94,6 +94,11 @@ fun GameScreen(
     val mulliganSelected     by viewModel.mulliganSelected
     val isComboTurn          by viewModel.isPlayerComboTurn
     val campaignOpponent     by viewModel.activeCampaignOpponent
+    // Tutoriál: aktuální krok skriptu, co má svítit a která karta v ruce je na řadě
+    val tutorialActive       by viewModel.tutorialActive
+    val tutorialStepIndex    by viewModel.tutorialStep
+    val tutorialStep         = if (tutorialActive) TUTORIAL_STEPS.getOrNull(tutorialStepIndex) else null
+    val tutorialTargets      = tutorialStep?.targets ?: emptySet()
     val aiPassives           by viewModel.aiPassiveAbilities
     val playerPassives = remember {
         PlayerProfileManager.profile?.activeAbilities
@@ -216,6 +221,8 @@ fun GameScreen(
                     playerState = state.playerState,
                     isAi        = false,
                     modifier    = Modifier.fillMaxHeight().width(135.dp),
+                    glowMines   = TutTarget.RES_MINES in tutorialTargets,
+                    glowAmounts = TutTarget.RES_AMOUNTS in tutorialTargets,
                     bottomSlot  = {
                         NewPanelButton(
                             label   = "Log",
@@ -257,6 +264,7 @@ fun GameScreen(
                         ?: viewModel.opponentWallResId.value,
                     // Rub karet soupeře podle lokace kampaně; mimo kampaň (a v roguelike) základní
                     opponentCardBackResId = cardBackSkinDrawable(campaignOpponent?.aiCardBackSkin ?: "card_back_frame"),
+                    tutorialTargets = tutorialTargets,
                     backgroundResId = viewModel.battleBackgroundResId.value
                 )
 
@@ -350,6 +358,9 @@ fun GameScreen(
                 // doletěly z mulliganu, nesmí se rozdat podruhé
                 animateDraws     = gameOver == null && !skipHandDeal,
                 canDiscard       = !viewModel.playerDiscardUsed.value,
+                // "" = krok tutoriálu žádnou kartu nečeká → žádná nevypadá hratelně
+                tutorialCardBaseId = if (tutorialStep == null || isMulligan || gameOver != null) null
+                                     else tutorialStep.handCardId ?: "",
                 modifier         = Modifier.fillMaxWidth().height(152.dp)
                                            .paint(
                                                painterResource(R.drawable.hand_background),
@@ -426,15 +437,16 @@ fun GameScreen(
             }
         }
 
-        // ── Tutoriál: nápověda nahoře uprostřed, hru pod sebou neblokuje ──────
-        val tutorialActive by viewModel.tutorialActive
-        if (tutorialActive && !isMulligan && gameOver == null && !reviewMode) {
-            val history by viewModel.cardHistory
+        // ── Tutoriál: text kroku úplně nahoře uprostřed (při mulliganu je text v jeho okně).
+        //    Překrývá „Kolo" a „Váš tah" v horní liště – ty hráč v tutoriálu nepotřebuje –
+        //    a nechává volný střed bojiště, kde se ukazují zahrané karty. ──
+        if (tutorialStep != null && !isMulligan && gameOver == null && !reviewMode) {
             TutorialOverlay(
-                state       = state,
-                actionCount = history.count { it.isMine },
-                modifier    = Modifier.align(Alignment.TopCenter).padding(top = 46.dp),
-                onFinish    = { viewModel.endTutorial() }
+                state     = state,
+                stepIndex = tutorialStepIndex,
+                modifier  = Modifier.align(Alignment.TopCenter).padding(top = 2.dp),
+                onNext    = { viewModel.tutorialNext() },
+                onFinish  = { viewModel.endTutorial() }
             )
         }
 
@@ -448,7 +460,9 @@ fun GameScreen(
                 onFinished       = {
                     skipHandDeal = true          // musí platit dřív, než se ruka objeví
                     viewModel.finishMulligan()
-                }
+                },
+                tutorialHint     = tutorialStep?.takeIf { it.expect is TutExpect.Mulligan }?.text?.invoke(LocalStrings.current, state),
+                forcedCardBaseId = (tutorialStep?.expect as? TutExpect.Mulligan)?.baseId
             )
         }
 
