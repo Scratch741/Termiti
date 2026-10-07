@@ -17,6 +17,25 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.5.1] – 2026-10-07
+
+### Nové
+- **Ruby karet:** devět nových – Styl 4 až 7 a tematické Goblin, Bažiny, Trpaslík,
+  Citadela a Drak (budoucí odměny za bosse kampaně, zatím odemčené všem).
+  Soupeři v kampani hrají s rubem své lokace.
+- **Tutoriál (první verze):** bitva proti prvnímu goblinovi s pevným balíčkem
+  a nápovědou v devíti krocích. Zatím se spouští z Profil → Debug.
+
+### Vylepšeno
+- **Nastavení** na herních texturách: položky na destičkách, vlastní posuvník
+  hlasitosti, podtržený nadpis, vybraný jazyk se zlatým obrysem.
+- **Rolovací lišta** v seznamech, které jdou posouvat: záložky profilu, pravidla
+  režimů, herní log, seznam karet v balíčku, žebříček.
+
+### Opraveno
+- **Server:** návrat odpojeného hráče už nejde zrušit přihlášením z jiného zařízení;
+  `/crash-report` má limit na adresu, velikost i počet uložených hlášení.
+
 ## [0.5.0] – 2026-10-06
 
 ### Nové karty
