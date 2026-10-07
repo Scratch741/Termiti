@@ -48,8 +48,8 @@ Outside the code:
 ## Known server gaps to close along the way
 
 From the review on 2026-10-06 (see [[log]]), not fixed yet:
-- Another device joining with the same name during the reconnect grace period cancels the disconnected player's return and the forfeit timer (goes away with verified identity).
-- `/crash-report` accepts unlimited unauthenticated uploads; `/crash-logs` and `/replays` are public.
+- ~~Another device joining with the same name during the reconnect grace period cancels the disconnected player's return and the forfeit timer~~ — fixed 2026-10-07 (name reserved for the original device during the grace period).
+- ~~`/crash-report` accepts unlimited unauthenticated uploads~~ — fixed 2026-10-07 (per-address rate limit, size limit, 500-file cap). `/crash-logs` and `/replays` are still public.
 - Cleartext `ws://` / `http://` (`usesCleartextTraffic`) — needs TLS before any account or purchase data is sent.
 - Rating can be farmed by two devices playing each other; the WIN_ONLINE daily quest also pays gems.
 
@@ -58,4 +58,5 @@ From the review on 2026-10-06 (see [[log]]), not fixed yet:
 - [[proposals]] — game-design ideas (this page is the technical / business roadmap)
 
 ## Changelog
+- 2026-10-07: Two server gaps closed (reconnect grace, crash-report limits).
 - 2026-10-06: Page created from the discussion after the server bug/exploit review.

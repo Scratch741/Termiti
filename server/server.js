@@ -84,6 +84,39 @@ const nodePath     = require('path');
 const ART_DIR      = nodePath.join(__dirname, 'art');
 // Ukládáme do logs/crash_logs/ – tento adresář má ReadWritePaths v systemd (User=nobody)
 const CRASH_LOG_DIR = nodePath.join(__dirname, 'logs', 'crash_logs');
+const CRASH_MAX_BYTES    = 64_000;          // největší přijaté hlášení
+const CRASH_MAX_FILES    = 500;             // na disku se drží jen nejnovější
+const CRASH_PER_IP       = 5;               // hlášení z jedné adresy…
+const CRASH_WINDOW_MS    = 10 * 60 * 1000;  // …za 10 minut
+const crashReportHits    = new Map();       // ip → časy posledních hlášení
+
+/** True, pokud adresa ještě nevyčerpala limit hlášení; zároveň hlášení započítá. */
+function crashReportAllowed(ip) {
+  const now  = Date.now();
+  const hits = (crashReportHits.get(ip) || []).filter(t => now - t < CRASH_WINDOW_MS);
+  if (hits.length >= CRASH_PER_IP) { crashReportHits.set(ip, hits); return false; }
+  hits.push(now);
+  crashReportHits.set(ip, hits);
+  // Mapa nesmí růst donekonečna – občas vyhoď adresy, které už mají okno za sebou
+  if (crashReportHits.size > 1000) {
+    for (const [k, v] of crashReportHits) {
+      if (v.every(t => now - t >= CRASH_WINDOW_MS)) crashReportHits.delete(k);
+    }
+  }
+  return true;
+}
+
+/** Smaže nejstarší hlášení nad [CRASH_MAX_FILES] (název obsahuje čas, řadí se podle něj). */
+function pruneCrashLogs() {
+  try {
+    const stamp = f => f.slice(f.indexOf('_') + 1);   // bez prefixu crash_/warn_
+    const files = fs.readdirSync(CRASH_LOG_DIR).filter(f => f.endsWith('.json'))
+      .sort((a, b) => stamp(a).localeCompare(stamp(b)));
+    for (const f of files.slice(0, Math.max(0, files.length - CRASH_MAX_FILES))) {
+      fs.unlinkSync(nodePath.join(CRASH_LOG_DIR, f));
+    }
+  } catch (_) { /* úklid nesmí shodit příjem hlášení */ }
+}
 try {
   if (!fs.existsSync(CRASH_LOG_DIR)) fs.mkdirSync(CRASH_LOG_DIR, { recursive: true });
 } catch (e) {
@@ -175,15 +208,35 @@ const httpServer = http.createServer((req, res) => {
 
   // ── POST /crash-report → uloží crash log z Android klienta ─────────────
   if (path === '/crash-report' && req.method === 'POST') {
+    // Endpoint je veřejný a bez přihlášení → omez, kolik toho jedna adresa smí poslat,
+    // a kolik hlášení se celkem drží na disku (jinak jím šel zaplnit disk).
+    const ip = req.socket.remoteAddress || '?';
+    if (!crashReportAllowed(ip)) {
+      res.writeHead(429);
+      res.end('{"error":"too many reports"}');
+      return;
+    }
     let body = '';
-    req.on('data', chunk => { body += chunk; if (body.length > 64_000) body = body.slice(0, 64_000); });
+    let tooBig = false;
+    req.on('data', chunk => {
+      if (tooBig) return;
+      body += chunk;
+      if (body.length > CRASH_MAX_BYTES) {   // větší tělo nečteme dál a nic neukládáme
+        tooBig = true;
+        res.writeHead(413);
+        res.end('{"error":"too large"}');
+        req.destroy();
+      }
+    });
     req.on('end', () => {
+      if (tooBig) return;
       try {
         const report   = JSON.parse(body);
         const ts       = new Date().toISOString().replace(/[:.]/g, '-');
         const type     = report.type === 'non_fatal' ? 'warn' : 'crash';
         const filename = `${type}_${ts}.json`;
         fs.writeFileSync(nodePath.join(CRASH_LOG_DIR, filename), JSON.stringify(report, null, 2), 'utf8');
+        pruneCrashLogs();
         console.log(`[crash] Uložen ${filename} — ${report.screen || '?'} / ${report.lastAction || '?'}`);
         res.setHeader('Content-Type', 'application/json');
         res.end('{"ok":true}');
@@ -662,10 +715,13 @@ wss.on('connection', (ws, req) => {
           games.delete(dp.gameId);
           log('RECONNECT', `"${name}" se vrátil, ale hra ${dp.gameId} již skončila`);
         } else if (dp) {
-          // Jiné zařízení – zruš čekání (original hráč se ztratil)
-          disconnectedPlayers.delete(name);
-          const timer = reconnectTimers.get(name);
-          if (timer) { clearTimeout(timer); reconnectTimers.delete(name); }
+          // Jiné zařízení se stejnou přezdívkou během ochranné lhůty. Dřív to čekání
+          // zrušilo i s časovačem kontumace – kdokoli tak mohl odpojenému hráči zabránit
+          // v návratu a hra navíc neskončila. Přezdívka je teď po dobu lhůty rezervovaná
+          // pro původní zařízení; lhůta doběhne sama (návrat, nebo kontumace).
+          log('JOIN', `Odmítnut: "${name}" je rezervována pro odpojeného hráče (jiné zařízení)`);
+          send(ws, { type: 'ERROR', msg: `Přezdívka "${name}" je obsazena` });
+          return;
         }
 
         // Zkontroluj, zda nick není obsazený aktivním spojením
@@ -711,7 +767,11 @@ wss.on('connection', (ws, req) => {
             : ([...rawAvatar].slice(0, 2).join('') || '⚔️');
         const level  = Math.max(1, Math.min(9999, parseInt(msg.level) || 1));
         // Skin rubu karty – přijmi jen povolené hodnoty
-        const KNOWN_CARD_BACKS = new Set(['card_back_frame', 'card_back_frame_2', 'card_back_frame_3']);
+        const KNOWN_CARD_BACKS = new Set([
+          'card_back_frame', 'card_back_frame_2', 'card_back_frame_3',
+          'card_back_frame_4', 'card_back_frame_5', 'card_back_frame_6', 'card_back_frame_7',
+          'card_back_goblin', 'card_back_baziny', 'card_back_trpaslik', 'card_back_citadela', 'card_back_drak'
+        ]);
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';
         // Skin hradu – přijmi jen povolené hodnoty
         const KNOWN_CASTLE_SKINS = new Set([
