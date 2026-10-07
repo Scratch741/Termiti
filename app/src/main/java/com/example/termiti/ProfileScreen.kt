@@ -109,7 +109,7 @@ private enum class ProfileTab { OVERVIEW, LOOK, ABILITIES, DEBUG }
 private enum class LookTab { AVATAR, CASTLE, WALL, CARD_BACK }
 
 @Composable
-fun ProfileScreen(onBack: () -> Unit) {
+fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
     var profile by remember { mutableStateOf(PlayerProfileManager.profile) }
     var tab     by remember { mutableStateOf(ProfileTab.OVERVIEW) }
     val s = LocalStrings.current
@@ -221,7 +221,7 @@ fun ProfileScreen(onBack: () -> Unit) {
                             ProfileTab.OVERVIEW  -> OverviewTab(p) { profile = PlayerProfileManager.profile }
                             ProfileTab.LOOK      -> LookTabContent(p) { profile = it }
                             ProfileTab.ABILITIES -> AbilitiesTab(p) { profile = it }
-                            ProfileTab.DEBUG     -> DebugTab(p) { profile = PlayerProfileManager.profile }
+                            ProfileTab.DEBUG     -> DebugTab(p, onStartTutorial) { profile = PlayerProfileManager.profile }
                         }
                     }
                 }
@@ -308,7 +308,7 @@ private fun ProgressBar(fraction: Float, color: Color, modifier: Modifier = Modi
 private fun OverviewTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
     val s = LocalStrings.current
     Column(
-        modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier            = Modifier.fillMaxSize().run { val st = rememberScrollState(); scrollRail(st).verticalScroll(st) },
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Jméno, úroveň a XP
@@ -450,7 +450,24 @@ private val CASTLE_SKINS = listOf(
     "castle_player_11", "castle_player_12", "castle_player_13"
 )
 private val WALL_SKINS = listOf("wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
-private val CARD_BACK_SKINS = listOf("card_back_frame", "card_back_frame_2", "card_back_frame_3")
+private val CARD_BACK_SKINS = listOf(
+    "card_back_frame", "card_back_frame_2", "card_back_frame_3",
+    "card_back_frame_4", "card_back_frame_5", "card_back_frame_6", "card_back_frame_7",
+    "card_back_goblin", "card_back_baziny", "card_back_trpaslik", "card_back_citadela", "card_back_drak"
+)
+
+/**
+ * Ruby určené jako odměna za poražení bosse lokace v kampani (rub → id lokace).
+ * ZATÍM se nevynucuje – všechny ruby jsou odemčené všem. Až se zamknou, stačí v mřížce
+ * vzhledu povolit jen ty, jejichž boss je poražen (CampaignManager), a přidat sem případné další.
+ */
+internal val CARD_BACK_BOSS_REWARDS = mapOf(
+    "card_back_goblin"   to "loc_goblins",
+    "card_back_baziny"   to "loc_swamp",
+    "card_back_trpaslik" to "loc_dwarves",
+    "card_back_citadela" to "loc_citadel",
+    "card_back_drak"     to "loc_dragon"
+)
 
 /** Kolik dlaždic se vejde na řádek mřížky vzhledu. */
 private const val LOOK_COLUMNS = 6
@@ -494,9 +511,10 @@ private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) ->
 
         BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
             val gap   = 6.dp
-            val tileW = (maxWidth - gap * (LOOK_COLUMNS - 1)) / LOOK_COLUMNS
+            val tileW = (maxWidth - SCROLL_RAIL_RESERVE - gap * (LOOK_COLUMNS - 1)) / LOOK_COLUMNS
+            val lookScroll = rememberScrollState()
             Column(
-                modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                modifier            = Modifier.fillMaxSize().scrollRail(lookScroll).verticalScroll(lookScroll),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
@@ -613,9 +631,15 @@ private fun wallSkinLabel(id: String): String {
 private fun cardBackLabel(id: String): String {
     val s = LocalStrings.current
     return when (id) {
-        "card_back_frame"   -> s.cardBackBasic
-        "card_back_frame_2" -> s.cardBackStyle2
-        else                -> s.cardBackStyle3
+        "card_back_frame"    -> s.cardBackBasic
+        "card_back_frame_2"  -> s.cardBackStyle2
+        "card_back_frame_3"  -> s.cardBackStyle3
+        "card_back_goblin"   -> s.cardBackGoblin
+        "card_back_baziny"   -> s.cardBackSwamp
+        "card_back_trpaslik" -> s.cardBackDwarf
+        "card_back_citadela" -> s.cardBackCitadel
+        "card_back_drak"     -> s.cardBackDragon
+        else                 -> s.cardBackStyle.format(id.substringAfterLast('_').toIntOrNull() ?: 0)
     }
 }
 
@@ -631,8 +655,10 @@ private fun AbilitiesTab(profile: PlayerProfile, onChanged: (PlayerProfile) -> U
             trailing      = s.profileActiveCount.format(activeCount, PassiveAbility.MAX_ACTIVE),
             trailingColor = if (activeCount >= PassiveAbility.MAX_ACTIVE) PrGold else PrMuted
         )
+        // Seznam je delší než panel → vpravo rolovací lišta, ať je vidět, že pokračuje dolů
+        val scroll = rememberScrollState()
         Column(
-            modifier            = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
+            modifier            = Modifier.fillMaxWidth().weight(1f).scrollRail(scroll).verticalScroll(scroll),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             PassiveAbility.entries.forEach { ability ->
@@ -709,10 +735,10 @@ private fun AbilityRow(ability: PassiveAbility, profile: PlayerProfile, onChange
 // ── Záložka DEBUG ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun DebugTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
+private fun DebugTab(profile: PlayerProfile, onStartTutorial: () -> Unit, onProfileChanged: () -> Unit) {
     val s = LocalStrings.current
     Column(
-        modifier            = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier            = Modifier.fillMaxSize().run { val st = rememberScrollState(); scrollRail(st).verticalScroll(st) },
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SectionHeader(s.profileTabDebug)
@@ -731,6 +757,16 @@ private fun DebugTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
                 PlayerProfileManager.addRewards(xp = 100, gold = 0, gems = 0); onProfileChanged()
             }
         }
+
+        // Interaktivní tutoriál – zatím jen odsud (bitva proti prvnímu soupeři kampaně)
+        PlainButton(
+            text      = s.tutStart,
+            modifier  = Modifier.fillMaxWidth().height(32.dp),
+            textColor = PrGold,
+            fontSize  = 10.sp,
+            buttonRes = R.drawable.plain_button_longer,
+            onClick   = onStartTutorial
+        )
 
         DebugToggleRow(s.profileUnlockAll, profile.allCardsUnlocked) {
             CardCollectionManager.setAllCardsUnlocked(!profile.allCardsUnlocked)

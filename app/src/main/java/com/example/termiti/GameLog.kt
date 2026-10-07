@@ -426,7 +426,7 @@ fun LogPanel(
 
         LazyColumn(
             state               = listState,
-            modifier            = modifier.padding(horizontal = 2.dp, vertical = 2.dp),
+            modifier            = modifier.padding(horizontal = 2.dp, vertical = 2.dp).scrollRail(listState),
             verticalArrangement = Arrangement.spacedBy(0.dp),
             reverseLayout       = false
         ) {

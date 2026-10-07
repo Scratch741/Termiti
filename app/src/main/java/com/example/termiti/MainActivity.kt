@@ -118,7 +118,13 @@ class MainActivity : ComponentActivity() {
                         )
 
                         Screen.PROFILE -> ProfileScreen(
-                            onBack = { screen = Screen.MENU }
+                            onBack = { screen = Screen.MENU },
+                            onStartTutorial = {
+                                // Lokace je potřeba pro návrat ze hry a výsledkovou obrazovku kampaně
+                                campaignLocation = CampaignData.locations.first()
+                                viewModel.startTutorial()
+                                screen = Screen.CAMPAIGN_GAME
+                            }
                         )
 
                         // ── Výběr herního módu ────────────────────────────────

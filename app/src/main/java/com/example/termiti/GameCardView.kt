@@ -162,6 +162,15 @@ internal fun EffectIconView(card: Card, size: androidx.compose.ui.unit.Dp, fontS
 fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
     "card_back_frame_2" -> R.drawable.card_back_frame_2
     "card_back_frame_3" -> R.drawable.card_back_frame_3
+    "card_back_frame_4"  -> R.drawable.card_back_frame_4
+    "card_back_frame_5"  -> R.drawable.card_back_frame_5
+    "card_back_frame_6"  -> R.drawable.card_back_frame_6
+    "card_back_frame_7"  -> R.drawable.card_back_frame_7
+    "card_back_goblin"   -> R.drawable.card_back_goblin
+    "card_back_baziny"   -> R.drawable.card_back_baziny
+    "card_back_trpaslik" -> R.drawable.card_back_trpaslik
+    "card_back_citadela" -> R.drawable.card_back_citadela
+    "card_back_drak"     -> R.drawable.card_back_drak
     else                -> R.drawable.card_back_frame
 }
 

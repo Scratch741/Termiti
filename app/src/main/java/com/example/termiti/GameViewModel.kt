@@ -2176,8 +2176,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (entries.isNotEmpty()) log.value = log.value + entries
     }
 
+    /** Běží interaktivní tutoriál (TutorialOverlay) – bitva proti prvnímu soupeři kampaně. */
+    val tutorialActive = androidx.compose.runtime.mutableStateOf(false)
+
+    /** Spustí tutoriál: první soupeř kampaně, pevný balíček [TUTORIAL_DECK], nápověda ve hře. */
+    fun startTutorial() =
+        startCampaignBattle(CampaignData.locations.first().opponents.first(), tutorial = true)
+
+    fun endTutorial() { tutorialActive.value = false }
+
     /** Spustí bitvu v kampani proti danému soupeři. */
-    fun startCampaignBattle(opponent: CampaignOpponent) {
+    fun startCampaignBattle(opponent: CampaignOpponent, tutorial: Boolean = false) {
+        tutorialActive.value = tutorial   // běžná bitva (i „Zkusit znovu") tutoriál vypne
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = opponent
@@ -2223,8 +2233,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     /** Sestaví GameState pro kampaňovou bitvu s konkrétním soupeřem. */
     private fun createCampaignState(opponent: CampaignOpponent): GameState {
         val activeDeck  = decks[activeDeckIndex.value]
-        val playerCards = if (activeDeck.isValid) activeDeck.toCardList(allCards)
-                          else balancedDeck()
+        val playerCards = when {
+            // Tutoriál nezávisí na hráčově balíčku – vždy stejné jednoduché karty
+            tutorialActive.value -> Deck(-1, "", TUTORIAL_DECK).toCardList(allCards)
+            activeDeck.isValid   -> activeDeck.toCardList(allCards)
+            else                 -> balancedDeck()
+        }
 
         // ── Pasivní schopnosti hráče ──────────────────────────────────────────
         val actives = PlayerProfileManager.profile

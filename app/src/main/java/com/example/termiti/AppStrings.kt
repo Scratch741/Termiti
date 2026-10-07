@@ -214,6 +214,22 @@ class AppStrings(
     val profileGems: String by values
     val profilePlayed: String by values
     val profileUnlockAll: String by values
+    val tutStart: String by values
+    val tutTitle: String by values
+    val tutNext: String by values
+    val tutFinish: String by values
+    val tutSkip: String by values
+    val tutWaitingYou: String by values
+    val tutWaitingOpponent: String by values
+    val tutGoal: String by values
+    val tutCastle: String by values
+    val tutResources: String by values
+    val tutPlayCard: String by values
+    val tutOpponentTurn: String by values
+    val tutCombo: String by values
+    val tutDiscard: String by values
+    val tutEndTurn: String by values
+    val tutDone: String by values
     val profileUnlockCampaign: String by values
     val profileSectionAvatar: String by values
     val profileSectionCastle: String by values
@@ -236,6 +252,12 @@ class AppStrings(
     val cardBackBasic: String by values
     val cardBackStyle2: String by values
     val cardBackStyle3: String by values
+    val cardBackStyle: String by values
+    val cardBackGoblin: String by values
+    val cardBackSwamp: String by values
+    val cardBackDwarf: String by values
+    val cardBackCitadel: String by values
+    val cardBackDragon: String by values
     val questsTitle: String by values
     val questsReset: String by values
     val questClaim: String by values

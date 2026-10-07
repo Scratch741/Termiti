@@ -216,7 +216,7 @@ private fun RulesOverlay(title: String, text: String, closeLabel: String, onDism
             Text(
                 text,
                 color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp,
-                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                modifier = Modifier.weight(1f, fill = false).run { val st = rememberScrollState(); scrollRail(st).verticalScroll(st) }
             )
             PlainButton(
                 text      = closeLabel,

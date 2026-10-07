@@ -189,7 +189,8 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                     }
                     HorizontalDivider(color = LbGold.copy(alpha = 0.08f))
 
-                    LazyColumn(Modifier.fillMaxSize()) {
+                    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                    LazyColumn(Modifier.fillMaxSize().scrollRail(listState), state = listState) {
                         itemsIndexed(players) { idx, player ->
                             PlayerRow(player = player)
                             if (idx < players.lastIndex) {

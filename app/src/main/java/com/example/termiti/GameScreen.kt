@@ -254,6 +254,8 @@ fun GameScreen(
                         ?: viewModel.opponentCastleResId.value,
                     opponentWallResId = campaignOpponent?.let { wallSkinDrawable(it.aiWallSkin) }
                         ?: viewModel.opponentWallResId.value,
+                    // Rub karet soupeře podle lokace kampaně; mimo kampaň (a v roguelike) základní
+                    opponentCardBackResId = cardBackSkinDrawable(campaignOpponent?.aiCardBackSkin ?: "card_back_frame"),
                     backgroundResId = viewModel.battleBackgroundResId.value
                 )
 
@@ -421,6 +423,18 @@ fun GameScreen(
                     }
                 }
             }
+        }
+
+        // ── Tutoriál: nápověda nahoře uprostřed, hru pod sebou neblokuje ──────
+        val tutorialActive by viewModel.tutorialActive
+        if (tutorialActive && !isMulligan && gameOver == null && !reviewMode) {
+            val history by viewModel.cardHistory
+            TutorialOverlay(
+                state       = state,
+                actionCount = history.count { it.isMine },
+                modifier    = Modifier.align(Alignment.TopCenter).padding(top = 46.dp),
+                onFinish    = { viewModel.endTutorial() }
+            )
         }
 
         if (isMulligan) {

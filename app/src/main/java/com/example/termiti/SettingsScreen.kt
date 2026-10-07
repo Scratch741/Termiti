@@ -1,13 +1,16 @@
 package com.example.termiti
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -125,6 +128,13 @@ fun SettingsScreen(onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     CampaignTitle(s.settings, fontSize = 26.sp)
+                    // Podtržení nadpisu – stejný oddělovač jako v profilu
+                    Image(
+                        painter            = painterResource(R.drawable.bg_separator),
+                        contentDescription = null,
+                        modifier           = Modifier.fillMaxWidth(),
+                        contentScale       = ContentScale.FillWidth
+                    )
                     SettingsSlider(
                         label = s.music,
                         value = musicVol,
@@ -167,6 +177,19 @@ fun SettingsScreen(onBack: () -> Unit) {
     } // konec BoxWithConstraints
 }
 
+/** Herní destička (plain_button_longer) pod jednou položkou nastavení. */
+@Composable
+private fun SettingsPlate(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .buttonTexture(R.drawable.plain_button_longer)
+            .padding(horizontal = 16.dp, vertical = 9.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        content = content
+    )
+}
+
 @Composable
 private fun LanguageToggle(
     label:       String,
@@ -174,11 +197,8 @@ private fun LanguageToggle(
     allPacks:    List<LanguagePack>,
     onSelect:    (LanguagePack) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Text(label, color = StTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+    SettingsPlate {
+        Text(label, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -186,15 +206,15 @@ private fun LanguageToggle(
             allPacks.forEach { pack ->
                 val selected = currentPack?.language?.code == pack.language.code
                 PlainButton(
-                    text      = "${pack.language.flag}  ${pack.language.name}",
-                    modifier  = Modifier.weight(1f),
-                    textColor = if (selected) StGold else StTextMuted,
-                    fontSize  = 12.sp,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                    selected  = selected,
-                    paddingH  = 0.dp,
-                    paddingV  = 8.dp,
-                    onClick   = { onSelect(pack) }
+                    text         = "${pack.language.flag}  ${pack.language.name}",
+                    modifier     = Modifier.weight(1f).height(30.dp),
+                    textColor    = if (selected) StGold else StTextPrimary,
+                    fontSize     = 11.sp,
+                    selected     = selected,
+                    outlineColor = StGold,      // vybraný jazyk = zlatý obrys, ostatní plně čitelné
+                    paddingH     = 4.dp,
+                    paddingV     = 0.dp,
+                    onClick      = { onSelect(pack) }
                 )
             }
         }
@@ -207,32 +227,65 @@ private fun SettingsSlider(
     value: Float,
     onValueChange: (Float) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
+    SettingsPlate {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(label, color = StTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(label, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Text(
                 "${(value * 100).roundToInt()} %",
-                color = StTextMuted,
+                color = StGold,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            colors = SliderDefaults.colors(
-                thumbColor        = StGold,
-                activeTrackColor  = StGold.copy(alpha = 0.8f),
-                inactiveTrackColor = StTextMuted.copy(alpha = 0.3f)
-            )
+        GameSlider(value, onValueChange)
+    }
+}
+
+/**
+ * Posuvník z herních textur místo Material Slideru: drážka = plain_button_longer,
+ * jezdec = plain_button_mini, výplň zlatá. Ovládá se klepnutím i tažením kdekoli v řádku.
+ */
+@Composable
+private fun GameSlider(value: Float, onValueChange: (Float) -> Unit) {
+    val thumb    = 22.dp
+    val onChange by rememberUpdatedState(onValueChange)
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(thumb)
+            .pointerInput(Unit) {
+                val t = thumb.toPx()
+                fun at(x: Float) = ((x - t / 2f) / (size.width - t).coerceAtLeast(1f)).coerceIn(0f, 1f)
+                detectTapGestures { onChange(at(it.x)) }
+            }
+            .pointerInput(Unit) {
+                val t = thumb.toPx()
+                fun at(x: Float) = ((x - t / 2f) / (size.width - t).coerceAtLeast(1f)).coerceIn(0f, 1f)
+                detectHorizontalDragGestures(
+                    onDragStart = { onChange(at(it.x)) }
+                ) { change, _ -> change.consume(); onChange(at(change.position.x)) }
+            },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        val travel = maxWidth - thumb
+        val v      = value.coerceIn(0f, 1f)
+        // Drážka
+        Box(Modifier.fillMaxWidth().height(12.dp).buttonTexture(R.drawable.plain_button_longer))
+        // Výplň od začátku drážky po střed jezdce
+        Box(
+            Modifier
+                .padding(start = 4.dp)
+                .width((travel * v + thumb / 2 - 4.dp).coerceAtLeast(0.dp))
+                .height(4.dp)
+                .background(Brush.horizontalGradient(listOf(StGold.copy(alpha = 0.45f), StGold)))
         )
+        // Jezdec
+        Box(Modifier.offset(x = travel * v).size(thumb).buttonTexture(R.drawable.plain_button_mini)) {
+            Box(Modifier.align(Alignment.Center).size(6.dp).background(StGold, CircleShape))
+        }
     }
 }

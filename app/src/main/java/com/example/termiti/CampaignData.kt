@@ -35,6 +35,8 @@ data class CampaignOpponent(
      *  (viz [castleSkinDrawable]/[wallSkinDrawable]), ne výchozí "castle_player"/"wall_player". */
     val aiCastleSkin  : String = "castle_player",
     val aiWallSkin    : String = "wall_player",
+    /** Rub karet soupeře – lokace kampaně mají vlastní (card_back_goblin, …). */
+    val aiCardBackSkin: String = "card_back_frame",
 
     val deckCardCounts: Map<String, Int>,
 
@@ -240,7 +242,7 @@ object CampaignData {
                     winTarget = 62, aiStartHandSize = 5, aiWinTarget = 42,
                     rewardGold = 150, rewardXp = 200
                 )
-            ).map { it.copy(aiCastleSkin = "castle_player_4", aiWallSkin = "wall_goblin") }
+            ).map { it.copy(aiCastleSkin = "castle_player_4", aiWallSkin = "wall_goblin", aiCardBackSkin = "card_back_goblin") }
         ),
 
         // ════════════════════════════════════════════════════════════════════
@@ -451,7 +453,7 @@ object CampaignData {
                     playerHandicap = PlayerHandicap(extraCastle = -4, extraWall = -4),
                     rewardGold = 190, rewardGems = 2, rewardXp = 200
                 )
-            ).map { it.copy(aiCastleSkin = "castle_baziny", aiWallSkin = "wall_baziny") }
+            ).map { it.copy(aiCastleSkin = "castle_baziny", aiWallSkin = "wall_baziny", aiCardBackSkin = "card_back_baziny") }
         ),
 
         // ════════════════════════════════════════════════════════════════════
@@ -621,7 +623,7 @@ object CampaignData {
                     winTarget = 75, aiStartHandSize = 5,
                     rewardGold = 220, rewardGems = 3, rewardXp = 200
                 )
-            ).map { it.copy(aiCastleSkin = "castle_hory", aiWallSkin = "wall_hory") }
+            ).map { it.copy(aiCastleSkin = "castle_hory", aiWallSkin = "wall_hory", aiCardBackSkin = "card_back_trpaslik") }
         ),
 
         // ════════════════════════════════════════════════════════════════════
@@ -800,7 +802,7 @@ object CampaignData {
                     playerHandicap = PlayerHandicap(extraCastle = -5, extraWall = -5),
                     rewardGold = 400, rewardGems = 6, rewardXp = 200
                 )
-            ).map { it.copy(aiCastleSkin = "castle_citadela", aiWallSkin = "wall_citadela") }
+            ).map { it.copy(aiCastleSkin = "castle_citadela", aiWallSkin = "wall_citadela", aiCardBackSkin = "card_back_citadela") }
         ),
 
         // ════════════════════════════════════════════════════════════════════
@@ -1002,7 +1004,7 @@ object CampaignData {
                     playerHandicap = PlayerHandicap(extraCastle = -8, extraWall = -8),
                     rewardGold = 600, rewardGems = 8, rewardXp = 200
                 )
-            ).map { it.copy(aiCastleSkin = "castle_drak", aiWallSkin = "wall_drak") }
+            ).map { it.copy(aiCastleSkin = "castle_drak", aiWallSkin = "wall_drak", aiCardBackSkin = "card_back_drak") }
         )
     )
 }

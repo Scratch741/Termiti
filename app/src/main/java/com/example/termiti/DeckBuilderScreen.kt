@@ -1,5 +1,6 @@
 ﻿package com.example.termiti
 
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -2084,8 +2085,10 @@ private fun DeckPanel(
         ) {
         // Seznam karet. Složení + mana křivka jsou jeho první položka – odjedou
         // se scrollem a seznam pak má celou výšku panelu.
+        val listState = rememberLazyListState()
         LazyColumn(
-            Modifier.weight(1f),
+            Modifier.weight(1f).scrollRail(listState),
+            state               = listState,
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             item(key = "stats") {
