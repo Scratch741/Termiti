@@ -29,6 +29,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -114,7 +116,9 @@ fun NewTopBar(
     oppTimerText: String? = null,
     oppTimerColor: Color = Color(0xFF4CAF50),
     playerPassives: List<PassiveAbility> = emptyList(),
-    aiPassives: List<PassiveAbility> = emptyList()
+    aiPassives: List<PassiveAbility> = emptyList(),
+    /** Rub karet soupeře u jeho počítadla balíčku (kampaň podle lokace, online podle soupeřova profilu). */
+    @DrawableRes opponentCardBackResId: Int = R.drawable.card_back_frame
 ) {
     val s          = LocalStrings.current
     val activeTurn = isPlayerTurn || isComboTurn
@@ -172,17 +176,7 @@ fun NewTopBar(
                 )
             }
 
-            PlainButtonWithIcon(
-                text      = "$playerDeckSize",
-                iconRes   = R.drawable.card_icon,
-                buttonRes = R.drawable.plain_button,
-                modifier  = Modifier.size(width = 52.dp, height = 34.dp),
-                textColor = TextPrimary,
-                fontSize  = 11.sp,
-                lighten   = 0.05f,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-            )
+            DeckCountChip(playerCardBackResId(), playerDeckSize)
             if (playerPassives.isNotEmpty()) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -271,17 +265,7 @@ fun NewTopBar(
                     }
                 }
             }
-            PlainButtonWithIcon(
-                text      = "$aiDeckSize",
-                iconRes   = R.drawable.card_icon,
-                buttonRes = R.drawable.plain_button,
-                modifier  = Modifier.size(width = 52.dp, height = 34.dp),
-                textColor = TextPrimary,
-                fontSize  = 11.sp,
-                lighten   = 0.05f,
-                paddingH  = 0.dp,
-                paddingV  = 0.dp,
-            )
+            DeckCountChip(opponentCardBackResId, aiDeckSize)
 
             if (opponentLevel >= 0) {
                 PlainButton(
@@ -733,6 +717,35 @@ private fun ResourceChip(@DrawableRes iconRes: Int, value: Int, mine: Int, color
         Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))
         Text("$value", color = color, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Text("+$mine", color = color.copy(alpha = 0.55f), fontSize = 9.sp)
+    }
+}
+
+/**
+ * Počítadlo karet v balíčku v horní liště: rub karet daného hráče + počet.
+ * Stejná destička jako ostatní chipy lišty (plain_button, mírně zesvětlená).
+ */
+@Composable
+private fun DeckCountChip(@DrawableRes cardBackRes: Int, count: Int) {
+    Box(Modifier.size(width = 56.dp, height = 34.dp), contentAlignment = Alignment.Center) {
+        Image(
+            painter            = painterResource(R.drawable.plain_button),
+            contentDescription = null,
+            modifier           = Modifier.matchParentSize(),
+            contentScale       = ContentScale.FillBounds,
+            colorFilter        = ColorFilter.tint(Color.White.copy(alpha = 0.05f), BlendMode.Screen)
+        )
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Image(
+                painter            = painterResource(cardBackRes),
+                contentDescription = null,
+                modifier           = Modifier.size(width = 16.dp, height = 26.dp),
+                contentScale       = ContentScale.FillBounds
+            )
+            Text("$count", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        }
     }
 }
 

@@ -640,6 +640,7 @@ private fun OnlineGameplay(
             NewTopBar(
                 playerDeckSize   = myPs.deck.size,
                 aiDeckSize       = oppPs.deck.size,
+                opponentCardBackResId = cardBackSkinDrawable(matchInfo?.opponentCardBackSkin ?: "card_back_frame"),
                 isPlayerTurn     = gs.isMyTurn,
                 isComboTurn      = isComboTurn,
                 currentTurn      = gs.turnNumber,

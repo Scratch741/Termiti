@@ -176,6 +176,7 @@ fun GameScreen(
             NewTopBar(
                 playerDeckSize = state.playerState.deck.size,
                 aiDeckSize     = state.aiState.deck.size,
+                opponentCardBackResId = cardBackSkinDrawable(campaignOpponent?.aiCardBackSkin ?: "card_back_frame"),
                 isPlayerTurn   = state.activePlayer == ActivePlayer.PLAYER,
                 isComboTurn    = isComboTurn,
                 currentTurn    = state.currentTurn,
