@@ -102,27 +102,16 @@ private fun android.view.View.strong() = performHapticFeedback(HapticFeedbackCon
 // ─── Vzhled balíčku ───────────────────────────────────────────────────────────
 
 /**
- * Balíček karet (deck_logo.png). Obrázek má neprůhledné černé pozadí, proto se do
- * ztracena vykrývá kruhovou maskou – na tmavém podkladu pak splyne bez viditelného čtverce.
+ * Balíček karet (pack_art.png) – výřez s průhledným pozadím, na výšku. Do čtvercového
+ * místa se vejde na výšku (Fit), takže je užší než původní čtvercový obrázek.
  */
 @Composable
 internal fun PackVisual(modifier: Modifier = Modifier) {
     Image(
-        painter            = painterResource(R.drawable.deck_logo),
+        painter            = painterResource(R.drawable.pack_art),
         contentDescription = null,
         contentScale       = ContentScale.Fit,
         modifier           = modifier
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                drawRect(
-                    brush = Brush.radialGradient(
-                        0.00f to Color.Black, 0.66f to Color.Black, 1.00f to Color.Transparent,
-                        radius = size.minDimension / 2f
-                    ),
-                    blendMode = BlendMode.DstIn
-                )
-            }
     )
 }
 
