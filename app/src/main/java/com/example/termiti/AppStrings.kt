@@ -406,6 +406,20 @@ class AppStrings(
     val shopTapToReveal: String by values
     val shopDuplicates: String by values
     val shopFinish: String by values
+    val shopOpenPack: String by values
+    val shopBuyN: String by values
+    val shopNoPacks: String by values
+    val shopPity: String by values
+    val shopPityNext: String by values
+    val packHoldHint: String by values
+    val packTapHint: String by values
+    val packRevealAll: String by values
+    val packNew: String by values
+    val packSummaryNew: String by values
+    val packSummaryCollection: String by values
+    val packPityHit: String by values
+    val packOpenNext: String by values
+    val packBuyNext: String by values
     val lbLoadFailed: String by values
     val lbTitle: String by values
     val lbTotalPlayers: String by values

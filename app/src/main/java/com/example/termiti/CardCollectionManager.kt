@@ -1,5 +1,7 @@
 package com.example.termiti
 
+import kotlin.random.Random
+
 // ── Výsledek otevření balíčku ─────────────────────────────────────────────────
 
 /** Jedna karta získaná z balíčku. */
@@ -8,13 +10,18 @@ data class CardGain(
     /** True = hráč již měl max kopií → karta se přeměnila na prach. */
     val isDuplicate: Boolean,
     /** Kolik prachu hráč dostal (0 pokud nebyl duplikát). */
-    val dustGained : Int
+    val dustGained : Int,
+    /** True = první kopie této karty ve sbírce (před balíčkem ji hráč neměl vůbec). */
+    val isNew      : Boolean = false
 )
 
 /** Výsledek otevření celého balíčku. */
 data class PackResult(
+    /** Karty v pořadí, v jakém se ukážou – ZAMÍCHANÉ, pozice neprozradí vzácnost. */
     val cards          : List<CardGain>,
-    val totalDustGained: Int
+    val totalDustGained: Int,
+    /** True = legendární kartu v tomto balíčku zajistila záruka ([CardCollectionManager.PITY_PACKS]). */
+    val pityUsed       : Boolean = false
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,6 +41,13 @@ object CardCollectionManager {
 
     /** Počet karet v jednom balíčku. */
     const val PACK_SIZE = 5
+
+    /**
+     * Záruka legendární karty: padne nejpozději v tolikátém balíčku od té poslední.
+     * (Bez záruky má legendární zhruba každý čtvrtý až pátý balíček; série deseti
+     * balíčků bez ní vyjde asi v 8 % případů – záruka tu smůlu zastropuje.)
+     */
+    const val PITY_PACKS = 10
 
     /**
      * Váhy pro garantovaný slot (poslední slot v balíčku, vždy vzácná nebo lepší).
@@ -79,52 +93,109 @@ object CardCollectionManager {
 
     // ── Balíčky ───────────────────────────────────────────────────────────────
 
-    /** True pokud má hráč dost zlata na otevření balíčku. */
-    fun canOpenPack(): Boolean =
-        (PlayerProfileManager.profile?.gold ?: 0) >= PACK_COST_GOLD
+    /** Karty, které můžou padnout z balíčku: ne základní (ty má hráč vždy), ne zástupné. */
+    private fun packPool(allCards: List<Card>): List<Card> =
+        allCards.filter { !isBasicCard(it) && !it.isPlaceholder }.ifEmpty { allCards }
+
+    /** Kolik neotevřených balíčků má hráč v zásobě. */
+    fun unopenedPacks(): Int = PlayerProfileManager.profile?.unopenedPacks ?: 0
+
+    /** Za kolik balíčků nejpozději padne legendární karta (1 = hned v příštím). */
+    fun packsUntilGuaranteedLegendary(): Int =
+        (PITY_PACKS - (PlayerProfileManager.profile?.packsSinceLegendary ?: 0)).coerceIn(1, PITY_PACKS)
+
+    /** True pokud má hráč dost zlata na [count] balíčků. */
+    fun canBuyPacks(count: Int = 1): Boolean =
+        count > 0 && (PlayerProfileManager.profile?.gold ?: 0) >= count * PACK_COST_GOLD
 
     /**
-     * Otevře jeden balíček:
-     *  • Odečte [PACK_COST_GOLD] ze zlata.
-     *  • Vygeneruje [PACK_SIZE] karet (poslední slot garantuje vzácnou+).
-     *  • Duplikáty nad [Rarity.maxCopies] se přemění na prach.
-     *  • Uloží aktualizovaný profil.
-     *
-     * Vrátí [PackResult] nebo null pokud nemá hráč dost zlata / žádný profil.
+     * Koupí [count] balíčků do zásoby (neotevírá je). Obsah se losuje až při otevření –
+     * viz [openStoredPack]. Vrátí false, pokud hráč nemá dost zlata.
      */
-    fun openPack(allCards: List<Card>): PackResult? {
-        val p = PlayerProfileManager.profile ?: return null
-        if (p.gold < PACK_COST_GOLD) return null
+    fun buyPacks(count: Int = 1): Boolean {
+        val p = PlayerProfileManager.profile ?: return false
+        if (!canBuyPacks(count)) return false
+        PlayerProfileManager.save(
+            p.copy(gold = p.gold - count * PACK_COST_GOLD, unopenedPacks = p.unopenedPacks + count)
+        )
+        return true
+    }
 
-        // Balíčky obsahují pouze sběratelské karty (ne základní COMMON, ne placeholder)
-        val collectible = allCards.filter { !isBasicCard(it) && !it.isPlaceholder }.ifEmpty { allCards }
+    /** Přidá balíčky do zásoby zdarma (odměny). */
+    fun grantPacks(count: Int) {
+        val p = PlayerProfileManager.profile ?: return
+        if (count > 0) PlayerProfileManager.save(p.copy(unopenedPacks = p.unopenedPacks + count))
+    }
+
+    /**
+     * Otevře jeden balíček ze zásoby:
+     *  • vylosuje [PACK_SIZE] karet (jeden slot garantuje vzácnou+, při záruce legendární),
+     *  • duplikáty nad [Rarity.maxCopies] přemění na prach,
+     *  • uloží sbírku, prach, zásobu a počitadlo záruky HNED – karty hráč vlastní, i kdyby
+     *    aplikaci zavřel uprostřed odhalování.
+     *
+     * Vrátí [PackResult], nebo null bez profilu / s prázdnou zásobou.
+     */
+    fun openStoredPack(allCards: List<Card>, random: Random = Random.Default): PackResult? {
+        val p = PlayerProfileManager.profile ?: return null
+        if (p.unopenedPacks <= 0) return null
 
         val collection = p.cardCollection.toMutableMap()
-        val gains      = mutableListOf<CardGain>()
-        var dustTotal  = 0
-
-        // Sloty 1 až (PACK_SIZE-1): standardní náhodný výběr
-        repeat(PACK_SIZE - 1) {
-            val card = randomCard(collectible, guaranteeRare = false)
-            val gain = processCardGain(card, collection)
-            dustTotal += gain.dustGained
-            gains     += gain
-        }
-
-        // Poslední slot: garantovaná vzácná nebo lepší
-        val bonusCard = randomCard(collectible, guaranteeRare = true)
-        val bonusGain = processCardGain(bonusCard, collection)
-        dustTotal += bonusGain.dustGained
-        gains     += bonusGain
-
+        val result = rollPack(
+            pool           = packPool(allCards),
+            collection     = collection,
+            forceLegendary = p.packsSinceLegendary >= PITY_PACKS - 1,
+            random         = random
+        )
+        val gotLegendary = result.cards.any { it.card.rarity == Rarity.LEGENDARY }
         PlayerProfileManager.save(
             p.copy(
-                gold           = p.gold - PACK_COST_GOLD,
-                cardCollection = collection,
-                dust           = p.dust + dustTotal
+                unopenedPacks       = p.unopenedPacks - 1,
+                cardCollection      = collection,
+                dust                = p.dust + result.totalDustGained,
+                packsSinceLegendary = if (gotLegendary) 0 else p.packsSinceLegendary + 1
             )
         )
-        return PackResult(gains, dustTotal)
+        return result
+    }
+
+    /**
+     * Vylosuje obsah jednoho balíčku a zapíše nové karty do [collection] (in-place).
+     * Čistá funkce bez profilu – dá se testovat se seedovaným [random].
+     *
+     * @param forceLegendary záruka: když mezi běžnými sloty legendární nepadne, garantovaný
+     *   slot ji dostane (místo běžného losu vzácná/epická/legendární).
+     */
+    internal fun rollPack(
+        pool: List<Card>,
+        collection: MutableMap<String, Int>,
+        forceLegendary: Boolean,
+        random: Random = Random.Default
+    ): PackResult {
+        val cards = mutableListOf<Card>()
+        // Sloty 1 až (PACK_SIZE-1): standardní náhodný výběr
+        repeat(PACK_SIZE - 1) { cards += randomCard(pool, guaranteeRare = false, random = random) }
+
+        // Poslední slot: garantovaná vzácná nebo lepší – při záruce legendární
+        val legendaries = pool.filter { it.rarity == Rarity.LEGENDARY }
+        val pity = forceLegendary && legendaries.isNotEmpty() && cards.none { it.rarity == Rarity.LEGENDARY }
+        cards += if (pity) legendaries.random(random) else randomCard(pool, guaranteeRare = true, random = random)
+
+        val gains = cards.map { processCardGain(it, collection) }
+        return PackResult(
+            cards           = gains.shuffled(random),   // pozice ve vějíři nesmí prozradit garantovaný slot
+            totalDustGained = gains.sumOf { it.dustGained },
+            pityUsed        = pity
+        )
+    }
+
+    /**
+     * Postup sbírky: (kolik různých karet hráč má, kolik jich lze mít).
+     * Počítají se karty, které jdou dát do balíčku; základní má hráč vždy.
+     */
+    fun collectionProgress(allCards: List<Card>): Pair<Int, Int> {
+        val all = allCards.filter { !it.isPlaceholder && it.effects.none { e -> e is CardEffect.TrapOnDraw } }
+        return all.count { isBasicCard(it) || ownedCopies(it.id) > 0 } to all.size
     }
 
     // ── Crafting a dismantling ────────────────────────────────────────────────
@@ -212,7 +283,7 @@ object CardCollectionManager {
             CardGain(card, isDuplicate = true, dustGained = card.rarity.dustValue)
         } else {
             collection[card.id] = current + 1
-            CardGain(card, isDuplicate = false, dustGained = 0)
+            CardGain(card, isDuplicate = false, dustGained = 0, isNew = current == 0)
         }
     }
 
@@ -220,23 +291,23 @@ object CardCollectionManager {
      * Vybere náhodnou kartu vážit dle rarity.
      * [guaranteeRare] = true → pouze vzácná nebo lepší (garantovaný slot).
      */
-    private fun randomCard(allCards: List<Card>, guaranteeRare: Boolean): Card {
+    private fun randomCard(allCards: List<Card>, guaranteeRare: Boolean, random: Random = Random.Default): Card {
         // Použij pouze rarity, které mají alespoň jednu kartu v poolu
         val availableRarities = allCards.map { it.rarity }.toSet()
         val rarity = if (guaranteeRare) {
-            drawRarity(RARE_PLUS_WEIGHTS.filter { it.first in availableRarities })
+            drawRarity(RARE_PLUS_WEIGHTS.filter { it.first in availableRarities }, random)
         } else {
-            drawRarity(Rarity.entries.filter { it in availableRarities }.map { it to it.packWeight })
+            drawRarity(Rarity.entries.filter { it in availableRarities }.map { it to it.packWeight }, random)
         }
         // Fallback: pokud žádná karta dané rarity neexistuje, vrátíme náhodnou
         val pool = allCards.filter { it.rarity == rarity }.ifEmpty { allCards }
-        return pool.random()
+        return pool.random(random)
     }
 
     /** Váhované losování rarity z předané tabulky (rarity → weight). */
-    private fun drawRarity(weights: List<Pair<Rarity, Int>>): Rarity {
+    private fun drawRarity(weights: List<Pair<Rarity, Int>>, random: Random = Random.Default): Rarity {
         val total = weights.sumOf { it.second }
-        var roll  = (1..total).random()
+        var roll  = random.nextInt(1, total + 1)
         for ((rarity, weight) in weights) {
             roll -= weight
             if (roll <= 0) return rarity

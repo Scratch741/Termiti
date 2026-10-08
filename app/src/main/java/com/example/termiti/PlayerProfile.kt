@@ -44,6 +44,10 @@ data class PlayerProfile(
     val cardCollection: Map<String, Int> = emptyMap(),
     /** Magický prach — měna na výrobu (crafting) karet. */
     val dust: Int = 0,
+    /** Koupené (nebo získané) balíčky, které hráč ještě neotevřel. */
+    val unopenedPacks: Int = 0,
+    /** Kolik balíčků v řadě hráč otevřel bez legendární karty – pro záruku legendární. */
+    val packsSinceLegendary: Int = 0,
     /**
      * Karty, které hráč již viděl v deck builderu — použito pro zvýraznění nově
      * získaných karet značkou "NOVÉ". Karta je přidána při prvním kliknutí na náhled.

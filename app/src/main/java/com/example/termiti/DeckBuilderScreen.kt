@@ -1630,7 +1630,7 @@ private fun OutlinedTitle(text: String, modifier: Modifier = Modifier) {
  * nahoře uprostřed: x 355–445, y 4–94). Stejný postup jako CardCostBadge.
  */
 @Composable
-private fun RarityGem(rarity: Rarity, size: Dp) {
+internal fun RarityGem(rarity: Rarity, size: Dp) {
     val bmp = ImageBitmap.imageResource(rarityOverlayResource(rarity))
     androidx.compose.foundation.Canvas(Modifier.size(size)) {
         val sx = bmp.width / 800f

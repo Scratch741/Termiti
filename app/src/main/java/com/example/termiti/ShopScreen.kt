@@ -1,5 +1,8 @@
 package com.example.termiti
 
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.Canvas
 import androidx.compose.animation.core.*
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Image
@@ -46,12 +49,23 @@ private fun shRarityColor(r: Rarity) = when (r) {
 
 @Composable
 fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
-    var profile     by remember { mutableStateOf(PlayerProfileManager.profile) }
-    var pendingPack by remember { mutableStateOf<PackResult?>(null) }
+    var profile by remember { mutableStateOf(PlayerProfileManager.profile) }
+    /** Běží otevírání balíčků (PackOpeningOverlay). */
+    var opening by remember { mutableStateOf(false) }
+    val s = LocalStrings.current
 
+    val cost      = CardCollectionManager.PACK_COST_GOLD
     val gold      = profile?.gold ?: 0
-    val dust      = profile?.dust ?: 0
-    val canAfford = gold >= CardCollectionManager.PACK_COST_GOLD
+    val packs     = profile?.unopenedPacks ?: 0
+    val canAfford = gold >= cost
+
+    /** Koupí [n] balíčků do zásoby; obsah se losuje až při otevření. */
+    fun buy(n: Int): Boolean {
+        if (!CardCollectionManager.buyPacks(n)) return false
+        SoundManager.playPackBuy()
+        profile = PlayerProfileManager.profile
+        return true
+    }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val W = maxWidth
@@ -140,61 +154,74 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                         contentScale       = ContentScale.FillWidth
                     )
 
-                    Spacer(Modifier.height(H * 0.01f))
+                    // Police s neotevřenými balíčky – klepnutím se jde otevírat
+                    PackShelf(
+                        packs  = packs,
+                        size   = H * 0.32f,
+                        onOpen = { if (packs > 0) { SoundManager.playMenuTap(); opening = true } }
+                    )
 
-                    // Info o balíčku
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    // Hlavní tlačítko: otevřít ze zásoby, nebo (bez zásoby) koupit jeden a rovnou otevírat
+                    if (packs > 0) {
+                        MenuButton(
+                            label    = s.shopOpenPack.format(packs),
+                            accent   = ShGold,
+                            imageRes = R.drawable.button_7,
+                            onClick  = { opening = true }
+                        )
+                    } else {
+                        MenuButton(
+                            label    = "$cost   ${s.shopBuyPack}",
+                            accent   = if (canAfford) ShGold else ShMuted,
+                            imageRes = R.drawable.button_7,
+                            leadingIconRes = R.drawable.goldcoin_icon,
+                            enabled  = canAfford,
+                            onClick  = { if (buy(1)) opening = true }
+                        )
+                    }
+
+                    // Nákup do zásoby: 1 / 5 / 10 balíčků
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(0.9f),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(LocalStrings.current.shopPackInfo,
-                            color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center)
-
-                        // Rarity šance
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment     = Alignment.CenterVertically
-                        ) {
-                            Rarity.entries.forEach { r ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                                ) {
-                                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(shRarityColor(r)))
-                                    Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                    Text(r.displayLabel, color = ShMuted, fontSize = 8.sp)
-                                }
-                            }
+                        listOf(1, 5, 10).forEach { n ->
+                            val can = gold >= n * cost
+                            PlainButtonWithIcon(
+                                text      = s.shopBuyN.format(n, n * cost),
+                                iconRes   = R.drawable.goldcoin_icon,
+                                modifier  = Modifier.weight(1f).height(30.dp),
+                                textColor = if (can) ShGold else ShMuted,
+                                fontSize  = 10.sp,
+                                enabled   = can,
+                                paddingH  = 4.dp,
+                                paddingV  = 0.dp,
+                                onClick   = { buy(n) }
+                            )
                         }
                     }
 
-                    Spacer(Modifier.height(H * 0.01f))
-
-                    // Tlačítko koupit
-                    MenuButton(
-                        label    = "${CardCollectionManager.PACK_COST_GOLD}   ${LocalStrings.current.shopBuyPack}",
-                        accent   = if (canAfford) ShGold else ShMuted,
-                        imageRes = R.drawable.button_7,
-                        leadingIconRes = R.drawable.goldcoin_icon,
-                        enabled  = canAfford,
-                        onClick  = {
-                            SoundManager.playMenuTap()
-                            val result = CardCollectionManager.openPack(allCards)
-                            if (result != null) {
-                                pendingPack = result
-                                profile = PlayerProfileManager.profile
+                    // Šance na vzácnost + záruka legendární
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(0.9f),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment     = Alignment.CenterVertically
+                    ) {
+                        Rarity.entries.forEach { r ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                verticalAlignment     = Alignment.CenterVertically
+                            ) {
+                                RarityGem(r, 11.dp)
+                                Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             }
                         }
-                    )
-
-                    // Pomocný text
+                    }
+                    val untilPity = (CardCollectionManager.PITY_PACKS - (profile?.packsSinceLegendary ?: 0))
+                        .coerceIn(1, CardCollectionManager.PITY_PACKS)
                     Text(
-                        if (canAfford)
-                            LocalStrings.current.shopCanBuy.format(gold / CardCollectionManager.PACK_COST_GOLD)
-                        else
-                            LocalStrings.current.shopEarnGold,
-                        color = ShMuted, fontSize = 9.sp,
+                        if (untilPity <= 1) s.shopPityNext else "${s.shopPackInfo}  •  ${s.shopPity.format(untilPity)}",
+                        color = if (untilPity <= 1) ShGold else ShMuted, fontSize = 9.sp,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -221,176 +248,95 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
             }
         }
 
-        // ── Overlay otevírání balíčku ─────────────────────────────────────────
-        if (pendingPack != null) {
+        // ── Otevírání balíčků (PackOpening.kt) ────────────────────────────────
+        if (opening) {
             PackOpeningOverlay(
-                result    = pendingPack!!,
-                onDismiss = { pendingPack = null }
+                allCards         = allCards,
+                onProfileChanged = { profile = PlayerProfileManager.profile },
+                onClose          = { opening = false; profile = PlayerProfileManager.profile }
             )
         }
     }
 }
 
-// ── Overlay: otevírání balíčku ────────────────────────────────────────────────
+// ── Police s neotevřenými balíčky ─────────────────────────────────────────────
 
+/**
+ * Zásoba balíčků: až tři balíčky ve vějíři a počet. Po nákupu poskočí; klepnutím se jde
+ * otevírat. Prázdná police ukazuje jen stín balíčku.
+ */
 @Composable
-private fun PackOpeningOverlay(result: PackResult, onDismiss: () -> Unit) {
-    var revealed by remember { mutableStateOf(setOf<Int>()) }
-    val allRevealed = revealed.size == result.cards.size
+private fun PackShelf(packs: Int, size: Dp, onOpen: () -> Unit) {
+    val s = LocalStrings.current
+    val bump = remember { Animatable(1f) }
+    var last by remember { mutableIntStateOf(packs) }
+    LaunchedEffect(packs) {
+        if (packs > last) {
+            bump.snapTo(1.22f)
+            bump.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium))
+        }
+        last = packs
+    }
+    val inf = rememberInfiniteTransition(label = "shelf")
+    val breathe by inf.animateFloat(
+        0f, 1f, infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "breathe"
+    )
 
     Box(
         Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.88f))
-            .clickable(enabled = false) { },
+            .size(width = size * 1.9f, height = size)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                enabled = packs > 0,
+                onClick = onOpen
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(24.dp)
-        ) {
-            CampaignTitle(LocalStrings.current.shopPackOpened, fontSize = 26.sp)
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                result.cards.forEachIndexed { i, gain ->
-                    FlippablePackCard(
-                        gain       = gain,
-                        isRevealed = i in revealed,
-                        onClick    = { if (i !in revealed) revealed = revealed + i }
+        if (packs > 0) {
+            Canvas(Modifier.requiredSize(size * 1.5f)) {
+                val a = 0.30f + 0.18f * breathe
+                drawCircle(
+                    Brush.radialGradient(
+                        0f to Color(0xFFB064E0).copy(alpha = 0.6f * a), 0.55f to ShGold.copy(alpha = 0.25f * a), 1f to Color.Transparent,
+                        radius = this.size.minDimension / 2f
                     )
-                }
-            }
-
-            Box(Modifier.height(92.dp), contentAlignment = Alignment.Center) {
-                if (!allRevealed) {
-                    Text(LocalStrings.current.shopTapToReveal, color = ShMuted, fontSize = 11.sp)
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (result.totalDustGained > 0) {
-                            // Herní panel (stejná textura jako PlainButton / toast odměn). Textura je
-                            // podklad přes matchParentSize, takže panel obepíná text. (Modifier.paint by ho
-                            // roztáhl: s intrinsics na šířku textury, bez nich na celou obrazovku.)
-                            Box(contentAlignment = Alignment.Center) {
-                                Box(Modifier.matchParentSize().buttonTexture(R.drawable.plain_button_longer))
-                                Row(
-                                    Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        LocalStrings.current.shopDuplicates.format(result.totalDustGained),
-                                        color = ShDust, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                                    )
-                                    Image(
-                                        painter            = painterResource(R.drawable.dust_icon),
-                                        contentDescription = null,
-                                        modifier           = Modifier.size(13.dp)
-                                    )
-                                }
-                            }
-                        }
-                        PlainButton(
-                            text      = LocalStrings.current.shopFinish,
-                            textColor = ShGreen,
-                            fontSize  = 15.sp,
-                            paddingH  = 40.dp,
-                            paddingV  = 10.dp,
-                            onClick   = onDismiss
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ── Flip animace jedné karty z balíčku ────────────────────────────────────────
-
-@Composable
-private fun FlippablePackCard(gain: CardGain, isRevealed: Boolean, onClick: () -> Unit) {
-    val rotation by animateFloatAsState(
-        targetValue   = if (isRevealed) 180f else 0f,
-        animationSpec = tween(durationMillis = 380, easing = FastOutSlowInEasing),
-        label         = "cardFlip"
-    )
-
-    var isHolding by remember { mutableStateOf(false) }
-    val glowColor = if (gain.card.rarity == Rarity.COMMON) Color(0xFFCFCFCF) else shRarityColor(gain.card.rarity)
-    val showGlow  = isRevealed || isHolding
-
-    val infiniteTransition = rememberInfiniteTransition(label = "glow")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue  = 0.30f,
-        targetValue   = 0.80f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(700, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glowAlpha"
-    )
-
-    Box(Modifier.size(width = 130.dp, height = 170.dp), contentAlignment = Alignment.Center) {
-        if (showGlow) {
-            Box(Modifier.size(width = 124.dp, height = 164.dp).clip(RoundedCornerShape(20.dp)).background(glowColor.copy(alpha = glowAlpha * 0.18f)))
-            Box(Modifier.size(width = 116.dp, height = 156.dp).clip(RoundedCornerShape(15.dp)).background(glowColor.copy(alpha = glowAlpha * 0.35f)))
-            Box(Modifier.size(width = 108.dp, height = 148.dp).clip(RoundedCornerShape(11.dp)).background(glowColor.copy(alpha = glowAlpha * 0.55f)))
-        }
-        Box(
-            Modifier
-                .size(width = 100.dp, height = 140.dp)
-                .graphicsLayer { rotationY = rotation; cameraDistance = 8f * density }
-                .pointerInput(isRevealed) {
-                    if (!isRevealed) {
-                        detectTapGestures(
-                            onPress = { isHolding = true; tryAwaitRelease(); isHolding = false },
-                            onTap   = { onClick() }
-                        )
-                    }
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            if (rotation <= 90f) {
-                Image(
-                    painter            = painterResource(playerCardBackResId()),
-                    contentDescription = null,
-                    modifier           = Modifier.size(width = 100.dp, height = 140.dp),
-                    contentScale       = ContentScale.FillBounds
                 )
-            } else {
-                Box(Modifier.graphicsLayer { rotationY = 180f }, contentAlignment = Alignment.TopCenter) {
-                    CardPreview(card = gain.card)
-                    if (gain.isDuplicate) {
-                        Box(
-                            Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-                                .background(Color.Black.copy(alpha = 0.82f))
-                                .padding(vertical = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text("+${gain.dustGained}", color = ShDust, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Image(
-                                    painter            = painterResource(R.drawable.dust_icon),
-                                    contentDescription = null,
-                                    modifier           = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
-                }
             }
+        }
+        // Krajní balíčky první, prostřední navrch
+        val shown = packs.coerceIn(1, 3)
+        val mid   = (shown - 1) / 2f
+        (0 until shown).sortedByDescending { kotlin.math.abs(it - mid) }.forEach { k ->
+            val d = k - mid
+            PackVisual(
+                Modifier.size(size).graphicsLayer {
+                    translationX = d * size.toPx() * 0.26f
+                    translationY = kotlin.math.abs(d) * size.toPx() * 0.04f - (if (packs > 0) 3.dp.toPx() * breathe else 0f)
+                    rotationZ    = d * 9f
+                    val sc = bump.value * (1f - 0.08f * kotlin.math.abs(d))
+                    scaleX = sc; scaleY = sc
+                    alpha  = if (packs > 0) 1f else 0.30f
+                }
+            )
+        }
+        if (packs > 0) {
+            Box(
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = size * 0.22f)
+                    .graphicsLayer { scaleX = bump.value; scaleY = bump.value }
+                    .size(width = 46.dp, height = 24.dp)
+                    .buttonTexture(R.drawable.plain_button),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("× $packs", color = ShGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Text(
+                s.shopNoPacks, color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }

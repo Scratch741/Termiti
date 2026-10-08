@@ -335,6 +335,86 @@ object SoundManager {
         }.start()
     }
 
+    // ── Otevírání balíčků ────────────────────────────────────────────────────
+    // Vše procedurální (zvonky + šum), dokud hra nemá vlastní nahrávky. Každá funkce je
+    // samostatná, takže ji půjde jednotlivě vyměnit za soubor z res/raw.
+
+    /** Koupě balíčku – krátké cinknutí mince. */
+    fun playPackBuy() = playAsync {
+        mix(0f to bell(1175f, 0.22f, sfx(0.22f), decay = 14f), 0.07f to bell(1568f, 0.30f, sfx(0.20f), decay = 11f))
+    }
+
+    /** Nabíjení balíčku při podržení – [step] 1..3, každý krok o něco výš. */
+    fun playPackCharge(step: Int) = playAsync {
+        val f = 196f * 2f.pow(step.coerceIn(1, 3) * 4f / 12f)
+        mix(0f to bell(f, 0.28f, sfx(0.20f), decay = 9f), 0f to sweep(f * 0.5f, f, 0.20f, sfx(0.10f)))
+    }
+
+    /** Roztržení balíčku – úder, šum a rozezněný akord. */
+    fun playPackBurst() = playAsync {
+        mix(
+            0f    to noiseBurst(0.45f, sfx(0.40f), decay = 8f),
+            0f    to sweep(170f, 45f, 0.40f, sfx(0.45f)),
+            0.04f to bell(523f, 0.9f, sfx(0.14f), decay = 4f),
+            0.07f to bell(659f, 0.9f, sfx(0.12f), decay = 4f),
+            0.10f to bell(784f, 1.0f, sfx(0.12f), decay = 4f)
+        )
+    }
+
+    /** Otočení karty – svist lízané karty, o něco výš. */
+    fun playPackFlip() {
+        if (!enabled) return
+        val pool = soundPool ?: return
+        val id = if (Random.nextBoolean()) sndCardDraw1 else sndCardDraw2
+        pool.play(id, sfx(0.6f), sfx(0.6f), 1, 0, 1.25f)
+    }
+
+    /** Napětí před otočením epické / legendární karty – stoupající tón délky [seconds]. */
+    fun playPackAnticipation(seconds: Float, legendary: Boolean) = playAsync {
+        val top = if (legendary) 740f else 520f
+        mix(0f to sweep(150f, top, seconds, sfx(0.14f)), 0f to sweep(225f, top * 1.5f, seconds, sfx(0.07f)))
+    }
+
+    /**
+     * Odhalení karty podle vzácnosti ([Rarity.ordinal]): běžná tiše, vzácná dva tóny,
+     * epická arpeggio, legendární fanfára s dlouhým dozvukem (a ztlumenou hudbou).
+     */
+    fun playPackReveal(rarityOrdinal: Int) {
+        when (rarityOrdinal) {
+            0 -> playAsync { bell(440f, 0.16f, sfx(0.08f), decay = 16f) }
+            1 -> playAsync {
+                mix(0f to bell(659f, 0.45f, sfx(0.20f), decay = 7f), 0.09f to bell(988f, 0.55f, sfx(0.20f), decay = 6f))
+            }
+            2 -> playAsync {
+                val notes = listOf(587f, 740f, 880f, 1175f)
+                mix(*(notes.mapIndexed { i, f -> i * 0.075f to bell(f, 0.8f, sfx(0.20f), decay = 5f) } +
+                      (0f to sweep(110f, 55f, 0.35f, sfx(0.30f)))).toTypedArray())
+            }
+            else -> {
+                duckMusic(duckFrac = 0.25f, durationMs = 2600L)
+                playAsync {
+                    val notes = listOf(523f, 659f, 784f, 1047f, 1319f, 1568f, 2093f)
+                    mix(*(notes.mapIndexed { i, f -> i * 0.07f to bell(f, 1.9f, sfx(0.19f), decay = 2.6f) } + listOf(
+                        0f    to sweep(140f, 40f, 0.55f, sfx(0.50f)),          // úder
+                        0f    to noiseBurst(0.6f, sfx(0.22f), decay = 6f),      // záblesk
+                        0.50f to bell(1047f, 1.6f, sfx(0.14f), decay = 2.2f),   // dozvuk – kvinta
+                        0.50f to bell(1568f, 1.6f, sfx(0.10f), decay = 2.2f)
+                    )).toTypedArray())
+                }
+            }
+        }
+    }
+
+    /** Duplikát se rozpadl na prach – tiché sypání a klesající zvonky. */
+    fun playPackDust() = playAsync {
+        mix(
+            0f    to noiseBurst(0.30f, sfx(0.10f), decay = 10f),
+            0f    to bell(1760f, 0.25f, sfx(0.09f), decay = 12f),
+            0.06f to bell(1568f, 0.25f, sfx(0.08f), decay = 12f),
+            0.12f to bell(1319f, 0.30f, sfx(0.08f), decay = 10f)
+        )
+    }
+
     // ── Interní generátory ───────────────────────────────────────────────────
 
     private const val SAMPLE_RATE = 22050
@@ -372,6 +452,44 @@ object SoundManager {
             buf[i] = (sin(phase) * envelope(i, n) * vol * Short.MAX_VALUE).toInt().toShort()
         }
         return buf
+    }
+
+    /**
+     * Zvonek: základní tón se dvěma alikvoty a exponenciálním dozvukem – zní čistěji
+     * než sinus s lineární obálkou ([toneEnv]). [decay] = rychlost útlumu (vyšší = kratší).
+     */
+    private fun bell(freq: Float, dur: Float, vol: Float, decay: Float = 6f): ShortArray {
+        val n = (SAMPLE_RATE * dur).toInt()
+        val fadeOut = minOf(n, SAMPLE_RATE / 50)          // 20 ms na konci proti lupnutí
+        return ShortArray(n) { i ->
+            val t      = i.toDouble() / SAMPLE_RATE
+            val attack = minOf(1.0, i / (SAMPLE_RATE * 0.004))
+            val tail   = if (i > n - fadeOut) (n - i).toDouble() / fadeOut else 1.0
+            val wave   = sin(2 * PI * freq * t) + 0.45 * sin(2 * PI * freq * 2 * t) + 0.20 * sin(2 * PI * freq * 3.01 * t)
+            (wave / 1.65 * attack * exp(-decay * t) * tail * vol * Short.MAX_VALUE).toInt().toShort()
+        }
+    }
+
+    /** Šum s exponenciálním útlumem (roztržení, záblesk, sypání prachu). */
+    private fun noiseBurst(dur: Float, vol: Float, decay: Float): ShortArray {
+        val n   = (SAMPLE_RATE * dur).toInt()
+        val rng = java.util.Random()
+        return ShortArray(n) { i ->
+            val t = i.toDouble() / SAMPLE_RATE
+            (rng.nextGaussian() * 0.5 * exp(-decay * t) * vol * Short.MAX_VALUE)
+                .toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+        }
+    }
+
+    /** Smíchá zvuky přes sebe; každý začíná ve svém čase (v sekundách). Součet se ořízne. */
+    private fun mix(vararg parts: Pair<Float, ShortArray>): ShortArray {
+        val total = parts.maxOfOrNull { (at, a) -> (at * SAMPLE_RATE).toInt() + a.size } ?: 0
+        val sum = IntArray(total)
+        for ((at, a) in parts) {
+            val off = (at * SAMPLE_RATE).toInt()
+            for (i in a.indices) sum[off + i] += a[i]
+        }
+        return ShortArray(total) { sum[it].coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort() }
     }
 
     /** Jednoduché vítězné / porážkové fanfáry. */
