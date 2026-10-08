@@ -1,6 +1,11 @@
 ﻿package com.example.termiti
 
 
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -183,12 +188,36 @@ fun CardBack(
     modifier:  Modifier = Modifier,
     skinResId: Int      = R.drawable.card_back_frame   // výchozí = základní rub (AI / neznámý hráč)
 ) {
-    Image(
-        painter            = painterResource(skinResId),
-        contentDescription = null,
-        contentScale       = ContentScale.FillBounds,
-        modifier           = modifier.size(width = 22.dp, height = 32.dp)
-    )
+    // Dřív FillBounds do 22×32 dp: rub (poměr 0,615) byl o 12 % roztažený do šířky
+    CardBackMini(skinResId, modifier.size(width = 22.dp, height = 32.dp))
+}
+
+/**
+ * Miniatura rubu karty pro malé velikosti (počítadlo balíčku, ruka soupeře).
+ *
+ * Celý rub zmenšený na ~16 dp šířky je jen barevná šmouha – detailní rám zabere většinu
+ * plochy a motiv není poznat. Miniatura proto ukazuje VÝŘEZ středu rubu (62 % šířky,
+ * tedy středový medailon) ve tvaru karty: výřez má vždy stejný poměr stran jako cílová
+ * plocha, takže se nic neroztahuje, a kolem je vlastní tenký bronzový rámeček se
+ * zaoblenými rohy. Funguje pro každý rub bez dalších obrázků.
+ */
+@Composable
+fun CardBackMini(@DrawableRes resId: Int, modifier: Modifier = Modifier) {
+    val bmp   = ImageBitmap.imageResource(resId)
+    val shape = RoundedCornerShape(3.dp)
+    Canvas(modifier.clip(shape).border(1.dp, Color(0xFF8A6A3A), shape)) {
+        val aspect = size.width / size.height
+        var srcW = bmp.width * 0.62f
+        var srcH = srcW / aspect
+        if (srcH > bmp.height) { srcH = bmp.height.toFloat(); srcW = srcH * aspect }
+        drawImage(
+            image         = bmp,
+            srcOffset     = IntOffset(((bmp.width - srcW) / 2f).roundToInt(), ((bmp.height - srcH) / 2f).roundToInt()),
+            srcSize       = IntSize(srcW.roundToInt(), srcH.roundToInt()),
+            dstSize       = IntSize(size.width.roundToInt(), size.height.roundToInt()),
+            filterQuality = FilterQuality.High
+        )
+    }
 }
 
 /** Vrátí název drawable rámu podle typu zdroje karty. */

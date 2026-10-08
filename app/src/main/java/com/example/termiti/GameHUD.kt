@@ -743,12 +743,7 @@ private fun DeckCountChip(@DrawableRes cardBackRes: Int, count: Int) {
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Image(
-                painter            = painterResource(cardBackRes),
-                contentDescription = null,
-                modifier           = Modifier.size(width = 16.dp, height = 26.dp),
-                contentScale       = ContentScale.FillBounds
-            )
+            CardBackMini(cardBackRes, Modifier.size(width = 18.dp, height = 28.dp))
             Text("$count", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
