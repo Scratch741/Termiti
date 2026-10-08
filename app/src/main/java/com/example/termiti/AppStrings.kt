@@ -408,6 +408,9 @@ class AppStrings(
     val shopFinish: String by values
     val shopOpenPack: String by values
     val shopBuyN: String by values
+    val shopBuyConfirmTitle: String by values
+    val shopBuyConfirmCount: String by values
+    val shopBuyConfirmLeft: String by values
     val shopNoPacks: String by values
     val shopPity: String by values
     val shopPityNext: String by values

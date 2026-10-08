@@ -52,6 +52,8 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
     var profile by remember { mutableStateOf(PlayerProfileManager.profile) }
     /** Běží otevírání balíčků (PackOpeningOverlay). */
     var opening by remember { mutableStateOf(false) }
+    /** Nákup čekající na potvrzení: počet balíčků a jestli se má po koupi rovnou otevírat. */
+    var pendingBuy by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
     val s = LocalStrings.current
 
     val cost      = CardCollectionManager.PACK_COST_GOLD
@@ -176,7 +178,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                             imageRes = R.drawable.button_7,
                             leadingIconRes = R.drawable.goldcoin_icon,
                             enabled  = canAfford,
-                            onClick  = { if (buy(1)) opening = true }
+                            onClick  = { pendingBuy = 1 to true }
                         )
                     }
 
@@ -196,7 +198,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                                 enabled   = can,
                                 paddingH  = 4.dp,
                                 paddingV  = 0.dp,
-                                onClick   = { buy(n) }
+                                onClick   = { pendingBuy = n to false }
                             )
                         }
                     }
@@ -248,6 +250,20 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
             }
         }
 
+        // ── Potvrzení nákupu ──────────────────────────────────────────────────
+        pendingBuy?.let { (n, openAfter) ->
+            BuyConfirmOverlay(
+                count     = n,
+                price     = n * cost,
+                goldAfter = gold - n * cost,
+                onCancel  = { pendingBuy = null },
+                onConfirm = {
+                    pendingBuy = null
+                    if (buy(n) && openAfter) opening = true
+                }
+            )
+        }
+
         // ── Otevírání balíčků (PackOpening.kt) ────────────────────────────────
         if (opening) {
             PackOpeningOverlay(
@@ -255,6 +271,58 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                 onProfileChanged = { profile = PlayerProfileManager.profile },
                 onClose          = { opening = false; profile = PlayerProfileManager.profile }
             )
+        }
+    }
+}
+
+// ── Potvrzení nákupu ──────────────────────────────────────────────────────────
+
+/** Dotaz před utracením zlata: kolik balíčků, za kolik a kolik zlata zbyde. */
+@Composable
+private fun BuyConfirmOverlay(count: Int, price: Int, goldAfter: Int, onCancel: () -> Unit, onConfirm: () -> Unit) {
+    val s = LocalStrings.current
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.82f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onCancel
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            CampaignTitle(s.shopBuyConfirmTitle, fontSize = 24.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(s.shopBuyConfirmCount.format(count), color = ShText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(15.dp))
+                Text("$price", color = ShGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            Text(s.shopBuyConfirmLeft.format(goldAfter), color = ShMuted, fontSize = 11.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PlainButton(
+                    text      = s.cancel,
+                    modifier  = Modifier.width(120.dp).height(34.dp),
+                    textColor = ShMuted,
+                    fontSize  = 11.sp,
+                    paddingH  = 6.dp,
+                    paddingV  = 0.dp,
+                    onClick   = onCancel
+                )
+                PlainButton(
+                    text      = s.shopBuy,
+                    modifier  = Modifier.width(120.dp).height(34.dp),
+                    textColor = ShGold,
+                    fontSize  = 11.sp,
+                    paddingH  = 6.dp,
+                    paddingV  = 0.dp,
+                    onClick   = onConfirm
+                )
+            }
         }
     }
 }
