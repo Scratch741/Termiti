@@ -751,3 +751,11 @@ Postup je ve skriptu `tools/grade_ui_textures.py <zdroj> <cíl>` (posun odstínu
 ## [2026-10-09] ui | Panel zvětšené karty se nemusí rolovat
 
 `CardActionPanel` (`DeckBuilderScreen.kt`): maximální výška 366 → 404 dp, mezery mezi řádky 10 → 8 dp, odstup od rámu 31 dp nahoře i dole. U karty s řádky Vyrobit a Rozebrat přetékal obsah o pár dp a vnitřek šel trochu posouvat. Rolování zůstává jen jako pojistka pro nižší displeje.
+
+## [2026-10-09] art | Konce horní lišty ztlumené k okolním rámům
+
+Po prvním sladění měly ozdobné konce `bg_top_bar` správný odstín (33°), ale byly sytější a jasnější než sousední rámy: sytost 0,70 / jas 0,65 proti bočním panelům 0,63 / 0,50 a oddělovači 0,53 / 0,48. Na koncích lišty (70–150 px od kraje, do ztracena) je u světlých ozdob sytost snížena o 24 % a jas o 20 %, nejjasnější odlesky v rozích o dalších 10 %. Kůže a dlouhé hrany lišty beze změny.
+
+## [2026-10-09] ui | Odznak hradu: údaje blíž k sobě
+
+`CastleHpBadge`: mezery mezi údaji 6 → 3 dp, pevné šířky hrad 59 dp, hradby 53 dp, karty 30 dp, destička 171 dp (dřív 63 / 50 / 33 a 178 dp). Šířky zůstávají pevné, takže se řádek při změně počtu cifer neposouvá; hradby mají šířku nastavenou tak, aby mezera před kartami odpovídala mezeře mezi hradem a hradbami.

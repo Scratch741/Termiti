@@ -1462,13 +1462,14 @@ private fun CastleHpBadge(
 
     // Herní destička jako u ostatních prvků lišty (dřív černý zaoblený rámeček)
     Box(
-        modifier = modifier.size(width = 178.dp, height = 28.dp).buttonTexture(R.drawable.plain_button_longer),
+        modifier = modifier.size(width = 171.dp, height = 28.dp).buttonTexture(R.drawable.plain_button_longer),
         contentAlignment = Alignment.Center
     ) {
-        // Každý údaj má pevně široké místo (podle nejdelší hodnoty: „100/105", „40/40", „8/8"),
-        // takže se řádek neposouvá, když číslo přejde z dvouciferného na jednociferné.
+        // Každý údaj má pevně široké místo, takže se řádek neposouvá, když číslo přejde
+        // z dvouciferného na jednociferné. Šířky jsou na míru nejdelší běžné hodnotě
+        // („100/105", „40/40", „8/8"); delší text (softWrap = false) jen přeteče do mezery.
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             @Composable
@@ -1482,13 +1483,13 @@ private fun CastleHpBadge(
                     Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                 }
             }
-            Stat(if (winTarget >= 999) "$castleHp" else "$castleHp/$winTarget", accent, 63.dp) {
+            Stat(if (winTarget >= 999) "$castleHp" else "$castleHp/$winTarget", accent, 59.dp) {
                 Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(13.dp))
             }
-            Stat("$wallHp/$maxWall", accent, 50.dp) {
+            Stat("$wallHp/$maxWall", accent, 53.dp) {
                 Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
             }
-            Stat("$handSize/$maxHandSize", TextPrimary, 33.dp) {
+            Stat("$handSize/$maxHandSize", TextPrimary, 30.dp) {
                 CardBackMini(cardBackResId, Modifier.size(width = 9.dp, height = 13.dp))
             }
         }
