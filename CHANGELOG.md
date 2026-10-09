@@ -17,6 +17,18 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.1] – 2026-10-09
+
+### Vylepšeno
+- **Barevné sladění herního UI:** horní lišta, dřevo pod rukou, oddělovače a boční
+  panely mají stejnou teplou hnědou a bronzově zlaté rámy; červený obrys horní
+  lišty je pryč.
+- **Bitevní obrazovka bez kreslených rámečků:** počítadlo hradu, hradeb a karet je
+  na herní destičce, pasivní schopnosti a počet karet v balíčku jsou bez rámečku.
+  Údaje v počítadle mají pevnou šířku a neposouvají se při změně čísla.
+- **Tvorba balíčku:** v panelu zvětšené karty sedí název níž a tlačítko Hotovo
+  už nepřekrývá spodek rámu.
+
 ## [0.6.0] – 2026-10-09
 
 ### Nové

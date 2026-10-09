@@ -713,3 +713,37 @@ Snímek 14 ms, 99. percentil 16 ms, žádný pomalý snímek; vytížení proces
 ## [2026-10-09] release | Verze 0.6.0
 
 `versionName` 0.5.1 → 0.6.0, `versionCode` 11 → 12, záznam v `CHANGELOG.md`. MINOR: oživená pozadí, skriptovaný tutoriál, výkon (zmenšené vrstvy karet). `PROTOCOL_VERSION` beze změny. Podklady `anim_savanna/` (27 MB) zůstávají mimo git.
+
+## [2026-10-09] ui | Bitevní obrazovka: poslední kreslené rámečky pryč, sjednocené barvy
+
+- **Odznak hradu / hradeb / ruky** (`CastleHpBadge`, `GameBattlefield.kt`): místo černého zaobleného rámečku herní destička `plain_button_longer` (168×28 dp). Hrad i hradby mají barvu strany (tyrkysová / červená), počet karet v ruce neutrální `TextPrimary` (dřív tři různé odstíny na jedné destičce). Soupeřův odznak ukazuje soupeřův rub karet (dřív vždy hráčův).
+- **Pasivní schopnosti v horní liště** (`NewTopBar`): bez fialového rámečku, jen ikony 17 dp přímo na liště.
+- **Počítadlo balíčku** (`DeckCountChip`): bez destičky, jen rub karty a číslo.
+- **Tlačítko Ukončit tah:** záře tyrkysová jako jeho popisek a „Váš tah“ (dřív zelená `HpGreen`).
+
+Paleta bitevní obrazovky po úpravě: zlatá (nadpisy, doly, úroveň, kolo), pergamenová `TextPrimary` (čísla), tyrkysová (hráč a jeho akce), červená (soupeř) + barvy surovin.
+
+## [2026-10-09] art | Barevné sladění textur herního UI
+
+Textury bitevní obrazovky tvořily dvě barevné rodiny (měřeno, medián odstínu hnědé v HSV):
+
+| Textura | Odstín před | Sytost před | Odstín po | Sytost po |
+|---|---|---|---|---|
+| `bg_top_bar` (kůže + rám) | 17° | 0,78 | 25° | ~0,65 |
+| `hand_background` (dřevo) | 17° | 0,85 | ~23° | ~0,72 |
+| `bg_separator` | 17° | 0,42 | ~26° | 0,38 |
+| `bg_side_panels` | 30° | 0,56 | 26° | 0,62 |
+| `plain_button*` (beze změny) | 32° | 0,5 | – | – |
+
+Horní lišta, dřevo ruky a oddělovač byly červenohnědé (17°) s výrazně červeno-oranžovým rámem lišty; boční panely a destičky tlačítek žlutohnědé až bronzové (30–32°). Po úpravě mají velké plochy teplou hnědou kolem 23–26° a světlé rámy a odlesky bronzově zlatou kolem 33° (jako rohy `plain_button`); červený obrys konců horní lišty je zlatý. Tyrkysové kameny v rozích bočních panelů a ostatní nehnědé pixely se nemění.
+
+Postup je ve skriptu `tools/grade_ui_textures.py <zdroj> <cíl>` (posun odstínu podle jasu pixelu, 60 % místní odchylky odstínu zachováno, aby textura nezplacatěla). Originály jsou v gitu před tímto commitem. Textury se používají i mimo bitvu (Tvorba balíčku, Profil, Nastavení, Obchod, online lobby, roguelike, přehrávač) – změna se projeví i tam.
+
+## [2026-10-09] ui | Pevná šířka údajů v odznaku hradu, panel karty v Tvorbě balíčku
+
+- **Odznak hradu / hradeb / ruky** (`CastleHpBadge`): každý údaj má pevně široké místo (63 / 50 / 33 dp podle nejdelší hodnoty „100/105“, „40/40“, „8/8“), destička 178 dp. Řádek se už neposouvá, když číslo přejde z dvouciferného na jednociferné.
+- **Panel zvětšené karty** (`CardActionPanel`, `DeckBuilderScreen.kt`): obsah má nahoře 33 dp a dole 34 dp odstup od rámu (dřív 20 dp), takže název sedí pod horními medailony a tlačítko Hotovo nad spodními ornamenty; tlačítko je navíc o 8 dp užší z každé strany. Maximální výška panelu 340 → 366 dp.
+
+## [2026-10-09] release | Verze 0.6.1
+
+`versionName` 0.6.0 → 0.6.1, `versionCode` 12 → 13, záznam v `CHANGELOG.md`. PATCH: barevné sladění textur a úpravy UI. `PROTOCOL_VERSION` beze změny.
