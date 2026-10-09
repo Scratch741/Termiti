@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.gestures.detectDragGestures
 import com.example.termiti.R
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -466,14 +467,34 @@ fun NewBattlefield(
         var displayAction       by remember { mutableStateOf(lastCardAction) }
         var displayIsPlayer     by remember { mutableStateOf(lastCardIsPlayer) }
 
+        // ── Nahlédnutí pod vrchní kartu ───────────────────────────────────────
+        // Karty, které ležely nahoře před tou současnou (nejnovější první, max PILE_PEEK_MAX).
+        // Vede si je bojiště samo z toho, co postupně zobrazilo – funguje tak stejně offline,
+        // online i v přehrávači, bez dalších dat od view modelu.
+        val pileUnder = remember { mutableStateListOf<PileEntry>() }
+        // Posun vrchní karty v px: + doprava, − doleva. Po puštění prstu se vrací na 0.
+        val pull      = remember { Animatable(0f) }
+        val pullScope = rememberCoroutineScope()
+        val peeking by remember { derivedStateOf { kotlin.math.abs(pull.value) > 0.5f } }
+        // Krok mezi vysunutými kartami: dvě třetiny karty, ale tak, aby se všech šest vešlo do bojiště
+        val pileStepPx = with(LocalDensity.current) {
+            minOf(scaledW * 0.66f, (maxWidth / 2 - scaledW / 2 - 6.dp) / PILE_PEEK_MAX).toPx()
+        }
+
         LaunchedEffect(lastCard?.id, lastCardIsPlayer, flight?.landedPlayerCardId) {
             val c = lastCard
-            if (c == null) { displayCard = null; return@LaunchedEffect }
+            if (c == null) { displayCard = null; pileUnder.clear(); return@LaunchedEffect }
             // Soupeřovu kartu zobraz hned; hráčovu až po dokončení letu
             val landed = !lastCardIsPlayer ||
                          flight == null ||
                          flight.landedPlayerCardId == c.id
             if (landed) {
+                // Dosavadní vrchní karta jde pod novou
+                val prev = displayCard
+                if (prev != null && prev.id != c.id) {
+                    pileUnder.add(0, PileEntry(prev, displayAction, displayIsPlayer))
+                    while (pileUnder.size > PILE_PEEK_MAX) pileUnder.removeAt(pileUnder.lastIndex)
+                }
                 displayCard     = c
                 displayAction   = lastCardAction
                 displayIsPlayer = lastCardIsPlayer
@@ -495,9 +516,42 @@ fun NewBattlefield(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .offset(y = cardTopY)
-                .trackFlightTarget(),
+                .trackFlightTarget()
+                // Tažením do strany se zpod vrchní karty vysouvají starší; puštěním se vrátí
+                .pointerInput(pileStepPx) {
+                    val settle = { pullScope.launch { pull.animateTo(0f, spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)) } }
+                    detectDragGestures(
+                        onDragEnd    = { settle() },
+                        onDragCancel = { settle() }
+                    ) { change, drag ->
+                        if (pileUnder.isEmpty()) return@detectDragGestures
+                        change.consume()
+                        val limit = pileStepPx * pileUnder.size
+                        pullScope.launch { pull.snapTo((pull.value + drag.x).coerceIn(-limit, limit)) }
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
+            // Vrchní karta jede s prstem (hráč ji zná, může ležet pod ním) a starší se za ní
+            // táhnou jako rozložený vějíř: k-tá (1 = hned pod vrchní) je o k kroků pozadu.
+            // Čím delší tah, tím víc karet se odlepí od balíčku; ty nejstarší zůstávají na místě.
+            // Kreslí se jen během nahlížení, nejhlubší první (nejnovější je navrchu).
+            if (peeking) {
+                for (k in pileUnder.size downTo 1) {
+                    val entry = pileUnder[k - 1]
+                    key(entry.card.id, k) {
+                        PileCard(
+                            entry    = entry,
+                            scaledW  = scaledW, scaledH = scaledH,
+                            natW     = cardNatW, natH = cardNatH, cardScale = cardScale,
+                            modifier = Modifier.graphicsLayer {
+                                val v = pull.value
+                                translationX = kotlin.math.sign(v) * (kotlin.math.abs(v) - k * pileStepPx).coerceAtLeast(0f)
+                            }
+                        )
+                    }
+                }
+            }
             val shown = displayCard
             if (shown != null) {
                 val ringColor = when (displayAction) {
@@ -521,6 +575,7 @@ fun NewBattlefield(
                         .graphicsLayer {
                             val p = flyProgress.value
                             val e = 1f - (1f - p) * (1f - p)   // easeOut quadratic
+                            translationX = pull.value          // nahlížení pod balíček: jede s prstem
                             if (displayIsPlayer) {
                                 alpha = slotAlpha
                                 scaleX = 1f
@@ -583,6 +638,57 @@ fun NewBattlefield(
             }
         }
 
+    }
+}
+
+/** Kolik karet pod vrchní jde tažením odhalit. */
+private const val PILE_PEEK_MAX = 6
+
+/** Karta, která ležela na odhazovacím balíčku – s tím, co se s ní stalo a čí byla. */
+private class PileEntry(val card: Card, val action: CardAction?, val isPlayer: Boolean)
+
+/** Barva rámečku karty na odhazovacím balíčku podle akce a hráče. */
+private fun pileRingColor(action: CardAction?, isPlayer: Boolean): Color = when (action) {
+    CardAction.PLAYED    -> if (isPlayer) TealLight else Crimson
+    CardAction.DISCARDED -> if (isPlayer) Teal.copy(alpha = 0.55f) else Crimson.copy(alpha = 0.55f)
+    CardAction.BURNED    -> Color(0xFFE07B39)
+    CardAction.STOLEN    -> Color(0xFF9B59B6)
+    null                 -> Gold.copy(alpha = 0.40f)
+}
+
+/** Starší karta z odhazovacího balíčku – stejný vzhled jako vrchní (rámeček, ikona zahození/spálení). */
+@Composable
+private fun PileCard(
+    entry: PileEntry,
+    scaledW: Dp, scaledH: Dp,
+    natW: Dp, natH: Dp, cardScale: Float,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier
+            .size(scaledW, scaledH)
+            .clip(RoundedCornerShape(7.dp))
+            .border(2.dp, pileRingColor(entry.action, entry.isPlayer), RoundedCornerShape(7.dp))
+    ) {
+        Box(
+            Modifier
+                .requiredSize(natW, natH)
+                .align(Alignment.Center)
+                .graphicsLayer {
+                    scaleX = cardScale
+                    scaleY = cardScale
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                }
+        ) {
+            CardView(card = entry.card, canPlay = false, discardMode = false, showFade = false, onClick = {})
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                when (entry.action) {
+                    CardAction.DISCARDED -> Image(painterResource(R.drawable.cross_icon), contentDescription = null, modifier = Modifier.size(48.dp))
+                    CardAction.BURNED    -> Image(painterResource(R.drawable.burn_icon),  contentDescription = null, modifier = Modifier.size(48.dp))
+                    else -> Unit
+                }
+            }
+        }
     }
 }
 
