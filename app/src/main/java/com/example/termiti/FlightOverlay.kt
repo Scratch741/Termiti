@@ -4,6 +4,9 @@
 // ============================================================
 package com.example.termiti
 
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -88,6 +91,15 @@ class FlightOverlayState {
      */
     var flightProgress: Float by mutableFloatStateOf(0f)
 
+    /**
+     * Levý horní roh vrstvy, ve které se let kreslí, v souřadnicích kořene okna.
+     * Pozice karet ([sources], [target], LossGhost.rect) jsou měřené vůči kořeni, ale herní
+     * rám (DesignFrame) nemusí začínat v jeho rohu: na displeji s jiným poměrem stran
+     * (tablet) je vystředěný mezi černými pruhy. Bez odečtení tohoto posunu letěla karta
+     * o výšku pruhu níž – vylétala zpod ruky, od spodku displeje.
+     */
+    var origin: Offset by mutableStateOf(Offset.Zero)
+
     /** Běžící ghost efekty ztracených karet (spálení / krádež). */
     val lossGhosts: SnapshotStateList<LossGhost> = mutableStateListOf()
 
@@ -127,6 +139,8 @@ fun Modifier.trackFlightTarget(): Modifier = composed {
 
 @Composable
 fun FlightOverlayBox(flight: FlightOverlayState) {
+    // Kde tahle vrstva leží v okně – viz FlightOverlayState.origin
+    Spacer(Modifier.onGloballyPositioned { flight.origin = it.positionInRoot() })
     // Ghost efekty ztracených karet (spálení / krádež) – nezávislé na letu
     flight.lossGhosts.forEach { ghost ->
         key(ghost.id) { LossGhostView(flight, ghost) }
@@ -175,8 +189,8 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
             Modifier
                 .offset {
                     IntOffset(
-                        x = topLeftX.roundToInt(),
-                        y = topLeftY.roundToInt()
+                        x = (topLeftX - flight.origin.x).roundToInt(),
+                        y = (topLeftY - flight.origin.y).roundToInt()
                     )
                 }
                 .requiredSize(100.dp, 140.dp)
@@ -229,8 +243,8 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                 Modifier
                     .offset {
                         IntOffset(
-                            x = (ghost.rect.center.x - natW / 2f).roundToInt(),
-                            y = (ghost.rect.center.y - natH / 2f - risePx * fade).roundToInt()
+                            x = (ghost.rect.center.x - natW / 2f - flight.origin.x).roundToInt(),
+                            y = (ghost.rect.center.y - natH / 2f - risePx * fade - flight.origin.y).roundToInt()
                         )
                     }
                     .requiredSize(100.dp, 140.dp)
@@ -265,8 +279,8 @@ private fun LossGhostView(flight: FlightOverlayState, ghost: LossGhost) {
                 Modifier
                     .offset {
                         IntOffset(
-                            x = ghost.rect.left.roundToInt(),
-                            y = (ghost.rect.top - risePx * 0.6f * fade).roundToInt()
+                            x = (ghost.rect.left - flight.origin.x).roundToInt(),
+                            y = (ghost.rect.top - risePx * 0.6f * fade - flight.origin.y).roundToInt()
                         )
                     }
                     .requiredSize(w, h)
