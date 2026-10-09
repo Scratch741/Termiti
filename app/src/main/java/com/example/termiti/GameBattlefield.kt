@@ -1,5 +1,16 @@
 package com.example.termiti
 
+import kotlin.math.cos
+import kotlin.random.Random
+import androidx.annotation.DrawableRes
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.ImageBitmap
+import kotlin.math.sin
 import androidx.compose.foundation.gestures.detectDragGestures
 import com.example.termiti.R
 import androidx.compose.animation.core.*
@@ -28,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -108,6 +120,10 @@ fun NewBattlefield(
                 contentScale = ContentScale.Crop
             )
     ) {
+        // Oživení pozadí (savana, bažiny…) – viz BattlefieldAmbience. Kreslí se jako první,
+        // hned nad obrázkem pozadí: karty soupeře, hrady i zahraná karta jsou nad ním.
+        BattlefieldAmbience(backgroundResId, Modifier.matchParentSize())
+
         // Přirozená velikost karty
         val cardNatH = 140.dp
         val cardNatW = 100.dp
@@ -472,9 +488,10 @@ fun NewBattlefield(
         // Vede si je bojiště samo z toho, co postupně zobrazilo – funguje tak stejně offline,
         // online i v přehrávači, bez dalších dat od view modelu.
         val pileUnder = remember { mutableStateListOf<PileEntry>() }
-        // Posun vrchní karty v px: + doprava, − doleva. Po puštění prstu se vrací na 0.
-        val pull      = remember { Animatable(0f) }
-        val pullScope = rememberCoroutineScope()
+        // Rozevření vějíře v px: + doprava, − doleva. Mění se přímo v obsluze tažení (žádná
+        // korutina na každou událost), po puštění prstu se vrací na 0 jednou animací níž.
+        var pullPx   by remember { mutableFloatStateOf(0f) }
+        var dragging by remember { mutableStateOf(false) }
         // Starší karty jsou ve stromu od začátku tažení do doběhnutí návratu. Dřív je řídil
         // práh |pull| > 0,5 px: kolem nuly (prst skoro na místě, dokmit pružiny) se přes něj
         // přecházelo tam a zpět a šest celých karet se každý snímek skládalo a zahazovalo.
@@ -519,6 +536,15 @@ fun NewBattlefield(
             fp <= 0.88f -> 1f - (fp - 0.55f) / 0.33f
             else        -> 0f
         }
+        // Návrat po puštění prstu. Nové tažení (dragging = true) efekt přeruší a vějíř zůstane
+        // otevřený; zavře se až po doběhnutí animace.
+        LaunchedEffect(dragging) {
+            if (dragging) return@LaunchedEffect
+            if (pullPx != 0f) {
+                animate(pullPx, 0f, animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)) { v, _ -> pullPx = v }
+            }
+            fanOpen = false
+        }
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -526,22 +552,15 @@ fun NewBattlefield(
                 .trackFlightTarget()
                 // Tažením do strany se zpod vrchní karty vysouvají starší; puštěním se vrátí
                 .pointerInput(pileStepPx, pileMaxUnder) {
-                    // Nové tažení během návratu animaci zruší (snapTo) → fanOpen zůstane true
-                    val settle = {
-                        pullScope.launch {
-                            pull.animateTo(0f, spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow))
-                            fanOpen = false
-                        }
-                    }
                     detectDragGestures(
-                        onDragStart  = { if (pileUnder.isNotEmpty()) fanOpen = true },
-                        onDragEnd    = { settle() },
-                        onDragCancel = { settle() }
+                        onDragStart  = { if (pileUnder.isNotEmpty()) { fanOpen = true; dragging = true } },
+                        onDragEnd    = { dragging = false },
+                        onDragCancel = { dragging = false }
                     ) { change, drag ->
                         if (pileUnder.isEmpty()) return@detectDragGestures
                         change.consume()
                         val limit = pileStepPx * minOf(pileUnder.size, pileMaxUnder)
-                        pullScope.launch { pull.snapTo((pull.value + drag.x).coerceIn(-limit, limit)) }
+                        pullPx = (pullPx + drag.x).coerceIn(-limit, limit)
                     }
                 },
             contentAlignment = Alignment.Center
@@ -559,10 +578,16 @@ fun NewBattlefield(
                             scaledW  = scaledW, scaledH = scaledH,
                             natW     = cardNatW, natH = cardNatH, cardScale = cardScale,
                             modifier = Modifier.graphicsLayer {
+                                // Každá karta vějíře je vlastní vrstva (textura): nakreslí se jednou
+                                // a při tažení se jen posouvá. Bez toho se každý snímek kreslilo až
+                                // sedm celých karet z velkých textur (rám 800×1195, vzácnost, art)
+                                // a grafická paměť přetekla – textury se pak nahrávaly znovu každý
+                                // snímek a hra spadla na ~6 snímků za sekundu.
+                                compositingStrategy = CompositingStrategy.Offscreen
                                 // Rozevření |v|: vrchní karta je o půlku ve směru tahu, k-tá karta
                                 // k kroků za ní; karty, na které se ještě nedostalo, drží pohromadě
                                 // na opačném konci (zbytek balíčku).
-                                val v = pull.value
+                                val v = pullPx
                                 val open = kotlin.math.abs(v)
                                 translationX = kotlin.math.sign(v) * (open / 2f - minOf(k * pileStepPx, open))
                             }
@@ -593,7 +618,9 @@ fun NewBattlefield(
                         .graphicsLayer {
                             val p = flyProgress.value
                             val e = 1f - (1f - p) * (1f - p)   // easeOut quadratic
-                            translationX = pull.value / 2f     // nahlížení pod balíček: vějíř se rozevírá od středu
+                            translationX = pullPx / 2f         // nahlížení pod balíček: vějíř se rozevírá od středu
+                            // Během nahlížení vlastní vrstva – viz karty vějíře výš
+                            compositingStrategy = if (fanOpen) CompositingStrategy.Offscreen else CompositingStrategy.Auto
                             if (displayIsPlayer) {
                                 alpha = slotAlpha
                                 scaleX = 1f
@@ -722,6 +749,467 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
     if (hp <= 0) return 0f
     val raw = (hp / maxHp).coerceIn(0f, 1f)
     return minFrac + (1f - minFrac) * raw
+}
+
+// ─── Oživení pozadí bojiště ───────────────────────────────────────────────────
+//
+// Lehké animace nad statickým obrázkem pozadí (1200×400). Záměrně nenáročné: nic se
+// nenahrává (žádné snímky animace, žádná textura navíc), kreslí se jen průhledné
+// přechody a tráva se překresluje z téhož obrázku, který je už načtený jako pozadí.
+// Pozice se zadávají v pixelech obrázku; přepočet na displej má stejný ořez jako
+// pozadí (ContentScale.Crop).
+
+/** Kreslicí pomůcky pro jednu scénu – souřadnice a velikosti v pixelech obrázku 1200×400. */
+private class AmbienceScope(
+    private val draw: DrawScope,
+    private val bg: ImageBitmap,
+    val time: Float
+) {
+    private val imgW = if (draw.size.width / draw.size.height >= 3f) draw.size.width else draw.size.height * 3f
+    private val k    = imgW / 1200f
+    private val offX = (draw.size.width - imgW) / 2f
+    private val offY = (draw.size.height - imgW / 3f) / 2f
+    private fun at(x: Float, y: Float) = Offset(offX + x * k, offY + y * k)
+
+    /** Měkká kruhová záře / obláček. */
+    fun glow(x: Float, y: Float, radius: Float, color: Color, alpha: Float) {
+        if (alpha <= 0.005f || radius <= 0f) return
+        val c = at(x, y)
+        draw.drawCircle(
+            brush  = Brush.radialGradient(listOf(color.copy(alpha = alpha.coerceAtMost(1f)), Color.Transparent), c, radius * k),
+            radius = radius * k,
+            center = c
+        )
+    }
+
+    /** Plná tečka (vločka, zrnko) – levnější než [glow], pro desítky drobných částic. */
+    fun dot(x: Float, y: Float, radius: Float, color: Color, alpha: Float) {
+        if (alpha <= 0.005f) return
+        draw.drawCircle(color.copy(alpha = alpha.coerceAtMost(1f)), radius * k, at(x, y))
+    }
+
+    /**
+     * Tráva ve větru: plochy se překreslí z obrázku po malých dlaždicích, každá posunutá
+     * o pár pixelů do strany podle vlny, která plochou prochází zleva doprava. Bližší tráva
+     * (níž v obrázku) se hýbe víc. Pod dlaždicemi zůstává nehybné pozadí, takže posunem
+     * nevznikají díry; ořez na mnohoúhelník drží pohyb mimo kameny, ploty a vodu.
+     */
+    fun sway(polys: List<List<Pair<Float, Float>>>, strength: Float = 1f) = with(draw) {
+        val srcK = bg.width / 1200f
+        for (poly in polys) {
+            val path = Path().apply {
+                poly.forEachIndexed { i, (px, py) -> at(px, py).let { if (i == 0) moveTo(it.x, it.y) else lineTo(it.x, it.y) } }
+                close()
+            }
+            val x0 = poly.minOf { it.first };  val x1 = poly.maxOf { it.first }
+            val y0 = poly.minOf { it.second }; val y1 = poly.maxOf { it.second }
+            clipPath(path) {
+                var y = y0
+                while (y < y1) {
+                    val h   = minOf(GRASS_TILE_H, y1 - y)
+                    val amp = (1.6f + 3.4f * ((y - 190f) / 160f).coerceIn(0f, 1f)) * k * strength
+                    var x = x0
+                    while (x < x1) {
+                        val w    = minOf(GRASS_TILE_W, x1 - x)
+                        val gust = 0.6f + 0.4f * sin(time * 0.9f - x / 260f)
+                        val dx   = amp * gust * (sin(time * 2.6f - x / 150f + y / 37f) + 0.35f * sin(time * 5.3f - x / 60f + y / 11f))
+                        val dst  = at(x, y)
+                        translate(left = dx) {
+                            drawImage(
+                                image     = bg,
+                                srcOffset = IntOffset((x * srcK).toInt(), (y * srcK).toInt()),
+                                srcSize   = IntSize((w * srcK).toInt().coerceAtLeast(1), (h * srcK).toInt().coerceAtLeast(1)),
+                                dstOffset = IntOffset(dst.x.toInt(), dst.y.toInt()),
+                                dstSize   = IntSize(kotlin.math.ceil(w * k).toInt() + 1, kotlin.math.ceil(h * k).toInt() + 1)
+                            )
+                        }
+                        x += GRASS_TILE_W
+                    }
+                    y += GRASS_TILE_H
+                }
+            }
+        }
+    }
+}
+
+/** Velikost dlaždice trávy v px obrázku: menší = plynulejší vlna, víc kreslení. */
+private const val GRASS_TILE_W = 24f
+private const val GRASS_TILE_H = 6f
+
+/**
+ * Plátno přes celé bojiště, na které [scene] každý snímek nakreslí oživení pozadí [bgRes].
+ * Čas se posouvá každý snímek – při 20 krocích za sekundu se drobné letící částice trhaly.
+ */
+@Composable
+private fun BackgroundAmbience(@DrawableRes bgRes: Int, modifier: Modifier, scene: AmbienceScope.() -> Unit) {
+    var t by remember { mutableFloatStateOf(0f) }   // sekundy
+    LaunchedEffect(Unit) {
+        val start = withFrameNanos { it }
+        while (true) t = (withFrameNanos { it } - start) / 1_000_000_000f
+    }
+    val bg = ImageBitmap.imageResource(bgRes)
+    Canvas(modifier) { AmbienceScope(this, bg, t).scene() }
+}
+
+/** Oživení pro dané pozadí, nebo nic, pokud pozadí žádné nemá. */
+@Composable
+private fun BattlefieldAmbience(@DrawableRes backgroundResId: Int, modifier: Modifier = Modifier) {
+    when (backgroundResId) {
+        R.drawable.castle_background_goblin -> BackgroundAmbience(backgroundResId, modifier) { savannaScene() }
+        R.drawable.castle_background_swamp  -> BackgroundAmbience(backgroundResId, modifier) { swampScene() }
+        R.drawable.castle_background_winter -> BackgroundAmbience(backgroundResId, modifier) { winterScene() }
+        R.drawable.castle_background_vulcan -> BackgroundAmbience(backgroundResId, modifier) { volcanoScene() }
+        R.drawable.castle_background_citadela -> BackgroundAmbience(backgroundResId, modifier) { citadelScene() }
+        R.drawable.castle_background        -> BackgroundAmbience(backgroundResId, modifier) { wastelandScene() }
+    }
+}
+
+// ── Savana (castle_background_goblin) ─────────────────────────────────────────
+// Tráva ve větru, mihotání ohně s jiskrami, kouř u vzdálených táborů, prosvítání slunce, prach.
+
+/** Plochy čisté trávy – z anim_savanna/animate.py. */
+private val SAVANNA_GRASS: List<List<Pair<Float, Float>>> = listOf(
+    listOf(175f to 290f, 250f to 278f, 285f to 300f, 280f to 340f, 215f to 350f, 180f to 335f),
+    listOf(350f to 200f, 600f to 195f, 655f to 205f, 665f to 225f, 600f to 238f, 500f to 245f, 400f to 250f, 350f to 250f),
+    listOf(400f to 300f, 445f to 300f, 455f to 325f, 400f to 330f),
+    listOf(720f to 320f, 800f to 300f, 800f to 400f, 690f to 400f, 700f to 350f),
+    listOf(870f to 285f, 950f to 275f, 1005f to 262f, 1005f to 290f, 985f to 300f, 960f to 330f, 900f to 335f, 840f to 325f, 830f to 290f),
+    listOf(985f to 200f, 1040f to 197f, 1040f to 215f, 1025f to 250f, 990f to 245f)
+)
+
+/** Zrnko prachu ve větru: výška, rychlost přeletu, kolébání, velikost a průhlednost. */
+private class Dust(rnd: Random, yMin: Float = 170f, yMax: Float = 370f) {
+    val start    = rnd.nextFloat()
+    val y        = yMin + rnd.nextFloat() * (yMax - yMin)
+    val speed    = 0.03f + rnd.nextFloat() * 0.035f
+    val sway     = 3f + rnd.nextFloat() * 8f
+    val swayFreq = 0.5f + rnd.nextFloat() * 1.2f
+    val phase    = rnd.nextFloat() * 6.283f
+    val size     = 1.8f + rnd.nextFloat() * 2.6f
+    val alpha    = 0.25f + rnd.nextFloat() * 0.25f
+}
+private val SAVANNA_DUST = Random(4711).let { rnd -> List(16) { Dust(rnd) } }
+
+private fun AmbienceScope.savannaScene() {
+    sway(SAVANNA_GRASS)
+
+    // Slunce za mraky: pomalé prosvítání uprostřed oblohy
+    glow(600f, 58f, 190f, Color(0xFFFFF0B8), 0.07f + 0.07f * sin(time * 0.9f) + 0.03f * sin(time * 2.3f + 1.1f))
+
+    // Oheň: nepravidelné mihotání ze tří nesoudělných sinusovek
+    val flick = 0.5f + 0.22f * sin(time * 7.1f) + 0.16f * sin(time * 12.7f + 1.3f) + 0.10f * sin(time * 19.3f + 0.6f)
+    glow(488f, 160f, 30f + 8f * flick, Color(0xFFFF8A2B), 0.40f + 0.40f * flick)
+    glow(488f, 158f, 9f + 3f * flick,  Color(0xFFFFE9B8), 0.55f + 0.40f * flick)
+    glow(516f, 163f, 17f, Color(0xFFFF7A22), 0.22f + 0.24f * (0.5f + 0.5f * sin(time * 5.3f + 2.1f)))
+    // Jiskry: stoupají nad ohněm a zhasínají
+    for (i in 0 until 6) {
+        val p = ((time / 1.7f) + i * 0.173f) % 1f
+        val x = 488f + sin(i * 2.4f + p * 6f) * (3f + 6f * p)
+        glow(x, 158f - 30f * p, 2.2f, Color(0xFFFFC56A), 0.9f * (1f - p))
+    }
+
+    // Kouř: u každého ohniště pět obláčků za sebou; stoupají, rozšiřují se a mizí
+    fun plume(x: Float, y: Float, rise: Float, width: Float, strength: Float, phase: Float) {
+        for (i in 0 until 5) {
+            val p     = ((time / 6f) + phase + i / 5f) % 1f            // 0 = u ohně, 1 = nahoře
+            val drift = (10f * p + sin(p * 5.2f + phase * 9f + i) * 4f) * p   // vítr ho odnáší doprava
+            val fade  = (p / 0.15f).coerceAtMost(1f) * (1f - p)        // náběh a pozvolné zmizení
+            glow(x + drift, y - rise * p, width * (0.6f + 1.3f * p), Color(0xFF5A5448), 0.62f * strength * fade)
+        }
+    }
+    plume(482f, 150f, rise = 74f, width = 17f, strength = 1.0f, phase = 0.00f)
+    plume(511f, 152f, rise = 50f, width = 10f, strength = 0.7f, phase = 0.37f)
+    plume(858f, 128f, rise = 72f, width = 17f, strength = 1.0f, phase = 0.61f)
+
+    // Prach ve větru: světlá zrnka táhnoucí nad trávou zleva doprava, každé náhodnou drahou
+    for (d in SAVANNA_DUST) {
+        val p    = (time * d.speed + d.start) % 1f
+        val edge = (p / 0.1f).coerceAtMost(1f) * ((1f - p) / 0.1f).coerceAtMost(1f)
+        glow(-20f + 1240f * p, d.y + sin(time * d.swayFreq + d.phase) * d.sway, d.size, Color(0xFFFFF2C4), d.alpha * edge)
+    }
+}
+
+// ── Bažiny (castle_background_swamp) ──────────────────────────────────────────
+// Bludičky, světlušky, mlha táhnoucí nad vodou, měsíc za mraky, odlesky na hladině, tráva.
+
+/** Tráva na ostrůvku, na pravém břehu a vlevo u kořenů. */
+private val SWAMP_GRASS: List<List<Pair<Float, Float>>> = listOf(
+    listOf(612f to 226f, 690f to 220f, 752f to 228f, 760f to 240f, 700f to 248f, 630f to 246f),
+    listOf(830f to 268f, 990f to 258f, 1030f to 285f, 960f to 320f, 850f to 318f, 815f to 290f),
+    listOf(120f to 300f, 260f to 285f, 300f to 330f, 250f to 360f, 130f to 355f)
+)
+
+/** Bludičky namalované v obrázku: x, y, velikost. */
+private val SWAMP_WISPS = listOf(
+    Triple(215f, 320f, 15f), Triple(298f, 198f, 7f), Triple(420f, 186f, 6f),
+    Triple(505f, 183f, 5f),  Triple(688f, 232f, 9f), Triple(728f, 225f, 5f)
+)
+
+private fun AmbienceScope.swampScene() {
+    sway(SWAMP_GRASS, strength = 0.8f)
+
+    // Měsíc za mraky: pomalu sílí a slábne, s ním i svit na mracích
+    val moon = 0.5f + 0.35f * sin(time * 0.7f) + 0.15f * sin(time * 1.9f + 0.8f)
+    glow(812f, 46f, 34f,  Color(0xFFE9FFF6), 0.30f + 0.30f * moon)
+    glow(760f, 55f, 170f, Color(0xFFB8E6DC), 0.05f + 0.07f * moon)
+    // Odlesky na hladině
+    glow(790f, 254f, 16f, Color(0xFFDFFFF4), 0.20f + 0.35f * moon * (0.6f + 0.4f * sin(time * 3.1f)))
+    glow(545f, 236f, 9f,  Color(0xFFBFE8E0), 0.10f + 0.16f * (0.5f + 0.5f * sin(time * 2.3f + 1.7f)))
+    glow(522f, 292f, 9f,  Color(0xFFBFE8E0), 0.08f + 0.14f * (0.5f + 0.5f * sin(time * 1.9f + 4.0f)))
+
+    // Mlha: široké světlé pásy táhnoucí nízko nad vodou zleva doprava
+    for (i in 0 until 6) {
+        val p    = (time * (0.012f + 0.004f * (i % 3)) + i * 0.1667f) % 1f
+        val edge = (p / 0.15f).coerceAtMost(1f) * ((1f - p) / 0.15f).coerceAtMost(1f)
+        val y    = 168f + (i * 29) % 70 + sin(time * 0.3f + i) * 5f
+        glow(-150f + 1500f * p, y, 95f + 25f * (i % 2), Color(0xFFA9D6CF), 0.13f * edge)
+    }
+
+    // Bludičky: každá pulzuje vlastním rytmem a lehce se pohupuje
+    SWAMP_WISPS.forEachIndexed { i, (x, y, r) ->
+        val pulse = 0.5f + 0.5f * sin(time * (1.1f + 0.23f * i) + i * 1.9f)
+        val bob   = sin(time * 0.9f + i * 2.1f) * 2.5f
+        glow(x, y + bob, r * (2.2f + 0.8f * pulse), Color(0xFF39E6D0), 0.22f + 0.38f * pulse)
+        glow(x, y + bob, r * 0.7f,                  Color(0xFFDFFFFA), 0.35f + 0.55f * pulse)
+    }
+
+    // Světlušky: bloudí po osmičkách nad trávou a vodou, rozsvěcí se a zhasínají
+    for (i in 0 until 10) {
+        val cx    = 140f + (i * 107) % 940
+        val cy    = 205f + (i * 61) % 130
+        val x     = cx + sin(time * (0.35f + 0.05f * (i % 4)) + i * 1.3f) * 38f
+        val y     = cy + sin(time * (0.7f + 0.08f * (i % 3)) + i * 0.7f) * 14f
+        val blink = sin(time * (1.3f + 0.17f * i) + i * 2.6f).coerceAtLeast(0f)
+        glow(x, y, 6f,   Color(0xFF8CFFB0), 0.30f * blink)
+        glow(x, y, 1.8f, Color(0xFFF2FFD8), 0.95f * blink)
+    }
+}
+
+// ── Zima (castle_background_winter) ───────────────────────────────────────────
+// Sněžení ve větru, sníh hnaný při zemi, zářící ledové krystaly, měsíc za mraky.
+
+/**
+ * Jedna vločka: výchozí místo, rychlost pádu a snosu větrem, kolébání, velikost a průhlednost.
+ * [depth] 0 = daleko (drobná, pomalá, průsvitná) … 1 = blízko (velká, rychlá).
+ */
+private class Flake(rnd: Random) {
+    private val depth = rnd.nextFloat().let { it * it }     // víc vzdálených než blízkých
+    val x0       = rnd.nextFloat() * 1300f
+    val y0       = rnd.nextFloat() * 440f
+    val fall     = 22f + 50f * depth + rnd.nextFloat() * 14f
+    val wind     = 14f + 40f * depth + rnd.nextFloat() * 18f
+    val sway     = 3f + rnd.nextFloat() * 9f
+    val swayFreq = 0.6f + rnd.nextFloat() * 1.6f
+    val phase    = rnd.nextFloat() * 6.283f
+    val size     = 0.7f + 1.7f * depth + rnd.nextFloat() * 0.4f
+    val alpha    = 0.28f + 0.5f * depth + rnd.nextFloat() * 0.15f
+}
+
+/**
+ * Vločky se losují jednou s pevným semínkem. Dřív se jejich místa a rychlosti počítaly
+ * z pořadového čísla (i * 173 % 1300…) a vločky pak padaly ve viditelných šikmých řadách.
+ */
+private val WINTER_FLAKES = Random(20261009).let { rnd -> List(120) { Flake(rnd) } }
+
+/** Ledové krystaly namalované v obrázku: x, y, velikost. */
+private val WINTER_CRYSTALS = listOf(
+    Triple(215f, 208f, 16f), Triple(140f, 230f, 8f),  Triple(380f, 172f, 12f), Triple(445f, 243f, 6f),
+    Triple(822f, 182f, 12f), Triple(828f, 236f, 8f),  Triple(975f, 205f, 11f), Triple(1100f, 190f, 7f)
+)
+
+private fun AmbienceScope.winterScene() {
+    // Měsíc za mraky: pomalu sílí a slábne, s ním i svit na mracích
+    val moon = 0.5f + 0.35f * sin(time * 0.6f) + 0.15f * sin(time * 1.7f + 0.8f)
+    glow(655f, 88f, 30f,  Color(0xFFFFFFFF), 0.25f + 0.30f * moon)
+    glow(655f, 92f, 180f, Color(0xFFD8E6F5), 0.05f + 0.07f * moon)
+
+    // Ledové krystaly: studená záře, každý vlastním rytmem, občas ostrý záblesk
+    WINTER_CRYSTALS.forEachIndexed { i, (x, y, r) ->
+        val pulse   = 0.5f + 0.5f * sin(time * (0.9f + 0.19f * i) + i * 2.3f)
+        val sparkle = sin(time * (2.1f + 0.31f * i) + i * 1.7f).coerceAtLeast(0f).let { it * it * it * it }
+        glow(x, y, r * (2.0f + 0.7f * pulse), Color(0xFF4FC3FF), 0.16f + 0.30f * pulse)
+        glow(x, y - r * 0.3f, r * 0.5f,       Color(0xFFEAF8FF), 0.20f + 0.75f * sparkle)
+    }
+
+    // Sníh hnaný při zemi: světlé pásy ženoucí se nad plání zleva doprava
+    for (i in 0 until 6) {
+        val p    = (time * (0.05f + 0.015f * (i % 3)) + i * 0.1667f) % 1f
+        val edge = (p / 0.15f).coerceAtMost(1f) * ((1f - p) / 0.15f).coerceAtMost(1f)
+        val y    = 235f + (i * 37) % 110 + sin(time * 0.5f + i) * 6f
+        glow(-150f + 1500f * p, y, 80f + 30f * (i % 2), Color(0xFFF2F7FF), 0.11f * edge)
+    }
+
+    // Sněžení: každá vločka má vlastní náhodnou dráhu (viz WINTER_FLAKES)
+    for (f in WINTER_FLAKES) {
+        val y = (f.y0 + time * f.fall) % 440f - 20f
+        val x = (f.x0 + time * f.wind + sin(time * f.swayFreq + f.phase) * f.sway) % 1300f - 50f
+        dot(x, y, f.size, Color(0xFFFFFFFF), f.alpha)
+    }
+}
+
+// ── Sopka (castle_background_vulcan) ──────────────────────────────────────────
+// Žhnoucí kráter a kouř nad ním, pulzující láva v puklinách, jiskry stoupající z lávy.
+
+/** Místa, kde láva v obrázku září nejvíc: x, y, poloměr záře. */
+private val VOLCANO_LAVA = listOf(
+    Triple(320f, 255f, 34f),  Triple(388f, 262f, 22f),  Triple(245f, 283f, 22f),
+    Triple(890f, 218f, 26f),  Triple(1015f, 292f, 30f), Triple(1080f, 345f, 46f),
+    Triple(690f, 255f, 60f),  Triple(600f, 300f, 60f),  Triple(470f, 350f, 62f),
+    Triple(300f, 330f, 55f),  Triple(770f, 345f, 55f),  Triple(640f, 205f, 40f)
+)
+
+/** Jiskra z lávy: kde vzniká, jak rychle a vysoko stoupá, jak se cestou kolébá. */
+private class Ember(rnd: Random) {
+    val x0       = 150f + rnd.nextFloat() * 950f
+    val y0       = 215f + rnd.nextFloat() * 170f
+    val rise     = 60f + rnd.nextFloat() * 130f
+    val period   = 2.6f + rnd.nextFloat() * 4.5f
+    val start    = rnd.nextFloat()
+    val drift    = -18f + rnd.nextFloat() * 50f
+    val sway     = 3f + rnd.nextFloat() * 9f
+    val swayFreq = 1.0f + rnd.nextFloat() * 2.2f
+    val phase    = rnd.nextFloat() * 6.283f
+    val size     = 1.0f + rnd.nextFloat() * 1.6f
+}
+private val VOLCANO_EMBERS = Random(1883).let { rnd -> List(60) { Ember(rnd) } }
+
+private fun AmbienceScope.volcanoScene() {
+    // Záře za sopkou a žhnoucí kráter
+    val heat = 0.5f + 0.3f * sin(time * 0.8f) + 0.2f * sin(time * 2.1f + 0.7f)
+    glow(750f, 105f, 210f, Color(0xFFFF6A2A), 0.05f + 0.07f * heat)
+    val crater = 0.5f + 0.25f * sin(time * 5.1f) + 0.15f * sin(time * 9.7f + 1.1f) + 0.10f * sin(time * 15.3f)
+    glow(748f, 80f, 26f + 8f * crater, Color(0xFFFF7A2B), 0.35f + 0.40f * crater)
+    glow(748f, 78f, 8f,                Color(0xFFFFE2A0), 0.40f + 0.50f * crater)
+
+    // Kouř z kráteru: valí se vzhůru a vítr ho stáčí doleva jako v obrázku
+    for (i in 0 until 6) {
+        val p    = ((time / 9f) + i / 6f) % 1f
+        val fade = (p / 0.15f).coerceAtMost(1f) * (1f - p)
+        glow(746f - 120f * p * p - sin(p * 4f + i) * 6f, 74f - 62f * p, 16f + 46f * p, Color(0xFF2E2826), 0.55f * fade)
+    }
+    // Menší dým v dálce vlevo
+    for (i in 0 until 4) {
+        val p    = ((time / 7f) + i / 4f + 0.3f) % 1f
+        val fade = (p / 0.15f).coerceAtMost(1f) * (1f - p)
+        glow(522f - 40f * p * p, 132f - 44f * p, 9f + 22f * p, Color(0xFF332C29), 0.45f * fade)
+    }
+
+    // Láva: záře nad puklinami dýchá, každé místo vlastním rytmem
+    VOLCANO_LAVA.forEachIndexed { i, (x, y, r) ->
+        val pulse = 0.5f + 0.35f * sin(time * (0.8f + 0.13f * i) + i * 2.1f) + 0.15f * sin(time * (2.9f + 0.2f * i) + i)
+        glow(x, y, r * (1.0f + 0.25f * pulse), Color(0xFFFF5A1F), 0.10f + 0.20f * pulse)
+        glow(x, y, r * 0.35f,                  Color(0xFFFFC46B), 0.06f + 0.18f * pulse)
+    }
+
+    // Jiskry: vylétnou z lávy, stoupají, vítr je unáší a cestou vyhasínají
+    for (e in VOLCANO_EMBERS) {
+        val p    = (time / e.period + e.start) % 1f
+        val fade = (p / 0.1f).coerceAtMost(1f) * (1f - p) * (1f - p)
+        val x    = e.x0 + e.drift * p + sin(time * e.swayFreq + e.phase) * e.sway * p
+        val y    = e.y0 - e.rise * p
+        glow(x, y, e.size * 2.6f, Color(0xFFFF7A2B), 0.55f * fade)
+        dot(x, y, e.size * 0.7f,  Color(0xFFFFE0A0), 0.95f * fade)
+    }
+}
+
+// ── Temná citadela (castle_background_citadela) ───────────────────────────────
+// Světlo za citadelou, fialová okna, ptáci kroužící kolem věží, mlha na obzoru, tráva, pyl.
+
+/** Tráva v popředí vlevo a vpravo a pruh louky před citadelou. */
+private val CITADEL_GRASS: List<List<Pair<Float, Float>>> = listOf(
+    listOf(0f to 296f, 190f to 290f, 295f to 312f, 285f to 346f, 110f to 352f, 0f to 348f),
+    listOf(735f to 300f, 900f to 296f, 1200f to 292f, 1200f to 348f, 1010f to 350f, 800f to 340f),
+    listOf(120f to 212f, 480f to 206f, 760f to 210f, 1010f to 218f, 900f to 246f, 420f to 244f, 150f to 240f)
+)
+
+/** Okna citadely: x, y, velikost záře. */
+private val CITADEL_WINDOWS = listOf(
+    Triple(566f, 118f, 7f), Triple(590f, 126f, 8f), Triple(613f, 118f, 7f),
+    Triple(578f, 150f, 6f), Triple(603f, 152f, 6f)
+)
+
+private val CITADEL_MOTES = Random(1313).let { rnd -> List(14) { Dust(rnd, 215f, 380f) } }
+
+private fun AmbienceScope.citadelScene() {
+    sway(CITADEL_GRASS, strength = 0.7f)
+
+    // Světlo prodírající se mraky za citadelou: dva pomalu se přelévající zdroje
+    val light = 0.5f + 0.3f * sin(time * 0.5f) + 0.2f * sin(time * 1.3f + 1.0f)
+    glow(590f + 30f * sin(time * 0.23f), 62f, 210f, Color(0xFFE8F0FF), 0.06f + 0.08f * light)
+    glow(600f - 40f * sin(time * 0.17f + 2f), 95f, 130f, Color(0xFFFFFFFF), 0.04f + 0.06f * (1f - light))
+
+    // Fialová okna: neklidná magická záře
+    CITADEL_WINDOWS.forEachIndexed { i, (x, y, r) ->
+        val pulse = 0.5f + 0.3f * sin(time * (1.4f + 0.3f * i) + i * 2.2f) + 0.2f * sin(time * (4.3f + 0.5f * i) + i)
+        glow(x, y, r * (1.8f + 0.9f * pulse), Color(0xFFA24BFF), 0.22f + 0.40f * pulse)
+    }
+
+    // Ptáci: tělo a dvě mávající křídla
+    fun bird(x: Float, y: Float, size: Float, flap: Float) {
+        val wing = sin(time * 9f + flap) * 1.1f * size
+        dot(x, y, 1.5f * size, Color(0xFF0B0A10), 0.85f)
+        dot(x - 2.3f * size, y - 0.6f * size + wing, 1.0f * size, Color(0xFF0B0A10), 0.85f)
+        dot(x + 2.3f * size, y - 0.6f * size + wing, 1.0f * size, Color(0xFF0B0A10), 0.85f)
+    }
+    // …krouží kolem věží
+    for (i in 0 until 6) {
+        val a = time * (0.35f + 0.06f * i) + i * 1.05f
+        bird(590f + cos(a) * (55f + 14f * i), 78f + sin(a) * (14f + 4f * i) + sin(a * 2.3f) * 3f, 1f, i.toFloat())
+    }
+    // Mlha na obzoru: pásy táhnoucí před hradbami citadely
+    for (i in 0 until 6) {
+        val p    = (time * (0.01f + 0.004f * (i % 3)) + i * 0.1667f) % 1f
+        val edge = (p / 0.15f).coerceAtMost(1f) * ((1f - p) / 0.15f).coerceAtMost(1f)
+        glow(-150f + 1500f * p, 180f + (i * 17) % 34 + sin(time * 0.3f + i) * 3f, 85f + 25f * (i % 2), Color(0xFFC9D2DE), 0.13f * edge)
+    }
+
+    // Pyl a prach nad loukou
+    for (d in CITADEL_MOTES) {
+        val p    = (time * d.speed * 0.6f + d.start) % 1f
+        val edge = (p / 0.1f).coerceAtMost(1f) * ((1f - p) / 0.1f).coerceAtMost(1f)
+        glow(-20f + 1240f * p, d.y + sin(time * d.swayFreq + d.phase) * d.sway, d.size * 0.8f, Color(0xFFDDE8C8), d.alpha * 0.8f * edge)
+    }
+}
+
+// ── Pustina (castle_background, výchozí) ──────────────────────────────────────
+// Slunce za mraky, doutnající ohniště s jiskrami, světlo pochodní na zemi, prach.
+// Plameny pochodní (TorchFlame) se kreslí zvlášť v NewBattlefield a zůstávají navrchu.
+
+/** Paty pochodní v obrázku (stejná místa jako plameny v NewBattlefield) – světlo na zemi pod nimi. */
+private val WASTELAND_TORCHES =
+    listOf(360f to 268f, 408f to 236f, 852f to 230f, 942f to 268f, 1000f to 228f, 1164f to 216f)
+
+private val WASTELAND_DUST = Random(2718).let { rnd -> List(16) { Dust(rnd, 225f, 385f) } }
+
+private fun AmbienceScope.wastelandScene() {
+    // Slunce prodírající se mraky
+    val sun = 0.5f + 0.3f * sin(time * 0.55f) + 0.2f * sin(time * 1.4f + 0.9f)
+    glow(640f + 25f * sin(time * 0.2f), 95f, 200f, Color(0xFFFFE9B0), 0.06f + 0.08f * sun)
+    glow(640f, 215f, 150f, Color(0xFFFFE2A0), 0.03f + 0.05f * sun)      // odraz na pláni
+
+    // Světlo pochodní na zemi: mihotá se s plamenem
+    WASTELAND_TORCHES.forEachIndexed { i, (x, y) ->
+        val f = 0.5f + 0.25f * sin(time * (6.1f + 0.7f * i) + i) + 0.15f * sin(time * (11.3f + i) + 2f * i)
+        glow(x, y, 34f, Color(0xFFFF8A2B), 0.07f + 0.10f * f)
+    }
+
+    // Doutnající ohniště vlevo a vpravo: žár a jiskry
+    listOf(350f to 262f, 940f to 262f).forEachIndexed { n, (x, y) ->
+        val f = 0.5f + 0.25f * sin(time * 6.3f + n * 2f) + 0.15f * sin(time * 13.1f + n) + 0.10f * sin(time * 19.7f)
+        glow(x, y, 20f + 5f * f, Color(0xFFFF7A22), 0.25f + 0.30f * f)
+        glow(x, y, 6f,           Color(0xFFFFD890), 0.25f + 0.35f * f)
+        for (i in 0 until 5) {
+            val p = ((time / 2.1f) + i * 0.2f + n * 0.37f) % 1f
+            dot(x + sin(i * 2.4f + p * 5f + n) * (2f + 7f * p), y - 26f * p, 1.0f, Color(0xFFFFC56A), 0.9f * (1f - p))
+        }
+    }
+
+    // Prach hnaný přes rozpukanou pláň
+    for (d in WASTELAND_DUST) {
+        val p    = (time * d.speed + d.start) % 1f
+        val edge = (p / 0.1f).coerceAtMost(1f) * ((1f - p) / 0.1f).coerceAtMost(1f)
+        glow(-20f + 1240f * p, d.y + sin(time * d.swayFreq + d.phase) * d.sway, d.size, Color(0xFFFFE8B8), d.alpha * 0.8f * edge)
+    }
 }
 
 // ─── Bojiště – pozadí ─────────────────────────────────────────────────────────
