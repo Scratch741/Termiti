@@ -190,11 +190,12 @@ private fun DrawScope.drawRays(rotation: Float, alpha: Float, color: Color, coun
  * krycí – směrem ke kartě se sčítají do plynulého přechodu (pět silných vrstev dělalo
  * viditelné pruhy).
  */
-private fun DrawScope.drawCardGlow(color: Color, intensity: Float, cardW: Float, cardH: Float) {
+private fun DrawScope.drawCardGlow(color: Color, intensity: Float, cardW: Float, cardH: Float, reach: Float = 0.34f) {
     if (intensity <= 0.01f) return
     val layers = 16
     for (l in layers downTo 1) {
-        val grow = l * cardW * 0.021f
+        // reach = jak daleko za okraj karty záře sahá (podíl šířky karty)
+        val grow = l * cardW * reach / layers
         drawRoundRect(
             color        = color.copy(alpha = (0.115f * intensity.coerceAtMost(1.2f)).coerceAtMost(1f)),
             topLeft      = Offset(center.x - cardW / 2 - grow, center.y - cardH / 2 - grow),
@@ -679,7 +680,7 @@ private fun PackCard(
                 SoundManager.playPackFlip()
                 flip.animateTo(180f, tween(300, easing = FastOutSlowInEasing))
                 SoundManager.playPackReveal(0)
-                glow.animateTo(0.30f, tween(220))
+                glow.animateTo(0.20f, tween(220))
             }
             Rarity.RARE -> {
                 SoundManager.playPackFlip()
@@ -690,7 +691,7 @@ private fun PackCard(
                 SoundManager.playPackReveal(1)
                 view.tick()
                 launch { burst.snapTo(0f); burst.animateTo(1f, tween(700, easing = LinearOutSlowInEasing)) }
-                glow.animateTo(0.62f, tween(500))
+                glow.animateTo(0.42f, tween(500))
             }
             Rarity.EPIC -> {
                 inCeremony = true; onFocus(true)
@@ -789,6 +790,11 @@ private fun PackCard(
             drawCardGlow(
                 color     = color,
                 intensity = maxOf(glow.value * pulse, peek),
+                // Obrys roste se vzácností: běžná a vzácná jen tenký lem, ať se sousední karty
+                // neslévají do jedné barevné skvrny; epická a legendární září naplno.
+                reach     = when (rarity) {
+                    Rarity.COMMON -> 0.09f; Rarity.RARE -> 0.13f; Rarity.EPIC -> 0.26f; Rarity.LEGENDARY -> 0.34f
+                },
                 cardW     = cardW.toPx() * scale * lift.value,
                 cardH     = cardH.toPx() * scale * lift.value
             )
@@ -822,7 +828,7 @@ private fun PackCard(
                     CardPreview(card = gain.card)
                     // Duplikát: karta ztmavne, hodnotu převezme štítek s prachem
                     if (gain.isDuplicate) {
-                        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.50f * badge.value)))
+                        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.30f * badge.value)))
                     }
                 }
             }
