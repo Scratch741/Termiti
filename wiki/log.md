@@ -647,6 +647,69 @@ Každý nákup balíčků (1× / 5× / 10× i „koupit a otevřít“) se nejd�
 
 Krok vějíře při tažení odhazovacího balíčku je 4/5 šířky karty (`PILE_PEEK_VISIBLE = 0.8`, dřív dvě třetiny, ale stažené tak, aby se vešlo všech 6 karet – ve výsledku asi polovina). Aby se karty vešly, vějíř se rozevírá od středu na obě strany: vrchní karta jede ve směru tahu poloviční rychlostí prstu a zbytek balíčku ustupuje opačně. Počet odhalitelných karet se řídí šířkou bojiště (`pileMaxUnder`, na telefonu 4 starší karty + vrchní), pamatuje se dál 6.
 
-## [2026-10-09] perf | Nahlížení pod odhazovací balíček: trhání při tažení
+## [2026-10-09] perf | Trhání hry: přetečená grafická paměť
 
-Hlášeno: občas (2× za hodinu) hra při roztahování balíčku spadne na pár snímků za sekundu. Nepodařilo se zopakovat; nejpravděpodobnější příčina v kódu: starší karty se skládaly jen při `|pull| > 0,5 px` (`peeking`). Když se posun držel kolem nuly – prst skoro na místě, drobné chvění do stran, dokmit návratové pružiny přes nulu – přecházel práh tam a zpět a až šest celých `CardView` se každý snímek skládalo a zahazovalo. Nově je řídí `fanOpen`: zapne se na začátku tažení (`onDragStart`) a vypne až po doběhnutí návratové animace, takže se karty během jednoho gesta složí jednou.
+Hlášeno: občas hra při roztahování odhazovacího balíčku spadne na pár snímků za sekundu. Zachyceno živě na telefonu (kolo 16, plná ruka 8 karet):
+- `RenderThread` 93–100 % CPU, hlavní vlákno 3–7 % → nejde o skládání UI, ale o vykreslování.
+- `dumpsys gfxinfo`: medián snímku 150 ms (~6 fps), „Slow issue draw commands“ u každého snímku – **i v klidu, bez tažení**. Tažení to jen zviditelnilo.
+- Textury v GPU cache 99,8 MB při limitu 121 MB („Max resource usage“). Po chvíli se cache uvolnila a snímky se vrátily na 13 ms.
+
+Příčina: grafická paměť těsně pod stropem. Jakmile se do ní potřebné textury nevejdou, vyhazují se a nahrávají znovu každý snímek. Karta se kreslí z velkých bitmap (rám `card_frame_*` 800×1195 = 3,8 MB, překryv `rarity_*` stejně, art), k tomu pozadí po 6,3 MB. Vějíř přidával až sedm dalších plně kreslených karet.
+
+Opravy:
+- **Karty vějíře jako vrstvy** (`CompositingStrategy.Offscreen` v `GameBattlefield.kt`): každá se nakreslí jednou do vlastní malé textury a při tažení se jen posouvá, místo aby se sedm karet kreslilo z velkých bitmap každý snímek.
+- **Karty vějíře žijí po celé gesto** (`fanOpen` místo prahu `|pull| > 0,5 px`), posun je obyčejný stav měněný přímo v obsluze tažení (bez korutiny na každou událost), návrat jednou animací.
+- **`art_default.png` a `art_beranidlo.png` zmenšeny** z 1059×1486 na 400×560 jako ostatní arty (6,3 MB → 0,9 MB v paměti každý, soubory 2,0 a 2,5 MB → 0,3 a 0,4 MB).
+
+Měření tažení ve hře po opravě (kolo 12, vějíř 4 karet, 8 karet v ruce): medián 12–13 ms, 90. percentil 14 ms, 99. percentil 18 ms. Textury v cache 93 MB – **strop 121 MB je pořád blízko**, zásek se může vrátit jinde (plná ruka + animace). Trvalé řešení: zmenšit `card_frame_*` a `rarity_*` (8 × 3,8 MB) a velká pozadí.
+
+## [2026-10-09] feat | Oživené pozadí savany (goblinský tábor)
+
+Předloha v `anim_savanna/` (`savanna_src.webp`) je stejný obrázek jako stávající `castle_background_goblin.png`, takže se pozadí nemění – přibylo jen oživení `SavannaAmbience` v `GameBattlefield.kt`, kreslené pro `castle_background_goblin`: mihotání vzdáleného ohně (tři průhledné přechody) a tři sloupce stoupajícího kouře (po třech obláčcích). Pozice jsou v pixelech obrázku 1200×400 s přepočtem na ořez `ContentScale.Crop`.
+
+Zvolena nenáročná varianta z `anim_savanna/HANDOFF.md`: žádný animovaný soubor (96 snímků celého pozadí by se 20× za sekundu nahrávalo do grafické paměti, která je už teď u stropu – viz záznam o trhání výše), žádná textura navíc, čas se posouvá 20× za sekundu. Vlnění trávy, keřů, hadrů a oblohy z hotové animace se v této variantě nedělá. Server ani id pozadí se nemění (`castle_background_goblin` zůstává v náhodném výběru, v kampani u goblinů i online).
+
+První verze byla na zařízení skoro neviditelná (oheň a kouř zabírají na displeji jen pár desítek pixelů a kouř je v obrázku už namalovaný). Zesíleno: větší a jasnější oheň s jiskrami, tmavší a vyšší kouř unášený větrem (5 obláčků na sloupec), pomalé prosvítání slunce uprostřed oblohy a 14 zrnek prachu táhnoucích nad trávou přes celou šířku. Po zpětné vazbě: čas se posouvá každý snímek (při 20 krocích za sekundu se prach viditelně trhal) a přibyla **tráva ve větru** – šest ploch trávy (`SAVANNA_GRASS`, mnohoúhelníky z `animate.py`) se překresluje z obrázku pozadí po dlaždicích 24×6 px, každá posunutá do strany podle procházející vlny; bližší tráva víc. Nehybné pozadí pod nimi zakrývá mezery, ořez na mnohoúhelník drží pohyb mimo kameny a ploty.
+
+Měřeno na zařízení v zápase s goblinem (klid, 4 s): medián snímku 13 ms, 99. percentil 16 ms, žádný pomalý snímek; hlavní vlákno ~43 % a vykreslovací ~39 % jednoho jádra, protože se obrazovka překresluje každý snímek. Obrázek pozadí se načítá v původní velikosti 1200×400 (ověřeno v logu), textury 59 MB.
+
+## [2026-10-09] feat | Oživené pozadí bažin, společný základ pro oživení pozadí
+
+- **Společný základ** (`GameBattlefield.kt`): `BattlefieldAmbience(backgroundResId)` vybere scénu podle pozadí, `BackgroundAmbience` drží čas a plátno, `AmbienceScope` nabízí `glow(x, y, poloměr, barva, alfa)` a `sway(plochy trávy)` v pixelech obrázku 1200×400. Savana (`savannaScene`) na něj byla převedena beze změny vzhledu. Další pozadí = nová funkce scény + řádek ve `when`.
+- **Bažiny** (`swampScene`, `castle_background_swamp`): šest bludiček namalovaných v obrázku pulzuje a pohupuje se, deset světlušek bloudí nad trávou a vodou, šest pásů mlhy táhne nízko nad vodou, měsíc za mraky sílí a slábne i se svitem na mracích, odlesky na hladině, tráva na ostrůvku a březích (`SWAMP_GRASS`, slabší než v savaně).
+
+Měřeno na zařízení v kampani proti Magické žábě (klid, 4 s): medián snímku 10 ms, 99. percentil 12 ms, žádný pomalý snímek.
+
+## [2026-10-09] feat | Oživené zimní pozadí
+
+`winterScene` pro `castle_background_winter` (`GameBattlefield.kt`): 90 vloček ve třech hloubkách nesených větrem doprava, šest pásů sněhu hnaného při zemi, osm ledových krystalů namalovaných v obrázku (`WINTER_CRYSTALS`) se studenou pulzující září a občasným zábleskem, měsíc za mraky. Pro desítky drobných částic přibyl v `AmbienceScope` levnější `dot()` (plný kruh místo přechodu).
+
+Měřeno na zařízení v kampani proti Horníkovi (klid, 4 s): medián snímku 9 ms, 99. percentil 13 ms, žádný pomalý snímek.
+
+## [2026-10-09] feat | Oživená zbylá pozadí: sopka, citadela, výchozí pustina
+
+Všech šest pozadí bojiště má teď scénu v `BattlefieldAmbience` (`GameBattlefield.kt`):
+- **Sopka** (`volcanoScene`, `castle_background_vulcan`): žhnoucí kráter, kouř stáčený větrem doleva, dým v dálce, 12 míst pulzující lávy (`VOLCANO_LAVA`), 60 jisker stoupajících z lávy (`VOLCANO_EMBERS`).
+- **Temná citadela** (`citadelScene`, `castle_background_citadela`): přelévající se světlo za citadelou, fialová okna, šest ptáků kroužících kolem věží, mlha na obzoru, tráva v popředí a pruh louky (`CITADEL_GRASS`), pyl nad loukou.
+- **Výchozí pustina** (`wastelandScene`, `castle_background`): slunce za mraky s odrazem na pláni, mihotavé světlo na zemi pod pochodněmi, dvě doutnající ohniště s jiskrami, prach. Stávající plameny pochodní (`TorchFlame`) se nemění a kreslí se nad scénou.
+- **Náhodné částice:** vločky (`WINTER_FLAKES`, 120) a prach v savaně (`SAVANNA_DUST`) se losují jednou s pevným semínkem. Dřív se počítaly z pořadového čísla a vločky padaly ve viditelných šikmých řadách.
+
+Měřeno na zařízení (klid, 4 s, žádný pomalý snímek): sopka medián 10 ms / 99. percentil 14 ms, citadela 11 / 15 ms, pustina 12 / 14 ms, zima po znáhodnění 13 / 15 ms.
+
+## [2026-10-09] perf | Karty ve hře: rámy a vzácnost ze zmenšených bitmap
+
+Pokračování záznamu o přetečené grafické paměti. `CardView` (`GameCardView.kt`) kreslil rám `card_frame_*` a překryv `rarity_*` přes `painterResource` z originálů 800×1195 px (3,8 MB v GPU každý, osm vrstev přes 30 MB). Nově je bere z `rememberCardLayer()` (`CardBitmapCache.kt`): kopie zmenšená přesně na šířku `CARD_LAYER_WIDTH` = 150 dp (`CardBitmapCache.scaled`, `createScaledBitmap` s vyhlazením; na 3× displeji 450×672 px, 1,2 MB) a držená v LRU cache. `PrewarmCardLayers()` v `GameScreen` je připraví na pozadí během mulliganu; když karta přijde dřív, dekóduje se na místě.
+
+Kvalita: karta ve hře se kreslí nejvýš 1,35× (405 px na 3× displeji), kopie má 450 px, takže se nezvětšuje. Velký náhled karty (`CardFullPreviewOverlay`, `FullCardPreview`, až 756 px) dál kreslí originál – soubory v `res/drawable` se neměnily. Obrázky karet (art 400×560) zůstávají beze změny.
+
+Citadela: oživení pozadí se kreslí jako první vrstva bojiště (pod kartami soupeře), přelet hejna zleva doprava po zkoušce odstraněn, zůstali ptáci kroužící kolem věží.
+
+Měřeno na zařízení (paměť textur v GPU, `dumpsys gfxinfo`, limit 121 MB):
+- tutoriál na savaně, 4 karty v ruce: 59,1 MB → 23,6 MB
+- pozdní hra, plná ruka: 93–100 MB (stav, ve kterém se hra sekala) → 31,5 MB
+
+Snímek 14 ms, 99. percentil 16 ms, žádný pomalý snímek; vytížení procesoru beze změny (hlavní vlákno ~65 %, vykreslovací ~55 % jednoho jádra – to dělá překreslování každý snímek, ne textury). Ostrost karet porovnána na stejném záběru z tutoriálu před a po ve zvětšení: bez viditelného rozdílu.
+
+## [2026-10-09] release | Verze 0.6.0
+
+`versionName` 0.5.1 → 0.6.0, `versionCode` 11 → 12, záznam v `CHANGELOG.md`. MINOR: oživená pozadí, skriptovaný tutoriál, výkon (zmenšené vrstvy karet). `PROTOCOL_VERSION` beze změny. Podklady `anim_savanna/` (27 MB) zůstávají mimo git.

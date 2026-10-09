@@ -17,6 +17,35 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.0] – 2026-10-09
+
+### Nové
+- **Oživená pozadí bojiště:** všech šest pozadí se hýbe. Savana – tráva ve větru,
+  oheň s jiskrami, kouř, prach; bažiny – bludičky, světlušky, mlha, měsíc; zima –
+  sněžení, sníh hnaný při zemi, zářící krystaly; sopka – žhnoucí kráter, pulzující
+  láva, jiskry; Temná citadela – světlo za citadelou, fialová okna, ptáci kolem
+  věží, mlha; výchozí pustina – slunce za mraky, ohniště, světlo pochodní, prach.
+- **Skriptovaný tutoriál:** celý zápas proti prvnímu goblinovi krok za krokem –
+  mulligan, suroviny a doly, combo, stavba, zahození s efektem a útok přímo na hrad.
+  Zlatý rám ukazuje, co zahrát a o čem je řeč. Zatím se spouští z Profil → Debug.
+- **Otevírání balíčků jako obřad,** zásoba neotevřených balíčků a záruka legendární
+  karty nejpozději v desátém balíčku; nový obrázek balíčku.
+- **Nahlédnutí pod odhazovací balíček:** tažením do strany se rozloží poslední
+  zahrané karty.
+- **Rub karet u počítadla balíčku** v horní liště – tvůj i soupeřův.
+
+### Vylepšeno
+- **Výkon:** karty ve hře kreslí rám a vzácnost ze zmenšených kopií; grafická paměť
+  v pozdní hře klesla zhruba ze 100 MB na 30 MB a zmizelo občasné zaseknutí hry
+  na pár snímků za sekundu.
+- **Obchod:** nákup balíčků se nejdřív zeptá; záře karet při otevírání podle vzácnosti.
+- **Roguelike:** konec běhu na herních texturách.
+
+### Opraveno
+- Nové ruby karet bez bílých rohů; miniatura rubu ve správném poměru stran.
+- **AI:** Zrcadlo získané během tahu se obnoví před zahráním.
+- **Herní log:** přelíznutou kartu spálil ten, komu přetekla ruka.
+
 ## [0.5.1] – 2026-10-07
 
 ### Nové
