@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.ui.draw.alpha
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -294,53 +295,91 @@ private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String,
 // ─── Konec runu ─────────────────────────────────────────────────────────────
 @Composable
 fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
+    val s       = LocalStrings.current
     val victory = viewModel.rogueVictory.value
     val run     = viewModel.rogueRun.value
     val battlesWon = (run?.battleIndex ?: 0).coerceAtMost(RogueConfig.TOTAL_BATTLES)
 
-    Box(
-        Modifier.fillMaxSize().background(
-            Brush.radialGradient(
-                listOf(if (victory) Color(0xFF14180E) else Color(0xFF1A0A0A), BgDeep),
-                radius = 1200f
-            )
-        ),
-        contentAlignment = Alignment.Center
-    ) {
+    // Stejná scéna jako výsledek v kampani: texturované pozadí s kamenným rámem a obsah
+    // uvnitř něj. (Dřív plochý zaoblený panel s barevným okrajem a počet výher v rámečku,
+    // který vypadal jako tlačítko.)
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        Image(
+            painter            = painterResource(R.drawable.bg_campaign),
+            contentDescription = null,
+            modifier           = Modifier.fillMaxSize(),
+            contentScale       = ContentScale.FillBounds
+        )
+        Box(Modifier.fillMaxSize().background(Color(0x4009070D)))
+
         Column(
-            Modifier
-                .widthIn(max = 360.dp)          // bez ohraničení fillMaxWidth dítě roztáhne kartu na celou obrazovku
-                .clip(RoundedCornerShape(16.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A1420), BgPanel)))
-                .border(1.dp, (if (victory) Gold else Crimson).copy(alpha = 0.45f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 44.dp, vertical = 22.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start  = campaignInsetX(maxWidth),
+                    end    = campaignInsetX(maxWidth),
+                    top    = campaignInsetTop(maxHeight) + 8.dp,
+                    bottom = campaignInsetBottom(maxHeight) + 8.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
         ) {
-            // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez poháru/lebky
             CampaignTitle(
-                if (victory) LocalStrings.current.rogueRunComplete else LocalStrings.current.rogueRunOver,
-                fontSize = 28.sp,
+                if (victory) s.rogueRunComplete else s.rogueRunOver,
+                fontSize = 36.sp,
                 gradient = if (victory) TitleGold else TitleBlood
             )
-            Text(
-                if (victory) LocalStrings.current.rogueAllBattles.format(RogueConfig.TOTAL_BATTLES)
-                else LocalStrings.current.rogueCastleFell,
-                color = TextPrimary, fontSize = 12.sp, textAlign = TextAlign.Center
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.width(320.dp),
+                contentScale       = ContentScale.FillWidth
             )
-            Box(
-                Modifier.clip(RoundedCornerShape(8.dp))
-                    .background(Gold.copy(alpha = 0.08f))
-                    .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 18.dp, vertical = 6.dp)
+            Text(
+                if (victory) s.rogueAllBattles.format(RogueConfig.TOTAL_BATTLES) else s.rogueCastleFell,
+                color = TextPrimary, fontSize = 13.sp, textAlign = TextAlign.Center
+            )
+
+            // Vyhrané bitvy: údaj s pohárem a postupem po bitvách, ne rámeček připomínající tlačítko
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                verticalAlignment     = Alignment.CenterVertically
             ) {
-                Text(LocalStrings.current.rogueBattlesWon.format(battlesWon, RogueConfig.TOTAL_BATTLES),
-                    color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Image(painterResource(R.drawable.trophy_icon), contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(
+                    s.rogueBattlesWon.format(battlesWon, RogueConfig.TOTAL_BATTLES),
+                    color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                )
             }
-            Spacer(Modifier.height(4.dp))
-            PlainButton(LocalStrings.current.backToMenuCaps, modifier = Modifier.fillMaxWidth(),
-                textColor = TextPrimary, fontSize = 12.sp, paddingH = 0.dp, paddingV = 10.dp,
-                buttonRes = R.drawable.plain_button_longer, onClick = onBack)
+            // Dvanáct bitev ve třech aktech – vyhrané zlatě, boss každého aktu větší
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                repeat(RogueConfig.TOTAL_BATTLES) { i ->
+                    val boss = i % RogueConfig.BATTLES_PER_ACT == RogueConfig.BATTLES_PER_ACT - 1
+                    val won  = i < battlesWon
+                    Image(
+                        painter            = painterResource(if (boss) R.drawable.skull_icon else R.drawable.shield_icon),
+                        contentDescription = null,
+                        modifier           = Modifier.size(if (boss) 18.dp else 13.dp).alpha(if (won) 1f else 0.22f)
+                    )
+                    // mezera mezi akty
+                    if (boss && i < RogueConfig.TOTAL_BATTLES - 1) Spacer(Modifier.width(8.dp))
+                }
+            }
+
+            Spacer(Modifier.height(6.dp))
+            PlainButton(
+                text      = s.backToMenuCaps,
+                modifier  = Modifier.width(260.dp).height(40.dp),
+                textColor = TextPrimary,
+                fontSize  = 12.sp,
+                paddingH  = 0.dp,
+                paddingV  = 0.dp,
+                buttonRes = R.drawable.plain_button_longer,
+                onClick   = onBack
+            )
         }
     }
 }
