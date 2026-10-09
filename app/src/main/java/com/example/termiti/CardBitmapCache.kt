@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -51,6 +52,60 @@ object CardBitmapCache {
         val opts = BitmapFactory.Options().apply { inScaled = false; inSampleSize = sample }
         val bmp = BitmapFactory.decodeResource(res, resId, opts) ?: return null
         return bmp.asImageBitmap().also { cache.put(key, it) }
+    }
+
+    /**
+     * [resId] zmenšený přesně na šířku [reqW] px (výška podle poměru stran), s vyhlazením.
+     * Na rozdíl od [decode] netrefuje jen mocniny dvou – 800 px na 450 px umí jen takhle.
+     * Je-li originál užší než [reqW], vrátí se v původní velikosti.
+     */
+    fun scaled(context: Context, resId: Int, reqW: Int): ImageBitmap? {
+        val key = "$resId@w$reqW"
+        cache.get(key)?.let { return it }
+        val opts = BitmapFactory.Options().apply { inScaled = false }
+        val full = BitmapFactory.decodeResource(context.resources, resId, opts) ?: return null
+        val out = if (full.width <= reqW) full else {
+            val h = (full.height.toLong() * reqW / full.width).toInt().coerceAtLeast(1)
+            android.graphics.Bitmap.createScaledBitmap(full, reqW, h, true).also { if (it !== full) full.recycle() }
+        }
+        return out.asImageBitmap().also { cache.put(key, it) }
+    }
+}
+
+/** Rámy karet a překryvy vzácnosti – vrstvy, které kreslí každá karta ve hře. */
+internal val CARD_LAYER_DRAWABLES = listOf(
+    R.drawable.card_frame_magic, R.drawable.card_frame_attack, R.drawable.card_frame_stones, R.drawable.card_frame_chaos,
+    R.drawable.rarity_common, R.drawable.rarity_rare, R.drawable.rarity_epic, R.drawable.rarity_legendary
+)
+
+/** Šířka, na kterou se vrstvy karet zmenšují: 1,5× karta (100 dp). Ve hře se karta kreslí nejvýš 1,35×. */
+internal val CARD_LAYER_WIDTH = 150.dp
+
+/**
+ * Rám karty / překryv vzácnosti zmenšený na [CARD_LAYER_WIDTH] pro karty ve hře.
+ *
+ * Originály mají 800×1195 px (3,8 MB v grafické paměti každý, osm jich je přes 30 MB)
+ * a karta ve hře z nich potřebuje sotva polovinu rozlišení. Zmenšená kopie má na 3×
+ * displeji 450×672 px (1,2 MB) a je pořád jemnější než největší karta na bojišti (405 px).
+ * Velký náhled karty dál kreslí originál přes painterResource.
+ *
+ * Volá se z kreslení karty: z cache hned; když v ní bitmapa ještě není (první karta dřív,
+ * než doběhl [prewarmCardLayers]), dekóduje se na místě.
+ */
+@Composable
+fun rememberCardLayer(resId: Int): ImageBitmap? {
+    val context = LocalContext.current.applicationContext
+    val reqW = with(LocalDensity.current) { CARD_LAYER_WIDTH.roundToPx() }
+    return remember(resId, reqW) { CardBitmapCache.scaled(context, resId, reqW) }
+}
+
+/** Připraví zmenšené vrstvy karet na pozadí, aby první vyložená karta na nic nečekala. */
+@Composable
+fun PrewarmCardLayers() {
+    val context = LocalContext.current.applicationContext
+    val reqW = with(LocalDensity.current) { CARD_LAYER_WIDTH.roundToPx() }
+    LaunchedEffect(reqW) {
+        withContext(Dispatchers.IO) { CARD_LAYER_DRAWABLES.forEach { CardBitmapCache.scaled(context, it, reqW) } }
     }
 }
 

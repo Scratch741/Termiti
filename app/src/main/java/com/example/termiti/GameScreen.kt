@@ -93,6 +93,7 @@ fun GameScreen(
     }
     val mulliganSelected     by viewModel.mulliganSelected
     val isComboTurn          by viewModel.isPlayerComboTurn
+    PrewarmCardLayers()   // zmenšené rámy karet se připraví na pozadí už během mulliganu
     val campaignOpponent     by viewModel.activeCampaignOpponent
     // Tutoriál: aktuální krok skriptu, co má svítit a která karta v ruce je na řadě
     val tutorialActive       by viewModel.tutorialActive

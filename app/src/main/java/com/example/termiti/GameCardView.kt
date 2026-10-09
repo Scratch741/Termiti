@@ -695,25 +695,33 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 2: rám karty (průhlednost v oblasti ilustrace zajistí soubor card_frame.png)
+        // Vrstva 2: rám karty (průhlednost v oblasti ilustrace zajistí soubor card_frame.png).
+        // Kreslí se ze zmenšené kopie (rememberCardLayer) – originál 800×1195 je pro kartu
+        // ve hře zbytečně velký a osm takových vrstev plnilo grafickou paměť.
         if (frameResId != 0) {
-            Image(
-                painter = painterResource(frameResId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
+            rememberCardLayer(frameResId)?.let { frame ->
+                Image(
+                    bitmap = frame,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                    filterQuality = FilterQuality.Medium
+                )
+            }
         }
 
         // Vrstva 2.5: Překryv rarity (PNG s průhledností, mění barvu jen určité části)
         val rarityOverlayId = rarityOverlayResource(card.rarity)
         if (rarityOverlayId != 0) {
-            Image(
-                painter = painterResource(rarityOverlayId),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
+            rememberCardLayer(rarityOverlayId)?.let { overlay ->
+                Image(
+                    bitmap = overlay,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                    filterQuality = FilterQuality.Medium
+                )
+            }
         }
 
         // Vrstva 3: cena karty v levém horním kruhu rámu
