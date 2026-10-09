@@ -1428,7 +1428,10 @@ private fun CardActionPanel(
     Box(
         modifier = Modifier
             .width(210.dp)
-            .heightIn(max = 366.dp)
+            // Dost vysoký na nejdelší obsah (dvouřádkový název, zůstatek prachu, Vyrobit
+            // i Rozebrat), aby se vnitřek nemusel rolovat. Rolování zůstává jako pojistka
+            // pro nižší displeje.
+            .heightIn(max = 404.dp)
             .sidePanelBackground()
     ) {
         // Vnější sloupec: obsah (roluje se, když se nevejde) + tlačítko připnuté dole.
@@ -1438,15 +1441,15 @@ private fun CardActionPanel(
                 .fillMaxWidth()
                 // Nahoře i dole drží obsah mimo ornamenty rámu: název sedí pod horními
                 // medailony a tlačítko Hotovo nad spodními (dřív je překrývalo).
-                .padding(start = 18.dp, end = 18.dp, top = 33.dp, bottom = 34.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(start = 18.dp, end = 18.dp, top = 31.dp, bottom = 31.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // ── Název – na střed a stejně jako na kartě (bílý, černý obrys) ────
             OutlinedTitle(card.displayName, Modifier.fillMaxWidth())

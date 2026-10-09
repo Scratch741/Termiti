@@ -747,3 +747,7 @@ Postup je ve skriptu `tools/grade_ui_textures.py <zdroj> <cíl>` (posun odstínu
 ## [2026-10-09] release | Verze 0.6.1
 
 `versionName` 0.6.0 → 0.6.1, `versionCode` 12 → 13, záznam v `CHANGELOG.md`. PATCH: barevné sladění textur a úpravy UI. `PROTOCOL_VERSION` beze změny.
+
+## [2026-10-09] ui | Panel zvětšené karty se nemusí rolovat
+
+`CardActionPanel` (`DeckBuilderScreen.kt`): maximální výška 366 → 404 dp, mezery mezi řádky 10 → 8 dp, odstup od rámu 31 dp nahoře i dole. U karty s řádky Vyrobit a Rozebrat přetékal obsah o pár dp a vnitřek šel trochu posouvat. Rolování zůstává jen jako pojistka pro nižší displeje.
