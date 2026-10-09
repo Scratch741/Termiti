@@ -1725,6 +1725,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         }
                         resetMirrorCloneInPile(ai.discardPile, aiCard, allCards)
                         updateCloneCards(ai.hand, ai.lastPlayedCard, allCards)
+                        // Zrcadlo, které AI dostala do ruky AŽ během tahu (Chaotický mudrc, Rekrut,
+                        // líz po kombu), minulo obnovu na začátku tahu a zahrálo by se s holým
+                        // artem a popisem „bez efektu", i když hráčovu kartu ve skutečnosti kopíruje.
+                        updateMirrorCards(ai.hand, player.lastPlayedCard, allCards)
                         updateMirrorCards(player.hand, ai.lastPlayedCard, allCards)
                         addReplayFrame(old.copy(playerState = player, aiState = ai), aiCard, isPlayer = false, action = CardAction.PLAYED)
                         recordCard(aiCard, CardAction.PLAYED, isPlayer = false)
