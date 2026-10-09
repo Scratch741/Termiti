@@ -475,10 +475,17 @@ fun NewBattlefield(
         // Posun vrchní karty v px: + doprava, − doleva. Po puštění prstu se vrací na 0.
         val pull      = remember { Animatable(0f) }
         val pullScope = rememberCoroutineScope()
-        val peeking by remember { derivedStateOf { kotlin.math.abs(pull.value) > 0.5f } }
-        // Krok mezi vysunutými kartami: dvě třetiny karty, ale tak, aby se všech šest vešlo do bojiště
-        val pileStepPx = with(LocalDensity.current) {
-            minOf(scaledW * 0.66f, (maxWidth / 2 - scaledW / 2 - 6.dp) / PILE_PEEK_MAX).toPx()
+        // Starší karty jsou ve stromu od začátku tažení do doběhnutí návratu. Dřív je řídil
+        // práh |pull| > 0,5 px: kolem nuly (prst skoro na místě, dokmit pružiny) se přes něj
+        // přecházelo tam a zpět a šest celých karet se každý snímek skládalo a zahazovalo.
+        var fanOpen by remember { mutableStateOf(false) }
+        // Krok mezi vysunutými kartami = 4/5 šířky karty, takže z každé starší karty je vidět
+        // většina (název, cena i text). Vějíř se rozkládá na OBĚ strany od středu – vrchní karta
+        // jede ve směru tahu, zbytek balíčku ustupuje opačně – a využije tak celou šířku bojiště.
+        val pileStepPx  = with(LocalDensity.current) { (scaledW * PILE_PEEK_VISIBLE).toPx() }
+        // Kolik starších karet se při tomhle kroku do bojiště vejde (rozpětí vějíře = počet × krok)
+        val pileMaxUnder = with(LocalDensity.current) {
+            ((maxWidth - scaledW - 12.dp).toPx() / pileStepPx).toInt().coerceIn(1, PILE_PEEK_MAX)
         }
 
         LaunchedEffect(lastCard?.id, lastCardIsPlayer, flight?.landedPlayerCardId) {
@@ -518,15 +525,22 @@ fun NewBattlefield(
                 .offset(y = cardTopY)
                 .trackFlightTarget()
                 // Tažením do strany se zpod vrchní karty vysouvají starší; puštěním se vrátí
-                .pointerInput(pileStepPx) {
-                    val settle = { pullScope.launch { pull.animateTo(0f, spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)) } }
+                .pointerInput(pileStepPx, pileMaxUnder) {
+                    // Nové tažení během návratu animaci zruší (snapTo) → fanOpen zůstane true
+                    val settle = {
+                        pullScope.launch {
+                            pull.animateTo(0f, spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow))
+                            fanOpen = false
+                        }
+                    }
                     detectDragGestures(
+                        onDragStart  = { if (pileUnder.isNotEmpty()) fanOpen = true },
                         onDragEnd    = { settle() },
                         onDragCancel = { settle() }
                     ) { change, drag ->
                         if (pileUnder.isEmpty()) return@detectDragGestures
                         change.consume()
-                        val limit = pileStepPx * pileUnder.size
+                        val limit = pileStepPx * minOf(pileUnder.size, pileMaxUnder)
                         pullScope.launch { pull.snapTo((pull.value + drag.x).coerceIn(-limit, limit)) }
                     }
                 },
@@ -536,7 +550,7 @@ fun NewBattlefield(
             // táhnou jako rozložený vějíř: k-tá (1 = hned pod vrchní) je o k kroků pozadu.
             // Čím delší tah, tím víc karet se odlepí od balíčku; ty nejstarší zůstávají na místě.
             // Kreslí se jen během nahlížení, nejhlubší první (nejnovější je navrchu).
-            if (peeking) {
+            if (fanOpen) {
                 for (k in pileUnder.size downTo 1) {
                     val entry = pileUnder[k - 1]
                     key(entry.card.id, k) {
@@ -545,8 +559,12 @@ fun NewBattlefield(
                             scaledW  = scaledW, scaledH = scaledH,
                             natW     = cardNatW, natH = cardNatH, cardScale = cardScale,
                             modifier = Modifier.graphicsLayer {
+                                // Rozevření |v|: vrchní karta je o půlku ve směru tahu, k-tá karta
+                                // k kroků za ní; karty, na které se ještě nedostalo, drží pohromadě
+                                // na opačném konci (zbytek balíčku).
                                 val v = pull.value
-                                translationX = kotlin.math.sign(v) * (kotlin.math.abs(v) - k * pileStepPx).coerceAtLeast(0f)
+                                val open = kotlin.math.abs(v)
+                                translationX = kotlin.math.sign(v) * (open / 2f - minOf(k * pileStepPx, open))
                             }
                         )
                     }
@@ -575,7 +593,7 @@ fun NewBattlefield(
                         .graphicsLayer {
                             val p = flyProgress.value
                             val e = 1f - (1f - p) * (1f - p)   // easeOut quadratic
-                            translationX = pull.value          // nahlížení pod balíček: jede s prstem
+                            translationX = pull.value / 2f     // nahlížení pod balíček: vějíř se rozevírá od středu
                             if (displayIsPlayer) {
                                 alpha = slotAlpha
                                 scaleX = 1f
@@ -641,8 +659,11 @@ fun NewBattlefield(
     }
 }
 
-/** Kolik karet pod vrchní jde tažením odhalit. */
+/** Kolik karet pod vrchní si bojiště pamatuje (odhalit jich jde tolik, kolik se vejde na šířku). */
 private const val PILE_PEEK_MAX = 6
+
+/** Jaká část šířky starší karty je při nahlížení vidět (krok vějíře). */
+private const val PILE_PEEK_VISIBLE = 0.8f
 
 /** Karta, která ležela na odhazovacím balíčku – s tím, co se s ní stalo a čí byla. */
 private class PileEntry(val card: Card, val action: CardAction?, val isPlayer: Boolean)
