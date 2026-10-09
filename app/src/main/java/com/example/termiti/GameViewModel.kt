@@ -1184,8 +1184,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         applyEffects(card.effects, player, ai, allCards, xValue = xValue,
             onOpponentCardLost = { lostCard, action ->
                 cardHistory.appendHistory(lostCard, action, isMine = false)
-                addCardLog("Hráč", lostCard, action, isMe = false)
-                oppLosses.add(lostCard to action)
+                oppLosses.add(lostCard to action)   // do logu až po applyEffects – viz níž
             },
             onDrawCard = { _, count -> pendingDrawCount += count },
             maxHandSize = old.playerMaxHand,
@@ -1201,6 +1200,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 if (isSelf) showOverdrawBurn(burned, isPlayer = true)
                 else        overdrawIds.add(burned.id)   // zobrazí revealOpponentLosses
             })
+        // Log: kartu, kterou soupeř PŘELÍZL (plná ruka při Studni vědomostí apod.), si spálil
+        // on sám – i když se to stalo v mém tahu. Skutečné spálení/krádež je moje akce.
+        // (Přelíznutí se pozná až teď: onOverdrawBurn chodí až po onOpponentCardLost.)
+        oppLosses.forEach { (lostCard, action) ->
+            addCardLog(if (lostCard.id in overdrawIds) "AI" else "Hráč", lostCard, action, isMe = false)
+        }
         // Ghost v AI stripu jen u SKUTEČNÉ ztráty z ruky. Přelíznutí jde z balíčku
         // rovnou do odhazovacího, ruka se nezmenší → položka ve frontě by se nikdy
         // nespotřebovala a rozjela by kurzor pro všechny další ztráty.
@@ -1402,7 +1407,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             applyEffects(card.discardEffects, player, ai, allCards,
                 onOpponentCardLost = { lostCard, action ->
                     cardHistory.appendHistory(lostCard, action, isMine = false)
-                    addCardLog("Hráč", lostCard, action, isMe = false)
                     dOppLosses.add(lostCard to action)
                 },
                 maxHandSize = old.playerMaxHand,
@@ -1416,6 +1420,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     else        dOverdrawIds.add(burned.id)
                 })
             dOppLosses.forEach { (lostCard, action) ->
+                // přelíznutou kartu si soupeř spálil sám (stejně jako u zahrání karty výše)
+                addCardLog(if (lostCard.id in dOverdrawIds) "AI" else "Hráč", lostCard, action, isMe = false)
                 if (lostCard.id !in dOverdrawIds) recordAiHandLoss(lostCard, action)
             }
             revealOpponentLosses(dOppLosses)
@@ -1562,9 +1568,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // by ji odhalení okamžitě přebilo a hráč by nevěděl, CO ho
                         // to stálo. Boolean = karta patřila hráči.
                         val aiPendingReveals = mutableListOf<Pair<Card, Boolean>>()
+                        // Karty, o které hráč přišel při této AI kartě; zapíšou se až po
+                        // applyEffects, kdy je jasné, které z nich si hráč přelízl sám.
+                        val aiCausedLosses = mutableListOf<Pair<Card, CardAction>>()
                         applyEffects(
                             aiCard.effects, ai, player, allCards, xValue = aiXValue,
-                            onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
+                            onOpponentCardLost = { card, action -> aiCausedLosses.add(card to action) },
                             onDrawCard = { state, count ->
                                 repeat(count) {
                                     val r = state.drawCards(1, old.aiMaxHand)
@@ -1590,6 +1599,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                 aiPendingReveals.add(burned to !isSelf)
                             }
                         )
+                        aiCausedLosses.forEach { (card, action) ->
+                            recordOpponentLoss(card, action,
+                                selfInflicted = aiPendingReveals.any { it.second && it.first.id == card.id })
+                        }
                         // AI auto-pick pro Decision efekty.
                         // Mirror/Clone: Decision efekty kopírované karty nejsou v aiCard.effects
                         // a applyEffects je záměrně přeskakuje (/* řeší ViewModel */). Musíme je
@@ -1802,17 +1815,23 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         // ── Mechanika "Zahození": efekty spuštěné zahozením AI kartou ──
                         if (toDiscard.discardEffects.isNotEmpty()) {
                             log.appendLog(ls.logDiscardEffectTriggered.format(toDiscard.displayName))
+                            val dAiLosses       = mutableListOf<Pair<Card, CardAction>>()
+                            val dPlayerOverdraw = mutableSetOf<String>()
                             applyEffects(toDiscard.discardEffects, ai, player, allCards,
-                                onOpponentCardLost = { card, action -> recordOpponentLoss(card, action) },
+                                onOpponentCardLost = { card, action -> dAiLosses.add(card to action) },
                                 maxHandSize = old.aiMaxHand,
                                 opponentMaxHandSize = old.playerMaxHand,
                                 onOverdrawBurn = { burned, isSelf ->
+                                    if (!isSelf) dPlayerOverdraw.add(burned.id)
                                     showOverdrawBurn(burned, isPlayer = !isSelf)
                                 },
                                 onSelfCardLost = { lostCard, action ->
                                     cardHistory.appendHistory(lostCard, action, isMine = false)
                                     addCardLog("AI", lostCard, action, isMe = false)
                                 })
+                            dAiLosses.forEach { (card, action) ->
+                                recordOpponentLoss(card, action, selfInflicted = card.id in dPlayerOverdraw)
+                            }
                             val midDiscard = old.copy(playerState = player.deepCopy(), aiState = ai.deepCopy(), activePlayer = ActivePlayer.AI)
                             midDiscard.checkWinCondition()?.let { result ->
                                 scheduleGameEnd(result, midDiscard); return@launch
@@ -1995,12 +2014,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Karta ztracena hráčem kvůli efektu AI (BurnCard / StealCard). */
-    private fun recordOpponentLoss(card: Card, action: CardAction) {
+    /**
+     * @param selfInflicted hráč si kartu přelízl sám (plná ruka při líznutí, které vyvolala
+     *   soupeřova karta) – v logu je pak aktérem hráč, ne soupeř. Do „Spálené a ukradené"
+     *   patří dál: přišel o ni kvůli soupeřově kartě.
+     */
+    private fun recordOpponentLoss(card: Card, action: CardAction, selfInflicted: Boolean = false) {
         cardHistory.appendHistory(card, action, isMine = true)
         val list = lostToOpponent.value.toMutableList()
         list.add(0, CardHistoryEntry(card, action, isMine = true))
         lostToOpponent.value = list
-        addCardLog("AI", card, action, isMe = false)
+        if (selfInflicted) addCardLog("Hráč", card, action, isMe = true)
+        else               addCardLog("AI", card, action, isMe = false)
     }
 
     // addLog → log.appendLog() z GameLogManager.kt

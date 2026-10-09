@@ -929,6 +929,9 @@ class OnlineLobbyViewModel(
                     val ownCard     = json.optBoolean("ownCard", false)
                     val causedBySelf = json.optBoolean("causedBySelf", false)
                     val fromHand     = json.optBoolean("fromHand", false)
+                    // Přelíznutí: karta shořela tomu, komu přetekla ruka – on je v logu aktérem,
+                    // i když líznutí vyvolala karta druhého hráče (Studna vědomostí apod.).
+                    val fromOverdraw = json.optBoolean("fromOverdraw", false)
                     val template    = allCards.find { it.id == baseId } ?: return@launch
                     val card        = template.copy(id = cardId, isGenerated = isGenerated)
                     val turn        = gameState.value.turnNumber
@@ -962,7 +965,9 @@ class OnlineLobbyViewModel(
                                 lastPlayedCard.value   = card
                                 lastPlayedAction.value = action
                                 lastPlayedByMe.value   = false
-                                gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                                gameLog.value = (gameLog.value +
+                                    (if (fromOverdraw) LogEntry.CardEvent(oppName, card, action, isMe = false, turn)
+                                     else              LogEntry.CardEvent(myName,  card, action, isMe = true,  turn))).takeLast(50)
                             }
                             else -> {
                                 // Soupeřova karta ztracena (včetně bomby explodující soupeři)
@@ -974,7 +979,9 @@ class OnlineLobbyViewModel(
                                 if (!isBomb) {
                                     lostToOpponent.value = listOf(CardHistoryEntry(card, action, isMine = true)) + lostToOpponent.value
                                 }
-                                gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
+                                gameLog.value = (gameLog.value +
+                                    (if (fromOverdraw) LogEntry.CardEvent(myName,  card, action, isMe = true,  turn)
+                                     else              LogEntry.CardEvent(oppName, card, action, isMe = false, turn))).takeLast(50)
                             }
                         }
                     }
