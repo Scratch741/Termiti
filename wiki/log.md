@@ -759,3 +759,17 @@ Po prvním sladění měly ozdobné konce `bg_top_bar` správný odstín (33°),
 ## [2026-10-09] ui | Odznak hradu: údaje blíž k sobě
 
 `CastleHpBadge`: mezery mezi údaji 6 → 3 dp, pevné šířky hrad 59 dp, hradby 53 dp, karty 30 dp, destička 171 dp (dřív 63 / 50 / 33 a 178 dp). Šířky zůstávají pevné, takže se řádek při změně počtu cifer neposouvá; hradby mají šířku nastavenou tak, aby mezera před kartami odpovídala mezeře mezi hradem a hradbami.
+
+## [2026-10-09] fix | Let zahrané karty na displejích s jiným poměrem stran
+
+Na tabletu (1920×1200) vylétala zahraná karta zpod ruky, od spodku displeje, a přistávala pod svým místem. Pozice karet (`FlightOverlayState.sources`, `target`, `LossGhost.rect`) se měří přes `boundsInRoot()` vůči kořeni okna, ale letící karta se kreslí uvnitř herního rámu `DesignFrame`, který je na displeji s jiným poměrem stran vystředěný mezi černými pruhy – celý let byl posunutý o výšku pruhu. Nový `FlightOverlayState.origin` (poloha vrstvy letu v okně, měří ji `Spacer` ve `FlightOverlayBox`) se od pozic odečítá u letu karty i u efektů spálené / ukradené karty. Na telefonu s poměrem 19,5 : 9 jsou pruhy nulové a nic se nemění. Ověřeno uživatelem na tabletu SM-T515.
+
+## [2026-10-09] ui | Herní log: „přelíznul“ místo „spálil“ u přelíznutí
+
+Karta, která shořela kvůli plné ruce, má v logu sloveso `logVerbOverdrew` („přelíznul“ / „overdrew“) místo „spálil“. `LogEntry.CardEvent` má nový příznak `overdraw`.
+- **Offline** (`GameViewModel`): příznak se nastavuje u všech 8 míst, kde se loguje `drawCards(...).burned`, u ztrát označených v `overdrawIds` / `dOverdrawIds` a v `recordOpponentLoss(selfInflicted = true)`. Cílené pálení (Spálená knihovna, Likvidace) a výbuch pasti zůstávají „spálil“.
+- **Online** (`OnlineLobbyViewModel`): bere se `fromOverdraw` ze zprávy `CARD_LOST`. Server (`GameSession.js`) ho nově posílá u všech přelíznutí včetně vlastní karty (`ownCard`, `causedBySelf`, `selfLostCards`). Se starším serverem, který ho u vlastní karty neposílal, se přelíznutí pozná podle `causedBySelf`, nebo podle toho, že vlastní karta shořela a není to výbuch pasti.
+
+## [2026-10-09] ui | Online log: pasivní schopnosti obou hráčů
+
+Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`) založí záznamy `LogEntry.AbilityEvent` pro soupeřovy schopnosti (`opponentActiveAbilities` ze serveru, s jeho jménem a avatarem) a pro hráčovy aktivní schopnosti z profilu – stejné řádky s ikonou, názvem a popisem jako offline (`GameViewModel.logStartAbilities`). Po návratu do zápasu přes obnovení spojení (matchInfo rekonstruované z `GAME_STATE`) se záznamy nedoplní – server v tu chvíli soupeřovy schopnosti neposílá.

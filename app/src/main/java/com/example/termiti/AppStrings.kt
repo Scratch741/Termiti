@@ -318,6 +318,7 @@ class AppStrings(
     val logVerbPlayed: String by values
     val logVerbDiscarded: String by values
     val logVerbBurned: String by values
+    val logVerbOverdrew: String by values
     val logVerbStolen: String by values
     // System events (some take %s = card/resource, %d = amount — sequential order)
     val logBurnedFromOppDeck: String by values

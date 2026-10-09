@@ -248,6 +248,7 @@
     "logVerbPlayed": "zahrál",
     "logVerbDiscarded": "zahodil",
     "logVerbBurned": "🔥 spálil",
+    "logVerbOverdrew": "přelíznul",
     "logVerbStolen": "🃏 ukradl",
     "logBurnedFromOppDeck": "Hráč zahodil ze soupeřova balíku: %s",
     "logChose": "Hráč si vybral: %s",

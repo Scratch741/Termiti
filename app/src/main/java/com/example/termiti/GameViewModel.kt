@@ -767,7 +767,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(
@@ -858,7 +858,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResR.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(playerState = player.deepCopy(), aiState = ai, activePlayer = ActivePlayer.AI)
@@ -908,7 +908,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     val qdr1 = player.drawCards(1, old.playerMaxHand)
                     qdr1.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                 }
@@ -1204,7 +1204,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // on sám – i když se to stalo v mém tahu. Skutečné spálení/krádež je moje akce.
         // (Přelíznutí se pozná až teď: onOverdrawBurn chodí až po onOpponentCardLost.)
         oppLosses.forEach { (lostCard, action) ->
-            addCardLog(if (lostCard.id in overdrawIds) "AI" else "Hráč", lostCard, action, isMe = false)
+            addCardLog(if (lostCard.id in overdrawIds) "AI" else "Hráč", lostCard, action, isMe = false, overdraw = lostCard.id in overdrawIds)
         }
         // Ghost v AI stripu jen u SKUTEČNÉ ztráty z ruky. Přelíznutí jde z balíčku
         // rovnou do odhazovacího, ruka se nezmenší → položka ve frontě by se nikdy
@@ -1307,7 +1307,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     transformShapeShifters(player.hand, allCards, onlyNew = true)
                     drawResult.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     gameState.value = old.copy(
@@ -1421,7 +1421,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 })
             dOppLosses.forEach { (lostCard, action) ->
                 // přelíznutou kartu si soupeř spálil sám (stejně jako u zahrání karty výše)
-                addCardLog(if (lostCard.id in dOverdrawIds) "AI" else "Hráč", lostCard, action, isMe = false)
+                addCardLog(if (lostCard.id in dOverdrawIds) "AI" else "Hráč", lostCard, action, isMe = false, overdraw = lostCard.id in dOverdrawIds)
                 if (lostCard.id !in dOverdrawIds) recordAiHandLoss(lostCard, action)
             }
             revealOpponentLosses(dOppLosses)
@@ -1472,7 +1472,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val drawResult = ai.drawCards(1, old.aiMaxHand)
                 drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = false)
-                    addCardLog("AI", b, CardAction.BURNED, isMe = false)
+                    addCardLog("AI", b, CardAction.BURNED, isMe = false, overdraw = true)
                     // Overdraw: ukaž spálenou kartu v discard slotu (oranžový prstenec)
                     // a dej hráči 0,75 s na zaregistrování, že AI přetáhla
                     recordCard(b, CardAction.BURNED, isPlayer = false)
@@ -1580,7 +1580,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                                     SoundManager.playCardDraw()
                                     r.burned.forEach { b ->
                                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = false)
-                                        addCardLog("AI", b, CardAction.BURNED, isMe = false)
+                                        addCardLog("AI", b, CardAction.BURNED, isMe = false, overdraw = true)
                                     }
                                     r.traps.forEach { trap ->
                                         reportTrap(trap, state, isPlayer = false)
@@ -1878,7 +1878,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val drawResult = player.drawCards(1, old.playerMaxHand)
                 drawResult.burned.forEach { b ->
                     cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                    addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                    addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                     // Overdraw: ukaž spálenou kartu v discard slotu (oranžový prstenec)
                     recordCard(b, CardAction.BURNED, isPlayer = true)
                 }
@@ -1905,7 +1905,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                     val qdr2 = player.drawCards(1, old.playerMaxHand)
                     qdr2.burned.forEach { b ->
                         cardHistory.appendHistory(b, CardAction.BURNED, isMine = true)
-                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true)
+                        addCardLog("Hráč", b, CardAction.BURNED, isMe = true, overdraw = true)
                         recordCard(b, CardAction.BURNED, isPlayer = true)
                     }
                     // zvuk líznutí hraje animace příletu karty (HandPanel)
@@ -2024,7 +2024,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val list = lostToOpponent.value.toMutableList()
         list.add(0, CardHistoryEntry(card, action, isMine = true))
         lostToOpponent.value = list
-        if (selfInflicted) addCardLog("Hráč", card, action, isMe = true)
+        if (selfInflicted) addCardLog("Hráč", card, action, isMe = true, overdraw = true)
         else               addCardLog("AI", card, action, isMe = false)
     }
 
@@ -2081,10 +2081,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun addCardLog(
         actorName: String, card: Card, action: CardAction, isMe: Boolean,
-        paidCost: Int? = null, asCombo: Boolean = false
+        paidCost: Int? = null, asCombo: Boolean = false, overdraw: Boolean = false
     ) {
         val turn = gameState.value.currentTurn
-        log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn, paidCost, asCombo)).takeLast(50)
+        log.value = (log.value + LogEntry.CardEvent(actorName, card, action, isMe, turn, paidCost, asCombo, overdraw)).takeLast(50)
     }
 
     /**

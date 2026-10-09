@@ -18,7 +18,9 @@ sealed class LogEntry {
         /** Kolik se skutečně zaplatilo (u X-karet hodnota X). Null = neznámé → zobrazí se cena karty. */
         val paidCost  : Int? = null,
         /** Karta šla jako combo – vlastní combo, nebo ji combo udělala předchozí karta. */
-        val asCombo   : Boolean = false
+        val asCombo   : Boolean = false,
+        /** Karta shořela přelíznutím (plná ruka) – v logu „přelíznul", ne „spálil". */
+        val overdraw  : Boolean = false
     ) : LogEntry()
 
     /**

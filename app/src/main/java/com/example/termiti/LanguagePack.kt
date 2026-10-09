@@ -356,6 +356,7 @@ data class LanguagePack(
                 "logVerbPlayed" to str("logVerbPlayed",    "zahrál"),
                 "logVerbDiscarded" to str("logVerbDiscarded", "zahodil"),
                 "logVerbBurned" to str("logVerbBurned",    "🔥 spálil"),
+                "logVerbOverdrew" to str("logVerbOverdrew", "přelíznul"),
                 "logVerbStolen" to str("logVerbStolen",    "🃏 ukradl"),
                 "logBurnedFromOppDeck" to str("logBurnedFromOppDeck", "Hráč zahodil ze soupeřova balíku: %s"),
                 "logChose" to str("logChose",             "Hráč si vybral: %s"),

@@ -710,9 +710,9 @@ class GameSession {
       const oppSideForDrawBurn = side === 'A' ? 'B' : 'A';
       for (const bc of drawBurned) {
         this._send(side, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
-          action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+          action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true, fromOverdraw: true });
         this._send(oppSideForDrawBurn, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
-          action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
+          action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true, fromOverdraw: true });
         this._log(`${this.name[side]} přetáhl – ${bc.name} shořela.`);
       }
       const _drawTrapOppSide = side === 'A' ? 'B' : 'A';
@@ -846,14 +846,15 @@ class GameSession {
       this._logger.logCardLost(side, action, lc.name || lc.id);
     }
     // Vlastní zahozené karty (RandomizeHands / Velký zmatek) – jde o hráčovy vlastní karty
-    for (const { card: lc, action } of selfLostCards) {
+    for (const { card: lc, action, overdraw } of selfLostCards) {
       const payload = {
         type:        'CARD_LOST',
         cardId:      lc.id,
         baseId:      lc.baseId || lc.id,
         action,
         isGenerated: lc.isGenerated || false,
-        ownCard:     true   // příznak: hráč přišel o vlastní kartu (ne soupeřovu)
+        ownCard:     true,  // příznak: hráč přišel o vlastní kartu (ne soupeřovu)
+        fromOverdraw: !!overdraw
       };
       this._send(side,       payload);          // hráč, který Velký zmatek zahrál
       this._send(victimSide, { ...payload, causedByMe: true });
@@ -1338,8 +1339,8 @@ class GameSession {
         this._send(side,       { ...payload, causedByMe: true });
         this._logger.logCardLost(side, action, lc.name || lc.id);
       }
-      for (const { card: lc, action } of selfLostCards) {
-        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, ownCard: true };
+      for (const { card: lc, action, overdraw } of selfLostCards) {
+        const payload = { type: 'CARD_LOST', cardId: lc.id, baseId: lc.baseId || lc.id, action, isGenerated: lc.isGenerated || false, ownCard: true, fromOverdraw: !!overdraw };
         this._send(side,       payload);
         this._send(victimSide, { ...payload, causedByMe: true });
         this._logger.logCardLost(side, action, lc.name || lc.id);
@@ -1460,9 +1461,9 @@ class GameSession {
     const oppSideForOverdraw = this.activeSide === 'A' ? 'B' : 'A';
     for (const bc of burned) {
       this._send(this.activeSide, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
-        action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true });
+        action: 'BURNED', isGenerated: bc.isGenerated || false, ownCard: true, fromOverdraw: true });
       this._send(oppSideForOverdraw, { type: 'CARD_LOST', cardId: bc.id, baseId: bc.baseId || bc.id,
-        action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true });
+        action: 'BURNED', isGenerated: bc.isGenerated || false, causedBySelf: true, fromOverdraw: true });
       this._log(`${this.name[this.activeSide]} přetáhl – ${bc.name} shořela.`);
     }
     // Pasty: injektuj placeholder C38, reportuj klientovi (oběma stranám), zkontroluj výhru

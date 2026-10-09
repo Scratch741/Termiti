@@ -761,6 +761,19 @@ class OnlineLobbyViewModel(
                         myStats              = parseModeStats("myStats"),
                         opponentStats        = parseModeStats("opponentStats")
                     )
+                    // Log nového zápasu začíná pasivními schopnostmi obou stran – stejně jako
+                    // offline (GameViewModel.logStartAbilities): ikona, název a popis každé z nich.
+                    matchInfo.value?.let { info ->
+                        val mine = PlayerProfileManager.profile?.activeAbilities
+                            ?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
+                        val myAvatar = PlayerProfileManager.profile?.avatar ?: "player_icon_1"
+                        gameLog.value =
+                            info.opponentAbilities.mapNotNull { PassiveAbility.fromId(it) }.map {
+                                LogEntry.AbilityEvent(it, actorName = info.opponentName, isMe = false, ownerAvatar = info.opponentAvatar)
+                            } + mine.map {
+                                LogEntry.AbilityEvent(it, actorName = "Hráč", isMe = true, ownerAvatar = myAvatar)
+                            }
+                    }
                     // Načti rating hráče i soupeře z MATCH_FOUND
                     if (!json.isNull("myRating"))       myRating.value       = json.optInt("myRating", 1000)
                     if (!json.isNull("opponentRating")) opponentRating.value = json.optInt("opponentRating", 1000)
@@ -938,22 +951,27 @@ class OnlineLobbyViewModel(
                     val myName      = playerName.value
                     val oppName     = matchInfo.value?.opponentName ?: LanguageManager.currentStrings.opponentDefault
 
+                    val isBomb = baseId == "C37" || baseId == "C38"
+                    // V logu „přelíznul" místo „spálil". Nový server posílá fromOverdraw u všech
+                    // ztrát; starší ho u vlastní karty neposílal – tam se přelíznutí pozná podle
+                    // toho, že vlastní karta shořela a není to výbuch pasti.
+                    val overdraw = if (json.has("fromOverdraw")) fromOverdraw
+                                   else causedBySelf || (ownCard && action == CardAction.BURNED && !isBomb)
                     val applyCardLost: suspend () -> Unit = {
-                        val isBomb = baseId == "C37" || baseId == "C38"
                         when {
                             ownCard -> {
                                 // Moje karta shořela kvůli plné ruce / DrawPerCardPlayed / past
                                 lastPlayedCard.value   = card
                                 lastPlayedAction.value = action
                                 lastPlayedByMe.value   = true
-                                gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn)).takeLast(50)
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(myName, card, action, isMe = true, turn, overdraw = overdraw)).takeLast(50)
                             }
                             causedBySelf -> {
                                 // Soupeř si sám spálil kartu přetažením (overdraw) – jen log, není moje ztráta
                                 lastPlayedCard.value   = card
                                 lastPlayedAction.value = action
                                 lastPlayedByMe.value   = false
-                                gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn)).takeLast(50)
+                                gameLog.value = (gameLog.value + LogEntry.CardEvent(oppName, card, action, isMe = false, turn, overdraw = overdraw)).takeLast(50)
                             }
                             causedByMe -> {
                                 // Já jsem způsobil ztrátu soupeřovy karty (BurnCard / StealCard / Decision).
@@ -966,7 +984,7 @@ class OnlineLobbyViewModel(
                                 lastPlayedAction.value = action
                                 lastPlayedByMe.value   = false
                                 gameLog.value = (gameLog.value +
-                                    (if (fromOverdraw) LogEntry.CardEvent(oppName, card, action, isMe = false, turn)
+                                    (if (fromOverdraw) LogEntry.CardEvent(oppName, card, action, isMe = false, turn, overdraw = true)
                                      else              LogEntry.CardEvent(myName,  card, action, isMe = true,  turn))).takeLast(50)
                             }
                             else -> {
@@ -980,7 +998,7 @@ class OnlineLobbyViewModel(
                                     lostToOpponent.value = listOf(CardHistoryEntry(card, action, isMine = true)) + lostToOpponent.value
                                 }
                                 gameLog.value = (gameLog.value +
-                                    (if (fromOverdraw) LogEntry.CardEvent(myName,  card, action, isMe = true,  turn)
+                                    (if (fromOverdraw) LogEntry.CardEvent(myName,  card, action, isMe = true,  turn, overdraw = true)
                                      else              LogEntry.CardEvent(oppName, card, action, isMe = false, turn))).takeLast(50)
                             }
                         }
@@ -995,7 +1013,6 @@ class OnlineLobbyViewModel(
                     // zobrazit se má nejdřív ta ZAHRANÁ (co ztrátu způsobila) a
                     // teprve pak ztráta samotná. Bomby (C37/C38) mají vlastní náběh —
                     // exploze v balíčku má působit jako událost, ne jako blik.
-                    val isBomb  = baseId == "C37" || baseId == "C38"
                     val prev    = cardLostRevealJob
                     val chained = prev?.isActive == true
                     // Ztrátu způsobila MOJE zahraná karta (spálil/ukradl jsem soupeři

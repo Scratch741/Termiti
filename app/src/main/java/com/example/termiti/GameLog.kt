@@ -94,7 +94,7 @@ private fun LogEntryRow(entry: LogEntry, rowAlpha: Float = 1f) {
             val actionLabel = when (entry.action) {
                 CardAction.PLAYED    -> s.logVerbPlayed
                 CardAction.DISCARDED -> s.logVerbDiscarded
-                CardAction.BURNED    -> s.logVerbBurned
+                CardAction.BURNED    -> if (entry.overdraw) s.logVerbOverdrew else s.logVerbBurned
                 CardAction.STOLEN    -> s.logVerbStolen
             }
             val actorLabel = logActorLabel(entry.actorName)
