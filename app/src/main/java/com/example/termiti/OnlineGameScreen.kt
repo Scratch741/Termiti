@@ -745,7 +745,7 @@ private fun OnlineGameplay(
                             val btnGlow = when {
                                 !gs.isMyTurn -> null
                                 isGameEnding -> Crimson
-                                else         -> HpGreen
+                                else         -> TealLight   // stejná barva jako popisek tlačítka a „Váš tah"
                             }
                             NewPanelButton(
                                 label     = when {

@@ -179,18 +179,12 @@ fun NewTopBar(
             DeckCountChip(playerCardBackResId(), playerDeckSize)
             if (playerPassives.isNotEmpty()) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
+                    // Jen ikony – bez vlastního rámečku, leží přímo na kůži lišty
                     playerPassives.forEach { ability ->
-                        Box(
-                            Modifier
-                                .size(20.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
-                                .border(0.5.dp, Gold.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
-                            contentAlignment = Alignment.Center
-                        ) { Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(13.dp)) }
+                        Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(17.dp))
                     }
                 }
             }
@@ -250,18 +244,11 @@ fun NewTopBar(
             }
             if (aiPassives.isNotEmpty()) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     aiPassives.forEach { ability ->
-                        Box(
-                            Modifier
-                                .size(20.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFF1A0A2E).copy(alpha = 0.70f))
-                                .border(0.5.dp, Crimson.copy(alpha = 0.45f), RoundedCornerShape(4.dp)),
-                            contentAlignment = Alignment.Center
-                        ) { Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(13.dp)) }
+                        Image(painterResource(ability.iconRes), contentDescription = null, modifier = Modifier.size(17.dp))
                     }
                 }
             }
@@ -727,25 +714,17 @@ private fun ResourceChip(@DrawableRes iconRes: Int, value: Int, mine: Int, color
 
 /**
  * Počítadlo karet v balíčku v horní liště: rub karet daného hráče + počet.
- * Stejná destička jako ostatní chipy lišty (plain_button, mírně zesvětlená).
  */
 @Composable
 private fun DeckCountChip(@DrawableRes cardBackRes: Int, count: Int) {
-    Box(Modifier.size(width = 56.dp, height = 34.dp), contentAlignment = Alignment.Center) {
-        Image(
-            painter            = painterResource(R.drawable.plain_button),
-            contentDescription = null,
-            modifier           = Modifier.matchParentSize(),
-            contentScale       = ContentScale.FillBounds,
-            colorFilter        = ColorFilter.tint(Color.White.copy(alpha = 0.05f), BlendMode.Screen)
-        )
-        Row(
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            CardBackMini(cardBackRes, Modifier.size(width = 18.dp, height = 28.dp))
-            Text("$count", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-        }
+    // Bez destičky: rub karty je sám dost výrazný a lišta má o jeden rámeček míň
+    Row(
+        modifier              = Modifier.padding(horizontal = 4.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        CardBackMini(cardBackRes, Modifier.size(width = 18.dp, height = 28.dp))
+        Text("$count", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 

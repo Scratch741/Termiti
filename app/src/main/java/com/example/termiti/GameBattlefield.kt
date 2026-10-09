@@ -454,6 +454,7 @@ fun NewBattlefield(
             maxWall     = playerState.maxWall,
             handSize    = playerState.hand.size,
             maxHandSize = playerMaxHand,
+            cardBackResId = playerCardBackResId(),
             modifier    = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)
@@ -468,6 +469,7 @@ fun NewBattlefield(
             maxWall     = aiState.maxWall,
             handSize    = aiState.hand.size,
             maxHandSize = aiMaxHand,
+            cardBackResId = opponentCardBackResId,
             modifier    = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
@@ -1451,47 +1453,44 @@ private fun CastleHpBadge(
     maxWall: Int = MAX_WALL,
     handSize: Int = 0,
     maxHandSize: Int = 7,
+    @DrawableRes cardBackResId: Int = R.drawable.card_back_frame,
     modifier: Modifier = Modifier
 ) {
-    val accentLight = if (isPlayer) TealLight else Color(0xFFFF7070)
-    val accentColor = if (isPlayer) Teal else Crimson
+    // Barva strany jen na hradu a hradbách (tyrkysová = ty, červená = soupeř); počet karet
+    // v ruce je neutrální jako ostatní čísla v liště.
+    val accent = if (isPlayer) TealLight else Color(0xFFFF7070)
 
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color.Black.copy(alpha = 0.72f))
-            .border(0.5.dp, accentColor.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-            .padding(horizontal = 7.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    // Herní destička jako u ostatních prvků lišty (dřív černý zaoblený rámeček)
+    Box(
+        modifier = modifier.size(width = 178.dp, height = 28.dp).buttonTexture(R.drawable.plain_button_longer),
+        contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(13.dp))
-            Text(
-                if (winTarget >= 999) "$castleHp" else "$castleHp/$winTarget",
-                color      = accentLight,
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
-            Text(
-                "$wallHp/$maxWall",
-                color      = accentColor,
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Image(painterResource(playerCardBackResId()), contentDescription = null,
-                modifier = Modifier.size(width = 8.dp, height = 12.dp))
-            Text(
-                "$handSize/$maxHandSize",
-                color      = Color(0xFFCCBB88),
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
+        // Každý údaj má pevně široké místo (podle nejdelší hodnoty: „100/105", „40/40", „8/8"),
+        // takže se řádek neposouvá, když číslo přejde z dvouciferného na jednociferné.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            @Composable
+            fun Stat(text: String, color: Color, width: Dp, icon: @Composable () -> Unit) {
+                Row(
+                    modifier              = Modifier.width(width),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    icon()
+                    Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                }
+            }
+            Stat(if (winTarget >= 999) "$castleHp" else "$castleHp/$winTarget", accent, 63.dp) {
+                Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+            }
+            Stat("$wallHp/$maxWall", accent, 50.dp) {
+                Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+            }
+            Stat("$handSize/$maxHandSize", TextPrimary, 33.dp) {
+                CardBackMini(cardBackResId, Modifier.size(width = 9.dp, height = 13.dp))
+            }
         }
     }
 }

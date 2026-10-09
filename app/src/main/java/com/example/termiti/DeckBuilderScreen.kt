@@ -1428,7 +1428,7 @@ private fun CardActionPanel(
     Box(
         modifier = Modifier
             .width(210.dp)
-            .heightIn(max = 340.dp)
+            .heightIn(max = 366.dp)
             .sidePanelBackground()
     ) {
         // Vnější sloupec: obsah (roluje se, když se nevejde) + tlačítko připnuté dole.
@@ -1436,7 +1436,9 @@ private fun CardActionPanel(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 20.dp),
+                // Nahoře i dole drží obsah mimo ornamenty rámu: název sedí pod horními
+                // medailony a tlačítko Hotovo nad spodními (dřív je překrývalo).
+                .padding(start = 18.dp, end = 18.dp, top = 33.dp, bottom = 34.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
         Column(
@@ -1551,6 +1553,7 @@ private fun CardActionPanel(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
                     .buttonTexture(R.drawable.plain_button_longer)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -1561,7 +1564,7 @@ private fun CardActionPanel(
                         repeat(pendingDismantle) { onDismantle() }
                         onClose()
                     }
-                    .padding(vertical = 9.dp),
+                    .padding(vertical = 8.dp),
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)
             ) {
