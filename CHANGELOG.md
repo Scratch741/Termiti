@@ -17,6 +17,26 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.2] – 2026-10-10
+
+### Vylepšeno
+- **Multiplayer v novém kabátě:** lobby, hledání soupeře, „soupeř nalezen" i žebříček
+  používají stejný rám jako hlavní menu – tlačítka stojí na stejných místech, vlevo je
+  hráč s hodnocením, vpravo počet hráčů online a ve frontě.
+- **Lobby:** módy se jmenují stejně jako v nabídce Hrát (Constructed, Super náhodný mód)
+  a mají otazník s pravidly. Balíček se vybírá z dlaždic a při vstupu je předvybraný
+  aktivní balíček.
+- **Žebříček:** bez emoji, vlastní řádek je zvýrazněný a vlevo je vidět umístění.
+  Při prohlížení se už neodpojuje od serveru.
+- **Tlačítka menu:** jednotný rám a odstín, nové ikony – kostky (Super náhodný mód),
+  lebka (Roguelike), svitek (Kampaň), trofej (Žebříček), věž s lešením (Constructed);
+  Tvorba balíčku má karty, Obchod truhlu.
+- **Herní log:** přelíznutí se píše jako „přelíznul"; online log na začátku ukazuje
+  pasivní schopnosti obou hráčů.
+
+### Opraveno
+- Let zahrané karty na displejích s jiným poměrem stran (tablet) začínal mimo ruku.
+
 ## [0.6.1] – 2026-10-09
 
 ### Vylepšeno

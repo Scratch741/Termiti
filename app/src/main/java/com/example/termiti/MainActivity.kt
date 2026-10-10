@@ -176,8 +176,9 @@ class MainActivity : ComponentActivity() {
                         Screen.ONLINE_MP -> OnlineMpScreen(
                             vm            = onlineLobbyVm,
                             decks         = viewModel.decks,
-                            onBack        = { screen = Screen.MENU },
-                            onLeaderboard = { screen = Screen.LEADERBOARD }
+                            allCards      = viewModel.allCards,
+                            activeDeckIndex = viewModel.activeDeckIndex.value,
+                            onBack        = { screen = Screen.MENU }
                         )
 
                         Screen.LEADERBOARD -> LeaderboardScreen(

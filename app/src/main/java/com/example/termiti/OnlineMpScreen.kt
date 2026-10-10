@@ -1,23 +1,34 @@
 package com.example.termiti
 
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,30 +36,31 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // ─── Barvy ───────────────────────────────────────────────────────────────────
-private val OnTeal   = Color(0xFF3DBFAD)
-private val OnGold   = Color(0xFFD4A843)
 private val OnRed    = Color(0xFFCF4A4A)
 private val OnGreen  = Color(0xFF4CAF50)
-private val OnMuted  = Color(0xFF7A6E5F)
-private val OnText   = Color(0xFFEDE0C4)
-private val OnPurple = Color(0xFFAA44CC)
+private val OnBronze = Color(0xFF8A6A3A)
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 @Composable
 fun OnlineMpScreen(
     vm: OnlineLobbyViewModel,
     decks: List<Deck> = emptyList(),
+    allCards: List<Card> = emptyList(),
+    activeDeckIndex: Int = -1,
     onBack: () -> Unit,
-    onLeaderboard: () -> Unit = {}
+    @Suppress("UNUSED_PARAMETER") onLeaderboard: () -> Unit = {}
 ) {
     val phase by vm.phase
+    // Žebříček se kreslí uvnitř lobby – spojení se serverem při jeho prohlížení zůstává.
+    var showLeaderboard by rememberSaveable { mutableStateOf(false) }
 
     // Odpojit WS vždy, když OnlineMpScreen opustí composici (navigace do menu,
-    // LEADERBOARD, sleep/wake s jiným screenem atd.). Bez toho by ViewModel
+    // sleep/wake s jiným screenem atd.). Bez toho by ViewModel
     // mohl auto-reconnectnout na server i když uživatel vidí hlavní menu.
     DisposableEffect(Unit) {
         onDispose { vm.disconnect() }
@@ -65,6 +77,16 @@ fun OnlineMpScreen(
         }
     }
 
+    // V lobby je předvybraný aktivní balíček (je-li úplný) – bez toho by rychlý zápas
+    // bez ručního výběru hrál s náhodným balíčkem. returnToLobby() výběr nuluje, proto podle fáze.
+    LaunchedEffect(phase) {
+        if (phase == OnlinePhase.LOBBY && vm.selectedDeckIndex.value < 0) {
+            val idx = if (decks.getOrNull(activeDeckIndex)?.isValid == true) activeDeckIndex
+                      else decks.indexOfFirst { it.isValid }
+            if (idx >= 0) vm.setDeckChoice(idx, decks[idx].cardIdList())
+        }
+    }
+
     // Herní fáze: plná obrazovka bez lobby
     if (phase == OnlinePhase.GAME_MULLIGAN ||
         phase == OnlinePhase.GAME_PLAYING  ||
@@ -73,11 +95,51 @@ fun OnlineMpScreen(
         return
     }
 
+    if (showLeaderboard && phase == OnlinePhase.LOBBY) {
+        LeaderboardScreen(onBack = { showLeaderboard = false })
+        return
+    }
+
+    val leave = { vm.disconnect(); onBack() }
+    when (phase) {
+        OnlinePhase.NAME_INPUT  ->
+            if (!PlayerProfileManager.profile?.name.isNullOrBlank()) ConnectingPanel(onCancel = leave)
+            else NameInputPanel(vm, onBack)
+        OnlinePhase.CONNECTING  -> ConnectingPanel(onCancel = leave)
+        OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, allCards, onBack = leave, onLeaderboard = { showLeaderboard = true })
+        OnlinePhase.QUEUING     -> QueuingPanel(vm)
+        OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
+        OnlinePhase.ERROR       -> ErrorPanel(vm, onBack)
+        else                    -> {}
+    }
+}
+
+private fun Deck.cardIdList(): List<String> = cardCounts.flatMap { (id, count) -> List(count) { id } }
+
+// ─── Společný rám menu ────────────────────────────────────────────────────────
+//
+// Stejné rozložení jako hlavní menu (MenuScreen): pozadí s pochodněmi, vlevo kamenná deska
+// s hráčem, uprostřed záhlaví + tělo, vpravo deska s kulatými ikonami. Záhlaví zabírá přesně
+// místo loga DARKMAGE a tělo místo čtyř tlačítek, takže při přechodu z menu nic neposkočí.
+
+/** Výška jednoho tlačítka menu (button_N.png, 662×107) při šířce 90 % středu. */
+internal fun menuButtonHeight(centerW: Dp): Dp = centerW * 0.9f * 107f / 662f
+/** Mezera mezi tlačítky menu. */
+internal fun menuGap(H: Dp): Dp = H * 0.010f
+
+@Composable
+internal fun MenuFrame(
+    left   : @Composable ColumnScope.(H: Dp) -> Unit,
+    right  : @Composable ColumnScope.(H: Dp, iconSize: Dp) -> Unit,
+    /** true = střed vyplní celou výšku i šířku tmavého pole (žebříček), jinak záhlaví + tělo. */
+    centerFill: Boolean = false,
+    overlay: @Composable BoxScope.() -> Unit = {},
+    center : @Composable ColumnScope.(centerW: Dp, H: Dp) -> Unit
+) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val W = maxWidth
         val H = maxHeight
 
-        // ── Pozadí: stejné jako hlavní menu ──────────────────────────────────
         Image(
             painter            = painterResource(R.drawable.menu_bg),
             contentDescription = null,
@@ -85,7 +147,7 @@ fun OnlineMpScreen(
             contentScale       = ContentScale.Crop
         )
 
-        // ── Pochodně (stejná matematika jako PlayMenuScreen) ─────────────────
+        // Pochodně (stejná matematika jako MenuScreen)
         val imgAR  = 1791f / 975f
         val dispAR = W.value / H.value.coerceAtLeast(1f)
         val imgDispW: Dp
@@ -111,242 +173,452 @@ fun OnlineMpScreen(
             ), size = torchSize, seed = 1.7f
         )
 
-        // ── Fáze ─────────────────────────────────────────────────────────────
-        when (phase) {
-            OnlinePhase.NAME_INPUT  ->
-                if (!PlayerProfileManager.profile?.name.isNullOrBlank())
-                    ConnectingPanel(onCancel = { vm.disconnect(); onBack() })
-                else NameInputPanel(vm, onBack)
-            OnlinePhase.CONNECTING  -> ConnectingPanel(onCancel = { vm.disconnect(); onBack() })
-            OnlinePhase.LOBBY       -> LobbyPanel(vm, decks, onBack, onLeaderboard)
-            OnlinePhase.QUEUING     -> QueuingPanel(vm, onBack)
-            OnlinePhase.MATCH_FOUND -> MatchFoundPanel(vm)
-            OnlinePhase.ERROR       -> ErrorPanel(vm, onBack)
-            else                    -> {}
+        val centerW  = minOf(W * 0.46f, H * 1.0f)
+        val iconSize = H * 0.12f
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(vertical = H * 0.02f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Posuny sloupců odpovídají MenuScreen (desky v pozadí nejsou přesně v ose sloupců).
+            Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier            = Modifier.offset(x = (-5).dp, y = 30.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(H * 0.025f)
+                ) { left(H) }
+            }
+            Box(
+                Modifier.fillMaxHeight().width(centerW).offset(x = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (centerFill) {
+                    Column(
+                        modifier            = Modifier
+                            .requiredWidth(centerW * 1.16f)
+                            .fillMaxHeight()
+                            .padding(top = H * 0.045f, bottom = H * 0.055f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) { center(centerW, H) }
+                } else {
+                    Column(
+                        modifier            = Modifier.width(centerW),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(menuGap(H))
+                    ) { center(centerW, H) }
+                }
+            }
+            Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier            = Modifier.offset(x = 25.dp, y = 35.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(H * 0.005f)
+                ) { right(H, iconSize) }
+            }
+        }
+        overlay()
+    }
+}
+
+/** Záhlaví na místě loga: nadpis, zdobená linka a volitelný řádek pod ní. */
+@Composable
+internal fun MenuHeader(
+    centerW  : Dp,
+    H        : Dp,
+    title    : String,
+    titleSize: TextUnit = (centerW.value * 0.095f).sp,
+    gradient : List<Color> = TitleGold,
+    sub      : @Composable () -> Unit = {}
+) {
+    Box(
+        Modifier
+            .requiredWidth(centerW * 1.1f)
+            .aspectRatio(1400f / 377f)
+            .offset(y = H * 0.01f),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(H * 0.012f)
+        ) {
+            CampaignTitle(title, fontSize = titleSize, gradient = gradient)
+            Image(
+                painter            = painterResource(R.drawable.bg_separator),
+                contentDescription = null,
+                modifier           = Modifier.width(centerW * 0.82f),
+                contentScale       = ContentScale.FillWidth
+            )
+            sub()
+        }
+    }
+    Spacer(Modifier.height(H * 0.01f))
+}
+
+/** Tělo na místě čtyř tlačítek menu – drží výšku, aby záhlaví stálo na všech obrazovkách stejně. */
+@Composable
+internal fun MenuBody(centerW: Dp, H: Dp, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier            = Modifier
+            .fillMaxWidth()
+            .height(menuButtonHeight(centerW) * 4 + menuGap(H) * 3),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(menuGap(H)),
+        content             = content
+    )
+}
+
+/** Malý řádek pod linkou záhlaví. */
+@Composable
+internal fun HeaderNote(text: String, H: Dp, color: Color = TextMuted) {
+    Text(
+        text,
+        color = color, fontSize = (H.value * 0.030f).sp, fontWeight = FontWeight.Bold,
+        letterSpacing = 0.5.sp, textAlign = TextAlign.Center, maxLines = 2
+    )
+}
+
+/** Medailon s ikonou vyříznutý z tlačítka menu (stejný výřez jako IconMenuButton), bez popisku. */
+@Composable
+internal fun Medallion(@DrawableRes imageRes: Int, size: Dp, modifier: Modifier = Modifier) {
+    Box(modifier.size(size).clip(CircleShape)) {
+        Image(
+            painter            = painterResource(imageRes),
+            contentDescription = null,
+            modifier           = Modifier
+                .requiredHeight(size)
+                .requiredWidth(size * 6.19f)
+                .offset(x = size * 2.4f),
+            contentScale       = ContentScale.FillBounds
+        )
+    }
+}
+
+/** Medailon, kolem kterého obíhá zlatý oblouk – „pracuji" (připojování, hledání soupeře). */
+@Composable
+private fun BusyMedallion(@DrawableRes imageRes: Int, size: Dp) {
+    val angle by rememberInfiniteTransition(label = "busy").animateFloat(
+        0f, 360f, infiniteRepeatable(tween(1800, easing = LinearEasing)), label = "angle"
+    )
+    Box(Modifier.size(size * 1.16f), contentAlignment = Alignment.Center) {
+        Medallion(imageRes, size)
+        Canvas(Modifier.matchParentSize()) {
+            val stroke = this.size.minDimension * 0.022f
+            val inset  = stroke
+            val arc    = androidx.compose.ui.geometry.Size(this.size.width - inset * 2, this.size.height - inset * 2)
+            val tl     = androidx.compose.ui.geometry.Offset(inset, inset)
+            drawArc(OnBronze.copy(alpha = 0.35f), 0f, 360f, false, tl, arc, style = Stroke(stroke * 0.5f))
+            rotate(angle) {
+                drawArc(
+                    brush      = Brush.sweepGradient(listOf(Color.Transparent, Gold.copy(alpha = 0.15f), Color(0xFFFFE9A8))),
+                    startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                    topLeft    = tl, size = arc,
+                    style      = Stroke(stroke, cap = StrokeCap.Butt)
+                )
+            }
         }
     }
 }
 
-// ─── Lobby: 3-sloupcový layout ────────────────────────────────────────────────
+/** Avatar v rámečku jako v hlavním menu. */
+@Composable
+internal fun AvatarPlate(avatar: String, size: Dp, accent: Color = Gold) {
+    val shape = RoundedCornerShape(size * 0.22f)
+    Box(
+        Modifier
+            .size(size)
+            .clip(shape)
+            .background(accent.copy(alpha = 0.15f))
+            .border(1.dp, accent.copy(alpha = 0.4f), shape),
+        contentAlignment = Alignment.Center
+    ) {
+        AvatarDisplay(avatar, sizeDp = size.value * 0.89f)
+    }
+}
+
+/** Avatar + jméno hráče na kamenné desce. */
+@Composable
+internal fun PlateIdentity(avatar: String, name: String, H: Dp, accent: Color = Gold, nameColor: Color = TextPrimary) {
+    // velikost avataru a mezera pod ním jako ProfileInfo v hlavním menu
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(H * 0.025f)
+    ) {
+        AvatarPlate(avatar, H * 0.162f, accent)
+        Text(
+            name,
+            color = nameColor, fontSize = (H.value * 0.035f).sp, fontWeight = FontWeight.Bold,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = H * 0.25f)
+        )
+    }
+}
+
+/** Řádkování těsně podle písma (výchozí je o dost vyšší a bloky hodnocení by přetekly desku). */
+private fun tight(fs: TextUnit) = androidx.compose.ui.text.TextStyle(
+    lineHeight    = fs * 1.15f,
+    platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false)
+)
+
+/**
+ * Hodnocení v jednom módu: popisek, rating s hvězdou a bilance.
+ * @param showWinRate úspěšnost v procentech za bilancí (v lobby se nezobrazuje, v žebříčku ano).
+ */
+@Composable
+internal fun RatingBlock(label: String, stats: OnlineModeStats?, H: Dp, showWinRate: Boolean = false) {
+    val s = stats ?: OnlineModeStats()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(H * 0.010f)
+    ) {
+        Text(
+            label.uppercase(),
+            color = TextMuted, fontSize = (H.value * 0.021f).sp, style = tight((H.value * 0.021f).sp), fontWeight = FontWeight.Bold,
+            letterSpacing = 0.6.sp, maxLines = 1
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(H * 0.010f)) {
+            Image(painterResource(R.drawable.star_icon), contentDescription = null, modifier = Modifier.size(H * 0.034f))
+            Text("${s.rating}", color = Gold, fontSize = (H.value * 0.036f).sp, style = tight((H.value * 0.036f).sp), fontWeight = FontWeight.Bold)
+        }
+        val wrColor = when {
+            s.games == 0    -> TextMuted
+            s.winRate >= 60 -> OnGreen
+            s.winRate >= 45 -> Gold
+            else            -> OnRed
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(H * 0.012f)) {
+            Text(
+                "${s.wins}–${s.losses}–${s.draws}",
+                color = TextPrimary.copy(alpha = 0.85f), fontSize = (H.value * 0.025f).sp, style = tight((H.value * 0.025f).sp), fontWeight = FontWeight.Bold
+            )
+            if (showWinRate && s.games > 0) {
+                Text("${s.winRate} %", color = wrColor, fontSize = (H.value * 0.025f).sp, style = tight((H.value * 0.025f).sp), fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+/**
+ * Obsah kamenné desky s hodnocením. Sloupec je ukotvený shora, ne na střed: avatar tak stojí
+ * na všech obrazovkách multiplayeru přesně tam, kde v hlavním menu (horní hrana 32,6 % výšky),
+ * ať je pod ním obsahu jakkoli mnoho – při překlikávání nic neposkakuje.
+ *
+ * @param columnShift svislý posun rodičovského sloupce v [MenuFrame] (levý 30 dp, pravý 35 dp).
+ */
+@Composable
+internal fun PlateColumn(H: Dp, columnShift: Dp = 30.dp, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier            = Modifier.fillMaxHeight().padding(top = H * 0.303f - columnShift),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(H * 0.020f),
+        content             = content
+    )
+}
+
+@Composable
+internal fun PlateSeparator(H: Dp) {
+    Image(
+        painter            = painterResource(R.drawable.bg_separator),
+        contentDescription = null,
+        modifier           = Modifier.width(H * 0.20f),
+        contentScale       = ContentScale.FillWidth
+    )
+}
+
+/** Levá deska lobby: hráč a jeho hodnocení v obou módech. */
+@Composable
+private fun ColumnScope.LobbyProfile(vm: OnlineLobbyViewModel, H: Dp) {
+    val name         by vm.playerName
+    val allModeStats by vm.allModeStats
+    PlateColumn(H) {
+        PlateIdentity(PlayerProfileManager.profile?.avatar ?: "player_icon_1", name, H)
+        PlateSeparator(H)
+        RatingBlock("Constructed", allModeStats["normal"], H)
+        RatingBlock(LocalStrings.current.mpModeSuperRandom, allModeStats["super_random"], H)
+    }
+}
+
+/** Číslo s popiskem ve stejném půdorysu jako [IconMenuButton] – drží pozice ikon pod ním. */
+@Composable
+private fun PlateCounter(value: Int, label: String, color: Color, size: Dp) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(size * 0.03f)
+    ) {
+        Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+            Text("$value", color = color, fontSize = (size.value * 0.50f).sp, fontWeight = FontWeight.Bold)
+        }
+        Text(
+            label.uppercase(),
+            color = TextMuted, fontSize = (size.value * 0.20f).sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+        )
+    }
+}
+
+/** Pravá deska: kolik hráčů je online a ve frontě + tlačítko zpět na obvyklém místě. */
+@Composable
+private fun ColumnScope.LobbyStatus(vm: OnlineLobbyViewModel, iconSize: Dp, backLabel: String, onBack: () -> Unit) {
+    val onlineCount by vm.onlineCount
+    val queueSize   by vm.queueSize
+    PlateCounter(onlineCount, LocalStrings.current.mpOnline, OnGreen, iconSize)
+    PlateCounter(queueSize,   LocalStrings.current.mpQueue,  Gold,    iconSize)
+    IconMenuButton(imageRes = R.drawable.button_6, label = backLabel, size = iconSize, onClick = onBack)
+}
+
+/** Pravá deska bez počítadel – jen tlačítko zpět na obvyklém místě. */
+@Composable
+internal fun ColumnScope.BackOnly(iconSize: Dp, label: String, onBack: () -> Unit) {
+    repeat(2) {
+        Box(Modifier.alpha(0f)) { PlateCounter(0, " ", Color.Transparent, iconSize) }
+    }
+    IconMenuButton(imageRes = R.drawable.button_6, label = label, size = iconSize, onClick = onBack)
+}
+
+private val backLabel: String
+    @Composable get() = LocalStrings.current.mpBackPlain
+private val cancelLabel: String
+    @Composable get() = LocalStrings.current.mpCancel.removePrefix("← ")
+
+// ─── Lobby ────────────────────────────────────────────────────────────────────
 @Composable
 private fun LobbyPanel(
     vm: OnlineLobbyViewModel,
     decks: List<Deck>,
+    allCards: List<Card>,
     onBack: () -> Unit,
-    onLeaderboard: () -> Unit = {}
+    onLeaderboard: () -> Unit
 ) {
-    val name            by vm.playerName
-    val onlineCount     by vm.onlineCount
-    val queueSize       by vm.queueSize
+    val s               = LocalStrings.current
     val selectedDeckIdx by vm.selectedDeckIndex
     val errorMsg        by vm.errorMsg
-    val statusMsg       by vm.statusMsg
-    val allModeStats    by vm.allModeStats
+    var pickingDeck     by remember { mutableStateOf(false) }
+    var rules           by remember { mutableStateOf<Pair<String, String>?>(null) }
 
-    BoxWithConstraints(
+    val deckName = decks.getOrNull(selectedDeckIdx)?.let { deckTitle(localizedDeckName(it.name)) } ?: s.mpDeckRandom
+
+    MenuFrame(
+        left    = { H -> LobbyProfile(vm, H) },
+        right   = { _, iconSize -> LobbyStatus(vm, iconSize, backLabel, onBack) },
+        overlay = {
+            if (pickingDeck) {
+                OnlineDeckPicker(
+                    decks       = decks,
+                    allCards    = allCards,
+                    selectedIdx = selectedDeckIdx,
+                    onPick      = { idx -> vm.setDeckChoice(idx, decks[idx].cardIdList()); pickingDeck = false },
+                    onDismiss   = { pickingDeck = false }
+                )
+            }
+            rules?.let { (mode, text) -> RulesOverlay(s.rulesTitle.format(mode), text, s.close) { rules = null } }
+        }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, "Online lobby") {
+            if (errorMsg.isNotBlank()) HeaderNote(errorMsg, H, OnRed)
+        }
+        MenuBody(centerW, H) {
+            // Názvy módů i otazníky s pravidly stejně jako v nabídce Hrát
+            val helpSize = H * 0.075f
+            ModeRow(helpSize, onHelp = { rules = s.ownDeck to s.rulesOnlineConstructed }) {
+                MenuButton(s.ownDeck,     imageRes = R.drawable.button_14, accent = TealLight, onClick = { vm.joinQueue(superRandom = false) })
+            }
+            ModeRow(helpSize, onHelp = { rules = s.superRandom to s.rulesOnlineSuperRandom }) {
+                MenuButton(s.superRandom, imageRes = R.drawable.button_10, accent = TealLight, onClick = { vm.joinQueue(superRandom = true) })
+            }
+            MenuButton(
+                "${s.mpDeckLabel} · ${deckName.uppercase()}",
+                imageRes = R.drawable.button_7, accent = Gold,
+                enabled  = decks.any { it.isValid },
+                onClick  = { pickingDeck = true }
+            )
+            MenuButton(s.mpLeaderboard, imageRes = R.drawable.button_11, accent = Gold, onClick = onLeaderboard)
+        }
+    }
+}
+
+// ─── Výběr balíčku pro rychlý zápas ───────────────────────────────────────────
+@Composable
+private fun OnlineDeckPicker(
+    decks: List<Deck>,
+    allCards: List<Card>,
+    selectedIdx: Int,
+    onPick: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val s = LocalStrings.current
+    Box(
         Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
+            .background(Color.Black.copy(alpha = 0.82f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        val W = maxWidth
-        val H = maxHeight
-        val centerW = minOf(W * 0.44f, H * 1.0f)
-
-        Row(
-            Modifier.fillMaxSize().padding(vertical = H * 0.015f),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-
-            // ── Levý sloupec: hráč + statistiky ──────────────────────────────
-            Box(Modifier.weight(1f).fillMaxHeight()) {
-                Image(
-                    painter            = painterResource(R.drawable.bg_side_panels),
-                    contentDescription = null,
-                    modifier           = Modifier.fillMaxSize(),
-                    contentScale       = ContentScale.Crop
-                )
-                // Lehký tmavý overlay pro čitelnost textu
-                Box(Modifier.fillMaxSize().background(Color(0x55000000)))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Avatar + jméno vedle sebe
-                    val profile = PlayerProfileManager.profile
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            CampaignTitle(s.dbPickDeck, fontSize = 24.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                decks.forEachIndexed { i, deck ->
+                    val iconRes = remember(deck.cardCounts) {
+                        deck.dominantResource(allCards)?.let { resourceIconRes(it) } ?: R.drawable.card_icon
+                    }
+                    val shape = RoundedCornerShape(8.dp)
+                    Box(
+                        Modifier
+                            .size(width = 184.dp, height = 124.dp)
+                            .alpha(if (deck.isValid) 1f else 0.45f)
+                            .then(if (i == selectedIdx) Modifier.border(2.dp, Gold, shape) else Modifier)
+                            .clip(shape)
+                            .then(
+                                if (deck.isValid) Modifier.clickable { SoundManager.playMenuTap(); onPick(i) }
+                                // neúplný balíček klik spolkne, aby se překryv nezavřel
+                                else Modifier.clickable(remember { MutableInteractionSource() }, null) {}
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        AvatarDisplay(
-                            avatar  = profile?.avatar ?: "player_icon_1",
-                            sizeDp  = (H.value * 0.065f).coerceIn(26f, 48f)
+                        Image(
+                            painter            = painterResource(R.drawable.mulligan_background),
+                            contentDescription = null,
+                            modifier           = Modifier.matchParentSize(),
+                            contentScale       = ContentScale.FillBounds
                         )
-                        Text(
-                            name,
-                            color = OnText, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    LobbyDivider()
-
-                    // Statistiky
-                    Text(
-                        LocalStrings.current.mpStats,
-                        color = OnMuted, fontSize = 7.sp,
-                        letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold
-                    )
-                    ModeStatsBlock(
-                        label  = "Constructed",
-                        stats  = allModeStats["normal"],
-                        accent = OnTeal
-                    )
-                    ModeStatsBlock(
-                        label  = LocalStrings.current.mpModeSuperRandom,
-                        stats  = allModeStats["super_random"],
-                        accent = OnPurple
-                    )
-
-                    if (errorMsg.isNotBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            errorMsg,
-                            color = OnRed, fontSize = 9.sp, textAlign = TextAlign.Center,
-                            modifier = Modifier.widthIn(max = 180.dp)
-                        )
-                    }
-                }
-            }
-
-            // ── Střed: nadpis + akční tlačítka ────────────────────────────────
-            Box(
-                Modifier.width(centerW).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    Modifier.width(centerW),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(H * 0.008f)
-                ) {
-                    // Nadpis
-                    CampaignTitle("ONLINE", fontSize = (centerW.value * 0.085f).sp)
-                    CampaignTitle("LOBBY", fontSize = (centerW.value * 0.115f).sp)
-
-                    Spacer(Modifier.height(H * 0.018f))
-
-                    // Akční tlačítka – stejný styl jako v hlavním menu
-                    MenuButton(
-                        label    = LocalStrings.current.mpQuickMatch,
-                        imageRes = R.drawable.button_1,
-                        accent   = TealLight,
-                        onClick  = { vm.joinQueue(superRandom = false) }
-                    )
-                    MenuButton(
-                        label    = LocalStrings.current.mpSuperRandom,
-                        imageRes = R.drawable.button_9,
-                        accent   = OnPurple,
-                        onClick  = { vm.joinQueue(superRandom = true) }
-                    )
-                    MenuButton(
-                        label    = LocalStrings.current.mpLeaderboard,
-                        imageRes = R.drawable.button_4,
-                        accent   = OnGold,
-                        onClick  = onLeaderboard
-                    )
-                    MenuButton(
-                        label    = LocalStrings.current.mpDisconnect,
-                        imageRes = R.drawable.button_6,
-                        accent   = OnMuted,
-                        onClick  = { vm.disconnect(); onBack() }
-                    )
-                }
-            }
-
-            // ── Pravý sloupec: výběr balíčku ──────────────────────────────────
-            Box(Modifier.weight(1f).fillMaxHeight()) {
-                Image(
-                    painter            = painterResource(R.drawable.bg_side_panels),
-                    contentDescription = null,
-                    modifier           = Modifier.fillMaxSize().graphicsLayer { scaleX = -1f },
-                    contentScale       = ContentScale.Crop
-                )
-                Box(Modifier.fillMaxSize().background(Color(0x55000000)))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Stav připojení
-                    if (statusMsg.isNotBlank()) {
-                        Text(
-                            "• $statusMsg",
-                            color = OnTeal.copy(alpha = 0.85f),
-                            fontSize = 9.sp
-                        )
-                    }
-
-                    // Online / fronta
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(onlineCount.toString(), color = OnGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("Online", color = OnMuted, fontSize = 8.sp, letterSpacing = 0.5.sp)
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(queueSize.toString(), color = OnGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text(LocalStrings.current.mpQueue, color = OnMuted, fontSize = 8.sp, letterSpacing = 0.5.sp)
-                        }
-                    }
-
-                    LobbyDivider()
-
-                    Text(
-                        LocalStrings.current.mpDeckLabel,
-                        color = OnMuted, fontSize = 7.sp,
-                        letterSpacing = 1.5.sp, fontWeight = FontWeight.Bold
-                    )
-                    LobbyDivider()
-
-                    // Deck list: Box s weight(1f) → Column uvnitř smí scrollovat
-                    Box(Modifier.weight(1f).fillMaxWidth()) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            decks.forEachIndexed { idx, deck ->
-                                DeckChip(
-                                    label     = localizedDeckName(deck.name),
-                                    selected  = selectedDeckIdx == idx,
-                                    valid     = deck.isValid,
-                                    cardCount = deck.totalCards,
-                                    onClick   = {
-                                        if (deck.isValid) {
-                                            val ids = deck.cardCounts
-                                                .flatMap { (id, count) -> List(count) { id } }
-                                            vm.setDeckChoice(idx, ids)
-                                        } else {
-                                            vm.setDeckChoice(idx, null)
-                                        }
-                                    }
-                                )
-                            }
+                            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit)
+                            Text(
+                                deckTitle(localizedDeckName(deck.name)),
+                                color = TextPrimary, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 130.dp)
+                            )
+                            Text(
+                                "${deck.totalCards} / 30",
+                                color = if (deck.isValid) HpGreen else OnRed,
+                                fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
             }
+            PlainButton(
+                text      = s.back2,
+                modifier  = Modifier.width(110.dp).height(32.dp),
+                textColor = TextMuted,
+                fontSize  = 10.sp,
+                paddingH  = 6.dp,
+                paddingV  = 0.dp,
+                onClick   = onDismiss
+            )
         }
     }
 }
@@ -354,87 +626,64 @@ private fun LobbyPanel(
 // ─── Zadání přezdívky ─────────────────────────────────────────────────────────
 @Composable
 private fun NameInputPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
+    val s     = LocalStrings.current
     val name  by vm.playerName
     val error by vm.errorMsg
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CampaignTitle("ONLINE MULTIPLAYER", fontSize = 26.sp)
-            Spacer(Modifier.height(4.dp))
-            Image(
-                painter            = painterResource(R.drawable.bg_separator),
-                contentDescription = null,
-                modifier           = Modifier.width(260.dp),
-                contentScale       = ContentScale.FillWidth
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                LocalStrings.current.mpConnectHint,
-                color     = OnMuted,
-                fontSize  = 10.sp,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(Modifier.height(20.dp))
-
+    MenuFrame(
+        left  = { H -> PlayerProfileManager.profile?.let { ProfileInfo(it, H) } },
+        right = { _, iconSize -> BackOnly(iconSize, backLabel, onBack) }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, "Multiplayer") {
+            HeaderNote(if (error.isNotBlank()) error else s.mpConnectHint, H, if (error.isNotBlank()) OnRed else TextMuted)
+        }
+        MenuBody(centerW, H) {
             OutlinedTextField(
                 value         = name,
                 onValueChange = { vm.setName(it) },
-                label         = { Text(LocalStrings.current.mpNickname, color = OnMuted, fontSize = 11.sp) },
+                label         = { Text(s.mpNickname, color = TextMuted, fontSize = 11.sp) },
                 singleLine    = true,
-                modifier      = Modifier.width(260.dp),
+                modifier      = Modifier.fillMaxWidth(0.9f),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { vm.connect() }),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor   = OnTeal,
-                    unfocusedBorderColor = OnMuted.copy(alpha = 0.4f),
-                    focusedTextColor     = OnText,
-                    unfocusedTextColor   = OnText,
-                    cursorColor          = OnTeal
+                    focusedBorderColor   = Gold,
+                    unfocusedBorderColor = OnBronze.copy(alpha = 0.6f),
+                    focusedTextColor     = TextPrimary,
+                    unfocusedTextColor   = TextPrimary,
+                    cursorColor          = Gold
                 )
             )
-
-            if (error.isNotBlank()) {
-                Spacer(Modifier.height(6.dp))
-                Text(error, color = OnRed, fontSize = 10.sp, textAlign = TextAlign.Center)
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            OnBtn(LocalStrings.current.mpConnect, OnTeal, Modifier.width(260.dp), enabled = name.isNotBlank()) { vm.connect() }
-            Spacer(Modifier.height(8.dp))
-            OnBtn(LocalStrings.current.back, OnMuted, Modifier.width(260.dp)) { onBack() }
+            MenuButton(s.mpConnect, imageRes = R.drawable.button_8, accent = TealLight, enabled = name.isNotBlank(), onClick = { vm.connect() })
         }
     }
 }
 
 // ─── Připojování ─────────────────────────────────────────────────────────────
 @Composable
-private fun ConnectingPanel(onCancel: (() -> Unit)? = null) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(52.dp), strokeWidth = 3.dp)
-            Spacer(Modifier.height(16.dp))
-            Text(
-                LocalStrings.current.mpConnecting,
-                color = OnText, fontSize = 13.sp, fontWeight = FontWeight.Bold
-            )
-            if (onCancel != null) {
-                Spacer(Modifier.height(20.dp))
-                OnBtn(LocalStrings.current.mpCancel, OnMuted, Modifier.width(200.dp)) { onCancel() }
-            }
+private fun ConnectingPanel(onCancel: () -> Unit) {
+    MenuFrame(
+        left  = { H -> PlayerProfileManager.profile?.let { ProfileInfo(it, H) } },
+        right = { _, iconSize -> BackOnly(iconSize, cancelLabel, onCancel) }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, "Multiplayer") {
+            HeaderNote(LocalStrings.current.mpConnecting, H)
+        }
+        MenuBody(centerW, H) {
+            Spacer(Modifier.weight(1f))
+            BusyMedallion(R.drawable.button_8, H * 0.26f)
+            Spacer(Modifier.weight(1.6f))
         }
     }
 }
 
 // ─── Ve frontě ───────────────────────────────────────────────────────────────
 @Composable
-private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
+private fun QueuingPanel(vm: OnlineLobbyViewModel) {
+    val s             = LocalStrings.current
     val queueSize     by vm.queueSize
     val isSuperRandom by vm.isSuperRandom
-
-    val accentColor = if (isSuperRandom) OnPurple else OnTeal
-    val modeLabel   = if (isSuperRandom) LocalStrings.current.mpModeSuperRandom else LocalStrings.current.mpModeQuick
+    val modeLabel     = if (isSuperRandom) s.superRandom else s.ownDeck
 
     var elapsedSec by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -445,99 +694,25 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
     }
     val queueTime = "%d:%02d".format(elapsedSec / 60, elapsedSec % 60)
 
-    BoxWithConstraints(
-        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
-    ) {
-        val W = maxWidth
-        val H = maxHeight
-        val centerW = minOf(W * 0.44f, H * 1.0f)
-
-        Row(
-            Modifier.fillMaxSize().padding(vertical = H * 0.02f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // ── Levý sloupec: profil — stejně jako hlavní menu ─────────────────
-            Box(
-                Modifier.weight(1f).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                val profile = PlayerProfileManager.profile
-                if (profile != null) {
-                    Column(
-                        modifier            = Modifier.offset(x = (-5).dp, y = 30.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(H * 0.025f)
-                    ) {
-                        ProfileInfo(profile, H)
-                    }
-                }
-            }
-
-            // ── Střed: spinner + text ─────────────────────────────────────────
-            Box(
-                Modifier.width(centerW).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    CircularProgressIndicator(
-                        color       = accentColor,
-                        modifier    = Modifier.size(56.dp),
-                        strokeWidth = 3.dp
-                    )
-                    Text(
-                        modeLabel,
-                        color = accentColor, fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold, letterSpacing = 1.sp
-                    )
-                    Image(
-                        painter            = painterResource(R.drawable.bg_separator),
-                        contentDescription = null,
-                        modifier           = Modifier.width(centerW * 0.7f),
-                        contentScale       = ContentScale.FillWidth
-                    )
-                    Text(
-                        LocalStrings.current.mpSearching,
-                        color = OnText, fontSize = 18.sp, fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        queueTime,
-                        color = accentColor.copy(alpha = 0.75f),
-                        fontSize = 13.sp, fontWeight = FontWeight.Bold
-                    )
-                    if (queueSize > 1) {
-                        Text(LocalStrings.current.mpInQueue.format(queueSize), color = OnMuted, fontSize = 11.sp)
-                    }
-                }
-            }
-
-            // ── Pravý sloupec: Zpět — stejná pozice jako v PlayMenuScreen ─────
-            Box(
-                Modifier.weight(1f).fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier            = Modifier.offset(x = 25.dp, y = 35.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(H * 0.005f)
-                ) {
-                    // Neviditelné placeholdery — drží stejnou pozici jako button_7 a button_5
-                    Box(Modifier.alpha(0f)) {
-                        IconMenuButton(imageRes = R.drawable.button_7, label = "", size = H * 0.12f, onClick = {})
-                    }
-                    Box(Modifier.alpha(0f)) {
-                        IconMenuButton(imageRes = R.drawable.button_5, label = "", size = H * 0.12f, onClick = {})
-                    }
-                    IconMenuButton(
-                        imageRes = R.drawable.button_6,
-                        label    = LocalStrings.current.mpBackPlain,
-                        size     = H * 0.12f,
-                        onClick  = { vm.leaveQueue() }
-                    )
-                }
-            }
+    MenuFrame(
+        left  = { H -> LobbyProfile(vm, H) },
+        right = { _, iconSize -> LobbyStatus(vm, iconSize, cancelLabel) { vm.leaveQueue() } }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, s.mpSearching.trimEnd('…', '.'), titleSize = (centerW.value * 0.078f).sp) {
+            HeaderNote(modeLabel.uppercase(), H, Gold.copy(alpha = 0.85f))
+        }
+        MenuBody(centerW, H) {
+            Spacer(Modifier.weight(1f))
+            BusyMedallion(if (isSuperRandom) R.drawable.button_10 else R.drawable.button_14, H * 0.26f)
+            Text(
+                queueTime,
+                color = TextPrimary, fontSize = (H.value * 0.058f).sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+            )
+            Text(
+                if (queueSize > 1) s.mpInQueue.format(queueSize) else " ",
+                color = TextMuted, fontSize = (H.value * 0.030f).sp, fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.weight(1f))
         }
     }
 }
@@ -545,59 +720,53 @@ private fun QueuingPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
 // ─── Zápas nalezen ───────────────────────────────────────────────────────────
 @Composable
 private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
+    val s              = LocalStrings.current
     val match          by vm.matchInfo
     val myRating       by vm.myRating
     val opponentRating by vm.opponentRating
     val playerName     by vm.playerName
+    val modeLabel      = if (match?.mode == "super_random") s.mpModeSuperRandom else "Constructed"
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CampaignTitle(LocalStrings.current.mpOpponentFound, fontSize = 28.sp)
-            Spacer(Modifier.height(4.dp))
-            Image(
-                painter            = painterResource(R.drawable.bg_separator),
-                contentDescription = null,
-                modifier           = Modifier.width(260.dp),
-                contentScale       = ContentScale.FillWidth
-            )
-            Spacer(Modifier.height(12.dp))
+    // tečky za „Připravuji hru" přibývají, ať je vidět, že se něco děje
+    val dots by produceState(0) {
+        while (true) { kotlinx.coroutines.delay(400L); value = (value + 1) % 4 }
+    }
 
-            // Rating srovnání
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val profile = PlayerProfileManager.profile
-                    AvatarDisplay(avatar = profile?.avatar ?: "player_icon_1", sizeDp = 36f)
-                    Spacer(Modifier.height(4.dp))
-                    Text(playerName, color = OnTeal, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    if (myRating != null) Text("$myRating", color = OnGold, fontSize = 10.sp)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("VS", color = OnMuted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    AvatarDisplay(match?.opponentAvatar ?: "enemy_icon_1", sizeDp = 36f)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        match?.opponentName ?: LocalStrings.current.opponentDefault,
-                        color = OnRed, fontSize = 11.sp, fontWeight = FontWeight.Bold
-                    )
-                    if (opponentRating != null) Text("$opponentRating", color = OnGold, fontSize = 10.sp)
-                }
+    MenuFrame(
+        left  = { H ->
+            PlateColumn(H) {
+                PlateIdentity(PlayerProfileManager.profile?.avatar ?: "player_icon_1", playerName, H)
+                PlateSeparator(H)
+                RatingBlock(modeLabel, match?.myStats ?: myRating?.let { OnlineModeStats(rating = it) }, H)
             }
-
-            Spacer(Modifier.height(10.dp))
-            Text(
-                if (match?.side == "A") LocalStrings.current.mulliganYouFirst else LocalStrings.current.mulliganOpponentFirst,
-                color    = if (match?.side == "A") OnTeal else OnMuted,
-                fontSize = 11.sp
+        },
+        // pravá deska = soupeř; svislý posun srovnaný s levou deskou (sloupec ikon stojí o 5 dp níž)
+        right = { H, _ ->
+            PlateColumn(H, columnShift = 35.dp) {
+                PlateIdentity(
+                    match?.opponentAvatar ?: "enemy_icon_1",
+                    match?.opponentName ?: s.opponentDefault, H,
+                    accent = OnRed
+                )
+                PlateSeparator(H)
+                RatingBlock(modeLabel, match?.opponentStats ?: opponentRating?.let { OnlineModeStats(rating = it) }, H)
+            }
+        }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, s.mpOpponentFound.trimEnd('!'), titleSize = (centerW.value * 0.078f).sp) {
+            HeaderNote(
+                if (match?.side == "A") s.mulliganYouFirst else s.mulliganOpponentFirst, H,
+                if (match?.side == "A") Gold.copy(alpha = 0.85f) else TextMuted
             )
-            Spacer(Modifier.height(16.dp))
-            CircularProgressIndicator(color = OnTeal, modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
-            Spacer(Modifier.height(6.dp))
-            Text(LocalStrings.current.mpPreparing, color = OnMuted, fontSize = 10.sp)
+        }
+        MenuBody(centerW, H) {
+            Spacer(Modifier.weight(1f))
+            CampaignTitle("VS", fontSize = (centerW.value * 0.22f).sp)
+            Text(
+                s.mpPreparing.trimEnd('…', '.') + ".".repeat(dots) + " ".repeat(3 - dots),
+                color = TextMuted, fontSize = (H.value * 0.030f).sp, fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.weight(1.3f))
         }
     }
 }
@@ -605,129 +774,27 @@ private fun MatchFoundPanel(vm: OnlineLobbyViewModel) {
 // ─── Chyba ───────────────────────────────────────────────────────────────────
 @Composable
 private fun ErrorPanel(vm: OnlineLobbyViewModel, onBack: () -> Unit) {
+    val s     = LocalStrings.current
     val error by vm.errorMsg
+    val leave = { vm.disconnect(); onBack() }
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            Modifier.padding(horizontal = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            CampaignTitle(LocalStrings.current.mpConnectionError, fontSize = 24.sp, gradient = TitleBlood)
-            Spacer(Modifier.height(4.dp))
-            Image(
-                painter            = painterResource(R.drawable.bg_separator),
-                contentDescription = null,
-                modifier           = Modifier.width(240.dp),
-                contentScale       = ContentScale.FillWidth
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                error,
-                color     = OnMuted,
-                fontSize  = 11.sp,
-                textAlign = TextAlign.Center,
-                modifier  = Modifier.widthIn(max = 280.dp)
-            )
-            Spacer(Modifier.height(28.dp))
-            OnBtn(LocalStrings.current.mpRetry, OnTeal, Modifier.width(240.dp)) { vm.retryConnect() }
-            Spacer(Modifier.height(10.dp))
-            OnBtn(LocalStrings.current.back, OnMuted, Modifier.width(240.dp)) { vm.disconnect(); onBack() }
-        }
-    }
-}
-
-// ─── Sdílené komponenty ───────────────────────────────────────────────────────
-
-/** Horizontální textured separátor uvnitř panelu */
-@Composable
-private fun LobbyDivider() {
-    Image(
-        painter            = painterResource(R.drawable.bg_separator),
-        contentDescription = null,
-        modifier           = Modifier.fillMaxWidth(),
-        contentScale       = ContentScale.FillWidth
-    )
-}
-
-
-@Composable
-private fun ModeStatsBlock(label: String, stats: OnlineModeStats?, accent: Color) {
-    Column(
-        modifier            = Modifier.padding(horizontal = 2.dp, vertical = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Text(label, color = accent, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-        val s = stats ?: OnlineModeStats()
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Rating", color = OnMuted, fontSize = 9.sp)
-            Text("${s.rating}", color = OnGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("W / L / D", color = OnMuted, fontSize = 9.sp)
-            Text("${s.wins} / ${s.losses} / ${s.draws}", color = OnText, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Win%", color = OnMuted, fontSize = 9.sp)
-            val wrColor = when {
-                s.winRate >= 60 -> OnGreen
-                s.winRate >= 45 -> OnGold
-                s.games == 0    -> OnMuted
-                else            -> OnRed
+    MenuFrame(
+        left  = { H -> PlayerProfileManager.profile?.let { ProfileInfo(it, H) } },
+        right = { _, iconSize -> BackOnly(iconSize, backLabel, leave) }
+    ) { centerW, H ->
+        MenuHeader(centerW, H, s.mpConnectionError, titleSize = (centerW.value * 0.078f).sp, gradient = TitleBlood)
+        MenuBody(centerW, H) {
+            Box(
+                Modifier.fillMaxWidth(0.9f).height(menuButtonHeight(centerW) * 2 + menuGap(H)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    error,
+                    color = TextPrimary.copy(alpha = 0.8f), fontSize = (H.value * 0.034f).sp,
+                    textAlign = TextAlign.Center, maxLines = 4, overflow = TextOverflow.Ellipsis
+                )
             }
-            Text(
-                if (s.games == 0) "–" else "${s.winRate}%  " + LocalStrings.current.mpGamesSuffix.format(s.games),
-                color = wrColor, fontSize = 9.sp, fontWeight = FontWeight.Bold
-            )
+            MenuButton(s.mpRetry, imageRes = R.drawable.button_8, accent = TealLight, onClick = { vm.retryConnect() })
         }
     }
-}
-
-@Composable
-private fun DeckChip(
-    label     : String,
-    selected  : Boolean,
-    valid     : Boolean,
-    cardCount : Int = 30,
-    onClick   : () -> Unit
-) {
-    val textColor = when {
-        selected && valid  -> OnTeal
-        selected && !valid -> OnRed
-        valid              -> OnMuted
-        else               -> OnRed.copy(alpha = 0.6f)
-    }
-    val countSuffix = if (cardCount != 30) " ($cardCount/30)" else ""
-    PlainButton(
-        text       = "$label$countSuffix",
-        modifier   = Modifier.fillMaxWidth(),
-        textColor  = textColor,
-        fontSize   = 9.sp,
-        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-        selected   = selected,
-        paddingH   = 8.dp,
-        paddingV   = 4.dp,
-        onClick    = onClick
-    )
-}
-
-@Composable
-private fun OnBtn(
-    label   : String,
-    accent  : Color,
-    modifier: Modifier = Modifier,
-    enabled : Boolean  = true,
-    onClick : () -> Unit
-) {
-    PlainButton(
-        text      = label,
-        modifier  = modifier,
-        textColor = if (enabled) OnText else OnMuted,
-        fontSize  = 13.sp,
-        enabled   = enabled,
-        paddingH  = 0.dp,
-        paddingV  = 8.dp,
-        onClick   = onClick
-    )
 }

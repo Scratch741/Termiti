@@ -1037,7 +1037,7 @@ private fun OnlineGameOverOverlay(
 
             MenuButton(
                 label    = LocalStrings.current.resultPlayAgain,
-                imageRes = R.drawable.button_1,
+                imageRes = R.drawable.button_2,
                 accent   = TealLight,
                 onClick  = {
                     SoundManager.playMenuTap()
@@ -1048,14 +1048,14 @@ private fun OnlineGameOverOverlay(
 
             MenuButton(
                 label    = LocalStrings.current.onlineBackToLobby,
-                imageRes = R.drawable.button_3,
+                imageRes = R.drawable.button_6,
                 accent   = OgGold,
                 onClick  = { SoundManager.playMenuTap(); vm.returnToLobby() }
             )
 
             MenuButton(
                 label    = LocalStrings.current.inspectGame,
-                imageRes = R.drawable.button_9,
+                imageRes = R.drawable.button_12,
                 accent   = OgTextMuted,
                 onClick  = { SoundManager.playMenuTap(); onReview() }
             )

@@ -773,3 +773,24 @@ Karta, která shořela kvůli plné ruce, má v logu sloveso `logVerbOverdrew` (
 ## [2026-10-09] ui | Online log: pasivní schopnosti obou hráčů
 
 Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`) založí záznamy `LogEntry.AbilityEvent` pro soupeřovy schopnosti (`opponentActiveAbilities` ze serveru, s jeho jménem a avatarem) a pro hráčovy aktivní schopnosti z profilu – stejné řádky s ikonou, názvem a popisem jako offline (`GameViewModel.logStartAbilities`). Po návratu do zápasu přes obnovení spojení (matchInfo rekonstruované z `GAME_STATE`) se záznamy nedoplní – server v tu chvíli soupeřovy schopnosti neposílá.
+
+## [2026-10-10] ui | Tlačítka menu: jeden rám, jeden tón, nové ikony
+
+- `button_1..9.png` přegenerována skriptem `tools/make_menu_buttons.py`: všechna sdílejí rám z původních 6–9 (1–5 byly jiné rendery – jiný odstín i poloha medailonu), tón ikon srovnán (odstín 31,5°, sytost 0,32).
+- Nová tlačítka: `button_10` kostky, `button_11` trofej, `button_12` svitek, `button_13` lebka (reliéf z herních ikon `trophy_icon`/`scroll_icon`/`skull_icon`, kostky kreslené skriptem).
+- Původní soubory jsou v `tools/menu_buttons_src/` (vstup skriptu).
+- Přiřazení: Tvorba balíčku = karty (7), Obchod = truhla (3), Super náhodný = kostky (10), Roguelike = lebka (13), Kampaň = svitek (12); online: Rychlá hra / Hrát znovu = palcát (2), Žebříček = trofej (11), Zpět do lobby = dveře (6), Prohlédnout hru = svitek (12).
+- `button_14` věž s lešením (z `stavba_icon`) pro Constructed, aby neměl stejný hrad jako Hrát.
+- `button_9` (wifi) zůstává v drawable, ale nikde se teď nepoužívá.
+
+## [2026-10-10] ui | Multiplayer: lobby, fronta, zápas nalezen a žebříček v rámu hlavního menu
+
+- `OnlineMpScreen.kt` přepsán. Nový sdílený rám `MenuFrame` (+ `MenuHeader`, `MenuBody`, `Medallion`, `PlateIdentity`, `RatingBlock`): pozadí `menu_bg` s pochodněmi, vlevo deska s hráčem, uprostřed záhlaví na místě loga a tělo na místě čtyř tlačítek, vpravo deska s ikonami. Tlačítka lobby tak stojí přesně tam, kde tlačítka hlavního menu.
+- Lobby: Rychlý zápas / Super náhodný / Balíček · název / Žebříček; vlevo avatar, jméno a hodnocení v obou módech, vpravo počty Online a Fronta a Zpět (dveře) na obvyklém místě. „Odpojit" jako čtvrté tlačítko zrušeno.
+- Balíček se vybírá v překryvu s dlaždicemi (stejný vzhled jako výběr v tvorbě balíčku); neúplné balíčky jsou ztlumené a nejdou vybrat.
+- **Změna chování:** při vstupu do lobby se předvybere aktivní balíček (je-li úplný, jinak první úplný). Dřív nebyl vybraný žádný a rychlý zápas bez ručního výběru hrál s náhodným balíčkem. `OnlineMpScreen` nově dostává `allCards` a `activeDeckIndex`.
+- Fronta, připojování: místo Material spinneru medailon módu s obíhajícím zlatým obloukem. Zápas nalezen: hráč na levé desce, soupeř na pravé, uprostřed VS.
+- Žebříček (`LeaderboardScreen.kt`) ve stejném rámu, bez emoji; vlastní řádek zvýrazněn, na levé desce umístění hráče. Otevírá se uvnitř lobby (stav `showLeaderboard`), takže se při prohlížení neodpojuje od serveru; trasa `Screen.LEADERBOARD` v MainActivity zůstala, ale lobby ji už nepoužívá.
+- Texty: nové `mpDeckRandom`, `mpOnline`, `lbRefresh`; z `lbTitle`, `lbModeSuperRandom`, `lbRetry` odstraněny emoji. `MenuButton` zkracuje dlouhý popisek výpustkou.
+- Levá deska je ukotvená shora (`PlateColumn`): avatar má stejnou velikost a polohu jako v hlavním menu, takže při překlikávání menu → lobby → žebříček → fronta neposkakuje. Úspěšnost v % je jen v žebříčku, v lobby zůstal rating a bilance.
+- Tlačítka módů v lobby se jmenují jako v nabídce Hrát (Constructed, Super náhodný mód) a mají otazník s pravidly online módu (`rulesOnlineConstructed`, `rulesOnlineSuperRandom`); `ModeRow` a `RulesOverlay` z PlayMenuScreen jsou nově `internal`.

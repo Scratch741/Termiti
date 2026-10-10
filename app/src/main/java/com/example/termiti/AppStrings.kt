@@ -445,6 +445,11 @@ class AppStrings(
     val statWinShort: String by values
     val statLossShort: String by values
     val mpStats: String by values
+    val rulesOnlineSuperRandom: String by values
+    val rulesOnlineConstructed: String by values
+    val lbRefresh: String by values
+    val mpOnline: String by values
+    val mpDeckRandom: String by values
     val leaveGameQ: String by values
     val leaveGameMsg: String by values
     val onlineSurrenderMsg: String by values

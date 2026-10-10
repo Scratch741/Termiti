@@ -136,17 +136,17 @@ fun PlayMenuScreen(
                     Spacer(Modifier.height(H * 0.01f))
                     val helpSize = H * 0.075f
                     ModeRow(helpSize, onHelp = { rules = s.ownDeck to s.rulesConstructed }) {
-                        MenuButton(s.ownDeck,     imageRes = R.drawable.button_1, accent = TealLight,         onClick = onOwnDeck)
+                        MenuButton(s.ownDeck,     imageRes = R.drawable.button_14, accent = TealLight,         onClick = onOwnDeck)
                     }
                     ModeRow(helpSize, onHelp = { rules = s.superRandom to s.rulesSuperRandom }) {
-                        MenuButton(s.superRandom, imageRes = R.drawable.button_9, accent = Color(0xFFE57373), onClick = onSuperRandom)
+                        MenuButton(s.superRandom, imageRes = R.drawable.button_10, accent = Color(0xFFE57373), onClick = onSuperRandom)
                     }
                     // Aréna dočasně skryta (nevejde se; ponechána jako záloha – onArena/routing zůstává)
                     ModeRow(helpSize, onHelp = { rules = "ROGUELIKE" to s.rulesRoguelike }) {
-                        MenuButton("ROGUELIKE",   imageRes = R.drawable.button_2, accent = Color(0xFFB388FF), onClick = onRoguelike)
+                        MenuButton("ROGUELIKE",   imageRes = R.drawable.button_13, accent = Color(0xFFB388FF), onClick = onRoguelike)
                     }
                     ModeRow(helpSize, onHelp = { rules = s.campaign to s.rulesCampaign }) {
-                        MenuButton(s.campaign,    imageRes = R.drawable.button_3, accent = Color(0xFF7EC8E3), onClick = onCampaign)
+                        MenuButton(s.campaign,    imageRes = R.drawable.button_12, accent = Color(0xFF7EC8E3), onClick = onCampaign)
                     }
                 }
             }
@@ -161,7 +161,7 @@ fun PlayMenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
-                    IconMenuButton(imageRes = R.drawable.button_7, label = s.shop,     size = iconSize, onClick = onShop)
+                    IconMenuButton(imageRes = R.drawable.button_3, label = s.shop,     size = iconSize, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
                     IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
                 }
@@ -177,7 +177,7 @@ fun PlayMenuScreen(
  * Otazník je posunutý za okraj sloupce, takže tlačítka zůstávají stejně široká a vystředěná.
  */
 @Composable
-private fun ModeRow(helpSize: Dp, onHelp: () -> Unit, button: @Composable () -> Unit) {
+internal fun ModeRow(helpSize: Dp, onHelp: () -> Unit, button: @Composable () -> Unit) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         button()
         PlainButton(
@@ -195,7 +195,7 @@ private fun ModeRow(helpSize: Dp, onHelp: () -> Unit, button: @Composable () -> 
 
 /** Překryv s pravidly režimu – zavře se tlačítkem i klepnutím mimo. */
 @Composable
-private fun RulesOverlay(title: String, text: String, closeLabel: String, onDismiss: () -> Unit) {
+internal fun RulesOverlay(title: String, text: String, closeLabel: String, onDismiss: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()

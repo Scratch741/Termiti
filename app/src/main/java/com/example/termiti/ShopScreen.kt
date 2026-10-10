@@ -240,7 +240,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
-                        IconMenuButton(imageRes = R.drawable.button_7, label = LocalStrings.current.shop, size = iconSize, onClick = {})
+                        IconMenuButton(imageRes = R.drawable.button_3, label = LocalStrings.current.shop, size = iconSize, onClick = {})
                     }
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
                         IconMenuButton(imageRes = R.drawable.button_5, label = LocalStrings.current.settings, size = iconSize, onClick = {})
