@@ -794,3 +794,16 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Texty: nové `mpDeckRandom`, `mpOnline`, `lbRefresh`; z `lbTitle`, `lbModeSuperRandom`, `lbRetry` odstraněny emoji. `MenuButton` zkracuje dlouhý popisek výpustkou.
 - Levá deska je ukotvená shora (`PlateColumn`): avatar má stejnou velikost a polohu jako v hlavním menu, takže při překlikávání menu → lobby → žebříček → fronta neposkakuje. Úspěšnost v % je jen v žebříčku, v lobby zůstal rating a bilance.
 - Tlačítka módů v lobby se jmenují jako v nabídce Hrát (Constructed, Super náhodný mód) a mají otazník s pravidly online módu (`rulesOnlineConstructed`, `rulesOnlineSuperRandom`); `ModeRow` a `RulesOverlay` z PlayMenuScreen jsou nově `internal`.
+
+## [2026-10-10] ui | Oznámení o odměnách (toast vpravo dole)
+
+- Nadpis i odměny jsou vystředěné; emoji v nadpisech nahrazeny herními ikonami (`RewardEvent.iconRes`: výhra = `trophy_icon`, prohra = `skull_icon`, quest = `scroll_icon`).
+- Splněný quest: nadpis „Quest splněn" + nový řádek `questCompletedHint` („Odměnu si vyzvedni v profilu") místo „převzít odměnu!", které vypadalo jako tlačítko (`RewardEvent.note`).
+- Texty `rewardWin`, `rewardLoss`, `rewardOnlineWin`, `questCompletedNotif` bez emoji.
+
+## [2026-10-10] ui | Hrady a hradby hráče: jednotná barva kamene, zrušena hradba „Klasická"
+
+- `tools/grade_castles.py` přebarvil kámen 12 hradů (`castle_player`, `_2`, `_3`, `_5`–`_13`) a 5 hradeb (`wall_player2`–`6`) na jednu paletu: odstín 172°, sytost 0,19, medián jasu 0,24, světla 0,55. Dřív se odstín pohyboval od 62° (teple šedá) přes 89° (olivová) po 190° (modrá). Akcenty (svítící okna, sytější dřevo) zůstávají. Původní soubory jsou v `tools/castle_src/`.
+- Tematické skiny kampaně (bažiny, citadela, drak, hory, goblin vč. `castle_player_4`) se nemění – vlastní barevnost mají záměrně.
+- Barevné sladění neřeší rozdílnou kresbu a rozlišení (`castle_player`, `_2`, `_3` jsou menší a hrubší než ostatní).
+- Hradba „Klasická" (`wall_player.png`) odstraněna z výběru, z náhodných skinů soupeře i z drawable. ID `wall_player` (starší profily, kampaň, výchozí hodnota serveru) se kreslí jako `wall_player2`; hradby se v profilu jmenují Hradba 1–5.

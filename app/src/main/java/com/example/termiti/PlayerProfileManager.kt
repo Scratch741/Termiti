@@ -83,7 +83,8 @@ object PlayerProfileManager {
                 xp     = xp,
                 gold   = gold,
                 gems   = gems,
-                source = if (win) (if (online) LanguageManager.currentStrings.rewardOnlineWin else LanguageManager.currentStrings.rewardWin) else LanguageManager.currentStrings.rewardLoss
+                source = if (win) (if (online) LanguageManager.currentStrings.rewardOnlineWin else LanguageManager.currentStrings.rewardWin) else LanguageManager.currentStrings.rewardLoss,
+                iconRes = if (win) R.drawable.trophy_icon else R.drawable.skull_icon
             ))
         }
         // Quest tracking
@@ -122,7 +123,7 @@ object PlayerProfileManager {
                 gems     = gemsBonus,
                 levelUp  = true,
                 newLevel = lastLevel,
-                source   = "🆙 Level $lastLevel!"
+                source   = "Level $lastLevel!"
             ))
         }
         return current.copy(xp = remaining)

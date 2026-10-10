@@ -279,6 +279,7 @@ class AppStrings(
     val questDealDamage: String by values    // %d
     val questWinCampaign: String by values   // %d
     val questCompletedNotif: String by values   // toast vpravo dole při dokončení questu
+    val questCompletedHint: String by values
 
     // ── Shop ─────────────────────────────────────────────────────────────────
     val shopTitle: String by values

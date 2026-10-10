@@ -473,7 +473,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      */
     var opponentCastleResId = androidx.compose.runtime.mutableStateOf(R.drawable.castle_player)
         private set
-    var opponentWallResId = androidx.compose.runtime.mutableStateOf(R.drawable.wall_player)
+    var opponentWallResId = androidx.compose.runtime.mutableStateOf(R.drawable.wall_player2)
         private set
 
     // ── Mulligan ──────────────────────────────────────────────────────────────

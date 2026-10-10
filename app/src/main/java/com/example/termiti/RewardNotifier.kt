@@ -11,7 +11,11 @@ object RewardNotifier {
         val gems    : Int     = 0,
         val levelUp : Boolean = false,
         val newLevel: Int     = 0,
-        val source  : String  = ""   // např. "🆙 Level 5!" nebo "🎯 Quest dokončen"
+        val source  : String  = "",  // nadpis: „Výhra", název questu…
+        /** Herní ikona před nadpisem (R.drawable.*), null = bez ikony. */
+        val iconRes : Int?    = null,
+        /** Drobný řádek pod nadpisem (např. kde si odměnu vyzvednout). */
+        val note    : String  = ""
     )
 
     private val _events = MutableSharedFlow<RewardEvent>(extraBufferCapacity = 16)

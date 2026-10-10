@@ -217,7 +217,8 @@ object QuestManager {
             xp     = quest.rewardXp,
             gold   = quest.rewardGold,
             gems   = quest.rewardGems,
-            source = "🎯 ${quest.label()}"
+            source = quest.label(),
+            iconRes = R.drawable.scroll_icon
         ))
         save()
         return quest
@@ -234,7 +235,9 @@ object QuestManager {
                 _quests[i] = updated
                 if (!wasCompleted && updated.completed) {
                     RewardNotifier.emit(RewardNotifier.RewardEvent(
-                        source = LanguageManager.currentStrings.questCompletedNotif
+                        source  = LanguageManager.currentStrings.questCompletedNotif,
+                        iconRes = R.drawable.scroll_icon,
+                        note    = LanguageManager.currentStrings.questCompletedHint
                     ))
                 }
             }

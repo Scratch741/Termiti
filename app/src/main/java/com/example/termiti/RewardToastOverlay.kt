@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -74,17 +75,30 @@ private fun RewardToastCard(ev: RewardNotifier.RewardEvent) {
             .widthIn(min = 160.dp, max = 260.dp)
             .buttonTexture(R.drawable.plain_button_longer)
             .padding(horizontal = 16.dp, vertical = 11.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         // Zdroj (quest název apod.) – skryj při level-upu, tam ho nahrazuje banner
         if (ev.source.isNotEmpty() && !ev.levelUp) {
-            Text(
-                ev.source,
-                color      = Gold,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines   = 2
-            )
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ev.iconRes?.let {
+                    Image(painterResource(it), contentDescription = null, modifier = Modifier.size(14.dp), contentScale = ContentScale.Fit)
+                }
+                Text(
+                    ev.source,
+                    color      = Gold,
+                    fontSize   = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center,
+                    maxLines   = 2
+                )
+            }
+        }
+        if (ev.note.isNotEmpty()) {
+            Text(ev.note, color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         }
 
         // Level-up banner
@@ -103,8 +117,8 @@ private fun RewardToastCard(ev: RewardNotifier.RewardEvent) {
             }
         }
 
-        // Odměny
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Odměny (čistě informační toast – např. splněný quest – je nemá)
+        if (ev.xp > 0 || ev.gold > 0 || ev.gems > 0) Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (ev.xp   > 0) RewardChip(R.drawable.star_icon,      "+${ev.xp} XP",  XpColor)
             if (ev.gold > 0) RewardChip(R.drawable.goldcoin_icon,   "+${ev.gold}",   GoldColor)
             if (ev.gems > 0) RewardChip(R.drawable.diamond_icon,    "+${ev.gems}",   GemColor)

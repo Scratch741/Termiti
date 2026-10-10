@@ -96,8 +96,8 @@ fun NewBattlefield(
     tutorialTargets: Set<TutTarget> = emptySet(),             // tutoriál: co má svítit zlatě
     playerCastleResId: Int = R.drawable.castle_player,        // skin hradu hráče
     opponentCastleResId: Int = R.drawable.castle_player,      // skin hradu soupeře/AI
-    playerWallResId: Int = R.drawable.wall_player,             // skin hradby hráče
-    opponentWallResId: Int = R.drawable.wall_player,            // skin hradby soupeře/AI
+    playerWallResId: Int = R.drawable.wall_player2,             // skin hradby hráče
+    opponentWallResId: Int = R.drawable.wall_player2,            // skin hradby soupeře/AI
     // Pozadí bojiště – náhodné pro běžné hry (viz randomBattleBackground()) nebo
     // vynucené konkrétní pro kampaň (např. castle_background_goblin). Plameny se
     // renderují JEN pro výchozí castle_background – jinde by nesedly na pochodně.
@@ -1261,7 +1261,7 @@ private val RANDOM_OPPONENT_CASTLE_SKIN_IDS = listOf(
     "castle_player_11", "castle_player_12", "castle_player_13"
 )
 private val RANDOM_OPPONENT_WALL_SKIN_IDS = listOf(
-    "wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6"
+    "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6"
 )
 
 /** Náhodně vybere ID vzhledu soupeřova hradu mimo kampaň. */
@@ -1297,7 +1297,8 @@ fun castleSkinDrawable(skinId: String): Int = when (skinId) {
     else                -> R.drawable.castle_player
 }
 
-/** Mapuje ID skinu hradby na drawable resource. */
+/** Mapuje ID skinu hradby na drawable resource. Původní výchozí „wall_player" (Klasická) už
+ *  neexistuje – starší profily, kampaň i server ji dál posílají a kreslí se jako wall_player2. */
 fun wallSkinDrawable(skinId: String): Int = when (skinId) {
     "wall_player2" -> R.drawable.wall_player2
     "wall_player3" -> R.drawable.wall_player3
@@ -1309,7 +1310,7 @@ fun wallSkinDrawable(skinId: String): Int = when (skinId) {
     "wall_hory"     -> R.drawable.wall_hory
     "wall_citadela" -> R.drawable.wall_citadela
     "wall_drak"     -> R.drawable.wall_drak
-    else           -> R.drawable.wall_player
+    else           -> R.drawable.wall_player2
 }
 
 @Composable
@@ -1320,7 +1321,7 @@ private fun NewCastleStructure(
     winTarget: Int = 60,
     maxWall: Int = MAX_WALL,
     castleResId: Int = R.drawable.castle_player,
-    wallResId: Int = R.drawable.wall_player,
+    wallResId: Int = R.drawable.wall_player2,
     glowCastle: Boolean = false,   // tutoriál: zlatý rám kolem hradu
     glowWall: Boolean = false,     // tutoriál: zlatý rám kolem hradeb
     modifier: Modifier = Modifier
@@ -1407,7 +1408,7 @@ private fun CastleTowerBlock(
 }
 
 @Composable
-private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true, wallResId: Int = R.drawable.wall_player, maxWall: Int = MAX_WALL) {
+private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true, wallResId: Int = R.drawable.wall_player2, maxWall: Int = MAX_WALL) {
     val wallFullW = 42.dp
     val wallFullH = 58.dp
     val wallFrac  = hpToVisualFrac(wallHp, maxHp = maxWall.toFloat())

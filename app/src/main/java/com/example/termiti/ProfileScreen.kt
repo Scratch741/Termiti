@@ -449,7 +449,7 @@ private val CASTLE_SKINS = listOf(
     "castle_player_6", "castle_player_7", "castle_player_8", "castle_player_9", "castle_player_10",
     "castle_player_11", "castle_player_12", "castle_player_13"
 )
-private val WALL_SKINS = listOf("wall_player", "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
+private val WALL_SKINS = listOf("wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
 private val CARD_BACK_SKINS = listOf(
     "card_back_frame", "card_back_frame_2", "card_back_frame_3",
     "card_back_frame_4", "card_back_frame_5", "card_back_frame_6", "card_back_frame_7",
@@ -531,10 +531,12 @@ private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) ->
                     }
 
                     LookTab.WALL -> {
-                        LookGrid(WALL_SKINS, profile.wallSkin, tileW, tileW * 1.25f, gap,
+                        // zrušená „Klasická" (wall_player) se kreslí i vybírá jako první hradba
+                        val wallSkin = profile.wallSkin.takeIf { it in WALL_SKINS } ?: WALL_SKINS.first()
+                        LookGrid(WALL_SKINS, wallSkin, tileW, tileW * 1.25f, gap,
                             onPick = { save(profile.copy(wallSkin = it)) }
                         ) { id -> SkinImage(wallSkinDrawable(id)) }
-                        SelectedLabel(wallSkinLabel(profile.wallSkin))
+                        SelectedLabel(wallSkinLabel(wallSkin))
                     }
 
                     LookTab.CARD_BACK -> {
@@ -621,10 +623,8 @@ private fun castleSkinLabel(id: String): String {
 @Composable
 private fun wallSkinLabel(id: String): String {
     val s = LocalStrings.current
-    return when (id) {
-        "wall_player" -> s.wallClassic
-        else          -> s.wallVariant.format(id.removePrefix("wall_player").toIntOrNull() ?: 0)
-    }
+    // soubory jsou wall_player2..6, hráč vidí Hradba 1..5
+    return s.wallVariant.format((id.removePrefix("wall_player").toIntOrNull() ?: 2) - 1)
 }
 
 @Composable

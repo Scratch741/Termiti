@@ -598,7 +598,7 @@ fun CastleWallVisual(castleHp: Int, wallHp: Int, winTarget: Int = 60, maxWall: I
             modifier = Modifier.width(32.dp).fillMaxHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val wallPainter = painterResource(R.drawable.wall_player)
+            val wallPainter = painterResource(R.drawable.wall_player2)
             BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
                 // Vrchol viditelné hradby = (1 - wallFrac) * výška boxu
                 val wallTopDp = maxHeight * (1f - wallFrac)
