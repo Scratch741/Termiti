@@ -824,3 +824,4 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Balance Super náhodného módu byla ověřována se stropem 50; se 40 simulace neproběhla.
 - `deckbuilder.html` (kopie dat kampaně) má pořád výchozí strop 50 – neupraveno.
 - `PROTOCOL_VERSION` beze změny: strop posílá server ve stavu hry, starší klient ho jen zobrazí.
+- [2026-10-11] Roguelike odměna: pod nabízenými kartami je rámeček ve stejném stylu jako Složení balíčku a Mana křivka (tmavý podklad, tenký zlatý okraj, zaoblení 8 dp).

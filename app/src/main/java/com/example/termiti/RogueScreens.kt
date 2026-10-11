@@ -255,7 +255,17 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
  */
 @Composable
 private fun RewardCardRow(cards: List<Card>, modifier: Modifier = Modifier, onPick: (Card) -> Unit) {
-    BoxWithConstraints(modifier.padding(horizontal = 14.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+    // Podklad pod kartami = stejný rámeček jako Složení balíčku a Mana křivka v panelu vpravo
+    val shape = RoundedCornerShape(8.dp)
+    BoxWithConstraints(
+        modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(shape)
+            .background(Color.Black.copy(alpha = 0.50f))
+            .border(1.dp, Gold.copy(alpha = 0.22f), shape)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
         val n     = cards.size.coerceAtLeast(1)
         val gap   = 12.dp
         val scale = minOf(
