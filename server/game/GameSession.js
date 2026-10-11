@@ -79,7 +79,7 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
       }
       case 'BuildWall': {
         // Zeď nad strop (self.maxWall) nemá hodnotu – počítej jen to, co se vejde
-        const effective = Math.max(0, Math.min(fx.amount || 0, (self.maxWall || 50) - (self.wallHP || 0)));
+        const effective = Math.max(0, Math.min(fx.amount || 0, (self.maxWall || 40) - (self.wallHP || 0)));
         // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)
         const danger = 1 + Math.max(0, 30 - self.castleHP) / 30;
         score += effective * 1.5 * danger;
@@ -261,8 +261,8 @@ class GameSession {
     const constructed = this.mode !== 'super_random';
     const startCastle = constructed ? 50 : 30;
     const baseTarget  = constructed ? 100 : 70;
-    // Strop hradeb: constructed 40 (CONSTRUCTED_MAX_WALL), super_random 50.
-    const maxWall     = constructed ? 40 : 50;
+    // Strop hradeb: 40 ve všech módech (klient MAX_WALL).
+    const maxWall     = 40;
     this.state.A = createPlayerState(deckA, startCastle, maxWall);
     this.state.B = createPlayerState(deckB, startCastle, maxWall);
 
@@ -1652,7 +1652,7 @@ class GameSession {
     const oppStatePayload = {
       castleHP:        opp.castleHP,
       wallHP:          opp.wallHP,
-      maxWall:         opp.maxWall || 50,
+      maxWall:         opp.maxWall || 40,
       resources:       { ...opp.resources },
       mines:           { ...opp.mines },
       mineBlockedTurns:{ ...opp.mineBlockedTurns },
@@ -1681,7 +1681,7 @@ class GameSession {
       myState: {
         castleHP:        my.castleHP,
         wallHP:          my.wallHP,
-        maxWall:         my.maxWall || 50,
+        maxWall:         my.maxWall || 40,
         resources:       { ...my.resources },
         mines:           { ...my.mines },
         mineBlockedTurns:{ ...my.mineBlockedTurns },

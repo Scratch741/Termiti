@@ -24,7 +24,7 @@ data class CampaignOpponent(
     // AI startovní stav
     val aiCastle      : Int = 30,
     val aiWall        : Int = 10,
-    /** Strop hradeb AI (MAX_WALL = 50 pokud nenastaveno). Nízký strop u slabých soupeřů,
+    /** Strop hradeb AI (MAX_WALL = 40 pokud nenastaveno). Nízký strop u slabých soupeřů,
      *  aby jejich hradba na bojišti nevypadala vizuálně "prázdná" vůči globálním 50. */
     val aiMaxWall     : Int = MAX_WALL,
     val aiStartMagic  : Int = 0,
@@ -598,7 +598,7 @@ object CampaignData {
                 CampaignOpponent(
                     id = "dwf_colossus", name = "Kamenný Kolos", title = "Neprolomitelná pevnost",
                     avatar = "player_icon_10", cardArt = "hory_kolos", description = "35 karet a winTarget 80. Prolomit nebo zemřít.",
-                    aiCastle = 33, aiWall = 22, aiMaxWall = 50,
+                    aiCastle = 33, aiWall = 22, aiMaxWall = 40,
                     aiExtraMines = mapOf(ResourceType.STONES to 2),
                     deckCardCounts = mapOf(
                         "139" to 1, "018" to 5, "002" to 5, "030" to 5,
@@ -613,7 +613,7 @@ object CampaignData {
                     id = "dwf_thane", name = "Trpasličí Thane", title = "Pán hor",
                     avatar = "player_icon_10", cardArt = "hory_thane", description = "Vládce hor. 38 karet, 5 startovních karet. Útok nebo útok. Jednorázová odměna: 200 XP.",
                     isBoss = true,
-                    aiCastle = 35, aiWall = 20, aiMaxWall = 50,
+                    aiCastle = 35, aiWall = 20, aiMaxWall = 40,
                     aiExtraMines = mapOf(ResourceType.STONES to 1, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
                         "136" to 4, "022" to 4, "017" to 4, "002" to 3,

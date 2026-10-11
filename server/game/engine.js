@@ -11,7 +11,7 @@ const MAX_MINES    = 99;
 // jinak by se stavbou nedalo vyhrát. Stejně jako MAX_CASTLE v PlayerState.kt.
 const MAX_CASTLE   = 150;
 /** Výchozí strop hradeb (náhodné módy). Constructed má nižší – viz GameSession.startGame. */
-const MAX_WALL     = 50;
+const MAX_WALL     = 40;
 
 // ── PlayerState ───────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ function createPlayerState(deckCards, startCastle = 30, maxWall = MAX_WALL) {
   return {
     castleHP: startCastle,
     wallHP:   Math.min(15, maxWall),
-    /** Strop hradeb – constructed 40, super_random 50 (MAX_WALL). */
+    /** Strop hradeb – 40 ve všech módech (MAX_WALL). */
     maxWall,
     resources: { MAGIC: 0, ATTACK: 0, STONES: 0, CHAOS: 0 },
     mines:     { MAGIC: 1, ATTACK: 1, STONES: 1 },

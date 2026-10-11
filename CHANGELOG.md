@@ -28,6 +28,11 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 - **Oznámení o odměnách:** vystředěný nadpis, herní ikony místo emoji; splněný quest
   říká, že si odměnu máš vyzvednout v profilu.
 
+### Změněno
+- **Strop hradeb je 40 ve všech módech** (dřív 50 mimo Constructed): Super náhodný mód
+  offline i online, Roguelike a kampaň. Dva soupeři v kampani se stropem 50 mají nově 40.
+  Online vyžaduje nasazení nového serveru.
+
 ### Odstraněno
 - Hradba „Klasická". Kdo ji měl nastavenou, uvidí místo ní první kamennou hradbu.
 

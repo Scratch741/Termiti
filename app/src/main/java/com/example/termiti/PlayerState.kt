@@ -7,7 +7,7 @@ import java.util.UUID
 
 const val MAX_RESOURCE = 999
 const val MAX_MINES    = 99
-const val MAX_WALL     = 50
+const val MAX_WALL     = 40
 
 /**
  * Strop hradu. Musí být nad každým cílem výhry – constructed 100 + 5 z pasivních
@@ -23,7 +23,7 @@ const val MAX_CASTLE   = 150
  */
 const val CONSTRUCTED_START_CASTLE = 50
 const val CONSTRUCTED_WIN_TARGET   = 100
-/** Strop hradeb v constructed (ostatní módy [MAX_WALL]). Server: GameSession.startGame. */
+/** Strop hradeb v constructed – od 0.6.4 stejný jako [MAX_WALL] ve všech módech. Server: GameSession.startGame. */
 const val CONSTRUCTED_MAX_WALL     = 40
 
 /** Odložená surovina – aplikuje se na začátku tahu po [turnsLeft] kolech. */

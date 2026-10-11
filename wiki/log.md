@@ -815,3 +815,12 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Karty se kreslí stejně jako v albu (`CardPreview`) a zvětšují se podle místa; klepnutí kartu vezme. Tlačítka „PŘIDAT" pod kartami zrušena.
 - Reroll bez emoji: nový text `rogueReroll` („Nová nabídka (%d×)"), velké tlačítko hned pod kartami; spodní lišta zrušena.
 - Výzva pod nadpisem velkým písmem: „VYBER KARTU  zbývá N×" (`roguePickCard`, `roguePicksLeft`). Text `rogueTapToAdd` zůstal v jazykových souborech, ale nepoužívá se.
+
+## [2026-10-11] balance | Strop hradeb 40 ve všech módech
+
+- `MAX_WALL` 50 → 40 (`PlayerState.kt`, `server/game/engine.js`); `GameSession.startGame` dává 40 i pro super_random, záložní hodnoty `|| 50` → `|| 40`. `CONSTRUCTED_MAX_WALL` zůstává 40, teď shodný s `MAX_WALL`.
+- Kampaň: výchozí `aiMaxWall` je tím 40; dva soupeři s výslovným `aiMaxWall = 50` sníženi na 40.
+- Pravidla Super náhodného módu (offline i online) uvádějí „nejvýš 40".
+- Balance Super náhodného módu byla ověřována se stropem 50; se 40 simulace neproběhla.
+- `deckbuilder.html` (kopie dat kampaně) má pořád výchozí strop 50 – neupraveno.
+- `PROTOCOL_VERSION` beze změny: strop posílá server ve stavu hry, starší klient ho jen zobrazí.
