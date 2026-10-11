@@ -534,6 +534,10 @@ class AppStrings(
     val roguePickExtra: String by values
     val rogueNewMine: String by values
     val rogueSkip: String by values
+    val roguePicksLeft: String by values
+    val roguePickCard: String by values
+    val rogueTapToAdd: String by values
+    val rogueReroll: String by values
     val rogueSurrenderMsg: String by values
     val rogueYourDeck: String by values
     val rogueRunComplete: String by values

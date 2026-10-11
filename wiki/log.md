@@ -807,3 +807,11 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Tematické skiny kampaně (bažiny, citadela, drak, hory, goblin vč. `castle_player_4`) se nemění – vlastní barevnost mají záměrně.
 - Barevné sladění neřeší rozdílnou kresbu a rozlišení (`castle_player`, `_2`, `_3` jsou menší a hrubší než ostatní).
 - Hradba „Klasická" (`wall_player.png`) odstraněna z výběru, z náhodných skinů soupeře i z drawable. ID `wall_player` (starší profily, kampaň, výchozí hodnota serveru) se kreslí jako `wall_player2`; hradby se v profilu jmenují Hradba 1–5.
+
+## [2026-10-11] ui | Roguelike: odměna po výhře v rozložení Tvorby balíčku
+
+- `RogueRewardScreen` přepsán: vlevo horní lišta (Menu, Vzdát se, postup, hrad/hradby), nabízené karty a spodní lišta (Nová nabídka, nápověda), vpravo za svislou linkou hlavička „Tvůj balíček (N)" a panel balíčku.
+- Panel balíčku je přímo `DeckPanel` z Tvorby balíčku (složení, mana křivka, karty podle suroviny) přes nové sdílené díly `DbDeckPanel`, `DbBackground`, `DbSeparator`, `DbVerticalSeparator`, `DbBarHeight/Inset/Color`; vlastní `RogueDeckOverview` zrušen.
+- Karty se kreslí stejně jako v albu (`CardPreview`) a zvětšují se podle místa; klepnutí kartu vezme. Tlačítka „PŘIDAT" pod kartami zrušena.
+- Reroll bez emoji: nový text `rogueReroll` („Nová nabídka (%d×)"), velké tlačítko hned pod kartami; spodní lišta zrušena.
+- Výzva pod nadpisem velkým písmem: „VYBER KARTU  zbývá N×" (`roguePickCard`, `roguePicksLeft`). Text `rogueTapToAdd` zůstal v jazykových souborech, ale nepoužívá se.

@@ -688,6 +688,35 @@ private val TOP_BAR_HEIGHT = 40.dp
 /** Podklad lišt – teplá tmavá, ladí s hnědým pozadím. */
 private val DbBar = Color(0xFF0C0806)
 
+// ─── Díly rozložení sdílené s obrazovkami ve stejném stylu (odměna v roguelike) ──
+internal const val DB_CATALOG_WEIGHT = CATALOG_WEIGHT
+internal const val DB_DECK_WEIGHT    = DECK_WEIGHT
+internal val DbBarHeight: Dp get() = TOP_BAR_HEIGHT
+internal val DbBarInset: Dp get() = BAR_INSET
+internal val DbBarColor: Color get() = DbBar.copy(alpha = 0.55f)
+
+/** Pozadí Tvorby balíčku: hnědá kůže z bg_plain, kamenný rám odsunutý za okraj obrazovky. */
+@Composable
+internal fun DbBackground() {
+    Image(
+        painter = painterResource(R.drawable.bg_plain),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = 1.13f; scaleY = 1.16f },
+        contentScale = ContentScale.FillBounds
+    )
+}
+
+@Composable
+internal fun DbSeparator(modifier: Modifier = Modifier) = SectionSeparator(modifier)
+
+@Composable
+internal fun DbVerticalSeparator() = VerticalSeparatorImage()
+
+/** Panel balíčku jen k nahlédnutí (složení, mana křivka, karty podle suroviny) – bez odebírání. */
+@Composable
+internal fun DbDeckPanel(deck: Deck, allCards: List<Card>, deckSize: Int, modifier: Modifier = Modifier) =
+    DeckPanel(deck = deck, allCards = allCards, onRemove = {}, deckSize = deckSize, complete = true, modifier = modifier)
+
 // ─── Záložky surovin ──────────────────────────────────────────────────────────
 /**
  * Horní lišta katalogu: Zpět, filtr suroviny a filtr vzácnosti. Suroviny jsou jen ikony

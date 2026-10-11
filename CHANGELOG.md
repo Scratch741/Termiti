@@ -17,6 +17,20 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.3] – 2026-10-11
+
+### Vylepšeno
+- **Roguelike – odměna po výhře:** obrazovka má stejné rozložení jako Tvorba balíčku.
+  Vpravo je balíček se složením a mana křivkou, karty se berou klepnutím, výzva
+  „Vyber kartu do balíčku" s počtem zbývajících výběrů je velkým písmem a „Nová nabídka"
+  je velké tlačítko pod kartami.
+- **Hrady a hradby:** kámen všech hradů a hradeb hráče má jednotnou barvu.
+- **Oznámení o odměnách:** vystředěný nadpis, herní ikony místo emoji; splněný quest
+  říká, že si odměnu máš vyzvednout v profilu.
+
+### Odstraněno
+- Hradba „Klasická". Kdo ji měl nastavenou, uvidí místo ní první kamennou hradbu.
+
 ## [0.6.2] – 2026-10-10
 
 ### Vylepšeno
