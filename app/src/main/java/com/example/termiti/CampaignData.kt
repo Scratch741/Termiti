@@ -637,47 +637,58 @@ object CampaignData {
             description = "Sídlo temnoty. Soupeři hrají nefér — a jsou na to pyšní.",
             opponents = listOf(
 
-                // 1 ── 30 karet, winTarget 62 ───────────────────────────────
+                // 1 ── 32 karet, winTarget 70 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_knight", name = "Stínový Rytíř", title = "Zloděj zdrojů",
-                    avatar = "🗡️", cardArt = "citadela_rytir", description = "Krade ti zdroje a ještě se směje. Začínáš s méně magií.",
+                    avatar = "🗡️", cardArt = "citadela_rytir", description = "Krade ti zdroje a ještě se směje. ",
                     aiCastle = 33, aiWall = 15,
-                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    aiStartMagic = 2,
+                    aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
-                        "007" to 6, "001" to 5, "017" to 5, "006" to 4,
-                        "012" to 4, "013" to 3, "004" to 3
+                        "104" to 2, "115" to 3, "119" to 4, "136" to 2,
+                        "071" to 3, "046" to 2, "C19" to 1, "C28" to 2,
+                        "C03" to 1, "084" to 3, "087" to 3, "076" to 2,
+                        "D06" to 2, "048" to 2
                     ),
-                    winTarget = 62,
-                    playerHandicap = PlayerHandicap(extraMagic = -2),
+                    winTarget = 70,
+                    playerHandicap = PlayerHandicap(extraMagic = -1),
                     rewardGold = 100
                 ),
 
-                // 2 ── 30 karet, winTarget 63 ───────────────────────────────
+                // 2 ── 44 karet, winTarget 63, AI lízne 6 karet ─────────────
                 CampaignOpponent(
                     id = "cit_archer", name = "Temný Lučištník", title = "Sniper citadely",
                     avatar = "🏹", cardArt = "citadela_lucistnik", description = "Zápalné šípy na hradby, přímé zásahy na hrad.",
-                    aiCastle = 33, aiWall = 12,
-                    aiExtraMines = mapOf(ResourceType.ATTACK to 1),
+                    aiCastle = 55, aiWall = 15,
+                    aiStartMagic = 1,
+                    aiStartAttack = 2,
+                    aiExtraMines = mapOf(
+                        ResourceType.ATTACK to 2, ResourceType.CHAOS to 1
+                    ),
                     deckCardCounts = mapOf(
-                        "008" to 6, "019" to 6, "022" to 5, "053" to 4,
-                        "027" to 5, "012" to 4
+                        "115" to 4, "123" to 3, "132" to 2, "008" to 6,
+                        "019" to 4, "022" to 5, "027" to 5, "012" to 4,
+                        "C21" to 3, "C45" to 6, "D06" to 2
                     ),
                     winTarget = 63,
+                    aiStartHandSize = 6,
                     rewardGold = 110
                 ),
 
-                // 3 ── 33 karet, winTarget 65 ───────────────────────────────
+                // 3 ── 34 karet, winTarget 65 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_mage", name = "Temný Čaroděj", title = "Mistr ohně",
                     avatar = "🧙", cardArt = "citadela_carodej", description = "Ovládá magii temnoty. Začínáš s méně útokem.",
-                    aiCastle = 35, aiWall = 12,
+                    aiCastle = 45, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2),
                     deckCardCounts = mapOf(
-                        "003" to 6, "026" to 5, "013" to 5, "016" to 4,
-                        "037" to 5, "004" to 5, "001" to 3
+                        "107" to 3, "120" to 2, "003" to 3, "C02" to 2,
+                        "C24" to 3, "C26" to 3, "C03" to 1, "C29" to 2,
+                        "C30" to 1, "C22" to 5, "C44" to 3, "C08" to 3,
+                        "C11" to 3
                     ),
                     winTarget = 65,
-                    playerHandicap = PlayerHandicap(extraAttack = -2),
+                    playerHandicap = PlayerHandicap(extraAttack = -1),
                     rewardGold = 120
                 ),
 
