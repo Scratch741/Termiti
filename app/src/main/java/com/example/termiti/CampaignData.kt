@@ -628,7 +628,7 @@ object CampaignData {
 
         // ════════════════════════════════════════════════════════════════════
         // LOKACE 4 – Temná citadela
-        // winTarget: 62 → 63 → 65 → 65 → 999 → 70 → 999 → 999 → 999 → 999
+        // winTarget: 90 → 83 → 85 → 85 → 999 → 90 → 999 → 999 → 999 → 999
         // Od Temného Válečníka výš: výstavba = okamžitá prohra.
         // Balíčky: 30 → 30 → 33 → 33 → 35 → 35 → 38 → 38 → 42 → 48
         // ════════════════════════════════════════════════════════════════════
@@ -637,7 +637,7 @@ object CampaignData {
             description = "Sídlo temnoty. Soupeři hrají nefér — a jsou na to pyšní.",
             opponents = listOf(
 
-                // 1 ── 32 karet, winTarget 70 ───────────────────────────────
+                // 1 ── 32 karet, winTarget 90 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_knight", name = "Stínový Rytíř", title = "Zloděj zdrojů",
                     avatar = "🗡️", cardArt = "citadela_rytir", description = "Krade ti zdroje a ještě se směje. ",
@@ -650,12 +650,12 @@ object CampaignData {
                         "C03" to 1, "084" to 3, "087" to 3, "076" to 2,
                         "D06" to 2, "048" to 2
                     ),
-                    winTarget = 70,
+                    winTarget = 90,
                     playerHandicap = PlayerHandicap(extraMagic = -1),
                     rewardGold = 100
                 ),
 
-                // 2 ── 44 karet, winTarget 63, AI lízne 6 karet ─────────────
+                // 2 ── 44 karet, winTarget 83, AI lízne 6 karet ─────────────
                 CampaignOpponent(
                     id = "cit_archer", name = "Temný Lučištník", title = "Sniper citadely",
                     avatar = "🏹", cardArt = "citadela_lucistnik", description = "Zápalné šípy na hradby, přímé zásahy na hrad.",
@@ -670,12 +670,12 @@ object CampaignData {
                         "019" to 4, "022" to 5, "027" to 5, "012" to 4,
                         "C21" to 3, "C45" to 6, "D06" to 2
                     ),
-                    winTarget = 63,
+                    winTarget = 83,
                     aiStartHandSize = 6,
                     rewardGold = 110
                 ),
 
-                // 3 ── 34 karet, winTarget 65 ───────────────────────────────
+                // 3 ── 34 karet, winTarget 85 ───────────────────────────────
                 CampaignOpponent(
                     id = "cit_mage", name = "Temný Čaroděj", title = "Mistr ohně",
                     avatar = "🧙", cardArt = "citadela_carodej", description = "Ovládá magii temnoty. Začínáš s méně útokem.",
@@ -687,12 +687,12 @@ object CampaignData {
                         "C30" to 1, "C22" to 5, "C44" to 3, "C08" to 3,
                         "C11" to 3
                     ),
-                    winTarget = 65,
+                    winTarget = 85,
                     playerHandicap = PlayerHandicap(extraAttack = -1),
                     rewardGold = 120
                 ),
 
-                // 4 ── 33 karet, winTarget 65 ───────────────────────────────
+                // 4 ── 33 karet, winTarget 85 ───────────────────────────────
                 // Nekromant sabotuje hráčův důl magie.
                 CampaignOpponent(
                     id = "cit_necromancer", name = "Nekromant", title = "Pán jedů a stínů",
@@ -703,7 +703,7 @@ object CampaignData {
                         "049" to 5, "003" to 5, "013" to 5, "037" to 5,
                         "069" to 4, "040" to 5, "004" to 4
                     ),
-                    winTarget = 65,
+                    winTarget = 85,
                     playerHandicap = PlayerHandicap(
                         extraCastle = -3,
                         extraMines  = mapOf(ResourceType.MAGIC to -1)
@@ -726,18 +726,18 @@ object CampaignData {
                     rewardGold = 140
                 ),
 
-                // 6 ── 35 karet, winTarget 70 ───────────────────────────────
+                // 6 ── 35 karet, winTarget 90 ───────────────────────────────
                 // Strážce je obranný – výstavba se vrátí jako možnost, ale target je 70.
                 CampaignOpponent(
                     id = "cit_guardian", name = "Temný Strážce", title = "Pevná ruka temnoty",
-                    avatar = "🛡️", cardArt = "citadela_strazce", description = "Útočí i brání. Výstavba na 70 je tvá jediná alternativa.",
+                    avatar = "🛡️", cardArt = "citadela_strazce", description = "Útočí i brání. Výstavba na 90 je tvá jediná alternativa.",
                     aiCastle = 36, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.STONES to 1),
                     deckCardCounts = mapOf(
                         "007" to 5, "022" to 5, "002" to 5, "018" to 5,
                         "036" to 4, "062" to 4, "015" to 4, "004" to 3
                     ),
-                    winTarget = 70,
+                    winTarget = 90,
                     rewardGold = 150
                 ),
 
