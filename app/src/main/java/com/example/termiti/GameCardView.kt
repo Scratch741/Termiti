@@ -203,11 +203,14 @@ fun CardBack(
  */
 @Composable
 fun CardBackMini(@DrawableRes resId: Int, modifier: Modifier = Modifier) {
-    val bmp   = ImageBitmap.imageResource(resId)
+    // Rub s vlastní miniaturou se kreslí celý (je už připravený výřez); ostatní výřezem středu
+    val mini  = cardBackMiniOverride(resId)
+    val bmp   = ImageBitmap.imageResource(mini ?: resId)
+    val crop  = if (mini != null) 1f else 0.62f
     val shape = RoundedCornerShape(3.dp)
     Canvas(modifier.clip(shape).border(1.dp, Color(0xFF8A6A3A), shape)) {
         val aspect = size.width / size.height
-        var srcW = bmp.width * 0.62f
+        var srcW = bmp.width * crop
         var srcH = srcW / aspect
         if (srcH > bmp.height) { srcH = bmp.height.toFloat(); srcW = srcH * aspect }
         drawImage(
@@ -218,6 +221,16 @@ fun CardBackMini(@DrawableRes resId: Int, modifier: Modifier = Modifier) {
             filterQuality = FilterQuality.High
         )
     }
+}
+
+/**
+ * Ruby, kterým výřez středu nesedí, mají vlastní miniaturu (poměr 2 : 3, 120×180 px).
+ * Citadela: tmavý gotický kámen kolem úzkého krystalu se v malé velikosti slil do šedé
+ * šmouhy – miniatura je těsný výřez krystalu se ztmaveným kamenem a zesílenou fialovou.
+ */
+private fun cardBackMiniOverride(@DrawableRes resId: Int): Int? = when (resId) {
+    R.drawable.card_back_citadela -> R.drawable.card_back_citadela_mini
+    else                          -> null
 }
 
 /** Vrátí název drawable rámu podle typu zdroje karty. */
