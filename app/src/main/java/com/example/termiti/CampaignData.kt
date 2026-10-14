@@ -641,7 +641,7 @@ object CampaignData {
                 CampaignOpponent(
                     id = "cit_knight", name = "Stínový Rytíř", title = "Zloděj zdrojů",
                     avatar = "🗡️", cardArt = "citadela_rytir", description = "Krade ti zdroje a ještě se směje. ",
-                    aiCastle = 33, aiWall = 15,
+                    aiCastle = 43, aiWall = 15,
                     aiStartMagic = 2,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
@@ -650,7 +650,7 @@ object CampaignData {
                         "C03" to 1, "084" to 3, "087" to 3, "076" to 2,
                         "D06" to 2, "048" to 2
                     ),
-                    winTarget = 90,
+                    winTarget = 90, aiWinTarget = 70,
                     playerHandicap = PlayerHandicap(extraMagic = -1),
                     rewardGold = 100
                 ),
@@ -670,7 +670,7 @@ object CampaignData {
                         "019" to 4, "022" to 5, "027" to 5, "012" to 4,
                         "C21" to 3, "C45" to 6, "D06" to 2
                     ),
-                    winTarget = 83,
+                    winTarget = 83, aiWinTarget = 65,
                     aiStartHandSize = 6,
                     rewardGold = 110
                 ),
@@ -684,7 +684,7 @@ object CampaignData {
                     deckCardCounts = mapOf(
                         "107" to 3, "120" to 2, "003" to 3, "C02" to 2,
                         "C24" to 3, "C26" to 3, "C03" to 1, "C29" to 2,
-                        "C30" to 1, "C22" to 5, "C44" to 3, "C08" to 3,
+                        "C30" to 1, "C22" to 3, "C44" to 3, "C08" to 3,
                         "C11" to 3
                     ),
                     winTarget = 85,
