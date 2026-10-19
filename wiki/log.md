@@ -839,3 +839,8 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - [2026-10-19] Mulligan (online): nadpis „Mulligan“ je vždy přesně uprostřed – vlevo od něj je neviditelné zrcadlo timeru. Dřív byl posunutý doleva o půl šířky timeru, nejvíc vidět při čekání na soupeře (timer průhledný).
 - [2026-10-19] Online – Spálená knihovna apod.: soupeřovi se v ruce odkrývá jen karta, kterou sám zahrál nebo zahodil (`oppPlayedFromHand` v `OnlineGameScreen`). Moje spálená/ukradená karta má také `lastPlayedByMe = false` a dřív se odkryla na místě jeho zahrané karty, jako by ji zahrál on.
 - [2026-10-19] Online – Prohlédnout hru: hrací plocha je jedna instance pro hru i prohlížení. Dřív ji přechod GAME_PLAYING → GAME_OVER složil znovu v jiné větvi `when`, plocha přišla o historii odhazovacího balíčku a vějíř pod vrchní kartou nešel roztáhnout.
+
+## [2026-10-19] text | Kampaň: doly jednotně jako „důl"
+
+- Pravidlo pro texty: v pravidlech a efektech vždy „důl magie / útoku / kamene / chaosu" (anglicky „magic / attack / stone / chaos mine"). Vlastní jména (Kamenolom, Výcvikový tábor, Zbrojnice) jen jako názvy karet nebo v příběhové části popisu.
+- Popisy soupeřů v češtině bez anglického „mine": Trpasličí generál, Nekromant, Dračí šaman, Dračí sabotér, Jedový drak, Archon (+ záložní text Goblinského krále v `CampaignData.kt`). Upraveno v `CampaignData.kt`, `cs.json` a `deckbuilder.html`; anglické texty už byly v pořádku.

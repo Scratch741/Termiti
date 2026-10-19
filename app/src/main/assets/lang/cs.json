@@ -1489,7 +1489,7 @@
     "dwf_general": {
       "name": "Trpasličí Generál",
       "title": "Velitel horské armády",
-      "desc": "Zkušený velitel. Startuje s 5 kartami a extra mine útoku."
+      "desc": "Zkušený velitel. Startuje s 5 kartami a s dolem útoku navíc."
     },
     "dwf_colossus": {
       "name": "Kamenný Kolos",
@@ -1519,7 +1519,7 @@
     "cit_necromancer": {
       "name": "Nekromant",
       "title": "Pán jedů a stínů",
-      "desc": "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1."
+      "desc": "Otravuje zásoby a ničí důl magie. Hrad −3, důl magie −1."
     },
     "cit_warrior": {
       "name": "Temný Válečník",
@@ -1559,7 +1559,7 @@
     "drg_shaman": {
       "name": "Dračí Šaman",
       "title": "Mistr chaosu",
-      "desc": "Kouzlí chaosem. Sabotoval tvůj útok a magie mine −1."
+      "desc": "Kouzlí chaosem. Sabotoval tvůj útok – důl magie −1."
     },
     "drg_rider": {
       "name": "Dračí Jezdec",
@@ -1569,7 +1569,7 @@
     "drg_saboteur": {
       "name": "Entropický Sabotér",
       "title": "Rozsévač chaosu",
-      "desc": "Zničil tvůj kamenolom a vyprázdnil zásoby. Mine kamene −1."
+      "desc": "Zničil tvůj kamenolom a vyprázdnil zásoby. Důl kamene −1."
     },
     "drg_wyrm": {
       "name": "Starý Wyrm",
@@ -1584,7 +1584,7 @@
     "drg_venom": {
       "name": "Jedovatý Drak",
       "title": "Zkáza z dálky",
-      "desc": "Otráví tvůj výcvikový tábor. Mine útoku −1, hrad −5."
+      "desc": "Otráví tvůj výcvikový tábor. Důl útoku −1, hrad −5."
     },
     "drg_tyrant": {
       "name": "Dračí Tyran",
@@ -1594,7 +1594,7 @@
     "drg_archon": {
       "name": "Dračí Archon",
       "title": "Pravá ruka Impéria",
-      "desc": "6 karet, 3 extra miny. Hrad −7, hradby −5, mine magie −1."
+      "desc": "6 karet, 3 doly navíc. Hrad −7, hradby −5, důl magie −1."
     },
     "drg_emperor": {
       "name": "Dračí Císař",

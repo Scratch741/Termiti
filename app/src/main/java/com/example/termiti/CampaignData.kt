@@ -229,7 +229,7 @@ object CampaignData {
                 // 10 BOSS ── 37 karet, winTarget 62, AI lízne 5 karet ────────
                 CampaignOpponent(
                     id = "gob_king", name = "Goblin Král", title = "Pán tábora",
-                    avatar = "goblin_kral_profil", cardArt = "goblin_kral", description = "Král goblinů. 5 karet v ruce a extra doly útoku.",
+                    avatar = "goblin_kral_profil", cardArt = "goblin_kral", description = "Král goblinů. 5 karet v ruce a doly útoku navíc.",
                     isBoss = true,
                     aiCastle = 40, aiWall = 12, aiMaxWall = 12,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
@@ -581,7 +581,7 @@ object CampaignData {
                 // 8 ── 33 karet, winTarget 68, AI lízne 5 karet ─────────────
                 CampaignOpponent(
                     id = "dwf_general", name = "Trpasličí Generál", title = "Velitel horské armády",
-                    avatar = "player_icon_10", cardArt = "hory_general", description = "Zkušený velitel. Startuje s 5 kartami a extra mine útoku.",
+                    avatar = "player_icon_10", cardArt = "hory_general", description = "Zkušený velitel. Startuje s 5 kartami a s dolem útoku navíc.",
                     aiCastle = 32, aiWall = 18, aiMaxWall = 40,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -696,7 +696,7 @@ object CampaignData {
                 // Nekromant sabotuje hráčův důl magie.
                 CampaignOpponent(
                     id = "cit_necromancer", name = "Nekromant", title = "Pán jedů a stínů",
-                    avatar = "🦇", cardArt = "citadela_nekromant", description = "Otravuje zásoby a ničí důl magie. Hrad −3, magic mine −1.",
+                    avatar = "🦇", cardArt = "citadela_nekromant", description = "Otravuje zásoby a ničí důl magie. Hrad −3, důl magie −1.",
                     aiCastle = 35, aiWall = 12,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
@@ -845,7 +845,7 @@ object CampaignData {
                 // 2 ── 40 karet, winTarget 999, AI má extra mine magie ─────────
                 CampaignOpponent(
                     id = "drg_shaman", name = "Dračí Šaman", title = "Mistr chaosu",
-                    avatar = "🔮", description = "Kouzlí chaosem. Sabotoval tvůj útok a magie mine −1.",
+                    avatar = "🔮", description = "Kouzlí chaosem. Sabotoval tvůj útok – důl magie −1.",
                     aiCastle = 43, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2),
                     deckCardCounts = mapOf(
@@ -880,7 +880,7 @@ object CampaignData {
                 // 4 ── 42 karet, winTarget 999, sabotáž kamenů ────────────────
                 CampaignOpponent(
                     id = "drg_saboteur", name = "Entropický Sabotér", title = "Rozsévač chaosu",
-                    avatar = "🕵️", description = "Zničil tvůj kamenolom a vyprázdnil zásoby. Mine kamene −1.",
+                    avatar = "🕵️", description = "Zničil tvůj kamenolom a vyprázdnil zásoby. Důl kamene −1.",
                     aiCastle = 45, aiWall = 22,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -935,7 +935,7 @@ object CampaignData {
                 // 7 ── 44 karet, winTarget 999, mine útoku −1 ─────────────────
                 CampaignOpponent(
                     id = "drg_venom", name = "Jedovatý Drak", title = "Zkáza z dálky",
-                    avatar = "☠️", description = "Otráví tvůj výcvikový tábor. Mine útoku −1, hrad −5.",
+                    avatar = "☠️", description = "Otráví tvůj výcvikový tábor. Důl útoku −1, hrad −5.",
                     aiCastle = 48, aiWall = 25,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -974,7 +974,7 @@ object CampaignData {
                 // 9 ── 50 karet, winTarget 999, AI lízne 6 karet ──────────────
                 CampaignOpponent(
                     id = "drg_archon", name = "Dračí Archon", title = "Pravá ruka Impéria",
-                    avatar = "🌑", description = "6 karet, 3 extra miny. Hrad −7, hradby −5, mine magie −1.",
+                    avatar = "🌑", description = "6 karet, 3 doly navíc. Hrad −7, hradby −5, důl magie −1.",
                     aiCastle = 52, aiWall = 30,
                     aiExtraMines = mapOf(
                         ResourceType.MAGIC  to 2,
