@@ -177,9 +177,18 @@ fun OnlineGameScreen(
             }
         }
 
-        when (phase) {
-            OnlinePhase.GAME_MULLIGAN, OnlinePhase.GAME_PLAYING -> {
-                OnlineGameplay(vm, onBack)
+        // Hrací plocha je JEDNA instance pro hru i pro „Prohlédnout hru" po ní. Dřív ji
+        // konec hry (GAME_PLAYING → GAME_OVER) poskládal znovu v jiné větvi `when` a plocha
+        // přišla o svůj stav – mimo jiné o historii odhazovacího balíčku, takže v prohlížení
+        // nešlo roztáhnout karty pod vrchní kartou.
+        if (phase == OnlinePhase.GAME_MULLIGAN || phase == OnlinePhase.GAME_PLAYING || phase == OnlinePhase.GAME_OVER) {
+            OnlineGameplay(
+                vm           = vm,
+                onBack       = onBack,
+                reviewMode   = reviewMode,
+                onShowResult = { reviewMode = false }
+            )
+            if (phase != OnlinePhase.GAME_OVER) {
                 // Rozdávání startuje až po dojetí VS intra (viz showVsIntro výš)
                 if (mulliganVisible && !showVsIntro) {
                     OnlineMulliganLayer(
@@ -189,24 +198,12 @@ fun OnlineGameScreen(
                         onFinished   = { mulliganVisible = false }
                     )
                 }
-            }
-            OnlinePhase.GAME_OVER -> {
-                OnlineGameplay(
-                    vm           = vm,
-                    onBack       = onBack,
-                    reviewMode   = reviewMode,
-                    onShowResult = { reviewMode = false }
+            } else if (!reviewMode) {
+                OnlineGameOverOverlay(
+                    vm       = vm,
+                    onBack   = onBack,
+                    onReview = { reviewMode = true }
                 )
-                if (!reviewMode) {
-                    OnlineGameOverOverlay(
-                        vm       = vm,
-                        onBack   = onBack,
-                        onReview = { reviewMode = true }
-                    )
-                }
-            }
-            else -> {
-                // Zpět do lobby přes onBack (nemělo by nastat)
             }
         }
 
@@ -488,6 +485,8 @@ private fun OnlineGameplay(
     // (viz GameSession.js _advanceTurn). Takže pokud jsem po svém zahrání pořád
     // na tahu, jde vždy o combo řetěz – ekvivalent offline isPlayerComboTurn.
     val isComboTurn = gs.isMyTurn && lastCardByMe
+    val oppPlayedFromHand = !lastCardByMe &&
+        (lastCardAction == CardAction.PLAYED || lastCardAction == CardAction.DISCARDED)
 
     var showLog        by remember { mutableStateOf(false) }
     var showLostCards  by remember { mutableStateOf(false) }
@@ -694,8 +693,12 @@ private fun OnlineGameplay(
                     lastCardAction        = lastCardAction,
                     lastCardIsPlayer      = lastCardByMe,
                     modifier              = Modifier.fillMaxHeight().weight(1f),
-                    revealedAiCard        = if (!lastCardByMe) lastCard else null,
-                    revealedAiCardIdx     = if (!lastCardByMe) gs.oppState.lastPlayedIdx else null,
+                    // V soupeřově ruce se odkrývá jen karta, kterou ON zahrál nebo zahodil.
+                    // Moje karta, kterou mi spálil/ukradl (Spálená knihovna…), má také
+                    // lastCardByMe = false, ale z jeho ruky nevyšla – dřív se odkryla na místě
+                    // jeho zahrané karty, jako by ji zahrál on.
+                    revealedAiCard        = if (oppPlayedFromHand) lastCard else null,
+                    revealedAiCardIdx     = if (oppPlayedFromHand) gs.oppState.lastPlayedIdx else null,
                     oppLossQueue          = oppHandLoss,
                     playerWinTarget       = gs.myWinTarget,
                     aiWinTarget           = gs.oppWinTarget,

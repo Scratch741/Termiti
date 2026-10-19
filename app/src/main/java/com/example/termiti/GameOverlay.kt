@@ -323,6 +323,12 @@ fun MulliganOverlay(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                // Neviditelné zrcadlo timeru vlevo: nadpis tak stojí vždy přesně uprostřed.
+                // Bez něj byl posunutý doleva o půl šířky timeru – nejvíc vidět po potvrzení,
+                // kdy je timer průhledný a zbyde jen nadpis.
+                if (secondsLeft != null) {
+                    Text("${secondsLeft}s", color = Color.Transparent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
                 CampaignTitle(s.mulliganTitle, fontSize = 26.sp, modifier = Modifier.padding(top = 6.dp))
                 if (secondsLeft != null) {
                     // Po odeslání se timer jen ZPRŮHLEDNÍ, nemizí – jinak by se

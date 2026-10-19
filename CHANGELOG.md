@@ -17,6 +17,21 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.4] – 2026-10-19
+
+### Změněno
+- **Kampaň – Temná citadela:** výhra stavbou hradu je u pěti soupeřů o 20 výš
+  (90 / 83 / 85 / 85 / 90). Soupeři, které jde porazit jen zničením hradu, beze změny.
+- **Roguelike:** nabízené karty po výhře leží v rámečku ve stejném stylu jako
+  Složení balíčku a Mana křivka.
+
+### Opraveno
+- **Online mulligan:** nadpis „Mulligan" byl při čekání na soupeře posunutý doleva.
+- **Online:** když ti soupeř spálil nebo ukradl kartu (např. Spálenou knihovnou),
+  ukázala se tvá karta v jeho ruce, jako by ji zahrál on.
+- **Online – Prohlédnout hru:** po konci hry nešlo roztáhnout odhazovací balíček
+  a podívat se na dřív zahrané karty.
+
 ## [0.6.3] – 2026-10-11
 
 ### Vylepšeno
