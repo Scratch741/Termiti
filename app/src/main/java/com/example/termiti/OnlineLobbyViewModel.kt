@@ -387,8 +387,8 @@ class OnlineLobbyViewModel(
     /** Konec hry → zůstat připojený, vrátit se do lobby (připraven na nový zápas). */
     fun returnToLobby() {
         resetGameState()
-        _pendingDeckIds         = null
-        selectedDeckIndex.value = -1
+        // Výběr balíčku zůstává: „Hrát znovu" volá returnToLobby() a hned joinQueue() –
+        // vynulovaný výběr dřív poslal frontě zápas bez balíčku a server přidělil náhodný.
         isSuperRandom.value     = false
         opponentRating.value    = null
         ratingChange.value      = null
@@ -401,6 +401,10 @@ class OnlineLobbyViewModel(
         ws?.close(1000, "bye")
         ws = null
         resetGameState()
+        // Po odchodu z multiplayeru se balíček mohl změnit (Tvorba balíčku) → při příštím
+        // vstupu do lobby se znovu předvybere aktivní balíček s aktuálními kartami.
+        _pendingDeckIds         = null
+        selectedDeckIndex.value = -1
         phase.value     = OnlinePhase.NAME_INPUT
         statusMsg.value = ""
         errorMsg.value  = ""

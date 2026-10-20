@@ -17,6 +17,21 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.5] – 2026-10-20
+
+### Opraveno
+- **AI zahazovala karty, jejichž zahození škodí** – hlavně Pohlcení hradeb (zahození = hrad −8).
+  S plnou rukou teď radši čeká, Zamořenou Krysu se zbavuje zahráním. V simulaci klesl počet
+  takových zahození ze 144 na 2.
+- **Online „Hrát znovu"** po zápase Constructed dávalo náhodný balíček místo vybraného.
+- **Magický žolík** (online) nenabízel smrtící kartu poskládanou z více útoků (např. Chaotický
+  drak proti soupeři s 21 hradem bez hradeb) a naopak přednostně nabízel Velké zemětřesení
+  i soupeři bez hradeb. Stejně opraveno i offline. Vyžaduje nasazení serveru.
+
+### Vylepšeno
+- **Slabší zařízení:** animace trávy na savaně se kreslí úsporněji. Na tabletu SM-T515
+  savana dřív jela kolem 14 fps, teď kolem 45.
+
 ## [0.6.4] – 2026-10-19
 
 ### Změněno

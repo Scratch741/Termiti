@@ -10,7 +10,7 @@ const {
   MAX_RESOURCE, MAX_CASTLE,
   createPlayerState, generateResources, drawCards,
   applyEffects, deriveCardType, applyPassiveAbilities, checkWin, resolveByHp,
-  transformShapeShifters
+  transformShapeShifters, checkCondition
 } = require('./engine');
 
 const DECISION_TYPES = new Set(['DecisionBurnOpponent', 'DecisionChooseType', 'DecisionFromDiscard', 'DecisionFromDeck', 'DecisionDrawFromDeck', 'DecisionMine', 'SmartJoker', 'PeekAndStealHand', 'DecisionChooseResource']);
@@ -34,7 +34,53 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
   const oppWall = Math.max(0, opp.wallHP || 0);
   const xValue  = (resources[card.costType] || 0);
 
-  for (const fx of (card.effects || [])) {
+  // Podmíněné efekty, jejichž podmínka teď platí, se počítají jako běžné (port z AiDecisions.kt).
+  const flatten = (effects, depth = 0) => (effects || []).flatMap(fx =>
+    fx.type === 'ConditionalEffect' && depth < 3
+      ? (checkCondition(fx.condition, self, opp) ? flatten([fx.effect], depth + 1) : [])
+      : [fx]);
+  const effects = flatten(card.effects);
+
+  // Vyhrává karta TEĎ? Poškození se sčítá přes VŠECHNY efekty karty, ne po jednom –
+  // Chaotický drak (hráč 15 + hrad 12) zabije soupeře s 21 hradem a bez hradeb až součtem.
+  // Dřív se každý efekt porovnával se soupeřovým hradem zvlášť a žolík pak drakovi dal
+  // nízké skóre (stejná oprava jako scoreCardForSituation v AiDecisions.kt).
+  let wallLeft  = oppWall;
+  let castleDmg = 0;
+  for (const fx of effects) {
+    switch (fx.type) {
+      case 'AttackWall':          wallLeft = Math.max(0, wallLeft - (fx.amount || 0)); break;
+      case 'AttackCastle':
+      case 'StealCastle':         castleDmg += fx.amount || 0; break;
+      case 'XScaledAttackCastle': castleDmg += xValue / (fx.divisor || 2); break;
+      case 'AttackPlayer': {
+        const amt = fx.amount || 0;
+        castleDmg += Math.max(0, amt - wallLeft);
+        wallLeft = Math.max(0, wallLeft - amt);
+        break;
+      }
+      case 'XScaledAttackPlayer': {
+        const amt = xValue / (fx.divisor || 2);
+        castleDmg += Math.max(0, amt - wallLeft);
+        wallLeft = Math.max(0, wallLeft - amt);
+        break;
+      }
+    }
+  }
+  if (castleDmg >= oppHpLeft) return 200;
+
+  // Dostaví karta hrad rovnou na vítěznou výšku?
+  const buildTotal = effects.reduce((sum, fx) => {
+    switch (fx.type) {
+      case 'BuildCastle':         return sum + (fx.amount || 0);
+      case 'ConvertWallToCastle': return sum + (self.wallHP || 0);
+      case 'XScaledBuildCastle':  return sum + xValue / (fx.divisor || 2);
+      default:                    return sum;
+    }
+  }, 0);
+  if (buildTotal >= selfHpMissing) return 200;
+
+  for (const fx of effects) {
     switch (fx.type) {
       case 'AttackPlayer': {
         // Zeď absorbuje útok první; pouze přebytek poškodí hrad
@@ -65,7 +111,9 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         break;
       }
       case 'AttackWall':
-        score += (fx.amount || 0) * 3;
+        // Jen hradby, které soupeř opravdu má – Velké zemětřesení (hradby −40) bez hradeb
+        // nic neboří, a dřív přesto dostalo 120 bodů a žolík ho nabízel přednostně.
+        score += Math.min(fx.amount || 0, oppWall) * 3;
         break;
       case 'BuildCastle': {
         const amt = fx.amount || 0;
@@ -78,6 +126,11 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
         break;
       }
       case 'BuildWall': {
+        // Ztráta vlastních hradeb (Velké zemětřesení: hradby −40) – jen těch, které hráč má
+        if ((fx.amount || 0) < 0) {
+          score -= Math.min(-fx.amount, self.wallHP || 0) * 1.5;
+          break;
+        }
         // Zeď nad strop (self.maxWall) nemá hodnotu – počítej jen to, co se vejde
         const effective = Math.max(0, Math.min(fx.amount || 0, (self.maxWall || 40) - (self.wallHP || 0)));
         // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)

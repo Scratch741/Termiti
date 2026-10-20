@@ -78,7 +78,7 @@ fun OnlineMpScreen(
     }
 
     // V lobby je předvybraný aktivní balíček (je-li úplný) – bez toho by rychlý zápas
-    // bez ručního výběru hrál s náhodným balíčkem. returnToLobby() výběr nuluje, proto podle fáze.
+    // bez ručního výběru hrál s náhodným balíčkem. Výběr nuluje disconnect(), proto podle fáze.
     LaunchedEffect(phase) {
         if (phase == OnlinePhase.LOBBY && vm.selectedDeckIndex.value < 0) {
             val idx = if (decks.getOrNull(activeDeckIndex)?.isValid == true) activeDeckIndex

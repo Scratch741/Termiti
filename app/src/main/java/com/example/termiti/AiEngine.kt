@@ -116,6 +116,24 @@ fun aiChooseAction(
     fun isNoOpNow(card: Card): Boolean =
         card.effects.isNotEmpty() && effectsDoNothing(card.effects, depth = 0)
 
+    /**
+     * Kolik by AI zahození karty doopravdy stálo: hrad z efektu při zahození a hradby,
+     * které skutečně má (Poslední výpad „hradby −4" bez hradeb nestojí nic).
+     */
+    fun discardHarm(card: Card): Int = card.discardEffects.sumOf { fx ->
+        when (fx) {
+            is CardEffect.BuildCastle -> (-fx.amount).coerceAtLeast(0)
+            is CardEffect.BuildWall   -> minOf((-fx.amount).coerceAtLeast(0), ai.wallHP)
+            else                      -> 0
+        }
+    }
+
+    /**
+     * Mrtvá karta, jejíž zahození škodí (Zamořená Krysa: bez efektu, zahození = hrad i hradby −4).
+     * Zahrát ji – zaplatit cenu a nic se nestane – je jediný způsob, jak se jí zbavit bez škody.
+     */
+    fun isHarmfulJunk(card: Card): Boolean = card.effects.isEmpty() && discardHarm(card) > 0
+
     // Filtruje se HNED tady, ne až v rozhodovacím prahu — jinak by karta prošla
     // průchody, které práh skóre obcházejí (aktivní CloneNextPlayed vybírá
     // podle zahrání + hodnoty kopií, endgame fallback bez prahu).
@@ -447,6 +465,10 @@ fun aiChooseAction(
         // ── Lethal override: karta okamžitě vyhrává hru → vždy zahraj ────
         if (isLethal(card, xVal)) return 1000 + (-2..2).random()
 
+        // Krysa: zahrání nic nedělá, jen uvolní místo v ruce. S plnou rukou to stojí za to
+        // (jinak by shořela líznutá karta, nebo by se musela zahodit karta za hrad), jinak ne.
+        if (isHarmfulJunk(card)) return (if (handFull) 10 else 2) - card.effectiveCost + (-1..1).random()
+
         // X-kost karty: nehrát příliš brzy – malé zásoby = mizivý efekt, plýtvání kartou.
         // Práh závisí na situaci; při prázdných balíčcích zásoby stejně vyprší → hraj vždy.
         if (card.isXCost && !bothDecksEmpty) {
@@ -587,7 +609,17 @@ fun aiChooseAction(
     //   hodnotaVRuce = síla efektů × 2  −  táhla_do_dovolení × 3
     // Silné karty (Démon, drak…) se drží i za cenu dlouhého čekání.
     // Slabé karty, na které se navíc čeká, jsou první kandidáti na zahození.
-    fun bestDiscard(): Card? = ai.hand.minByOrNull { card ->
+    // Karta, jejíž zahození AI něco stojí (Pohlcení hradeb: hrad −8), se zahazovat nesmí, dokud
+    // jde zahodit jiná. A když jiná nejde, je lepší počkat: s plnou rukou shoří jen líznutá
+    // karta, zahozením by AI přišla o kartu I o hrad. Krysu se AI zbavuje zahráním (viz score());
+    // zahodit ji smí, jen když na ni nemá a ani mít nebude (žádný důl její suroviny) – jinak by
+    // v ruce zůstala natrvalo.
+    // (V simulaci AI dřív s plnou rukou zahazovala Pohlcení hradeb zhruba v každé desáté hře.)
+    fun neverAffordable(card: Card): Boolean =
+        (ai.resources[card.costType] ?: 0) < card.effectiveCost && (ai.mines[card.costType] ?: 0) <= 0
+    fun bestDiscard(): Card? = ai.hand
+        .filter { discardHarm(it) == 0 || (isHarmfulJunk(it) && neverAffordable(it)) }
+        .minByOrNull { card ->
         // Karta, která by teď neudělala nic (Likvidace bez soupeřova balíčku,
         // Zrcadlo bez zdroje…), nemá v ruce hodnotu – zahoď ji jako první.
         val effectScore   = if (isNoOpNow(card)) 0

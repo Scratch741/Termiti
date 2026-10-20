@@ -161,6 +161,23 @@ class EngineSimulation {
         }
     }
 
+    /**
+     * Zahození, která AI něco stála (efekt při zahození ubral hrad, nebo hradby, které měla):
+     * „karta | situace" → počet. Situace: plná ruka?, kolik karet šlo zahrát.
+     */
+    private val harmfulDiscards = java.util.concurrent.ConcurrentHashMap<String, Int>()
+    private val allDiscards = java.util.concurrent.atomic.AtomicInteger()
+
+    private fun recordHarmfulDiscard(card: Card, me: PlayerState) {
+        allDiscards.incrementAndGet()
+        val castleLoss = card.discardEffects.filterIsInstance<CardEffect.BuildCastle>().sumOf { (-it.amount).coerceAtLeast(0) }
+        val wallLoss   = minOf(card.discardEffects.filterIsInstance<CardEffect.BuildWall>().sumOf { (-it.amount).coerceAtLeast(0) }, me.wallHP)
+        if (castleLoss + wallLoss == 0) return
+        val affordable = me.hand.count { it.id != card.id && (it.isXCost || (me.resources[it.costType] ?: 0) >= it.effectiveCost) }
+        val key = "${card.name} | ruka ${me.hand.size}${if (me.hand.size >= 7) " (plná)" else ""} | zahratelných $affordable | hrad −$castleLoss, hradby −$wallLoss"
+        harmfulDiscards.merge(key, 1, Int::plus)
+    }
+
     /** Karty zkopírované Chaotickou replikací (CloneNextPlayed): jméno → [počet, součet kol]. */
     private val cloneStats = java.util.concurrent.ConcurrentHashMap<String, IntArray>()
 
@@ -254,6 +271,7 @@ class EngineSimulation {
                 is AiAction.Discard -> {
                     val card = choice.card
                     onAction(card, false)
+                    recordHarmfulDiscard(card, me)
                     me.hand.remove(card)
                     me.discardPile.add(card)
                     if (card.discardEffects.isNotEmpty()) {
@@ -1024,6 +1042,7 @@ class EngineSimulation {
         val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 400
         val presets = presetDecks
         cloneStats.clear()
+        harmfulDiscards.clear(); allDiscards.set(0)
         val stats = presets.associate { it.first to DeckStats() }
         val pair = Array(presets.size) { DoubleArray(presets.size) }
         val t0 = System.currentTimeMillis()
@@ -1075,6 +1094,11 @@ class EngineSimulation {
             cloneStats.entries.sortedByDescending { it.value[0] }.take(40).forEach { (name, v) ->
                 out.appendLine(String.format("  %-24s %5.1f %%  kolo %4.1f", name, 100.0 * v[0] / total, v[1].toDouble() / v[0]))
             }
+        }
+        if (harmfulDiscards.isNotEmpty()) {
+            out.appendLine()
+            out.appendLine("Zahození, která AI stála hrad nebo hradby (${harmfulDiscards.values.sum()} z ${allDiscards.get()} zahození):")
+            harmfulDiscards.entries.sortedByDescending { it.value }.take(25).forEach { out.appendLine("  ${it.value}×  ${it.key}") }
         }
         println(out)
         File("build").takeIf { it.isDirectory }?.let { File(it, "engine-sim.txt").writeText(out.toString()) }

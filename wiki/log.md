@@ -859,3 +859,26 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 ## [2026-10-20] ui | VS intro: 'VS' was ~2 dp above the centre of its ring - Cinzel capitals sit 0.048 em above the line-box centre (cap height 700, ascent 976, descent 372 per 1000, read from the font's head / hhea / OS/2 tables), i.e. 1.9 dp at 40 sp. Offset 2 dp down. Horizontally it was already centred (CampaignTitle pads the start by the 3 sp letter spacing that trails the last letter). Built.
 ## [2026-10-20] ui | VS intro, checked in a mock with Compose-like Cinzel metrics: VS sits centred in its ring after the 2 dp offset; two passive abilities stacked under each other overflowed the board onto its bottom ornament (needed ~87 dp, ~67 dp free). Abilities are now side-by-side centred columns (icon plate, title, description up to 3 lines at 8 sp), ~65 dp tall. Built.
 ## [2026-10-20] ui | VS intro: ability columns got 10 dp extra side padding so the descriptions stay clear of the board's bottom corner medallions. Mock (800 x 360, real textures, Cinzel metrics): both descriptions of two abilities fit, content ends at 279.5 dp vs the board's inner edge at 282 dp. Built.
+
+## [2026-10-20] ai | AI nezahazuje karty, jejichž zahození škodí
+
+- `AiEngine.bestDiscard` (plná ruka, nic nejde zahrát) vynechává karty, jejichž efekt při zahození AI skutečně něco stojí – nový `discardHarm`: ztráta hradu, nebo hradeb, které AI má. Když jiná karta k zahození není, AI čeká (shoří jen líznutá karta). Výjimka: mrtvé karty bez efektu při zahrání (Zamořená Krysa) se zahazovat smí.
+- Příčina: Pohlcení hradeb má bez hradeb nulovou hodnotu a efekt zahození „hrad −8" ho chránil jen malou penalizací, takže vycházelo jako nejslabší karta v ruce.
+- Měření (EngineSimulation round robin, 150 her na dvojici): zahození, která AI stála hrad nebo hradby, 144 → 7 ze ~17 800 zahození (Pohlcení hradeb 121 → 0, Podkopané valy 7 → 0, Poslední výpad 4 → 0; zbývá jen Zamořená Krysa).
+- `EngineSimulation.roundRobinOfPresets` nově vypisuje škodlivá zahození s kontextem. Test `AiHarmfulDiscardTest`.
+- [2026-10-20] Online – „Hrát znovu" po zápase Constructed dostal náhodný balíček: `returnToLobby()` nuloval výběr balíčku a „Hrát znovu" hned volá `joinQueue()`, takže fronta dostala zápas bez balíčku. Výběr teď zůstává; nuluje ho až `disconnect()` (odchod z multiplayeru), aby se při dalším vstupu předvybral aktivní balíček s aktuálními kartami.
+- [2026-10-20] Doplněk: Zamořená Krysa (134) nemá efekt, ale zahrát se dá (3 chaos) – tak se jí AI zbavuje. `score()` jí s plnou rukou dává 10 − cena, jinak 2 − cena; zahodit ji AI smí jen tehdy, když na ni nemá a nemá ani důl chaosu (jinak by v ruce zůstala natrvalo). Simulace: škodlivá zahození 7 → 2 (obě Krysa bez možnosti ji zaplatit).
+
+## [2026-10-20] perf | Tablet SM-T515: sekání na savaně
+
+- Měření na tabletu (32bitový systém, 1,8 GB RAM), bitva bez akce, `dumpsys gfxinfo`, medián snímku: savana 73 ms (14 fps), savana bez animace trávy 24 ms, celé oživení pozadí vypnuté 22 ms, bažiny 24 ms. Grafický čip sám ~16–19 ms na snímek → 60 fps tablet nezvládne ani u statické scény; úzké hrdlo savany bylo kreslicí vlákno (vydávání příkazů ~28 ms).
+- Příčina: tráva ve větru (`AmbienceScope.sway`) kreslí plochu trávy po dlaždicích 24×6 px obrázku, každá je samostatné `drawImage` – na savaně několik set za snímek.
+- Oprava: na slabém zařízení (`isLowEndDevice`: 32bitový systém, < 3 GB RAM nebo `isLowRamDevice`) dlaždice 48×12 (4× méně volání). Savana na tabletu 73 → 22 ms, švy mezi dlaždicemi na snímku obrazovky nejsou vidět. Telefon a výkonná zařízení beze změny.
+
+## [2026-10-20] fix | Online Magický žolík nenabízel smrtící kartu
+
+- Hlášeno: 11 chaosu, soupeř 21 hradu a 0 hradeb, žolík nenabídl Chaotického draka (hráč 15 + hrad 12 = 27 → zabije).
+- Příčina: serverové `_scoreCardForSituation` (`GameSession.js`) porovnávalo se soupeřovým hradem každý útočný efekt zvlášť, takže smrtící karta poskládaná z více efektů vyšla slabě. Offline verze (`AiDecisions.scoreCardForSituation`) to už sčítala správně.
+- Oprava: port ze `AiDecisions.kt` – podmíněné efekty se splněnou podmínkou se počítají, poškození se sčítá přes všechny efekty (zeď pohltí jen útok na hráče), stejně tak výstavba na vítěznou výšku → skóre 200.
+- Ověřeno v Node na nahlášené situaci: dřív v Chaosu nejlépe Anarchie (100), drak nebyl ani mezi prvními čtyřmi; teď drak 200. Vyžaduje nasazení serveru.
+- Doplněk: žolík (server i offline `AiDecisions`) přednostně nabízel Velké zemětřesení i soupeři bez hradeb. `AttackWall` se teď boduje jen do výše soupeřových hradeb (dřív vždy amount × 3 = 120) a záporné `BuildWall` (ztráta vlastních hradeb) ubírá min(ztráta, vlastní hradby) × 1,5 (dřív 0). Útok, soupeř bez hradeb: dřív Velké zemětřesení 122, teď Upíří drak 47; soupeř s 30 hradbami: Zemětřesení 60, pořád první.

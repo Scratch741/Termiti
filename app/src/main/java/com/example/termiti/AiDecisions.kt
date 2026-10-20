@@ -96,7 +96,8 @@ internal fun scoreCardForSituation(
                 val amt = xValue / fx.divisor
                 if (amt >= selfHpMissing) 200.0 else amt * 10.0 / selfHpMissing
             }
-            is CardEffect.AttackWall    -> fx.amount * 3.0
+            // Jen hradby, které soupeř opravdu má (Velké zemětřesení bez soupeřových hradeb nic neboří)
+            is CardEffect.AttackWall    -> minOf(fx.amount, oppWall) * 3.0
             is CardEffect.BuildCastle   -> {
                 if (fx.amount >= selfHpMissing) 200.0
                 else fx.amount * 10.0 / selfHpMissing
@@ -105,7 +106,8 @@ internal fun scoreCardForSituation(
                 val amt = self.wallHP
                 if (amt >= selfHpMissing) 200.0 else amt * 10.0 / selfHpMissing
             }
-            is CardEffect.BuildWall     -> {
+            // Ztráta vlastních hradeb (Velké zemětřesení: hradby −40) – jen těch, které hráč má
+            is CardEffect.BuildWall     -> if (fx.amount < 0) -minOf(-fx.amount, self.wallHP) * 1.5 else {
                 // Zeď nad cap (self.maxWall) nemá hodnotu – počítej jen to, co se vejde
                 val effective = fx.amount.coerceAtMost(self.maxWall - self.wallHP).coerceAtLeast(0)
                 // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)

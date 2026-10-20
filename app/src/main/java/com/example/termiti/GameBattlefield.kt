@@ -765,7 +765,9 @@ private fun hpToVisualFrac(hp: Int, maxHp: Float, minFrac: Float = 0.15f): Float
 private class AmbienceScope(
     private val draw: DrawScope,
     private val bg: ImageBitmap,
-    val time: Float
+    val time: Float,
+    /** Slabé zařízení → tráva po větších dlaždicích, viz [isLowEndDevice]. */
+    private val coarse: Boolean = false
 ) {
     private val imgW = if (draw.size.width / draw.size.height >= 3f) draw.size.width else draw.size.height * 3f
     private val k    = imgW / 1200f
@@ -805,14 +807,16 @@ private class AmbienceScope(
             }
             val x0 = poly.minOf { it.first };  val x1 = poly.maxOf { it.first }
             val y0 = poly.minOf { it.second }; val y1 = poly.maxOf { it.second }
+            val tileW = if (coarse) GRASS_TILE_W * 2 else GRASS_TILE_W
+            val tileH = if (coarse) GRASS_TILE_H * 2 else GRASS_TILE_H
             clipPath(path) {
                 var y = y0
                 while (y < y1) {
-                    val h   = minOf(GRASS_TILE_H, y1 - y)
+                    val h   = minOf(tileH, y1 - y)
                     val amp = (1.6f + 3.4f * ((y - 190f) / 160f).coerceIn(0f, 1f)) * k * strength
                     var x = x0
                     while (x < x1) {
-                        val w    = minOf(GRASS_TILE_W, x1 - x)
+                        val w    = minOf(tileW, x1 - x)
                         val gust = 0.6f + 0.4f * sin(time * 0.9f - x / 260f)
                         val dx   = amp * gust * (sin(time * 2.6f - x / 150f + y / 37f) + 0.35f * sin(time * 5.3f - x / 60f + y / 11f))
                         val dst  = at(x, y)
@@ -825,16 +829,21 @@ private class AmbienceScope(
                                 dstSize   = IntSize(kotlin.math.ceil(w * k).toInt() + 1, kotlin.math.ceil(h * k).toInt() + 1)
                             )
                         }
-                        x += GRASS_TILE_W
+                        x += tileW
                     }
-                    y += GRASS_TILE_H
+                    y += tileH
                 }
             }
         }
     }
 }
 
-/** Velikost dlaždice trávy v px obrázku: menší = plynulejší vlna, víc kreslení. */
+/**
+ * Velikost dlaždice trávy v px obrázku: menší = plynulejší vlna, víc kreslení. Každá dlaždice
+ * je samostatné drawImage – na savaně jich je za snímek několik set. Na tabletu SM-T515 to
+ * snímek protáhlo z 23 na 73 ms (14 fps); slabá zařízení proto kreslí dlaždice 2× větší
+ * v obou směrech (4× méně volání), což vyšlo stejně rychle jako bez trávy.
+ */
 private const val GRASS_TILE_W = 24f
 private const val GRASS_TILE_H = 6f
 
@@ -850,7 +859,21 @@ private fun BackgroundAmbience(@DrawableRes bgRes: Int, modifier: Modifier, scen
         while (true) t = (withFrameNanos { it } - start) / 1_000_000_000f
     }
     val bg = ImageBitmap.imageResource(bgRes)
-    Canvas(modifier) { AmbienceScope(this, bg, t).scene() }
+    val context = LocalContext.current
+    val coarse = remember { isLowEndDevice(context) }
+    Canvas(modifier) { AmbienceScope(this, bg, t, coarse).scene() }
+}
+
+/**
+ * Slabé zařízení: 32bitový systém, málo paměti, nebo ho tak označil sám Android.
+ * (Tablet SM-T515: 32bitový systém a 1,8 GB RAM; telefon SM-S911B: 64bit, 8 GB.)
+ */
+private fun isLowEndDevice(context: android.content.Context): Boolean {
+    val am = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+    val mem = android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }
+    return am.isLowRamDevice ||
+        android.os.Build.SUPPORTED_64_BIT_ABIS.isEmpty() ||
+        mem.totalMem < 3L * 1024 * 1024 * 1024
 }
 
 /** Oživení pro dané pozadí, nebo nic, pokud pozadí žádné nemá. */
