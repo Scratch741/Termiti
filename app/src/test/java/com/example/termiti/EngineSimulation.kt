@@ -561,6 +561,7 @@ class EngineSimulation {
      *   ENGINE_SIM_COSTS="C35=3,100=7"         – víc změn v jedné variantě
      *   ENGINE_SIM_COSTS="100=fx:AP7+SC4"      – nové efekty (cena zůstává)
      *   ENGINE_SIM_COSTS="100=6:AP7+SC4"       – cena i efekty
+     *   ENGINE_SIM_COSTS="021=fx:AP15+BMS1"    – útok 15 + zablokuje soupeřův důl kamene na 1 kolo
      *   ENGINE_SIM_COSTS="C25=nocombo"          – bez combo (combo = naopak přidat)
      *   ENGINE_SIM_COSTS="C25>C26"              – výměna karty ve všech presetech (i s dalšími změnami)
      *   ENGINE_SIM_COSTS="C23=fx:DECK.C34.3"    – karty do balíčku (OPP.<id>.<n> = do soupeřova)
@@ -720,7 +721,12 @@ class EngineSimulation {
             "ADA" -> CardEffect.AddResourceDelayed(ResourceType.ATTACK, a)
             "ADS" -> CardEffect.AddResourceDelayed(ResourceType.STONES, a)
             "ADC" -> CardEffect.AddResourceDelayed(ResourceType.CHAOS, a)
-            else -> error("Neznámý kód efektu '$code' (AP, AC, AW, SC, BC, BW, ARM/ARA/ARS/ARC, ADM/ADA/ADS/ADC)")
+            // Zablokování soupeřova dolu na N kol: BMM magie, BMA útok, BMS kámen, BMC chaos
+            "BMM" -> CardEffect.BlockMine(ResourceType.MAGIC, a)
+            "BMA" -> CardEffect.BlockMine(ResourceType.ATTACK, a)
+            "BMS" -> CardEffect.BlockMine(ResourceType.STONES, a)
+            "BMC" -> CardEffect.BlockMine(ResourceType.CHAOS, a)
+            else -> error("Neznámý kód efektu '$code' (AP, AC, AW, SC, BC, BW, ARM/ARA/ARS/ARC, ADM/ADA/ADS/ADC, BMM/BMA/BMS/BMC)")
         }
     }
 
