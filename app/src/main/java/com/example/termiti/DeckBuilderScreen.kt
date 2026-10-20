@@ -1621,7 +1621,7 @@ private val DustColor = Color(0xFFB39DDB)
  * jen střední pás – rovné bočnice.
  */
 @Composable
-private fun Modifier.sidePanelBackground(): Modifier {
+internal fun Modifier.sidePanelBackground(): Modifier {
     val bmp = ImageBitmap.imageResource(R.drawable.bg_side_panels)
     return drawBehind {
         val scale  = size.width / bmp.width

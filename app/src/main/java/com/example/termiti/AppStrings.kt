@@ -408,6 +408,11 @@ class AppStrings(
     val shopTapToReveal: String by values
     val shopDuplicates: String by values
     val shopFinish: String by values
+    val vsYouStart: String by values
+    val vsOpponentStarts: String by values
+    val vsTapToSkip: String by values
+    val vsNoAbilities: String by values
+    val vsFirstGame: String by values
     val shopOpenPack: String by values
     val shopBuyN: String by values
     val shopBuyConfirmTitle: String by values
