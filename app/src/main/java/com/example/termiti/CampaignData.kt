@@ -692,22 +692,22 @@ object CampaignData {
                     rewardGold = 120
                 ),
 
-                // 4 ── 33 karet, winTarget 85 ───────────────────────────────
-                // Nekromant sabotuje hráčův důl magie.
+                // 4 ── 33 karet, winTarget 85, AI staví do 55 ───────────────
+                // Černokněžník sabotuje hráčův důl magie. (Dřív „Nekromant" – s nekromancií nic
+                // nedělá. ID cit_necromancer a obrázek citadela_nekromant zůstávají kvůli uloženým
+                // postupům v kampani.)
                 CampaignOpponent(
-                    id = "cit_necromancer", name = "Nekromant", title = "Pán jedů a stínů",
+                    id = "cit_necromancer", name = "Černokněžník", title = "Pán jedů a stínů",
                     avatar = "🦇", cardArt = "citadela_nekromant", description = "Otravuje zásoby a ničí důl magie. Hrad −3, důl magie −1.",
-                    aiCastle = 35, aiWall = 12,
+                    aiCastle = 45, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
-                        "049" to 5, "003" to 5, "013" to 5, "037" to 5,
-                        "069" to 4, "040" to 5, "004" to 4
+                        "100" to 3, "121" to 2, "049" to 3, "003" to 5,
+                        "013" to 3, "037" to 3, "069" to 3, "040" to 3,
+                        "078" to 2, "D08" to 3, "061" to 3
                     ),
-                    winTarget = 85,
-                    playerHandicap = PlayerHandicap(
-                        extraCastle = -3,
-                        extraMines  = mapOf(ResourceType.MAGIC to -1)
-                    ),
+                    winTarget = 85, aiWinTarget = 55,
+                    playerHandicap = PlayerHandicap(extraCastle = -3, extraMines = mapOf(ResourceType.MAGIC to -1)),
                     rewardGold = 130
                 ),
 
