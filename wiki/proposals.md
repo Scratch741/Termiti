@@ -66,6 +66,16 @@ Earlier lists from 2026-10-02 (not recorded in detail here): 11 cards to reach 2
 
 ---
 
+## Balance TODO: Archmág (128) – lízací smyčka
+
+**Status:** design · noted 2026-10-20 at the user's request, **to be changed later**
+
+The user's deck Archmág + Nájezd + Momentum + Válečné bubny (constructed) kills from a full castle around round 6–9. Momentum is not the problem (it is only a finisher against walls). The loop: Archmág draws 1 card and gives 1 magic for every further card played, with no limit; any "per card played → resource" effect (Archmág's own magic, Válečné bubny +2 attack per attack card, Válečný zápal, Magický proud) pays for the cheap cards, so the chain only ends when the deck is empty. The opponent has no window to react (no instant-speed interaction). The simulator cannot measure it – the AI does not plan such a turn (3.9 % wins with the deck).
+
+Considered and rejected: Momentum legendary (Archmág finds a single copy anyway – both-cards chance drops only 39 → 34 %), Momentum cap 22 (kills the archetype), Archmág without magic (Bubny keep the loop running), Bubny not stacking (one Bubny still refunds 1–2 cost attack cards), Archmág delayed to next turn (gives warning but the deck still dumps).
+
+**Recommended:** cap Archmág – „Toto kolo: za každou z dalších 5 karet, které zahraješ, lízni 1 a získej 1 magii." (tune 4–6). Needs a max-count parameter on DrawPerCardPlayed / GainResourcePerCardPlayed (client engine, server engine, AI, texts). Measure other decks in the engine; the user tests the combo by hand.
+
 ## Related pages
 - [[cards/types]] — card types and `costType`, `deriveCardType`
 - [[mechanics/resources]] — resources and payment
