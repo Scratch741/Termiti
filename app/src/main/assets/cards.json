@@ -423,6 +423,11 @@
       {
         "type": "AttackPlayer",
         "amount": 15
+      },
+      {
+        "type": "BlockMine",
+        "resType": "STONES",
+        "turns": 1
       }
     ],
     "rarity": "EPIC",
@@ -3433,11 +3438,11 @@
     "effects": [
       {
         "type": "AttackPlayer",
-        "amount": 5
+        "amount": 7
       },
       {
         "type": "StealCastle",
-        "amount": 6
+        "amount": 4
       }
     ],
     "rarity": "RARE",

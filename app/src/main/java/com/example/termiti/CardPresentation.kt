@@ -114,7 +114,7 @@ object CardPresentation {
         "020" to CardPres("Poškodí hradby −12.\n[Combo]",
             R.drawable.art_beranidlo, "Útok",
             artScale = 0.85f, artBiasY = 0.05f),
-        "021" to CardPres("Zaútočí za 15.",
+        "021" to CardPres("Zaútočí za 15. Zablokuj soupeřův důl kamene na 1 kolo.",
             R.drawable.art_delostrelectvo, "Útok",
             artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
         "022" to CardPres("Poškodí hrad −8.",
@@ -376,7 +376,7 @@ object CardPresentation {
         "099" to CardPres("Ukradni 10 hradu.",
             R.drawable.art_temny_prenos, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
-        "100" to CardPres("Zaútočí za 5, ukradni 6 hradu.",
+        "100" to CardPres("Zaútočí za 7, ukradni 4 hradu.",
             R.drawable.art_krvavy_uder, "Útok",
             artBiasX = -1.00f, artScale = 0.80f),
 

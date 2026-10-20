@@ -571,7 +571,7 @@
     },
     "021": {
       "name": "Dělostřelectvo",
-      "desc": "Zaútočí za 15."
+      "desc": "Zaútočí za 15. Zablokuj soupeřův důl kamene na 1 kolo."
     },
     "022": {
       "name": "Přímý zásah",
@@ -1091,7 +1091,7 @@
     },
     "100": {
       "name": "Krvavý úder",
-      "desc": "Zaútočí za 5, ukradni 6 hradu."
+      "desc": "Zaútočí za 7, ukradni 4 hradu."
     },
     "104": {
       "name": "Válečný trénink",

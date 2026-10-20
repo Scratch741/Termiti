@@ -96,7 +96,7 @@ const RAW = [
   // ── Útok – rozšíření ─────────────────────────────────────────────────────
   ['019','Zápalné šípy',   1,'ATTACK',1,[aw(5)],               'COMMON'],
   ['020','Beranidlo',      3,'ATTACK',1,[aw(12)],              'RARE'],
-  ['021','Dělostřelectvo', 6,'ATTACK',0,[ap(15)],              'EPIC'],
+  ['021','Dělostřelectvo', 6,'ATTACK',0,[ap(15), bm('STONES',1)], 'EPIC'],
   ['022','Přímý zásah',    3,'ATTACK',0,[ac(8)],               'RARE'],
   ['023','Dvojitý úder',   5,'ATTACK',0,[ac(7), ap(7)],        'EPIC'],
   ['024','Berserk',        4,'ATTACK',0,[cd(wB(5), ac(12))],   'RARE'],
@@ -258,7 +258,7 @@ const RAW = [
   // ── Speciální útočné karty ────────────────────────────────────────────────
   ['098','Hod cihlou',     3,'ATTACK',0,[bw(-4), ap(11)],      'RARE'],
   ['099','Temný přenos',   8,'MAGIC', 0,[sca(10)],             'EPIC'],
-  ['100','Krvavý úder',    6,'ATTACK',0,[ap(5), sca(6)],       'RARE'],
+  ['100','Krvavý úder',    6,'ATTACK',0,[ap(7), sca(4)],       'RARE'],
   ['104','Válečný trénink',4,'ATTACK',0,[ap(5), am('ATTACK',1)],'EPIC'],
   ['107','Prokletí',       3,'MAGIC', 0,[ap(3), dr('ATTACK',3), dr('STONES',3), ar('CHAOS',2)], 'EPIC'],
   ['108','Likvidace',      3,'CHAOS', 0,[dbo()],               'EPIC'],

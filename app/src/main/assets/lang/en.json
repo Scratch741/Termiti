@@ -571,7 +571,7 @@
     },
     "021": {
       "name": "Artillery",
-      "desc": "Attack for 15."
+      "desc": "Attack for 15. Block the opponent's Stone mine for 1 turn."
     },
     "022": {
       "name": "Direct Hit",
@@ -1091,7 +1091,7 @@
     },
     "100": {
       "name": "Bloody Strike",
-      "desc": "Attack for 5, steal 6 castle HP."
+      "desc": "Attack for 7, steal 4 castle HP."
     },
     "104": {
       "name": "War Training",
