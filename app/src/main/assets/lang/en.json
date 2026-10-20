@@ -335,6 +335,11 @@
     "shopTapToReveal": "Tap a card to reveal it",
     "shopDuplicates": "Duplicates +%d",
     "shopFinish": "FINISH",
+    "vsYouStart": "You go first",
+    "vsOpponentStarts": "Opponent goes first",
+    "vsTapToSkip": "Tap to skip",
+    "vsNoAbilities": "No passive abilities",
+    "vsFirstGame": "First match in this mode",
     "shopOpenPack": "OPEN PACK (%d)",
     "shopBuyN": "%1$d× · %2$d",
     "shopBuyConfirmTitle": "Buy packs?",
@@ -1268,6 +1273,10 @@
     "142": {
       "name": "Colossus Strike",
       "desc": "Attack for 70."
+    },
+    "143": {
+      "name": "Great Earthquake",
+      "desc": "Destroys all walls – your opponent's and yours. Then attacks for 10."
     }
   },
   "abilities": {

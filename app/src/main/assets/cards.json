@@ -4511,5 +4511,32 @@
     "isPlaceholder": true,
     "discardEffects": [],
     "baseId": "142"
+  },
+  {
+    "id": "143",
+    "name": "Velké zemětřesení",
+    "cost": 8,
+    "costType": "ATTACK",
+    "isCombo": false,
+    "effects": [
+      {
+        "type": "AttackWall",
+        "amount": 40
+      },
+      {
+        "type": "BuildWall",
+        "amount": -40
+      },
+      {
+        "type": "AttackPlayer",
+        "amount": 10
+      }
+    ],
+    "rarity": "LEGENDARY",
+    "maxCopies": 1,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "discardEffects": [],
+    "baseId": "143"
   }
 ]

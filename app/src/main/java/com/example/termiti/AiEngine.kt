@@ -185,6 +185,8 @@ fun aiChooseAction(
         is CardEffect.AttackWall -> when {
             // Soupeř nemá hradby – karta je k ničemu, silně penalizuj
             !oppHasWall           -> -15
+            // Zboření všech hradeb (Velké zemětřesení) – hodnota roste s tím, co padne
+            fx.amount >= 30 && oppWall < fx.amount -> 2 + oppWall / 3
             // Málo hradeb – nízká hodnota, ale nenulová (alespoň trochu poškodíme)
             oppWall < fx.amount   -> 2 + oppWall / 4
             // Hodně hradeb – standardní nebo vyšší hodnota
@@ -207,7 +209,10 @@ fun aiChooseAction(
                 else               -> 5 + fx.amount / 5  // plná hodnota – škáluj jako BuildCastle
             }
         } else {
-            fx.amount  // záporné skóre za ztrátu hradeb
+            // Záporné skóre za ztrátu hradeb – jen za ty, které AI opravdu má
+            // (Velké zemětřesení „hradby −40" bez hradeb nic nestojí). Polovina ztráty:
+            // stejné měřítko jako zisk hradeb výš (5 + n/5), ne celá hodnota jako dřív.
+            -(minOf(-fx.amount, ai.wallHP) + 1) / 2
         }
         // Převede celé vlastní hradby na hrad – hodnota škáluje s aktuálním HP hradeb.
         is CardEffect.ConvertWallToCastle -> {
@@ -468,12 +473,15 @@ fun aiChooseAction(
         if (selfDmg > 0 && selfDmg >= ai.castleHP) {
             // Karta by zničila vlastní hrad – povolíme pouze pokud jde o remízu
             // (útočné efekty karty zároveň sníží soupeřův hrad na ≤ 0).
+            // Hradby, které karta sama zboří dřív, než přijde útok (Velké zemětřesení)
+            val wallLeft = (opponent.wallHP -
+                card.effects.filterIsInstance<CardEffect.AttackWall>().sumOf { it.amount }).coerceAtLeast(0)
             val oppDmg = card.effects.sumOf { fx ->
                 when (fx) {
                     is CardEffect.AttackCastle        -> fx.amount
-                    is CardEffect.AttackPlayer        -> (fx.amount - opponent.wallHP).coerceAtLeast(0)
+                    is CardEffect.AttackPlayer        -> (fx.amount - wallLeft).coerceAtLeast(0)
                     is CardEffect.XScaledAttackCastle -> xVal / fx.divisor
-                    is CardEffect.XScaledAttackPlayer -> ((xVal / fx.divisor) - opponent.wallHP).coerceAtLeast(0)
+                    is CardEffect.XScaledAttackPlayer -> ((xVal / fx.divisor) - wallLeft).coerceAtLeast(0)
                     else                              -> 0
                 }
             }

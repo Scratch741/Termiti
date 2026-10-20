@@ -335,6 +335,11 @@
     "shopTapToReveal": "Klepni na kartu pro odkrytí",
     "shopDuplicates": "Duplikáty +%d",
     "shopFinish": "DOKONČIT",
+    "vsYouStart": "Začínáš první",
+    "vsOpponentStarts": "Soupeř začíná první",
+    "vsTapToSkip": "Klepnutím přeskočíš",
+    "vsNoAbilities": "Bez pasivních schopností",
+    "vsFirstGame": "První zápas v tomto módu",
     "shopOpenPack": "OTEVŘÍT BALÍČEK (%d)",
     "shopBuyN": "%1$d× · %2$d",
     "shopBuyConfirmTitle": "Koupit balíčky?",
@@ -1268,6 +1273,10 @@
     "142": {
       "name": "Úder kolosu",
       "desc": "Zaútočí za 70."
+    },
+    "143": {
+      "name": "Velké zemětřesení",
+      "desc": "Zničí všechny hradby – soupeřovy i tvoje. Pak zaútočí za 10."
     }
   },
   "abilities": {

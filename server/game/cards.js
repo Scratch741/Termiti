@@ -334,6 +334,8 @@ const RAW = [
   ['140','Prastarý kolos',  20,'STONES',0,[bw(20), bc(10), ad('141',1)], 'LEGENDARY'],
   ['141','Probuzení kolosu',20,'MAGIC', 0,[am('MAGIC'), am('ATTACK'), am('STONES'), ad('142',1)], 'LEGENDARY', false, 0, true],
   ['142','Úder kolosu',     20,'ATTACK',0,[ap(70)],              'LEGENDARY', false, 0, true],
+  // Velké zemětřesení: zboří hradby OBĚMA stranám (40 = strop hradeb), pak útok 10 dopadne na hrad.
+  ['143','Velké zemětřesení', 8,'ATTACK',0,[aw(40), bw(-40), ap(10)], 'LEGENDARY'],
 ];
 
 // ── Sestavení mapy ────────────────────────────────────────────────────────────

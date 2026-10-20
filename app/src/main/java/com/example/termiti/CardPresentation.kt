@@ -431,6 +431,9 @@ object CardPresentation {
         "142" to CardPres("Zaútočí za 70.",
             R.drawable.art_uder_kolosu, "Útok",
             artScale = 0.80f),
+        "143" to CardPres("Zničí všechny hradby – soupeřovy i tvoje. Pak zaútočí za 10.",
+            R.drawable.art_velke_zemetreseni, "Útok",
+            artScale = 0.80f),
 
         "108" to CardPres("**Rozhodnutí:** Nahlédni do soupeřova balíku a zahoď 1 kartu.",
             R.drawable.art_likvidace, "Chaos",
