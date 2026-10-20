@@ -882,3 +882,11 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Oprava: port ze `AiDecisions.kt` – podmíněné efekty se splněnou podmínkou se počítají, poškození se sčítá přes všechny efekty (zeď pohltí jen útok na hráče), stejně tak výstavba na vítěznou výšku → skóre 200.
 - Ověřeno v Node na nahlášené situaci: dřív v Chaosu nejlépe Anarchie (100), drak nebyl ani mezi prvními čtyřmi; teď drak 200. Vyžaduje nasazení serveru.
 - Doplněk: žolík (server i offline `AiDecisions`) přednostně nabízel Velké zemětřesení i soupeři bez hradeb. `AttackWall` se teď boduje jen do výše soupeřových hradeb (dřív vždy amount × 3 = 120) a záporné `BuildWall` (ztráta vlastních hradeb) ubírá min(ztráta, vlastní hradby) × 1,5 (dřív 0). Útok, soupeř bez hradeb: dřív Velké zemětřesení 122, teď Upíří drak 47; soupeř s 30 hradbami: Zemětřesení 60, pořád první.
+
+## [2026-10-20] sim | Uživatelský balíček s Velkým zemětřesením (143)
+
+- `deckbuilder.html`: karta 143 už v seznamu i v databázi simulátoru byla (ověřeno v prohlížeči, 196 karet); přegenerováno `regen_deckbuilder_cards.js` a `regen_sim_db.js` – zastaralá byla jen 142 Úder kolosu v databázi simulátoru (AC 100 → AP 70) a verze vestavěných karet.
+- Balíček (30): 100×2, 104×2, 132×3, 037×2, 098×2, 059×2, 087×2, 097, 076×2, 022×2, 026×2, 056×2, 021×2, 052, 051, 078, 143. Round robin s 11 presety, 1000 her na dvojici: 61,9 % (4. z 12; AI Obránce 78,1, Mágik 63,0, AI Útočník 62,4, Kolos 61,7). 79 % výher bořením, průměrně 19,4 kola. Nejhorší proti AI Obránci (36,0), Kolosu (47,5), Mágovi (48,1).
+- Ablace (2000 her proti každému): bez Zemětřesení 59,4 % (−2,1 za kartu), bez 2× Krvavý úder −6,3 za kartu, bez 2× Dělostřelectvo −6,5 za kartu.
+- Výměna za jinou kartu (2000 her na dvojici): Silný úder (007) +0,9; nad limit kopií jen pro srovnání: 3. Přímý zásah (022) +1,2, 3. Dělostřelectvo (021) +3,3, 2. Drak (051) +5,5.
+- AI v simulaci zahraje Zemětřesení jen v 18 % her, průměrně ve 20. kole – AiEngine ho hodnotí nízko (bourání hradeb 2 + hradby/3, vlastní hradby −40 jako penalta), takže jeho síla v rukou hráče může být vyšší, než simulace ukazuje.
