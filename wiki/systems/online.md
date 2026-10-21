@@ -107,6 +107,51 @@ When you burn or steal from the opponent's hand, one card back disappears from t
 
 The field is additive: an old server simply omits it, the queue stays empty, and the client falls back to the previous behaviour, so `PROTOCOL_VERSION` was not bumped.
 
+## Server hosting and capacity
+
+**Hardware (2026-10-21):** Oracle Cloud VM `vnic-main`, IP `138.2.136.49`, port `8765` (`ws://…/lobby`, HTTP API on the same port). 2 vCPU, 954 MiB RAM (~510 MiB free with the game server running), **no swap**. Installed by `server/setup.sh` into `/opt/termiti-server`, systemd unit `termiti-lobby`. Single dependency: `ws` (`uuid` was replaced by `crypto.randomUUID()` on 2026-10-21).
+
+**One lobby:** there is a single lobby with two queues (constructed and `super_random`). Players are paired into independent `GameSession` objects in memory; the number of simultaneous games is limited only by CPU and RAM.
+
+### Load test (`server/loadtest.js`)
+
+Starts its **own** server instance from its folder on port `8766` (refuses `8765`) and connects N bots that play in pairs: mulligan without swap, end their turn after 2–4 s. Reports join time, server CPU, message-handling delay (event-loop lag) and memory. The instance writes `data/` and `logs/` next to itself, so run it from a clone, never from `/opt/termiti-server`:
+
+```bash
+git clone https://github.com/Scratch741/Termiti.git /tmp/termiti-load
+cd /tmp/termiti-load/server && npm install --omit=dev
+node loadtest.js 1000 30 0     # bots, measured seconds, ramp-up seconds (0 = all at once)
+```
+
+### Results on the server (2026-10-21)
+
+Production instance stopped during the test; the bots ran on the same VM and took part of the CPU, so join times are pessimistic. Bots end turns without playing cards, so real games cost slightly more per turn.
+
+| Bots (games) | Join all at once | CPU while playing | Message delay p99 / max | Instance memory |
+|---|---|---|---|---|
+| 200 (100) | 5.5 s | 4 % of one core | 11 / 57 ms | 58 → 67 MB |
+| 500 (250) | 15.5 s | 9 % | 13 / 58 ms | 60 → 89 MB |
+| 1000 (500) | 27.5 s | 17 % | 15 / 222 ms | 60 → 99 MB |
+
+No errors or disconnects at any size. Gameplay cost grows linearly and is cheap; by CPU the server could hold several thousand concurrent players. Caveats: the small cloud VM may throttle sustained CPU use (the test ran only 30 s), and with no swap an out-of-memory situation kills the process instead of slowing it down.
+
+### Connection limits and anti-bot protection (`server.js`, 2026-10-21)
+
+| Protection | Default | Env override | On violation |
+|---|---|---|---|
+| Max message size (`ws` `maxPayload`) | 16 kB | – | connection closed (1009) before the message is buffered; `ws` default was 100 MB |
+| Players on the server (open connections) | 500 | `MAX_PLAYERS` | `ERROR` „Server je plný…" + close 1000 |
+| Simultaneous connections per IP | 10 | `MAX_CONN_PER_IP` | `ERROR` + close 1000 |
+| New connections per IP per minute | 30 | `MAX_NEW_CONN_PER_MIN` | `ERROR` + close 1000 |
+| Connection without `JOIN` | 10 s | `JOIN_TIMEOUT_MS` | terminated |
+| Messages per connection | 30 / s dropped, 90 / s | – | over 30 dropped, over 90 terminated |
+
+Refusals close with code **1000** on purpose: the app then does not auto-reconnect and keeps the server's message on the error screen (any other code is replaced by the generic "connection lost" text). Per-IP limits are generous because mobile carriers put many customers behind one public IP (CGNAT). `loadtest.js` lifts the per-IP limits and sets `MAX_PLAYERS` above N for its own instance (all bots come from 127.0.0.1). Not covered: identity is the client-sent `deviceId` (can be spoofed; one person can farm rating with two connections) and volumetric DDoS (needs a proxy such as Cloudflare, i.e. a domain and `wss://`).
+
+### Gotcha: `broadcastCount()` was quadratic
+
+`COUNT` (players online / in queue) used to be sent to **every** player on every join, leave and queue change. A mass reconnect (e.g. after a server restart) cost O(N²): measured on a PC, 1000 bots joining at once waited 33 s for `WELCOME` at 100 % CPU. Since 2026-10-21 `COUNT` goes out at most once per `COUNT_INTERVAL_MS` (1 s) with current numbers; joins now cost linearly (~27 ms per player on the VM, bots included). `WELCOME` still carries the counts immediately to the joining player.
+
 ## Related pages
 - [[architecture]] — technical architecture, versioning
 - [[cards/decisions]] — Decision mechanic
@@ -119,3 +164,5 @@ The field is additive: an old server simply omits it, the queue stays empty, and
 - 2026-07-16: Added WebSocket ping/pong heartbeat (`server.js`) — fixes ghost connections inflating/desyncing online count and blocking matchmaking
 - 2026-08-26: Documented paced combo reveal (`_sendStateBothPaced`) — opponent-only delivery queue for rapid combo plays, with `_sendStateBoth()` flushing it to prevent out-of-order delivery
 - 2026-08-28: Added `fromHand` to `CARD_LOST` + client-side `opponentHandLoss` queue — opponent hand-loss ghosts were invisible online
+- 2026-10-21: Server hosting and capacity: hardware, one-lobby model, `loadtest.js`, load test results on the VM, `broadcastCount()` throttle
+- 2026-10-21: Connection limits and anti-bot protection (maxPayload, MAX_PLAYERS, per-IP limits, JOIN timeout, flood disconnect)

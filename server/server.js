@@ -432,7 +432,40 @@ function esc(s) {
 
 // ── WebSocket server (sdílí HTTP server) ──────────────────────────────────────
 
-const wss = new WebSocket.Server({ server: httpServer, path: PATH });
+// maxPayload: větší zprávu knihovna odmítne a spojení zavře DŘÍV, než ji celou načte do paměti.
+// Výchozí strop ws je 100 MB – na serveru s 1 GB paměti a bez swapu by jedna obří zpráva
+// mohla proces shodit. Největší skutečná zpráva (JOIN/QUEUE_JOIN s balíčkem) má pod 2 kB.
+const wss = new WebSocket.Server({ server: httpServer, path: PATH, maxPayload: 16 * 1024 });
+
+// ── Limity proti přetížení a botům (hodnoty jdou přepsat proměnnými prostředí) ──
+// MAX_PLAYERS: zátěžový test na serveru (2 vCPU, 1 GB, bez swapu) zvládl 1000 hráčů,
+// 500 nechává rezervu na paměť a na omezený trvalý výkon malého cloudového stroje.
+const MAX_PLAYERS          = Number(process.env.MAX_PLAYERS)          || 500;
+// Limity na IP jsou volnější, než by stačilo jednomu hráči: mobilní operátoři schovávají
+// mnoho zákazníků za jednu veřejnou adresu (CGNAT), takže z jedné IP můžou hrát i cizí lidé.
+const MAX_CONN_PER_IP      = Number(process.env.MAX_CONN_PER_IP)      || 10;  // současně z jedné IP
+const MAX_NEW_CONN_PER_MIN = Number(process.env.MAX_NEW_CONN_PER_MIN) || 30;  // nových za minutu z jedné IP
+const JOIN_TIMEOUT_MS      = Number(process.env.JOIN_TIMEOUT_MS)      || 10_000; // spojení bez JOIN se zavře
+
+const connsPerIp   = new Map();   // ip → počet otevřených spojení
+const recentConnIp = new Map();   // ip → časy nových spojení za poslední minutu
+setInterval(() => {               // úklid, ať mapy nerostou s každou IP, která se kdy připojila
+  const cutoff = Date.now() - 60_000;
+  for (const [ip, times] of recentConnIp) {
+    const kept = times.filter(t => t > cutoff);
+    if (kept.length) recentConnIp.set(ip, kept); else recentConnIp.delete(ip);
+  }
+}, 60_000).unref();
+
+/**
+ * Odmítnutí spojení: klient dostane ERROR se zprávou a spojení se zavře kódem 1000.
+ * Kód 1000 je záměr – aplikace pak nezkouší reconnect a nepřepíše zprávu obecným
+ * „spojení ztraceno"; hráči zůstane obrazovka chyby s tímhle textem a tlačítkem Zkusit znovu.
+ */
+function refuse(ws, msg) {
+  try { ws.send(JSON.stringify({ type: 'ERROR', msg })); } catch (_) {}
+  ws.close(1000, 'refused');
+}
 
 // Hráči v lobby: Map<WebSocket, { id, name, inQueue, gameId|null }>
 const players = new Map();
@@ -635,6 +668,40 @@ wss.on('connection', (ws, req) => {
   }
 
   const ip = req.socket.remoteAddress;
+
+  // ── Limity připojení ─────────────────────────────────────────────────────
+  // wss.clients už obsahuje i toto nové spojení
+  if (wss.clients.size > MAX_PLAYERS) {
+    log('LIMIT', `Server plný (${wss.clients.size - 1}/${MAX_PLAYERS}) – odmítnuto ${ip}`);
+    refuse(ws, 'Server je plný, zkus to prosím za chvíli.');
+    return;
+  }
+  const now0   = Date.now();
+  const recent = (recentConnIp.get(ip) || []).filter(t => t > now0 - 60_000);
+  recent.push(now0);
+  recentConnIp.set(ip, recent);
+  if (recent.length > MAX_NEW_CONN_PER_MIN) {
+    log('LIMIT', `Příliš mnoho nových spojení z ${ip} (${recent.length}/min)`);
+    refuse(ws, 'Příliš mnoho pokusů o připojení, zkus to za minutu.');
+    return;
+  }
+  const open = (connsPerIp.get(ip) || 0) + 1;
+  if (open > MAX_CONN_PER_IP) {
+    log('LIMIT', `Příliš mnoho spojení z ${ip} (${open})`);
+    refuse(ws, 'Z tvé sítě je připojeno příliš mnoho hráčů.');
+    return;
+  }
+  connsPerIp.set(ip, open);
+  ws.on('close', () => {
+    const left = (connsPerIp.get(ip) || 1) - 1;
+    if (left > 0) connsPerIp.set(ip, left); else connsPerIp.delete(ip);
+  });
+  // Spojení, které se do JOIN_TIMEOUT_MS nepřihlásí (JOIN), jen drží místo → zavřít
+  const joinTimer = setTimeout(() => {
+    if (!players.has(ws)) { log('LIMIT', `Spojení z ${ip} bez JOIN – zavírám`); ws.terminate(); }
+  }, JOIN_TIMEOUT_MS);
+  ws.on('close', () => clearTimeout(joinTimer));
+
   log('+', `Spojení z ${ip}`);
 
   ws.isAlive = true;
@@ -656,8 +723,14 @@ wss.on('connection', (ws, req) => {
     const now = Date.now();
     if (now - windowStart > MSG_WINDOW) { msgCount = 0; windowStart = now; }
     msgCount++;
+    if (msgCount > MSG_LIMIT * 3) {
+      // Hrubé zaplavování (žádná normální hra se k tomu nepřiblíží) → odpojit
+      log('RATELIMIT', `Flood od ${ip} (${msgCount} zpráv/${MSG_WINDOW}ms) – odpojuji`);
+      ws.terminate();
+      return;
+    }
     if (msgCount > MSG_LIMIT) {
-      log('RATELIMIT', `Flood od ${ip} (${msgCount} zpráv/${MSG_WINDOW}ms) – zahazuji`);
+      if (msgCount === MSG_LIMIT + 1) log('RATELIMIT', `Flood od ${ip} (> ${MSG_LIMIT} zpráv/${MSG_WINDOW}ms) – zahazuji`);
       return;
     }
 

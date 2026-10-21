@@ -41,7 +41,9 @@ const RAMP    = +process.argv[4] || 0;
 const PORT    = +process.env.LOADTEST_PORT || 8766;
 if (PORT === 8765) { console.error('Port 8765 patří ostrému serveru – zvol jiný (LOADTEST_PORT).'); process.exit(1); }
 
-const srv = fork(__filename, ['--server'], { env: { ...process.env, PORT: String(PORT) }, silent: true });
+// Všichni boti jdou z jedné adresy (127.0.0.1) → limity na IP vypnout, strop hráčů nad N
+const srv = fork(__filename, ['--server'], { env: { ...process.env, PORT: String(PORT),
+  MAX_PLAYERS: String(N + 10), MAX_CONN_PER_IP: '1000000', MAX_NEW_CONN_PER_MIN: '1000000' }, silent: true });
 srv.stdout.on('data', () => {}); srv.stderr.on('data', () => {});
 const ask = () => new Promise(r => { srv.once('message', r); srv.send('stats'); });
 const sleep = ms => new Promise(r => setTimeout(r, ms));

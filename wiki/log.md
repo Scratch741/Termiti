@@ -903,3 +903,18 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - `broadcastCount()` posílal COUNT všem hráčům při každém připojení, odpojení i vstupu do fronty → zátěž rostla s druhou mocninou počtu hráčů. Měřeno lokálně (PC, ne server): 1000 botů připojených naráz čekalo na WELCOME 33 s při 100 % jednoho jádra; při samotném hraní 500 her jen ~8 % jádra, 148 MB.
 - Oprava: COUNT se odešle nejvýš jednou za `COUNT_INTERVAL_MS` (1 s) s aktuálními čísly; WELCOME dostává připojený hráč dál hned.
 - Nový `server/loadtest.js`: spustí vlastní instanci serveru na portu 8766 (ostrý 8765 odmítne) a N botů, kteří hrají v párech; vypíše dobu připojení, procesor, zpoždění zpracování zpráv a paměť. Instance zapisuje data a logy vedle sebe → spouštět z naklonovaného repozitáře, ne z /opt/termiti-server. `server.js` bere port z proměnné `PORT` (výchozí 8765).
+- Měření na serveru (Oracle, 2 vCPU, 1 GB RAM, bez swapu; `loadtest.js`, oprava rozesílání už v kódu; boti běží na stejném stroji a berou část procesoru):
+
+  | boti (hry) | připojení naráz | procesor při hraní | zpoždění zpráv p99 / max | paměť instance |
+  |---|---|---|---|---|
+  | 200 (100) | 5,5 s | 4 % jádra | 11 / 57 ms | 58 → 67 MB |
+  | 500 (250) | 15,5 s | 9 % | 13 / 58 ms | 60 → 89 MB |
+  | 1000 (500) | 27,5 s | 17 % | 15 / 222 ms | 60 → 99 MB |
+
+  Hraní roste lineárně a je levné; připojení naráz trvá ~27 ms na hráče (lineárně – dřív kvadraticky), v tom je ale i práce botů na stejném stroji.
+- [2026-10-21] Výsledky zátěžového testu a parametry serveru zapsány do [[systems/online]] (sekce Server hosting and capacity); index aktualizován.
+
+## [2026-10-21] server | Limity připojení a ochrana proti botům
+
+- `maxPayload` 16 kB (dřív výchozí 100 MB), strop 500 hráčů, 10 současných a 30 nových spojení za minutu z jedné IP, zavření spojení bez JOIN po 10 s, odpojení při > 90 zprávách/s (nad 30/s se dál jen zahazují). Hodnoty v proměnných prostředí, popis v [[systems/online]].
+- Ověřeno funkčně na PC (pár spojení): 6. spojení z IP při limitu 5 odmítnuto, 3. hráč při MAX_PLAYERS=2 dostal „Server je plný", zpráva 100 kB → close 1009, spojení bez JOIN zavřeno, flood 200 zpráv → odpojeno, 11. nové spojení za minutu při limitu 10 odmítnuto. Výchozí limity na IP pak zvolněny na 10 / 30 kvůli CGNAT u mobilních operátorů.

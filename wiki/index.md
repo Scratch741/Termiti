@@ -34,7 +34,7 @@
 | Page | Description | Updated |
 |------|-------------|---------|
 | [[systems/ai]] | AiEngine scoring, penalties, lethal lookahead, Decision AI | 2026-05-29 |
-| [[systems/online]] | Online multiplayer, GameSession.js, protocol handshake, timebank | 2026-05-29 |
+| [[systems/online]] | Online multiplayer, GameSession.js, protocol handshake, timebank, server hosting & capacity (load test) | 2026-10-21 |
 | [[systems/localization]] | JSON language packs (cs/en), AppStrings, fallback chain | 2026-05-29 |
 | [[systems/roadmap-accounts-monetization]] | Future plan: Google Play identity → server-side progress → paid packs/gold; open decisions, known server gaps | 2026-10-06 |
 
