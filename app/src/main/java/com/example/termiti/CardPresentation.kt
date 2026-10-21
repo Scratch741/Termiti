@@ -280,7 +280,7 @@ object CardPresentation {
 
         // ── Zdroje + doly – Arcomage/Mravenci inspirace ───────────────────────
         "072" to CardPres("Útok +2, důl útoku +1.",
-            R.drawable.art_zbrojnice, "Doly",
+            R.drawable.art_zbrojnice, "Důl",
             artScale = 0.80f, artBiasY = 0.60f),
         "073" to CardPres("Magie +2, důl magie +1.",
             R.drawable.art_skola_magie, "Důl",

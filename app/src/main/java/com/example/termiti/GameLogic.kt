@@ -231,7 +231,16 @@ fun applyEffects(
         }
 
         is CardEffect.GiveRandomCard -> {
-            val pool = allCards.filter { it.costType == effect.costType && !it.isPlaceholder }
+            // „Náhodná karta STAVBA / ÚTOK" = podle TYPU karty (card.type, jak ho ukazuje karta),
+            // ne podle suroviny: karty s dolem (Architekt, Válečný trénink) mají typ DŮL a patří
+            // sem naopak chaosové stavby (Chaotický štít, Zázrak chaosu, Chaos a řád).
+            val wanted = when (effect.costType) {
+                ResourceType.STONES -> "Stavba"
+                ResourceType.ATTACK -> "Útok"
+                ResourceType.MAGIC  -> "Magie"
+                ResourceType.CHAOS  -> "Chaos"
+            }
+            val pool = allCards.filter { it.type == wanted && !it.isPlaceholder }
             if (pool.isNotEmpty()) {
                 val tmpl = pool.random()
                 val card = tmpl.copy(

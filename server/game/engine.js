@@ -49,7 +49,19 @@ function createPlayerState(deckCards, startCastle = 30, maxWall = MAX_WALL) {
  * Odvodí kategoriový typ karty (odpovídá Card.type v Kotlinu).
  * Karty s efektem AddMine → "Důl"; jinak dle costType.
  */
+// Typ, který karta ukazuje v aplikaci (CardPresentation.kt), kde se liší od pravidla níž.
+// Bez toho počítaly typové efekty online jinak než offline (Inspirace, Cihla na cihlu,
+// Stavitel, Chaotický mudrc, Stavební posila…).
+const CARD_TYPE_OVERRIDES = {
+  C07: 'Stavba', C08: 'Stavba', C11: 'Stavba',   // chaosové stavby
+  C35: 'Důl',                                    // Chaotická přeměna (mění důl)
+  C28: 'Chaos', C31: 'Chaos', C41: 'Chaos', C42: 'Chaos',  // placené magií, ale chaosové
+  '141': 'Magie',                                // Probuzení kolosu
+};
+
 function deriveCardType(card) {
+  const base = card.baseId || card.id;
+  if (CARD_TYPE_OVERRIDES[base]) return CARD_TYPE_OVERRIDES[base];
   const hasMine = card.effects && card.effects.some(e => e.type === 'AddMine');
   if (hasMine) return 'Důl';
   switch (card.costType) {
@@ -412,7 +424,10 @@ function applyEffects(effects, self, opponent, cardMap, onOpponentLoss, xValue =
       }
 
       case 'GiveRandomCard': {
-        const pool = ALL_CARDS.filter(c => c.costType === fx.costType && !c.isPlaceholder);
+        // „Náhodná karta STAVBA / ÚTOK" = podle TYPU karty (deriveCardType), jak říká text –
+        // dřív podle suroviny, takže padaly i karty s dolem (Architekt) a chaosové stavby ne.
+        const wanted = { STONES: 'Stavba', ATTACK: 'Útok', MAGIC: 'Magie', CHAOS: 'Chaos' }[fx.costType];
+        const pool = ALL_CARDS.filter(c => deriveCardType(c) === wanted && !c.isPlaceholder);
         if (pool.length) {
           const tmpl = pool[Math.floor(Math.random() * pool.length)];
           const card = makeInstance(tmpl);
