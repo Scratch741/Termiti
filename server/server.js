@@ -57,7 +57,7 @@ const { parseReplay, listReplays, buildListHtml, buildViewerHtml } = require('./
 cleanupOldLogs();
 setInterval(cleanupOldLogs, 24 * 60 * 60 * 1000);
 
-const PORT = 8765;
+const PORT = Number(process.env.PORT) || 8765;   // PORT nastavuje jen zátěžový test (loadtest.js)
 const PATH = '/lobby';
 
 /**
@@ -463,15 +463,30 @@ function send(ws, data) {
   }
 }
 
+// Počet hráčů online / ve frontě se rozesílá všem nejvýš jednou za COUNT_INTERVAL_MS.
+// Dřív šel každým připojením, odpojením i vstupem do fronty hned všem hráčům – zátěž rostla
+// s druhou mocninou počtu hráčů: 1000 hráčů připojených naráz (restart serveru) čekalo
+// na WELCOME 33 s při 100 % procesoru (měřeno loadtest.js). Další volání během čekání
+// se jen připojí k už naplánovanému odeslání, které pošle aktuální čísla.
+const COUNT_INTERVAL_MS = 1000;
+let countTimer  = null;
+let countSentAt = 0;
+
 function broadcastCount() {
-  const msg = JSON.stringify({
-    type:   'COUNT',
-    online: players.size,
-    queue:  queue.length + superQueue.length
-  });
-  for (const ws of players.keys()) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-  }
+  if (countTimer) return;
+  const wait = Math.max(0, COUNT_INTERVAL_MS - (Date.now() - countSentAt));
+  countTimer = setTimeout(() => {
+    countTimer  = null;
+    countSentAt = Date.now();
+    const msg = JSON.stringify({
+      type:   'COUNT',
+      online: players.size,
+      queue:  queue.length + superQueue.length
+    });
+    for (const ws of players.keys()) {
+      if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    }
+  }, wait);
 }
 
 // ── Heartbeat (detekce "zombie" spojení) ───────────────────────────────────────

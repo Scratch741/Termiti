@@ -897,3 +897,9 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 
 - `npm audit` na serveru hlásil zranitelnost v `uuid` (jen v3/v5/v6 s vlastním bufferem; server používal `v4`). Oprava přes `--force` by povýšila `uuid` 9 → 14 (možná jen ESM, `require` by selhal). Místo toho `server.js` generuje ID vestavěným `crypto.randomUUID()` (Node ≥ 14.17, setup.sh instaluje 18+) a `uuid` zmizel z `package.json`; zbývá jediná závislost `ws`.
 - Ověřeno lokálně: server startuje, 200 testovacích hráčů dostalo WELCOME za 0,7 s. Vyžaduje nasazení serveru (`npm install` při nasazení nepotřebný balíček odebere).
+
+## [2026-10-21] server | Rozesílání počtu hráčů nejvýš 1× za sekundu, zátěžový test
+
+- `broadcastCount()` posílal COUNT všem hráčům při každém připojení, odpojení i vstupu do fronty → zátěž rostla s druhou mocninou počtu hráčů. Měřeno lokálně (PC, ne server): 1000 botů připojených naráz čekalo na WELCOME 33 s při 100 % jednoho jádra; při samotném hraní 500 her jen ~8 % jádra, 148 MB.
+- Oprava: COUNT se odešle nejvýš jednou za `COUNT_INTERVAL_MS` (1 s) s aktuálními čísly; WELCOME dostává připojený hráč dál hned.
+- Nový `server/loadtest.js`: spustí vlastní instanci serveru na portu 8766 (ostrý 8765 odmítne) a N botů, kteří hrají v párech; vypíše dobu připojení, procesor, zpoždění zpracování zpráv a paměť. Instance zapisuje data a logy vedle sebe → spouštět z naklonovaného repozitáře, ne z /opt/termiti-server. `server.js` bere port z proměnné `PORT` (výchozí 8765).
