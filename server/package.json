@@ -8,7 +8,6 @@
     "dev":   "node --watch server.js"
   },
   "dependencies": {
-    "uuid": "^9.0.0",
     "ws":   "^8.17.0"
   }
 }

@@ -45,7 +45,9 @@
 
 const http      = require('http');
 const WebSocket = require('ws');
-const { v4: uuidv4 } = require('uuid');
+// ID hráčů a her – vestavěné v Node.js (≥ 14.17); dřív balíček uuid, kvůli kterému hlásil npm audit
+// zranitelnost (týkala se jen v3/v5/v6, server používal v4).
+const { randomUUID: uuidv4 } = require('crypto');
 const { GameSession } = require('./game/GameSession');
 const { ratingSystem } = require('./game/RatingSystem');
 const { cleanupOldLogs } = require('./game/GameLogger');
