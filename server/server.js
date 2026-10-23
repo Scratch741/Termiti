@@ -92,6 +92,25 @@ const CRASH_PER_IP       = 5;               // hlášení z jedné adresy…
 const CRASH_WINDOW_MS    = 10 * 60 * 1000;  // …za 10 minut
 const crashReportHits    = new Map();       // ip → časy posledních hlášení
 
+// ── Žebříček: limit dotazů na adresu + krátká cache odpovědí ─────────────────
+const LB_PER_IP       = 20;            // dotazů na žebříček z jedné adresy…
+const LB_WINDOW_MS    = 60 * 1000;     // …za minutu
+const LB_CACHE_MS     = 5 * 1000;      // hotová odpověď platí 5 s
+const leaderboardHits  = new Map();    // ip → časy dotazů
+const leaderboardCache = new Map();    // 'mode:limit' → { at, body }
+
+function leaderboardAllowed(ip) {
+  const now  = Date.now();
+  const hits = (leaderboardHits.get(ip) || []).filter(t => now - t < LB_WINDOW_MS);
+  if (hits.length >= LB_PER_IP) { leaderboardHits.set(ip, hits); return false; }
+  hits.push(now);
+  leaderboardHits.set(ip, hits);
+  if (leaderboardHits.size > 2000) {
+    for (const [k, v] of leaderboardHits) if (v.every(t => now - t >= LB_WINDOW_MS)) leaderboardHits.delete(k);
+  }
+  return true;
+}
+
 /** True, pokud adresa ještě nevyčerpala limit hlášení; zároveň hlášení započítá. */
 function crashReportAllowed(ip) {
   const now  = Date.now();
@@ -136,11 +155,29 @@ const httpServer = http.createServer((req, res) => {
 
   // ── GET /leaderboard?mode=normal&limit=20 ────────────────────────────────
   if (path === '/leaderboard') {
-    const mode  = url.searchParams.get('mode')  || 'normal';
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 100);
-    const data  = ratingSystem.getLeaderboard(mode, limit);
+    // Ochrana: klient může být upravený, takže limit musí držet server – nejvýš
+    // LB_PER_IP dotazů za minutu z jedné adresy, a hotová odpověď se 5 s drží v paměti
+    // (řazení všech hráčů se tak nedělá při každém dotazu).
+    const ip = req.socket.remoteAddress || '?';
+    if (!leaderboardAllowed(ip)) {
+      res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end('{"error":"too many requests"}');
+      return;
+    }
+    const mode  = url.searchParams.get('mode') === 'super_random' ? 'super_random' : 'normal';
+    const limit = Math.max(1, Math.min(parseInt(url.searchParams.get('limit') || '20', 10) || 20, 100));
+    const key   = mode + ':' + limit;
+    const hit   = leaderboardCache.get(key);
+    let body;
+    if (hit && Date.now() - hit.at < LB_CACHE_MS) {
+      body = hit.body;
+    } else {
+      const data = ratingSystem.getLeaderboard(mode, limit);
+      body = JSON.stringify({ mode, players: data, total: ratingSystem.getTotalPlayers() });
+      leaderboardCache.set(key, { at: Date.now(), body });
+    }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify({ mode, players: data, total: ratingSystem.getTotalPlayers() }));
+    res.end(body);
     return;
   }
 

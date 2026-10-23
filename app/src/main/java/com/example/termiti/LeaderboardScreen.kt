@@ -63,22 +63,47 @@ fun LeaderboardScreen(onBack: () -> Unit) {
     var refreshTick   by remember { mutableIntStateOf(0) }
     var isLoading     by remember { mutableStateOf(true) }
     var errorMsg      by remember { mutableStateOf<String?>(null) }
-    var players       by remember { mutableStateOf<List<LeaderboardPlayer>>(emptyList()) }
-    var totalPlayers  by remember { mutableStateOf(0) }
+    var data          by remember { mutableStateOf(LeaderboardCache.data) }
+    var fetchedAt     by remember { mutableLongStateOf(LeaderboardCache.fetchedAt) }
+    var now           by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    LaunchedEffect(selectedMode, refreshTick) {
+    // Data OBOU módů se stáhnou jednou při otevření (nebo se vezmou z paměti, když jsou čerstvá)
+    // a přepínání módů už server neptá. Znovu jen tlačítkem Obnovit, nejdřív po odpočtu.
+    LaunchedEffect(refreshTick) {
+        val fresh = System.currentTimeMillis() - LeaderboardCache.fetchedAt < LB_CACHE_MS
+        if (refreshTick == 0 && fresh && LeaderboardCache.data.isNotEmpty()) {
+            data = LeaderboardCache.data; fetchedAt = LeaderboardCache.fetchedAt
+            isLoading = false
+            return@LaunchedEffect
+        }
         isLoading = true
         errorMsg  = null
         try {
-            val result = withContext(Dispatchers.IO) { fetchLeaderboard(selectedMode) }
-            players      = result.first
-            totalPlayers = result.second
+            val result = withContext(Dispatchers.IO) {
+                LB_MODES.associateWith { fetchLeaderboard(it) }
+            }
+            LeaderboardCache.data      = result
+            LeaderboardCache.fetchedAt = System.currentTimeMillis()
+            data = result; fetchedAt = LeaderboardCache.fetchedAt
         } catch (e: Exception) {
             errorMsg = LanguageManager.currentStrings.lbLoadFailed.format(e.message ?: "")
         } finally {
             isLoading = false
         }
     }
+    // Odpočet do dalšího povoleného obnovení
+    LaunchedEffect(fetchedAt) {
+        while (System.currentTimeMillis() - fetchedAt < LB_REFRESH_COOLDOWN_MS) {
+            now = System.currentTimeMillis()
+            kotlinx.coroutines.delay(1000)
+        }
+        now = System.currentTimeMillis()
+    }
+    val cooldownLeft = ((LB_REFRESH_COOLDOWN_MS - (now - fetchedAt)) / 1000).toInt().coerceAtLeast(0)
+    val canRefresh   = !isLoading && (cooldownLeft == 0 || errorMsg != null)
+
+    val players      = data[selectedMode]?.first.orEmpty()
+    val totalPlayers = data[selectedMode]?.second ?: 0
 
     val profile   = PlayerProfileManager.profile
     val myName    = profile?.name.orEmpty()
@@ -123,12 +148,13 @@ fun LeaderboardScreen(onBack: () -> Unit) {
                 Text(s.lbTotalPlayers.format(totalPlayers), color = TextMuted, fontSize = 9.sp)
             }
             PlainButton(
-                text      = s.lbRefresh,
+                text      = if (canRefresh || isLoading) s.lbRefresh else "${s.lbRefresh} ($cooldownLeft)",
                 textColor = TextMuted,
                 fontSize  = 9.sp,
                 modifier  = Modifier.height(27.dp).widthIn(min = 76.dp),
                 paddingH  = 10.dp,
                 paddingV  = 0.dp,
+                enabled   = canRefresh,
                 onClick   = { refreshTick++ }
             )
         }
@@ -286,6 +312,19 @@ private fun ModeChip(label: String, mode: String, selected: String, onClick: (St
 }
 
 // ─── HTTP fetch ───────────────────────────────────────────────────────────────
+/** Módy žebříčku – stahují se vždy oba naráz, přepínání pak nic neposílá. */
+private val LB_MODES = listOf("normal", "super_random")
+/** Jak dlouho platí stažená data při opětovném otevření obrazovky. */
+private const val LB_CACHE_MS = 60_000L
+/** Nejkratší rozestup mezi ručními obnoveními (tlačítko ukazuje odpočet). */
+private const val LB_REFRESH_COOLDOWN_MS = 15_000L
+
+/** Poslední stažený žebříček – přežije zavření obrazovky, ať návrat nevyvolá nový dotaz. */
+private object LeaderboardCache {
+    var data: Map<String, Pair<List<LeaderboardPlayer>, Int>> = emptyMap()
+    var fetchedAt: Long = 0L
+}
+
 private val _httpClient = OkHttpClient.Builder()
     .connectTimeout(8, TimeUnit.SECONDS)
     .readTimeout(8, TimeUnit.SECONDS)
