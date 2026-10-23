@@ -700,7 +700,7 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
         ) {
             // Nadpis
             Spacer(Modifier.height(4.dp))
-            CampaignTitle(LocalStrings.current.lostCardsTitle, fontSize = 20.sp, modifier = Modifier.padding(top = 6.dp))
+            CampaignTitle(LocalStrings.current.lostCardsTitle, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
             Text(
                 LocalStrings.current.lostCardsSubtitle,
                 color = TextMuted, fontSize = 10.sp
@@ -717,6 +717,8 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
                 val scroll = rememberScrollState()
                 Row(
                     modifier = Modifier
+                        // lišta pod kartami ukáže, že řada pokračuje mimo panel
+                        .horizontalScrollRail(scroll)
                         .horizontalScroll(scroll)
                         .padding(horizontal = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

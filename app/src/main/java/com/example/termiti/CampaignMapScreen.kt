@@ -183,6 +183,8 @@ internal fun CampaignTitle(
             fontWeight    = FontWeight.Bold,
             fontSize      = fontSize,
             letterSpacing = 3.sp,
+            // Dlouhý nadpis se zalomí – i druhý řádek musí být na střed, ne zarovnaný doleva
+            textAlign     = androidx.compose.ui.text.style.TextAlign.Center,
             brush         = Brush.verticalGradient(gradient),
             shadow        = Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 3f), blurRadius = 8f)
         )

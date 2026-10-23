@@ -64,6 +64,34 @@ fun Modifier.scrollRail(state: LazyListState): Modifier = this
     }
     .padding(end = SCROLL_RAIL_RESERVE)
 
+/**
+ * Vodorovná obdoba [scrollRail] pro řadu rolovanou do strany (`horizontalScroll`): lišta
+ * u spodního okraje, obsahu ubere [SCROLL_RAIL_RESERVE] dole. Stát musí PŘED horizontalScroll.
+ */
+fun Modifier.horizontalScrollRail(state: ScrollState): Modifier = this
+    .drawWithContent {
+        drawContent()
+        val max = state.maxValue
+        if (max > 0 && max != Int.MAX_VALUE) {
+            val h      = RAIL_WIDTH.toPx()
+            val y      = size.height - h
+            val r      = CornerRadius(h / 2, h / 2)
+            drawRoundRect(Color(0xFF14100C), topLeft = Offset(0f, y), size = Size(size.width, h), cornerRadius = r)
+            drawRoundRect(RailBronze.copy(alpha = 0.7f), topLeft = Offset(0f, y), size = Size(size.width, h),
+                cornerRadius = r, style = Stroke(1.dp.toPx()))
+            val thumbW = (size.width * size.width / (size.width + max)).coerceIn(minOf(24.dp.toPx(), size.width), size.width)
+            val x      = (size.width - thumbW) * state.value / max
+            val inset  = 1.5.dp.toPx()
+            drawRoundRect(
+                brush        = Brush.horizontalGradient(listOf(RailGold, RailBronze), startX = x, endX = x + thumbW),
+                topLeft      = Offset(x + inset, y + inset),
+                size         = Size((thumbW - 2 * inset).coerceAtLeast(0f), h - 2 * inset),
+                cornerRadius = r
+            )
+        }
+    }
+    .padding(bottom = SCROLL_RAIL_RESERVE)
+
 private fun DrawScope.drawRail(visibleShare: Float, position: Float) {
     val w      = RAIL_WIDTH.toPx()
     val x      = size.width - w
