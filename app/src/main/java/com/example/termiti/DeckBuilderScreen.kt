@@ -191,6 +191,8 @@ fun localizedDeckName(name: String): String {
  */
 @Composable
 fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boolean = false) {
+    // Při otevření srovnej balíčky s kolekcí – rozebrané karty v nich nesmí zůstat
+    LaunchedEffect(Unit) { viewModel.trimAllDecksToOwned() }
     val decks: List<Deck> =
         if (rogue) viewModel.roguePresets.mapIndexed { i, p -> Deck(i, p.name, p.cardCounts) }
         else viewModel.decks
@@ -222,6 +224,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
     var searchQuery    by remember { mutableStateOf("") }
     var filterCost     by remember { mutableStateOf<Int?>(null) }
     var filterRarity   by remember { mutableStateOf<Rarity?>(null) }
+    /** Jen karty s dolem (typ DŮL nebo efekt, který důl přidá / mění). */
+    var filterMines    by remember { mutableStateOf(false) }
 
     var showPresets    by remember { mutableStateOf(false) }
     var showDeckPicker by remember { mutableStateOf(false) }
@@ -234,13 +238,14 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
         if (!rogue && editingDeck.totalCards in 1..29) showIncomplete = true else onBack()
     }
 
-    val filteredCards = remember(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity, profile) {
+    val filteredCards = remember(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity, filterMines, profile) {
         viewModel.allCards
             .filter { card ->
                 card.effects.none { it is CardEffect.TrapOnDraw } &&
                 !card.isPlaceholder &&
                 (filterRes == null || card.costType == filterRes) &&
                 (filterRarity == null || card.rarity == filterRarity) &&
+                (!filterMines || card.isMineCard()) &&
                 (!filterUnlocked || run {
                     profile?.allCardsUnlocked == true ||
                     CardCollectionManager.isBasicCard(card) ||
@@ -280,6 +285,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
                     onResFilter = { filterRes = if (filterRes == it) null else it },
                     filterRarity   = filterRarity,
                     onRarityFilter = { filterRarity = if (filterRarity == it) null else it },
+                    filterMines    = filterMines,
+                    onMinesFilter  = { filterMines = !filterMines },
                     onBack      = requestBack
                 )
                 SectionSeparator()
@@ -288,7 +295,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
                 val pagerState = rememberPagerState(pageCount = { pageCount })
                 val scope      = rememberCoroutineScope()
                 // Nový filtr = jiná sada karet → zpět na první stranu
-                LaunchedEffect(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity) { pagerState.scrollToPage(0) }
+                LaunchedEffect(filterRes, filterUnlocked, searchQuery, filterCost, filterRarity, filterMines) { pagerState.scrollToPage(0) }
 
                 Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     PageArrow("‹", enabled = pagerState.currentPage > 0) {
@@ -729,6 +736,8 @@ private fun ResourceTabBar(
     onResFilter: (ResourceType) -> Unit,
     filterRarity: Rarity?,
     onRarityFilter: (Rarity) -> Unit,
+    filterMines: Boolean,
+    onMinesFilter: () -> Unit,
     onBack: () -> Unit
 ) {
     val s = LocalStrings.current
@@ -755,6 +764,8 @@ private fun ResourceTabBar(
         ResourceType.entries.forEach { type ->
             IconChip(resourceIconRes(type), filterRes == type, size = 30.dp) { onResFilter(type) }
         }
+        // Doly – kombinuje se se surovinou (Magie + Doly = doly magie)
+        IconChip(R.drawable.mine_icon, filterMines, size = 30.dp) { onMinesFilter() }
         Spacer(Modifier.width(10.dp))
         Rarity.entries.forEach { r ->
             RarityChip(r, filterRarity == r, size = 30.dp) { onRarityFilter(r) }
@@ -762,6 +773,12 @@ private fun ResourceTabBar(
         Spacer(Modifier.weight(1f))
     }
 }
+
+/** Karta s dolem: typ DŮL (jak ho ukazuje karta) nebo efekt, který důl přidá, vybere či přemění. */
+private fun Card.isMineCard(): Boolean =
+    type == "Důl" || effects.any {
+        it is CardEffect.AddMine || it is CardEffect.DecisionMine || it is CardEffect.ConvertMine
+    }
 
 /** Filtr vzácnosti: destička s drahokamem dané vzácnosti (výřez z rámu karty – [RarityGem]). */
 @Composable

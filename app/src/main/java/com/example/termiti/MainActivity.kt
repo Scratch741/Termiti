@@ -92,6 +92,7 @@ class MainActivity : ComponentActivity() {
                     // hráč pak hrál s něčím jiným, než si postavil. Teď se hra nespustí a ukáže hlášku.
                     var incompleteDeck by remember { mutableStateOf<Deck?>(null) }
                     fun withFullDeck(start: () -> Unit) {
+                        viewModel.trimAllDecksToOwned()   // rozebrané karty ven, pak teprve kontrola 30/30
                         val deck = viewModel.decks[viewModel.activeDeckIndex.value]
                         if (deck.isValid) start() else incompleteDeck = deck
                     }

@@ -222,6 +222,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 saveDeck(i)
             }
         }
+        // Roguelike balíčky stejně (do hlášení se nepočítají – hlášení mluví o constructed balíčcích)
+        if (hasProfile) roguePresets.indices.forEach { i ->
+            roguePresets[i].cardCounts.forEach { (id, n) ->
+                val card = cardMap[id] ?: return@forEach
+                val allowed = CardCollectionManager.usableCopies(card)
+                if (n > allowed) setRogueCardCount(i, id, allowed)
+            }
+        }
 
         return (fromCollection.keys + fromDecks.keys).sorted().map { id ->
             CardLimitChange(
@@ -360,6 +368,32 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
         roguePresets.indices.forEach { i ->
             if ((roguePresets[i].cardCounts[cardId] ?: 0) > allowed) setRogueCardCount(i, cardId, allowed)
+        }
+    }
+
+    /**
+     * Srovná VŠECHNY balíčky (constructed i roguelike) na karty, které hráč opravdu vlastní.
+     * Zachytí i karty rozebrané dřív, než rozebrání balíčky ořezávalo (před 6. 10. 2026),
+     * a balíčky postavené se zapnutým „odemknout vše", když se přepínač zase vypne.
+     * Bezpečné: šablony i startovní balíček obsahují jen vlastněné / základní karty.
+     * Bez profilu nic nedělá – usableCopies by vrátilo 0 a balíčky by se vymazaly.
+     */
+    fun trimAllDecksToOwned() {
+        if (PlayerProfileManager.profile == null || allCards.isEmpty()) return
+        val byId = allCards.associateBy { it.id }
+        decks.indices.forEach { i ->
+            decks[i].cardCounts.forEach { (id, n) ->
+                val c = byId[id] ?: return@forEach
+                val allowed = CardCollectionManager.usableCopies(c)
+                if (n > allowed) setCardCount(i, id, allowed)
+            }
+        }
+        roguePresets.indices.forEach { i ->
+            roguePresets[i].cardCounts.forEach { (id, n) ->
+                val c = byId[id] ?: return@forEach
+                val allowed = CardCollectionManager.usableCopies(c)
+                if (n > allowed) setRogueCardCount(i, id, allowed)
+            }
         }
     }
 
@@ -2600,6 +2634,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun startRoguelike() {
+        trimAllDecksToOwned()   // uložené roguelike balíčky bez rozebraných karet
         rogueDraft.clear()
         rogueRun.value     = null
         rogueVictory.value = false
