@@ -185,3 +185,8 @@ fabric.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/android,kotlin,androidstudio
+
+# Server – data za běhu (hodnocení, správcovský klíč, logy her a pádů)
+server/data/*
+!server/data/.gitkeep
+server/logs/

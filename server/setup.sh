@@ -114,3 +114,8 @@ echo "=== Hotovo! ==="
 echo "Status:  systemctl status $SERVICE"
 echo "Logy:    journalctl -u $SERVICE -f"
 echo "Server:  ws://$(hostname -I | awk '{print $1}'):$PORT/lobby"
+# Správcovský klíč (seznam her, crash logy) – server ho vygeneruje při prvním startu
+sleep 2
+if [ -f "$APP_DIR/data/admin_key.txt" ]; then
+  echo "Správce: http://$(hostname -I | awk '{print $1}'):$PORT/?key=$(cat "$APP_DIR/data/admin_key.txt")"
+fi

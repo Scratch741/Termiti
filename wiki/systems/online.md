@@ -148,6 +148,13 @@ No errors or disconnects at any size. Gameplay cost grows linearly and is cheap;
 
 Refusals close with code **1000** on purpose: the app then does not auto-reconnect and keeps the server's message on the error screen (any other code is replaced by the generic "connection lost" text). Per-IP limits are generous because mobile carriers put many customers behind one public IP (CGNAT). `loadtest.js` lifts the per-IP limits and sets `MAX_PLAYERS` above N for its own instance (all bots come from 127.0.0.1). Not covered: identity is the client-sent `deviceId` (can be spoofed; one person can farm rating with two connections) and volumetric DDoS (needs a proxy such as Cloudflare, i.e. a domain and `wss://`).
 
+### Replays, admin pages and rating storage (2026-10-23)
+
+- **Game logs** (`logs/*.jsonl`, `GameLogger`) are written live and contain both hands and both players' `deviceId`. `/replay` and `/replay-data` now serve a game only after it has a `game_end` event (in-progress → 404 „Hra ještě běží") and strip `deviceId` (`ReplayViewer.publicReplay`). Before, a player could open `/replay-data?id=<own gameId>` mid-game and read the opponent's hand, and `/replays` exposed every player's `deviceId` (the only identity – rating and reconnect takeover).
+- **Admin-only:** `/replays`, `/crash-logs`, `/crash-log` and the recent-games section of `/`. Key = env `ADMIN_KEY`, else `data/admin_key.txt` (generated on first start, logged once, printed by `setup.sh`). Open `/?key=<key>` once; an HttpOnly cookie keeps it. The leaderboard on `/` stays public.
+- **`ratings.json`** is saved via `.tmp` + fsync + rename, the previous version kept as `.bak`. A corrupt file is moved aside as `ratings.json.corrupt-<time>` and `.bak` is loaded – it is never overwritten with empty data (before, a corrupt file meant an empty leaderboard written over the old one on the next game end).
+- `server/data/*` and `server/logs/` are git-ignored (admin key, ratings).
+
 ### Gotcha: `broadcastCount()` was quadratic
 
 `COUNT` (players online / in queue) used to be sent to **every** player on every join, leave and queue change. A mass reconnect (e.g. after a server restart) cost O(N²): measured on a PC, 1000 bots joining at once waited 33 s for `WELCOME` at 100 % CPU. Since 2026-10-21 `COUNT` goes out at most once per `COUNT_INTERVAL_MS` (1 s) with current numbers; joins now cost linearly (~27 ms per player on the VM, bots included). `WELCOME` still carries the counts immediately to the joining player.
@@ -166,3 +173,4 @@ Refusals close with code **1000** on purpose: the app then does not auto-reconne
 - 2026-08-28: Added `fromHand` to `CARD_LOST` + client-side `opponentHandLoss` queue — opponent hand-loss ghosts were invisible online
 - 2026-10-21: Server hosting and capacity: hardware, one-lobby model, `loadtest.js`, load test results on the VM, `broadcastCount()` throttle
 - 2026-10-21: Connection limits and anti-bot protection (maxPayload, MAX_PLAYERS, per-IP limits, JOIN timeout, flood disconnect)
+- 2026-10-23: Replays only for finished games without deviceId, admin key for replay list and crash logs, atomic ratings.json with .bak

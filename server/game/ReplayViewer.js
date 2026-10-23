@@ -675,4 +675,29 @@ if (FRAMES.length>0) goto(0);
 </body></html>`;
 }
 
-module.exports = { parseReplay, listReplays, buildListHtml, buildViewerHtml };
+/** Dohraná hra = záznam obsahuje game_end. Rozehranou hru veřejně neukazujeme (obě ruce). */
+function isFinished(events) {
+  return Array.isArray(events) && events.some(e => e && e.event === 'game_end');
+}
+
+/**
+ * Záznam pro veřejné zobrazení: bez ID zařízení hráčů. ID zařízení je zatím jediná
+ * identita hráče – kdo ho zná, může hrát pod jeho hodnocením nebo převzít jeho hru.
+ */
+function publicReplay(events) {
+  const strip = pl => {
+    if (!pl || typeof pl !== 'object') return pl;
+    const { deviceId, ...rest } = pl;
+    return rest;
+  };
+  return events.map(e => {
+    if (!e || typeof e !== 'object') return e;
+    const out = { ...e };
+    delete out.deviceId;
+    if (out.playerA) out.playerA = strip(out.playerA);
+    if (out.playerB) out.playerB = strip(out.playerB);
+    return out;
+  });
+}
+
+module.exports = { parseReplay, listReplays, buildListHtml, buildViewerHtml, isFinished, publicReplay };

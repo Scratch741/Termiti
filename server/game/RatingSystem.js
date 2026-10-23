@@ -34,6 +34,8 @@ const path = require('path');
 
 const DATA_DIR  = path.join(__dirname, '..', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'ratings.json');
+const BAK_FILE  = DATA_FILE + '.bak';   // předchozí uložená verze
+const TMP_FILE  = DATA_FILE + '.tmp';
 
 const BASE_RATING = 1000;
 const WIN_DELTA   =   +25;
@@ -57,23 +59,55 @@ class RatingSystem {
 
   // ── Persistence ────────────────────────────────────────────────────────────
 
+  /**
+   * Načte hodnocení. Poškozený ratings.json (výpadek proudu nebo plný disk při zápisu)
+   * se NEPŘEPÍŠE prázdnými daty: odloží se stranou jako ratings.json.corrupt-<čas>
+   * a načte se předchozí verze z ratings.json.bak. Dřív server s poškozeným souborem
+   * začal s prázdnými daty a první dohraná hra je zapsala přes celý žebříček.
+   */
   _load() {
-    try {
-      if (fs.existsSync(DATA_FILE)) {
-        this._data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        const count = Object.keys(this._data).length;
-        console.log(`[Rating] Načteno ${count} hráčů z ${DATA_FILE}`);
+    const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!fs.existsSync(DATA_FILE)) {
+      if (fs.existsSync(BAK_FILE)) {
+        try { this._data = read(BAK_FILE); console.warn('[Rating] ratings.json chybí – načtena záloha .bak'); }
+        catch (e) { console.error('[Rating] Záloha .bak je také poškozená:', e.message); }
       }
+      return;
+    }
+    try {
+      this._data = read(DATA_FILE);
+      console.log(`[Rating] Načteno ${Object.keys(this._data).length} hráčů z ${DATA_FILE}`);
     } catch (e) {
-      console.error('[Rating] Chyba načítání:', e.message);
-      this._data = {};
+      const aside = `${DATA_FILE}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+      console.error(`[Rating] ratings.json je poškozený (${e.message}) – odkládám jako ${aside}`);
+      try { fs.renameSync(DATA_FILE, aside); } catch (_) {}
+      try {
+        this._data = read(BAK_FILE);
+        console.warn(`[Rating] Načtena předchozí verze z .bak (${Object.keys(this._data).length} hráčů)`);
+      } catch (e2) {
+        console.error('[Rating] Záloha .bak chybí nebo je poškozená – začínám s prázdnými daty, poškozený soubor zůstal odložený');
+        this._data = {};
+      }
     }
   }
 
+  /**
+   * Uloží hodnocení tak, aby soubor nikdy nezůstal napůl zapsaný: zápis do .tmp,
+   * fsync na disk, předchozí verze do .bak a teprve pak přejmenování .tmp → ratings.json
+   * (přejmenování je v rámci jednoho disku atomické – soubor je buď starý, nebo celý nový).
+   */
   _save() {
     try {
       if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-      fs.writeFileSync(DATA_FILE, JSON.stringify(this._data, null, 2), 'utf8');
+      const fd = fs.openSync(TMP_FILE, 'w');
+      try {
+        fs.writeSync(fd, JSON.stringify(this._data, null, 2));
+        fs.fsyncSync(fd);
+      } finally {
+        fs.closeSync(fd);
+      }
+      if (fs.existsSync(DATA_FILE)) fs.copyFileSync(DATA_FILE, BAK_FILE);
+      fs.renameSync(TMP_FILE, DATA_FILE);
     } catch (e) {
       console.error('[Rating] Chyba ukládání:', e.message);
     }

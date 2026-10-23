@@ -51,7 +51,7 @@ const { randomUUID: uuidv4 } = require('crypto');
 const { GameSession } = require('./game/GameSession');
 const { ratingSystem } = require('./game/RatingSystem');
 const { cleanupOldLogs } = require('./game/GameLogger');
-const { parseReplay, listReplays, buildListHtml, buildViewerHtml } = require('./game/ReplayViewer');
+const { parseReplay, listReplays, buildListHtml, buildViewerHtml, isFinished, publicReplay } = require('./game/ReplayViewer');
 
 // Smaž staré logy při startu + jednou denně
 cleanupOldLogs();
@@ -202,6 +202,7 @@ const httpServer = http.createServer((req, res) => {
 
   // ── GET /replays → seznam všech replay souborů ───────────────────────────
   if (path === '/replays') {
+    if (!requireAdmin(req, res, url)) return;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(buildListHtml(listReplays()));
     return;
@@ -216,13 +217,14 @@ const httpServer = http.createServer((req, res) => {
       return;
     }
     const events = parseReplay(gameId);
-    if (!events) {
-      res.writeHead(404);
-      res.end('Replay nenalezen: ' + gameId);
+    // Rozehraná hra se neukazuje: záznam obsahuje obě ruce a hráč zná ID své hry
+    if (!events || !isFinished(events)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end(events ? 'Hra ještě běží – záznam bude dostupný po jejím konci.' : 'Replay nenalezen: ' + gameId);
       return;
     }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.end(buildViewerHtml(gameId, events));
+    res.end(buildViewerHtml(gameId, publicReplay(events)));
     return;
   }
 
@@ -235,13 +237,13 @@ const httpServer = http.createServer((req, res) => {
       return;
     }
     const events = parseReplay(gameId);
-    if (!events) {
+    if (!events || !isFinished(events)) {
       res.writeHead(404);
-      res.end('{"error":"not found"}');
+      res.end(events ? '{"error":"game in progress"}' : '{"error":"not found"}');
       return;
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.end(JSON.stringify(events));
+    res.end(JSON.stringify(publicReplay(events)));
     return;
   }
 
@@ -289,6 +291,7 @@ const httpServer = http.createServer((req, res) => {
 
   // ── GET /crash-logs → HTML přehled crash logů ────────────────────────────
   if (path === '/crash-logs') {
+    if (!requireAdmin(req, res, url)) return;
     const files = fs.existsSync(CRASH_LOG_DIR)
       ? fs.readdirSync(CRASH_LOG_DIR).filter(f => f.endsWith('.json')).sort().reverse()
       : [];
@@ -336,6 +339,7 @@ const httpServer = http.createServer((req, res) => {
 
   // ── GET /crash-log?id=<filename> → detail jednoho logu ───────────────────
   if (path === '/crash-log') {
+    if (!requireAdmin(req, res, url)) return;
     const id       = url.searchParams.get('id') || '';
     const filename = nodePath.basename(id); // bezpečnostní sanitace
     const filepath = nodePath.join(CRASH_LOG_DIR, filename);
@@ -392,7 +396,8 @@ const httpServer = http.createServer((req, res) => {
       }
       rows += '</table>';
     }
-    const recentReplays = listReplays().slice(0, 5);
+    // Poslední hry (a tím jejich ID) vidí jen správce; žebříček je veřejný
+    const recentReplays = isAdmin(req, url) ? listReplays().slice(0, 5) : [];
     const replayRows = recentReplays.map(r => {
       const winnerStr = r.winner === 'A' ? '🏆 ' + esc(r.nameA)
                       : r.winner === 'B' ? '🏆 ' + esc(r.nameB)
@@ -465,6 +470,44 @@ const httpServer = http.createServer((req, res) => {
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Správcovské stránky (seznam her, crash logy) ──────────────────────────────
+// Klíč: ADMIN_KEY z prostředí, jinak data/admin_key.txt – při prvním startu se vygeneruje
+// a vypíše do logu (journalctl -u termiti-lobby). Otevři jednou /?key=<klíč>, prohlížeč si
+// pak klíč pamatuje v cookie a odkazy mezi stránkami fungují bez něj.
+const ADMIN_KEY = (() => {
+  if (process.env.ADMIN_KEY) return process.env.ADMIN_KEY;
+  const file = nodePath.join(__dirname, 'data', 'admin_key.txt');
+  try { return fs.readFileSync(file, 'utf8').trim(); } catch (_) {}
+  const key = require('crypto').randomBytes(18).toString('base64url');
+  try {
+    fs.mkdirSync(nodePath.dirname(file), { recursive: true });
+    fs.writeFileSync(file, key + '\n', { mode: 0o600 });
+  } catch (e) { console.error('[ADMIN] Klíč nejde uložit:', e.message); }
+  console.log(`[ADMIN] Vygenerován správcovský klíč: ${key}  (uložen v ${file})`);
+  return key;
+})();
+
+function isAdmin(req, url) {
+  const fromQuery  = url.searchParams.get('key');
+  const fromCookie = (/(?:^|;\s*)termiti_admin=([^;]+)/.exec(req.headers.cookie || '') || [])[1];
+  const given = fromQuery || (fromCookie && decodeURIComponent(fromCookie)) || '';
+  const a = Buffer.from(given), b = Buffer.from(ADMIN_KEY);
+  return a.length === b.length && require('crypto').timingSafeEqual(a, b);
+}
+
+/** Jen pro správce: jinak 403. Klíč z ?key= se uloží do cookie, ať ho další odkazy nepotřebují. */
+function requireAdmin(req, res, url) {
+  if (!isAdmin(req, url)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Jen pro správce serveru (/?key=<správcovský klíč>).');
+    return false;
+  }
+  if (url.searchParams.get('key')) {
+    res.setHeader('Set-Cookie', `termiti_admin=${encodeURIComponent(ADMIN_KEY)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000`);
+  }
+  return true;
 }
 
 // ── WebSocket server (sdílí HTTP server) ──────────────────────────────────────
