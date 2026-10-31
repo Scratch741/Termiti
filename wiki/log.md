@@ -929,3 +929,9 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - `ratings.json`: zápis přes .tmp + fsync + přejmenování, předchozí verze v .bak; poškozený soubor se odloží a načte se .bak (dřív by ho první dohraná hra přepsala prázdnými daty).
 - Ověřeno funkčně na PC: /replays bez klíče 403, s klíčem 200 + cookie; rozehraná hra 404, dohraná 200 bez ID zařízení; poškozený ratings.json odložen, načteno 2 hráčů z .bak. Identita hráče (falšovatelné ID zařízení) zůstává – řeší se později přihlášením přes Google Play Games.
 - `.gitignore`: `server/data/*` (kromě .gitkeep) a `server/logs/`.
+
+## [2026-10-31] display | Stolní displej CYD + `/status`
+
+- Nový firmware `display/termiti_cyd/` pro ESP32 CYD (LVGL 9.2): přehled online / fronta / rozehrané hry / hráči celkem, žebříčky obou módů, nastavení (jas, LED, automatické listování, zapomenutí Wi-Fi). Wi-Fi přes portál `Termiti-Displej`. Vlastní převodník fontů `tools/ttf2lvgl.py` kvůli české diakritice. Popis v [[systems/desk-display]].
+- Server: `GET /status` (online, fronty, hry, hráči celkem) – jen čísla z paměti, bez limitu. Do nasazení displej ukazuje jen žebříčky.
+- Ověřeno: sestavení, nahrání na desku (COM3), start bez pádu, Wi-Fi portál běží (sériový výpis). Vzhled obrazovky a dotyk zatím nikdo neviděl; `/status` na serveru zatím není nasazený (živý server vrací 404).

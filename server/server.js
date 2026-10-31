@@ -188,6 +188,21 @@ const httpServer = http.createServer((req, res) => {
     return;
   }
 
+  // ── GET /status → živé počty pro stolní displej (CYD) ─────────────────
+  // Jen čísla z paměti (žádné řazení), takže stačí bez limitu jako /time.
+  if (path === '/status') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({
+      online:       players.size,
+      queueNormal:  queue.length,
+      queueSuper:   superQueue.length,
+      games:        games.size,
+      totalPlayers: ratingSystem.getTotalPlayers(),
+      serverTimeMs: Date.now(),
+    }));
+    return;
+  }
+
   // ── GET /art/<name>.webp → card art thumbnails ──────────────────────────
   if (path.startsWith('/art/')) {
     const name = nodePath.basename(path);

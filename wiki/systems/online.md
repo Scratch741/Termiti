@@ -155,6 +155,10 @@ Refusals close with code **1000** on purpose: the app then does not auto-reconne
 - **`ratings.json`** is saved via `.tmp` + fsync + rename, the previous version kept as `.bak`. A corrupt file is moved aside as `ratings.json.corrupt-<time>` and `.bak` is loaded – it is never overwritten with empty data (before, a corrupt file meant an empty leaderboard written over the old one on the next game end).
 - `server/data/*` and `server/logs/` are git-ignored (admin key, ratings).
 
+### `GET /status` (2026-10-31)
+
+Live counters as JSON: `online`, `queueNormal`, `queueSuper`, `games`, `totalPlayers`, `serverTimeMs`. Reads only in-memory values (no sorting), so no rate limit, like `/time`. Used by the desk display, see [[systems/desk-display]].
+
 ### Gotcha: `broadcastCount()` was quadratic
 
 `COUNT` (players online / in queue) used to be sent to **every** player on every join, leave and queue change. A mass reconnect (e.g. after a server restart) cost O(N²): measured on a PC, 1000 bots joining at once waited 33 s for `WELCOME` at 100 % CPU. Since 2026-10-21 `COUNT` goes out at most once per `COUNT_INTERVAL_MS` (1 s) with current numbers; joins now cost linearly (~27 ms per player on the VM, bots included). `WELCOME` still carries the counts immediately to the joining player.
@@ -162,6 +166,7 @@ Refusals close with code **1000** on purpose: the app then does not auto-reconne
 ## Related pages
 - [[architecture]] — technical architecture, versioning
 - [[cards/decisions]] — Decision mechanic
+- [[systems/desk-display]] — CYD desk display reading `/status` and `/leaderboard`
 - [[mechanics/win-conditions]] — win conditions online
 
 ## Changelog
@@ -174,3 +179,4 @@ Refusals close with code **1000** on purpose: the app then does not auto-reconne
 - 2026-10-21: Server hosting and capacity: hardware, one-lobby model, `loadtest.js`, load test results on the VM, `broadcastCount()` throttle
 - 2026-10-21: Connection limits and anti-bot protection (maxPayload, MAX_PLAYERS, per-IP limits, JOIN timeout, flood disconnect)
 - 2026-10-23: Replays only for finished games without deviceId, admin key for replay list and crash logs, atomic ratings.json with .bak
+- 2026-10-31: `GET /status` endpoint for the desk display
