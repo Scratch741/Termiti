@@ -17,7 +17,8 @@ $fqbn   = "esp32:esp32:esp32:PartitionScheme=huge_app"
 # lv_conf.h leží vedle sketche; TFT_eSPI se nastavuje tady, ne v User_Setup.h knihovny
 $flags = @(
   "-DLV_CONF_INCLUDE_SIMPLE", "-I$($sketch -replace '\\', '/')",
-  "-DUSER_SETUP_LOADED=1", "-DILI9341_2_DRIVER=1",
+  # TFT_INVERSION_ON: tahle revize CYD má obrácené barvy (tmavé UI svítilo bíle)
+  "-DUSER_SETUP_LOADED=1", "-DILI9341_2_DRIVER=1", "-DTFT_INVERSION_ON=1",
   "-DTFT_WIDTH=240", "-DTFT_HEIGHT=320",
   "-DTFT_MISO=12", "-DTFT_MOSI=13", "-DTFT_SCLK=14", "-DTFT_CS=15", "-DTFT_DC=2", "-DTFT_RST=-1",
   "-DUSE_HSPI_PORT=1", "-DSPI_FREQUENCY=55000000", "-DSPI_READ_FREQUENCY=20000000"

@@ -44,7 +44,8 @@ display\termiti_cyd\build.ps1 -NoUpload
 ### Gotchas
 
 - **Fonts:** LVGL's built-in Montserrat has no Czech diacritics. `tools/ttf2lvgl.py` (Pillow) converts TTF into `lv_font_fmt_txt` C sources (4 bpp, no kerning); `tools/gen_fonts.sh <dir with Montserrat TTF>` regenerates `src/fonts/*.c`. Text fonts fall back to built-in Montserrat for `LV_SYMBOL_*` icons. Font declarations in C++ must be inside `extern "C"`.
-- **Board revisions:** some CYDs use ST7789 instead of ILI9341 or need colour inversion. If colours are wrong / image mirrored, change the driver flag in `build.ps1` (`ST7789_DRIVER`, `TFT_INVERSION_ON`) or the rotation in `setup()`.
+- **Board revisions:** some CYDs use ST7789 instead of ILI9341 or need colour inversion. The user's board needs `TFT_INVERSION_ON` (without it the dark UI showed a white background), now set in `build.ps1`. If colours are wrong / image mirrored on another board, change the driver flag (`ST7789_DRIVER`, `TFT_INVERSION_ON` / `TFT_INVERSION_OFF`) or the rotation in `setup()`.
+- Changing a build flag rebuilds all libraries incl. LVGL — the first build after it takes ~10+ min.
 - **Touch calibration:** raw corner values `TOUCH_X_MIN/MAX`, `TOUCH_Y_MIN/MAX` in `config.h`.
 
 ## Related pages
@@ -52,3 +53,4 @@ display\termiti_cyd\build.ps1 -NoUpload
 
 ## Changelog
 - 2026-10-31: Page created — CYD firmware v1.0.0, `/status` endpoint
+- 2026-10-31: `TFT_INVERSION_ON` — the user's panel showed inverted colours
