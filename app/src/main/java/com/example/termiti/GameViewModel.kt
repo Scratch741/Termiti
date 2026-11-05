@@ -56,6 +56,23 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         throwable.printStackTrace()
     }
 
+    /**
+     * Korutiny JEDNÉ rozehrané hry: tah AI, postupné lízání, časovač rozhodnutí, odhalování
+     * ztrát, konec hry. Při nové hře nebo odchodu do menu se celý scope zruší ([cancelGameJobs]).
+     * Dřív běžely ve viewModelScope a stará hra po odchodu dohrála na pozadí – AI zahrála kartu
+     * se zvukem v menu a mohla přepsat stav právě rozjeté nové hry.
+     */
+    private var gameScope = newGameScope()
+    private fun newGameScope() = kotlinx.coroutines.CoroutineScope(
+        viewModelScope.coroutineContext + kotlinx.coroutines.SupervisorJob(viewModelScope.coroutineContext[Job])
+    )
+
+    /** Zastaví vše, co dosud rozehraná hra naplánovala. Volat před novou hrou a při odchodu. */
+    private fun cancelGameJobs() {
+        gameScope.coroutineContext[Job]?.cancel()
+        gameScope = newGameScope()
+    }
+
     private val prefs get() = getApplication<Application>()
         .getSharedPreferences("termiti_decks", Context.MODE_PRIVATE)
 
@@ -663,7 +680,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun startDecisionTimer(seconds: Int = 30) {
         decisionTimerJob?.cancel()
         decisionSecondsLeft.value = seconds
-        decisionTimerJob = viewModelScope.launch(crashHandler) {
+        decisionTimerJob = gameScope.launch(crashHandler) {
             for (s in seconds downTo 0) {
                 decisionSecondsLeft.value = s
                 kotlinx.coroutines.delay(1000L)
@@ -792,7 +809,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (pendingDrawCount > 0) {
             // DrawPerCardPlayed / DrawCard efekty, které vznikly při zahraní Decision karty —
             // provedeme je teď, po výběru hráče (stejná logika jako v playCard).
-            viewModelScope.launch(crashHandler) {
+            gameScope.launch(crashHandler) {
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
                     // Odstup mezi líznutími; zvuk hraje animace příletu karty (HandPanel)
@@ -883,7 +900,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         if (pendingDrawCount > 0) {
-            viewModelScope.launch(crashHandler) {
+            gameScope.launch(crashHandler) {
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
                     // Odstup mezi líznutími; zvuk hraje animace příletu karty (HandPanel)
@@ -958,7 +975,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // AI je počáteční hráč → nesmí lízat první kartu (aiDrawsAtStart = false)
         // Hráč jako druhý hráč si lízne 1 kartu před svým prvním tahem (playerDrawsAtEnd = true)
         if (startDelayMs > 0) {
-            viewModelScope.launch(crashHandler) {
+            gameScope.launch(crashHandler) {
                 delay(startDelayMs)
                 // Hráč mohl mezitím hru restartovat / opustit → stará reference by
                 // přepsala nový stav (stejná třída bugů jako stale Decision overlay)
@@ -1308,7 +1325,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 // celý herní screen + vyrenderovat DecisionOverlay se 4+ kartami
                 // ve stejném framu → animace sekala, lag ~1 s.
                 awaitingDecisionOverlay = true
-                viewModelScope.launch(crashHandler) {
+                gameScope.launch(crashHandler) {
                     try {
                         delay(330L)
                         pendingDecision.value = decisionState
@@ -1331,7 +1348,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         if (pendingDrawCount > 0) {
             // Postupný líz: každá karta dolízne zvlášť se zvukem + animací
             val isComboCard = card.isCombo || nextComboBoost
-            viewModelScope.launch(crashHandler) {
+            gameScope.launch(crashHandler) {
                 // Zamkni hráče během lízání
                 gameState.value = s1.copy(activePlayer = ActivePlayer.AI)
                 repeat(pendingDrawCount) {
@@ -1491,7 +1508,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // Quit teď → obnova rozehraje tah AI znovu (nedá se zopakovat hráčův tah).
         snapshotRogueBattle("AI_TURN", aiDrawsAtStart, playerDrawsAtEnd, playerWaited)
 
-        viewModelScope.launch(crashHandler) {
+        gameScope.launch(crashHandler) {
             // Nech doběhnout odhalování karet, o které soupeř právě přišel
             // (StealCard/BurnCard). Bez toho AI zahraje dřív, než hráč uvidí,
             // co ukradl – a její karta odhalení okamžitě přebije.
@@ -2040,7 +2057,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         gameEndPending.value = true
         if (result.isPlayerWin()) SoundManager.playWin() else SoundManager.playLose()
         gameEndJob?.cancel()
-        gameEndJob = viewModelScope.launch(crashHandler) {
+        gameEndJob = gameScope.launch(crashHandler) {
             kotlinx.coroutines.delay(1750L)
             gameOver.value = result
             gameEndPending.value = false
@@ -2160,7 +2177,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun revealOpponentLosses(losses: List<Pair<Card, CardAction>>) {
         oppLossRevealJob?.cancel()
         if (losses.isEmpty()) return
-        oppLossRevealJob = viewModelScope.launch {
+        oppLossRevealJob = gameScope.launch(crashHandler) {
             delay(OPP_LOSS_LEAD_IN_MS)
             losses.forEachIndexed { i, (card, action) ->
                 if (i > 0) delay(OPP_LOSS_REVEAL_MS)
@@ -2198,6 +2215,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun restartGame(randomDeck: Boolean = false, superRandom: Boolean = false) {
+        cancelGameJobs()   // i odchod do menu volá restartGame – stará hra nesmí dohrát na pozadí
         gameEndJob?.cancel()
         gameEndPending.value    = false
         activeCampaignOpponent.value = null
@@ -2310,6 +2328,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Spustí bitvu v kampani proti danému soupeři. */
     fun startCampaignBattle(opponent: CampaignOpponent, tutorial: Boolean = false) {
+        cancelGameJobs()
         tutorialActive.value = tutorial   // běžná bitva (i „Zkusit znovu") tutoriál vypne
         tutorialStep.value   = 0
         tutorialAiQueue.clear()
@@ -2501,6 +2520,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun startArenaBattle() {
+        cancelGameJobs()
         arenaPhase.value = ArenaPhase.BATTLE
         activeCampaignOpponent.value = null
         randomOpponentAvatar.value   = randomEnemyAvatar()
@@ -2551,6 +2571,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun exitArena() {
+        cancelGameJobs()
         arenaPhase.value = null
         arenaDraft.clear()
         arenaWins.value  = 0
@@ -2689,6 +2710,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Připraví a spustí bitvu proti generovanému soupeři pro aktuální battleIndex. */
     private fun startRogueBattle() {
+        cancelGameJobs()
         val run   = rogueRun.value ?: return
         val enemy = generateRogueEnemy(run)
         rogueRun.value   = run.copy(enemy = enemy)
@@ -2742,6 +2764,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Obnoví uložený run. REWARD → odměna; BATTLE → přesně obnovená bitva (fér). */
     fun resumeRoguelike() {
+        cancelGameJobs()
         val saved = RogueSaveManager.load(allCards) ?: return
         rogueDraft.clear()
         rogueRun.value     = saved.run
@@ -2993,6 +3016,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun exitRoguelike() {
+        cancelGameJobs()
         roguePhase.value = null
         rogueRun.value   = null
         rogueDraft.clear()
