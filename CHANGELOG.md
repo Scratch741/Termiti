@@ -17,6 +17,24 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.6.6] – 2026-11-05
+
+### Změněno
+- **Roguelike:** výhra stavbou hradu je nově na 100 (dřív 70). Pravidla módu jsou upravená.
+- **Roguelike:** obtížnosti, odměny za celý běh a soupeři s archetypy.
+- **AI:** hodnocení karet v jednom měřítku (hrad, hradby, útok, suroviny).
+
+### Opraveno
+- **Roguelike:** vypnutí a zapnutí hry během mulliganu už nerozdá novou ruku.
+- Po odchodu do menu už stará hra nedohrává na pozadí.
+
+### Server (vyžaduje nasazení)
+- Záznamy her jsou dostupné až po konci hry a bez ID zařízení; seznam her a crash logy jen se správcovským klíčem.
+- Hodnocení se ukládá bezpečně se zálohou, poškozený soubor už žebříček nesmaže.
+- Limity připojení a ochrana proti botům (strop hráčů, limity na IP, velikost zpráv).
+- Počet hráčů online se rozesílá nejvýš jednou za sekundu; nový zátěžový test `loadtest.js`.
+- Žebříček stahuje oba módy najednou; endpoint `/status` pro stolní displej.
+
 ## [0.6.5] – 2026-10-20
 
 ### Opraveno

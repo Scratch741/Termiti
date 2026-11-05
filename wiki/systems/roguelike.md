@@ -8,7 +8,7 @@
 - Deck: exactly 20 cards from the player's collection, rarity budget 20 points (legendary 4 · epic 2 · rare 1 · common 0). Built in the deck builder in roguelike mode (3 saved roguelike decks).
 - 12 battles = 3 acts × 4, the 4th battle of each act is a boss (★). Castle HP carries over between battles (capped at max castle, start 30), walls reset to 15 each battle. A loss ends the run.
 - After every win: a mandatory pick of 2 cards (3 after a boss) from 4 (5) rare+ offers from the player's collection; limited rerolls per run. After a boss also an optional bonus (+6 max castle, +6 walls, repair 15, +1 mine).
-- Build-win target = `max(70, maxCastle + 15)` (prevents starting a battle above the target).
+- Build-win target = `max(100, maxCastle + 15)` (`RogueEnemyGen.MIN_WIN_TARGET`; until 2026-11-05 the floor was 70). maxCastle stays below ~50 over a run, so the target is always 100 in practice.
 - Code: `RogueData.kt` (run state, config), `RogueEnemies.kt` (difficulty, archetypes, enemy generation – pure Kotlin, also used by the simulation), `GameViewModel` (run flow), `RogueScreens.kt` (reward, end, difficulty dialog), `RogueSaveManager` / `RogueBattleState` (persistence).
 
 ### Difficulties (`RogueDifficulty`)

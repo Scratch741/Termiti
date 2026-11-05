@@ -289,8 +289,10 @@ object RogueEnemyGen {
     }
 
     /**
-     * Cíl výhry stavbou: škáluje s maximem hradu hráče (+15), ne pevná konstanta – jinak
-     * by šlo odměnami nastřádat hrad nad cíl a vyhrát dřív, než padne první karta.
+     * Cíl výhry stavbou: nejméně [MIN_WIN_TARGET], a aspoň 15 nad maximem hradu hráče – jinak
+     * by šlo odměnami nastřádat hrad nad cíl a vyhrát dřív, než padne první karta. Maximum
+     * hradu za celý běh nepřesáhne ~50, takže v praxi je cíl vždy 100 (do 2026-11-05: 70).
      */
-    fun winTarget(maxCastle: Int): Int = (maxCastle + 15).coerceAtLeast(70)
+    fun winTarget(maxCastle: Int): Int = (maxCastle + 15).coerceAtLeast(MIN_WIN_TARGET)
+    const val MIN_WIN_TARGET = 100
 }

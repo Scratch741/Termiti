@@ -951,3 +951,4 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 
 - Ze tří variant (bronz + dřevo, zlato + kůže, železo + kámen) vybrána „bronz a tmavé dřevo". Uloženo do `design/bronze_wood/` (knihovna prvků, ukázka Profilu, pravidla stylu a paleta v README), generátor `tools/bronze_kit.py`.
 - Zatím jen návrh pro další testy – do hry se nenasazuje. Otevřené body: procedurální náhled je třeba nahradit skutečnými texturami, výraznější rohové kování, méně dřeva na pozadí panelů.
+- [2026-11-05] Roguelike: výhra stavbou nejméně na 100 (`RogueEnemyGen.MIN_WIN_TARGET`, dřív 70); pravidla cs/en a [[systems/roguelike]] upraveny. Verze 0.6.6.
