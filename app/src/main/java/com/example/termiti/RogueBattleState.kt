@@ -9,8 +9,8 @@ import org.json.JSONObject
 // dala obnovit přesně tam, kde skončila → quit uprostřed bitvy nedává
 // výhodu (žádný free retry).
 //
-// Snapshoty se berou jen v ČISTÝCH bodech: začátek hráčova tahu (idle)
-// nebo začátek tahu AI (po hráčově akci). V nich je pendingDecision null,
+// Snapshoty se berou jen v ČISTÝCH bodech: rozdaný mulligan, mulligan po výměně,
+// začátek hráčova tahu (idle) nebo začátek tahu AI (po hráčově akci). V nich je pendingDecision null,
 // combo/mulligan false → není třeba serializovat overlay stav.
 //
 // Karty se ukládají jako baseId+id+příznaky a rekonstruují z template;
@@ -20,7 +20,7 @@ import org.json.JSONObject
 
 /** Rozehraná bitva připravená k obnově. */
 data class RogueBattleSave(
-    val turnPhase        : String,       // "PLAYER_IDLE" | "AI_TURN"
+    val turnPhase        : String,       // "MULLIGAN" | "MULLIGAN_DONE" | "PLAYER_IDLE" | "AI_TURN"
     val game             : GameState,
     val quickDrawUsed    : Boolean,
     val aiDrawsAtStart   : Boolean,      // parametry finishTurn (jen pro AI_TURN)

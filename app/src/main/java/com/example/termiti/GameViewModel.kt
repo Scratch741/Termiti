@@ -609,11 +609,14 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         gameState.value        = old.copy(playerState = player)
         mulliganSelected.value = emptySet()
+        // Roguelike: výměna proběhla → po vypnutí a zapnutí už se nesmí měnit znovu
+        snapshotRogueBattle("MULLIGAN_DONE")
     }
 
     /** „Hrát bez výměny" – jen zruš výběr; zavření řeší [finishMulligan]. */
     fun skipMulligan() {
         mulliganSelected.value = emptySet()
+        snapshotRogueBattle("MULLIGAN_DONE")
     }
 
     /**
@@ -2766,6 +2769,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         isMulligan.value        = true
         mulliganSelected.value  = emptySet()
         persistRogue()
+        // Rozdanou ruku ulož hned: dřív vznikl první snapshot až po mulliganu, takže
+        // vypnutí hry během mulliganu bitvu po zapnutí rozdalo znovu (nová ruka = zdarma
+        // nový mulligan).
+        snapshotRogueBattle("MULLIGAN")
     }
 
     /** Uloží aktuální stav runu na disk (přežije zabití procesu). */
@@ -2870,6 +2877,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
         gameState.value = g
 
+        if (b.turnPhase == "MULLIGAN") {
+            // Rozdaná ruka čeká na mulligan → stejný mulligan znovu, ne nové rozdání
+            isMulligan.value = true
+            return
+        }
+        if (b.turnPhase == "MULLIGAN_DONE") {
+            // Mulligan už proběhl (výměna nebo bez výměny) → rovnou první tah, jako finishMulligan()
+            maybeStartAiFirstTurn()
+            return
+        }
         if (b.turnPhase == "AI_TURN") {
             // Pokračuj tahem AI (znovu se rozehraje – reziduum "AI re-roll")
             finishTurn(g, g.playerState.deepCopy(), g.aiState.deepCopy(),

@@ -47,9 +47,14 @@ Gold: act 1 boss 40, act 2 boss 80, completion 150, × difficulty multiplier (0.
 
 Findings: full presets (even downgraded to commons) were far stronger than the old random decks – coherence is the main lever, the castle/wall multiplier barely matters. Attacker and Mage are the strongest archetypes, Chaos and Defender the weakest.
 
+### Saving a battle in progress (`RogueBattleState.kt`)
+
+A running battle is saved as a snapshot at clean points so quitting gives no free retry: `MULLIGAN` (hand dealt, mulligan open), `MULLIGAN_DONE` (after swap or skip), `PLAYER_IDLE` (start of the player's turn) and `AI_TURN` (start of the AI turn). `resumeRoguelike()` restores the snapshot: `MULLIGAN` reopens the same mulligan with the same hand and deck order, `MULLIGAN_DONE` goes straight to the first turn (`maybeStartAiFirstTurn`). Before 2026-11-05 the first snapshot was taken only after the mulligan, so closing the app during the mulligan re-dealt the battle – a free new mulligan.
+
 ## Related pages
 - [[systems/ai]] — the AI that plays the opponents
 - [[systems/roadmap-accounts-monetization]] — currency / packs the rewards feed into
 
 ## Changelog
+- 2026-11-05: Battle snapshots also at the mulligan (`MULLIGAN`, `MULLIGAN_DONE`) – restarting the app no longer re-deals the hand
 - 2026-11-05: Page created – difficulties, rewards, archetype opponents, simulation results.
