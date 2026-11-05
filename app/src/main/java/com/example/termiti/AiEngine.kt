@@ -213,7 +213,9 @@ fun aiChooseAction(
         // Záporný amount = poškození vlastního hradu (penalta)
         is CardEffect.BuildCastle    -> if (fx.amount >= 0) {
             val urgency = if (aiLowHp) 20 else if (aiCloseToWin) 12 else 5
-            urgency + fx.amount / 5
+            // Bod hradu váží víc než bod hradby (dřív obojí amount/5 a hradby měly i stejný
+            // základ – karta „hradby + hrad" tak vždy porazila větší čistý hrad)
+            urgency + fx.amount * 2 / 5
         } else {
             fx.amount * 2  // záporné skóre za ztrátu HP hradu
         }
@@ -224,7 +226,7 @@ fun aiChooseAction(
                 effectiveGain == 0 -> -5           // zeď je plná, efekt přijde vniveč
                 aiLowWall          -> 16            // urgentní obrana
                 effectiveGain < fx.amount -> 2 + effectiveGain / 3  // blízko capu – jen částečný zisk
-                else               -> 5 + fx.amount / 5  // plná hodnota – škáluj jako BuildCastle
+                else               -> 2 + fx.amount / 4  // plná hodnota; menší základ než hrad (dvojí základ u „hradby + hrad")
             }
         } else {
             // Záporné skóre za ztrátu hradeb – jen za ty, které AI opravdu má

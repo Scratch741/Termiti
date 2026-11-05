@@ -41,6 +41,9 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
       : [fx]);
   const effects = flatten(card.effects);
 
+  // Výherní karta: 200, mezi více výherními levnější a kombo (stejně jako AiDecisions.kt)
+  const winScore = 200 - Math.max(0, (card.cost || 0) + (card.costModifier || 0)) * 0.1 + (card.isCombo ? 0.05 : 0);
+
   // Vyhrává karta TEĎ? Poškození se sčítá přes VŠECHNY efekty karty, ne po jednom –
   // Chaotický drak (hráč 15 + hrad 12) zabije soupeře s 21 hradem a bez hradeb až součtem.
   // Dřív se každý efekt porovnával se soupeřovým hradem zvlášť a žolík pak drakovi dal
@@ -67,7 +70,7 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
       }
     }
   }
-  if (castleDmg >= oppHpLeft) return 200;
+  if (castleDmg >= oppHpLeft) return winScore;
 
   // Dostaví karta hrad rovnou na vítěznou výšku?
   const buildTotal = effects.reduce((sum, fx) => {
@@ -78,64 +81,49 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
       default:                    return sum;
     }
   }, 0);
-  if (buildTotal >= selfHpMissing) return 200;
+  if (buildTotal >= selfHpMissing) return winScore;
+
+  // Váhy stejné jako scoreCardForSituation v AiDecisions.kt (body za jeden bod efektu,
+  // jedno měřítko pro hrad, hradby, poškození i suroviny).
+  const danger    = 1 + Math.max(0, 30 - self.castleHP) / 30;
+  const progress  = Math.min(1, Math.max(0, self.castleHP / winTarget));
+  const buildPt   = (2 + progress) * danger;
+  const dmgPt     = 2 + Math.min(1, Math.max(0, 1 - oppHpLeft / winTarget));
+  const wallPt    = 1.5 * danger;
+  const oppWallPt = 1.5;
+  let wallNow = oppWall;
 
   for (const fx of effects) {
+    const amount = fx.amount || 0;
     switch (fx.type) {
       case 'AttackPlayer': {
-        // Zeď absorbuje útok první; pouze přebytek poškodí hrad
-        const castleDmg = Math.max(0, (fx.amount || 0) - oppWall);
-        score += (castleDmg >= oppHpLeft) ? 200 : (castleDmg * 12) / oppHpLeft;
+        const absorbed = Math.min(amount, wallNow);
+        wallNow -= absorbed;
+        score += (amount - absorbed) * dmgPt + absorbed * oppWallPt;
         break;
       }
-      case 'AttackCastle': {
-        // Přímý útok na hrad (přeskakuje zeď)
-        const dmg = fx.amount || 0;
-        score += (dmg >= oppHpLeft) ? 200 : (dmg * 12) / oppHpLeft;
-        break;
-      }
+      case 'AttackCastle':        score += amount * dmgPt; break;
       case 'XScaledAttackPlayer': {
         const dmg = xValue / (fx.divisor || 2);
-        const castleDmg = Math.max(0, dmg - oppWall);
-        score += (castleDmg >= oppHpLeft) ? 200 : (castleDmg * 12) / oppHpLeft;
+        const absorbed = Math.min(dmg, wallNow);
+        wallNow -= absorbed;
+        score += (dmg - absorbed) * dmgPt + absorbed * oppWallPt;
         break;
       }
-      case 'XScaledAttackCastle': {
-        const dmg = xValue / (fx.divisor || 2);
-        score += (dmg >= oppHpLeft) ? 200 : (dmg * 12) / oppHpLeft;
+      case 'XScaledAttackCastle': score += xValue / (fx.divisor || 2) * dmgPt; break;
+      case 'XScaledBuildCastle':  score += xValue / (fx.divisor || 2) * buildPt; break;
+      case 'AttackWall': {
+        const hit = Math.min(amount, wallNow);
+        wallNow -= hit;
+        score += hit * oppWallPt;
         break;
       }
-      case 'XScaledBuildCastle': {
-        const amt = xValue / (fx.divisor || 2);
-        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
-        break;
-      }
-      case 'AttackWall':
-        // Jen hradby, které soupeř opravdu má – Velké zemětřesení (hradby −40) bez hradeb
-        // nic neboří, a dřív přesto dostalo 120 bodů a žolík ho nabízel přednostně.
-        score += Math.min(fx.amount || 0, oppWall) * 3;
-        break;
-      case 'BuildCastle': {
-        const amt = fx.amount || 0;
-        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
-        break;
-      }
-      case 'ConvertWallToCastle': {
-        const amt = self.wallHP || 0;
-        score += (amt >= selfHpMissing) ? 200 : (amt * 10) / selfHpMissing;
-        break;
-      }
+      case 'BuildCastle':         score += amount * buildPt; break;
+      case 'ConvertWallToCastle': score += (self.wallHP || 0) * (buildPt - wallPt); break;
       case 'BuildWall': {
-        // Ztráta vlastních hradeb (Velké zemětřesení: hradby −40) – jen těch, které hráč má
-        if ((fx.amount || 0) < 0) {
-          score -= Math.min(-fx.amount, self.wallHP || 0) * 1.5;
-          break;
-        }
-        // Zeď nad strop (self.maxWall) nemá hodnotu – počítej jen to, co se vejde
-        const effective = Math.max(0, Math.min(fx.amount || 0, (self.maxWall || 40) - (self.wallHP || 0)));
-        // Nízký hrad → obrana je cennější (×1.0 při 30+, až ×2.0 při hradu u nuly)
-        const danger = 1 + Math.max(0, 30 - self.castleHP) / 30;
-        score += effective * 1.5 * danger;
+        if (amount < 0) { score -= Math.min(-amount, self.wallHP || 0) * wallPt; break; }
+        const effective = Math.max(0, Math.min(amount, (self.maxWall || 40) - (self.wallHP || 0)));
+        score += effective * wallPt;
         break;
       }
       case 'AddMine': {
@@ -145,24 +133,14 @@ function _scoreCardForSituation(card, self, opp, winTarget = 70) {
       }
       case 'AddResource': {
         const res = resources[fx.resType] || 0;
-        score += (fx.amount || 0) * (res < 3 ? 4 : 1.5);
+        score += amount * (res < 3 ? 1.5 : 1);
         break;
       }
-      case 'StealResource':
-        score += (fx.amount || 0) * 5;
-        break;
-      case 'DrainResource':
-        score += (fx.amount || 0) * 3;
-        break;
-      case 'DrawCard':
-        score += (fx.count || 1) * 8;
-        break;
-      case 'StealCastle':
-        score += (fx.amount || 0) * 6;
-        break;
-      case 'DestroyMine':
-        score += 10;
-        break;
+      case 'StealResource':  score += amount * 1.5; break;
+      case 'DrainResource':  score += amount * 0.8; break;
+      case 'DrawCard':       score += (fx.count || 1) * 8; break;
+      case 'StealCastle':    score += amount * (dmgPt + buildPt); break;
+      case 'DestroyMine':    score += 10; break;
       case 'StealCard':
         score += 12;
         break;
