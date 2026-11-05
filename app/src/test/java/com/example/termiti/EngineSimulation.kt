@@ -110,6 +110,11 @@ class EngineSimulation {
                          wallCap: Int = maxWall): Outcome {
         val a = newSide(deckA, startCastle, wallCap)
         val b = newSide(deckB, startCastle, wallCap)
+        return playStates(a, b, target)
+    }
+
+    /** Hra mezi připravenými stranami (balíček zamíchaný, ruka líznutá) – A = playerState. */
+    private fun playStates(a: PlayerState, b: PlayerState, target: Int): Outcome {
         val gs = GameState(playerState = a, aiState = b, currentTurn = 1,
                            playerWinTarget = target, aiWinTarget = target)
         val aStarts = Random.nextBoolean()
@@ -1102,5 +1107,143 @@ class EngineSimulation {
         }
         println(out)
         File("build").takeIf { it.isDirectory }?.let { File(it, "engine-sim.txt").writeText(out.toString()) }
+    }
+
+    // ── Roguelike: celé runy proti generovaným soupeřům ─────────────────────────
+    /**
+     * Celé roguelike runy (12 bitev) na každé obtížnosti + dřívější generátor soupeřů
+     * (náhodný vyvážený balíček podle aktu) se staty Rytíře pro srovnání.
+     *
+     * Hráče hraje AI s balíčkem 20 karet: 20 náhodných kopií z jedné šablony, zlevněných
+     * do rozpočtu (4 vzácné, 4 epické, 2 legendární = 20 bodů). Po výhře si vezme 2 (po bossovi 3)
+     * karty z nabídky 4 (5) vzácných a lepších – vzácnější a hlavně se surovinou, které má balíček
+     * nejvíc; po bossovi +6 max hradu.
+     * Hrad se přenáší jako ve hře, léčení podle obtížnosti. AI hraje hůř než člověk,
+     * takže čísla jsou hlavně pro POROVNÁNÍ obtížností mezi sebou.
+     *
+     * Spuštění: ENGINE_SIM=1 --tests "*EngineSimulation.rogueRuns" (ENGINE_SIM_GAMES = runů na obtížnost, výchozí 300).
+     * Výsledek: app/build/engine-rogue.txt
+     */
+    @Test
+    fun rogueRuns() {
+        assumeTrue("Simulace se spouští jen s ENGINE_SIM=1", System.getenv("ENGINE_SIM") != null)
+        val n = System.getenv("ENGINE_SIM_GAMES")?.toIntOrNull() ?: 300
+        val modes: List<Pair<String, RogueDifficulty?>> =
+            listOf("Dřív" to null) + RogueDifficulty.entries.map { it.name to it }
+        val pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+        val t0 = System.currentTimeMillis()
+        val results = modes.associate { (name, d) ->
+            name to (1..n).map { pool.submit<Int> { simulateRogueRun(d) } }
+        }.mapValues { (_, fs) -> fs.map { it.get() } }
+        pool.shutdown()
+        val ms = System.currentTimeMillis() - t0
+
+        val total = RogueConfig.TOTAL_BATTLES
+        val out = StringBuilder()
+        out.appendLine("Roguelike runy: $n runů na obtížnost (${ms / 1000} s). Hráč = AI s balíčkem ze šablony (20 bodů rozpočtu).")
+        out.appendLine()
+        out.appendLine(String.format("%-14s %9s %8s %8s %8s   %s", "obtížnost", "dokončeno", "bitev ø", "boss 1", "boss 2",
+            "výhra v bitvě 1…12 (podmíněně, %)"))
+        for ((name, wins) in results) {
+            val reached = IntArray(total + 1) { k -> wins.count { it >= k } }
+            val perBattle = (0 until total).joinToString(" ") { b ->
+                if (reached[b] == 0) "  -" else String.format("%3.0f", 100.0 * reached[b + 1] / reached[b])
+            }
+            out.appendLine(String.format("%-14s %8.1f%% %8.2f %7.1f%% %7.1f%%   %s",
+                name, 100.0 * reached[total] / n, wins.average(),
+                100.0 * reached[RogueConfig.BATTLES_PER_ACT] / n, 100.0 * reached[2 * RogueConfig.BATTLES_PER_ACT] / n,
+                perBattle))
+        }
+        // Archetypy zvlášť: startovní balíček hráče (hrad 30, hradby 15) proti archetypu při dané kvalitě,
+        // staty soupeře Rytíře v bitvě se stejným číslem jako kvalita (max. 12. bitva)
+        val qs = listOf(0, 3, 6, 9, 12)
+        out.appendLine()
+        out.appendLine("Výhry hráče proti archetypu (%; startovní balíček, Rytíř), kvalita " + qs.joinToString(" / "))
+        val pool2 = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+        val rows = RogueArchetype.entries.associateWith { arch ->
+            qs.map { q -> (1..n).map { pool2.submit<Boolean> {
+                val start = PRESET_DECKS.filter { it.first != "🪞 Iluzionista" }.random().second
+                    .flatMap { (id, k) -> List(k) { id } }.shuffled().take(RogueConfig.DECK_SIZE).groupingBy { it }.eachCount()
+                val deck = RogueEnemyGen.buildDeck(start, RogueEnemyGen.RarityCaps(4, 4, 2), allCards)
+                val st = RogueEnemyGen.stats(q.coerceAtMost(RogueConfig.TOTAL_BATTLES - 1), RogueDifficulty.KNIGHT)
+                isWinA(playStates(rogueSide(deck, RogueConfig.START_MAX_CASTLE, RogueConfig.START_WALL, 4, null),
+                                  rogueSide(RogueEnemyGen.buildDeck(arch, q, allCards), st.castle, st.wall, st.handSize, st),
+                                  RogueEnemyGen.winTarget(RogueConfig.START_MAX_CASTLE)).result)
+            } } }
+        }.mapValues { (_, l) -> l.map { fs -> 100.0 * fs.count { it.get() } / n } }
+        pool2.shutdown()
+        rows.forEach { (arch, v) -> out.appendLine(String.format("  %-10s %s", arch.name, v.joinToString("  ") { String.format("%5.1f", it) })) }
+
+        println(out)
+        File("build").takeIf { it.isDirectory }?.let { File(it, "engine-rogue.txt").writeText(out.toString()) }
+    }
+
+    /** Strana roguelike bitvy: balíček zamíchaný, ruka líznutá; [st] = staty soupeře (null = hráč). */
+    private fun rogueSide(deck: Map<String, Int>, castle: Int, wall: Int, hand: Int, st: RogueEnemyStats?) =
+        PlayerState(castleHP = castle, wallHP = wall).also { s ->
+            if (st != null) {
+                for ((t, k) in st.extraMines) s.mines[t] = (s.mines[t] ?: 0) + k
+                if (st.startMagic  > 0) s.resources[ResourceType.MAGIC]  = st.startMagic
+                if (st.startAttack > 0) s.resources[ResourceType.ATTACK] = st.startAttack
+                if (st.startStones > 0) s.resources[ResourceType.STONES] = st.startStones
+            }
+            s.deck.addAll(deck.flatMap { (id, k) -> List(k) { byId.getValue(id) } }.withUniqueIds())
+            s.deck.shuffle(); s.drawCards(hand)
+        }
+
+    /** Jeden run; vrací počet vyhraných bitev (12 = dokončený). [diff] null = dřívější generátor, staty Rytíře. */
+    private fun simulateRogueRun(diff: RogueDifficulty?): Int {
+        val d = diff ?: RogueDifficulty.KNIGHT
+        val templates = PRESET_DECKS.filter { it.first != "🪞 Iluzionista" }
+        val start = templates.random().second
+            .flatMap { (id, k) -> List(k) { id } }.shuffled().take(RogueConfig.DECK_SIZE)
+            .groupingBy { it }.eachCount()
+        val deck = RogueEnemyGen.buildDeck(start, RogueEnemyGen.RarityCaps(4, 4, 2), allCards).toMutableMap()
+        val rewardPool = allCards.filter { RogueEnemyGen.usable(it) && it.rarity >= Rarity.RARE }
+
+        var maxCastle = RogueConfig.START_MAX_CASTLE
+        var hp = maxCastle
+        var lastArch: RogueArchetype? = null
+        for (b in 0 until RogueConfig.TOTAL_BATTLES) {
+            val act    = b / RogueConfig.BATTLES_PER_ACT
+            val isBoss = b % RogueConfig.BATTLES_PER_ACT == RogueConfig.BATTLES_PER_ACT - 1
+            // Dřívější pravidla: hrad a hradby soupeře bez násobku, léčení +5 (Rytíř bez obtížností)
+            val st = if (diff != null) RogueEnemyGen.stats(b, d) else RogueEnemyGen.stats(b, d).copy(
+                castle = 16 + b * 2 + (if (isBoss) 4 else 0), wall = 6 + b + (if (isBoss) 2 else 0))
+            val enemyDeck = if (diff == null) oldRogueEnemyDeck(act) else {
+                val q = RogueEnemyGen.quality(b, isBoss, d)
+                val arch = RogueEnemyGen.pickArchetype(q, lastArch)
+                lastArch = arch
+                RogueEnemyGen.buildDeck(arch, q, allCards)
+            }
+            val me = rogueSide(deck, hp, RogueConfig.START_WALL, 4, null)
+            val en = rogueSide(enemyDeck, st.castle, st.wall, st.handSize, st)
+            val o = playStates(me, en, RogueEnemyGen.winTarget(maxCastle))
+            if (!isWinA(o.result)) return b
+            hp = (minOf(maxCastle, me.castleHP) + (if (diff == null) 5 else d.healOnWin)).coerceIn(1, maxCastle)
+            if (b == RogueConfig.TOTAL_BATTLES - 1) return RogueConfig.TOTAL_BATTLES
+            repeat(if (isBoss) RogueConfig.REWARD_CARD_PICKS_BOSS else RogueConfig.REWARD_CARD_PICKS) {
+                val offers = rewardPool.filter { (deck[it.id] ?: 0) < it.rarity.maxCopies }.shuffled()
+                    .take(if (isBoss) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS)
+                // Jako rozumný hráč: vzácnější karta, ale hlavně ta, která sedí k surovinám balíčku
+                val size = deck.values.sum().toDouble()
+                fun share(t: ResourceType) = deck.entries.sumOf { (id, k) -> if (byId.getValue(id).costType == t) k else 0 } / size
+                offers.maxByOrNull { it.rarity.ordinal + 4 * share(it.costType) + Random.nextDouble() }
+                    ?.let { deck[it.id] = (deck[it.id] ?: 0) + 1 }
+            }
+            if (isBoss) { maxCastle += RogueConfig.REWARD_MAX_CASTLE; hp += RogueConfig.REWARD_MAX_CASTLE }
+        }
+        return RogueConfig.TOTAL_BATTLES
+    }
+
+    /** Dřívější generátor balíčku soupeře: vyvážený náhodný balíček, vzácnosti podle aktu, bez zakázaných karet. */
+    private fun oldRogueEnemyDeck(act: Int): Map<String, Int> {
+        val p = when (act) {
+            0    -> allCards.filter { it.rarity <= Rarity.RARE }
+            1    -> allCards.filter { it.rarity != Rarity.LEGENDARY }
+            else -> allCards
+        }
+        return buildBalancedDeck(p).flatMap { (id, k) -> List(k) { id } }
+            .filter { it !in RogueConfig.ENEMY_DECK_BANLIST }.groupingBy { it }.eachCount()
     }
 }
