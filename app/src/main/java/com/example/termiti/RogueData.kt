@@ -7,6 +7,8 @@ package com.example.termiti
 //   • Probíjíš se 12 bitvami (3 akty × 4), soupeři sílí.
 //   • HP hradu se PŘENÁŠÍ mezi bitvami (zastropování na maxCastle),
 //     hradby se resetují každou bitvu. Léčení jen přes výhru/odměny.
+//   • Obtížnost (RogueDifficulty v RogueEnemies.kt) mění soupeře, léčení,
+//     rerolly i odměny; soupeři mají archetyp (RogueArchetype).
 //   • Po každé výhře: POVINNĚ vyber 2 (po bossovi 3) karty Rare+ – nelze
 //     přeskočit, balíček musí růst. Po každém výběru se nabídka obnoví (ne
 //     jen zmizí vybraná karta). Reroll nabídky lze udělat jen pár× za CELÝ
@@ -29,7 +31,6 @@ object RogueConfig {
     const val TOTAL_BATTLES     = ACTS * BATTLES_PER_ACT   // 12
     const val START_MAX_CASTLE  = 30
     const val START_WALL        = 15
-    const val AUTO_HEAL_ON_WIN  = 5      // heal po každé výhře (i po odměně)
     const val REWARD_MAX_CASTLE = 6      // bonus po bossovi: +max hrad (+ vyléčí stejně)
     const val REWARD_WALL       = 6      // bonus po bossovi: +startovní hradby
     const val REWARD_REPAIR     = 15     // bonus po bossovi: oprava hradu (heal)
@@ -39,7 +40,6 @@ object RogueConfig {
     const val REWARD_CARD_PICKS_BOSS = 3   // výhra nad bossem: kolik karet si musíš vzít
     const val REWARD_CARD_OFFERS      = 4  // z kolika běžná výhra vybírá
     const val REWARD_CARD_OFFERS_BOSS = 5  // z kolika výhra nad bossem vybírá
-    const val REROLLS_PER_RUN         = 3  // kolikrát lze za CELÝ run rerollovat nabídku karet
 
     fun rarityBudgetCost(r: Rarity): Int = when (r) {
         Rarity.COMMON    -> 0
@@ -65,11 +65,6 @@ object RogueConfig {
 
     /** Lokalizované – čte se z jazykového balíčku (oddělovač "|"). */
     val ACT_TITLES: List<String> get() = LanguageManager.currentStrings.rogueActTitles.split("|")
-
-    /** Jména soupeřů po aktech – lokalizovaná, jeden řetězec na akt (oddělovač "|"). */
-    val ENEMY_NAMES: List<List<String>> get() = LanguageManager.currentStrings.let { s ->
-        listOf(s.rogueEnemiesAct1, s.rogueEnemiesAct2, s.rogueEnemiesAct3).map { it.split("|") }
-    }
 }
 
 /**
@@ -103,7 +98,12 @@ data class RogueRun(
     /** true = po vybrání povinných karet ještě čeká bonus (jen po bossovi). */
     val rewardBonusAvailable  : Boolean = false,
     /** Kolik rerollů nabídky karet zbývá – sdílená zásoba na CELÝ run, ne na 1 odměnu. */
-    val rerollsLeft : Int = RogueConfig.REROLLS_PER_RUN
+    val rerollsLeft : Int = RogueDifficulty.KNIGHT.rerolls,
+    val difficulty  : RogueDifficulty = RogueDifficulty.KNIGHT,
+    /** Archetyp posledního soupeře – další soupeř bude jiný. */
+    val lastArchetype: RogueArchetype? = null,
+    /** Zlaťáky, které run zatím vydělal za bosse (připisují se hned, tady jen pro souhrn). */
+    val goldEarned  : Int = 0
 ) {
     val act: Int get() = battleIndex / RogueConfig.BATTLES_PER_ACT
     val isBoss: Boolean get() =
@@ -113,3 +113,16 @@ data class RogueRun(
     val battleLabel: String get() = LanguageManager.currentStrings.rogueBattleLabel
         .format((battleIndex + 1).coerceAtMost(RogueConfig.TOTAL_BATTLES), RogueConfig.TOTAL_BATTLES)
 }
+
+/** Souhrn odměn skončeného runu pro obrazovku konce (všechno už je připsané na účet). */
+data class RogueEndReward(
+    /** Zlaťáky za celý run (bossové + dokončení). */
+    val gold           : Int = 0,
+    /** Balíčky celkem, včetně bonusu za první dokončení. */
+    val packs          : Int = 0,
+    val xp             : Int = 0,
+    /** Z toho balíčky za PRVNÍ dokončení obtížnosti (0 = už dřív dokončeno). */
+    val firstClearPacks: Int = 0,
+    /** Obtížnost, kterou tenhle run nově odemkl. */
+    val unlocked       : RogueDifficulty? = null
+)

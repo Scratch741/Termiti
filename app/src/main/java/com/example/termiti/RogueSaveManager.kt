@@ -54,6 +54,9 @@ object RogueSaveManager {
             put("rewardCardPicksLeft",  run.rewardCardPicksLeft)
             put("rewardBonusAvailable", run.rewardBonusAvailable)
             put("rerollsLeft",          run.rerollsLeft)
+            put("difficulty",           run.difficulty.name)
+            run.lastArchetype?.let { put("lastArchetype", it.name) }
+            put("goldEarned",           run.goldEarned)
             put("mines",       JSONObject().apply { run.bonusMines.forEach { (t, n) -> put(t.name, n) } })
         }
         p.edit().putString(KEY, obj.toString()).apply()
@@ -89,7 +92,11 @@ object RogueSaveManager {
                 rewardCards = cards("rewards"),
                 rewardCardPicksLeft  = o.optInt("rewardCardPicksLeft", 0),
                 rewardBonusAvailable = o.optBoolean("rewardBonusAvailable", false),
-                rerollsLeft = o.optInt("rerollsLeft", RogueConfig.REROLLS_PER_RUN)
+                rerollsLeft = o.optInt("rerollsLeft", RogueDifficulty.KNIGHT.rerolls),
+                // Runy uložené před obtížnostmi pokračují jako Rytíř (= dřívější pravidla)
+                difficulty  = RogueDifficulty.fromName(o.optString("difficulty", "")),
+                lastArchetype = runCatching { RogueArchetype.valueOf(o.getString("lastArchetype")) }.getOrNull(),
+                goldEarned  = o.optInt("goldEarned", 0)
             )
             Saved(run, RoguePhase.valueOf(o.getString("phase")))
         }.getOrNull()

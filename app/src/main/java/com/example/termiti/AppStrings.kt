@@ -551,10 +551,25 @@ class AppStrings(
     val rogueCastleFell: String by values
     val rogueBattlesWon: String by values
     val rogueBattleLabel: String by values
+    val rogueDifficultyNames: String by values
+    val rogueDifficultyDescs: String by values
+    val rogueDiffStats: String by values
+    val rogueChooseDifficulty: String by values
+    val rogueDiffReward: String by values
+    val rogueDiffFirstClear: String by values
+    val rogueDiffCleared: String by values
+    val rogueDiffLocked: String by values
+    val rogueRewardsTitle: String by values
+    val rogueFirstClearBonus: String by values
+    val rogueUnlockedDiff: String by values
+    val rogueNoReward: String by values
+    val rogueArchAttacker: String by values
+    val rogueArchMage: String by values
+    val rogueArchDefender: String by values
+    val rogueArchColossus: String by values
+    val rogueArchSaboteur: String by values
+    val rogueArchChaos: String by values
     val rogueActTitles: String by values
-    val rogueEnemiesAct1: String by values
-    val rogueEnemiesAct2: String by values
-    val rogueEnemiesAct3: String by values
     val replayWon: String by values
     val replayLost: String by values
     val deckStarter: String by values

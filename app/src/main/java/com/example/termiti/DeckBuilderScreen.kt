@@ -228,6 +228,8 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
     var filterMines    by remember { mutableStateOf(false) }
 
     var showPresets    by remember { mutableStateOf(false) }
+    /** Roguelike: výběr obtížnosti po klepnutí na Zahájit run. */
+    var showDifficulty by remember { mutableStateOf(false) }
     var showDeckPicker by remember { mutableStateOf(false) }
     /** Šablona čekající na potvrzení (přepsala by neprázdný balíček). */
     var pendingPreset  by remember { mutableStateOf<Int?>(null) }
@@ -368,7 +370,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
                     onRename    = { if (rogue) viewModel.renameRoguePreset(editingIdx, it) else viewModel.renameDeck(editingIdx, it) },
                     // Roguelike: místo Šablon tlačítko, které s hotovým balíčkem zahájí běh
                     startRunEnabled = if (rogue) deckComplete else null,
-                    onStartRun  = { viewModel.setRogueSlot(editingIdx); viewModel.startRogueRun() }
+                    onStartRun  = { viewModel.setRogueSlot(editingIdx); showDifficulty = true }
                 )
                 SectionSeparator()
                 DeckPanel(
@@ -461,6 +463,15 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
                     showDeckPicker = false
                 },
                 onDismiss  = { showDeckPicker = false }
+            )
+        }
+
+        // ── Roguelike: výběr obtížnosti a zahájení runu ───────────────────────
+        if (showDifficulty) {
+            RogueDifficultyDialog(
+                initial   = viewModel.rogueLastDifficulty,
+                onDismiss = { showDifficulty = false },
+                onStart   = { d -> showDifficulty = false; viewModel.startRogueRun(d) }
             )
         }
 

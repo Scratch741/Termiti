@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import kotlin.math.roundToInt
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Roguelike obrazovky: draft (výběr balíčku), odměna, konec runu.
@@ -104,7 +106,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     )
                     Spacer(Modifier.weight(1f))
                     Text(
-                        s.rogueNext.format(run.actTitle, run.battleLabel),
+                        "${run.difficulty.displayName}  ·  " + s.rogueNext.format(run.actTitle, run.battleLabel),
                         color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1
                     )
                     Spacer(Modifier.weight(1f))
@@ -314,6 +316,133 @@ private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String,
     }
 }
 
+// ─── Výběr obtížnosti před zahájením runu ───────────────────────────────────
+/**
+ * Čtyři obtížnosti vedle sebe: co mění, co dá dokončení a bonus za první průchod.
+ * Zamčená obtížnost ukazuje, kterou je potřeba dokončit. Klepnutí obtížnost vybere,
+ * run zahájí až tlačítko (výchozí výběr = naposledy hraná odemčená obtížnost).
+ */
+@Composable
+fun RogueDifficultyDialog(
+    initial  : RogueDifficulty,
+    onDismiss: () -> Unit,
+    onStart  : (RogueDifficulty) -> Unit
+) {
+    val s       = LocalStrings.current
+    val cleared = remember { PlayerProfileManager.rogueCleared() }
+    var selected by remember { mutableStateOf(initial) }
+    val shape   = RoundedCornerShape(16.dp)
+
+    GameDialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(
+            modifier = Modifier
+                .clip(shape)
+                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
+                .border(1.dp, Gold.copy(alpha = 0.3f), shape)
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CampaignTitle(s.rogueChooseDifficulty, fontSize = 24.sp)
+            Row(
+                Modifier.height(IntrinsicSize.Max),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                RogueDifficulty.entries.forEach { d ->
+                    RogueDifficultyTile(d, cleared, selected == d) { selected = d }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PlainButton(
+                    text = s.back2, textColor = TextMuted, fontSize = 12.sp,
+                    modifier = Modifier.width(130.dp).height(36.dp), paddingH = 4.dp, paddingV = 0.dp,
+                    onClick = onDismiss
+                )
+                PlainButton(
+                    text = s.rogueStartRun, textColor = TealLight, fontSize = 12.sp,
+                    modifier = Modifier.width(170.dp).height(36.dp), paddingH = 4.dp, paddingV = 0.dp,
+                    buttonRes = R.drawable.plain_button_longer,
+                    enabled = selected.isUnlocked(cleared),
+                    onClick = { onStart(selected) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RogueDifficultyTile(d: RogueDifficulty, cleared: Set<String>, selected: Boolean, onClick: () -> Unit) {
+    val s        = LocalStrings.current
+    val unlocked = d.isUnlocked(cleared)
+    val done     = d.name in cleared
+    val shape    = RoundedCornerShape(10.dp)
+    Column(
+        modifier = Modifier
+            .width(146.dp)
+            .fillMaxHeight()
+            .clip(shape)
+            .background(Color.Black.copy(alpha = if (selected) 0.62f else 0.45f))
+            .border(if (selected) 2.dp else 1.dp, if (selected) Gold else Gold.copy(alpha = 0.22f), shape)
+            .clickable(enabled = unlocked) { SoundManager.playMenuTap(); onClick() }
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        val dim = if (unlocked) 1f else 0.45f
+        Text(
+            d.displayName.uppercase(), color = if (selected) Gold else TextPrimary,
+            fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp,
+            maxLines = 1, modifier = Modifier.alpha(dim)
+        )
+        Text(
+            d.displayDesc, color = TextMuted, fontSize = 9.sp, textAlign = TextAlign.Center,
+            lineHeight = 11.sp, minLines = 3, modifier = Modifier.alpha(dim)
+        )
+        Text(
+            s.rogueDiffStats.format((d.statMul * 100).roundToInt(), d.healOnWin, d.rerolls),
+            color = TextPrimary, fontSize = 9.sp, textAlign = TextAlign.Center,
+            lineHeight = 12.sp, modifier = Modifier.alpha(dim)
+        )
+        Spacer(Modifier.weight(1f))
+        HorizontalDivider(color = Gold.copy(alpha = 0.18f), modifier = Modifier.padding(horizontal = 6.dp))
+        Text(s.rogueDiffReward, color = TextMuted, fontSize = 8.sp, modifier = Modifier.alpha(dim))
+        Row(
+            Modifier.alpha(dim),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(13.dp))
+            Text("${d.totalRunGold}", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (d.finalPacks > 0) {
+                Spacer(Modifier.width(4.dp))
+                Image(painterResource(R.drawable.pack_art), contentDescription = null, modifier = Modifier.size(15.dp))
+                Text("${d.finalPacks}", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        when {
+            !unlocked -> Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Image(painterResource(R.drawable.lock_icon), contentDescription = null, modifier = Modifier.size(11.dp))
+                Text(
+                    s.rogueDiffLocked.format(d.requires?.displayName ?: ""), color = Crimson,
+                    fontSize = 8.sp, textAlign = TextAlign.Center, lineHeight = 10.sp
+                )
+            }
+            done -> Text("\u2713 ${s.rogueDiffCleared}", color = HpGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            else -> Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Text("+${d.firstClearPacks}", color = HpGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Image(painterResource(R.drawable.pack_art), contentDescription = null, modifier = Modifier.size(13.dp))
+                Text(s.rogueDiffFirstClear, color = HpGreen, fontSize = 8.sp)
+            }
+        }
+    }
+}
+
 // ─── Konec runu ─────────────────────────────────────────────────────────────
 @Composable
 fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
@@ -391,6 +520,8 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 }
             }
 
+            viewModel.rogueEndReward.value?.let { RogueEndRewards(it) }
+
             Spacer(Modifier.height(6.dp))
             PlainButton(
                 text      = s.backToMenuCaps,
@@ -402,6 +533,46 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 buttonRes = R.drawable.plain_button_longer,
                 onClick   = onBack
             )
+        }
+    }
+}
+
+/** Souhrn odměn na konci runu: zlaťáky, balíčky, XP, bonus za první dokončení, odemčená obtížnost. */
+@Composable
+private fun RogueEndRewards(r: RogueEndReward) {
+    val s = LocalStrings.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(s.rogueRewardsTitle, color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        if (r.gold == 0 && r.packs == 0 && r.xp == 0) {
+            Text(s.rogueNoReward, color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.Center)
+            return@Column
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            if (r.gold > 0) {
+                Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(18.dp))
+                Text("+${r.gold}", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            if (r.packs > 0) {
+                Spacer(Modifier.width(8.dp))
+                Image(painterResource(R.drawable.pack_art), contentDescription = null, modifier = Modifier.size(22.dp))
+                Text("+${r.packs}", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            if (r.xp > 0) {
+                Spacer(Modifier.width(8.dp))
+                Text("+${r.xp} XP", color = TealLight, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        if (r.firstClearPacks > 0) {
+            Text(s.rogueFirstClearBonus.format(r.firstClearPacks), color = HpGreen, fontSize = 11.sp)
+        }
+        r.unlocked?.let {
+            Text(s.rogueUnlockedDiff.format(it.displayName), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

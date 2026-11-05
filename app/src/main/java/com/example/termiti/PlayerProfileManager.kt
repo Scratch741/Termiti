@@ -57,6 +57,25 @@ object PlayerProfileManager {
     }
 
     /**
+     * Odměna z roguelike: zlaťáky, neotevřené balíčky a XP. S [cleared] zapíše dokončení
+     * runu na té obtížnosti; vrací true, když je to PRVNÍ dokončení (bonus za první průchod
+     * si volající připočte do [packs] předem – viz GameViewModel.onRogueBattleEnd).
+     */
+    fun grantRogueReward(gold: Int, packs: Int, xp: Int, cleared: RogueDifficulty? = null) {
+        var p = _profile ?: return
+        p = p.copy(
+            gold          = p.gold + gold,
+            unopenedPacks = p.unopenedPacks + packs,
+            rogueCleared  = if (cleared != null) p.rogueCleared + cleared.name else p.rogueCleared
+        )
+        p = applyXp(p, xp)
+        save(p)
+    }
+
+    /** Obtížnosti roguelike, na kterých hráč už run dokončil. */
+    fun rogueCleared(): Set<String> = _profile?.rogueCleared ?: emptySet()
+
+    /**
      * Zaregistruje výsledek hry a přidá odpovídající odměny.
      * @param campaign true pro kampaňové hry – sledují se statistiky a questy,
      *                 ale žádná obecná herní odměna (XP/zlato) se nedává;

@@ -48,6 +48,8 @@ data class PlayerProfile(
     val unopenedPacks: Int = 0,
     /** Kolik balíčků v řadě hráč otevřel bez legendární karty – pro záruku legendární. */
     val packsSinceLegendary: Int = 0,
+    /** Obtížnosti roguelike, na kterých hráč dokončil run (RogueDifficulty.name) – odemykají další. */
+    val rogueCleared: Set<String> = emptySet(),
     /**
      * Karty, které hráč již viděl v deck builderu — použito pro zvýraznění nově
      * získaných karet značkou "NOVÉ". Karta je přidána při prvním kliknutí na náhled.
