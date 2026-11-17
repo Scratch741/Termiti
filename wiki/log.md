@@ -952,3 +952,29 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Ze tří variant (bronz + dřevo, zlato + kůže, železo + kámen) vybrána „bronz a tmavé dřevo". Uloženo do `design/bronze_wood/` (knihovna prvků, ukázka Profilu, pravidla stylu a paleta v README), generátor `tools/bronze_kit.py`.
 - Zatím jen návrh pro další testy – do hry se nenasazuje. Otevřené body: procedurální náhled je třeba nahradit skutečnými texturami, výraznější rohové kování, méně dřeva na pozadí panelů.
 - [2026-11-05] Roguelike: výhra stavbou nejméně na 100 (`RogueEnemyGen.MIN_WIN_TARGET`, dřív 70); pravidla cs/en a [[systems/roguelike]] upraveny. Verze 0.6.6.
+
+## [2026-11-17] art | Elitní zvěd (D06) – nový obrázek
+
+- Přegenerováno v ComfyUI (workflow krea, styly `darkmage` + `card`), vybrána varianta 1 z 4: zvěd v kapuci s napnutým lukem na skále nad nepřátelským táborem. Starý obrázek měl zdeformovaný luk.
+- `art_elitni_zved.png` nově čtvercový 512×512 (generováno 1024×1024 a zmenšeno – nový standard pro arty karet); v `CardPresentation.kt` ořez jako u ostatních čtvercových artů (`artScale = 0.80f`, bez `artBiasY`). Miniatura pro serverový přehrávač `server/art/art_elitni_zved.webp` 80×112 (střed čtverce).
+
+## [2026-11-17] art | Zoufalý žold (132) – nový obrázek
+
+- Přegenerováno v ComfyUI (krea, `darkmage` + `card`), 512×512. Námět ze starého obrázku zachován (žoldáci u stolu, poslední mince z měšce), ale čtyři odlišné postavy: starší holohlavý kapitán s jizvou přes slepé oko, mladý zrzavý žoldák, snědý silák se spleteným vousem, lučištnice s blond copem. Dřívější pokusy měly postavy jako klony (obecný popis v promptu) a kapitán s páskou přes oko měl nesmyslný druhý pásek přes hlavu – páska nahrazena jizvou. Vybrána varianta 4.
+- Ořez v `CardPresentation.kt` beze změny (byl už čtvercový, `artScale = 0.80f`).
+
+## [2026-11-17] art | Silný úder (007) – nový obrázek
+
+- Dřív abstraktní modrý záblesk na rozpraskané zemi (bez postavy, působil spíš jako magie). Nově obrněný bojovník v rudém plášti zarazí obří kladivo do země před sebou – kráter, výbuch kamení a prachu. Vygenerováno v ComfyUI (krea, `darkmage` + `card`), dopad kladiva posunut před bojovníka editací (Qwen Image Edit). 512×512.
+- `CardPresentation.kt`: ořez jako u ostatních čtvercových artů (`artScale = 0.80f`, bez `artBiasY = -1.00f`). Miniatura `server/art/art_silny_uder.webp` 80×112 obnovena.
+
+## [2026-11-17] art | Válečný sekyrník (017) – nový obrázek
+
+- Dřív statická póza v hladkém 3D vzhledu, který neladil s malířským stylem ostatních karet. Nově sekerník v útoku přes hořící bojiště, sekera v rozmachu (ComfyUI krea, `darkmage` + `card`, varianta 3 ze 4; varianta 1 měla nesmyslnou sekeru s ostřím na obou koncích násady). 512×512.
+- `CardPresentation.kt`: ořez jako u ostatních čtvercových artů (bez `artBiasY = -1.00f`); miniatura `server/art/art_valecny_sekyrnik.webp` obnovena.
+
+## [2026-11-17] art | Podkopání hradeb (050) a Upír (048) – nové obrázky; verze 0.7.0
+
+- Podkopání hradeb: dva odlišní podkopníci (starý šedovousý horník, mladý začouzený s pochodní) utíkají z tunelu pod hroutící se hradbou (varianta 4). Upír: stříbrovlasý upír na cimbuří vysává z vojáka fialovou magii (varianta 3). Oba 512×512, ořez bez `artBiasY`, serverové miniatury obnoveny.
+- Dvojitý úder zatím beze změny (varianty nevybrány).
+- Verze 0.7.0 – začátek práce na nové grafice karet (jednotný malířský styl, 512×512).

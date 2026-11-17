@@ -58,13 +58,13 @@ object CardPresentation {
             soundResId = R.raw.fireball, isBasic = true),
         "007" to CardPres("Zaútočí za 11.",
             R.drawable.art_silny_uder, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, isBasic = true),
+            artScale = 0.80f, isBasic = true),   // čtvercový art 512×512 (2026-11-17)
         "006" to CardPres("Pokud máš více útoku než soupeř, poškodí hrad −10.",
             R.drawable.art_prevaha_sily, "Útok",
             artScale = 0.80f, artBiasY = -0.10f),
         "017" to CardPres("Zaútočí za 8, ukradni 2 útoku.",
             R.drawable.art_valecny_sekyrnik, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.valecny_sekyrnik),
+            artScale = 0.80f, soundResId = R.raw.valecny_sekyrnik),   // čtvercový art 512×512 (2026-11-17)
 
         // ── Stavba (platí STONES) ─────────────────────────────────────────────
         "002" to CardPres("Hradby +9, kámen +1.",
@@ -203,13 +203,13 @@ object CardPresentation {
             artScale = 0.80f, isBasic = true, soundResId = R.raw.ogr),
         "048" to CardPres("Zaútočí za 6, magie +3.\n[Combo]",
             R.drawable.art_upir, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17)
         "049" to CardPres("Zaútočí za 3, soupeř ztratí 3 magie, chaos +2.",
             R.drawable.art_jed, "Útok",
             artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.jed),
         "050" to CardPres("Zaútočí za 8, soupeř ztratí 4 kameny.",
             R.drawable.art_podkopani_hradeb, "Útok",
-            artScale = 0.80f, artBiasY = 0.35f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17)
         "051" to CardPres("Zaútočí za 14, poškodí hrad −8, chaos +3.",
             R.drawable.art_drak, "Útok",
             artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.dragon_breath),
@@ -617,7 +617,7 @@ object CardPresentation {
             artScale = 0.80f, listBiasY = -0.50f),
         "D06" to CardPres("Zaútočí za 8. Lízni 1 kartu.",
             R.drawable.art_elitni_zved, "Útok",
-            artScale = 0.80f, artBiasY = -0.35f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17), stejně jako ostatní čtvercové
         "D07" to CardPres("Lízni 2 karty. Důl magie +1.",
             R.drawable.art_tajna_knihovna, "Důl",
             artScale = 0.80f, artBiasY = 0.15f),

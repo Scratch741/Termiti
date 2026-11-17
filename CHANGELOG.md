@@ -17,6 +17,17 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.0] – 2026-11-17
+
+Začíná práce na nové grafice: obrázky karet se postupně přegenerovávají v jednotném
+malířském stylu (tmavé tyrkysové a uhlové tóny), čtvercové 512×512.
+
+### Nová grafika karet
+- Elitní zvěd, Zoufalý žold, Silný úder, Válečný sekyrník, Podkopání hradeb, Upír.
+
+### Vylepšeno
+- Návrh nového vzhledu UI „bronz a tmavé dřevo" (zatím jen návrh v `design/bronze_wood`).
+
 ## [0.6.6] – 2026-11-05
 
 ### Změněno
