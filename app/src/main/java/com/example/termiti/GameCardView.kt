@@ -642,6 +642,7 @@ private fun CardViewTextured(
         else                   -> Color.Transparent
     }
     val borderWidth = if (showPurpleGlow) 2.dp else 1.5.dp
+    val goldFx = if (card.golden) rememberGoldenFx() else null
     val bgColor = when {
         showPurpleGlow && canPlay  -> Color(0xFF1A0830)    // živá tmavě fialová
         showPurpleGlow             -> Color(0xFF0F0520)    // tmavší = nezahratelná
@@ -654,6 +655,7 @@ private fun CardViewTextured(
             .size(width = 100.dp, height = 140.dp)
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .then(dragModifier)
+            .then(if (goldFx != null) Modifier.goldenGlow(goldFx) else Modifier)
             .drawBehind {
                 if (showPurpleGlow) {
                     val cr = CornerRadius(10.dp.toPx())
@@ -698,13 +700,16 @@ private fun CardViewTextured(
                 .height(90.dp)
                 .clipToBounds()
         ) {
-            Image(
+            val artAlpha = if (!showFade || canPlay || discardMode) 1f else 0.6f
+            if (goldFx != null && card.artLayers != null) {
+                GoldenLayeredArt(card, card.artLayers, goldFx, artAlpha)
+            } else Image(
                 painter = painterResource(artResId),
                 contentDescription = null,
                 modifier = artModifier(card),
                 contentScale = ContentScale.Crop,
                 alignment = artAlignment(card),
-                alpha = if (!showFade || canPlay || discardMode) 1f else 0.6f
+                alpha = artAlpha
             )
         }
 
@@ -716,7 +721,8 @@ private fun CardViewTextured(
                 Image(
                     bitmap = frame,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
+                        .then(if (goldFx != null) Modifier.goldenShine(goldFx) else Modifier),
                     contentScale = ContentScale.FillBounds,
                     filterQuality = FilterQuality.Medium
                 )
@@ -909,6 +915,11 @@ private fun CardViewTextured(
                     style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                 )
             }
+        }
+
+        // Vrstva 6.5: zlatá karta – jiskry v oblasti ilustrace
+        if (goldFx != null) {
+            GoldenSparks(goldFx, Modifier.align(Alignment.TopStart).fillMaxWidth().height(90.dp))
         }
 
         // Vrstva 7: zelený glow overlay (na vrchu — ale průhledný, nepřekáží čtení)

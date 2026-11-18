@@ -38,6 +38,7 @@
 | [[systems/localization]] | JSON language packs (cs/en), AppStrings, fallback chain | 2026-05-29 |
 | [[systems/roguelike]] | Roguelike run: difficulties + unlocks, rewards, archetype opponents (RogueEnemyGen), run simulation | 2026-11-05 |
 | [[systems/art-pipeline]] | Card art: ComfyUI + Claude extension (MCP) tools, darkmage/card style, readability fix (comfy_art_light), file locations | 2026-11-18 |
+| [[systems/golden-cards]] | Golden animated cards: code effects + layered art (prototype T48 Upír), user decisions, procedure; on hold | 2026-11-18 |
 | [[systems/desk-display]] | ESP32 CYD desk display: `/status` + leaderboards, LVGL UI, build, fonts with Czech diacritics | 2026-10-31 |
 | [[systems/roadmap-accounts-monetization]] | Future plan: Google Play identity → server-side progress → paid packs/gold; open decisions, known server gaps | 2026-10-06 |
 

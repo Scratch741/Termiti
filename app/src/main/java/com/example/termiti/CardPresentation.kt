@@ -41,7 +41,11 @@ data class CardPres(
      * Skloňovaný název karty ve 4. pádu (akuzativ) pro použití v log zprávách,
      * např. "lízl Bombu". Pokud null, použije se [Card.name] bez skloňování.
      */
-    val nameAccusative: String?  = null
+    val nameAccusative: String?  = null,
+    /** „Zlatá" animovaná verze karty (zkušebně, úroveň 1 – viz GoldenCard.kt). */
+    val golden:        Boolean   = false,
+    /** Rozvrstvený art pro zlatou kartu úrovně 2 (pozadí + postavy), viz GoldenCard.kt. */
+    val artLayers:     ArtLayers? = null
 )
 
 object CardPresentation {
@@ -205,6 +209,12 @@ object CardPresentation {
         "048" to CardPres("Zaútočí za 6, magie +3.\n[Combo]",
             R.drawable.art_upir, "Útok",
             artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17)
+        // Testovací zlatý Upír (stejná karta jako "048", jen zlatý vzhled)
+        "T48" to CardPres("Zaútočí za 6, magie +3.\n[Combo]",
+            R.drawable.art_upir, "Útok",
+            artScale = 0.80f, isBasic = true, golden = true,
+            artLayers = ArtLayers(R.drawable.art_upir_bg, R.drawable.art_upir_fg,
+                glowX = 0.54f, glowY = 0.41f)),
         "049" to CardPres("Zaútočí za 3, soupeř ztratí 3 magie, chaos +2.",
             R.drawable.art_jed, "Útok",
             artScale = 0.80f, soundResId = R.raw.jed),   // čtvercový art 512×512 (2026-11-18)

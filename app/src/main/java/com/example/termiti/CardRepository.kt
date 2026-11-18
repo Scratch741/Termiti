@@ -81,7 +81,9 @@ object CardRepository {
             sound           = pres.sound,
             soundResId      = pres.soundResId,
             isPlaceholder   = obj.optBoolean("isPlaceholder", false),
-            nameAccusative  = pres.nameAccusative
+            nameAccusative  = pres.nameAccusative,
+            golden          = pres.golden,
+            artLayers       = pres.artLayers
         )
     }
 

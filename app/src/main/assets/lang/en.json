@@ -698,6 +698,10 @@
       "name": "Ogre",
       "desc": "Attack for 9."
     },
+    "T48": {
+      "name": "Vampire (golden)",
+      "desc": "Attack for 6, +3 Magic.\n[Combo]"
+    },
     "048": {
       "name": "Vampire",
       "desc": "Attack for 6, +3 Magic.\n[Combo]"

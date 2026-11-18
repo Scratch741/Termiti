@@ -1072,6 +1072,30 @@
     "baseId": "048"
   },
   {
+    "id": "T48",
+    "name": "Upír (zlatý)",
+    "cost": 4,
+    "costType": "ATTACK",
+    "isCombo": true,
+    "effects": [
+      {
+        "type": "AttackPlayer",
+        "amount": 6
+      },
+      {
+        "type": "AddResource",
+        "resType": "MAGIC",
+        "amount": 3
+      }
+    ],
+    "rarity": "RARE",
+    "maxCopies": 2,
+    "isXCost": false,
+    "isPlaceholder": false,
+    "discardEffects": [],
+    "baseId": "T48"
+  },
+  {
     "id": "049",
     "name": "Jed",
     "cost": 3,

@@ -132,6 +132,7 @@ const RAW = [
   ['046','Goblin',         1,'ATTACK',0,[ap(2), sr('MAGIC',1), ar('CHAOS',1)], 'RARE'],
   ['047','Ogr',            3,'ATTACK',0,[ap(9)],               'COMMON'],
   ['048','Upír',           4,'ATTACK',1,[ap(6), ar('MAGIC',3)],        'RARE'],
+  ['T48','Upír (zlatý)',   4,'ATTACK',1,[ap(6), ar('MAGIC',3)],        'RARE'],   // test: zlatá karta (úroveň 1)
   ['049','Jed',            3,'ATTACK',0,[ap(3), dr('MAGIC',3), ar('CHAOS',2)], 'RARE'],
   ['050','Podkopání hradeb',4,'ATTACK',0,[ap(8), dr('STONES',4)],       'RARE'],
   ['051','Drak',          11,'ATTACK',0,[ap(14), ac(8), ar('CHAOS',3)],'LEGENDARY'],

@@ -40,6 +40,11 @@ Styles are saved with `comfy_styles`; they live per PC in `Documents/ComfyWorkfl
 5. `CardPresentation.kt`: square arts use `artScale = 0.80f` and no `artBiasY`.
 6. Log the card in `wiki/log.md` (what it shows, chosen variant, what was fixed).
 
+### Layered art for golden cards (test, `"T48"`) – full procedure in [[systems/golden-cards]]
+- Characters: `comfy_remove_bg` on the finished art → `art_<name>_fg.png` (512×512, transparent).
+- Background without characters: `comfy_edit` (Qwen) *"Remove the <characters> completely … and fill the space with what is behind them …; keep the moon, …, the exact composition, the color palette and the painting style unchanged. No people."* (`enhance` false, `output_size` 512x512) → `art_<name>_bg.png`. Do not use `comfy_inpaint` for this: it repaints the ground (characters then float) and leaves a dark halo of the mask.
+- Glow lost in the cut-out (magic in hands) is drawn in code: `ArtLayers(glowX, glowY, glowColor)` in `CardPresentation.kt`; animation in `GoldenCard.kt`.
+
 ### Reflektor C (what `comfy_art_light` / `Reflektor_C` do)
 gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical light (half-axes 0.42 × 0.50 of the image) centred on the character: inside brightness ×(1 + 0.28·(1−d²)) and a warm tint, outside darkening up to 22 %. The centre is the centroid of the BiRefNet character mask shifted 0.06 up (legs and cloaks pull the centroid down); a manual centre can be given. Pure GLSL in ComfyUI core (`GLSLShader`), ~1 s per image, deterministic – style and details stay.
 
@@ -50,4 +55,5 @@ gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical
 ## Changelog
 - 2026-11-18: Page created – tools, style, steps, reflector C, MCP 2.6.0.
 - 2026-11-18: Effects the generator cannot draw → add with `comfy_edit` (Plamenomet).
+- 2026-11-18: Layered art for golden cards (Upír T48).
 - 2026-11-18: Styles split: `darkmage` = look only, `herolight` = light on the character; buildings without `card`.

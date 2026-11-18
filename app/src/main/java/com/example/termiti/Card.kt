@@ -96,6 +96,10 @@ data class Card(
      * Pokud null, použije se [name] bez skloňování.
      */
     val nameAccusative: String? = null,
+    /** „Zlatá" animovaná verze (rám do zlata, lesk, záře, jiskry) – viz GoldenCard.kt. */
+    val golden: Boolean = false,
+    /** Rozvrstvený art (pozadí + postavy) pro animovanou zlatou kartu; null = běžný art. */
+    val artLayers: ArtLayers? = null,
     /**
      * Override id for localization lookup. Used by Shapeshifter: a transformed
      * instance keeps its `C34_…` [id] (to re-transform + keep the UI slot), but

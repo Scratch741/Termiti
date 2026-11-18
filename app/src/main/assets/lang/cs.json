@@ -698,6 +698,10 @@
       "name": "Ogr",
       "desc": "Zaútočí za 9."
     },
+    "T48": {
+      "name": "Upír (zlatý)",
+      "desc": "Zaútočí za 6, magie +3.\n[Combo]"
+    },
     "048": {
       "name": "Upír",
       "desc": "Zaútočí za 6, magie +3.\n[Combo]"

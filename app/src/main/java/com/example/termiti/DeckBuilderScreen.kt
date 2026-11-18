@@ -1303,9 +1303,11 @@ fun CardPreview(card: Card) {
     val frameResId = remember(card.costType) {
         context.resources.getIdentifier(cardFrameName(card.costType), "drawable", context.packageName)
     }
+    val goldFx = if (card.golden) rememberGoldenFx() else null
     Box(
         modifier = Modifier
             .size(width = 100.dp, height = 140.dp)
+            .then(if (goldFx != null) Modifier.goldenGlow(goldFx) else Modifier)
             .clip(RoundedCornerShape(6.dp))
     ) {
         // Ilustrace – 90 dp pokryje průhlednou zónu frame včetně gradient přechodu
@@ -1319,7 +1321,9 @@ fun CardPreview(card: Card) {
             // Bitmapy z CardBitmapCache: zmenšené na velikost dlaždice a dekódované
             // mimo UI vlákno – painterResource je dekódoval zvětšené podle hustoty
             // displeje a synchronně, což při rychlém rolování sekalo.
-            rememberCardBitmap(artResId, 100.dp, 90.dp)?.let { art ->
+            if (goldFx != null && card.artLayers != null) {
+                GoldenLayeredArt(card, card.artLayers, goldFx)
+            } else rememberCardBitmap(artResId, 100.dp, 90.dp)?.let { art ->
                 Image(
                     bitmap = art,
                     contentDescription = null,
@@ -1335,7 +1339,8 @@ fun CardPreview(card: Card) {
                 Image(
                     bitmap = frame,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
+                        .then(if (goldFx != null) Modifier.goldenShine(goldFx) else Modifier),
                     contentScale = ContentScale.FillBounds
                 )
             }
@@ -1435,6 +1440,10 @@ fun CardPreview(card: Card) {
                     style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                 )
             }
+        }
+        // Zlatá karta – jiskry v oblasti ilustrace
+        if (goldFx != null) {
+            GoldenSparks(goldFx, Modifier.align(Alignment.TopStart).fillMaxWidth().height(90.dp))
         }
     }
 }
@@ -1802,10 +1811,12 @@ private fun FullCardPreview(card: Card) {
     }
     val rarityOverlayId = rarityOverlayResource(card.rarity)
 
+    val goldFx = if (card.golden) rememberGoldenFx() else null
     // Karta 252×353 dp = 2.52× reálné karty (100×140 dp) — o 10 % menší než 2.8×
     Box(
         modifier = Modifier
             .size(width = 252.dp, height = 353.dp)
+            .then(if (goldFx != null) Modifier.goldenGlow(goldFx, scale = 2.52f) else Modifier)
             .clip(RoundedCornerShape(14.dp))
             .background(BgCard)
             .border(2.dp, costColor.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
@@ -1818,7 +1829,9 @@ private fun FullCardPreview(card: Card) {
                     .height(227.dp)
                     .clipToBounds()
             ) {
-                Image(
+                if (goldFx != null && card.artLayers != null) {
+                    GoldenLayeredArt(card, card.artLayers, goldFx)
+                } else Image(
                     painter = painterResource(artResId),
                     contentDescription = null,
                     modifier = artModifier(card),
@@ -1832,7 +1845,8 @@ private fun FullCardPreview(card: Card) {
                 Image(
                     painter = painterResource(frameResId),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
+                        .then(if (goldFx != null) Modifier.goldenShine(goldFx) else Modifier),
                     contentScale = ContentScale.FillBounds
                 )
             }
@@ -1931,6 +1945,12 @@ private fun FullCardPreview(card: Card) {
                         style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                     )
                 }
+            }
+
+            // Zlatá karta – jiskry v oblasti ilustrace (227 dp = 90 dp × 2.52)
+            if (goldFx != null) {
+                GoldenSparks(goldFx, Modifier.align(Alignment.TopStart).fillMaxWidth().height(227.dp),
+                    count = 14, scale = 2.2f)
             }
 
     }
