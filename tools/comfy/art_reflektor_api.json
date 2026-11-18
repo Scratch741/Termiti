@@ -1,0 +1,235 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Obrázek"
+    },
+    "inputs": {
+      "image": "__IMAGE__"
+    }
+  },
+  "2": {
+    "class_type": "LoadBackgroundRemovalModel",
+    "_meta": {
+      "title": "BiRefNet"
+    },
+    "inputs": {
+      "bg_removal_name": "birefnet.safetensors"
+    }
+  },
+  "3": {
+    "class_type": "RemoveBackground",
+    "_meta": {
+      "title": "Maska postavy"
+    },
+    "inputs": {
+      "bg_removal_model": [
+        "2",
+        0
+      ],
+      "image": [
+        "1",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "3",
+        0
+      ]
+    }
+  },
+  "5": {
+    "class_type": "GLSLShader",
+    "_meta": {
+      "title": "Těžiště postavy"
+    },
+    "inputs": {
+      "fragment_shader": "#version 300 es\nprecision highp float;\n// Těžiště masky postavy (BiRefNet) → výstup 1×1 px: r = x, g = y (souřadnice textury), b = 1 když maska není prázdná\nuniform sampler2D u_image0;\nin vec2 v_texCoord;\nlayout(location = 0) out vec4 fragColor0;\nvoid main() {\n    const int N = 64;\n    vec3 acc = vec3(0.0);\n    for (int j = 0; j < N; j++) {\n        for (int i = 0; i < N; i++) {\n            vec2 uv = (vec2(float(i), float(j)) + 0.5) / float(N);\n            float m = texture(u_image0, uv).r;\n            acc += vec3(uv * m, m);\n        }\n    }\n    bool ok = acc.z > float(N * N) * 0.005;   // aspoň 0,5 % plochy je postava\n    fragColor0 = ok ? vec4(acc.xy / acc.z, 1.0, 1.0) : vec4(0.5, 0.5, 0.0, 1.0);\n}\n",
+      "size_mode": "custom",
+      "size_mode.width": 1,
+      "size_mode.height": 1,
+      "images.image0": [
+        "4",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "GLSLShader",
+    "_meta": {
+      "title": "Reflektor C"
+    },
+    "inputs": {
+      "fragment_shader": "#version 300 es\nprecision highp float;\n// Reflektor C: zvednutí stínů (gamma), S-křivka kolem 0,45, sytost, eliptické světlo na postavu\n// s teplým nádechem a ztmavení okrajů. Střed světla = těžiště masky postavy, nebo ruční střed.\nuniform sampler2D u_image0;   // obrázek\nuniform sampler2D u_image1;   // 1×1 px těžiště masky (r, g; b = platné)\nuniform float u_float0;       // gamma (0.80)\nuniform float u_float1;       // kontrast (1.18)\nuniform float u_float2;       // sytost (1.15)\nuniform float u_float3;       // síla reflektoru (0.28)\nuniform float u_float4;       // teplo (0.06)\nuniform float u_float5;       // ztmavení okrajů, max (0.22)\nuniform float u_float6;       // poloosa X (0.42)\nuniform float u_float7;       // poloosa Y (0.50)\nuniform float u_float8;       // střed X ručně, 0–1 zleva (záporné = podle masky)\nuniform float u_float9;       // střed Y ručně, 0–1 shora (záporné = podle masky)\nuniform float u_float10;      // posun středu Y od těžiště masky, + = níž (0.0)\nin vec2 v_texCoord;\nlayout(location = 0) out vec4 fragColor0;\nvoid main() {\n    vec3 c = texture(u_image0, v_texCoord).rgb;\n    c = pow(max(c, 0.0), vec3(u_float0));\n    c = clamp(0.45 + (c - 0.45) * u_float1, 0.0, 1.0);\n    float L = dot(c, vec3(0.299, 0.587, 0.114));\n    c = L + (c - L) * u_float2;\n\n    vec4 cm = texture(u_image1, vec2(0.5));\n    vec2 f = cm.b > 0.5 ? cm.rg : vec2(0.5);\n    f.y -= u_float10;                                   // textura má y zdola nahoru\n    if (u_float8 >= 0.0) f.x = u_float8;\n    if (u_float9 >= 0.0) f.y = 1.0 - u_float9;\n\n    float d = length((v_texCoord - f) / vec2(u_float6, u_float7));\n    float k = d < 1.0 ? 1.0 + u_float3 * (1.0 - d * d) : 1.0 - min(u_float5, (d - 1.0) * 0.35);\n    c *= k;\n    if (d < 1.0) { float w = (1.0 - d) * u_float4; c.r += w; c.g += w * 0.5; }\n    fragColor0 = vec4(clamp(c, 0.0, 1.0), 1.0);\n}\n",
+      "size_mode": "from_input",
+      "images.image0": [
+        "1",
+        0
+      ],
+      "images.image1": [
+        "5",
+        0
+      ],
+      "floats.u_float0": [
+        "20",
+        0
+      ],
+      "floats.u_float1": [
+        "21",
+        0
+      ],
+      "floats.u_float2": [
+        "22",
+        0
+      ],
+      "floats.u_float3": [
+        "23",
+        0
+      ],
+      "floats.u_float4": [
+        "24",
+        0
+      ],
+      "floats.u_float5": [
+        "25",
+        0
+      ],
+      "floats.u_float6": [
+        "26",
+        0
+      ],
+      "floats.u_float7": [
+        "27",
+        0
+      ],
+      "floats.u_float8": [
+        "28",
+        0
+      ],
+      "floats.u_float9": [
+        "29",
+        0
+      ],
+      "floats.u_float10": [
+        "30",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Uložit"
+    },
+    "inputs": {
+      "images": [
+        "6",
+        0
+      ],
+      "filename_prefix": "claude/art_reflektor"
+    }
+  },
+  "20": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Gamma"
+    },
+    "inputs": {
+      "value": 0.8
+    }
+  },
+  "21": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Kontrast"
+    },
+    "inputs": {
+      "value": 1.18
+    }
+  },
+  "22": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Sytost"
+    },
+    "inputs": {
+      "value": 1.15
+    }
+  },
+  "23": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Reflektor"
+    },
+    "inputs": {
+      "value": 0.28
+    }
+  },
+  "24": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Teplo"
+    },
+    "inputs": {
+      "value": 0.06
+    }
+  },
+  "25": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Ztmavení okrajů"
+    },
+    "inputs": {
+      "value": 0.22
+    }
+  },
+  "26": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Poloosa X"
+    },
+    "inputs": {
+      "value": 0.42
+    }
+  },
+  "27": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Poloosa Y"
+    },
+    "inputs": {
+      "value": 0.5
+    }
+  },
+  "28": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Střed X"
+    },
+    "inputs": {
+      "value": -1.0
+    }
+  },
+  "29": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Střed Y"
+    },
+    "inputs": {
+      "value": -1.0
+    }
+  },
+  "30": {
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Posun středu Y"
+    },
+    "inputs": {
+      "value": -0.06
+    }
+  }
+}
