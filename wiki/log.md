@@ -984,3 +984,108 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 ## [2026-11-05] balance | Roguelike enemy deck grows with the player's deck (user request). Measured first (temporary counters in rogueRuns, removed): battles last 17-22 rounds and the fixed 30-card enemy deck ran out in ~30-40 % of battles; in the last act the player had 38-44 cards (≈18 left at the end) while the enemy ran out in 36 % of last-boss fights (≈5 left) and could then only pass - a hidden advantage for the player. Now the enemy deck = max(30, player's deck size) (RogueEnemyGen.deckSize); rarity caps scale with the size (RarityCaps.scaledTo), the archetype share is a share of the whole deck but never more than the preset's 30 cards, the rest is random balanced filler. After: enemy ran out in 16 % of last-boss fights (≈13 left). rogueRuns, 2000 runs each: before-difficulties 8.0 %, Učeň 15.6 % (was 22.1), Rytíř 7.7 % (8.9), Vojevůdce 0.9 % (1.0), Noční můra 0 % - Rytíř still matches the old mode, no retuning needed. New test enemyDeckGrowsWithPlayerDeck. Built, unit tests pass.
 ## [2026-11-06] ui | Roguelike reward screen (user request): (1) the card offer is always 4 cards, also after a boss (REWARD_CARD_OFFERS_BOSS = 5 removed; a boss still gives 3 picks + the bonus). (2) Mines were not visible anywhere outside a battle - the header of the deck panel now shows, right of 'TVŮJ BALÍČEK (n)', the mines the player starts the next battle with: mine icon + resource icon and count for magic / attack / stone / chaos (0 dimmed). New RogueRun.startMines = the player's default mines (PlayerState) + boss bonus mines, the same as createRogueState uses, so a +1 mine bonus shows immediately. Built, unit tests pass; not seen on a device.
 ## [2026-11-06] ui | Roguelike reward offer shows rarity (user request): every offered card gets a 2 dp outline and a soft 9 dp glow in its rarity colour (same colours as pack opening, packRarityColor): common faint grey, rare blue, epic purple, legendary gold; epic and legendary pulse slowly (0.75-1.0, 1.4 s). Drawn behind the card in RewardCardRow (14 thin layers, no banding); the card scale leaves room so the panel frame does not clip the glow. Checked on a canvas mock in the browser (4 rarities side by side); built, not seen on a device.
+
+## [2026-11-18] art | Nové arty karet čitelnější v malém (Upír, Válečný sekyrník, Elitní zvěd, Zoufalý žold, Silný úder, Podkopání hradeb)
+
+- Problém (uživatel): v malém na kartě jsou postavy skoro tmavé siluety – postava i pozadí mají podobnou světlost (tmavé postavy na tmavě tyrkysovém pozadí), karta ilustraci ještě ztmaví přechodem (nahoře 30 %, dole 82 %).
+- Vyzkoušeno na všech šesti, srovnání v herní velikosti i velké: A originál; C „reflektor" bez AI; D / D2 maska postavy z BiRefNet (ComfyUI, ~1 s, masky čisté i u skupiny čtyř žoldáků) + zesvětlení jen postavy a teplý okraj; E přesvícení přes Qwen Image Edit 2.1 (15–30 s; bez věty o zachování barev přebarvil Sekerníkovi nebe do oranžova – s větou „keep the original color palette (dark teal sky, charcoal smoke, only the small fires orange)" drží paletu); E 80 % = úprava přes originál s krytím 0,8 (kompozice sedí přesně, bez dvojitých obrysů); F img2img krea denoise 0,35 (skoro bez efektu, zrnitá textura – nepoužitelné). Uživatel: D2 nepřirozené (kromě Žoldu), vybral C pro pět karet a E 80 % + C pro Silný úder.
+- C (deterministická úprava, bez AI): gamma 0,80 na RGB, S-křivka kolem 0,45 se strmostí 1,18, sytost ×1,15, eliptický reflektor se středem na postavě (poloosy 0,42 × 0,50 obrázku): uvnitř jas ×(1,28 − 0,28·d²) a teplý nádech (+0,06·(1−d) do R, polovina do G), venku ztmavení až o 22 %. Středy (x, y): Upír 0,46/0,45, Sekerník 0,50/0,45, Zvěd 0,45/0,48, Žold 0,50/0,55, Silný úder 0,52/0,50, Podkopání 0,50/0,55.
+- Výstup 512×512 PNG do `res/drawable` (≈ 530–560 kB, dřív 260–380 kB) a miniatury `server/art/*.webp` 80×112 (střed čtverce) se stejnou úpravou; Zoufalý žold miniaturu na serveru dosud neměl – přidána. Zpracováno v prohlížeči (canvas), zdroje AI úprav v `Pictures/ComfyUI-Claude/art_pop_test`. Sestaveno; na telefonu zatím neviděno.
+
+## [2026-11-18] art | Reflektor C jako workflow v ComfyUI a nástroj MCP (pro další nové arty)
+
+- ComfyUI (192.168.125.140): uložené workflow `Reflektor_C` – LoadImage → BiRefNet (RemoveBackground) → GLSLShader „Těžiště postavy" (1×1 px, těžiště masky 64×64 vzorků) → GLSLShader „Reflektor C" (stejné operace jako ruční verze ze záznamu výše) → SaveImage; parametry jako pojmenované uzly PrimitiveFloat, popis v poznámce. Jen jádro ComfyUI, bez rozšíření; ~1 s na obrázek. Střed světla automaticky z masky + posun o 0,06 výš (těžiště stahují nohy a pláště); ruční střed jde zadat. Výsledek prakticky shodný s ručně laděnou verzí.
+- Rozšíření Claude „Ollama + ComfyUI (LAN)" 2.6.0 (`Desktop/ollama-comfy-lan-2.6.0.mcpb`, zdroj `Documents/ollama-comfy-lan`): nový nástroj `comfy_art_light` – obrázek (cesta nebo odkaz na úlohu), všechny parametry reflektoru, volitelně `blend_image` (výsledek `comfy_edit` s AI přesvícením) + `blend` 0,8 = varianta „E 80 % + C". Ověřeno: workflow přes API i z rozhraní ComfyUI, větev se smícháním na Silném úderu; syntaxe JS zkontrolována (node tu není), samotný nástroj se vyzkouší po instalaci.
+- Postup pro nové arty karet: vygenerovat (krea, `darkmage` + `card`) → `comfy_art_light` (většina karet) nebo `comfy_edit` s přesvícením („add a warm rim light along the edges of the character… keep the original color palette …") + `comfy_art_light` s `blend_image` (karty, kde to vyjde lépe, např. Silný úder) → 512×512 do `res/drawable` + miniatura 80×112 do `server/art`.
+- [2026-11-18] Ověřeno po instalaci rozšíření 2.6.0: `comfy_art_light` na Upírovi (jen reflektor, 1,1 s), na Silném úderu s `blend_image` = soubor s AI úpravou (1,1 s) a celý řetězec `comfy_edit` → `comfy_art_light` s `blend_image` = odkaz "<job>#1" na Elitním zvědovi (3,1 s); výsledky odpovídají obrázkům ve hře.
+
+## [2026-11-18] docs | Nástroje pro grafiku zapsané do projektu (uživatel: aby je viděla i relace na jiném PC)
+
+- Nový kořenový `CLAUDE.md` (Claude Code ho načte v každé relaci v repozitáři): obrázky jen přes ComfyUI a rozšíření „Ollama + ComfyUI (LAN)" ≥ 2.6.0, odkaz na postup.
+- Nová stránka [[systems/art-pipeline]] (index aktualizován): nástroje, styly, postup krok za krokem, reflektor C, rozměry a umístění souborů.
+- V repozitáři `tools/mcp/ollama-comfy-lan-2.6.0.mcpb` (balíček rozšíření k instalaci na jiném PC) a `tools/comfy/art_reflektor_api.json` (workflow Reflektor C v API formátu).
+- Styly v ComfyUI na tomto PC: `darkmage` dřív neexistoval (je jen na druhém PC) – založen a rozdělen: `darkmage` = malířský vzhled pro všechny karty, nový `herolight` = světlo na postavu (karty s postavou). Karty s budovou / předmětem jen `darkmage`, bez `card` (ten tlačí do středu velkou postavu – u Opevnění to uživatel nechce).
+
+## [2026-11-18] art | Opevnění (029) – nový obrázek
+
+- Dřív hrad na výšku s modrým magickým ohněm a dělníky u jeřábů ve starém 3D vzhledu. Nově zpevněný úsek hradby za soumraku: dvě věže spojené novým krytým dřevěným ochozem, světlé nové kvádry v tmavém starém zdivu, jeřáb zvedá kámen, lešení po stranách, lidé jen malí na ochozu (ComfyUI krea, styl jen `darkmage`, varianta 4 ze 4, seed 3004).
+- První pokus (styl `card`) dal do středu velkého stavitele s kvádrem – uživatel nechce postavu uprostřed, téma je opevnění; proto u budov jen `darkmage` a kompozice v promptu.
+- Upraveno `comfy_art_light` (reflektor C) – hradba teplejší a vystupuje z tmavého nebe; 512×512 do `res/drawable/art_opevneni.png`, miniatura `server/art/art_opevneni.webp` 80×112. `CardPresentation.kt`: `artScale = 0.80f`, bez `artBiasY` / `listBiasY` (čtvercový art). Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Plamenomet (053) – nový obrázek
+
+- Dřív moderní plamenomet s nádrží na zádech, celý obrázek do oranžova. Nově středověký ohnivý sifon: voják v železné přilbě a ožehnuté kožené zástěře, bronzová tryska s dračí hlavou na dlouhé trubce, kožená hadice ze sudu na zádech; proud ohně z dračí tlamy zapaluje nepřátelskou dřevěnou palisádu (karta boří hradby).
+- Krea (`darkmage` + `card` + `herolight`, seed 5302) nakreslila zařízení i pózu správně, ale ve všech 4 variantách místo plamene jen kouř – oheň domalován přes Qwen Image Edit (náhrada kouře proudem ohně, varianta 1 ze 2, seed 77), pak `comfy_art_light`. Postup zapsán do [[systems/art-pipeline]].
+- 512×512 do `res/drawable/art_plamenomet.png`, miniatura `server/art/art_plamenomet.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasX` / `artBiasY`, zvuk beze změny. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Beranidlo (020) – nový obrázek
+
+- Dřív kryté beranidlo u hradní brány v davu vojáků, celé do oranžova, starý 3D vzhled. Nově kryté beranidlo na šesti kolech pod šindelovou stříškou s kůží, kmen na řetězech s kovanou beraní hlavou naráží do hradby, kvádry odlétají; vojáci jen menší pod stříškou (krea, jen `darkmage` – předmět jako hlavní motiv, varianta 2 ze 4, seed 2002; varianta 3 měla hradbu na opačné straně).
+- Krea dala ve všech variantách hlavu s rovnými rohy dopředu (spíš býk) – přes Qwen Image Edit předělána na beraní hlavu s rohy stočenými do spirály (varianta 1 ze 2: kované železo, verze 2 měla mosazné rohy), pak `comfy_art_light`.
+- 512×512 do `res/drawable/art_beranidlo.png`, miniatura `server/art/art_beranidlo.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` (dřív 0.85) bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Válečný pokřik (119) – nový obrázek
+
+- Dřív abstraktní výbuch světla mezi dvěma šiky (starý styl). Nově šedivý vousatý vojevůdce s jizvami ve vlčí kožešině na skále řve bojový pokřik s mečem nad hlavou, za ním vojsko s prapory, sekerami a pochodněmi křičí v odpověď (posily = karta navíc do ruky). Krea (`darkmage` + `card` + `herolight`, varianta 2 ze 4, seed 1192).
+- Meč podle uživatele dvakrát upraven přes Qwen Image Edit: nejdřív výrazně větší (varianta 1 ze 2, druhá měla jílec u ramene), pak čepel o třetinu užší (varianta 1 ze 2, druhá byla tenká jako rapír). Pak `comfy_art_light`.
+- 512×512 do `res/drawable/art_valecny_pokrik.png`, miniatura `server/art/art_valecny_pokrik.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Bojová taktika (D04) a Převaha síly (006) – nové obrázky
+
+- Bojová taktika: dřív vojáci v útoku s modrým magickým plánem na nebi. Nově veterán kapitán (šedivé vlasy, jizva, plát, rudá šerpa) ve stanu posouvá dřevěnou figurku po válečné mapě, mladý poručík poslouchá, svíčky a lampa, venku vojsko (krea, `darkmage` + `card` + `herolight`, varianta 2 ze 4, seed 4042).
+- Převaha síly: dřív abstraktní výbuch světla. Nově mohutný šampion v černém plátu s rohatou přilbou rozráží obřím kladivem štítovou hradbu, obránce padá, za ním hustá armáda s prapory (stejné styly, varianta 1 ze 4, seed 601).
+- Obě `comfy_art_light`, 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Zápalné šípy (019) – nový obrázek
+
+- Dřív abstraktní ohnivé šípy na černočerveném pozadí. Uživatel chtěl roj zápalných šípů v letu: salva desítek šípů letí rovnoběžně zleva shora na nepřátelskou palisádu vpravo dole, každý hrot hoří a táhne ohnivý chvost, palisáda v místě zásahu hoří (krea, jen `darkmage`, varianta 3 ze 4, seed 1923).
+- Zadání „swarm … in a high arc" dalo ve všech variantách vějíř šípů vyletujících z pevnosti vzhůru a bez ohně – pomohlo popsat směr („side view … parallel arrows streak diagonally from the upper left to the lower right … all pointing the same direction"). Hořela jen asi polovina šípů → Qwen Image Edit „set every arrow on fire" (varianta 1 ze 2, výraznější plameny), pak `comfy_art_light` (funguje i bez postavy).
+- 512×512 do `res/drawable/art_zapalne_sipy.png`, miniatura `server/art/art_zapalne_sipy.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasY` / `listBiasY`, zvuk beze změny. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Berserk (024) – nový obrázek ve stejném motivu
+
+- Uživatel chtěl zachovat motiv dosavadního obrázku (rohatá démonická bestie zblízka, řve s tesáky, rudé oči, drápy k divákovi, fialová mlha) jen v novém malířském stylu. Krea (`darkmage` + `herolight`, bez `card` – ten vynucuje celou postavu, tady záběr zblízka), mlha tmavě fialovo-tyrkysová; varianta 1 ze 4, seed 2401.
+- Dvě opravy přes Qwen Image Edit: oči rozžhaveny do ruda se září na čelo a tváře (varianta 1 ze 2), pak ruce – uživatel si všiml chybějícího prstu na levé ruce, obě ruce dokresleny na pět prstů s drápy (varianta 1 ze 2). Pak `comfy_art_light`.
+- 512×512 do `res/drawable/art_berserk.png`, miniatura `server/art/art_berserk.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` (dřív 0.75) bez `artBiasY`. Sestaveno; na telefonu neviděno.
+- [2026-11-18] Berserk bez reflektoru C – uživateli měla verze s reflektorem moc kontrastu; ve hře je obrázek po opravě rukou (rudé oči už dodávají světlo), miniatura obnovena.
+
+## [2026-11-18] art | Válečný zápal (125) – nový obrázek
+
+- Dřív vojsko v útoku před hořícím hradem, celé rudé a lávové. Nově zuřivý válečník (holá hlava, válečné malování přes oči, zrzavý vous, kroužková košile a kožešina) s řevem běží v čele útoku se sekerou a kulatým štítem, za ním další bojovníci; kolem sekery, paží a ramen víří oranžová chaotická magie (oranžová = chaos ve hře – karta za útočné karty přidává chaos). Krea (`darkmage` + `card` + `herolight`, varianta 4 ze 4, seed 1254).
+- Chaos zesílen přes Qwen Image Edit (oranžové stuhy a jiskry kolem sekery, paží a ramen; varianta 1 ze 2), pak `comfy_art_light` – uživatel vybral verzi s reflektorem.
+- 512×512 do `res/drawable/art_valecny_zapal.png`, miniatura `server/art/art_valecny_zapal.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Náhlá smrt (101), Nájezd (C43), Déšť šípů (008) – nové obrázky
+
+- Náhlá smrt: dřív abstraktní rudý výbuch. Nově smrtka v černých cárech s kosou, ve věži hradu za ní žhnou rudé trhliny (krea, `darkmage` + `card`, varianta 4 ze 4, seed 1014). Oči zesíleny přes Qwen Image Edit, uživateli pak záře moc silná → `comfy_art_light` s `blend_image` = úprava očí a `blend` 0.6 (záře o 40 % slabší, bez dalšího AI běhu) + reflektor.
+- Nájezd: dřív vojáci u hořící brány (starý styl). Nově jezdec lehké jízdy se šátkem přes ústa, šavlí a pochodní cválá nepřátelským táborem, stany hoří (krea, `darkmage` + `card` + `herolight`, varianta 3 ze 4, seed 433) + reflektor.
+- Déšť šípů: dřív šedé šípy v mracích. „Jako Zápalné šípy, ale bez ohně": odstranění ohně z jiné varianty Zápalných šípů přes Qwen Edit vymazalo i většinu šípů (zahozeno); nově vygenerováno zadáním salvy bez ohně – hustá salva šípů šikmo do palisády (krea, jen `darkmage`, varianta 1 ze 4, seed 811), Qwen Edit „add many more arrows" (varianta 1 ze 2) + reflektor.
+- Vše 512×512 do `res/drawable` (`art_nahla_smrt`, `art_najezd`, `art_sipy`), miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez posunů ořezu (Déšť šípů měl výchozí měřítko). Sestaveno; na telefonu neviděno.
+- [2026-11-18] Oprava: Náhlá smrt po smíchání s AI úpravou (blend 0.6) byla rozmazaná – Qwen Edit generuje v 1024 a zmenšuje, s originálem nesedí na pixel; nahrazeno novou úpravou se střídmou září očí (bez míchání) + reflektor. Déšť šípů měl po „add many more arrows" šípů přehnaně – nahrazeno úpravou „add just a few more arrows, about ten" + reflektor.
+
+## [2026-11-18] art | Rabování (130) – nový obrázek; Déšť šípů (008) znovu jako opravdový déšť
+
+- Rabování: dřív pokladnice se zlatem (starý styl). První pokus (nájezdník s páskou přes oko) působil pirátsky, druhý (vojáci s vozíkem kořisti) „jako převoz věcí". Nově plenění vesnice v noci: voják v železném klobouku s pytlem a svícnem vybíhá z hořící chalupy, další vylézá dveřmi s kořistí, jiný táhne truhlu, utíkají slepice a vesničan (krea, `darkmage` + `card` + `herolight`, varianta 3 ze 4, seed 1323) + reflektor.
+- Déšť šípů: salva šikmo do palisády uživateli nesedla – „šípy by měly být jako déšť, že prší z nebe". Nově šípy padají z bouřkového nebe skoro svisle, hroty dolů, na ochoz hradeb, obránci se krčí pod štíty (krea, jen `darkmage`, varianta 3 ze 4, seed 823) + reflektor. Zadání: „arrows plunge steeply down from the sky like heavy rain, nearly vertical, every arrow pointing downward".
+- 512×512 do `res/drawable` (`art_rabovani`, `art_sipy`), miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: Rabování `artScale = 0.80f` bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Poslední vzdor (055), Válečné bubny (027), Rychlý útok (001) – nové obrázky
+
+- Poslední vzdor: dřív vojáci před hořící branou se blesky (starý styl). Nově šedivý zraněný rytíř stojí na troskách proražené hradby mezi padlými druhy, meč vzhůru, za ním roztrhaný prapor, dole přesila (krea, `darkmage` + `card` + `herolight`, varianta 3 ze 4, seed 553) + reflektor.
+- Válečné bubny: dřív samotné bubny na rudém pozadí. Nově mohutný bubeník (holá hlava, spletený vous, tetování) buší do velkého bubnu na kopci, pod ním pochoduje vojsko (stejné styly, varianta 3 ze 4, seed 273). Povzbuzení znázorněno přes Qwen Image Edit: z bubnu se šíří rudo-zlaté pulzující kruhy a zbraně vojska chytají rudou záři (rudá = útok ve hře; varianta 1 ze 2) + reflektor.
+- Rychlý útok (sdílí soubor `art_zakladni_utok`): první pokus (šermíř ve výpadu) se nelíbil; nově bleskový přepad – zrzavá velitelka v zeleném plášti vede přepadovou četu z mlhy na nepřátelské stany (stejné styly, varianta 3 ze 4, seed 123) + reflektor.
+- Vše 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez posunů ořezu (Rychlý útok dřív bez měřítka), zvuky beze změny. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Momentum (123), Hod cihlou (098), Jed (049) – nové obrázky
+
+- Momentum: dřív rudý vír nad lávou. Nově obrněný rytíř na obrněném koni v trysku se sklopeným kopím v čele klínu jízdy (krea, `darkmage` + `card` + `herolight`, varianta 2 ze 4, seed 1232) + reflektor.
+- Hod cihlou: dřív samotná zářící cihla. První pokus (voják vytrhává cihlu z vlastní hradby) uživatel nahradil makrem: detail ruky v koženém návleku mrští cihlou, vzadu rozbitá hradba s pochodní (krea, jen `darkmage`, varianta 2 ze 4, seed 992). Cihla přes Qwen Image Edit předělána na středověkou (ručně dělaná, nepravidelné hrany, šedohnědá hlína s maltou – původně moderní pálená; varianta 1 ze 2) + reflektor.
+- Jed: dřív lahvička mezi lebkami ve sytě zeleném stylu. První pokus (travička s dýkou) uživatel nahradil čistým lektvarem: baňka se zářícím zeleným jedem, pára, rulík, lebka (krea, jen `darkmage`, varianta 1 ze 4, seed 501). Pára šla přes korkovou zátku – Qwen Edit zátku odstranil (pára z otevřeného hrdla) a jed zezelenal (varianta 1 ze 2); uživatel vybral verzi bez reflektoru.
+- Vše 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez posunů ořezu, zvuk Jedu beze změny. Sestaveno; na telefonu neviděno.
+
+## [2026-11-18] art | Odstřelovač (026), Ogr (047), Nájezdník (056) – nové obrázky
+
+- Odstřelovač: dřív trpaslík s mušketou v jednodušším stylu. První pokus s kuší uživatel odmítl („má mít zbraň se střelným prachem"); nově šedovousý trpaslík na cimbuří věže právě vystřelil z dlouhé muškety s doutnákem – záblesk a oblak prachového kouře, prachový roh u pasu, v dálce nepřátelský hrad (krea, `darkmage` + `card` + `herolight`, varianta 4 ze 4, seed 274) + reflektor.
+- Ogr: dřív zelený ogr v kreslíř-komiksovém stylu. První pokus (ogr u brány) málo naštvaný; nově zuřivě řvoucí šedozelený ogr s vyceněnými kly stojí na hradbách a tříští cimbuří ostnatým kyjem, obránci útočí kopími a prchají (varianta 2 ze 4, seed 482) + reflektor.
+- Nájezdník: dřív muž v plátu mezi meči. První pokus (odnáší náruč ukradených zbraní) působil jako „sběrač kovu"; nově řvoucí severský nájezdník s válečnými barvami a sekerou v každé ruce se žene od lodí na pobřeží do hořící vesnice, za ním další (varianta 1 ze 4, seed 571) + reflektor.
+- Vše 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112; `CardPresentation.kt`: `artScale = 0.80f` bez posunů ořezu, zvuky beze změny. Sestaveno; na telefonu neviděno.
