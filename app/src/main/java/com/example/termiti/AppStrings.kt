@@ -568,6 +568,7 @@ class AppStrings(
     val rogueArchDefender: String by values
     val rogueArchColossus: String by values
     val rogueArchSaboteur: String by values
+    val rogueArchIllusionist: String by values
     val rogueArchChaos: String by values
     val rogueActTitles: String by values
     val replayWon: String by values

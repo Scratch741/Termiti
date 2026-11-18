@@ -3114,7 +3114,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             aiStartAttack  = st.startAttack,
             aiStartStones  = st.startStones,
             aiExtraMines   = st.extraMines,
-            deckCardCounts = RogueEnemyGen.buildDeck(archetype, q, allCards),
+            deckCardCounts = RogueEnemyGen.buildDeck(archetype, q, allCards, size = RogueEnemyGen.deckSize(run.deck.size)),
             winTarget      = winTarget,
             aiWinTarget    = winTarget,
             aiStartHandSize = st.handSize,

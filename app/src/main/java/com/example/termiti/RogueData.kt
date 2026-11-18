@@ -49,17 +49,18 @@ object RogueConfig {
     }
 
     /**
-     * Karty vyřazené z GENEROVÁNÍ nepřátelských balíčků – morph/bomba/rozbíjivé
-     * karty, které v náhodném decku působí divně nebo je AI hraje slabě.
-     * (Hráč si je do svého balíčku draftovat MŮŽE – ban platí jen pro nepřátele.)
+     * Karty vyřazené z GENEROVÁNÍ nepřátelských balíčků (hráč si je do svého balíčku
+     * draftovat MŮŽE – ban platí jen pro nepřátele):
+     *  • prohození / zamíchání rukou a bomby v hráčově balíčku – hráč by během bitvy
+     *    přicházel o karty, které si sám vybral;
+     *  • X-karty (zatím neměřeno, jak je AI v roguelike hraje).
+     * Zrcadlo, Klon a Shapeshifter povoleny 2026-11-05 – AI je hraje dobře (šablona
+     * Iluzionista 55,7 % v simulaci šablon) a uložení bitvy je po obnově dopočítá.
      */
     val ENEMY_DECK_BANLIST: Set<String> = setOf(
         "C33",  // Krádež identity (SwapHands)
-        "C34",  // Shapeshifter
         "C36",  // Skrytá bomba (sype bomby do balíčku)
         "C39",  // Velký zmatek (RandomizeHands)
-        "C41",  // Zrcadlo (Mirror)
-        "C42",  // Klon (Clone)
         "101", "102", "103"  // X-kost karty
     )
 

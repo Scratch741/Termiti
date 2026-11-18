@@ -1162,7 +1162,7 @@ class EngineSimulation {
         val pool2 = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
         val rows = RogueArchetype.entries.associateWith { arch ->
             qs.map { q -> (1..n).map { pool2.submit<Boolean> {
-                val start = PRESET_DECKS.filter { it.first != "🪞 Iluzionista" }.random().second
+                val start = PRESET_DECKS.random().second
                     .flatMap { (id, k) -> List(k) { id } }.shuffled().take(RogueConfig.DECK_SIZE).groupingBy { it }.eachCount()
                 val deck = RogueEnemyGen.buildDeck(start, RogueEnemyGen.RarityCaps(4, 4, 2), allCards)
                 val st = RogueEnemyGen.stats(q.coerceAtMost(RogueConfig.TOTAL_BATTLES - 1), RogueDifficulty.KNIGHT)
@@ -1194,7 +1194,7 @@ class EngineSimulation {
     /** Jeden run; vrací počet vyhraných bitev (12 = dokončený). [diff] null = dřívější generátor, staty Rytíře. */
     private fun simulateRogueRun(diff: RogueDifficulty?): Int {
         val d = diff ?: RogueDifficulty.KNIGHT
-        val templates = PRESET_DECKS.filter { it.first != "🪞 Iluzionista" }
+        val templates = PRESET_DECKS
         val start = templates.random().second
             .flatMap { (id, k) -> List(k) { id } }.shuffled().take(RogueConfig.DECK_SIZE)
             .groupingBy { it }.eachCount()
@@ -1214,7 +1214,7 @@ class EngineSimulation {
                 val q = RogueEnemyGen.quality(b, isBoss, d)
                 val arch = RogueEnemyGen.pickArchetype(q, lastArch)
                 lastArch = arch
-                RogueEnemyGen.buildDeck(arch, q, allCards)
+                RogueEnemyGen.buildDeck(arch, q, allCards, size = RogueEnemyGen.deckSize(deck.values.sum()))
             }
             val me = rogueSide(deck, hp, RogueConfig.START_WALL, 4, null)
             val en = rogueSide(enemyDeck, st.castle, st.wall, st.handSize, st)

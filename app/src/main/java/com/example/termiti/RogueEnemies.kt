@@ -98,7 +98,8 @@ object RogueRewards {
  * karty nahrazují levnějšími se stejnou surovinou, viz [RogueEnemyGen.buildDeck].
  *
  * @param minQuality od jaké kvality (viz [RogueEnemyGen.quality]) se archetyp může objevit –
- *   Sabotér a Chaos stojí na kartách za chaos, které jsou jen vzácné a lepší
+ *   Sabotér a Chaos stojí na kartách za chaos, které jsou jen vzácné a lepší,
+ *   Iluzionista na epickém Zrcadle a legendárním Klonu
  */
 enum class RogueArchetype(val presets: List<String>, val minQuality: Int) {
     ATTACKER(listOf("⚔️ Útočník", "⚔️ Útočník2", "⚔️ AI Útočník"), 0),
@@ -106,6 +107,8 @@ enum class RogueArchetype(val presets: List<String>, val minQuality: Int) {
     DEFENDER(listOf("🏰 Obránce", "🏰 AI Obránce"), 0),
     COLOSSUS(listOf("🗿 Kolos"), 2),
     SABOTEUR(listOf("🕵️ Sabotér"), 4),
+    // Zrcadlo (epická) a Klon (legendární) přežijí zlevnění až při vyšší kvalitě
+    ILLUSIONIST(listOf("🪞 Iluzionista"), 4),
     CHAOS   (listOf("🌀 Chaos", "🌀 AI Chaos"), 5);
 
     /** Jméno soupeře v aktu [act] (lokalizované, jedno jméno na akt, oddělovač "|"). */
@@ -117,6 +120,7 @@ enum class RogueArchetype(val presets: List<String>, val minQuality: Int) {
             DEFENDER -> s.rogueArchDefender
             COLOSSUS -> s.rogueArchColossus
             SABOTEUR -> s.rogueArchSaboteur
+            ILLUSIONIST -> s.rogueArchIllusionist
             CHAOS    -> s.rogueArchChaos
         }
         val names = raw.split("|")
@@ -145,7 +149,22 @@ object RogueEnemyGen {
             Rarity.EPIC      -> epic
             Rarity.LEGENDARY -> legendary
         }
+        /** Stropy pro balíček jiné velikosti než 30 – stejná hustota vzácných karet. */
+        fun scaledTo(deckSize: Int): RarityCaps {
+            val f = deckSize / BASE_DECK_SIZE.toDouble()
+            return RarityCaps((rare * f).roundToInt(), (epic * f).roundToInt(), (legendary * f).roundToInt())
+        }
     }
+
+    /** Nejmenší balíček soupeře (velikost šablon); větší dostane, když má hráč víc karet. */
+    const val BASE_DECK_SIZE = 30
+
+    /**
+     * Velikost balíčku soupeře: jako hráčův balíček, nejméně [BASE_DECK_SIZE]. Hráčův balíček
+     * během runu roste (20 → 44); s pevnými 30 kartami soupeři v posledním aktu docházel
+     * balíček dřív a pak jen pasoval, zatímco hráč hrál dál.
+     */
+    fun deckSize(playerDeckSize: Int): Int = playerDeckSize.coerceAtLeast(BASE_DECK_SIZE)
 
     /**
      * Kvalita balíčku soupeře: roste po bitvách (ne skokem po aktech), boss má +1,
@@ -185,26 +204,31 @@ object RogueEnemyGen {
      * Balíček soupeře z archetypu: náhodná šablona archetypu, karty v náhodném pořadí,
      * a co se nevejde do stropů vzácností (nebo je zakázané), nahradí karta
      * se STEJNOU surovinou, podobnou cenou, stejným druhem (důl / typ karty)
-     * a co nejvyšší vzácností, která se ještě vejde. Výsledek má vždy tolik karet
-     * jako šablona (30).
+     * a co nejvyšší vzácností, která se ještě vejde. Výsledek má přesně [size] karet
+     * (viz [deckSize]); stropy vzácností se úměrně zvětší ([RarityCaps.scaledTo]).
      */
     fun buildDeck(
         archetype: RogueArchetype,
         q        : Int,
         allCards : List<Card>,
-        rnd      : Random = Random
+        rnd      : Random = Random,
+        size     : Int = BASE_DECK_SIZE
     ): Map<String, Int> {
         val presetName = archetype.presets.random(rnd)
         val preset = PRESET_DECKS.firstOrNull { it.first == presetName }?.second ?: PRESET_DECKS.first().second
         // Soudržnost: slabý soupeř má z archetypu jen část balíčku, zbytek je náhodný
-        // vyvážený balíček – s kvalitou roste podíl archetypu až na celý balíček.
-        val total  = preset.values.sum()
-        val fromArch = (total * coherence(q)).roundToInt().coerceIn(0, total)
-        val archCopies = preset.flatMap { (id, n) -> List(n) { id } }.shuffled(rnd).take(fromArch)
-        val filler = buildBalancedDeck(allCards.filter(::usable))
-            .flatMap { (id, n) -> List(n) { id } }.shuffled(rnd).take(total - fromArch)
-        val mixed = (archCopies + filler).groupingBy { it }.eachCount()
-        return buildDeck(mixed, caps(q), allCards, rnd)
+        // vyvážený balíček – s kvalitou roste podíl archetypu. Ze šablony se nikdy nevezme
+        // víc, než v ní je, takže větší balíček má i větší náhodnou část.
+        val presetCopies = preset.flatMap { (id, n) -> List(n) { id } }
+        val fromArch = (size * coherence(q)).roundToInt().coerceIn(0, presetCopies.size)
+        val archCopies = presetCopies.shuffled(rnd).take(fromArch)
+        val usablePool = allCards.filter(::usable)
+        val filler = mutableListOf<String>()
+        while (filler.size < size - fromArch) {
+            filler += buildBalancedDeck(usablePool).flatMap { (id, n) -> List(n) { id } }.shuffled(rnd)
+        }
+        val mixed = (archCopies + filler.take(size - fromArch)).groupingBy { it }.eachCount()
+        return buildDeck(mixed, caps(q).scaledTo(size), allCards, rnd)
     }
 
     /**

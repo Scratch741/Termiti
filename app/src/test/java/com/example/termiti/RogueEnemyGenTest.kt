@@ -44,6 +44,24 @@ class RogueEnemyGenTest {
     }
 
     @Test
+    fun enemyDeckGrowsWithPlayerDeck() {
+        val rnd = Random(11)
+        assertEquals(30, RogueEnemyGen.deckSize(20))
+        assertEquals(44, RogueEnemyGen.deckSize(44))
+        for (a in RogueArchetype.entries) for (size in listOf(30, 37, 44, 52)) repeat(3) {
+            val q = 12
+            val deck = RogueEnemyGen.buildDeck(a, q, allCards, rnd, size)
+            assertEquals("$a $size: velikost", size, deck.values.sum())
+            val caps = RogueEnemyGen.caps(q).scaledTo(size)
+            for (r in Rarity.entries) {
+                val n = deck.entries.sumOf { (id, k) -> if (byId.getValue(id).rarity == r) k else 0 }
+                assertTrue("$a $size: $r $n > ${caps.of(r)}", n <= caps.of(r))
+            }
+            for ((id, k) in deck) assertTrue(k <= byId.getValue(id).rarity.maxCopies && RogueEnemyGen.usable(byId.getValue(id)))
+        }
+    }
+
+    @Test
     fun earlyEnemiesHaveNoEpicsOrLegendaries() {
         // Rytíř: první akt bez epických a legendárních karet
         for (b in 0 until RogueConfig.BATTLES_PER_ACT) {

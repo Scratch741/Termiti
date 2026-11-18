@@ -604,6 +604,7 @@ data class LanguagePack(
                 "rogueArchDefender" to str("rogueArchDefender", "Hradní strážce|Kastelán|Pán citadely"),
                 "rogueArchColossus" to str("rogueArchColossus", "Kameník|Obr|Kolos"),
                 "rogueArchSaboteur" to str("rogueArchSaboteur", "Zloděj|Sabotér|Mistr intrik"),
+                "rogueArchIllusionist" to str("rogueArchIllusionist", "Kouzelník|Iluzionista|Mistr iluzí"),
                 "rogueArchChaos" to str("rogueArchChaos", "Kejklíř|Šílený alchymista|Pán chaosu"),
                 "rogueActTitles" to str("rogueActTitles", "Hranice|Válečná pole|Citadela"),
                 "replayWon" to str("replayWon", "vyhrál"),
