@@ -35,6 +35,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.roundToInt
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -207,6 +219,8 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                             )
                         }
                     }
+                    Spacer(Modifier.weight(1f))
+                    RogueMinesRow(run.startMines)
                 }
                 DbSeparator()
                 DbDeckPanel(
@@ -252,8 +266,10 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
 }
 
 /**
- * Nabízené karty vedle sebe, zvětšené tak, aby vyplnily místo (4 běžně, 5 po bossovi).
+ * Nabízené karty vedle sebe (4), zvětšené tak, aby vyplnily místo.
  * Stejná kresba karty jako v albu Tvorby balíčku; klepnutí kartu vezme.
+ * Kolem každé karty obrys a měkká záře v barvě vzácnosti (barvy jako při otevírání
+ * balíčků); běžná jen jemně, legendární nejsilněji, epická a legendární pomalu pulzují.
  */
 @Composable
 private fun RewardCardRow(cards: List<Card>, modifier: Modifier = Modifier, onPick: (Card) -> Unit) {
@@ -269,17 +285,32 @@ private fun RewardCardRow(cards: List<Card>, modifier: Modifier = Modifier, onPi
         contentAlignment = Alignment.Center
     ) {
         val n     = cards.size.coerceAtLeast(1)
-        val gap   = 12.dp
+        val glow  = REWARD_GLOW
+        val gap   = 12.dp + glow
+        // Místo pro záři kolem krajních karet, aby ji neořízl rámeček nabídky
         val scale = minOf(
-            (maxWidth - gap * (n - 1)) / n / 100.dp,
-            maxHeight / 140.dp,
+            (maxWidth - gap * (n - 1) - glow * 2) / n / 100.dp,
+            (maxHeight - glow * 2) / 140.dp,
             1.7f
+        )
+        val pulse by rememberInfiniteTransition(label = "rewardGlow").animateFloat(
+            initialValue  = 0.75f,
+            targetValue   = 1f,
+            animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing), RepeatMode.Reverse),
+            label         = "pulse"
         )
         Row(horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
             cards.forEach { card ->
+                val color    = packRarityColor(card.rarity)
+                val strength = rewardGlowStrength(card.rarity)
+                val pulsing  = card.rarity >= Rarity.EPIC
                 Box(
                     Modifier
                         .size(100.dp * scale, 140.dp * scale)
+                        .drawBehind {
+                            drawRarityGlow(color, strength * (if (pulsing) pulse else 1f),
+                                           glow.toPx(), (6.dp * scale).toPx())
+                        }
                         .clip(RoundedCornerShape(6.dp * scale))
                         .clickable { SoundManager.playMenuTap(); onPick(card) },
                     contentAlignment = Alignment.Center
@@ -289,6 +320,69 @@ private fun RewardCardRow(cards: List<Card>, modifier: Modifier = Modifier, onPi
                     }
                 }
             }
+        }
+    }
+}
+
+/** Jak daleko za okraj nabízené karty sahá záře vzácnosti. */
+private val REWARD_GLOW = 9.dp
+
+private fun rewardGlowStrength(r: Rarity) = when (r) {
+    Rarity.COMMON    -> 0.35f
+    Rarity.RARE      -> 0.70f
+    Rarity.EPIC      -> 0.95f
+    Rarity.LEGENDARY -> 1.15f
+}
+
+/**
+ * Záře a obrys kolem karty (kreslí se za kartu, přesahuje její okraj o [reach]).
+ * Hodně tenkých slabých vrstev – sčítají se do plynulého přechodu bez pruhů.
+ */
+private fun DrawScope.drawRarityGlow(color: Color, strength: Float, reach: Float, corner: Float) {
+    val layers = 14
+    val layerAlpha = (0.08f * strength).coerceIn(0f, 1f)
+    for (l in layers downTo 1) {
+        val g = l * reach / layers
+        drawRoundRect(
+            color        = color.copy(alpha = layerAlpha),
+            topLeft      = Offset(-g, -g),
+            size         = Size(size.width + 2 * g, size.height + 2 * g),
+            cornerRadius = CornerRadius(corner + g, corner + g)
+        )
+    }
+    val o = 1.5.dp.toPx()
+    drawRoundRect(
+        color        = color.copy(alpha = (0.55f + 0.4f * strength).coerceAtMost(1f)),
+        topLeft      = Offset(-o, -o),
+        size         = Size(size.width + 2 * o, size.height + 2 * o),
+        cornerRadius = CornerRadius(corner + o, corner + o),
+        style        = Stroke(2.dp.toPx())
+    )
+}
+
+/**
+ * Doly, se kterými hráč nastoupí do další bitvy: ikona dolu a počet u každé suroviny
+ * (bez dolu ztlumeně). Bonus za bosse +1 důl se tu hned projeví.
+ */
+@Composable
+private fun RogueMinesRow(mines: Map<ResourceType, Int>) {
+    Row(
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Image(painterResource(R.drawable.mine_icon), contentDescription = null, modifier = Modifier.size(15.dp))
+        Spacer(Modifier.width(2.dp))
+        for (t in listOf(ResourceType.MAGIC, ResourceType.ATTACK, ResourceType.STONES, ResourceType.CHAOS)) {
+            val n = mines[t] ?: 0
+            Row(
+                Modifier.alpha(if (n > 0) 1f else 0.4f),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Image(painterResource(resourceIconRes(t)), contentDescription = null, modifier = Modifier.size(14.dp))
+                Text("$n", color = resColor(t), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(3.dp))
         }
     }
 }

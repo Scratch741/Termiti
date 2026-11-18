@@ -1116,7 +1116,7 @@ class EngineSimulation {
      *
      * Hráče hraje AI s balíčkem 20 karet: 20 náhodných kopií z jedné šablony, zlevněných
      * do rozpočtu (4 vzácné, 4 epické, 2 legendární = 20 bodů). Po výhře si vezme 2 (po bossovi 3)
-     * karty z nabídky 4 (5) vzácných a lepších – vzácnější a hlavně se surovinou, které má balíček
+     * karty z nabídky 4 vzácných a lepších – vzácnější a hlavně se surovinou, které má balíček
      * nejvíc; po bossovi +6 max hradu.
      * Hrad se přenáší jako ve hře, léčení podle obtížnosti. AI hraje hůř než člověk,
      * takže čísla jsou hlavně pro POROVNÁNÍ obtížností mezi sebou.
@@ -1224,7 +1224,7 @@ class EngineSimulation {
             if (b == RogueConfig.TOTAL_BATTLES - 1) return RogueConfig.TOTAL_BATTLES
             repeat(if (isBoss) RogueConfig.REWARD_CARD_PICKS_BOSS else RogueConfig.REWARD_CARD_PICKS) {
                 val offers = rewardPool.filter { (deck[it.id] ?: 0) < it.rarity.maxCopies }.shuffled()
-                    .take(if (isBoss) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS)
+                    .take(RogueConfig.REWARD_CARD_OFFERS)
                 // Jako rozumný hráč: vzácnější karta, ale hlavně ta, která sedí k surovinám balíčku
                 val size = deck.values.sum().toDouble()
                 fun share(t: ResourceType) = deck.entries.sumOf { (id, k) -> if (byId.getValue(id).costType == t) k else 0 } / size

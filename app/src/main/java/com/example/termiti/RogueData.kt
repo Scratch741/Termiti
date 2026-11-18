@@ -38,8 +38,7 @@ object RogueConfig {
     // Povinné kartové odměny – balíček MUSÍ růst, nejde jen stavět staty.
     const val REWARD_CARD_PICKS      = 2   // běžná výhra: kolik karet si musíš vzít
     const val REWARD_CARD_PICKS_BOSS = 3   // výhra nad bossem: kolik karet si musíš vzít
-    const val REWARD_CARD_OFFERS      = 4  // z kolika běžná výhra vybírá
-    const val REWARD_CARD_OFFERS_BOSS = 5  // z kolika výhra nad bossem vybírá
+    const val REWARD_CARD_OFFERS      = 4  // z kolika karet se vybírá (po každé výhře, i nad bossem)
 
     fun rarityBudgetCost(r: Rarity): Int = when (r) {
         Rarity.COMMON    -> 0
@@ -107,6 +106,16 @@ data class RogueRun(
     val goldEarned  : Int = 0
 ) {
     val act: Int get() = battleIndex / RogueConfig.BATTLES_PER_ACT
+    /**
+     * Doly, se kterými hráč nastupuje do každé bitvy: výchozí doly hráče (magie, útok,
+     * kámen po 1, chaos 0) + doly z bonusů za bosse – stejně jako createRogueState.
+     */
+    val startMines: Map<ResourceType, Int> get() {
+        val base = PlayerState(castleHP = 1, wallHP = 0).mines
+        return ResourceType.entries.associateWith { t ->
+            ((base[t] ?: 0) + (bonusMines[t] ?: 0)).coerceAtLeast(0)
+        }
+    }
     val isBoss: Boolean get() =
         (battleIndex % RogueConfig.BATTLES_PER_ACT) == RogueConfig.BATTLES_PER_ACT - 1
     val actTitle: String get() = RogueConfig.ACT_TITLES.getOrElse(act) { "?" }

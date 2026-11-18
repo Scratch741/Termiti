@@ -2794,7 +2794,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         rogueEndReward.value = null
         if (saved.phase == RoguePhase.REWARD) {
             if (saved.run.rewardCards.isEmpty() && saved.run.rewardCardPicksLeft > 0) {
-                val offers = if (saved.run.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+                val offers = RogueConfig.REWARD_CARD_OFFERS
                 rogueRun.value = saved.run.copy(rewardCards = generateRogueRewardCards(saved.run, offers))
             }
             roguePhase.value = RoguePhase.REWARD
@@ -2979,7 +2979,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         rogueRun.value   = run.copy(
             hp = newHp, battleIndex = nextIndex, enemy = null, goldEarned = run.goldEarned + bossGold,
             rewardCards = generateRogueRewardCards(
-                run, if (wasBoss) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+                run, RogueConfig.REWARD_CARD_OFFERS
             ),
             rewardCardPicksLeft  = if (wasBoss) RogueConfig.REWARD_CARD_PICKS_BOSS else RogueConfig.REWARD_CARD_PICKS,
             rewardBonusAvailable = wasBoss
@@ -3021,7 +3021,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             rogueRun.value = updated.copy(rewardCards = emptyList())
             startRogueBattle()
         } else {
-            val offerCount = if (updated.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+            val offerCount = RogueConfig.REWARD_CARD_OFFERS
             rogueRun.value = updated.copy(rewardCards = generateRogueRewardCards(updated, offerCount))
             persistRogue()
         }
@@ -3031,7 +3031,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun rerollRewardCards() {
         val run = rogueRun.value ?: return
         if (run.rewardCardPicksLeft <= 0 || run.rerollsLeft <= 0) return
-        val offerCount = if (run.rewardBonusAvailable) RogueConfig.REWARD_CARD_OFFERS_BOSS else RogueConfig.REWARD_CARD_OFFERS
+        val offerCount = RogueConfig.REWARD_CARD_OFFERS
         rogueRun.value = run.copy(
             rewardCards = generateRogueRewardCards(run, offerCount),
             rerollsLeft = run.rerollsLeft - 1
