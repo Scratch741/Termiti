@@ -49,10 +49,11 @@ object CardPresentation {
 
         // ── Útok (platí ATTACK) ───────────────────────────────────────────────
         "001" to CardPres("Zaútočí za 6.\n[Combo]",
-            R.drawable.art_zakladni_utok, "Útok", isBasic = true),
+            R.drawable.art_zakladni_utok, "Útok",
+            artScale = 0.80f, isBasic = true),   // čtvercový art 512×512 (2026-11-18)
         "008" to CardPres("Poškodí hrad −3.\n[Combo]",
             R.drawable.art_sipy, "Útok",
-            soundResId = R.raw.arrow_hit),
+            artScale = 0.80f, soundResId = R.raw.arrow_hit),   // čtvercový art 512×512 (2026-11-18)
         "003" to CardPres("Poškodí hrad −8.",
             R.drawable.art_ohniva_koule, "Magie", artBiasY = -0.60f,
             soundResId = R.raw.fireball, isBasic = true),
@@ -61,7 +62,7 @@ object CardPresentation {
             artScale = 0.80f, isBasic = true),   // čtvercový art 512×512 (2026-11-17)
         "006" to CardPres("Pokud máš více útoku než soupeř, poškodí hrad −10.",
             R.drawable.art_prevaha_sily, "Útok",
-            artScale = 0.80f, artBiasY = -0.10f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "017" to CardPres("Zaútočí za 8, ukradni 2 útoku.",
             R.drawable.art_valecny_sekyrnik, "Útok",
             artScale = 0.80f, soundResId = R.raw.valecny_sekyrnik),   // čtvercový art 512×512 (2026-11-17)
@@ -110,10 +111,10 @@ object CardPresentation {
         // ── Útok – rozšíření ──────────────────────────────────────────────────
         "019" to CardPres("Poškodí hradby −5.\n[Combo]",
             R.drawable.art_zapalne_sipy, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.arrow_hit, listBiasY = -0.55f),
+            artScale = 0.80f, soundResId = R.raw.arrow_hit),   // čtvercový art 512×512 (2026-11-18)
         "020" to CardPres("Poškodí hradby −12.\n[Combo]",
             R.drawable.art_beranidlo, "Útok",
-            artScale = 0.85f, artBiasY = 0.05f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "021" to CardPres("Zaútočí za 15. Zablokuj soupeřův důl kamene na 1 kolo.",
             R.drawable.art_delostrelectvo, "Útok",
             artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
@@ -125,16 +126,16 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f),
         "024" to CardPres("Pokud máš <5 hradeb, poškodí hrad −12.",
             R.drawable.art_berserk, "Útok",
-            artScale = 0.75f, artBiasY = -0.50f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "025" to CardPres("Pokud máš <10 hradeb, poškodí hrad −10.",
             R.drawable.art_protiutok, "Útok",
             artScale = 0.80f, artBiasY = -0.50f),
         "026" to CardPres("Poškodí hrad −5. Pokud máš >5 útoku, další −5.",
             R.drawable.art_ostrelovac, "Útok",
-            artScale = 0.85f, artBiasY = 0.10f, soundResId = R.raw.ostrelovac),
+            artScale = 0.80f, soundResId = R.raw.ostrelovac),   // čtvercový art 512×512 (2026-11-18)
         "027" to CardPres("Zaútočí za 4. **Toto kolo:** za každou zahranou kartu **ÚTOK** útok +2. [Combo]",
             R.drawable.art_valecne_bubny, "Útok",
-            artScale = 0.80f, artBiasY = -0.60f, soundResId = R.raw.drums_of_war),
+            artScale = 0.80f, soundResId = R.raw.drums_of_war),   // čtvercový art 512×512 (2026-11-18)
 
         // ── Stavba – rozšíření ────────────────────────────────────────────────
         "028" to CardPres("Hrad +3.\n[Combo]",
@@ -142,7 +143,7 @@ object CardPresentation {
             artBiasX = 0.50f, artBiasY = -1.00f, artScale = 0.85f),
         "029" to CardPres("Hradby +6, hrad +2.",
             R.drawable.art_opevneni, "Stavba",
-            artScale = 0.80f, artBiasY = 0.55f, listBiasY = -0.90f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "030" to CardPres("Hradby +13.",
             R.drawable.art_kamenny_val, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -200,13 +201,13 @@ object CardPresentation {
             R.drawable.art_goblin, "Útok", artScale = 0.80f, soundResId = R.raw.goblin),
         "047" to CardPres("Zaútočí za 9.",
             R.drawable.art_ogr, "Útok",
-            artScale = 0.80f, isBasic = true, soundResId = R.raw.ogr),
+            artScale = 0.80f, isBasic = true, soundResId = R.raw.ogr),   // čtvercový art 512×512 (2026-11-18)
         "048" to CardPres("Zaútočí za 6, magie +3.\n[Combo]",
             R.drawable.art_upir, "Útok",
             artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17)
         "049" to CardPres("Zaútočí za 3, soupeř ztratí 3 magie, chaos +2.",
             R.drawable.art_jed, "Útok",
-            artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.jed),
+            artScale = 0.80f, soundResId = R.raw.jed),   // čtvercový art 512×512 (2026-11-18)
         "050" to CardPres("Zaútočí za 8, soupeř ztratí 4 kameny.",
             R.drawable.art_podkopani_hradeb, "Útok",
             artScale = 0.80f),   // čtvercový art 512×512 (2026-11-17)
@@ -218,16 +219,16 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -0.50f, soundResId = R.raw.demon_laugh, listBiasY = -0.75f),
         "053" to CardPres("Poškodí hradby −10, útok +2.",
             R.drawable.art_plamenomet, "Útok",
-            artBiasX = -1.00f, artBiasY = -0.05f, artScale = 0.80f, soundResId = R.raw.plamenomet),
+            artScale = 0.80f, soundResId = R.raw.plamenomet),   // čtvercový art 512×512 (2026-11-18)
         "054" to CardPres("Zaútočí za 13, útok +2.",
             R.drawable.art_valecny_pochod, "Útok",
             artScale = 0.80f, artBiasY = -0.30f),
         "055" to CardPres("Zaútočí za 3, útok +1. Pokud máš <5 hradeb, poškodí hrad −8.",
             R.drawable.art_posledni_vzdor, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, listBiasY = 0.45f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "056" to CardPres("Ukradni 3 útoku, zaútočí za 4.",
             R.drawable.art_najezdnik, "Útok",
-            artScale = 0.80f, artBiasY = -0.65f, isBasic = true),
+            artScale = 0.80f, isBasic = true),   // čtvercový art 512×512 (2026-11-18)
 
         // ── Stavba – Arcomage/Mravenci inspirace ──────────────────────────────
         "057" to CardPres("Hradby +3, hrad +5.",
@@ -315,7 +316,7 @@ object CardPresentation {
             nameAccusative = "Invazi"),
         "130" to CardPres("Útok +2, kámen −2.\n[Combo]",
             R.drawable.art_rabovani, "Útok",
-            artScale = 0.80f, artBiasY = 0.10f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "129" to CardPres("Hradby +2, hrad +2. Zlevní náhodnou kartu **STAVBA** v ruce o 2.",
             R.drawable.art_priprava, "Stavba",
             artScale = 0.80f, artBiasY = -0.20f),
@@ -372,7 +373,7 @@ object CardPresentation {
             artScale = 0.80f, listBiasY = -0.40f),
         "098" to CardPres("Vlastní hradby −4, zaútočí za 11.",
             R.drawable.art_hod_cihlou, "Útok",
-            artScale = 0.80f, artBiasY = 0.15f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "099" to CardPres("Ukradni 10 hradu.",
             R.drawable.art_temny_prenos, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -383,7 +384,7 @@ object CardPresentation {
         // ── X-kost karty ──────────────────────────────────────────────────────
         "101" to CardPres("Spotřebuje veškerý útok. Poškodí hrad −X/2.",
             R.drawable.art_nahla_smrt, "Útok",
-            artBiasX = 0.25f, artBiasY = -0.30f, artScale = 0.80f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "102" to CardPres("Spotřebuje veškerý kámen. Hrad +X/2.",
             R.drawable.art_kamenny_prival, "Stavba",
             artScale = 0.80f, artBiasY = -1.00f),
@@ -611,7 +612,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = 0.20f),
         "D04" to CardPres("Zaútočí za 4. Lízni 1 kartu.",
             R.drawable.art_bojova_taktika, "Útok",
-            artScale = 0.80f, isBasic = true),
+            artScale = 0.80f, isBasic = true),   // čtvercový art 512×512 (2026-11-18)
         "D05" to CardPres("Hradby +4. Lízni 1 kartu.\n[Combo]",
             R.drawable.art_stavebni_plany, "Stavba",
             artScale = 0.80f, listBiasY = -0.50f),
@@ -665,7 +666,7 @@ object CardPresentation {
         "123" to CardPres(
             "Zaútočí za 2 + 4 za každou kartu **ÚTOK** zahranou v tomto tahu.",
             R.drawable.art_momentum, "Útok",
-            artScale = 0.80f, artBiasY = 1.0f,
+            artScale = 0.80f,   // čtvercový art 512×512 (2026-11-18)
             descriptionEn = "Attack for 2 + 4 per Attack card played this turn.",
             nameAccusative = "Momentum"
         ),
@@ -679,7 +680,7 @@ object CardPresentation {
         "125" to CardPres(
             "Zaútočí za 4. **Toto kolo:** každá zahraná karta **ÚTOK** přidá 2 chaosu. [Combo]",
             R.drawable.art_valecny_zapal, "Útok",
-            artScale = 0.80f, artBiasY = 0.15f,
+            artScale = 0.80f,   // čtvercový art 512×512 (2026-11-18)
             descriptionEn = "Attack for 4. **This turn:** each **ATTACK**\ncard played adds 2 Chaos. [Combo]",
             nameAccusative = "Válečný zápal"
         ),
@@ -706,7 +707,7 @@ object CardPresentation {
         "C43" to CardPres(
             "Zaútočí za 2. Příští karta, kterou zahraješ, se chová jako [Combo]. [Combo]",
             R.drawable.art_najezd, "Útok",
-            artScale = 0.80f, artBiasY = -0.5f,
+            artScale = 0.80f,   // čtvercový art 512×512 (2026-11-18)
             descriptionEn = "Deal 2 damage. The next card you play acts as [Combo]. [Combo]",
             nameAccusative = "Nájezd"
         , listBiasY = 0.35f),
@@ -734,7 +735,7 @@ object CardPresentation {
         "119" to CardPres(
             "Zaútočí za 7. Dostaneš náhodnou kartu **ÚTOK** do ruky. [Combo]",
             R.drawable.art_valecny_pokrik, "Útok",
-            artScale = 0.80f, artBiasY = -0.40f,
+            artScale = 0.80f,   // čtvercový art 512×512 (2026-11-18)
             descriptionEn = "Attack for 7. Get a random Attack card into your hand. [Combo]",
             nameAccusative = "Válečný pokřik"
         ),
