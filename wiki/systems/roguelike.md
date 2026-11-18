@@ -7,7 +7,7 @@
 ### Run structure
 - Deck: exactly 20 cards from the player's collection, rarity budget 20 points (legendary 4 · epic 2 · rare 1 · common 0). Built in the deck builder in roguelike mode (3 saved roguelike decks).
 - 12 battles = 3 acts × 4, the 4th battle of each act is a boss (★). Castle HP carries over between battles (capped at max castle, start 30), walls reset to 15 each battle. A loss ends the run.
-- After every win: a mandatory pick of 2 cards (3 after a boss) from 4 (5) rare+ offers from the player's collection; limited rerolls per run. After a boss also an optional bonus (+6 max castle, +6 walls, repair 15, +1 mine).
+- After every win: a mandatory pick of 2 cards (3 after a boss), each from 4 rare+ offers from the player's collection (bosses had 5 until 2026-11-06); limited rerolls per run. After a boss also an optional bonus (+6 max castle, +6 walls, repair 15, +1 mine).
 - Build-win target = `max(100, maxCastle + 15)` (`RogueEnemyGen.MIN_WIN_TARGET`; until 2026-11-05 the floor was 70). maxCastle stays below ~50 over a run, so the target is always 100 in practice.
 - Code: `RogueData.kt` (run state, config), `RogueEnemies.kt` (difficulty, archetypes, enemy generation – pure Kotlin, also used by the simulation), `GameViewModel` (run flow), `RogueScreens.kt` (reward, end, difficulty dialog), `RogueSaveManager` / `RogueBattleState` (persistence).
 
@@ -29,9 +29,10 @@ Apprentice and Knight are open; completing Knight unlocks Commander (Vojevůdce)
 Gold: act 1 boss 40, act 2 boss 80, completion 150, × difficulty multiplier (0.5 / 1 / 1.5 / 2). Boss gold is credited immediately (kept even if the run is lost later); completion rewards and packs are credited when the last boss falls. Each battle also gives the normal offline result reward (win 25 XP + 10 gold). No entry fee.
 
 ### Opponents (`RogueEnemyGen`)
-- **Archetype** (`RogueArchetype`): Attacker, Mage, Defender, Colossus, Saboteur (quality ≥ 4), Chaos (≥ 5) – each based on preset decks (`PRESET_DECKS`). Never the same archetype twice in a row. The name says the archetype and grows by act (e.g. Nájezdník → Válečník → Válečný vládce).
+- **Archetype** (`RogueArchetype`): Attacker, Mage, Defender, Colossus, Saboteur and Illusionist (quality ≥ 4), Chaos (≥ 5) – each based on preset decks (`PRESET_DECKS`). Never the same archetype twice in a row. The name says the archetype and grows by act (e.g. Nájezdník → Válečník → Válečný vládce).
 - **Quality** `q = battle index + (boss ? 1 : 0) + difficulty shift` (min 0). It sets rarity caps (rare 8 + q, epic (q − 3)·3/4, legendary 1 from q 9, 2 from 11, 3 from 15) and **coherence** – the share of the deck taken from the archetype preset (0.10 + 0.025·q; Knight 10 → 35 %, Nightmare up to 55 %); the rest is a random balanced deck.
-- Cards over a cap, banned cards (`ENEMY_DECK_BANLIST`: morph / swap / bomb / X-cards) and copies over the rarity limit are replaced by a card with the same resource, the closest cost, the same kind (mine / card type) and the highest rarity that still fits. Always 30 cards.
+- Cards over a cap, banned cards (`ENEMY_DECK_BANLIST`: hand swap / hand shuffle, Skrytá bomba, X-cards; Zrcadlo, Klon and Shapeshifter allowed since 2026-11-05) and copies over the rarity limit are replaced by a card with the same resource, the closest cost, the same kind (mine / card type) and the highest rarity that still fits.
+- **Deck size** = the player's current deck size, at least 30 (`RogueEnemyGen.deckSize`; the player's deck grows 20 → 44). Rarity caps scale with the size, the extra cards come from the random part (the preset is never used beyond its 30 cards). With a fixed 30 the enemy ran out of cards in 36 % of the last boss fights (≈5 left on average) and then only passed while the player kept playing; now 16 % (≈13 left).
 - Stats: base castle 16 + 2·battle (+4 boss), walls 6 + battle (+2 boss), start magic / attack = act (+1 boss), extra attack mine from act 2, magic mine in act 3, stone mine for bosses; ×difficulty and bonuses above.
 
 ### Balance (simulation)
@@ -39,13 +40,15 @@ Gold: act 1 boss 40, act 2 boss 80, completion 150, × difficulty multiplier (0.
 
 | | completed | battles won | reached boss 1 | boss 2 |
 |---|---|---|---|---|
-| Before difficulties (random decks) | 10.7 % | 5.0 | 53 % | 32 % |
-| Učeň | 22.9 % | 5.5 | 55 % | 34 % |
-| Rytíř | 9.2 % | 4.2 | 43 % | 23 % |
-| Vojevůdce | 1.3 % | 3.4 | 36 % | 15 % |
+| Before difficulties (random decks, 30 cards) | 8.0 % | 4.7 | 51 % | 28 % |
+| Učeň | 15.6 % | 5.2 | 55 % | 30 % |
+| Rytíř | 7.7 % | 4.2 | 45 % | 23 % |
+| Vojevůdce | 0.9 % | 3.3 | 37 % | 13 % |
 | Noční můra | 0.0 % | 1.9 | 17 % | 1 % |
 
-Findings: full presets (even downgraded to commons) were far stronger than the old random decks – coherence is the main lever, the castle/wall multiplier barely matters. Attacker and Mage are the strongest archetypes, Chaos and Defender the weakest.
+(After the preset update, the Illusionist archetype and enemy decks growing with the player's deck, 2026-11-05; the player can also start from the Iluzionista preset.)
+
+Findings: full presets (even downgraded to commons) were far stronger than the old random decks – coherence is the main lever, the castle/wall multiplier barely matters. Attacker and Mage are the strongest archetypes, Chaos and Defender the weakest, Illusionist in the middle.
 
 ### Saving a battle in progress (`RogueBattleState.kt`)
 
@@ -58,3 +61,5 @@ A running battle is saved as a snapshot at clean points so quitting gives no fre
 ## Changelog
 - 2026-11-05: Battle snapshots also at the mulligan (`MULLIGAN`, `MULLIGAN_DONE`) – restarting the app no longer re-deals the hand
 - 2026-11-05: Page created – difficulties, rewards, archetype opponents, simulation results.
+- 2026-11-05: Illusionist archetype; Zrcadlo, Klon, Shapeshifter no longer banned for opponents; simulation re-run.
+- 2026-11-05: Enemy deck size follows the player's deck (min 30).
