@@ -124,16 +124,16 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = 0.05f, soundResId = R.raw.delostrelectvo),
         "022" to CardPres("Poškodí hrad −8.",
             R.drawable.art_primy_zasah, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.primy_zasah),
+            artScale = 0.80f, soundResId = R.raw.primy_zasah),   // čtvercový art 512×512 (2026-11-19)
         "023" to CardPres("Poškodí hrad −7, zaútočí za 7.",
             R.drawable.art_dvojity_utok, "Útok",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-19)
         "024" to CardPres("Pokud máš <5 hradeb, poškodí hrad −12.",
             R.drawable.art_berserk, "Útok",
             artScale = 0.80f),   // čtvercový art 512×512 (2026-11-18)
         "025" to CardPres("Pokud máš <10 hradeb, poškodí hrad −10.",
             R.drawable.art_protiutok, "Útok",
-            artScale = 0.80f, artBiasY = -0.50f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-19)
         "026" to CardPres("Poškodí hrad −5. Pokud máš >5 útoku, další −5.",
             R.drawable.art_ostrelovac, "Útok",
             artScale = 0.80f, soundResId = R.raw.ostrelovac),   // čtvercový art 512×512 (2026-11-18)
@@ -313,7 +313,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f, soundResId = R.raw.dragon_breath, listBiasY = -0.60f),
         "079" to CardPres("Zaútočí za 12, soupeř ztratí 3 magie, chaos +2.",
             R.drawable.art_oblehani, "Útok",
-            artScale = 0.75f, artBiasY = -0.45f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-19)
         "080" to CardPres("Důl magie, útoku i kamene +2.",
             R.drawable.art_velkovyroba, "Důl",
             artScale = 0.80f),
@@ -463,7 +463,7 @@ object CardPresentation {
             artScale = 0.80f, artBiasY = -1.00f, listBiasY = -0.40f),
         "104" to CardPres("Zaútočí za 5, důl útoku +1.",
             R.drawable.art_valecny_trenink, "Důl",
-            artScale = 0.80f, artBiasY = -1.00f),
+            artScale = 0.80f),   // čtvercový art 512×512 (2026-11-19)
         "107" to CardPres("Zaútočí za 3, soupeř ztratí 3 útoku a 3 kameny. Chaos +2.",
             R.drawable.art_prokleti, "Magie",
             artScale = 0.80f, artBiasY = -1.00f),
