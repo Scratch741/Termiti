@@ -54,6 +54,15 @@ Feedback from players: the new arts look great, but in the game they are hard to
 - Background without characters: `comfy_edit` (Qwen) *"Remove the <characters> completely … and fill the space with what is behind them …; keep the moon, …, the exact composition, the color palette and the painting style unchanged. No people."* (`enhance` false, `output_size` 512x512) → `art_<name>_bg.png`. Do not use `comfy_inpaint` for this: it repaints the ground (characters then float) and leaves a dark halo of the mask.
 - Glow lost in the cut-out (magic in hands) is drawn in code: `ArtLayers(glowX, glowY, glowColor)` in `CardPresentation.kt`; animation in `GoldenCard.kt`.
 
+### Batch script (no Claude, saves tokens) – `tools/art_batch.py`
+Runs the same pipeline straight against the ComfyUI API (`tools/comfy/krea_api.json` = Krea 2 Turbo without prompt refining and without LoRA, `tools/comfy/art_reflektor_api.json` = reflector); style texts come from `~/Pictures/ComfyWorkflow/styles.json` (`darkmage` by default).
+1. Write a batch JSON (example `tools/art_batches/vzor.json`): `art` = drawable name, `title`, `prompt` (follow the Variety rules – framing, palette, "no teal"), optional `count` (4), `styles`.
+2. `python tools/art_batch.py gen tools/art_batches/<batch>.json [art_x …]` → variants in `Pictures/Generated/karty/<art>/`, overview `design/art_review/<batch>.png` (one row per card, numbered), seeds in `<batch>.seeds.json`. ~25 s per image.
+3. Pick numbers, then `python tools/art_batch.py apply tools/art_batches/<batch>.json art_x=2 art_y=4` (`--no-light` = without reflector) → reflector, 512×512 drawable, 80×112 server thumbnail, `CardPresentation.kt` `artScale = 0.80f` without old crop offsets, `card_data.json` regenerated, entry appended to `wiki/log.md`.
+- Prompts by a local LLM: `python tools/art_plan.py <batch> <card> [<card> …] [--gen] [--model mimo-v2.6]` (card = id or Czech name). Ollama on this PC (`localhost:11434`, model `mimo-v2.6`, 9B) writes one prompt per card from the English name + effect (`en.json`) following the Variety rules, saves `tools/art_batches/<batch>.json` (edit by hand if needed); `--gen` runs `art_batch.py gen` right away. ComfyUI is on the LAN machine, so the GPUs do not collide. ~50 s per prompt. The model tends to loop and repeat itself → the script limits the answer and keeps only the first prompt; quality is weaker than Claude's (odd details) – check the prompts before generating.
+- Edits (Qwen Edit: fix a detail, change background, add effect) are still done through the MCP extension or the ComfyUI UI.
+- GPU is shared with Ollama (12 GB): do not run a local LLM during a batch; ComfyUI keeps the model loaded between images.
+
 ### Reflektor C (what `comfy_art_light` / `Reflektor_C` do)
 gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical light (half-axes 0.42 × 0.50 of the image) centred on the character: inside brightness ×(1 + 0.28·(1−d²)) and a warm tint, outside darkening up to 22 %. The centre is the centroid of the BiRefNet character mask shifted 0.06 up (legs and cloaks pull the centroid down); a manual centre can be given. Pure GLSL in ComfyUI core (`GLSLShader`), ~1 s per image, deterministic – style and details stay.
 
@@ -62,6 +71,7 @@ gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical
 - [[overview]] — the game
 
 ## Changelog
+- 2026-11-19: Batch script `tools/art_batch.py`.
 - 2026-11-19: Variety rules (framing, colour, fewer figures) after player feedback.
 - 2026-11-18: Page created – tools, style, steps, reflector C, MCP 2.6.0.
 - 2026-11-18: Effects the generator cannot draw → add with `comfy_edit` (Plamenomet).

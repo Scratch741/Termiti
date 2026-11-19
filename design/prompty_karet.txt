@@ -1,0 +1,223 @@
+PROMPTY PRO OBRÁZKY KARET – DarkMage / Termiti
+Generátor: Krea 2 Turbo v ComfyUI (1024×1024, zmenšeno na 512×512), úpravy Qwen Image Edit 2.1.
+Ke každému promptu se připojuje styl „darkmage":
+  "dark fantasy oil painting, visible loose brushstrokes, muted dark teal and charcoal palette, moody atmospheric lighting"
+(starší karty navíc styl „card": "centered composition, single clear subject, full figure clearly visible, clean readable silhouette, uncluttered background, no text, no border, no frame")
+
+PRAVIDLA, KTERÁ SE OSVĚDČILA
+1. Každá karta musí být na první pohled jiná: zvol JEDEN záběr (makro/detail, portrét, polocelek, celek, shora, zdola, silueta proti světlu)
+   a JEDNU dominantní barvu světla (rudý oheň, studený měsíc, zlatý úsvit, nazelenalé světlo, okrový prach, karmín…).
+2. Tyrkysovou oblohu stylu přebij: prompt končí „Palette: <3–4 barvy>, no teal. No text."
+3. Méně postav, víc předmětů nebo okamžiku (Rabování = kořist na stole, ne lidé v domě; Krvavý úder = čepel a krvavý oblouk).
+4. Víc postav = popiš každou zvlášť (věk, vlasy, oblečení, jizvy), jinak vzniknou klony. Žádné děti.
+5. Směr pohybu a mířeni piš výslovně („barrels pointing to the LEFT … castle in the upper LEFT"), jinak děla střílí špatně.
+6. Postava se zbraní podávanou jinému působí jako výhrůžka – když jde o přijetí/nábor, dej podpis/měšec, ne zbraň.
+7. Efekty, které generátor neumí (oheň z trysky, oči, stopy pohybu, výměna pozadí), přidej až úpravou (Qwen Edit)
+   a vždy dopiš: „Keep … the composition, the color palette and the painting style unchanged."
+8. Tmavá scéna v malé kartě zanikne – víc světla (pochodně, oheň, světlý kámen).
+9. Pozadí bez postav: Qwen Edit „Remove the … completely and fill the space with what is behind them …", NE inpaint.
+
+
+==============================================================================
+A) VYBRANÉ – použité ve hře
+==============================================================================
+
+[Elitní zvěd – vybráno (varianta 1)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+elite scout of a dark fantasy army, hooded ranger in dark leather armor and a tattered charcoal cloak, crouching on a mossy rocky ledge in a misty night forest, holding a longbow with a properly strung bowstring and an arrow nocked, quiver of arrows on the back, alert sharp eyes under the hood scanning the distance, distant enemy camp with small warm torchlights far below in the valley, cold moonlight rim light
+
+[Zoufalý žold – vybráno (varianta 4)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+desperate mercenary pay at a rough wooden table in a dark war tent at night, close framing, four clearly different people with distinct individual faces, different ages and builds: an aging bald captain with grey stubble and a deep vertical scar running over his milky blind left eye, no eyepatch, nothing on his head, in a dented steel pauldron, shaking the last three gold coins out of an almost empty worn leather purse; a young lanky red-haired mercenary with freckles and a patched leather jerkin holding out his open palm for the coins; behind them a huge dark-skinned bald brute with a braided black beard and a scarred lip, arms crossed; and a lean woman archer with a long blond braid under a green hood, frowning; single candle light glinting on the coins
+
+[Silný úder – základ (pak úprava)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+a cataclysmic hammer blow at the instant of impact: the iron head of a giant two-handed warhammer slams into the ground and is buried in a fresh crater, a huge explosion of rock fragments, earth and sparks erupts upward and outward, a visible circular shockwave ring of dust blasts across the ground, deep cracks radiating in all directions, the warrior in dark battered plate armor and a torn crimson cloak is crouched low in the follow-through with both hands on the haft, muscles straining, cloak whipped by the blast, low camera angle close to the crater, overwhelming raw power
+
+[Silný úder – úprava: místo úderu dopředu (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Move the point of impact forward, away from the warrior's feet: the hammer head, the crater, the shockwave ring of dust and the flying rock debris should be about one stride in front of him on the left side of the image, at the end of his outstretched arms and the full length of the hammer haft. The warrior stands with his feet planted wide on intact cracked ground outside the crater, leaning forward into the follow-through. Keep his armor, crimson cloak, pose of the upper body, the dark teal oil painting style, lighting and background unchanged.
+
+[Silný úder – úprava: místo úderu dopředu (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Move the point of impact forward, away from the warrior's feet: the hammer head, the crater, the shockwave ring of dust and the flying rock debris should be about one stride in front of him on the left side of the image, at the end of his outstretched arms and the full length of the hammer haft. The warrior stands with his feet planted wide on intact cracked ground outside the crater, leaning forward into the follow-through. Keep his armor, crimson cloak, upper body pose, the dark teal oil painting style, lighting and background unchanged.
+
+[Válečný sekyrník – vybráno (varianta 3)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+a ferocious war axeman charging into battle mid-swing, a broad-shouldered warrior with a shaved head, a long braided dark beard and a jagged scar across his cheek, wearing dark scaled armor with fur-lined pauldrons and a blood-red sash, swinging a heavy double-bladed battle axe in a wide horizontal arc, roaring with rage, mud and embers flying around his boots, burning battlefield at dusk with smoke and orange fire glow behind him, dynamic action pose
+
+[Podkopání hradeb (starší verze, později nahrazena)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+sappers undermining a castle wall at night, a narrow torch-lit tunnel dug beneath the foundations of a massive stone fortress wall, timber supports burning, the wall above already cracking and its stones crumbling and collapsing into the tunnel in a cloud of dust, two distinct sappers: a stocky grey-bearded old miner with a leather cap and a pickaxe, and a wiry young sapper with a soot-covered face carrying a burning torch, both running out of the tunnel mouth
+
+[Upír – vybráno (varianta 3)]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+a gaunt pale vampire lord with long silver hair, glowing red eyes and fangs, in a dark high-collared coat, seizing a terrified armored soldier by the throat on a ruined battlement at night, draining his life: wisps of glowing violet magical energy flow from the soldier into the vampire's open hand, bats swirling, full moon behind clouds
+
+[Zlatý Upír – pozadí bez postav (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Remove the vampire and the kneeling knight completely, including their purple magic, and fill the space with what is behind them: the crumbling stone wall and rubble they stood on, and the dark teal cloudy night sky. Keep the moon, the bats, the ruins, the distant spire, the exact composition, the dark teal and charcoal color palette and the painting style unchanged. No people.
+
+[Válečný pochod – vybráno (varianta 4)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Extreme low angle shot from ground level: a marching army seen only from the knees down, rows of armored boots and greaves stepping in perfect unison through churned mud, butts of tall spears and pikes rising out of frame, mud splashing, banners blurred high above. Golden dawn light shines low from behind the soldiers through thick warm dust, long shadows toward the viewer. Palette: warm amber, golden ochre and brown, no teal, no blue sky. No faces, no text.
+
+[Velké zemětřesení – vybráno (varianta 1)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Wide cataclysmic landscape: a colossal earthquake tears the ground open, a huge jagged chasm glowing with molten orange magma deep inside zigzags from the foreground into the distance between two castles on either side, the stone curtain walls of both castles crack and collapse into the abyss in avalanches of blocks, towers lean and topple, enormous clouds of ochre dust rise. Palette: ochre, sandy yellow-brown dust and sepia sky with the orange-red glow of magma from the rift, no teal, no blue. No text.
+
+[Upíří drak – vybráno (varianta 2)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+An enormous gaunt vampire dragon with huge leathery bat wings spread wide, seen as a dark silhouette in front of a gigantic blood-red full moon that fills the sky, perched on top of a castle tower, long neck lowered; glowing streams of red life essence and blue magic rise from the castle below and flow into its open fanged mouth as it drains them. Deep indigo night sky, the dragon's pale crimson eyes glowing. Palette: blood red moon, deep indigo and black, no teal. No text.
+
+[Drak – vybráno (varianta 3)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Dramatic worm's-eye view from the castle battlements looking straight up: a gigantic scaled dragon swoops low overhead, its huge wings and pale armored belly filling the sky, it breathes a roaring torrent of fire down onto the battlements, the fire lighting its underside, two small defenders on the wall duck behind the crenellations with shields raised. Stormy slate-grey sky with heavy dark clouds, the fire the only warm light. Palette: stormy grey and steel blue-grey with bright orange fire, no teal. No text.
+
+[Démon – vybráno (varianta 2)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+A colossal horned demon rises from a burning rift in the earth behind a small castle, towering many times higher than its towers, its body made of black smoke, cracked obsidian and glowing embers, burning eyes, one gigantic clawed hand reaching down to crush the castle keep. The tiny castle in the foreground is a dark silhouette with lit windows, giving a sense of enormous scale. Palette: infernal crimson, deep red-orange glow and black smoke, no teal, no green. No text.
+
+[Krvavý úder – vybráno (varianta 4)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Dynamic close-up of a single brutal sword slash in motion: a dark serrated blade cuts diagonally across the frame leaving a wide glowing crimson crescent arc of light behind it, a spray of blood droplets bursts along the arc and the droplets swirl back into the blade, which glows red-hot as if drinking the blood. Background: deep blood-red and black smoky darkness lit only by the crimson glow. Palette: crimson, scarlet and black, no teal, no blue, no green. Only the blade and a gauntlet at the edge of the frame, no face, no text.
+
+[Invaze – vybráno (varianta 2)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+High aerial view at dusk looking down at a steep angle: a vast invading army with countless bright burning torches and red banners floods into a huge pale stone quarry, the wooden cranes, scaffolding and stone-cutting sheds of the quarry are on fire with big bright flames and smoke, mining carts overturned, cut stone blocks scattered. The pale limestone quarry walls catch the warm firelight. Palette: dusky violet-blue sky and pale grey stone, strong orange and red firelight, no teal. No text.
+
+[Dělostřelectvo – vybráno (varianta 3)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Side view of a battery of three heavy bronze cannons on wooden wheeled carriages in a row, all barrels pointing to the LEFT and slightly upward, aimed at a stone castle on a hill in the upper LEFT of the image; the cannons fire: bright muzzle flashes and billowing gunpowder smoke at the left ends of the barrels, cannonballs flying left toward the castle, a section of the castle wall bursting with fire. Two gunners in leather and steel helmets on the right side behind the cannons reload, a pyramid of cannonballs and powder barrels on the right. Smoky dusk. Palette: smoky grey-brown and sepia with sulphur-yellow and orange flashes, no teal. No text.
+
+[Rekrut – vybráno (varianta 1)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Medium shot over the shoulder of a grizzled one-eyed recruiting sergeant with a grey beard and a battered steel breastplate, seated at a rough wooden recruiting table in a village square, pushing a small coin purse across the table; across the table a broad-shouldered adult man in his late twenties, a blacksmith with a dark short beard, a leather apron and rolled sleeves, leans over the table and signs his name in the open ledger with a quill, calm and determined. No weapons in anyone's hands. On the table the ledger, an ink pot, the coin purse and a stack of round wooden shields; a red recruitment banner hangs on a post behind, villagers watching. Cold grey overcast morning light with a warm lantern glow on the table. Palette: cool grey, weathered wood brown and muted red, no teal. Two distinct adult faces, no children, no text.
+
+[Momentum – vybráno (varianta 4, pak úprava očí)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Dynamic side three-quarter view of a huge armored war mammoth gathering speed in a charge across a dry dusty steppe at sunset, iron plates on its head, a wooden war platform on its back, tusks lowered, front legs lifted mid-stride, dust clouds kicked up behind; subtle red motion trails stream behind its body, tusks and legs like glowing red speed lines and faint red afterimages, showing growing momentum. Warm amber and dusty orange sunset sky, the mammoth dark brown against it. Palette: dusty amber, burnt orange and dark brown with crimson red trails, no teal, no snow. No text.
+
+[Momentum – úprava: rudé oči (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Give the mammoth glowing fiery red eyes with a soft, subtle red glow around them, as if enraged. Keep the mammoth, its armor, the red motion trails, the dust, the sunset steppe, the exact composition, the color palette and the painting style unchanged.
+
+[Ogr – vybráno (varianta 1)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Close-up from the waist up of a furious hulking grey-green ogre roaring with tusks bared, swinging a huge spiked wooden club down onto castle battlements in the foreground, stone crenellations shattering into flying chunks, the ogre fills most of the frame. Sickly green light: greenish misty sky, moss-green tones on its warty skin, a cold green glow. Palette: murky green, olive and moss with grey stone, no teal, no blue. No text.
+
+[Odstřelovač – úprava: jiné pozadí (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Replace the background behind the dwarf and the tower battlement with a different scene: a distant enemy mountain fortress on a snowy peak at sunrise, warm pink and golden dawn sky with soft clouds. Keep the dwarf, his musket, the muzzle flash and smoke, the tower battlement, his pose, the composition and the painting style exactly unchanged.
+
+[Nájezdník – úprava: stopy pohybu (vybráno)]
+ÚPRAVA (Qwen Image Edit)
+Add subtle motion trails behind the charging raider: faint streaks of warm orange light trailing from his two axes and his body toward the left, like a soft speed blur, a little kicked-up dust at his feet. Keep the raider, his face, axes, pose, the ships, the background, the composition, the color palette and the painting style unchanged.
+
+[Rabování – vybráno (varianta 1)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Close-up still life of plunder on a rough wooden table: a torn sack spilling gold and silver coins, a jeweled golden chalice, a silver candlestick, rings and a pearl necklace, a dagger stuck in the table; a dirty gloved hand greedily grabs a fistful of coins. Warm golden candlelight, glittering gold against deep brown shadows. Palette: rich gold, amber and deep brown, no teal. Only the hand, no faces, no fire, no text.
+
+[Podkopání hradeb – vybráno (varianta 2)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Low angle exterior view at the foot of a massive castle wall at the moment it collapses: the ground at its base caves in, a whole section of the stone wall and a tower sink and break apart into a smoking crater, fire and black smoke burst out of a tunnel mouth in the ground, huge stone blocks tumbling, defenders falling from the battlements, dust everywhere. Ash-grey sky, the burst of fire the brightest point. Palette: ash grey stone, black smoke and fiery orange-red, no teal. No text.
+
+==============================================================================
+B) ZAMÍTNUTÉ – s důvodem (jako příklady, čemu se vyhnout)
+==============================================================================
+
+[Zlatý Upír – zamítnuto: inpaint překreslil zem, postavy levitovaly]
+INPAINT | styly: darkmage
+empty night scene without any people: crumbling stone ruins and broken walls of a ruined castle courtyard, rubble on the ground, dark cloudy night sky with moonlight, a few bats in the distance, nobody in the scene
+
+[Zlatý Upír – pomocný inpaint oblohy (nepoužito)]
+INPAINT | styly: darkmage
+dark teal cloudy night sky lit by the moon, soft moonlit clouds, a distant bat, evenly lit sky with no dark shapes
+
+[Dělostřelectvo – zamítnuto: detail ústí děla, uživatel chtěl „jak původní" (baterie děl)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Extreme close-up of the mouth of a huge medieval bronze bombard cannon at the exact moment it fires, side view: a massive blinding white-orange blast of fire and sparks bursts from the muzzle, a black iron cannonball just leaving the barrel, thick rolling grey gunpowder smoke and smoke rings, glowing embers flying, the ornate cast bronze barrel with a lion relief fills the left of the frame. Palette: grey smoke and charcoal with a bright orange-white flash, no teal. No people, no text.
+
+[Krvavý úder – zamítnuto: jen statická ruka s mečem, krev nestoupá]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Close-up still life: a gauntleted hand grips a wicked serrated sacrificial dagger raised against darkness, the blade dripping with fresh blood, and the blood flows upward in thin glowing crimson streams into a pulsing red rune set in the dagger's pommel, as if the blade drinks life. Deep crimson light from the rune and the blood, everything else black and shadowed. Palette: blood red, crimson and black, no teal, no blue. Only the hand and forearm, no face, no text.
+
+[Invaze – zamítnuto: noc příliš tmavá, v malé kartě nečitelné]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Bird's-eye view from high above, looking straight down at night: a huge invading army with hundreds of torches pours like a river of fire into a deep terraced stone quarry, smashing wooden cranes, scaffolding and mining carts, quarry workers fleeing, broken stone blocks scattered. Cold deep blue moonlit night, the stone terraces pale grey-blue, the army a winding stream of orange torch dots. Palette: cold dark blue and slate grey with orange torchlight, no teal. No text.
+
+[Dělostřelectvo – zamítnuto: děla mířila od hradu (směr nebyl v promptu)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+A battery of three heavy bronze cannons on wooden wheeled carriages in a row, seen from the side and slightly behind, firing at a distant stone castle on a hill: bright muzzle flashes, thick billowing gunpowder smoke drifting over the field, cannonballs flying toward the castle where a wall is already breaking, two gunners in leather and steel helmets reload and light the fuse, a pyramid of cannonballs and powder barrels beside them. Smoky dusk with heavy grey-brown smoke, the castle hazy in the distance. Palette: smoky grey-brown and sepia with sulphur-yellow and orange muzzle flashes, no teal. No text.
+
+[Dělostřelectvo – zamítnuto: pohled zezadu, uživatel chtěl z boku]
+GENEROVÁNÍ (Krea) | styly: darkmage
+View from behind and slightly above a battery of three heavy bronze cannons on wooden wheeled carriages, all barrels pointing straight away from the viewer toward a stone castle on a hill in the distance at the centre of the image; the cannons fire at the castle: bright muzzle flashes at the far ends of the barrels, smoke billowing forward toward the castle, cannonballs flying toward it, a section of the castle wall bursting apart with fire. Two gunners seen from behind beside the cannons, a pyramid of cannonballs and powder barrels. Smoky dusk. Palette: smoky grey-brown and sepia with sulphur-yellow and orange flashes, no teal. No text.
+
+[Rekrut – zamítnuto: dítě („nedával bych tam dítě")]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Medium shot over the shoulder of a grizzled one-eyed recruiting sergeant with a grey beard and a battered steel breastplate, seated at a rough wooden recruiting table in a village square; across the table stands a skinny freckled farm boy of about sixteen with messy straw-blond hair and a patched linen tunic, nervously reaching out to take a short sword the sergeant offers him hilt-first; on the table a ledger with a quill, a coin purse and a stack of round wooden shields, a red recruitment banner hangs on a post behind. Cold grey overcast morning light with a warm lantern glow on the table. Palette: cool grey, weathered wood brown and muted red, no teal. Distinct individual faces, no text.
+
+[Rekrut – zamítnuto: podávání meče působilo jako výhrůžka]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Medium shot over the shoulder of a grizzled one-eyed recruiting sergeant with a grey beard and a battered steel breastplate, seated at a rough wooden recruiting table in a village square; across the table stands a broad-shouldered adult man in his late twenties, a blacksmith with a dark short beard, a burn-scarred leather apron and rolled sleeves over muscular forearms, firmly taking by the hilt a short sword the sergeant offers him; on the table a ledger with a quill, a coin purse and a stack of round wooden shields, a red recruitment banner hangs on a post behind. Cold grey overcast morning light with a warm lantern glow on the table. Palette: cool grey, weathered wood brown and muted red, no teal. Two distinct adult faces, no children, no text.
+
+[Momentum – zamítnuto: hořící balvan]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Low side view of a huge burning boulder rolling fast down a steep rocky mountain slope, gathering speed: strong motion blur, a long trail of fire, sparks, smoke and flying gravel behind it, smaller rocks tumbling along with it in an avalanche, bouncing; at the bottom of the slope in the distance a wooden palisade fort about to be hit. Violet dusk sky, the burning boulder the brightest point. Palette: deep violet and dark slate with blazing orange fire, no teal. No people, no text.
+
+[Momentum – zamítnuto: série seků]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Multiple exposure motion sequence: one lean swordsman with a long dark braid and a red sash, shown in four successive overlapping translucent afterimages advancing from left to right across the frame, each pose a stronger sword slash than the last; the afterimages grow brighter and the slashes leave ever larger glowing golden arcs, the last strike solid and blazing, shattering a wooden shield. Dark smoky background, warm golden-white light trails. Palette: charcoal black with gold and white light, no teal. No text.
+
+[Momentum – zamítnuto: kamenné domino]
+GENEROVÁNÍ (Krea) | styly: darkmage
+A chain reaction: a long curving row of giant standing stone monoliths topples one after another like dominoes, the nearest ones already falling with dust and debris, the wave of falling stones accelerating toward a castle wall at the end of the row where the last monolith smashes through the wall in an explosion of stone. Seen from a high side angle so the whole curving row is visible. Golden late afternoon sun with long shadows and warm dust. Palette: golden ochre, sandy stone and warm brown, no teal. No people, no text.
+
+[Momentum – zamítnuto: mamut v zimě (ale nápad mamuta se líbil)]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Low front three-quarter view of a huge woolly war mammoth in full unstoppable charge, armored with iron plates on its head and a wooden war platform on its back, tusks lowered, smashing through row after row of sharpened wooden stakes and barricades, splinters, snow and earth exploding around its feet, the broken rows behind it show the path it has already crushed. Cold pale blue dawn light, breath steaming. Palette: icy pale blue, white snow and dark brown fur, no teal. No text.
+
+[Momentum – zamítnuto: vír čepelí]
+GENEROVÁNÍ (Krea) | styly: darkmage
+A violent whirlwind tornado of spinning steel swords, spears, shields and debris sweeps across a battlefield toward a castle, growing larger as it moves: a thin funnel far behind it widening into a huge roaring vortex in the foreground, tearing up banners, earth and broken weapons, glints of steel in the spiral. Stormy sickly green-grey sky, lightning in the clouds, white flashes on the blades. Palette: storm green-grey, cold steel silver and dark olive, no teal. No people, no text.
+
+[Podkopání – zamítnuto: řez tunelem („nefeeluju to")]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Cutaway cross-section view through the ground beneath a castle wall: above ground the massive stone curtain wall already cracking and sagging; below ground a narrow sapper tunnel dug under its foundations, shored with wooden props, two sappers inside – a stocky bald miner with a pickaxe and a wiry red-bearded man setting the wooden props on fire with a torch, barrels of pitch beside them. The tunnel glows with orange fire, the layers of brown earth and rocks around it. Palette: earthy brown and ochre soil, grey stone, warm orange firelight, no teal. Distinct faces, no text.
+
+[Podkopání – nevybráno: krumpáč v základech]
+GENEROVÁNÍ (Krea) | styly: darkmage
+Extreme close-up in a dark underground tunnel: a heavy iron pickaxe held by two dirty muscular forearms strikes the huge foundation stone of a castle wall, sparks fly at the point of impact and glowing orange cracks spread outward across the foundation blocks like veins of fire, dust and pebbles raining down from above, a lantern hanging on a wooden prop. Palette: dark earthy brown and black with glowing orange cracks and sparks, no teal. Only forearms and hands, no faces, no text.
+
+==============================================================================
+C) OSTATNÍ POKUSY (mezikroky, starší verze)
+==============================================================================
+
+[elitni_zved]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+elite scout of a dark fantasy army, hooded ranger in dark leather armor and a tattered charcoal cloak, crouching on a mossy rocky ledge in a misty night forest, holding a longbow with a properly strung bowstring and an arrow nocked, quiver of arrows on the back, alert sharp eyes under the hood scanning the distance, distant enemy camp with small warm torchlights far below in the valley, cold moonlight rim light
+
+[zoufaly_zold]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+desperate mercenary pay in a dim war camp tent at night, a grim battle-worn captain in dented dark armor empties the last few gold coins from a nearly empty leather purse onto a rough wooden table, three scarred mercenaries in worn leather and chainmail lean in around the table, tense suspicious faces, a single candle and a lantern casting warm light, swords and an old shield leaning nearby, poverty and desperation
+
+[zoufaly_zold_close]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+close-up of desperate mercenary pay, a battle-scarred armored gauntlet hand shaking the last three gold coins out of an almost empty worn leather purse into the open dirty palm of a grim bearded mercenary, two other hard-faced sellswords in chainmail looking on from the shadows behind, rough wooden table, single candle light glinting on the coins, dark war tent at night
+
+[zoufaly_zold_mix]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+desperate mercenary pay at a rough wooden table in a dark war tent at night, close framing, four clearly different people with distinct individual faces, different ages and builds: an aging bald captain with grey stubble and a black eyepatch, in a dented steel pauldron, shaking the last three gold coins out of an almost empty worn leather purse; a young lanky red-haired mercenary with freckles and a patched leather jerkin holding out his open palm for the coins; behind them a huge dark-skinned bald brute with a braided black beard and a scarred lip, arms crossed; and a lean woman archer with a long blond braid under a green hood, frowning; single candle light glinting on the coins
+
+[silny_uder]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+powerful heavy strike, a massive armored warrior in dark battered plate armor and a torn crimson cloak bringing a huge two-handed warhammer down in a mighty overhead blow, the hammer head smashing into the ground in front of him, the stone ground cracking and shattering, shards of rock and sparks flying from the impact, dust shockwave, low dramatic angle, the warrior's face grim and strained under an open helmet, dark battlefield at dusk
+
+[silny_uder_impact]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+the exact moment of impact of a devastating blow, dynamic diagonal composition: a towering armored warrior in dark battered plate armor and a torn crimson cloak swings a huge two-handed warhammer with all his strength and smashes it into the raised wooden shield of an enemy soldier, the shield explodes into flying splinters and iron fragments, the enemy, a lean soldier in a dented kettle helmet and chainmail, is blasted backwards off his feet, a bright ring shockwave of dust and sparks bursts from the point of impact, motion blur on the hammer, ground cracking under the attacker's planted boots, raw brutal force
+
+[dvojity_uder]
+GENEROVÁNÍ (Krea) | styly: darkmage, card
+double strike, a lithe dual-wielding swordsman in dark leather armor and a hooded half-cape slashing with two curved swords at once in a crossing X motion, two bright arcs of steel light trailing the blades, sparks bursting where the blades cut, dynamic leaping pose, ruined castle courtyard at dusk with smoke behind him

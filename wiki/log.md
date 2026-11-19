@@ -1144,3 +1144,8 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Nájezdník (056): Qwen Edit přidal jemné oranžové stopy pohybu od seker a těla (varianta 1) + reflektor.
 - Rabování (130) znovu: lidé rabující v hořícím domě nedávali smysl; nově zátiší kořisti – roztržený pytel s mincemi, zlatý pohár, svícny, perly, dýka, ruka v rukavici hrabe mince, svíčkové světlo (krea, varianta 1) + reflektor.
 - Podkopání hradeb (050) znovu: řez s tunelem a záškodníky se nelíbil („nefeeluju to"); nově okamžik zřícení zvenku – pata hradby se propadá, z ústí tunelu šlehá oheň a černý dým, kameny se sesouvají, popelavé nebe (krea, varianta 2) + reflektor.
+
+## [2026-11-19] tool | tools/art_batch.py – dávková výroba artů bez Clauda
+
+- `gen` vygeneruje varianty přímo přes API ComfyUI (Krea 2 Turbo, styl z `styles.json`) a složí přehled do `design/art_review/`; `apply` na vybrané varianty pustí reflektor, uloží art + miniaturu, upraví `CardPresentation.kt`, přegeneruje `card_data.json` a zapíše do logu. Workflow `tools/comfy/krea_api.json` (kopie uživatelova Krea2Turbo). Ověřeno testovací dávkou (1 obrázek, ~28 s) a úpravou `CardPresentation.kt` na kopii. Popis v `wiki/systems/art-pipeline.md`.
+- `tools/art_plan.py`: prompty píše lokální Ollama (`mimo-v2.6` na tomto PC) podle pravidel Variety → dávka pro `art_batch.py` (`--gen` rovnou generuje). Ověřeno na kartě Ogr (~50 s na prompt); model se umí zacyklit – skript bere jen první prompt.
