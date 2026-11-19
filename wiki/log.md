@@ -1099,3 +1099,28 @@ Při `MATCH_FOUND` se herní log online zápasu (`OnlineLobbyViewModel.gameLog`)
 - Ověřeno na telefonu (album, detail karty).
 - Úprava pohybu (na přání uživatele): postavy se místo kroužení do stran a „dýchání" lehounce vznášejí nahoru a dolů (±1,4 % výšky, perioda 3 s); pozadí se nepatrně pohne opačně, do stran se nehýbe nic. Ověřeno na telefonu.
 - Postup zlatých karet sepsán na nové stránce `wiki/systems/golden-cards.md` (rozhodnutí uživatele, úroveň 1 a 2, co chybí do systému). Zlaté karty jsou zatím odložené – přednost má přegenerování současných obrázků karet.
+
+## [2026-11-19] art | Zpětná vazba: nové arty se ve hře špatně rozlišují (stejné tmavě tyrkysové pozadí, tmavá postava uprostřed). Do [[systems/art-pipeline]] přidána pravidla pro různorodost (méně postav, víc předmětů v makru, různé přiblížení, barva světla, póza, kontrola sousedních karet) a odkaz v `CLAUDE.md`.
+
+## [2026-11-19] art | Různorodost: Poslední vzdor (055), Válečný pokřik (119), Rychlý útok (001) přegenerovány
+
+- Podle nových pravidel různorodosti ([[systems/art-pipeline]], Variety): žádná tmavá postava uprostřed na tyrkysovém pozadí.
+- Poslední vzdor: zátiší bez postav – meč zabodnutý v sutinách proražené hradby, přes záštitu roztrhaný prapor, přilba a rozštípnutý štít, zlatý úsvit (krea, jen `darkmage`, varianta 4 ze 4, seed 5504) + reflektor.
+- Válečný pokřik: detail řvoucí tváře v přilbě s nánosníkem, rudé světlo zdola a jiskry (krea, jen `darkmage`, varianta 3 ze 4, seed 1203) + reflektor.
+- Rychlý útok (`art_zakladni_utok`): uživatel odmítl postavu zezadu v dešti, makro dvou čepelí, jízdu shora i letící meč („meč musí být v ruce“); šíp do štítu se líbil, ale efekt (protáhlá stopa) k meči nesedí. Výsledek: detail paže v plátu udeří mečem do cizího štítu, výbuch fialových jisker v místě zásahu, déšť, stříbrno-fialová paleta (varianta 3 ze 4, seed 203). Qwen Edit: odstraněn kruh kapek kolem zásahu, opravena rukavice (měla 6 prstů), pak reflektor. Pozor: varianta 4 té série probodávala vlastní štít – u zbraní kontrolovat, čí štít zasahují.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-19] art | Poslední výpad (136), Protiútok (025), Přímý zásah (022) – nové obrázky (různorodost)
+
+- Poslední výpad: pohled zevnitř brány – obránci jako černé siluety vybíhají proti stěně oranžového ohně z hořícího obléhacího tábora (krea, jen `darkmage`, varianta 4 ze 4, seed 1374) + reflektor.
+- Protiútok: detail štítu ve sněhu uživateli „nevypadal jako protiútok“; nově bod zvratu – obránci vyrážejí z průlomu a ženou útočníky dolů ze zasněženého svahu, bílo-šedá zimní paleta (varianta 2 ze 4, seed 272) + reflektor.
+- Přímý zásah: balvan do věže (první pokus měl katapult na zasahované věži – nesmysl) uživatel nahradil šípem „do černého“: makro slaměného terče se šípem přesně ve středu; první série vybledlá, nová se sytými barvami (sytě rudé a zlaté kruhy, ostré večerní světlo; varianta 1 ze 4, seed 251) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp`; `CardPresentation.kt`: `artScale = 0.80f` bez `artBiasY`. Sestaveno; na telefonu neviděno.
+
+## [2026-11-19] art | Obléhání (079), Goblin (046), Válečný trénink (104), Dvojitý úder (023) – nové obrázky (různorodost)
+
+- Obléhání: panorama z kopce na hrad obklíčený táborem s ohni, obléhací věže, purpurovo-fialové noční nebe (krea, jen `darkmage`, varianta 2 ze 4, seed 792) + reflektor.
+- Goblin: na přání podobně jako dosavadní art – zelený goblin skáče po hradbách věže a z obou rukou mu šlehají stuhy oranžového ohně chaosu, za ním šplhají další (varianta 2 ze 4, seed 472) + reflektor.
+- Válečný trénink: samotné cvičiště shora bylo málo; nově vojenská základna na kopci (věž, kasárna, kovárna) a před ní cvičiště s řadami vojáků a figurínami, zlaté ranní světlo (varianta 3 ze 4, seed 1053) + reflektor.
+- Dvojitý úder (`art_dvojity_utok`): dlouhé hledání – samuraj (odmítnut), rytíř se dvěma meči (generátor vždy dal jen jeden), kopí + sekera (asijská zbroj), seveřan meč + štít, zářezy na štítu (generátor kreslí zabodnuté zbraně), dva útočníci, makro dvou mečů (generátor i Qwen Edit je vždy kříží do X; souběžné vodorovné bodnutí šlo, ale uživatel chtěl jednu osobu). Výsledek: jeden bojovník se dvěma meči – jedním právě seká do štítu se zlatou stopou a jiskrami, druhý má napřažený nad hlavou s rudou stopou (varianta 2 ze 4, seed 332) + reflektor. Poučení: dva meče na štítu = generátor je kříží; pomáhá popsat dvě různé fáze pohybu („one striking, one wound up“) nebo výslovně „parallel horizontal, never crossing, no X shape“.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp`; `CardPresentation.kt`: `artScale = 0.80f` bez posunů ořezu. Sestaveno; na telefonu neviděno.

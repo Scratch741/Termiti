@@ -8,3 +8,4 @@ Obrázky pro hru děláme **lokální AI v ComfyUI** přes rozšíření Claude 
 - Postup, styly (`darkmage` vždy; u postav navíc `card` + `herolight`), rozměry a kam soubory patří: `wiki/systems/art-pipeline.md`.
 - Rozšíření je v repozitáři: `tools/mcp/ollama-comfy-lan-2.6.0.mcpb` (instalace: přetáhnout do Claude → Nastavení → Rozšíření, pak nová relace).
 - ComfyUI: `http://192.168.125.140:8188`; když chybí VRAM, uvolni ji přes `comfy_free`.
+- **Každý art musí být na první pohled jiný** (jiné přiblížení, barva světla, póza; méně postav, víc předmětů v makru) – pravidla v `wiki/systems/art-pipeline.md`, sekce Variety.

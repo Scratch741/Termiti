@@ -25,6 +25,15 @@ Styles are saved with `comfy_styles`; they live per PC in `Documents/ComfyWorkfl
 - Do **not** use `darkfantasy` for cards (chunky 3D look, the old style being replaced).
 - Describe distinct characters concretely (age, hair, scars, clothing) – generic descriptions give clones.
 
+### Variety – every card must be recognisable at a glance (user, 2026-11-19)
+Feedback from players: the new arts look great, but in the game they are hard to tell apart – same dark teal background, a dark figure in the middle doing something. Rules for every new or regenerated art:
+- **Fewer figures, more objects.** Prefer a macro / still life of the key object when it tells the card (Jed = poison flask, Hod cihlou = hand with a brick). A figure only when the person *is* the card (Ogr, Berserk, Odstřelovač).
+- **Vary the framing:** extreme close-up / macro, close-up portrait, medium shot, wide shot, top-down, low angle, silhouette against light. Do not repeat the framing of the cards most often seen next to it.
+- **Vary the dominant colour / light** while keeping the painterly `darkmage` brushwork: e.g. green poison glow, red fire, cold blue moonlight, golden dawn, purple magic, misty grey, orange chaos. The dark teal sky is no longer the default – write the palette into the prompt (`darkmage` gives the brushwork; override its teal with the card's own light).
+- **Vary pose and moment:** not always „figure in the centre facing the viewer with a raised weapon“ – side view, from behind, mid-motion, aftermath, hands only, the object in flight.
+- **Before generating, check the neighbours:** list the arts already done in the same resource (Útok / Stavba / Magie / Chaos) and pick a framing + colour that is different from them.
+- Resource hint is OK but not mandatory: Útok tends to red/orange, Stavba to stone/earth/gold, Magie to blue/purple, Chaos to orange; mix within these.
+
 ### Steps for a new / regenerated card art
 1. `comfy_variants`: workflow `krea`, styles `["darkmage", "card", "herolight"]` (character cards) or `["darkmage"]` (buildings / objects), `output_size` `512x512` (generated 1024×1024 and downscaled), `count` 4, `refine_prompt` false, folder `karty/<name>`. The user picks the variant.
 2. Fix defects with `comfy_edit` if needed (deformed weapons etc.).
@@ -53,6 +62,7 @@ gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical
 - [[overview]] — the game
 
 ## Changelog
+- 2026-11-19: Variety rules (framing, colour, fewer figures) after player feedback.
 - 2026-11-18: Page created – tools, style, steps, reflector C, MCP 2.6.0.
 - 2026-11-18: Effects the generator cannot draw → add with `comfy_edit` (Plamenomet).
 - 2026-11-18: Layered art for golden cards (Upír T48).
