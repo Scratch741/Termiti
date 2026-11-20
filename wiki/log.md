@@ -1149,3 +1149,15 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 - `gen` vygeneruje varianty přímo přes API ComfyUI (Krea 2 Turbo, styl z `styles.json`) a složí přehled do `design/art_review/`; `apply` na vybrané varianty pustí reflektor, uloží art + miniaturu, upraví `CardPresentation.kt`, přegeneruje `card_data.json` a zapíše do logu. Workflow `tools/comfy/krea_api.json` (kopie uživatelova Krea2Turbo). Ověřeno testovací dávkou (1 obrázek, ~28 s) a úpravou `CardPresentation.kt` na kopii. Popis v `wiki/systems/art-pipeline.md`.
 - `tools/art_plan.py`: prompty píše lokální Ollama (`mimo-v2.6` na tomto PC) podle pravidel Variety → dávka pro `art_batch.py` (`--gen` rovnou generuje). Ověřeno na kartě Ogr (~50 s na prompt); model se umí zacyklit – skript bere jen první prompt.
+
+## [2026-11-20] tool | Animace karet – Wan 2.2 I2V 14B + tools/animate_card.py
+
+- Na ComfyUI server staženy přes ComfyUI-Manager Wan 2.2 I2V 14B fp8 (high + low noise), `umt5_xxl_fp8_e4m3fn_scaled`, `wan_2.1_vae` (volba uživatele: 14B místo 5B). LoRA lightx2v Manager odmítl (není v katalogu) – nutno nahrát ručně.
+- `tools/animate_card.py`: art karty → animovaný WebP, výchozí smyčka přes `WanFirstLastFrameToVideo` (stejný první i poslední snímek). Test `art_drak` 1 s: 131 s.
+- Server: první běh spadl na OOM (~28 GB RSS) → uživatel přidal 16GB swap, smazal starý `/swap.img`, rezerva ext4 na 1 %, `docker system prune -a` (uvolněno 36 GB).
+- Do hry zatím nic nezapojeno. Popis: `wiki/systems/card-animation.md`.
+- Oprava: první test (smyčka se stejným prvním i posledním snímkem) se ve skutečnosti nehýbal, jen pulzoval jas – chybně jsem ho popsal jako funkční (upozornil uživatel). Smyčka přestavěna na dva kroky (pohyb tam přes `WanImageToVideo` + návrat přes `WanFirstLastFrameToVideo`), srovnání barev a prolnutí spoje; ověřeno měřením (spoj 1,2, jas 85–86) a uživatel schválil vzhled. Pohyb hodnotit čísly (rozdíl snímků, jas), ne od oka z náhledů.
+- Smyčka v2 (uživatel: předchozí „tak na 90 %“): návrat dostává jako začátek posledních 5 snímků kroku tam a jako konec prvních 5 snímků smyčky, barvy se srovnávají po snímcích a překryvy se prolínají. Změřeno: oba spoje 2,7–4,5 (běžný krok 3–5), jas 85–86.
+- Kontrast v návratu „dýchal“ (uživatel) – korekce průměr/odchylka nahrazena srovnáním histogramu po snímcích; černá 10–12, bílá 187–190, rozptyl 55–56 po celou smyčku.
+- Návrat z druhého běhu se lokálně liší (sytost, obloha, kresba) – histogram nestačí. Hledání bodu smyčky v 5s klipu nenašlo shodu (12,7 vs. krok 3,2). Nabídnuta varianta tam a zpět z jednoho běhu (spoj 0,4); čeká na verdikt uživatele.
+- Uživatel práci odložil („ulož tu možnost, vrátíme se k tomu“). Skript má režimy `--mode pingpong` (výchozí, tam a zpět – pro Draka kvůli couvajícímu ohni ne ideální, pro jiné karty OK), `free` a `return` (pokus se 2 běhy). Do hry nic nezapojeno.
