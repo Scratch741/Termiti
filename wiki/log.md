@@ -1440,3 +1440,10 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 - 17 důlních karet předěláno dávkou `doly_sada1` (záznam výše), 063 / 089 / 090 už dříve v `dul_stavba`. Barva podle zdroje dolu: magie zářivě modrá, kámen zemitá / zlatá, útok červená, chaos oranžová; malé a velké verze téhož dolu odlišné (studánka × vodopád se svatyní, malý lom × terasovitý lom v hoře, tábor × výcvikové centrum).
 - Tím jsou předělané všechny karty kromě série kolosu (`"140"`, `"141"`, `"142"` – uživatel je zatím nechává).
+
+## [2026-11-21] art | Skiny hradů a hradeb přemalované (stejný tvar)
+
+- Návrh UI bojiště (`design/ui_redesign/`, viz README tam): uživatel odmítl předělání bojiště i jiná pojetí hradů (vysoké pevnosti, létající ostrovy, siluety, obrazy v rámu) – chtěl „čistě hrady jak jsou, jen je vylepšit“. Nápady na později (stavy poškození až po ruinu, záře strany, hradba před hradem, efekty zásahu) zapsané v `design/ui_redesign/README.md`.
+- Všech 27 skinů (`castle_player`, `castle_player_2`–`13`, `castle_hory/drak/baziny/citadela`, `wall_player2`–`6`, `wall_hory/goblin/drak/baziny/citadela`) přemalováno přes Qwen Image Edit („repaint this exact castle with higher quality while keeping its exact shape, silhouette… and original colour scheme: richer stone, moss, warm candle light in windows, subtle rim light, deeper shadows“, `enhance` false), pozadí odstraněno BiRefNetem, oříznuto přesně na původní rámování → stejný poměr i okraje, vyšší rozlišení (výška 460 px místo ~250–360). Kód beze změny.
+- Nástroj `tools/castle_skin.py` (`prep` = šedé plátno 512×512 pro edit, `final` = ořez na původní rámování a uložení do drawable). Výchozí hrad: varianta „c“ (drží šedomodrý kámen), hradba „b“. Ostatní skiny trochu zteplaly do hnědošedé; `castle_player_2` přišel o zelené světlo v okně.
+- Sestaveno a nainstalováno do telefonu; na bojišti v telefonu neověřeno (telefon zamčený).

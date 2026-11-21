@@ -1,0 +1,177 @@
+<title>Darkmage UI: Obsidián a bronz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: one long reading column; each screen is a before/after pair, then the component kit and the plan. Single dark world on purpose (the game itself is dark). */
+:root{
+  color-scheme: dark;
+  --bg:#0f0c0b;          /* obsidián */
+  --panel:#1a1512;       /* tmavý kámen */
+  --line:#3a2c1f;        /* bronzový stín */
+  --bronze:#b5874a;      /* bronz */
+  --gold:#e8c467;        /* výběr / nadpis */
+  --text:#ede0c4;        /* hodnota */
+  --muted:#a8977c;       /* popisek */
+  --magic:#3d9bff; --attack:#e0453a; --stone:#d6a24a; --chaos:#ff8a2a;
+  --display:"Cinzel", "Trajan Pro", Georgia, serif;
+  --body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1180px;margin:0 auto}
+header{padding-block:56px 32px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--bronze)}
+h1{font-family:var(--display);font-size:clamp(34px,5vw,56px);line-height:1.1;margin:.2em 0 .3em;color:var(--gold);text-wrap:balance;letter-spacing:.02em}
+h2{font-family:var(--display);font-size:clamp(24px,3vw,32px);color:var(--gold);margin:0 0 .4em;text-wrap:balance}
+h3{font-family:var(--display);font-size:19px;color:var(--text);margin:0 0 .3em;letter-spacing:.03em}
+p{max-width:68ch;margin:.4em 0}
+.lead{font-size:20px;color:var(--text);max-width:62ch}
+.muted{color:var(--muted)}
+section{padding-block:48px 8px;border-bottom:1px solid var(--line)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-block:20px}
+@media (max-width:820px){.pair{grid-template-columns:1fr}}
+figure{margin:0;min-width:0}
+figure img{display:block;width:100%;border:1px solid var(--line);border-radius:4px}
+figcaption{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+figcaption.po{color:var(--gold)}
+.changes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px;margin-top:12px}
+.changes div{min-width:0;border-left:2px solid var(--bronze);padding-left:14px}
+.changes b{color:var(--gold);font-weight:700}
+.problems{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:20px}
+.problem{background:var(--panel);border:1px solid var(--line);padding:18px 20px;border-radius:3px;min-width:0}
+.problem h3{color:var(--gold)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.sw{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);padding:8px 12px 8px 8px;border-radius:3px;font-size:14px}
+.sw i{width:28px;height:28px;border-radius:50%;display:block;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
+.sw code{color:var(--muted);font-size:12px}
+.kit{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:28px;align-items:start;margin-top:20px}
+@media (max-width:820px){.kit{grid-template-columns:1fr}}
+ol.plan{counter-reset:none;padding-left:1.3em;max-width:72ch}
+ol.plan li{margin-bottom:.8em}
+ol.plan li::marker{color:var(--bronze);font-family:var(--display)}
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--chaos);padding:14px 18px;margin-top:24px;max-width:80ch}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;color:var(--stone)}
+a{color:var(--gold)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Návrh vzhledu · 2026-11-21</div>
+  <h1>Obsidián a bronz</h1>
+  <p class="lead">Karty teď mají sytou modrou magii, oranžový chaos a malířský styl. Rozhraní kolem nich ale mluví třemi různými jazyky. Návrh je sjednocuje do jednoho materiálu: tmavý kámen a začernalý bronz, s barvami zdrojů převzatými přímo z karet.</p>
+  <p class="muted">Navazuje na směr „bronz a tmavé dřevo“ z 5. 11. Bere jeho bronz a ubírá dřevo, jak říkal i otevřený bod v jeho README. Obrázky „po“ jsou náladové náhledy přemalované AI z mých screenshotů z telefonu. Čísla a drobné texty v nich jsou zkomolené, finální podoba bude skutečná grafika a text z Compose.</p>
+</header>
+
+<section>
+  <h2>Co dnes nefunguje</h2>
+  <div class="problems">
+    <div class="problem"><h3>Tři styly vedle sebe</h3><p>Menu je teplé dřevo s bronzem. Mulligan a dialogy mají rokokové zlaté rámy s fialovým přechodem. Bojiště a Tvorba balíčku používají ploché hnědé panely s tenkými křížky v rozích. Hráč přechází mezi třemi světy.</p></div>
+    <div class="problem"><h3>Nejdůležitější tlačítko je nejméně vidět</h3><p>„Ukončit tah“ je tyrkysový text na tmavé ploše, stejně velký jako „Log“. Je to akce, kterou hráč dělá každé kolo, a vypadá jako vedlejší.</p></div>
+    <div class="problem"><h3>Zdroje jako tabulka</h3><p>„1 Magie 2“ se čte jako řádek v Excelu. Není jasné, co je důl a co zásoba, a barvy jsou tlumené proti sytým kartám.</p></div>
+    <div class="problem"><h3>Hrad a hradby jen jako čísla</h3><p>„50/100“ a „20/40“ v malém štítku nahoře. Hlavní ukazatel, kdo vyhrává, nemá žádný obraz.</p></div>
+    <div class="problem"><h3>Tyrkysová, která nikam nepatří</h3><p>„Váš tah“, „Ukončit tah“ i lišta questů mají tyrkysovou, jenže žádná karta ani zdroj tuhle barvu nemá. Po přechodu magie na sytou modrou se tyrkysová s karty přímo hádá.</p></div>
+    <div class="problem"><h3>Prázdné plochy</h3><p>Střed menu je tmavá prázdnota za tlačítky. Pod kartami v ruce je velký pruh hnědého dřeva. Filtry v Tvorbě balíčku jsou prázdné čtverečky s malou ikonou.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Barvy</h2>
+  <p>Zdroje dostanou stejné barvy jako rámy a arty karet, takže se dají číst na první pohled. Zlatá znamená jen „vybrané / aktivní“. Tyrkysová zmizí.</p>
+  <div class="swatches">
+    <span class="sw"><i style="background:var(--magic)"></i>Magie <code>#3D9BFF</code></span>
+    <span class="sw"><i style="background:var(--attack)"></i>Útok <code>#E0453A</code></span>
+    <span class="sw"><i style="background:var(--stone)"></i>Kámen <code>#D6A24A</code></span>
+    <span class="sw"><i style="background:var(--chaos)"></i>Chaos <code>#FF8A2A</code></span>
+    <span class="sw"><i style="background:var(--bronze)"></i>Bronz <code>#B5874A</code></span>
+    <span class="sw"><i style="background:var(--gold)"></i>Výběr <code>#E8C467</code></span>
+    <span class="sw"><i style="background:var(--panel)"></i>Kámen panelu <code>#1A1512</code></span>
+  </div>
+</section>
+
+<section>
+  <h2>Bojiště</h2>
+  <div class="pair">
+    <figure><img src="pred_bojiste.jpg" alt="Současné bojiště"><figcaption>Teď</figcaption></figure>
+    <figure><img src="po_bojiste.jpg" alt="Návrh bojiště"><figcaption class="po">Návrh</figcaption></figure>
+  </div>
+  <div class="changes">
+    <div><b>Zdroje jako drahokamy.</b> Kulatá bronzová patice se svítícím kamenem v barvě zdroje, velké číslo zásoby, malý odznak „+1“ pro důl. Při změně kámen krátce zablikne (funkce <code>rememberChangeFlashColor</code> už existuje).</div>
+    <div><b>Věže místo čísel.</b> Po stranách bojiště svislý ukazatel hradu a hradeb ve tvaru věže, číslo přímo na něm a ryska cíle výhry.</div>
+    <div><b>Ukončit tah jako pečeť.</b> Velké kulaté zlaté tlačítko s runou vpravo. Když už nejde nic zahrát, jemně pulzuje.</div>
+    <div><b>Horní lišta.</b> Portréty v bronzových medailonech, uprostřed štítek „Kolo 1 · Tvůj tah“, balíček a odhoz jako malé stohy karet.</div>
+    <div><b>Ruka.</b> Užší tmavá kamenná podložka místo širokého dřeva. Zahratelné karty mají záři v barvě svého zdroje, nezahratelné jsou ztlumené.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Dialogy</h2>
+  <p>Jeden rám pro všechno: mulligan, opuštění hry, konec hry, rozhodovací karty. Tmavý kámen s pergamenem uvnitř, začernalý bronz s ostrými gotickými rohy a kamenná deska s nadpisem. Hlavní volba je jasně bronzová se září, vedlejší je železná a nebezpečná má rudý text.</p>
+  <div class="pair">
+    <figure><img src="pred_dialog.jpg" alt="Současný dialog"><figcaption>Teď</figcaption></figure>
+    <figure><img src="po_dialog.jpg" alt="Návrh dialogu"><figcaption class="po">Návrh</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="pred_mulligan.jpg" alt="Současný mulligan"><figcaption>Teď: mulligan má stejný rokokový rám</figcaption></figure>
+    <figure style="align-self:center"><p class="muted">Mulligan dostane stejný rám jako dialog vlevo. Vybrané karty k výměně budou mít zlatý okraj a ikonu otočení, ne jen žlutý rámeček.</p></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Hlavní menu</h2>
+  <div class="pair">
+    <figure><img src="pred_menu.jpg" alt="Současné menu"><figcaption>Teď</figcaption></figure>
+    <figure><img src="po_menu.jpg" alt="Návrh menu"><figcaption class="po">Návrh</figcaption></figure>
+  </div>
+  <div class="changes">
+    <div><b>Ilustrace za tlačítky.</b> Temný mág na obsidiánovém trůnu s modrou magií a oranžovým chaosem. Do okrajů mizí do tmy, aby tlačítka zůstala čitelná. Poletují v ní jiskry.</div>
+    <div><b>Portrét s prstencem zkušeností.</b> Zlatý kruh kolem portrétu ukazuje, kolik zbývá do další úrovně. Úroveň a měny jsou na kamenné destičce.</div>
+    <div><b>První tlačítko svítí.</b> „Hrát“ má teplou záři, ostatní jsou tmavší. Oko ví, kam jít.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Tvorba balíčku</h2>
+  <div class="pair">
+    <figure><img src="pred_balicek.jpg" alt="Současná tvorba balíčku"><figcaption>Teď</figcaption></figure>
+    <figure><img src="po_balicek.jpg" alt="Návrh tvorby balíčku"><figcaption class="po">Návrh</figcaption></figure>
+  </div>
+  <div class="changes">
+    <div><b>Filtry jako drahokamy.</b> Stejné patice jako na bojišti: zdroje v jejich barvách, vzácnosti šedá, modrá, fialová a zlatá. Aktivní filtr svítí zlatě.</div>
+    <div><b>Cena jako mince.</b> Spodní filtr ceny jako malé bronzové mince s číslem.</div>
+    <div><b>Seznam balíčku.</b> Řádky jako železné destičky. Zlatý proužek vlevo značí výběr, jako v návrhu z 5. 11.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Sada prvků</h2>
+  <div class="kit">
+    <figure><img src="ui_kit.jpg" alt="Sada prvků: patice zdrojů, tlačítka, pečeť, věž, medailon, deska"><figcaption class="po">Náčrt sady (Krea)</figcaption></figure>
+    <div>
+      <p>Celé UI se poskládá z malé sady skutečných textur, ne z obrázků kreslených kódem:</p>
+      <ul>
+        <li>4 patice zdrojů se svítícím kamenem</li>
+        <li>3 tlačítka: hlavní bronz, vedlejší železo, nebezpečné železo s rudým lemem (každé ve stavu normální, stisknuté a vypnuté)</li>
+        <li>pečeť Ukončit tah</li>
+        <li>věž ukazatele hradu a hradeb</li>
+        <li>bronzový medailon portrétu</li>
+        <li>kamenná deska nadpisu a rám dialogu (9-patch, aby šel natahovat)</li>
+      </ul>
+      <p class="muted">Ze sady by vznikla nová tlačítková komponenta místo dnešních <code>PlainButton</code> a <code>FantasyButton</code>, které teď v obrazovkách žijí vedle sebe.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Postup, kdyby se to dělalo</h2>
+  <ol class="plan">
+    <li><b>Barvy a materiál v kódu.</b> V <code>GameColors.kt</code> nahradit tyrkysovou, sjednotit barvy zdrojů s kartami, přidat bronz a kámen.</li>
+    <li><b>Sada textur.</b> Vygenerovat v ComfyUI s průhledným pozadím, dočistit, rámy převést na 9-patch. Ty vybereš varianty, stejně jako u artů.</li>
+    <li><b>Dvě společné komponenty.</b> Tlačítko a rám dialogu. Tím se přebarví většina obrazovek najednou.</li>
+    <li><b>Bojiště.</b> Patice zdrojů, věže hradu, pečeť Ukončit tah, horní lišta, ruka. Je to obrazovka, na které hráč tráví nejvíc času.</li>
+    <li><b>Dialogy a mulligan</b>, pak <b>menu</b> s ilustrací a <b>Tvorba balíčku</b>.</li>
+    <li><b>Zbytek</b> (Profil, Obchod, Kampaň, Roguelike, výsledky hry) už jen převezme komponenty.</li>
+  </ol>
+  <div class="note">Obchod, Kampaň, Roguelike a obrazovku konce hry jsem nefotil: při procházení mi aplikace spadla do plochy telefonu. Návrh pro ně vychází ze společných komponent. Pokud chceš, nafotím je a dodělám náhledy i pro ně.</div>
+</section>
+</div>

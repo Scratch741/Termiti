@@ -67,6 +67,12 @@ Runs the same pipeline straight against the ComfyUI API (`tools/comfy/krea_api.j
 - Edits (Qwen Edit: fix a detail, change background, add effect) are still done through the MCP extension or the ComfyUI UI.
 - GPU is shared with Ollama (12 GB): do not run a local LLM during a batch; ComfyUI keeps the model loaded between images.
 
+### Castle and wall skins (2026-11-21)
+Battlefield skins (`castle_*`, `wall_*` in `res/drawable`) are repainted, not regenerated – the shape must stay so the code (`NewCastleStructure` in `GameBattlefield.kt`) needs no change.
+1. `python tools/castle_skin.py prep <dir> castle_x wall_y …` → skin scaled to 460 px height on a grey 512×512 canvas.
+2. `comfy_edit` (`enhance` false, `output_size` 512x512): "Repaint this exact castle with higher quality while keeping its exact shape, silhouette, proportions, camera angle, size, position and its original colour scheme: richer hand-painted stone…, warm candle light in windows, subtle warm rim light, deeper shadows… Keep the plain grey background."
+3. `comfy_remove_bg`, then `python tools/castle_skin.py final <skin> <alpha.png>` → cropped to the original framing, saved to the drawable.
+
 ### Reflektor C (what `comfy_art_light` / `Reflektor_C` do)
 gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical light (half-axes 0.42 × 0.50 of the image) centred on the character: inside brightness ×(1 + 0.28·(1−d²)) and a warm tint, outside darkening up to 22 %. The centre is the centroid of the BiRefNet character mask shifted 0.06 up (legs and cloaks pull the centroid down); a manual centre can be given. Pure GLSL in ComfyUI core (`GLSLShader`), ~1 s per image, deterministic – style and details stay.
 
@@ -75,6 +81,7 @@ gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical
 - [[overview]] — the game
 
 ## Changelog
+- 2026-11-21: Castle and wall skins section (`tools/castle_skin.py`).
 - 2026-11-21: Chaos card rules (orange chaos magic, warm or alternating teal background, no humans unless the card names one); style `herolight` missing on the LAN PC – write its text into the prompt.
 - 2026-11-19: Batch script `tools/art_batch.py`.
 - 2026-11-19: Variety rules (framing, colour, fewer figures) after player feedback.
