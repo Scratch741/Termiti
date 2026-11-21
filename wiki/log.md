@@ -1414,3 +1414,29 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - 44 magických karet předěláno dávkami `magie_sada1`, `magie_sada1b`, `magie_sada2`, `magie_sada2b` (záznamy dávek výše), po 20–25 kartách. Pravidlo uživatele: magické karty víc vibrant, výrazná zářivá **modrá magie** jako podpis zdroje (zapsáno v [[systems/art-pipeline]]); chaos karty placené magií modrá + oranžový chaos; postavy malířsky a ne zblízka.
 - Úpravy přes Qwen Edit (`enhance` false) + reflektor: Mobilizace nakonec nový koncept (roh s modrými vlnami nad nádvořím s vojáky; varianta s létajícími zbraněmi „jako by je magie chtěla probodnout“ zamítnuta), Alchymie (alchymie vylepšuje meč – runy na čepeli), Průzkum dolů (koleje vedou ke vchodům), Magický žolík (hrací karta se šaškem v modrých plamenech; zkomolené „JOKR“ v rozích nahrazeno hvězdičkami, seed 207807640002), Pyroblast („je to oheň“ – sloup ohně s modrobílým jádrem, seed 989339282207), Temný přenos („saje život“ – rudo-modrý proud, levý hrad šedne, seed 417337794388).
 - `"141"` Probuzení kolosu nechán (série kolosu zatím ne).
+
+## [2026-11-21] art | dávka doly_sada1 (tools/art_batch.py)
+
+- 013 Magicky pramen: Close-up of a small natural spring bubbling out between mossy rocks in a forest clearing at night, the water glows bright blue with magic, small blue crystals g… (krea, varianta 3, seed 624973844020) + reflektor.
+- 014 Kamenolom: Medium shot of a small working stone quarry cut into a grey hillside, a single wooden crane, a few freshly cut stone blocks stacked on a sledge, chisels and wed… (krea, varianta 2, seed 886711639158) + reflektor.
+- 015 Vycvikovy tabor: Wide shot of a small military training camp in a meadow at dawn: straw target dummies with arrows stuck in them, a wooden weapon rack with swords and spears, a … (krea, varianta 3, seed 897962713381) + reflektor.
+- 016 Velky pramen: Wide shot of a grand magical spring: a tall waterfall of glowing bright blue magic water pouring from a cliff into a large lake, giant blue crystals rising from… (krea, varianta 2, seed 450824851087) + reflektor.
+- 042 Velky kamenolom: Wide panoramic shot of a huge terraced stone quarry carved deep into a mountain, many wooden cranes and ramps, rows of cut blocks, ox wagons on switchback roads… (krea, varianta 2, seed 32449248888) + reflektor.
+- 043 Vycvikove centrum: Wide aerial view of a large fortified military training centre: a stone barracks complex around a big sand training yard with rows of soldiers drilling in forma… (krea, varianta 4, seed 1071956887827) + reflektor.
+- 044 Trifekta dolu: Wide shot of a mountain valley with three different mines side by side: on the left a cave glowing bright blue with magic crystals, in the middle a pale stone q… (krea, varianta 4, seed 205656203727) + reflektor.
+- 045 Ocarovane doly: Inside a vast enchanted mine cavern: enormous glowing bright blue crystal veins run through every wall and ceiling, mine carts overflowing with blue crystals on… (krea, varianta 4, seed 695318843710) + reflektor.
+- 072 Zbrojnice: Interior of a castle armory workshop: a glowing forge with a red-hot sword on the anvil, racks full of new swords, axes and shields, chainmail hanging on stands… (krea, varianta 1, seed 235628199138) + reflektor.
+- 073 Skola magie: Interior of a tall circular magic school hall: rows of wooden desks with open spellbooks glowing bright blue, floating books and quills, a huge blue magic orb h… (krea, varianta 2, seed 667552718900) + reflektor.
+- 075 Rozmach tezby: Wide shot of a booming mining hillside: two new glowing bright blue magic crystal mines with timber entrances and a new stone quarry being opened next to them, … (krea, varianta 1, seed 406327880504) + reflektor.
+- 076 Vojenska zakladna: Wide shot of a large military base on a hill: a stone fort with a palisade, rows of tents, a smoking forge, weapon racks, a training yard, red banners, and a ne… (krea, varianta 4, seed 25743418713) + reflektor.
+- 080 Velkovyroba: Grand wide shot of a huge production complex in a valley: a great waterwheel-powered workshop city with a glowing bright blue crystal refinery, a roaring red fo… (krea, varianta 1, seed 875618817232) + reflektor.
+- C03 Chaoticky dul: Medium shot of a mine entrance in a black rock cliff, inside glowing veins of bright orange chaos crystal crackle with small orange lightning, a mine cart full … (krea, varianta 1, seed 314985254369) + reflektor.
+- C29 Bourliva mysl: A giant glowing crystal brain floating above a dark landscape, inside it a raging storm of bright orange chaos lightning and swirling clouds, orange lightning b… (krea, varianta 3, seed 271519586731) + reflektor.
+- C30 Chram chaosu: Wide low-angle shot of a twisted dark temple of chaos with jagged asymmetric spires built from black stone, glowing orange chaos runes and cracks all over it, t… (krea, varianta 2, seed 901136493865) + reflektor.
+- D07 Tajna knihovna: A secret library hidden behind a revolving bookshelf that is half open, revealing a hidden room with towering shelves of ancient books glowing bright blue with … (krea, varianta 1, seed 1095690922483) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Důlní karty – všechny hotové
+
+- 17 důlních karet předěláno dávkou `doly_sada1` (záznam výše), 063 / 089 / 090 už dříve v `dul_stavba`. Barva podle zdroje dolu: magie zářivě modrá, kámen zemitá / zlatá, útok červená, chaos oranžová; malé a velké verze téhož dolu odlišné (studánka × vodopád se svatyní, malý lom × terasovitý lom v hoře, tábor × výcvikové centrum).
+- Tím jsou předělané všechny karty kromě série kolosu (`"140"`, `"141"`, `"142"` – uživatel je zatím nechává).
