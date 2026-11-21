@@ -197,6 +197,10 @@ def cmd_apply(batch, picks, use_light):
             print(f'{it["title"]}: reflektor…', flush=True)
             light(src, final)
         im = Image.open(final).convert('RGB').resize((512, 512), Image.LANCZOS)
+        for ext in ('.jpg', '.jpeg', '.webp'):                # stejný název s jinou příponou = Duplicate resources
+            old = os.path.join(ROOT, f'app/src/main/res/drawable/{art}{ext}')
+            if os.path.exists(old):
+                os.remove(old); print(f'  smazán starý {art}{ext}')
         im.save(os.path.join(ROOT, f'app/src/main/res/drawable/{art}.png'), optimize=True)
         w = round(512 * 80 / 112); x = (512 - w) // 2
         im.crop((x, 0, x + w, 512)).resize((80, 112), Image.LANCZOS) \

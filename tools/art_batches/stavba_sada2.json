@@ -1,0 +1,12 @@
+[
+ {"art": "art_palisada", "title": "010 Palisada",
+  "prompt": "Wide shot of a tall wooden palisade wall of sharpened pine logs bound with rope, encircling a small hillfort in a dark pine forest, a wooden gate and a watch platform, freshly cut log ends, a pile of stones beside the gate, fog drifting between the trees, soft cool green-grey forest light. No people. Palette: moss green, misty grey, warm brown wood, no teal. No text."},
+ {"art": "art_zemni_val", "title": "033 Zemni val",
+  "prompt": "Aerial bird's-eye view of a huge freshly dug earthen embankment rising in a ring around a small wooden fort, raw brown soil, deep ditch, wheelbarrows and shovels left on the slope, rain puddles, overcast stormy sky with soft diffuse light. No people. Palette: rich earth brown, ochre, muddy green, slate grey sky, no teal. No text."},
+ {"art": "art_tunely", "title": "061 Tunely",
+  "prompt": "Medium shot inside a narrow underground tunnel dug through dark earth and rock, supported by rough wooden beams, a hanging oil lantern casts warm amber light, a pickaxe and a shovel lean against the wall, at the far end the tunnel breaks into a collapsed enemy forge with broken anvils and fallen weapons buried in rubble, dust in the air. No people. Palette: warm amber lantern light, dark brown earth, black shadows, no teal. No text."},
+ {"art": "art_rychla_hradba", "title": "081 Rychla hradba",
+  "prompt": "Side view of a stone castle wall rising at incredible speed, grey stone blocks fly in from the left with motion blur and snap into place one after another, mortar splashes, dust clouds and small stones spraying, the top course still forming in mid-air, bright clear midday sunlight, blue sky with white clouds. No people. Palette: bright sunlight, light grey stone, sand dust, sky blue, no teal. No text."},
+ {"art": "art_strategicka_vystavba", "title": "092 Strategicka vystavba",
+  "prompt": "Low-angle close-up of a commander's war table at night with a detailed miniature model of a castle and its walls, small wooden blocks for new wall sections being placed along a drawn line, a map, measuring sticks and four face-down playing cards fanned at the table edge, cold silver-blue moonlight from a tall window mixed with a small warm candle. No people, no hands. Palette: cold moonlit blue-silver, warm candle gold accents, dark wood. No text, no symbols on the cards."}
+]

@@ -1272,3 +1272,86 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 - Chaotický drak `"C10"` (krea `chaos_sada9` v2) a Temný mág `"L01"` (`art_darkmage`, krea `chaos_sada9` v3) podle kompozice původních artů – viz záznam dávky výše. `art_chaoticky_drak` je zároveň obrázek lokace `loc_dragon` na mapě kampaně (CampaignMapScreen), změnil se i tam.
 - Tím je předěláno všech 40 chaos karet (od nejlevnější po nejdražší, sady po 5). Seznam v `design/art_review/nepredelane_arty.md` upraven.
+
+## [2026-11-21] art | dávka stavba_sada1 (tools/art_batch.py)
+
+- 058 Obranny val: Low-angle shot along a freshly built earthen rampart topped with a row of sharpened wooden stakes leading up a grassy hill to a pale stone castle with round tow… (krea, varianta 3, seed 786912608139) + reflektor.
+- 102 Kamenny prival: Wide shot of a massive torrent of grey stone blocks pouring like a river down a mountainside and flowing straight up into a rising castle tower, the blocks stac… (krea, varianta 2, seed 1063069444326) + reflektor.
+- 028 Zaplata: Macro close-up of an old cracked castle wall where a hole has just been patched with a few bright new stone blocks and fresh wet grey mortar, a mason's iron tro… (krea, varianta 1, seed 1054078001486) + reflektor.
+- 129 Priprava: Top-down view of a heavy wooden table covered with unrolled parchment building plans of a castle tower, a brass compass, a set square, a plumb line, a small car… (krea, varianta 4, seed 444592720144) + reflektor.
+- 005 Posila hradu: Medium shot of a tall stone castle keep being reinforced, wooden scaffolding wraps around it, a large wooden treadwheel crane lifts a huge stone block on ropes … (krea, varianta 1, seed 936045817926) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada2 (tools/art_batch.py)
+
+- 061 Tunely: Medium shot inside a narrow underground tunnel dug through dark earth and rock, supported by rough wooden beams, a hanging oil lantern casts warm amber light, a… (krea, varianta 2, seed 250503047858) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada3 (tools/art_batch.py)
+
+- 095 Obchod s kamenem: Medium shot of a busy medieval market corner at morning, a heavy wooden cart loaded with neatly cut pale stone blocks, on the counter beside it a big brass merc… (krea, varianta 1, seed 989785249174) + reflektor.
+- D05 Stavebni plany: Close-up of a large parchment blueprint of a fortress wall pinned to a slanted wooden drawing board in a mason's lodge, rolled scrolls tied with string, a quill… (krea, varianta 3, seed 832852119480) + reflektor.
+- 031 Renovace: Interior of a great castle hall under restoration, wooden scaffolding along the walls, freshly carved stone columns next to old worn ones, a new stained glass w… (krea, varianta 2, seed 444630396122) + reflektor.
+- 036 Hradni prikop: Wide shot of a stone castle standing behind a wide deep water moat at sunset, the castle perfectly reflected in the still water, a raised wooden drawbridge with… (krea, varianta 3, seed 150279709790) + reflektor.
+- 057 Basta: Dramatic low-angle shot of the sharp corner of a massive angular stone bastion jutting toward the viewer, thick sloped walls, crenellations and banners on top, … (krea, varianta 2, seed 713660687265) + reflektor.
+- 064 Zasobnik: Medium shot of a tall round stone granary tower attached to a castle wall in autumn, heavy wagons full of grain sacks, barrels and firewood unloaded at its door… (krea, varianta 3, seed 62145920098) + reflektor.
+- 083 Nouzove opevneni: Medium shot at night of a breached castle gate hastily blocked with an improvised barricade of overturned carts, barrels, sandbags, doors and heavy beams, torch… (krea, varianta 3, seed 232401603792) + reflektor.
+- 091 Barikady: Wide shot of a muddy battlefield at dawn blocked by several rows of spiked wooden barricades of crossed sharpened stakes, broken enemy spears and arrows stuck i… (krea, varianta 2, seed 897985869662) + reflektor.
+- 094 Sklad materialu: Wide shot of an outdoor builders' yard beside a castle under a cloudy sky, tall neat stacks of timber beams, piles of cut stone blocks, sacks of lime, a smoking… (krea, varianta 4, seed 335929091432) + reflektor.
+- 112 Stavitel: Medium shot from behind of one master builder in a long hooded cloak standing on top of an unfinished cathedral wall with scaffolding, holding a large rolled pl… (krea, varianta 3, seed 37124555574) + reflektor.
+- 138 Podkopane valy: Wide shot at dusk of an enemy earthen rampart collapsing into a sinkhole where a hidden tunnel beneath it has caved in, broken wooden tunnel props sticking out,… (krea, varianta 1, seed 953941528380) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada4 (tools/art_batch.py)
+
+- 010 Palisada: Medium shot of a wooden palisade being built along a river bank at sunset, a long row of freshly sharpened pine logs driven upright into the earth, the last few… (krea, varianta 2, seed 841430135729) + reflektor.
+- 033 Zemni val: Low-angle side view of a tall steep grassy earthen rampart reinforced with timber facing, a wooden walkway with a railing and small banners on top, a water-fill… (krea, varianta 1, seed 330597321619) + reflektor.
+- 092 Strategicka vystavba: Close-up of a commander's war table at night with a miniature castle model on a map, beside it four different carved wooden tower models stand in a row and one … (krea, varianta 2, seed 283507289449) + reflektor.
+- 002 Kamenna zed: Wide shot of a long massive grey stone castle wall snaking along a rocky hill ridge with square towers at intervals, heavy rain falling, wet stones glistening, … (krea, varianta 1, seed 922925012321) + reflektor.
+- 034 Opravar: Painterly stylized medium-wide shot of one castle repairman standing on wooden scaffolding against a damaged castle wall, he is a sturdy old man with a grey bea… (krea, varianta 2, seed 720616457266) + reflektor.
+- 035 Zakladni kamen: Wide shot of a hilltop at dawn where the stone foundation outline of a new castle is laid out with ropes and stakes, in the exact centre a large carved cornerst… (krea, varianta 1, seed 89126148404) + reflektor.
+- 093 Cihla na cihlu: Medium close-up of a medieval brick tower under construction, rough uneven handmade old red bricks of irregular shapes and sizes, thick lumpy lime mortar, woode… (krea, varianta 4, seed 625579889715) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada5 (tools/art_batch.py)
+
+- 059 Pevnostni hrad: Medium shot of a fortified castle on a cliff edge, heavy battlements with arrow slits, a hail of enemy arrows bounces and breaks harmlessly against the thick wa… (krea, varianta 2, seed 907982809490) + reflektor.
+- 084 Velka oprava: Wide busy scene of a large damaged castle gatehouse being repaired, wrapped in wooden scaffolding with three wooden cranes lifting stone blocks, many tiny worke… (krea, varianta 2, seed 980613547400) + reflektor.
+- 088 Zesilene hradby: Close-up of a thick castle wall being reinforced: heavy dark iron bands and huge iron bolts hammered across the stones, a second layer of new stone blocks added… (krea, varianta 2, seed 99267578899) + reflektor.
+- 122 Stavebni posila: Wide shot of a long convoy of ox-drawn wagons loaded with stone blocks, timber and tools arriving along a winding road toward an open castle gate, banners on th… (krea, varianta 3, seed 985101264845) + reflektor.
+- 018 Mohutna vez: Extreme low-angle view looking straight up the side of a gigantic massive round stone tower that rises into the clouds, its top lost in the sky, birds circling … (krea, varianta 2, seed 899970032244) + reflektor.
+- 086 Zednicka rota: Painterly medium-wide shot of a company of masons building a castle wall together in the morning: the first mason is a tall young man carrying a stone block on … (krea, varianta 3, seed 6572471011) + reflektor.
+- 032 Citadela: Three-quarter aerial view of a mighty citadel on top of a hill above a medieval city, concentric rings of walls with towers, a tall inner keep at the centre, th… (krea, varianta 2, seed 996426470434) + reflektor.
+- 082 Masivni zed: Wide shot of a colossal fortified wall blocking an entire snowy mountain pass from cliff to cliff, enormous height, a huge gate in the middle, tiny horsemen on … (krea, varianta 3, seed 904743411189) + reflektor.
+- 087 Pevnost: Wide night shot of a huge heavy fortress with thick walls, round towers and a water moat, lit by hundreds of torches and warm glowing windows, reflections in th… (krea, varianta 4, seed 886368942086) + reflektor.
+- 085 Kralovska obnova: Low-angle shot of a freshly restored gleaming white castle with golden roofs, huge royal banners with a golden crown emblem being raised on the towers, the old … (krea, varianta 3, seed 973380401739) + reflektor.
+- 139 Pohlceni hradeb: The outer walls of a castle dissolve into flowing rivers of stone blocks that stream inward across the courtyard and merge into the central keep, which grows ta… (krea, varianta 1, seed 900497336849) + reflektor.
+- 060 Chram: Wide shot of a huge gothic temple on a hill with tall spires and enormous glowing stained glass windows, heavenly rays of light falling from the clouds onto it,… (krea, varianta 2, seed 950045087799) + reflektor.
+- 096 Nedobytna pevnost: Wide shot of an impregnable fortress built on top of a lone sheer rock pinnacle rising from a stormy sea, huge waves crashing against the rock, lightning in dar… (krea, varianta 1, seed 464004097952) + reflektor.
+- 097 Obnova kralovstvi: Panoramic view of a whole kingdom rebuilt in a green valley: a shining castle on a hill, a town with new roofs, a stone bridge over a river, farm fields and win… (krea, varianta 1, seed 994604575295) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada6 (tools/art_batch.py)
+
+- 030 Kamenny val: Medium-wide shot of a cyclopean rampart made of enormous rough boulders fitted together without mortar, curving along a hillside around a small stone fort, autu… (krea, varianta 1, seed 182403454160) + reflektor.
+- 062 Obranna aliance: Close-up of two different heraldic shields hanging side by side on a stone castle wall: a blue shield with a silver tower and a red shield with a golden lion, t… (krea, varianta 1, seed 773255318107) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka stavba_sada7b (tools/art_batch.py)
+
+- 009 neotresitelny: Wide dramatic shot of a sturdy stone castle standing completely unshaken on a solid rock hill during a violent earthquake and storm, around it the ground cracks… (krea, varianta 2, seed 106595128058) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Stavební karty – všechny kromě Prastarého kolosu
+
+- 42 stavebních karet předěláno dávkami `stavba_sada1`–`stavba_sada7c` (záznamy dávek výše), od nejlevnější, sady po 5 a pak po 20 (uživatel byl pryč). Paleta kámen / zemina / zlato s různým světlem (mlha, déšť, západ, měsíc, bouře, podzim, sníh), postavy jen u karet, které je jmenují (Opravář, Stavitel, Zednická rota) – malířsky a z dálky, ne realisticky zblízka (uživatel).
+- Zamítnuto a předěláno: Palisáda, Zemní val, Rychlá hradba („vypadá jako ničení“, „rozsypané kamení“ → nakonec zeď se zlatou magií: Qwen Edit „floating blocks surrounded by golden light and sparkling dust, golden runes along the mortar joints“, seed 937762744493 + reflektor), Strategická výstavba (bez karet – čtyři modely věží), Kamenná zeď (méně zblízka), Opravář, Základní kámen, Cihla na cihlu („moc moderní cihly“), Pevné základy (4× – řez, věž na skále, jáma; vybrán hrad neotřesený zemětřesením, `stavba_sada7b` v2), Kamenný val, Obranná aliance (dva erby spojené řetězem).
+- `"140"` Prastarý kolos zatím nepředělávat (uživatel) – navazuje na Probuzení / Úder kolosu.
+- Opravena kolize `art_boure_chaosu.jpg` × `.png` (stará .jpg smazána) – při předělávce artu s jinou příponou smazat starý soubor, jinak build padá na „Duplicate resources“.
+
+## [2026-11-21] art | dávka dul_stavba (tools/art_batch.py)
+
+- 063 Vez strazni: Low-angle shot of a tall square stone watchtower standing on the edge of a cliff above a working stone quarry at its foot, braziers burning on top of the tower,… (krea, varianta 3, seed 1082065580579) + reflektor.
+- 089 Architekt: Painterly medium-wide shot of one master architect, a lean middle-aged man with a short dark beard and a long brown coat, standing at a wooden drafting table on… (krea, varianta 2, seed 29914760897) + reflektor.
+- 090 Rozsireni tezby: Aerial view of a huge stone quarry being expanded: deep terraced pits of pale stone with new terraces freshly cut into the hillside, two brand-new quarry pits o… (krea, varianta 3, seed 569278210484) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
