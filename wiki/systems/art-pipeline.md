@@ -33,6 +33,7 @@ Feedback from players: the new arts look great, but in the game they are hard to
 - **Vary pose and moment:** not always „figure in the centre facing the viewer with a raised weapon“ – side view, from behind, mid-motion, aftermath, hands only, the object in flight.
 - **Before generating, check the neighbours:** list the arts already done in the same resource (Útok / Stavba / Magie / Chaos) and pick a framing + colour that is different from them.
 - Resource hint is OK but not mandatory: Útok tends to red/orange, Stavba to stone/earth/gold, Magie to blue/purple, Chaos to orange; mix within these.
+- **Chaos cards (user, 2026-11-21):** the chaos magic must be unmistakable – bright **orange chaos magic** (crackling orange lightning, orange sparks / smoke / glowing cracks) in every chaos art. Background mostly yellow-orange-red, sometimes alternate with dark teal (then write "strong contrast of glowing orange chaos against cold dark teal"). **No humans** (no faces, no hands) unless the card text explicitly names a person – use objects, creatures, places. Order of work: cheapest to most expensive, in sets of 5 (list in `design/art_review/nepredelane_arty.md`).
 
 ### Steps for a new / regenerated card art
 1. `comfy_variants`: workflow `krea`, styles `["darkmage", "card", "herolight"]` (character cards) or `["darkmage"]` (buildings / objects), `output_size` `512x512` (generated 1024×1024 and downscaled), `count` 4, `refine_prompt` false, folder `karty/<name>`. The user picks the variant.
@@ -71,6 +72,7 @@ gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical
 - [[overview]] — the game
 
 ## Changelog
+- 2026-11-21: Chaos card rules (orange chaos magic, warm or alternating teal background, no humans unless the card names one); style `herolight` missing on the LAN PC – write its text into the prompt.
 - 2026-11-19: Batch script `tools/art_batch.py`.
 - 2026-11-19: Variety rules (framing, colour, fewer figures) after player feedback.
 - 2026-11-18: Page created – tools, style, steps, reflector C, MCP 2.6.0.

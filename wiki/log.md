@@ -1161,3 +1161,114 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Kontrast v návratu „dýchal“ (uživatel) – korekce průměr/odchylka nahrazena srovnáním histogramu po snímcích; černá 10–12, bílá 187–190, rozptyl 55–56 po celou smyčku.
 - Návrat z druhého běhu se lokálně liší (sytost, obloha, kresba) – histogram nestačí. Hledání bodu smyčky v 5s klipu nenašlo shodu (12,7 vs. krok 3,2). Nabídnuta varianta tam a zpět z jednoho běhu (spoj 0,4); čeká na verdikt uživatele.
 - Uživatel práci odložil („ulož tu možnost, vrátíme se k tomu“). Skript má režimy `--mode pingpong` (výchozí, tam a zpět – pro Draka kvůli couvajícímu ohni ne ideální, pro jiné karty OK), `free` a `return` (pokus se 2 běhy). Do hry nic nezapojeno.
+
+## [2026-11-21] art | Chaos karty – sada 1 (nejlevnější), pravidla pro chaos
+
+- Seznam nepředělaných artů (151, z toho 43 chaos karet / 42 artů) v `design/art_review/nepredelane_arty.md`; chaos karty se dělají od nejlevnější po sadách 5. Karta „Chaos“ neexistuje – `art_chaos.png` je nepoužitý bonusový obrázek.
+- Pravidla uživatele (zapsána v [[systems/art-pipeline]]): jednoznačná oranžová chaos magie, pozadí žluto-oranžovo-červené nebo občas teal, bez lidí (ani rukou), pokud je karta výslovně nezmiňuje. Styl `herolight` na serverovém PC chybí → text psát do promptu.
+- Shapeshifter `"C34"`: bytost z oranžového chaos kouře, přední část vlk, havraní křídla, hadí ocas, teal noc (krea, varianta 2, seed 971145935775) + reflektor. Verze s člověkem napůl vlkem a tvář se šupinami zamítnuty (lidé).
+- Bomba / Skrytá bomba `"C37"`/`"C36"` (společný `art_skryta_bomba`): makro doutnáku runové bomby, teal rozostřené pozadí (krea, seed 1008044944973); uživatel chtěl víc chaosu → Qwen Edit „fuse erupts into a wild fountain of bright orange chaos energy…, glowing orange cracks…, runes glow bright orange; keep the dark teal background, composition…“ (`enhance` false, varianta 1 ze 3) + reflektor.
+- Explodovaná bomba `"C38"`: široký záběr, runová bomba vybuchuje o hradbu, oranžový chaos výbuch s bleskem a létajícím kamením, žluto-oranžová obloha (krea, varianta 1, seed 501092092914) + reflektor (výbuch výraznější).
+- Osudová mince `"135"`: makro rotující bronzové mince (lebka / slunce) s oranžovými stuhami chaosu, žluto-rudé pozadí (krea, varianta 2, seed 667915980025) + reflektor. Mince na hraně zamítnuta (bez chaosu), krádež rukou zamítnuta (člověk).
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112 (`art_osudova_mince.webp` nově), `artScale = 0.80f` bez posunů ořezu (i u `"C37"`), `card_data.json` přegenerováno.
+- Chaotická jiskra `"C01"`: samotná jiskra – jediná oranžová jiskra s bílo-žlutým jádrem, praskající oranžové blesky a odletující jiskry v tmavém teal-rudém oparu (krea, `j7_jiskra_v3`) + reflektor. Zamítnuty prsty, lucerna, obsidián, spirála, skřítek, krystaly („ať je to prostě jiskra“) i velké jiskry přes celý obraz. Odstraněny `artBiasY = -1.00f` a `listBiasY = -0.35f`.
+
+## [2026-11-21] art | dávka chaos_sada2 (tools/art_batch.py)
+
+- C21 Toulec: Low-angle close-up of an old worn leather quiver lying on its side on dark stones, its opening glows like a bottomless rift of swirling bright orange chaos magi… (krea, varianta 3, seed 722661955955) + reflektor.
+- C28 Trofej: Macro close-up of a battered iron war helmet with curved horns mounted as a trophy on a wooden pole, captured enemy swords and spears are being pulled toward it… (krea, varianta 3, seed 678065227555) + reflektor.
+- C45 Sipka: Wide dramatic shot of a single arrow wrapped in spiralling bright orange chaos lightning striking a tall dark castle wall, the impact rips a chunk of glowing st… (krea, varianta 3, seed 1037829273656) + reflektor.
+- 116 Replikace: Top-down view of a single glowing rune tablet of carved stone lying on a dark slate floor inside a circle of orange chaos sigils, bright orange chaos magic spli… (krea, varianta 4, seed 161799810477) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka chaos_sada2_c23b (tools/art_batch.py)
+
+- C23 nadoba: Low-angle shot of a tall shattered glass specimen vat on a stone pedestal, liquid and glass shards burst outward, a shapeless glowing orange chaos creature mid-… (krea, varianta 1, seed 496338536102) + reflektor. Zamítnuty: baňka s roztomilými bytůstkami (slabý chaos) a kotel se třemi zrůdami (`chaos_sada2_c23a`).
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka chaos_sada3 (tools/art_batch.py)
+
+- C22 Manufaktura: Wide shot of a huge dark iron foundry of giant gears, chains and furnaces with no workers, molten bright orange chaos energy pours from a cauldron into moulds a… (krea, varianta 4, seed 892532028731) + reflektor.
+- C42 Klon: Medium shot of a black raven perched on a gnarled dead branch, beside it sits its exact copy made entirely of glowing bright orange chaos fire and smoke, mirror… (krea, varianta 4, seed 201899647020) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 3 (doplnění úprav)
+
+- Kletba cen `"121"`: váha se zlaťáky na nočním trhu v teal (krea `chaos_sada3` v2) → Qwen Edit „a wild vortex of bright orange chaos energy erupts from the pile of gold coins…, lightning arcs…, orange curse runes…; keep the dark teal background, composition“ (`enhance` false, varianta 1 ze 3, seed 744050560903) + reflektor.
+- Chaotická přeměna `"C35"`: štola s vozíkem, modré krystaly vlevo / oranžové vpravo (krea `chaos_sada3` v4) → Qwen Edit „a wave of bright orange chaos energy surges from the right…, lightning strikes the blue crystals, they crack and turn orange…“ (varianta 1, seed 1003814084470) + reflektor.
+- Likvidace `"108"`: hořící karta vytržená z balíčku nad stolem, karmínové pozadí (krea `chaos_sada3` v1) → Qwen Edit „the floating card is burning fiercely, tall orange and yellow flames…, crumbles into embers and ash“ (varianta 1, seed 568126920233) + reflektor.
+- Chaos manufaktura `"C22"` a Klon `"C42"` viz záznam dávky `chaos_sada3` výše. `artScale = 0.80f` bez posunů ořezu u všech, miniatury 80×112, `card_data.json` přegenerováno.
+
+## [2026-11-21] art | dávka chaos_sada4 (tools/art_batch.py)
+
+- 114 Mudrc: Close-up portrait of one old hermit sage with a long tangled white beard and a deep hood, wrinkled face lit from below by a floating open ancient book whose pag… (krea, varianta 1, seed 789381714024) + reflektor.
+- C17 Telekineze: Medium shot of a single playing card with a plain dark ornate back floating in mid-air, pulled across the frame by several thin glowing threads of bright orange… (krea, varianta 2, seed 576956084295) + reflektor.
+- C32 Zkaza: Wide epic shot of two dark castles standing on opposite cliffs across a deep chasm, one giant forked bolt of bright orange chaos lightning strikes both castles … (krea, varianta 2, seed 9430384488) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 4 (doplnění krys)
+
+- Zamořené krysy `"133"`: přesně 3 krysy u rozbité mříže kanálu ve sklepě (každá popsána zvlášť: velká černá s natrženým uchem, hubená šedá, malá hnědá), teal klenby (krea `chaos_sada4_krysy` v1) → Qwen Edit „make all three rats infected by orange chaos plague: glowing orange cracks and boils, eyes glow orange, smoke from mouths; fire → swirling orange chaos smoke with lightning“ (`enhance` false, varianta 2 ze 3, seed 220694788346) + reflektor. První verze s hejnem krys zamítnuta (karta = 3 krysy).
+- Zamořená Krysa `"134"`: krysa na drolící se hradbě, rudý západ (krea `chaos_sada4` v2) → Qwen Edit „infected by orange chaos plague: missing fur, glowing orange cracks and boils, eyes glow orange, smoke from mouth and nostrils“ (varianta 1, seed 44188840013) + reflektor.
+- Mudrc `"114"`, Telekineze `"C17"`, Vzájemná zkáza `"C32"` viz záznam dávky `chaos_sada4` výše. `artScale = 0.80f` bez posunů ořezu, miniatury 80×112, `card_data.json` přegenerováno.
+
+## [2026-11-21] art | dávka chaos_sada5 (tools/art_batch.py)
+
+- C41 Zrcadlo: Medium shot of a tall ornate antique standing mirror with a cracked black iron frame in a dark empty stone hall, a bolt of bright orange chaos lightning strikes… (krea, varianta 3, seed 365143740712) + reflektor.
+- C07 Stit: Wide shot of a dark stone castle wall on a hill protected by a huge curved translucent barrier of bright orange chaos energy made of crackling glowing hexagons,… (krea, varianta 1, seed 722698677807) + reflektor.
+- C11 Chaos a rad: Low-angle shot of one tall castle tower split down the middle: the left half is built of perfectly neat smooth pale stone blocks with calm cold blue order runes… (krea, varianta 3, seed 1032088817095) + reflektor.
+- C31 Vymenik: Close-up of a strange brass and iron alchemical machine with a glass funnel on top, it sucks in a stream of blue magic crystals, small grey stones and tiny stee… (krea, varianta 3, seed 716655132226) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 5 (doplnění knihovny)
+
+- Spálená knihovna `"C19"`: knihovna s vírem stránek a blesky (krea `chaos_sada5` v2) – uživatel: „nejsou tam plameny, má být spálená“ → Qwen Edit „set the whole library on fire: roaring orange and yellow flames engulf the shelves up to the ceiling, books charred black, pages burning to ash, smoke, orange chaos lightning“ (`enhance` false, varianta 1 ze 3, seed 829751128032) + reflektor.
+- Zrcadlo `"C41"`, Chaotický štít `"C07"`, Chaos a řád `"C11"`, Chaotický výměník `"C31"` viz záznam dávky `chaos_sada5` výše. `artScale = 0.80f` bez posunů ořezu (u C19 zůstává `soundResId`), miniatury 80×112, `card_data.json` přegenerováno.
+
+## [2026-11-21] art | dávka chaos_sada6 (tools/art_batch.py)
+
+- C44 Dan: Medium shot of a heavy iron-bound treasure chest standing open on a rocky hill, a swirling vortex of bright orange chaos energy pours out of it and rips glowing… (krea, varianta 1, seed 979612066410) + reflektor.
+- C14 Kamenolom: Wide shot of a large stone quarry with terraced grey rock walls, a wooden crane and stacked stone blocks, a massive glowing bright orange chaos crack splits the… (krea, varianta 1, seed 796143657727) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 6 (Špeh, Zázrak, Sabotáž podle originálů)
+
+- Uživatel: první verze Špeha, Zázraku a Sabotáže (`chaos_sada6`) „nic moc, zkus to více jak originály“ → nové prompty podle kompozice původních artů (`chaos_sada6b`).
+- Zákeřný špeh `"C40"`: zahalená postava za stolem s mapami a dýkami v klenuté chodbě s pochodněmi, oranžové oči a kouř chaosu, teal mlha (krea `chaos_sada6b` v3) + reflektor.
+- Zázrak chaosu `"C08"`: hrad se špičatými věžemi na sutinách, z něj do nebe sloup oranžové energie s blesky (krea `chaos_sada6b` v3) + reflektor.
+- Sabotáž `"C13"`: pohled do kulaté štoly s modro-fialovými krystaly a sítí oranžových blesků (krea `chaos_sada6b` v2) → Qwen Edit „make the chaos lightning much stronger: thick orange bolts strike every crystal, crystals explode into shards, orange cracks“ (`enhance` false, varianta 2 ze 2, seed 1069691632940) + reflektor.
+- Daň z chaosu `"C44"` a Ničení kamenolomu `"C14"` viz záznam dávky `chaos_sada6` výše. `artScale = 0.80f` bez posunů ořezu, miniatury 80×112, `card_data.json` přegenerováno.
+
+## [2026-11-21] art | dávka chaos_sada7 (tools/art_batch.py)
+
+- C18 Kradez osudu: A dark void with a swirling spiral vortex of bright orange chaos energy in the centre, long glowing orange threads of fate spiral out of the vortex and pull in … (krea, varianta 3, seed 978776527485) + reflektor.
+- C05 Vybuch: A gigantic explosion of bright orange chaos fire bursting from the centre of the frame, swirling flame tendrils and a blinding white-yellow core, a ring-shaped … (krea, varianta 4, seed 901244109651) + reflektor.
+- C06 Boure: Wide shot of a vast flat dark plain under a gigantic churning storm of bright orange chaos clouds, dozens of jagged bright orange lightning bolts strike the gro… (krea, varianta 3, seed 587272902405) + reflektor.
+- C09 Krize: Medium shot of a medieval town square collapsing into chaos: crooked half-timbered houses tilt and crack, a chasm of glowing bright orange chaos fire opens in t… (krea, varianta 2, seed 285681847357) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 7 (doplnění Zákeřnosti)
+
+- Sada 7 vycházela z kompozice původních artů (uživatel u sady 6: „zkus to více jak originály“).
+- Zákeřnost `"C15"`: první verze (hořící věž zbrojírny se dvěma skřítky) zamítnuta. Nově jeden šedý skřítek na regálu ve zbrojnici lije oranžový lektvar chaosu a zbraně se taví, teal zbrojnice (krea `chaos_sada7_z2` v1) → Qwen Edit „stream of orange chaos liquid melts the blades, lightning between them, orange smoke, goblin's eyes glow orange“ (`enhance` false, varianta 2 ze 2, seed 904766166942) + reflektor. Alternativa s dýkou chaosu v kovadlině (`chaos_sada7_z1`) nevybrána.
+- Krádež osudu `"C18"`, Chaotický výbuch `"C05"` (zůstává `soundResId`), Bouře chaosu `"C06"`, Chaotická krize `"C09"` viz záznam dávky `chaos_sada7` výše. `artScale = 0.80f` bez posunů ořezu, miniatury 80×112, `card_data.json` přegenerováno.
+
+## [2026-11-21] art | dávka chaos_sada8 (tools/art_batch.py)
+
+- C16 Velka sabotaz: Wide night shot of a dark mining fortress with wooden scaffolding, a crane and a mine entrance full of blue magic crystals, huge explosions of bright orange cha… (krea, varianta 2, seed 605355815351) + reflektor.
+- C20 Prazdna mysl: A huge glowing ring of bright orange chaos energy shaped like the folds of a brain floating in darkness, its centre is an empty pitch-black void, glowing orange… (krea, varianta 3, seed 946126008460) + reflektor.
+- C39 Velky zmatek: A giant whirlwind of bright orange chaos fire tearing through a ruined grey town under a stormy sky, the whirlwind sweeps up hundreds of flying playing cards, t… (krea, varianta 2, seed 562074657766) + reflektor.
+- C12 Anarchie: Medium shot of a ruined royal throne hall, the great golden throne is toppled on its side and burning in bright orange chaos flames, a golden crown lies dented … (krea, varianta 2, seed 924392388635) + reflektor.
+- C33 Kradez identity: Two ornate venetian masquerade masks floating in darkness and swapping places around each other in a spiral of bright orange chaos energy, the first mask is whi… (krea, varianta 3, seed 795456528831) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka chaos_sada9 (tools/art_batch.py)
+
+- C10 Drak: A colossal two-headed dragon made entirely of living bright orange chaos fire coils its long serpentine body in a spiral through the frame, both heads roar towa… (krea, varianta 2, seed 53504630100) + reflektor.
+- L01 Temny mag: Front view of one powerful dark mage sitting on a tall throne of jagged black obsidian crystal shards, he wears a deep black hood and long black robes embroider… (krea, varianta 3, seed 512054156571) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Chaos karty – sada 9 (Drak, Temný mág) – všechny chaos karty hotové
+
+- Chaotický drak `"C10"` (krea `chaos_sada9` v2) a Temný mág `"L01"` (`art_darkmage`, krea `chaos_sada9` v3) podle kompozice původních artů – viz záznam dávky výše. `art_chaoticky_drak` je zároveň obrázek lokace `loc_dragon` na mapě kampaně (CampaignMapScreen), změnil se i tam.
+- Tím je předěláno všech 40 chaos karet (od nejlevnější po nejdražší, sady po 5). Seznam v `design/art_review/nepredelane_arty.md` upraven.
