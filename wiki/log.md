@@ -1355,3 +1355,62 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - 089 Architekt: Painterly medium-wide shot of one master architect, a lean middle-aged man with a short dark beard and a long brown coat, standing at a wooden drafting table on… (krea, varianta 2, seed 29914760897) + reflektor.
 - 090 Rozsireni tezby: Aerial view of a huge stone quarry being expanded: deep terraced pits of pale stone with new terraces freshly cut into the hillside, two brand-new quarry pits o… (krea, varianta 3, seed 569278210484) + reflektor.
 - 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka magie_sada1 (tools/art_batch.py)
+
+- 004 Magie: Macro close-up of a cluster of glowing blue mana crystals growing out of dark rock, soft pulsing light inside them, tiny floating motes of blue magic drifting u… (krea, varianta 2, seed 400723964958) + reflektor.
+- 103 Magicke rozdeleni: A large glowing bright blue magic orb floating in a dark stone chamber splits in two: the left stream of energy turns into a cascade of red-hot steel swords and… (krea, varianta 4, seed 430370521916) + reflektor.
+- 011 Zasoby kamene: Medium shot of a glowing blue magic circle drawn on the ground of a quarry at dusk, neatly cut stone blocks materialize out of rising blue light and stack thems… (krea, varianta 4, seed 1010913418124) + reflektor.
+- 037 Rychla magie: A streak of fast electric blue magic energy racing through the dark night sky like a comet, spiralling in a tight vortex with long motion-blurred light trails a… (krea, varianta 2, seed 928571917548) + reflektor.
+- 137 Zapomenuta poznamka: Macro close-up of an old crumpled yellowed parchment note forgotten under a dusty brass candleholder in a cluttered attic, the faded ink glows faintly magical b… (krea, varianta 3, seed 143459521640) + reflektor.
+- C04 Kradez chaosu: A net of glowing bright blue magic threads captures a swirl of bright orange chaos sparks and drags it into an ornate glass jar with a silver lid on a dark tabl… (krea, varianta 1, seed 799459605203) + reflektor.
+- C25 Nestabilni vir: An unstable swirling vortex of mixed blue magic and bright orange chaos energy hovering in a ruined stone chamber, the two energies twist around each other and … (krea, varianta 3, seed 470954405184) + reflektor.
+- C26 Krvava obet: Close-up of a dark stone altar with a silver ritual dagger and an ornate chalice of dark red blood, drops of blood falling from the chalice turn into bright ora… (krea, varianta 4, seed 902613197294) + reflektor.
+- 065 Lupic: Painterly medium-wide shot at night of one masked thief in a dark hooded cloak climbing out of an armory window onto a rooftop, carrying a bundle of stolen swor… (krea, varianta 3, seed 932356226555) + reflektor.
+- 066 Kamenna dan: Wide shot at dusk of cut stone blocks lifting out of an enemy quarry and floating away in a long line along a stream of bright blue magic toward a distant wizar… (krea, varianta 1, seed 207678634764) + reflektor.
+- 067 Saboter: Painterly medium-wide shot from behind of one hooded saboteur crouching in a stone quarry at night, lighting the fuse of a small powder keg wedged under stacked… (krea, varianta 2, seed 853301256113) + reflektor.
+- 068 Demoralizace: Wide shot of an abandoned army camp in cold rain, dropped swords and shields in the mud, torn banners hanging limp, empty tents, a creeping dark bright blue mag… (krea, varianta 2, seed 37128123013) + reflektor.
+- 110 Vzpominka: A pile of old discarded parchments and broken wax seals in a dim stone corner, one parchment glows soft blue and floats up out of the pile, ghostly translucent … (krea, varianta 1, seed 767410817816) + reflektor.
+- 111 Intuice: Close-up of a crystal pendulum on a silver chain swinging above a fanned row of face-down cards with plain ornate backs on a velvet cloth, one card beneath the … (krea, varianta 1, seed 367326384481) + reflektor.
+- 115 Studna vedomosti: An old round stone well in a moonlit overgrown garden, from its depths glowing blue light rises and dozens of glowing book pages swirl upward into the night sky… (krea, varianta 2, seed 555219417228) + reflektor.
+- 120 Hromadna sleva: A merchant's market stall at night where a wave of bright blue magic sweeps over the goods: heavy iron weights on a brass scale float up and become lighter, gol… (krea, varianta 3, seed 928259167911) + reflektor.
+- 124 Alchymistova volba: Macro close-up of four ornate potion bottles standing in a row on an alchemist's shelf: a glowing blue potion, a glowing red potion, a glowing pale grey stone-d… (krea, varianta 1, seed 884610222277) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka magie_sada1b (tools/art_batch.py)
+
+- 040 Alchymie: Close-up of an alchemist's workbench where a plain steel longsword lies across an iron cradle, glowing bright blue alchemical liquid is poured over the blade fr… (krea, varianta 4, seed 822520607594) + reflektor.
+- 117 Pruzkum dolu: Wide shot at dusk of a mountainside with four different mine entrances carved into the rock, each glowing in a different colour: one sapphire blue, one blood re… (krea, varianta 2, seed 301503144737) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | dávka magie_sada2 (tools/art_batch.py)
+
+- 012 Mobilizace: Wide shot of a castle courtyard at dawn, a great war horn mounted on a stand on the wall glows with bright blue magic and sends rippling rings of blue magical s… (krea, varianta 1, seed 813946441460) + reflektor.
+- 126 Magicky proud: A river of glowing bright blue liquid magic flowing through a dark rocky canyon at night, swirling currents of light, bright orange chaos sparks spinning off it… (krea, varianta 3, seed 856532784391) + reflektor.
+- C24 Temny ritual: Top-down view of a ritual circle drawn on a dungeon stone floor with glowing bright blue runes and black candles at its points, in the centre a pillar of bright… (krea, varianta 4, seed 473478719716) + reflektor.
+- C27 Odraz magie: A beam of glowing bright blue magic strikes a polished round silver shield standing on a stone floor and bounces off it transformed into a crackling beam of bri… (krea, varianta 2, seed 867386212044) + reflektor.
+- D01 Pruzkumnik: Painterly wide shot from behind of one scout in a hooded green cloak standing on a cliff edge at night, looking through a brass spyglass at a distant valley wit… (krea, varianta 1, seed 237423155730) + reflektor.
+- D08 Vize: Close-up of a large crystal ball on an ornate silver stand in a dark mystical room, inside the ball swirls a glowing bright blue vision of a distant castle and … (krea, varianta 3, seed 441043022636) + reflektor.
+- 003 Ohniva koule: A huge magical fireball with a blinding blue-white core and roaring orange flames streaks across a night sky toward a castle tower, leaving a long trail of fire… (krea, varianta 1, seed 5288463845) + reflektor.
+- 038 Vojensky rozkaz: Close-up of an unrolled military order scroll on a war table, a large red wax seal on it glows with bright blue magic runes, a drawn sword lies across the table… (krea, varianta 4, seed 345845547905) + reflektor.
+- 039 Stavebni boom: Wide shot of a growing medieval town where dozens of stone blocks fly through the air on streams of glowing bright blue magic to many scaffoldings at once, new … (krea, varianta 1, seed 18494837464) + reflektor.
+- 041 Magicke trio: Three objects floating in a perfect triangle around each other in a dark arcane chamber: a glowing bright blue magic crystal, a red-hot steel sword and a grey c… (krea, varianta 2, seed 707779006807) + reflektor.
+- 071 Spion: Painterly medium shot of one spy in a dark cloak and a wide-brimmed hat hiding in the shadows of a castle corridor, listening at a door, one of his eyes glows b… (krea, varianta 4, seed 48563592313) + reflektor.
+- 077 Premena magie: A swirling tornado of bright blue magic energy over a battlefield transforms into hundreds of glowing spectral blue spears and swords flying out of it in a wave… (krea, varianta 4, seed 388393847335) + reflektor.
+- 107 Prokleti: A cursed totem of an animal skull on a wooden pole planted on a hill above an enemy army camp at night, from its eye sockets pours glowing blue curse smoke mixe… (krea, varianta 1, seed 808707796972) + reflektor.
+- 113 Goblin saman: Painterly medium shot of one goblin shaman with green skin, long pointed ears, a bone necklace and a feathered headdress, holding a gnarled staff topped with a … (krea, varianta 1, seed 344092336901) + reflektor.
+- C02 Entropie: Macro close-up of a cluster of bright blue magic crystals decaying: their tips crumble and dissolve into swirling orange chaos dust and sparks that drift away, … (krea, varianta 4, seed 605932207464) + reflektor.
+- D02 Vestba: A dark stone scrying bowl filled with still water on a pedestal in a moonlit chamber, the water reflects glowing bright blue starlight and shows two shimmering … (krea, varianta 3, seed 331165062862) + reflektor.
+- D09 Inspirace: A quill pen writing by itself on an open manuscript on a desk at night, glowing bright blue magic sparks and floating motes of light pour from the nib and swirl… (krea, varianta 3, seed 1038634649892) + reflektor.
+- 069 Dvojity agent: Painterly medium shot of one double agent standing in a doorway, his cloak split down the middle - the left half deep blue with a blue banner badge, the right h… (krea, varianta 1, seed 857063127416) + reflektor.
+- 070 Krize zasobovani: Wide shot of an enemy supply depot struck by a blue magic frost spell: broken wagons, empty smashed crates, spilled arrows and swords frozen in blue ice, piles … (krea, varianta 1, seed 658704321302) + reflektor.
+- 074 Trziste: Wide shot of a busy fantasy market square at night with colourful stalls selling glowing bright blue magic crystals, racks of swords and shields and stacks of c… (krea, varianta 3, seed 66968148027) + reflektor.
+- D03 Kronika: A huge ancient chronicle book open on a carved lectern in a vaulted library, its pages turning by themselves in a whirl of glowing bright blue magic, illustrati… (krea, varianta 3, seed 424217821038) + reflektor.
+- 128 Archmag: Painterly wide shot of one archmage, a tall old wizard with a long white beard and a deep blue robe, standing on the top of a high tower with his staff raised, … (krea, varianta 3, seed 320403379675) + reflektor.
+- 512×512 do `res/drawable`, miniatury `server/art/*.webp` 80×112, `artScale = 0.80f` bez posunů ořezu.
+
+## [2026-11-21] art | Magické karty – všechny kromě Probuzení kolosu
+
+- 44 magických karet předěláno dávkami `magie_sada1`, `magie_sada1b`, `magie_sada2`, `magie_sada2b` (záznamy dávek výše), po 20–25 kartách. Pravidlo uživatele: magické karty víc vibrant, výrazná zářivá **modrá magie** jako podpis zdroje (zapsáno v [[systems/art-pipeline]]); chaos karty placené magií modrá + oranžový chaos; postavy malířsky a ne zblízka.
+- Úpravy přes Qwen Edit (`enhance` false) + reflektor: Mobilizace nakonec nový koncept (roh s modrými vlnami nad nádvořím s vojáky; varianta s létajícími zbraněmi „jako by je magie chtěla probodnout“ zamítnuta), Alchymie (alchymie vylepšuje meč – runy na čepeli), Průzkum dolů (koleje vedou ke vchodům), Magický žolík (hrací karta se šaškem v modrých plamenech; zkomolené „JOKR“ v rozích nahrazeno hvězdičkami, seed 207807640002), Pyroblast („je to oheň“ – sloup ohně s modrobílým jádrem, seed 989339282207), Temný přenos („saje život“ – rudo-modrý proud, levý hrad šedne, seed 417337794388).
+- `"141"` Probuzení kolosu nechán (série kolosu zatím ne).
