@@ -1,0 +1,74 @@
+[
+ {
+  "art": "goblin_pruzkumnik",
+  "title": "Goblin Průzkumník – B",
+  "prompt": "Low-angle shot of a scrawny goblin scout perched on a high branch at night, holding a tiny spyglass, big pointy ears, mischievous grin, full moon behind him, cold silver moonlight with a warm lantern on his belt. Palette: moon silver, night blue, lantern orange. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_lucistnik",
+  "title": "Goblin Lučištník – B",
+  "prompt": "Close-up of a goblin archer's face behind his drawn bowstring, one eye shut, tongue out in concentration, arrow tip pointing past the viewer, foggy green forest behind. Soft grey-green light with a warm rim. Palette: fog green, leather brown, warm rim light. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_saman",
+  "title": "Goblin Šaman – B",
+  "prompt": "Medium shot of a goblin shaman dancing wildly around a bonfire at night, rattling bones, purple smoke rising, his shadow huge on a tent behind. Palette: firelight orange, purple smoke, black night. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_valecnik",
+  "title": "Goblin Válečník – B",
+  "prompt": "Close-up of a goblin warrior's face in an oversized dented helmet that slips over one eye, gritting his teeth, clutching his club, rain falling, cold blue light. Palette: rain blue, rust, mud brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_drancovac",
+  "title": "Goblin Drancovač – B",
+  "prompt": "Top-down view of a goblin looter sitting in a pile of stolen loot in a cellar counting coins by candlelight, a crown and silver cups around him, greedy face. Palette: candle gold, silver, dark brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_berserk",
+  "title": "Goblin Berserk – B",
+  "prompt": "Wide dynamic shot of a goblin berserker leaping through the air over a palisade with two axes raised, screaming, red war paint, sunset sky blazing red behind him. Palette: blazing red sky, black silhouette, axe steel. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_troll",
+  "title": "Goblin Troll – B",
+  "prompt": "Close-up portrait of a troll's ugly grinning face with a broken tusk, tiny eyes, a goblin sitting on his head steering him by the ears, warm firelight. Palette: grey-green skin, fire orange, dark night. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_velitel",
+  "title": "Goblin Velitel – B",
+  "prompt": "Low-angle shot of a goblin commander standing on a barrel, raising his notched sabre, a crowd of goblin spears around him, tattered red banner in the wind, stormy dusk. Palette: crimson banner, storm grey, steel. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_valecny_nacelnik",
+  "title": "Goblin Válečný náčelník – B",
+  "prompt": "Close-up portrait of a goblin warchief's face: heavy brow, gold nose ring, tribal scars, a skull-topped helmet, cold calculating eyes, lit from the side by a red war fire. Palette: war red, gold, bone. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_kral",
+  "title": "Goblin Král (boss) – B",
+  "prompt": "BOSS. The goblin king carried on a wobbly wooden palanquin by four struggling goblins through his camp at night, waving a golden goblet, torches and cheering goblins around. Palette: torch gold, crimson, night blue. Single main character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_kral_profil",
+  "title": "Goblin Král – portrét B",
+  "prompt": "Portrait of the goblin king laughing with his mouth wide open showing gold teeth, crown askew, jewels everywhere, a chicken leg in his hand, warm golden light. Palette: gold, green, crimson. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "goblin_tabor",
+  "title": "Goblinský tábor – B",
+  "prompt": "Top-down aerial view of a goblin camp in a forest clearing at night: a ring of hide tents around a central bonfire, crooked watchtowers, a loot pile, smoke drifting. Palette: fire orange, black forest, smoke grey. No text, no border.",
+  "count": 2
+ }
+]

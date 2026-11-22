@@ -115,6 +115,39 @@ fun Modifier.frameTexture(
 }
 
 /**
+ * Rám jako [frameTexture], ale s vlastní výplní uprostřed: [fillRes] se kreslí POD rám
+ * ořezem na poměr plochy (ContentScale.Crop), takže se jeho textura neroztahuje jako střed
+ * devítidílného rámu. [frameRes] musí mít průhledný střed (dialog_frame_open).
+ * [fillInset] = odsazení výplně od okraje panelu jako zlomek rohu; výplň musí sahat pod
+ * vnitřní lem rámu (u dialog_frame začíná otvor ~0,29 rohu shora a ~0,48 rohu z boku).
+ */
+@Composable
+fun Modifier.frameTextureFilled(
+    @DrawableRes frameRes: Int,
+    @DrawableRes fillRes: Int,
+    srcCornerPx: Int,
+    corner: Dp,
+    fillInset: Float = 0.22f
+): Modifier {
+    val fill = ImageBitmap.imageResource(fillRes)
+    return drawBehind {
+        val ins = corner.toPx() * fillInset
+        val dw = size.width - 2 * ins; val dh = size.height - 2 * ins
+        if (dw <= 1f || dh <= 1f) return@drawBehind
+        val k  = maxOf(dw / fill.width, dh / fill.height)
+        val sw = (dw / k).roundToInt().coerceIn(1, fill.width)
+        val sh = (dh / k).roundToInt().coerceIn(1, fill.height)
+        drawImage(
+            image     = fill,
+            srcOffset = IntOffset((fill.width - sw) / 2, (fill.height - sh) / 2),
+            srcSize   = IntSize(sw, sh),
+            dstOffset = IntOffset(ins.roundToInt(), ins.roundToInt()),
+            dstSize   = IntSize(dw.roundToInt(), dh.roundToInt())
+        )
+    }.frameTexture(frameRes, srcCornerPx, corner)
+}
+
+/**
  * Společný rám dialogů: tmavý kámen + pergamen, začernalý bronz s gotickými rohy
  * (návrh UI 2026-11-21). Rohy 40 dp → boční lem ~22 dp, horní ~14 dp; obsah dialogu
  * proto potřebuje odsazení aspoň ~22 dp do stran a ~16 dp nahoru/dolů.
@@ -195,10 +228,12 @@ fun PlainButton(
     paddingV: Dp = 5.dp,
     @DrawableRes buttonRes: Int = R.drawable.plain_button,
     lighten: Float = 0f,
+    /** Průhlednost vypnutého tlačítka (na světlém pozadí ho 35 % schová úplně). */
+    disabledAlpha: Float = 0.35f,
     onClick: () -> Unit = {}
 ) {
     val alpha = when {
-        !enabled          -> 0.35f
+        !enabled          -> disabledAlpha
         outlineColor != null -> 1f       // režim obrysu → vždy plná opacita
         !selected         -> 0.50f
         else              -> 1f

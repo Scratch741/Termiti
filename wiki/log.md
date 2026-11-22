@@ -1559,3 +1559,80 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
   - Varianta „průhledná tlačítka, dokud neklepneš“ zamítnuta: tlačítka by vypadala vypnutě.
   - Ověřeno v telefonu záznamem obrazovky (`design/ui_redesign/menu_uvod.png`).
 - Hlavní menu: odstraněn `statusBarsPadding`/`navigationBarsPadding`. Při startu jsou systémové lišty chvíli vidět a po přepnutí na celou obrazovku se boční sloupce posouvaly. Sestaveno a nainstalováno, v telefonu zatím neověřeno.
+
+## [2026-11-22] art | Přegenerování zbylé grafiky do stylu darkmage (varianty k výběru, nic nenasazeno)
+
+- Úkol: přegenerovat grafiku, která ještě nemá nový styl, s důrazem na kampaň a bosse. Analýza stylu, inventář a přehledy jsou v `design/regen/README.md`.
+- Dávky v `tools/art_batches/`:
+  - `kampan_goblini`, `kampan_baziny`, `kampan_hory`, `kampan_citadela`, `kampan_draci` (Dračí impérium dosud nemělo žádné arty);
+  - druhá pojetí `kampan_goblini_b`, `kampan_baziny_b`;
+  - `ostatni_a` (pozadí hradů, bojiště, balíček, ruby karet, avatary, ikona) + druhá pojetí `ostatni_c`;
+  - `ostatni_b` (kolosy 140–142, záložní arty, výchozí art).
+- `tools/art_batch.py`:
+  - položka smí mít `aspect`, `size` a `mp` pro nečtvercovou grafiku (výstup se ořízne na střed a zmenší na `size`);
+  - `alt` = další pojetí promptu, varianty se mezi nimi střídají. Sousední seedy v Krea dávají skoro stejné obrázky.
+- `tools/regen_review.py <dávka> [<dávka_b>…]` vytvoří `design/regen/<dávka>.jpg`: sloupec STARÉ (současná grafika) a vedle očíslované varianty ze všech dávek.
+- Nasazení až po výběru uživatelem.
+
+## [2026-11-22] art | Nasazeny nové arty kampaně a záložní arty
+
+- Uživatel vybral varianty z `design/regen/`. Nasazeno skriptem `tools/deploy_regen.py`: slovník výběru `PICK`, zmenšení na rozměr starého souboru, nové soubory 496×496.
+  - Kampaň 5 × 11 obrázků: soupeři, bossové, lokace a `goblin_kral_profil`.
+  - Záložní arty surovin a `art_default`: dřív 400×560, teď 512×512 jako ostatní arty karet.
+- Úpravy po výběru:
+  - Trpasličí Tesař: kladivo nahrazeno sekerou (Qwen Edit).
+  - Mokřadní Druid: „temná varianta“ = výřez tmavé poloviny dvojobrazu, překreslený Qwen Editem.
+  - Kamenný Strážce: nové pojetí. Dřív trpaslík se štítem, teď kamenný golem z hradebních kvádrů s padací mříží v hrudi (dávka `hory_strazce_novy`, nasazena v1).
+- Dračí impérium napojeno v kódu:
+  - `CampaignData.kt`: `cardArt = "draci_*"` u všech 10 soupeřů, emoji avatar zůstává.
+  - `CampaignLocationScreen.kt`: `FULL_ART_AVATARS` + `avatarDrawableRes`.
+  - `CampaignMapScreen.kt`: lokace `loc_dragon` → `draci_imperium` (dřív `art_chaoticky_drak`).
+- Kolosy (140–142) se nemění. Pozadí, ruby karet, avatary a ikona čekají na výběr.
+- Sestaveno; v telefonu neověřeno (nebyl připojen).
+
+## [2026-11-22] art | Nasazeny avatary, ruby karet, balíček a ikona; nová pozadí bojiště k výběru
+
+- Avatary (400×400):
+  - nasazeny vybrané varianty `player_icon_1/2/5/7/10/12`, `enemy_icon_1/2`;
+  - `player_icon_8` je nový „učedník“ inspirovaný Hereticem (kápě s rudou podšívkou, tvář ve stínu, žluté oči);
+  - **nové avatary `player_icon_13–16`** (lebka, mág s ohněm v dlani, maskovaný stín, řvoucí vojevůdce), přidány do `AVATARS` a `avatarResId` v `ProfileScreen.kt`.
+- Ruby karet:
+  - celá karta se zaoblenými rohy a celým rámem; Qwen Edit u vybraných, u bažin a trpaslíků nové designy;
+  - pozadí vyříznuto do PNG (`tools/cutout_white.py`: flood fill bílé od okrajů, `stretch` na poměr karty 512×832).
+- `pack_art.png`: železem kovaný balíček s oranžovou runou, pozadí odstraněno přes BiRefNet, 446×662.
+- `app_icon.png` (launcher ikona v manifestu): mág v kápi, 512×512, zaoblené rohy průhledné podle bronzového rámu.
+- Pozadí bojiště (`castle_background*`): první pokus (dávka `bojiste`) měl švy uprostřed a hrady na krajích, prompt zmiňoval „levou a pravou čtvrtinu“. Proto nová dávka `bojiste2`:
+  - prompty z prvního kola, které se uživateli líbily;
+  - souvislá malba, dominanta uprostřed horizontu, volné kraje;
+  - bez kouře a ohně (doanimují se).
+- `tools/battlefield_mock.py`: náhled pozadí s hrady a hradbami v rozměrech hry (ořez Crop, hrad 110×165 dp, hradba 42×58 dp). Výstup je `design/regen/bojiste_mock.jpg`.
+- Pozadí zatím **nenasazena**. Animace v `BattlefieldAmbience` a plameny pochodní jsou napasované na pixely starých obrázků. Po výměně se musí vypnout nebo přenastavit.
+- Sestaveno, nainstalováno; v telefonu neověřeno (zamčený).
+
+## [2026-11-22] ui | Mulligan: texturovaná bronzová deska místo ploché výplně
+
+- Střed panelu mulliganu byl roztažený plochý „pergamen“ ze středu `dialog_frame` (devítidílné kreslení ho roztáhne asi 2,5×), takže působil mdle.
+- Nově:
+  - `dialog_frame_open.png` je stejný rám s průhledným středem; maska vznikla flood fillem olivového pergamenu, okraje jsou vyhlazené.
+  - `mulligan_bronz.jpg` je samostatně malovaná deska, Krea + darkmage, 1680×720: patina, jemné škrábance, slabě vyryté runy a filigrán u okrajů. Původně modrošedou malbu jsem gradientní mapou převedl do bronzového tónu starého pergamenu.
+  - `Modifier.frameTextureFilled()` (`PlainButton.kt`) kreslí výplň ořezem (Crop, bez roztažení) pod devítidílný rám s otvorem.
+- Použito jen v `MulliganOverlay`. Ostatní dialogy (`dialogFrame()`) se nemění.
+- Varianty (hladká rytina, tepané důlky) jsou v `design/ui_redesign/mulligan_bronz_varianty.jpg`, snímek z telefonu v `mulligan_bronz_telefon.png`.
+- Ověřeno v telefonu.
+
+## [2026-11-22] art | Zbylé avatary ve stylu darkmage
+
+- Přegenerovány i avatary, které v prvním kole chyběly: `player_icon_3/4/6/9/11` a `enemy_icon_3`. Dávka `avatary_zbytek`, přehled `design/regen/avatary_zbytek.jpg`.
+- Témata zůstala, ale liší se od ostatních avatarů: obsidiánová lebka s rudou trhlinou, rohatá démonická lebka, hrad za soumraku, runový mág, goblin s hořícími kartami, ghúl.
+- Nasazeno: 3→v2, 4→v1, 6→v1, 9→v1, 11→v3, enemy 3→v2.
+- Zmetky: brána 2/4 má v bráně kreslenou postavičku, goblin 1 má bílý roh.
+- Přegenerované jsou teď všechny `player_icon_1–16` a `enemy_icon_1–3`. `hammer_icon` je ikona UI, ne avatar.
+- Oprava čitelnosti (uživatel: text a vypnuté tlačítko „Vyměnit“ splývají):
+  - `mulligan_bronz.jpg` je tmavší a klidnější: velké světlé skvrny utlumené high-passem, rytina a škrábance zůstaly, odchylka jasu klesla z 18 na 10;
+  - texty mulliganu (podtitulek, badge, nápověda tutoriálu, timer) mají tmavý stín `MullTextStyle`;
+  - vypnuté „Vyměnit“ je železné se ztlumeným textem místo 35% bronzu. Bronzové je, až když jsou vybrané karty. „Hrát bez výměny“ má po potvrzení 75 % místo 35 %;
+  - `PlainButton` dostal parametr `disabledAlpha`, výchozí hodnota 0,35 zůstává.
+- Ověřeno v telefonu: text je čitelný, vypnuté „Vyměnit“ je železné, po výběru karty se rozsvítí bronzové.
+- Tlačítko „Vyměnit“ má pevnou šířku: `rememberTextMeasurer` změří „{mulliganSwap} (88)“ a přičte paddingy. Dřív se po výběru karty přidalo „(1)“, tlačítko se rozšířilo a řada tlačítek poskočila.
+  - `widthIn(min)` nestačil, zůstal posun 2 px; proto `width`.
+  - Ověřeno v telefonu porovnáním snímků (0 karet / 1 / 2): posun 0 px.

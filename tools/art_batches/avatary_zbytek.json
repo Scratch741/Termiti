@@ -1,0 +1,56 @@
+[
+ {
+  "art": "player_icon_3",
+  "title": "Avatar – rudá lebka",
+  "prompt": "Front view of a blackened skull wreathed in swirling black smoke, deep red light glowing inside the eye sockets and through cracks, red embers drifting. Palette: blood red, charcoal black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "Three-quarter view of a skull carved from black obsidian with a molten red crack running across it, red light pouring from the eye socket, black smoke tendrils. Palette: obsidian black, molten red. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ },
+ {
+  "art": "player_icon_4",
+  "title": "Avatar – démonická lebka",
+  "prompt": "Front view of a horned demon skull with long curved black horns, glowing orange lava veins across the bone, fire in the eye sockets. Palette: lava orange, black, bone. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "A cracked ram-horned skull resting on a pile of ash, molten orange light seeping from its cracks and jaw, sparks rising. Palette: ember orange, ash grey, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ },
+ {
+  "art": "player_icon_6",
+  "title": "Avatar – hrad v soumraku",
+  "prompt": "A dark gothic castle on a high cliff at dusk, many small warm windows lit, banners on the towers, a deep blue twilight sky with the last golden glow behind it. Palette: twilight blue, warm gold windows, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "Low-angle view of a castle gate tower at night with a glowing portcullis and two burning braziers, stars above. Palette: night blue, warm orange, stone grey. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ },
+ {
+  "art": "player_icon_9",
+  "title": "Avatar – runový mág",
+  "prompt": "Close-up of a stern old hooded wizard with a long grey beard and glowing ice-blue eyes, ice-blue runes floating around his hood, cold blue light. Palette: ice blue, silver, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "Portrait of a hooded rune sage looking down at a floating glowing blue rune in his open palm that lights his bearded face from below. Palette: rune blue, grey, deep black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ },
+ {
+  "art": "player_icon_11",
+  "title": "Avatar – šílený goblin",
+  "prompt": "Close-up of a cackling green goblin with wild orange eyes and sharp teeth, orange magic fire swirling around him and burning playing cards flying past. Palette: goblin green, fire orange, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "Portrait of a grinning goblin trickster fanning three glowing playing cards in his clawed hand, his face lit orange by them. Palette: green, orange, dark brown. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ },
+ {
+  "art": "enemy_icon_3",
+  "title": "Soupeř – ghúl",
+  "prompt": "Close-up of a pale gaunt undead ghoul with a cracked bald skull, pointed ears and glowing cyan eyes, faint cyan runes floating around him. Palette: corpse grey, cyan glow, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text.",
+  "alt": [
+   "Portrait of a pale lich-like undead with sunken cheeks and stitched scars, cyan soul fire burning in his eyes, cold mist around. Palette: bone white, cyan, black. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, dark background, no text."
+  ],
+  "count": 4
+ }
+]

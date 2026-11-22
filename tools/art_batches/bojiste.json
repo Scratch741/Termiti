@@ -1,0 +1,92 @@
+[
+ {
+  "art": "castle_background",
+  "title": "Pozadí – výchozí",
+  "prompt": "Wide panorama of dark scorched plains under a huge break in black storm clouds pouring golden god rays onto the centre, a winding dirt road from the bottom centre to distant ruins on the horizon. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of a desolate golden-brown battlefield at dusk, cracked earth, a straight old road to a broken ancient arch on the horizon, sunlight bursting through heavy clouds behind the arch. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ },
+ {
+  "art": "castle_background_citadela",
+  "title": "Pozadí – citadela",
+  "prompt": "Wide panorama of a barren dark valley, a small black gothic citadel silhouette centred on the horizon under a huge blood-red moon, purple storm clouds. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of a foggy dark plain, a black gothic citadel centred on the horizon lit from behind by a pale column of light breaking through grey clouds, crows in the sky. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ },
+ {
+  "art": "castle_background_goblin",
+  "title": "Pozadí – goblini",
+  "prompt": "Wide panorama of a golden steppe at dusk, crooked acacia trees in the middle distance, a muddy track winding to a crude goblin totem on the horizon, warm low sun behind clouds. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of a muddy trampled field at sunset, a dark pine forest edge far behind in the centre, crude wooden palisades tiny on the horizon, amber sky. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ },
+ {
+  "art": "castle_background_swamp",
+  "title": "Pozadí – bažiny",
+  "prompt": "Wide panorama of a misty magical swamp at night, glowing blue and violet pools in the middle distance, dead crooked trees far away, a pale green moon centred above the horizon. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of a haunted marsh at night, a glowing teal stream winding from the bottom centre to the horizon, low drifting fog, distant dead trees, ghost lights over the water. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ },
+ {
+  "art": "castle_background_vulcan",
+  "title": "Pozadí – sopka",
+  "prompt": "Wide panorama of a black volcanic wasteland, a dark volcano centred on the horizon with a glowing crater, rivers of lava snaking toward the viewer through the centre, red-orange sky. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of cracked black volcanic ground with glowing red lava veins, jagged obsidian spires far in the distance, a dark volcano centred under a heavy ash sky lit red from below. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ },
+ {
+  "art": "castle_background_winter",
+  "title": "Pozadí – zima",
+  "prompt": "Wide panorama of a snowy mountain plateau, jagged frozen peaks behind, a frozen path winding from the bottom centre to the horizon, pale cold sunlight breaking through clouds in the centre. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour.",
+  "alt": [
+   "Wide panorama of a frozen wasteland, ruined icy stone walls far in the distance, eerie blue glowing ice crystals, light snowfall, a cold silver light in the centre of the clouds. Side-view battlefield composition: horizon at about mid-height, the focal landmark small and centred on the horizon, open flat ground across the whole lower half; the left quarter and right quarter of the lower half stay empty and calm (two castles with walls will stand there), nothing tall at the left and right edges. No smoke columns, no flames, no burning fires painted (they will be animated separately), no people, no text. Dramatic painterly light, rich colour."
+  ],
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4
+ }
+]

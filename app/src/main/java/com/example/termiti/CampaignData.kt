@@ -830,7 +830,7 @@ object CampaignData {
                 // 1 ── 38 karet, winTarget 999, AI má extra mine útoku ─────────
                 CampaignOpponent(
                     id = "drg_warden", name = "Dračí Strážce", title = "Ochránce bran",
-                    avatar = "🐲", description = "Brána do říše. Útok a Chaos v jednom. Hrad −3.",
+                    avatar = "🐲", cardArt = "draci_strazce", description = "Brána do říše. Útok a Chaos v jednom. Hrad −3.",
                     aiCastle = 42, aiWall = 18,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -845,7 +845,7 @@ object CampaignData {
                 // 2 ── 40 karet, winTarget 999, AI má extra mine magie ─────────
                 CampaignOpponent(
                     id = "drg_shaman", name = "Dračí Šaman", title = "Mistr chaosu",
-                    avatar = "🔮", description = "Kouzlí chaosem. Sabotoval tvůj útok – důl magie −1.",
+                    avatar = "🔮", cardArt = "draci_saman", description = "Kouzlí chaosem. Sabotoval tvůj útok – důl magie −1.",
                     aiCastle = 43, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2),
                     deckCardCounts = mapOf(
@@ -864,7 +864,7 @@ object CampaignData {
                 // 3 ── 40 karet, winTarget 999, AI lízne 5 karet ──────────────
                 CampaignOpponent(
                     id = "drg_rider", name = "Dračí Jezdec", title = "Sedlo z plamenů",
-                    avatar = "🏇", description = "Startuje s 5 kartami. Hrad −3, hradby −3.",
+                    avatar = "🏇", cardArt = "draci_jezdec", description = "Startuje s 5 kartami. Hrad −3, hradby −3.",
                     aiCastle = 44, aiWall = 20,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 1, ResourceType.MAGIC to 1),
                     deckCardCounts = mapOf(
@@ -880,7 +880,7 @@ object CampaignData {
                 // 4 ── 42 karet, winTarget 999, sabotáž kamenů ────────────────
                 CampaignOpponent(
                     id = "drg_saboteur", name = "Entropický Sabotér", title = "Rozsévač chaosu",
-                    avatar = "🕵️", description = "Zničil tvůj kamenolom a vyprázdnil zásoby. Důl kamene −1.",
+                    avatar = "🕵️", cardArt = "draci_saboter", description = "Zničil tvůj kamenolom a vyprázdnil zásoby. Důl kamene −1.",
                     aiCastle = 45, aiWall = 22,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 1, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -900,7 +900,7 @@ object CampaignData {
                 // 5 ── 42 karet, winTarget 999, playerStartHand 3 ──────────────
                 CampaignOpponent(
                     id = "drg_wyrm", name = "Starý Wyrm", title = "Žijící rána",
-                    avatar = "🦎", description = "Přepadne tě dřív, než procitnete. Ruka 3, hrad −5.",
+                    avatar = "🦎", cardArt = "draci_wyrm", description = "Přepadne tě dřív, než procitnete. Ruka 3, hrad −5.",
                     aiCastle = 46, aiWall = 22,
                     aiExtraMines = mapOf(ResourceType.ATTACK to 2),
                     deckCardCounts = mapOf(
@@ -916,7 +916,7 @@ object CampaignData {
                 // 6 ── 44 karet, winTarget 999, AI lízne 5 karet ──────────────
                 CampaignOpponent(
                     id = "drg_general", name = "Dračí Generál", title = "Velitel spálené země",
-                    avatar = "👿", description = "5 karet a 3 typy dolů. Útok nebo záhuba. Hrad −5, hradby −5.",
+                    avatar = "👿", cardArt = "draci_general", description = "5 karet a 3 typy dolů. Útok nebo záhuba. Hrad −5, hradby −5.",
                     aiCastle = 48, aiWall = 25,
                     aiExtraMines = mapOf(
                         ResourceType.ATTACK to 2,
@@ -935,7 +935,7 @@ object CampaignData {
                 // 7 ── 44 karet, winTarget 999, mine útoku −1 ─────────────────
                 CampaignOpponent(
                     id = "drg_venom", name = "Jedovatý Drak", title = "Zkáza z dálky",
-                    avatar = "☠️", description = "Otráví tvůj výcvikový tábor. Důl útoku −1, hrad −5.",
+                    avatar = "☠️", cardArt = "draci_jedovaty", description = "Otráví tvůj výcvikový tábor. Důl útoku −1, hrad −5.",
                     aiCastle = 48, aiWall = 25,
                     aiExtraMines = mapOf(ResourceType.MAGIC to 2, ResourceType.ATTACK to 1),
                     deckCardCounts = mapOf(
@@ -954,7 +954,7 @@ object CampaignData {
                 // 8 ── 48 karet, winTarget 999, AI lízne 6 karet ──────────────
                 CampaignOpponent(
                     id = "drg_tyrant", name = "Dračí Tyran", title = "Ohnivý trůn",
-                    avatar = "🔱", description = "6 karet, 3 typy dolů. Legendy v balíčku. Hrad −5, hradby −5.",
+                    avatar = "🔱", cardArt = "draci_tyran", description = "6 karet, 3 typy dolů. Legendy v balíčku. Hrad −5, hradby −5.",
                     aiCastle = 50, aiWall = 28,
                     aiExtraMines = mapOf(
                         ResourceType.MAGIC  to 1,
@@ -974,7 +974,7 @@ object CampaignData {
                 // 9 ── 50 karet, winTarget 999, AI lízne 6 karet ──────────────
                 CampaignOpponent(
                     id = "drg_archon", name = "Dračí Archon", title = "Pravá ruka Impéria",
-                    avatar = "🌑", description = "6 karet, 3 doly navíc. Hrad −7, hradby −5, důl magie −1.",
+                    avatar = "🌑", cardArt = "draci_archon", description = "6 karet, 3 doly navíc. Hrad −7, hradby −5, důl magie −1.",
                     aiCastle = 52, aiWall = 30,
                     aiExtraMines = mapOf(
                         ResourceType.MAGIC  to 2,
@@ -997,7 +997,7 @@ object CampaignData {
                 // 10 BOSS ── 55 karet, winTarget 999, AI lízne 7 karet ─────────
                 CampaignOpponent(
                     id = "drg_emperor", name = "Dračí Císař", title = "Vládce věčného plamene",
-                    avatar = "🐉", description = "55 karet, 7 startovních. Drak, Démon i Chaos drak. Hrad −8, hradby −8. Jednorázová odměna: 200 XP.",
+                    avatar = "🐉", cardArt = "draci_cisar", description = "55 karet, 7 startovních. Drak, Démon i Chaos drak. Hrad −8, hradby −8. Jednorázová odměna: 200 XP.",
                     isBoss = true,
                     aiCastle = 55, aiWall = 35,
                     aiExtraMines = mapOf(

@@ -1,0 +1,90 @@
+[
+ {
+  "art": "draci_strazce",
+  "title": "Dračí Strážce",
+  "prompt": "Waist-up portrait of a dragonborn gate warden with red scales, horns and yellow reptile eyes, heavy bronze armour shaped like dragon scales, a glaive with a flaming blade, standing before a huge burning gate. Orange chaos sparks around the blade. Palette: dragon red, bronze, chaos orange. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Low-angle shot of a dragonborn warden standing in front of a colossal bronze gate shaped like a dragon's mouth, glaive planted, orange chaos sparks in the air. Palette: bronze, chaos orange, red. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_saman",
+  "title": "Dračí Šaman",
+  "prompt": "Close-up portrait of an old dragonkin shaman with grey scales and a long beard of thin tendrils, wearing a necklace of dragon teeth, holding a crystal orb crackling with bright orange chaos lightning that lights his face. Smoky volcanic cave behind. Palette: chaos orange, ash grey, deep purple shadows. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Medium shot of a dragonkin shaman dancing around a fire, chaos lightning spiralling from his raised hands into the sky, dragon-bone totems around. Palette: chaos orange, purple night, fire. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_jezdec",
+  "title": "Dračí Jezdec",
+  "prompt": "Dynamic three-quarter view of a dragon rider in black and gold armour with a winged helmet, riding a young red dragon that is diving through smoke, the rider holding a long lance, his saddle trailing flames. Burning sky at sunset. Palette: flame orange, black, gold. Game avatar portrait: rider's face clearly lit and readable even when small, main character, no text, no border.",
+  "alt": [
+   "Close-up portrait of a dragon rider with a scarred face and a winged black-gold helmet, the snout of his red dragon behind his shoulder, wind and embers. Palette: black, gold, dragon red. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_saboter",
+  "title": "Entropický Sabotér",
+  "prompt": "A hooded entropy saboteur kneeling in a ruined quarry, touching the stone ground with a glowing hand, orange chaos cracks spreading from his palm and crumbling the rocks into dust, his face half hidden by the hood, mad eyes glowing orange. Dusty brown haze. Palette: chaos orange, dusty brown, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of an entropy saboteur's masked face, the mask cracked with glowing orange chaos cracks, his eyes pure orange light, dust swirling. Palette: chaos orange, black, dust brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_wyrm",
+  "title": "Starý Wyrm",
+  "prompt": "Extreme close-up of the head of an ancient wingless wyrm emerging from a dark cave, huge cracked grey-green scales covered in moss and scars, one giant amber eye with a slit pupil staring at the viewer, smoke curling from its nostrils. Dim amber light from its eye. Palette: amber, old grey-green, black. Single creature, readable even when small, no text, no border.",
+  "alt": [
+   "Wide shot of an ancient wyrm's huge body coiled around a ruined fortress in a misty gorge, its head raised looking down, smoke from its nostrils. Palette: grey-green, mist white, amber eyes. Single creature, readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_general",
+  "title": "Dračí Generál",
+  "prompt": "Waist-up portrait of a dragon general, a tall horned dragonkin warlord with black scales and a burnt-orange war cloak, holding a war banner on a burning battlefield of scorched earth, eyes like embers, scar across the snout. Smoke and orange glow behind. Palette: scorched black, ember orange, ash grey. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a dragonkin warlord's horned black-scaled face with a burning scar, ember eyes, a burning battlefield reflected in his armour. Palette: ember orange, black, ash. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_jedovaty",
+  "title": "Jedovatý Drak",
+  "prompt": "A venomous green dragon coiled on a rocky ridge, spitting a long stream of glowing acid green venom across a valley, dripping fangs, poisonous mist around, thin membranous wings. Murky yellow-green sky. Palette: acid green, sulphur yellow, dark rock. Single creature, readable even when small, no text, no border.",
+  "alt": [
+   "Close-up of a venomous green dragon's head, acid dripping from fangs and hissing on rocks, yellow eyes, poisonous green mist. Palette: acid green, yellow, dark rock. Single creature, readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_tyran",
+  "title": "Dračí Tyran",
+  "prompt": "Low-angle portrait of a dragon tyrant, a massive dragon-headed humanoid king in golden armour sitting on a throne of molten rock, a crown fused with his horns, legendary glowing weapons on the wall behind, lava flowing at his feet. Intense lava light from below. Palette: molten gold, lava red, black obsidian. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up portrait of a dragon tyrant's face: golden horned dragon head with a crown fused into the horns, molten gold dripping, cruel ancient eyes. Lava light from below. Palette: gold, lava red, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_archon",
+  "title": "Dračí Archon",
+  "prompt": "A mysterious dragon archon: a tall robed figure with a dragon skull mask, six floating glowing orbs of magic, attack and chaos (blue, red and orange) orbiting around him, long dark robes with golden draconic embroidery, a dark eclipse sun behind. Palette: eclipse black, gold, blue red and orange orbs. Game avatar portrait: mask clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Low-angle shot of a dragon archon levitating above a ruined temple, robes flowing, dragon skull mask, rings of blue, red and orange magic orbiting around him, eclipse behind. Palette: eclipse black, gold, tri-colour magic. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_cisar",
+  "title": "Dračí Císař (boss)",
+  "prompt": "BOSS. The Dragon Emperor, ruler of the eternal flame: a colossal ancient dragon with crimson and gold scales and a crown of burning horns, perched upon a volcanic imperial palace, wings spread across the whole sky, an eternal fire burning in his chest visible through the scales, smaller dragons circling around him. Apocalyptic red-orange sky. Palette: crimson, gold, fire orange, black smoke. Single main creature, awe-inspiring, no text, no border.",
+  "alt": [
+   "BOSS. Close-up of the Dragon Emperor's colossal head: crimson and gold scales, a crown of burning horns, eyes like suns, fire glowing through the scales of his throat, smaller dragons flying past like birds. Palette: crimson, gold, fire. Single creature, awe-inspiring, no text, no border."
+  ]
+ },
+ {
+  "art": "draci_imperium",
+  "title": "Dračí impérium (lokace)",
+  "prompt": "Wide establishing shot of the dragon empire: a volcanic land of black rock and rivers of lava, an imperial palace with pagoda-like dragon-spined towers built into an erupting volcano, dragons flying through ash clouds, burning red sky. Palette: lava orange, black, ash grey, red sky. No text, no border.",
+  "alt": [
+   "Aerial view over the dragon empire: a capital city of black stone and red roofs built around a giant volcano crater, dragons perched on towers, lava rivers as streets of light, ash clouds. Palette: black stone, red roofs, lava orange. No text, no border."
+  ]
+ }
+]

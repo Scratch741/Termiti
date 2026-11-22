@@ -1,0 +1,92 @@
+[
+ {
+  "art": "castle_background",
+  "title": "Pozadí hradů – výchozí",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: rolling dark plains under a dramatic overcast sky, sun rays breaking through clouds in the centre, distant hills, scattered ruins,  Warm golden light in the centre fading to dark edges. Palette: warm gold, earthy brown, slate grey. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: a winding dirt road leading across dark scorched plains to the horizon, a huge break in black storm clouds pouring golden god rays onto the centre, . One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ },
+ {
+  "art": "castle_background_citadela",
+  "title": "Pozadí hradů – citadela",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: a barren dark valley, a black gothic citadel silhouette far away on the horizon under a blood-red moon, purple storm clouds. Palette: deep purple, blood red, black. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: a black gothic citadel on the horizon lit from behind by a column of pale light breaking through the clouds, foggy dark field in front, crows in the sky. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ },
+ {
+  "art": "castle_background_goblin",
+  "title": "Pozadí hradů – goblini",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: muddy trampled field at the edge of a dark pine forest at sunset, crooked palisades far away. Palette: amber sunset, dark pine green, mud brown. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: golden savanna-like steppe at dusk with crooked acacia trees, a muddy track winding to the horizon, crude goblin totems and fences, warm golden sun low behind clouds. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ },
+ {
+  "art": "castle_background_swamp",
+  "title": "Pozadí hradů – bažiny",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: misty magical swamp at night, dead crooked trees, glowing blue and violet pools far away, low drifting fog. Palette: glowing blue, violet, dark emerald. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: a haunted marsh at night, a glowing teal stream winding through the middle, twisted dead trees in the distance, a pale green moon behind mist, ghost lights over the water. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ },
+ {
+  "art": "castle_background_vulcan",
+  "title": "Pozadí hradů – sopka",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: volcanic wasteland, a dark volcano with a faintly glowing crater far away, rivers of lava snaking across black rock, ash falling, red-orange sky. Palette: lava orange, black rock, ash grey. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: cracked black volcanic ground with glowing red lava veins across the whole foreground, jagged obsidian spires, a dark volcano under a heavy ash sky lit red from below. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ },
+ {
+  "art": "castle_background_winter",
+  "title": "Pozadí hradů – zima",
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3,
+  "count": 4,
+  "prompt": "Wide panoramic landscape for a battlefield backdrop: snowy mountain plateau, jagged frozen peaks behind, light snowfall, pale cold sunlight breaking through clouds. Palette: snow white, ice blue, cold grey. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes.",
+  "alt": [
+   "Wide panoramic battlefield: frozen wasteland in a blizzard, distant ruined icy stone walls on the horizon, a frozen path winding to the horizon, eerie blue glowing ice crystals, dark storm clouds with a cold silver light in the centre. One continuous seamless painting. The distant landmark is small and exactly in the centre of the horizon; the foreground is wide flat open ground that runs smoothly across the entire width, with nothing tall near the left and right edges. No smoke plumes, no fire, no flames, no people, no text. Vivid dramatic colours, strong light, painterly brush strokes."
+  ]
+ }
+]

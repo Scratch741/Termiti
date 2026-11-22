@@ -1,0 +1,68 @@
+[
+ {
+  "art": "bazina_zaba",
+  "title": "Magická Žába – B",
+  "prompt": "Wide shot of a giant magical frog leaping from a lily pad into the air at night, its back covered in glowing blue runes, a trail of blue sparks and water drops. Palette: rune blue, black water, emerald. Single creature, readable even when small, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_pijavice",
+  "title": "Bahenní Pijavice – B",
+  "prompt": "A swarm of giant leeches clinging to an old wooden pier in a swamp, the biggest one pulsing with stolen red light, eerie green fog. Palette: blood red glow, sick green, black. Single main creature, readable even when small, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_carodejka",
+  "title": "Močálová Čarodějka – B",
+  "prompt": "Low-angle shot of a swamp witch standing in a boat on dark water, arms raised, green ghost lights rising from the water around her, long reed-woven hair. Palette: ghost green, black water, violet sky. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_zaklinac",
+  "title": "Krysí Zaklínač – B",
+  "prompt": "Close-up of a rat sorcerer's grinning face with crooked teeth, a fat rat on his head, holding a lit bomb near his face, yellow sick light. Palette: sickly yellow, grey, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_alchymista",
+  "title": "Bažinný Alchymista – B",
+  "prompt": "Wide shot of a swamp alchemist's hut on stilts exploding with colourful smoke from the chimney, the alchemist running out with soot on his face holding a glowing flask. Palette: red, green and violet smoke, night swamp. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_jezibaba",
+  "title": "Bahenní Ježibaba – B",
+  "prompt": "Close-up of an ancient bog hag's face lit from below by a green candle, one milky eye, a toothless grin, a crow skull necklace. Palette: candle green, wrinkled grey, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_had",
+  "title": "Močálový Had – B",
+  "prompt": "Close-up of the head of a swamp serpent emerging from duckweed, forked tongue out, venom dripping, a green slit eye reflecting the moon. Palette: venom green, black, moon silver. Single creature, readable even when small, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_bludicka",
+  "title": "Prokletá bludička – B",
+  "prompt": "A dozen floating wisp lights over a dark marsh leading a lost lantern into the water, the brightest wisp in the centre forms a cruel female face of orange flame. Palette: orange flame, spectral blue, black. Single main spirit, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_druid",
+  "title": "Mokřadní Druid – B",
+  "prompt": "Wide shot of a wetland druid standing knee-deep in water, raising his root staff, the swamp around him bursting with growing reeds and glowing flowers, golden dawn mist. Palette: golden dawn, living green, water silver. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "bazina_pan_mlhy",
+  "title": "Pán Mlhy (boss) – B",
+  "prompt": "BOSS. Close-up of the Lord of the Mist's face: a pale crowned mask of fog with two cold blue glowing eyes, his crown of ice, fog tendrils flowing like hair, ghostly faces in the mist. Palette: fog white, ice blue, black. Single main figure, readable even when small, no text, no border.",
+  "count": 2
+ },
+ {
+  "art": "magicke_baziny",
+  "title": "Magické bažiny – B",
+  "prompt": "Magical swamp at dawn from a low angle: giant lily pads glowing violet, a crooked tree with lanterns hanging from it, blue magic mist, golden first light. Palette: violet, blue mist, golden dawn. No text, no border.",
+  "count": 2
+ }
+]

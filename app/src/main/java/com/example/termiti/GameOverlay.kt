@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -37,6 +38,7 @@ import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -188,6 +190,9 @@ internal fun ResourceDelta(amount: Int, modifier: Modifier = Modifier) {
 }
 
 // ─── Mulligan Overlay ────────────────────────────────────────────────────────
+
+/** Tmavý stín pod texty mulliganu – na texturované bronzové desce by světlý text splýval. */
+private val MullTextStyle = TextStyle(shadow = Shadow(Color.Black.copy(alpha = 0.9f), Offset(0f, 2f), 6f))
 /**
  * Fáze animace mulliganu. Overlay si ji drží sám — ViewModel jen dodává ruku
  * a dostane zpět zprávu, až animace doběhne.
@@ -307,8 +312,9 @@ fun MulliganOverlay(
             modifier = Modifier
                 .scale(MULL_PANEL_SCALE)
                 // Rám „kámen + pergamen, začernalý bronz“ (návrh UI 2026-11-21) –
-                // devítidílně, rohy pevné, takže se ozdoby neořezávají.
-                .frameTexture(R.drawable.dialog_frame, srcCornerPx = 170, corner = 54.dp)
+                // devítidílně, rohy pevné, takže se ozdoby neořezávají. Střed není roztažený
+                // pergamen rámu, ale samostatná malovaná bronzová deska (mulligan_bronz, ořez Crop).
+                .frameTextureFilled(R.drawable.dialog_frame_open, R.drawable.mulligan_bronz, srcCornerPx = 170, corner = 54.dp)
                 // Nahoře jen malé odsazení: deska s nadpisem schválně přesahuje přes horní lem rámu
                 .padding(start = 36.dp, end = 36.dp, top = 6.dp, bottom = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -338,7 +344,8 @@ fun MulliganOverlay(
                     Text(
                         "${secondsLeft}s",
                         color = timerColor, fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        style = if (submitted) TextStyle.Default else MullTextStyle
                     )
                 }
             }
@@ -361,7 +368,7 @@ fun MulliganOverlay(
                         Text(
                             if (goesFirst) s.mulliganYouFirst else "⏳ ${s.mulliganOpponentFirst}",
                             color = if (goesFirst) Teal else TextMuted,
-                            fontSize = 10.sp, fontWeight = FontWeight.Bold
+                            fontSize = 10.sp, fontWeight = FontWeight.Bold, style = MullTextStyle
                         )
                     }
                     submitted -> Text(
@@ -369,11 +376,11 @@ fun MulliganOverlay(
                             s.mulliganWaitingOpponentTimer.format(waitingSecondsLeft)
                         else
                             s.mulliganWaitingOpponent,
-                        color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center
+                        color = Teal, fontSize = 10.sp, textAlign = TextAlign.Center, style = MullTextStyle
                     )
                     tutorialHint != null -> Text(
                         tutorialHint,
-                        color = Gold, fontSize = 11.sp, lineHeight = 15.sp, textAlign = TextAlign.Center,
+                        color = Gold, fontSize = 11.sp, lineHeight = 15.sp, textAlign = TextAlign.Center, style = MullTextStyle,
                         modifier = Modifier.widthIn(max = 430.dp)
                     )
                     else -> Text(
@@ -384,7 +391,7 @@ fun MulliganOverlay(
                                 s.mulliganSelected.format(selectedIds.size),
                             boldColor = Gold
                         ),
-                        color = TextPrimary, fontSize = 10.sp, textAlign = TextAlign.Center
+                        color = TextPrimary, fontSize = 10.sp, textAlign = TextAlign.Center, style = MullTextStyle
                     )
                 }
             }
@@ -500,14 +507,24 @@ fun MulliganOverlay(
             // zmenšilo panel a posunulo karty výš/níž hned po odeslání.
             val locked     = submitted || busy
             val canConfirm = selectedIds.isNotEmpty() && !locked
+            // Šířka „Vyměnit“ podle nejdelší varianty textu („… (88)“) – počet vybraných
+            // karet tak tlačítko nerozšíří a řada tlačítek neposkočí.
+            val swapMeasurer = rememberTextMeasurer()
+            val swapMinWidth = with(LocalDensity.current) {
+                swapMeasurer.measure(
+                    "${s.mulliganSwap} (88)",   // o číslici navíc: měření vychází o pár px užší než vykreslený text
+                    TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                ).size.width.toDp()
+            } + 44.dp   // + paddingH 22 dp z obou stran
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val canSkip = !locked && forcedCardBaseId == null
                 PlainButton(
                     text      = s.mulliganPlayNoSwap,
                     buttonRes = R.drawable.button_iron,
-                    textColor = if (canSkip) Gold else TextMuted.copy(alpha = 0.3f),
+                    textColor = if (canSkip) Gold else TextMuted.copy(alpha = 0.6f),
                     fontSize  = 11.sp,
                     enabled   = canSkip,
+                    disabledAlpha = 0.75f,   // na bronzové desce by 35 % tlačítko schovalo
                     paddingH  = 22.dp,
                     paddingV  = 10.dp,
                     onClick   = {
@@ -519,12 +536,14 @@ fun MulliganOverlay(
                 )
                 PlainButton(
                     text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
-                    modifier  = Modifier.tutorialGlow(forcedCardBaseId != null && canConfirm, corner = 5.dp),
-                    buttonRes = R.drawable.button_bronze,
-                    // Bronzové hlavní tlačítko: tmavý text; dokud není co měnit, je celé ztlumené (enabled=false → 35 %)
-                    textColor = BronzeButtonText,
+                    modifier  = Modifier.width(swapMinWidth).tutorialGlow(forcedCardBaseId != null && canConfirm, corner = 5.dp),
+                    // Bronzové hlavní tlačítko s tmavým textem. Dokud není co měnit, je železné
+                    // se ztlumeným textem: bronz na bronzové desce mulliganu splýval.
+                    buttonRes = if (canConfirm) R.drawable.button_bronze else R.drawable.button_iron,
+                    textColor = if (canConfirm) BronzeButtonText else TextMuted.copy(alpha = 0.6f),
                     fontSize  = 11.sp,
                     enabled   = canConfirm,
+                    disabledAlpha = 0.75f,
                     paddingH  = 22.dp,
                     paddingV  = 10.dp,
                     onClick   = {

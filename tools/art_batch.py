@@ -71,18 +71,26 @@ def run(workflow, out_node, dest, timeout=600):
     raise TimeoutError(pid)
 
 
-def krea(prompt, seed, dest):
+def krea(prompt, seed, dest, aspect='1:1 (Square)', size=(512, 512), mp=1):
     w = json.load(open(KREA, encoding='utf-8'))
     for k in ['30:16', '30:17', '30:18', '30:19', '30:20', '30:21', '30:24', '30:27', '30:28']:
         w.pop(k, None)                                   # bez přepisu promptu přes Qwen
     w['30:6']['inputs']['text'] = prompt
     w['30:23']['inputs']['value'] = False                # bez LoRA darkbrush
     w['30:3']['inputs']['seed'] = seed
-    w['49']['inputs']['aspect_ratio'] = '1:1 (Square)'
-    w['49']['inputs']['megapixels'] = 1                  # 1024×1024 → zmenší se na 512
+    w['49']['inputs']['aspect_ratio'] = aspect
+    w['49']['inputs']['megapixels'] = mp                 # 1 MP (čtverec 1024×1024 → zmenší se na 512)
     w['29']['inputs']['filename_prefix'] = 'claude/batch'
     run(w, '29', dest)
-    Image.open(dest).convert('RGB').resize((512, 512), Image.LANCZOS).save(dest)
+    im = Image.open(dest).convert('RGB')
+    tw, th = size                                       # ořez na cílový poměr (na střed) a zmenšení
+    if im.width / im.height > tw / th:
+        nw = round(im.height * tw / th); im = im.crop(((im.width - nw) // 2, 0, (im.width + nw) // 2, im.height))
+    else:
+        nh = round(im.width * th / tw); im = im.crop((0, (im.height - nh) // 2, im.width, (im.height + nh) // 2))
+    if im.size != (tw, th) and (tw < im.width or th < im.height):
+        im = im.resize((tw, th), Image.LANCZOS)
+    im.save(dest)
 
 
 def light(src, dest):
@@ -99,13 +107,22 @@ def load_batch(path):
         it.setdefault('count', 4)
         it.setdefault('styles', ['darkmage'])
         it.setdefault('title', it['art'])
+        # Volitelně pro ne-čtvercovou grafiku (pozadí, rub karty…): "aspect" = volba
+        # ResolutionSelectoru ('16:9 (Widescreen)', '21:9 (Ultrawide)', '2:3 (Portrait Photo)'…),
+        # "size" = [š, v] výsledku (ořez na poměr + zmenšení), "mp" = megapixely generování.
+        it.setdefault('aspect', '1:1 (Square)')
+        it.setdefault('size', [512, 512])
+        it.setdefault('mp', 1)
     return items
 
 
-def full_prompt(it):
+def full_prompt(it, v=1):
+    """Prompt varianty v (1..count). Položka může mít "alt": [další pojetí…] – varianty se
+    mezi pojetími střídají (v1 = prompt, v2 = alt[0], …), aby se lišily víc než jen seedem."""
     styles = json.load(open(STYLES_FILE, encoding='utf-8')) if os.path.exists(STYLES_FILE) else {}
     extra = [styles[s]['text'] if isinstance(styles.get(s), dict) else styles.get(s, '') for s in it['styles']]
-    return ', '.join([it['prompt']] + [e for e in extra if e])
+    prompts = [it['prompt']] + it.get('alt', [])
+    return ', '.join([prompts[(v - 1) % len(prompts)]] + [e for e in extra if e])
 
 
 def variant_path(it, tag, v):
@@ -129,7 +146,8 @@ def sheet(rows, dest, sz=260, lab=190):
         for v, p in enumerate(paths):
             x = lab + v * (sz + 8)
             if os.path.exists(p):
-                o.paste(Image.open(p).convert('RGB').resize((sz, sz)), (x, y))
+                im = Image.open(p).convert('RGB'); im.thumbnail((sz, sz))
+                o.paste(im, (x + (sz - im.width) // 2, y + (sz - im.height) // 2))
             d.rectangle((x, y, x + 34, y + 36), fill='black'); d.text((x + 9, y + 3), str(v + 1), fill='white', font=f)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     o.save(dest)
@@ -141,13 +159,12 @@ def cmd_gen(batch, only):
     tag = os.path.splitext(os.path.basename(batch))[0]
     rows = []
     for it in items:
-        prompt = full_prompt(it)
         base = random.randint(1, 2**40)
         paths = []
         for v in range(1, it['count'] + 1):
             p = variant_path(it, tag, v)
             print(f'{it["title"]}: varianta {v}/{it["count"]}…', flush=True)
-            krea(prompt, base + v, p)
+            krea(full_prompt(it, v), base + v, p, it['aspect'], tuple(it['size']), it['mp'])
             paths.append(p)
         it['seeds'] = [base + v for v in range(1, it['count'] + 1)]
         rows.append((it['title'], paths))

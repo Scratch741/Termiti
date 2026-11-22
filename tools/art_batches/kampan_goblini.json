@@ -1,0 +1,62 @@
+[
+  {
+    "art": "goblin_pruzkumnik",
+    "title": "Goblin Průzkumník",
+    "prompt": "Waist-up portrait of a small scrawny cocky goblin scout with a too-big leather hood, one torn ear, a crooked grin full of needle teeth, peeking out from behind a mossy tree trunk with a tiny rusty dagger. Misty early morning forest, cold blue-green dawn light with a warm rim light on his face. Palette: mossy green, muddy brown, pale morning blue. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_lucistnik",
+    "title": "Goblin Lučištník",
+    "prompt": "Low-angle three-quarter view of a lanky goblin archer crouching on a muddy hilltop, drawing a crude bent shortbow, tongue sticking out in concentration, one eye squinted, feathered arrows in a sack on his back. Golden late-afternoon backlight with long shadows, warm rim light along his silhouette. Palette: ochre, olive green, warm gold. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_saman",
+    "title": "Goblin Šaman",
+    "prompt": "Close-up portrait of an old wrinkled goblin shaman wearing a bird skull headdress and bone necklaces, waving a crooked stick with feathers, eyes wide as if casting a spell, but only a few pathetic green sparks and smoke come out. Lit from below by a sickly green glow of a small bubbling pot. Palette: toxic green, bone white, dark brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_valecnik",
+    "title": "Goblin Válečník",
+    "prompt": "Medium shot of a stocky angry goblin warrior in dented mismatched armour plates, holding a big knotted wooden club with both hands because he lost his sword, snarling, a broken sword hilt hanging on his belt. Overcast grey daylight with a warm campfire glow from the side. Palette: steel grey, rust orange, mud brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_drancovac",
+    "title": "Goblin Drancovač",
+    "prompt": "Goblin looter running away from a burning village at night, seen from the side mid-stride, overloaded with stolen loot: a sack of coins, a candlestick, a chicken under his arm, a pot on his head as a helmet, greedy grin. The burning houses behind him paint everything in orange firelight. Palette: fiery orange, black smoke, gold coins. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_berserk",
+    "title": "Goblin Berserk",
+    "prompt": "Extreme close-up of a frenzied goblin berserker's face, bloodshot eyes, foam at the mouth, red war paint smeared across the face, screaming a battle cry, two rusty axes raised beside his head. Harsh red light from below, dark smoky background. Palette: blood red, black, dirty yellow. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_troll",
+    "title": "Goblin Troll",
+    "prompt": "Low-angle worm's-eye view of a huge hulking troll with grey-green warty skin and a tiny head, tearing a wooden palisade wall apart with his bare hands, splinters flying, small goblins cheering at his feet. Stormy grey sky, cold daylight with a warm rim light on his shoulders. Palette: stone grey, swamp green, raw wood brown. Game avatar portrait: the troll's face clearly lit and readable even when small, single main character, no text, no border."
+  },
+  {
+    "art": "goblin_velitel",
+    "title": "Goblin Velitel",
+    "prompt": "Waist-up portrait of a scarred goblin commander with an eyepatch and a dented iron helmet decorated with a wolf tail, pointing forward with a notched sabre and shouting orders, a tattered banner pole behind him. Warm torchlight from the left, dark tent interior behind. Palette: deep red banner, bronze, dark brown leather. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_valecny_nacelnik",
+    "title": "Goblin Válečný náčelník",
+    "prompt": "Imposing medium shot of a muscular goblin warchief wearing a cloak of wolf pelts and a necklace of skulls, resting a huge double-bladed battle axe on his shoulder, gold ring in his nose, cruel confident smile. Behind him war drums and burning braziers at night. Palette: firelight orange, bone white, dark fur brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_kral",
+    "title": "Goblin Král (boss)",
+    "prompt": "BOSS. Grand low-angle view of the fat goblin king lounging on a towering throne built from stolen treasure, broken shields and skulls, a crooked gold crown too big for his head, rings on every finger, a sceptre made from a sword. Mountains of gold coins at his feet, goblin guards with spears in the shadows. Dramatic warm golden light from braziers on both sides. Palette: rich gold, deep crimson, dark green. Single main character, no text, no border."
+  },
+  {
+    "art": "goblin_kral_profil",
+    "title": "Goblin Král – portrét",
+    "prompt": "Close-up portrait of the goblin king's face: fat green face, small greedy yellow eyes, a crooked oversized gold crown with gems, gold tooth in a smug grin, fur collar with jewels. Warm golden firelight from the side, deep dark background. Palette: gold, emerald green, crimson. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "goblin_tabor",
+    "title": "Goblinský tábor (lokace)",
+    "prompt": "Wide establishing shot of a messy goblin war camp in a dark pine forest clearing at dusk: crooked hide tents, a crude wooden palisade with skulls on spikes, a big bonfire in the middle, smoke rising, tiny goblins dancing, a ramshackle wooden throne-tower in the back. Warm orange firelight against a cold blue dusk sky. Palette: orange fire, cold dusk blue, dark pine green. No text, no border."
+  }
+]

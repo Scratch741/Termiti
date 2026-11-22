@@ -405,7 +405,9 @@ private val FULL_ART_AVATARS = setOf(
     "bazina_zaba", "bazina_pijavice", "bazina_carodejka", "bazina_zaklinac", "bazina_alchymista",
     "bazina_jezibaba", "bazina_had", "bazina_bludicka", "bazina_druid", "bazina_pan_mlhy",
     "citadela_rytir", "citadela_lucistnik", "citadela_carodej", "citadela_nekromant", "citadela_valecnik",
-    "citadela_strazce", "citadela_saboter", "citadela_drak", "citadela_general", "citadela_pan"
+    "citadela_strazce", "citadela_saboter", "citadela_drak", "citadela_general", "citadela_pan",
+    "draci_strazce", "draci_saman", "draci_jezdec", "draci_saboter", "draci_wyrm",
+    "draci_general", "draci_jedovaty", "draci_tyran", "draci_archon", "draci_cisar"
 )
 
 /** Mapuje avatar ID na drawable resource, nebo null pokud jde o emoji řetězec. */
@@ -456,6 +458,16 @@ internal fun avatarDrawableRes(avatar: String): Int? = when (avatar) {
     "citadela_drak"            -> R.drawable.citadela_drak
     "citadela_general"         -> R.drawable.citadela_general
     "citadela_pan"             -> R.drawable.citadela_pan
+    "draci_strazce"              -> R.drawable.draci_strazce
+    "draci_saman"                -> R.drawable.draci_saman
+    "draci_jezdec"               -> R.drawable.draci_jezdec
+    "draci_saboter"              -> R.drawable.draci_saboter
+    "draci_wyrm"                 -> R.drawable.draci_wyrm
+    "draci_general"              -> R.drawable.draci_general
+    "draci_jedovaty"             -> R.drawable.draci_jedovaty
+    "draci_tyran"                -> R.drawable.draci_tyran
+    "draci_archon"               -> R.drawable.draci_archon
+    "draci_cisar"                -> R.drawable.draci_cisar
     else           -> null
 }
 

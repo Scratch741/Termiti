@@ -1,0 +1,90 @@
+[
+ {
+  "art": "citadela_rytir",
+  "title": "Stínový Rytíř",
+  "prompt": "Waist-up portrait of a shadow knight in sleek black plate armour with a smoky cape, holding up a stolen glowing coin pouch with a mocking tilt of the head, his helmet visor shaped like a grinning mask, wisps of shadow leaking from the armour joints. Cold moonlight from the side, violet glow from the stolen magic. Palette: black steel, violet, moon silver. Game avatar portrait: face area clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a shadow knight's helmet with glowing violet eye slits, shadows pouring from the visor like smoke, holding a stolen gold coin between his gauntlet fingers. Dark background. Palette: violet, black, gold coin. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_lucistnik",
+  "title": "Temný Lučištník",
+  "prompt": "Side view of a hooded dark archer on a high citadel battlement drawing a longbow with a flaming arrow, the fire of the arrowhead lighting his gaunt pale face and cold eyes, black cloak flapping in the wind, storm clouds. Palette: fire orange, black, stormy grey. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a dark archer's gaunt face half hidden in a black hood, aiming at the viewer, the arrow tip right in front, cold blue moonlight and one burning arrow nearby. Palette: cold blue, black, fire orange. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_carodej",
+  "title": "Temný Čaroděj",
+  "prompt": "Close-up portrait of a dark sorcerer with a sharp bearded face and burning orange eyes, conjuring a swirling ball of black and orange fire between his hands that lights his face from below, high collar robe with gold embroidery. Dark library background. Palette: black fire, bright orange, gold. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Wide low-angle shot of a dark sorcerer standing on a tower top summoning a huge vortex of orange fire in the stormy sky, robes and beard whipped by the wind. Palette: fire orange, storm black, gold embroidery. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_nekromant",
+  "title": "Černokněžník",
+  "prompt": "Waist-up portrait of a gaunt warlock with grey skin and sunken eyes glowing green, pouring green poison from a vial onto a pile of wilting crystals, bats circling his shoulders, a staff topped with a raven skull. Sickly green light from the poison on his face. Palette: poison green, bone grey, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a warlock's skull-like grey face in a deep hood, a raven on his shoulder, one hand raised with green poisonous smoke curling around his fingers. Green glow from below, dark crypt. Palette: poison green, bone, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_valecnik",
+  "title": "Temný Válečník",
+  "prompt": "Dynamic close-up of a brutal dark warrior in spiked black armour mid-swing with a huge jagged greatsword, the blade trailing red sparks, helmet with a T-shaped visor showing glowing red eyes, blood-red cape. Dark red background with embers. Palette: blood red, black iron, ember orange. Game avatar portrait: helmet and face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Waist-up portrait of a dark warrior removing his spiked helmet: a cruel bald face with ritual scars and red eyes, the greatsword resting on his shoulder. Red light from burning ruins behind. Palette: blood red, black iron, ember. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_strazce",
+  "title": "Temný Strážce",
+  "prompt": "Front view of a dark guardian knight standing in a citadel gate, a huge black tower shield with a silver skull emblem in one hand and a halberd in the other, heavy armour, helmet with a crest of black feathers. Cold blue torchlight from the sides, gate portcullis behind. Palette: cold blue, silver, black. Game avatar portrait: helmet clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Low-angle shot of a dark guardian standing on a narrow bridge to the citadel, shield and halberd crossed, black feathered helmet, red banners behind him, storm clouds. Palette: black, crimson banners, storm grey. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_saboter",
+  "title": "Sabotér",
+  "prompt": "Over-the-shoulder close-up of a sly masked saboteur in dark leather sneaking through a storeroom, cutting the rope of supply sacks with a curved knife, a lit fuse of a barrel glowing beside him, sharp eyes over a black cloth mask looking back at the viewer. Single candle light, deep shadows. Palette: candle gold, black leather, smoke grey. Game avatar portrait: eyes clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Waist-up portrait of a saboteur in a black hood and mask holding a small bomb with a sparkling fuse close to his face, the sparks lighting his sharp eyes, a smirk visible in his eyes. Dark background. Palette: spark gold, black, smoke grey. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_drak",
+  "title": "Ohnivý Drak",
+  "prompt": "A huge fire dragon perched on top of a black citadel tower, wings spread wide against a red night sky, breathing a torrent of fire downwards, glowing cracks of magma between its black scales, burning eyes. Palette: magma red, fire orange, black. Single creature, awe-inspiring, readable even when small, no text, no border.",
+  "alt": [
+   "Close-up of a fire dragon's head, glowing magma cracks between black scales, molten eyes, open jaws with fire building up in the throat, smoke. Palette: magma orange, black, red. Single creature, readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_general",
+  "title": "Temný Generál",
+  "prompt": "Waist-up portrait of the Dark General, the Lord's right hand: an older commander with a cold scarred face and short silver hair, black armour with crimson trim, a long fur-collared cape, a war banner with a black sun behind him, armies with torches in the dark valley below. Red battlefield glow on one side of his face, cold light on the other. Palette: crimson, black, silver. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Dark General on a black warhorse at the head of an army, raising his sword, crimson cape, burning citadel walls behind, low angle. Palette: crimson, fire orange, black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "citadela_pan",
+  "title": "Temný Pán (boss)",
+  "prompt": "BOSS. The Dark Lord, ruler of darkness, standing on the top of the black citadel throne room in front of a giant round window with a blood-red moon: an enormous armoured figure with a crown of black spikes, a flowing cape of living shadow, purple and black magic swirling around his raised gauntlet, a demon and a dragon silhouetted in the window behind him. Palette: black, deep purple, blood red moon. Single main character, awe-inspiring, no text, no border.",
+  "alt": [
+   "BOSS. Close-up of the Dark Lord's face: a pale ancient face with burning purple eyes inside a black spiked crown-helmet, shadow tendrils around, the reflection of a red moon in his eyes. Palette: black, purple, blood red. Game avatar portrait: face clearly lit and readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "temna_citadela",
+  "title": "Temná citadela (lokace)",
+  "prompt": "Wide establishing shot of a black gothic citadel on a jagged mountain peak under a blood-red moon, sharp spires, a winding road with torches leading up to the gate, a dragon circling the highest tower, storm clouds with lightning. Palette: black, blood red moon, cold purple storm. No text, no border.",
+  "alt": [
+   "Inside the dark citadel's throne hall: an enormous gothic nave with black pillars, an empty spiked throne at the end under a red stained-glass window, purple mist on the floor, chains. Palette: black, purple mist, blood red glass. No text, no border."
+  ]
+ }
+]

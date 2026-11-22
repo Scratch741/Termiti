@@ -1,0 +1,42 @@
+[
+ {
+  "art": "art_prastary_kolos",
+  "title": "Prastarý kolos (140)",
+  "prompt": "Wide low-angle shot of an ancient dormant stone colossus sitting cross-legged as part of a mountain fortress wall, moss and ivy covering its huge shoulders, a castle built on its back and arms, fortified walls rising around it, faint amber runes sleeping on its chest. Golden late afternoon light, distant birds. Palette: weathered stone grey, moss green, warm gold. The colossus is the single clear subject, centered composition, no text."
+ },
+ {
+  "art": "art_probuzeni_kolosu",
+  "title": "Probuzení kolosu (141)",
+  "prompt": "Close-up of the face of a giant stone colossus waking up: its huge carved eyes opening and glowing with three colours of magic – blue, red and gold – rocks and dust cracking off its cheeks, glowing runes lighting up across its brow, small birds fleeing. Dramatic light from its eyes in a dusky sky. Palette: grey stone, glowing blue red and gold, dusky violet. The face is the single clear subject, no text."
+ },
+ {
+  "art": "art_uder_kolosu",
+  "title": "Úder kolosu (142)",
+  "prompt": "Dynamic worm's-eye view of a gigantic stone fist of a colossus crashing down onto an enemy castle, the castle shattering into flying blocks and dust, a shockwave ring of debris, cracks of glowing amber light in the fist. Stormy sky torn open by the impact. Palette: stone grey, glowing amber, storm blue. The fist is the single clear subject, no text."
+ },
+ {
+  "art": "art_placeholder_magie",
+  "title": "Záložní art – magie",
+  "prompt": "Abstract emblem art for the magic resource: a swirling vortex of bright blue arcane energy with floating rune circles and crystal shards, vibrant highly saturated glowing blue magic light dominates the image, dark background. Painterly, centered, no text."
+ },
+ {
+  "art": "art_placeholder_utok",
+  "title": "Záložní art – útok",
+  "prompt": "Abstract emblem art for the attack resource: a volley of flaming red arrows and sword slashes streaking diagonally across a burning battlefield, red and orange fire, sparks. Painterly, dynamic, no text."
+ },
+ {
+  "art": "art_placeholder_kamen",
+  "title": "Záložní art – kámen",
+  "prompt": "Abstract emblem art for the stone resource: a massive rough boulder of granite with golden mineral veins standing on cracked earth, warm golden dust light from above, small rocks floating around it. Painterly, centered, no text."
+ },
+ {
+  "art": "art_placeholder_chaos",
+  "title": "Záložní art – chaos",
+  "prompt": "Abstract emblem art for the chaos resource: an explosive spiral of bright orange chaos magic with crackling orange lightning and embers, unstable and violent, dark background. Painterly, centered, no text."
+ },
+ {
+  "art": "art_default",
+  "title": "Výchozí art (karta bez obrázku)",
+  "prompt": "A mysterious unopened ancient tome lying on a stone altar, its cover blank and sealed with a bronze clasp, a faint question-like swirl of grey mist above it, single candle light. Painterly, centered, muted, no text, no letters."
+ }
+]

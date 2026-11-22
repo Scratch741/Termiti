@@ -1,0 +1,57 @@
+[
+  {
+    "art": "bazina_zaba",
+    "title": "Magická Žába",
+    "prompt": "Macro close-up of a fat magical swamp frog sitting on a lily pad, its throat sac glowing with bright blue arcane light, tiny glowing runes on its warty back, magic sparks around its mouth as it croaks. Night swamp, dark water reflecting the blue glow, fireflies. Palette: vibrant blue magic, dark emerald, black water. Single creature, readable even when small, no text, no border."
+  },
+  {
+    "art": "bazina_pijavice",
+    "title": "Bahenní Pijavice",
+    "prompt": "Unsettling close-up of a giant swamp leech rising out of murky brown water, its round mouth full of rings of tiny teeth facing the viewer, glistening slimy body, faint purple glow of stolen magic pulsing inside its translucent belly. Foggy grey-green swamp light from above. Palette: murky brown, sickly olive, faint purple. Single creature, readable even when small, no text, no border."
+  },
+  {
+    "art": "bazina_carodejka",
+    "title": "Močálová Čarodějka",
+    "prompt": "Waist-up portrait of a pale swamp witch with long tangled black hair woven with reeds and small bones, stirring a bubbling cauldron, green poisonous steam rising and lighting her face from below, sly knowing smile, a crow on her shoulder. Dark hut interior with dried herbs hanging. Palette: poison green, bone white, deep violet shadows. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "bazina_zaklinac",
+    "title": "Krysí Zaklínač",
+    "prompt": "Medium shot of a hunched rat-catcher sorcerer in a ragged patched coat with dozens of pockets, rats crawling over his shoulders and arms, holding a small black round bomb with a lit fuse in one hand and a rat-shaped amulet glowing sickly yellow in the other, mad grin. Foggy swamp at dusk with a lantern light. Palette: sickly yellow, rotten brown, grey fog. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "bazina_alchymista",
+    "title": "Bažinný Alchymista",
+    "prompt": "Close-up of a wild-eyed bald swamp alchemist with soot-stained goggles pushed up on his forehead, holding up a glass flask with a glowing bright red bubbling liquid right in front of his face, the red light illuminating his excited manic grin, wooden workbench with tubes and jars behind him. Palette: glowing red potion, brass, murky green. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "bazina_jezibaba",
+    "title": "Bahenní Ježibaba",
+    "prompt": "Low-angle portrait of an ancient crooked bog hag with a long hooked nose and one milky eye, wild grey hair, pointing a bony finger at the viewer casting a curse, purple curse smoke curling from her fingertip, a staff with a hanging lantern. Cold moonlight from behind, violet glow on her face. Palette: curse purple, moon silver, black bog. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "bazina_had",
+    "title": "Močálový Had",
+    "prompt": "Side view of a giant swamp serpent rearing up out of black water, mouth wide open showing long dripping fangs, green venom dripping into the water, scales iridescent green and black, yellow slit eye. Moonlit fog, green glow from the venom. Palette: venom green, black, silver moonlight. Single creature, readable even when small, no text, no border."
+  },
+  {
+    "art": "bazina_bludicka",
+    "title": "Prokletá bludička",
+    "prompt": "A cursed will-o'-the-wisp: a ghostly small female spirit made of pale blue and orange flame floating above a dark marsh, her face sad and cruel, flaming hair flowing upward, holding a burning playing card that crumbles into embers. Dark night swamp, her own light is the only light. Palette: spectral blue, chaos orange, black. Single spirit, readable even when small, no text, no border."
+  },
+  {
+    "art": "bazina_druid",
+    "title": "Mokřadní Druid",
+    "prompt": "Waist-up portrait of an old wetland druid whose long beard is made of moss and reeds, antlers of twisted roots growing from his head, wooden staff sprouting fresh glowing green leaves, eyes closed in calm meditation, fireflies around him. Soft golden-green light falling through swamp trees. Palette: living green, warm gold, bark brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  },
+  {
+    "art": "bazina_pan_mlhy",
+    "title": "Pán Mlhy (boss)",
+    "prompt": "BOSS. A towering spectral Lord of the Mist rising out of the swamp: a tall crowned figure made of swirling grey-white fog, a pale crown of ice, two cold glowing blue eyes in a featureless face, long misty arms reaching out, the fog around him forming faint ghostly faces. Huge pale moon behind, black dead trees. Palette: pale fog white, cold blue glow, black. Single main figure, awe-inspiring, no text, no border."
+  },
+  {
+    "art": "magicke_baziny",
+    "title": "Magické bažiny (lokace)",
+    "prompt": "Wide establishing shot of magical swamps at twilight: dark water pools glowing with bright blue and violet magic from below, crooked trees with hanging moss, floating wisps of light, a ruined stone shrine half sunken in the mud, mist drifting low. Palette: glowing blue and violet magic, dark emerald, purple twilight sky. No text, no border."
+  }
+]

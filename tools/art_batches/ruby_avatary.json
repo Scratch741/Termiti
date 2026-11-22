@@ -1,0 +1,39 @@
+[
+ {
+  "art": "card_back_baziny",
+  "title": "Rub – bažiny (nový)",
+  "prompt": "A playing card back design: dark emerald lacquer with a tarnished silver frame of twisting roots, reeds and lily pads, in the centre a large glowing turquoise orb with swirling magic mist and a ring of small glowing fireflies. The complete card is fully visible and centred with rounded corners and an ornate frame complete on all four sides, surrounded by a plain flat pure white background margin. Strictly symmetrical, front view, flat, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "alt": [
+   "A playing card back design: deep teal-black with a silver frame shaped like curling swamp vines and a frog skull at the top, in the centre a glowing violet and blue will-o-wisp flame inside a silver ring. The complete card is fully visible and centred with rounded corners and an ornate frame complete on all four sides, surrounded by a plain flat pure white background margin. Strictly symmetrical, front view, flat, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters."
+  ],
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ],
+  "count": 4
+ },
+ {
+  "art": "card_back_trpaslik",
+  "title": "Rub – trpaslíci (nový)",
+  "prompt": "A playing card back design: dark granite slab with a heavy polished gold dwarven frame of angular knotwork and rivets, in the centre a big glowing ice-blue rune crystal set in a gold hammer-and-anvil emblem. The complete card is fully visible and centred with rounded corners and an ornate frame complete on all four sides, surrounded by a plain flat pure white background margin. Strictly symmetrical, front view, flat, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "alt": [
+   "A playing card back design: dark blue enamel with a bronze and gold frame of interlocking dwarven geometric patterns and mountain peaks at the top, in the centre a glowing orange forge rune inside a gold hexagon. The complete card is fully visible and centred with rounded corners and an ornate frame complete on all four sides, surrounded by a plain flat pure white background margin. Strictly symmetrical, front view, flat, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters."
+  ],
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ],
+  "count": 4
+ },
+ {
+  "art": "player_icon_8",
+  "title": "Avatar – temný mág (učedník)",
+  "count": 4,
+  "prompt": "Head-and-shoulders portrait of a sinister hooded disciple sorcerer: a tall pointed black hood with a blood-red inner lining, the face hidden in pitch-black shadow with only two glowing yellow eyes, a high golden collar with a red gem clasp, black and crimson robes with gold trim, dark violet background with faint red magic sparks. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "alt": [
+   "Head-and-shoulders portrait of a dark cult disciple in a black hood lined with red, his face a dark void with burning yellow eyes, a gold ornamental collar and red tabard with a golden emblem, raising one clawed hand glowing with orange fire at the edge of the frame. Game avatar portrait, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text."
+  ]
+ }
+]

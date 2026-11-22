@@ -1,0 +1,90 @@
+[
+ {
+  "art": "hory_hornik",
+  "title": "Horník",
+  "prompt": "Waist-up portrait of a stout dwarf miner with a soot-blackened face and a braided ginger beard, a candle stuck on his iron helmet, a pickaxe over his shoulder, cheerful tired smile, glittering ore in the rock wall behind. Warm candle and lantern light in a dark mine tunnel. Palette: warm amber, coal black, copper. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a dwarf miner's face emerging from a dark tunnel, holding up a glowing blue crystal ore that lights his soot-covered face and ginger braids, eyes wide with joy. Cold blue crystal light against warm darkness. Palette: crystal blue, coal black, copper. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_tesar",
+  "title": "Trpasličí Tesař",
+  "prompt": "Medium shot of a busy dwarf carpenter hammering sharpened logs into a palisade in a blur of speed, wood shavings and sawdust flying, a pencil behind his ear, leather apron full of nails, blond beard tucked into his belt. Bright cold mountain daylight with fresh snow behind. Palette: fresh pine wood gold, snow white, sky blue. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Top-down view of a dwarf carpenter kneeling on a half-built log palisade, measuring with a ruler, axe in his belt, looking up at the viewer with a proud grin, piles of sharpened logs around. Warm golden sunset light. Palette: gold, pine brown, dusk purple. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_strazce",
+  "title": "Kamenný Strážce",
+  "prompt": "Front view of a massive dwarf guardian in thick slab-like stone-grey plate armour with a tower shield as tall as himself, planted like a wall in a narrow mountain pass gate, only his stern eyes and grey beard visible through the visor. Low cold blue light, warm torches in the gate behind him. Palette: granite grey, cold steel blue, warm torch orange. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Close-up of a dwarf guardian's helmet and face behind the edge of a huge stone-grey shield covered with arrow marks and dents, determined eyes, snow on his shoulders. Grey blizzard light with a warm rim light. Palette: snow grey, iron, warm rim. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_kovar",
+  "title": "Trpasličí Kovář",
+  "prompt": "Close-up of a muscular dwarf blacksmith with a singed black beard, striking a glowing orange blade on an anvil, sparks exploding around his face, sweat glistening, leather apron and tongs. Intense orange forge light from below, dark smithy. Palette: molten orange, black iron, leather brown. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Medium shot of a dwarf smith quenching a red-hot sword in a barrel, a burst of white steam around him, his face lit orange from the forge behind, braided black beard, muscular arms. Palette: forge orange, steam white, iron black. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_ranger",
+  "title": "Horský Ranger",
+  "prompt": "Silhouette-heavy shot from behind and side of a dwarf mountain ranger in a white fur cloak standing on a snowy cliff edge above a deep pass, crossbow on his back, looking down at a battering ram crew below, his face in profile lit by the setting sun. Cold blue snow and pink-orange sunset sky. Palette: snow white, cold blue, sunset pink. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Waist-up portrait of a dwarf ranger with frost in his red beard, a fur hood and a crossbow, looking sharply to the side as if spotting enemies, snowy pine branches around. Cold blue moonlight with a warm lantern on his belt. Palette: ice blue, red beard, lantern orange. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_bojovnik",
+  "title": "Horský Bojovník",
+  "prompt": "Dynamic low-angle shot of a battle-scarred dwarf veteran warrior mid-charge, roaring, swinging a heavy two-handed axe, braided grey beard flying, chainmail and a horned helmet, snow and stone chips flying. Harsh cold daylight with a red rim light. Palette: steel grey, blood red, snow white. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Waist-up portrait of an old dwarf veteran resting both hands on the haft of his battle axe, scarred face with one eye, grey braided beard, battered horned helmet, calm grim stare. Warm campfire light at night. Palette: fire orange, steel grey, dark night. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_mag",
+  "title": "Trpasličí Mág",
+  "prompt": "Waist-up portrait of a dwarf rune mage with a long white beard decorated with silver rings, holding a glowing blue rune-carved stone that cracks a quarry rock beside him, runes floating in the air, deep blue robe. Lit by the bright blue rune glow in a dark stone hall. Palette: bright rune blue, silver, dark granite. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Low-angle shot of a dwarf rune mage raising his staff, a huge circle of glowing golden runes in the air above him, his white beard blowing, a cracked quarry wall behind. Golden rune light. Palette: rune gold, granite grey, deep blue night. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_general",
+  "title": "Trpasličí Generál",
+  "prompt": "Waist-up portrait of a dwarf general in ornate gold-trimmed plate armour and a red cape, leaning over a map table with stone figurines, stern commanding gaze at the viewer, a scar across his nose, braided beard with gold clasps. Warm brazier light in a war room carved into the mountain. Palette: gold, deep red, warm stone. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border.",
+  "alt": [
+   "Dwarf general standing on a stone balcony in heavy gold-trimmed armour and a red cape blowing in the wind, a dwarven army with banners in the valley below, seen from behind and side, his face in profile. Cold dawn light. Palette: red cape, gold, cold dawn blue. Game avatar portrait: face clearly lit and readable even when small, single character, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_kolos",
+  "title": "Kamenný Kolos",
+  "prompt": "Huge low-angle shot of a gigantic stone golem colossus built from mountain rock and carved dwarf runes, glowing amber runes on its chest and eyes, tiny dwarves on scaffolding at its feet for scale, standing guard before a fortress gate. Overcast sky, the amber glow lights its face. Palette: grey granite, amber glow, cold mist. Single giant, readable even when small, no text, no border.",
+  "alt": [
+   "Close-up of a stone colossus's face carved like a bearded dwarf king, eyes glowing amber, cracks and moss, a single dwarf standing on its shoulder with a torch. Night, amber glow. Palette: granite, amber, night blue. Single giant, readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "hory_thane",
+  "title": "Trpasličí Thane (boss)",
+  "prompt": "BOSS. Grand low-angle view of the dwarf Thane, lord of the mountains, seated on a massive throne carved from the living rock inside a vast hall, a golden crown with mountain-shaped spikes, magnificent long white braided beard with gold rings, a huge rune warhammer across his knees, two rows of armoured guards with torches. Golden firelight and a shaft of cold light from above. Palette: gold, granite grey, fire orange. Single main character, awe-inspiring, no text, no border.",
+  "alt": [
+   "BOSS. Close-up portrait of the dwarf Thane's face: ancient eyes full of authority, white beard braided with gold rings, a gold crown shaped like mountain peaks with a blue gem, fur and gold-plated armour, a rune warhammer handle at the edge. Warm golden firelight. Palette: gold, white, deep blue gem. Game avatar portrait: face clearly lit and readable even when small, no text, no border."
+  ]
+ },
+ {
+  "art": "trpaslici_hory",
+  "title": "Trpasličí hory (lokace)",
+  "prompt": "Wide establishing shot of a dwarven mountain fortress carved into a snowy cliff face: giant stone gates with dwarf statues, bridges over a deep chasm, glowing forge windows, banners in the wind, snow peaks behind. Cold blue morning light with warm forge glows. Palette: snow white, cold blue, warm orange windows. No text, no border.",
+  "alt": [
+   "Wide view from inside a vast dwarven hall carved in the mountain: giant pillars, rivers of molten metal in channels, chains and bridges, warm forge glow everywhere, tiny dwarves at work. Palette: molten orange, dark stone, gold. No text, no border."
+  ]
+ }
+]

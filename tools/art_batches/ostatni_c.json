@@ -1,0 +1,194 @@
+[
+ {
+  "art": "castle_background",
+  "title": "Pozadí hradů – výchozí B",
+  "prompt": "Wide panoramic battlefield: a winding dirt road leading across dark scorched plains to the horizon, a huge break in black storm clouds pouring golden god rays onto the centre, small fires glowing in the grass. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "castle_background_citadela",
+  "title": "Pozadí hradů – citadela B",
+  "prompt": "Wide panoramic battlefield: a black gothic citadel on the horizon lit from behind by a column of pale light breaking through the clouds, foggy dark field in front, crows in the sky. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "castle_background_goblin",
+  "title": "Pozadí hradů – goblini B",
+  "prompt": "Wide panoramic battlefield: golden savanna-like steppe at dusk with crooked acacia trees, a muddy track winding to the horizon, crude goblin totems and fences, warm golden sun low behind clouds. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "castle_background_swamp",
+  "title": "Pozadí hradů – bažiny B",
+  "prompt": "Wide panoramic battlefield: a haunted marsh at night, a glowing teal stream winding through the middle, twisted dead trees framing both sides, a pale green moon behind mist, ghost lights over the water. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "castle_background_vulcan",
+  "title": "Pozadí hradů – sopka B",
+  "prompt": "Wide panoramic battlefield: cracked black volcanic ground with glowing red lava veins across the whole foreground, jagged obsidian spires, a dark volcano under a heavy ash sky lit red from below. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "castle_background_winter",
+  "title": "Pozadí hradů – zima B",
+  "prompt": "Wide panoramic battlefield: frozen wasteland in a blizzard, ruined icy stone walls, a frozen path winding to the horizon, eerie blue glowing ice crystals, dark storm clouds with a cold silver light in the centre. Dramatic high contrast, strong central light source, painterly brush strokes, the lower third is open ground where castles will stand. No buildings in the foreground, no people, no text.",
+  "count": 2,
+  "aspect": "21:9 (Ultrawide)",
+  "size": [
+   1200,
+   400
+  ],
+  "mp": 1.3
+ },
+ {
+  "art": "card_back_goblin",
+  "title": "Rub karty – goblini B",
+  "prompt": "Card back design: rusty copper frame with crude spikes and rivets on dark red leather, in the centre a big glowing acid-green gem in a spiked iron sunburst. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "card_back_baziny",
+  "title": "Rub karty – bažiny B",
+  "prompt": "Card back design: dark green lacquer with a tarnished silver frame of roots and lily pads, in the centre a large glowing turquoise orb swirling with magic mist. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "card_back_trpaslik",
+  "title": "Rub karty – trpaslíci B",
+  "prompt": "Card back design: polished gold dwarven frame with heavy knotwork on dark blue enamel, in the centre a big glowing ice-blue rune crystal in a gold hexagon, gold rivets. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "card_back_citadela",
+  "title": "Rub karty – citadela B",
+  "prompt": "Card back design: black iron gothic frame with thorns and spires, deep violet velvet, in the centre a huge glowing violet crystal radiating purple light. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "card_back_drak",
+  "title": "Rub karty – drak B",
+  "prompt": "Card back design: gold dragon-wing frame on crimson dragon scales, in the centre a fiery orange dragon eye gem blazing with flames. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "card_back_frame",
+  "title": "Rub karty – výchozí B",
+  "prompt": "Card back design: obsidian black with a polished bronze gothic frame, in the centre a blazing orange chaos rune circle with a glowing core, orange sparks. Strictly symmetrical, front view, flat, fills the whole frame edge to edge, rich saturated colours, bright glowing centrepiece, painterly, no text, no letters.",
+  "count": 2,
+  "aspect": "2:3 (Portrait Photo)",
+  "size": [
+   512,
+   824
+  ]
+ },
+ {
+  "art": "player_icon_1",
+  "title": "Avatar – zkřížené meče B",
+  "prompt": "Two crossed swords plunged into a glowing anvil with flames rising behind them, sparks flying. Palette: fire orange, steel, black. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_2",
+  "title": "Avatar – lebka B",
+  "prompt": "Side view of a crowned skull on a stack of old books, a green candle flame lighting it, wisps of smoke. Palette: bone, candle green, black. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_5",
+  "title": "Avatar – temný hrad B",
+  "prompt": "Low-angle view of a dark castle tower struck by lightning, a single glowing window at the top, stormy violet sky. Palette: violet, lightning white, black. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_7",
+  "title": "Avatar – starý mág B",
+  "prompt": "Profile portrait of an old wizard looking up, holding a staff with a glowing blue crystal that lights his long beard, stars behind. Palette: night blue, crystal blue, silver. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_8",
+  "title": "Avatar – temný mág B",
+  "prompt": "Portrait of a dark mage with his face half in shadow, half lit by a swirling orange chaos flame in his raised palm, hood with gold embroidery. Palette: chaos orange, black, gold. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_10",
+  "title": "Avatar – goblin B",
+  "prompt": "Portrait of a cheeky goblin thief peeking from behind a stolen golden coin, one eye winking, big ears, warm candlelight. Palette: gold, goblin green, brown. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "player_icon_12",
+  "title": "Avatar – stínový válečník B",
+  "prompt": "Portrait of a masked shadow warrior, only glowing eyes visible above a black cloth mask, two dagger hilts over his shoulders, cold moonlight rim. Palette: moon silver, black, red eyes. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "enemy_icon_1",
+  "title": "Soupeř – rozzuřený temný B",
+  "prompt": "Portrait of a roaring dark warlord in a horned black helmet, mouth open in a war cry, fire and embers swirling behind him. Palette: fire red, black iron, ember orange. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ },
+ {
+  "art": "enemy_icon_2",
+  "title": "Soupeř – démon B",
+  "prompt": "Portrait of a demon with curved black horns and cracked skin glowing cyan from inside, a cyan flame burning above his head. Palette: cyan glow, charcoal, bone. Game avatar icon, painterly brush strokes, centered, bold silhouette readable when small, strong single light source, no text.",
+  "count": 2
+ }
+]
