@@ -93,14 +93,7 @@ fun DecisionOverlay(
                 modifier = Modifier
                     .scale(1.15f)
                     .widthIn(max = maxPanelW)
-                    .clip(RoundedCornerShape(16.dp))
-                    .then(
-                        Modifier.paint(
-                            painterResource(R.drawable.mulligan_background),
-                            contentScale = ContentScale.Crop
-                        )
-                    )
-                    .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .dialogFrame()
                     .padding(horizontal = 28.dp, vertical = 22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -110,7 +103,7 @@ fun DecisionOverlay(
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    CampaignTitle(decision.title, fontSize = 26.sp, modifier = Modifier.padding(top = 6.dp))
+                    DialogTitle(decision.title, fontSize = 22.sp)
                     if (secondsLeft != null) {
                         val timerColor = if (secondsLeft <= 10) Color(0xFFFF4444) else TextMuted
                         Text(

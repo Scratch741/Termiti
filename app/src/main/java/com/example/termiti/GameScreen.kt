@@ -399,16 +399,14 @@ fun GameScreen(
             GameDialog(onDismissRequest = { showMenuConfirm = false }) {
                 Column(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                        .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                        .dialogFrame()
                         .padding(horizontal = 28.dp, vertical = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CampaignTitle(LocalStrings.current.leaveGameQ, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
+                    DialogTitle(LocalStrings.current.leaveGameQ, fontSize = 22.sp)
                     Spacer(Modifier.height(2.dp))
-                    Text(LocalStrings.current.leaveGameMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                    Text(LocalStrings.current.leaveGameMsg, color = DialogTextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                     MenuButton(
                         label    = LocalStrings.current.settings,
                         imageRes = R.drawable.button_5,
@@ -419,7 +417,8 @@ fun GameScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         PlainButton(
                             text      = LocalStrings.current.stay,
-                            textColor = TealLight,
+                            buttonRes = R.drawable.button_bronze,
+                            textColor = BronzeButtonText,
                             fontSize  = 13.sp,
                             paddingH  = 20.dp,
                             paddingV  = 8.dp,
@@ -427,7 +426,8 @@ fun GameScreen(
                         )
                         PlainButton(
                             text      = LocalStrings.current.leave,
-                            textColor = Crimson,
+                            buttonRes = R.drawable.button_iron,
+                            textColor = HpRed,
                             fontSize  = 13.sp,
                             paddingH  = 20.dp,
                             paddingV  = 8.dp,

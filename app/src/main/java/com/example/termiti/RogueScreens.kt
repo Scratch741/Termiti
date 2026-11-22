@@ -107,26 +107,44 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    PlainButton(
-                        "Menu", modifier = Modifier.width(76.dp).height(30.dp),
-                        textColor = TextMuted, fontSize = 9.sp, paddingH = 4.dp, paddingV = 0.dp, onClick = onMenu
-                    )
-                    PlainButton(
-                        s.surrender, modifier = Modifier.width(76.dp).height(30.dp),
-                        textColor = TextMuted, fontSize = 9.sp, paddingH = 4.dp, paddingV = 0.dp,
-                        onClick = { showExitConfirm = true }
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        "${run.difficulty.displayName}  ·  " + s.rogueNext.format(run.actTitle, run.battleLabel),
-                        color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(15.dp))
-                    Text("${run.hp} / ${run.maxCastle}", color = HpGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(6.dp))
-                    Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(15.dp))
-                    Text("${run.wall}", color = StoneColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    ObsButton("Menu", Modifier.width(76.dp).height(28.dp), fontSize = 10.sp, onClick = onMenu)
+                    ObsButton(s.surrender, Modifier.width(84.dp).height(28.dp), fontSize = 10.sp, onClick = { showExitConfirm = true })
+                    // Info o běhu dostane jen zbylé místo (se zkrácením) – hrad a hradby vpravo
+                    // se tak nikdy nezalomí na dva řádky.
+                    // Dva řádky: „obtížnost · akt“ a pod tím „následuje Bitva X / 12“ – na jeden
+                    // řádek se mezi tlačítka a hrad nevešlo (končilo „následuj…“).
+                    val next  = s.rogueNext.format(run.actTitle, run.battleLabel).split("  ·  ", limit = 2)
+                    Column(
+                        Modifier.weight(1f).padding(horizontal = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "${run.difficulty.displayName}  ·  ${next[0]}",
+                            color = ObsTextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold, lineHeight = 11.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                        if (next.size > 1) Text(
+                            next[1],
+                            color = BronzeText, fontSize = 9.sp, fontWeight = FontWeight.Bold, lineHeight = 11.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    // Hrad a hradby v obsidiánové destičce
+                    Row(
+                        Modifier
+                            .height(26.dp)
+                            .obsidianSurface(5.dp, Color(0xFF070608), Color(0xFF151216), 0.97f, sheen = false)
+                            .bronzeRim(5.dp, level = 0.8f)
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Image(painterResource(R.drawable.castle_icon), contentDescription = null, modifier = Modifier.size(15.dp))
+                        Text("${run.hp}/${run.maxCastle}", color = HpGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                        Spacer(Modifier.width(4.dp))
+                        Image(painterResource(R.drawable.wall_icon), contentDescription = null, modifier = Modifier.size(15.dp))
+                        Text("${run.wall}", color = StoneColor, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                    }
                 }
                 DbSeparator()
 
@@ -145,27 +163,25 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                         ) {
                             Text(
                                 s.roguePickCard.uppercase(),
-                                color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp
+                                style = obsLabelStyle(14.sp, ObsText, 1.5.sp)
                             )
                             Text(
                                 s.roguePicksLeft.format(run.rewardCardPicksLeft),
-                                color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                                style = obsLabelStyle(14.sp, BronzeText, 1.sp)
                             )
                         }
                         RewardCardRow(run.rewardCards, Modifier.weight(1f).fillMaxWidth()) { viewModel.pickRewardCard(it) }
                         // Nová nabídka hned pod kartami, ke kterým patří
-                        PlainButton(
+                        ObsButton(
                             s.rogueReroll.format(run.rerollsLeft),
-                            modifier  = Modifier.width(210.dp).height(36.dp),
-                            textColor = if (run.rerollsLeft > 0) TealLight else TextMuted,
-                            fontSize  = 12.sp, paddingH = 4.dp, paddingV = 0.dp,
-                            enabled   = run.rerollsLeft > 0,
-                            buttonRes = R.drawable.plain_button_longer,
-                            onClick   = { viewModel.rerollRewardCards() }
+                            modifier = Modifier.width(210.dp).height(34.dp),
+                            fontSize = 12.sp,
+                            enabled  = run.rerollsLeft > 0,
+                            onClick  = { viewModel.rerollRewardCards() }
                         )
                         Spacer(Modifier.height(20.dp))
                     } else {
-                        Text(s.roguePickExtra, color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text(s.roguePickExtra.uppercase(), style = obsLabelStyle(12.sp, ObsText, 1.sp))
                         // ── Fáze 2: bonus navíc, jen po zabití bosse (volitelné) ──
                         Column(
                             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
@@ -184,12 +200,11 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                                 RogueBonusCard(resourceIconRes(ResourceType.CHAOS), s.resChaos, s.rogueNewMine, ChaosOrange) { viewModel.pickRewardBonus(RogueReward.Mine(ResourceType.CHAOS)) }
                             }
                             Spacer(Modifier.height(4.dp))
-                            PlainButton(
+                            ObsButton(
                                 s.rogueSkip,
-                                modifier  = Modifier.width(210.dp).height(36.dp),
-                                textColor = TextPrimary, fontSize = 12.sp, paddingH = 4.dp, paddingV = 0.dp,
-                                buttonRes = R.drawable.plain_button_longer,
-                                onClick   = { viewModel.skipRewardBonus() }
+                                modifier = Modifier.width(210.dp).height(34.dp),
+                                fontSize = 12.sp,
+                                onClick  = { viewModel.skipRewardBonus() }
                             )
                         }
                     }
@@ -206,7 +221,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(Modifier.widthIn(min = 150.dp).height(28.dp), contentAlignment = Alignment.Center) {
-                        Box(Modifier.matchParentSize().buttonTexture(R.drawable.plain_button))
+                        Box(Modifier.matchParentSize().obsidianSurface(5.dp, Color(0xFF1E1A1E), Color(0xFF0E0C0F), 0.97f).bronzeRim(5.dp, level = 1.1f))
                         Row(
                             Modifier.padding(horizontal = 12.dp),
                             verticalAlignment     = Alignment.CenterVertically,
@@ -215,7 +230,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
                             Image(painterResource(R.drawable.card_icon), contentDescription = null, modifier = Modifier.size(15.dp), contentScale = ContentScale.Fit)
                             Text(
                                 s.rogueYourDeck.format(run.deck.size),
-                                color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1
+                                style = obsLabelStyle(12.sp, BronzeText), maxLines = 1
                             )
                         }
                     }
@@ -237,25 +252,23 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
         GameDialog(onDismissRequest = { showExitConfirm = false }) {
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                    .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .dialogFrame()
                     .padding(horizontal = 28.dp, vertical = 22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CampaignTitle(LocalStrings.current.surrenderQ, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
+                DialogTitle(LocalStrings.current.surrenderQ, fontSize = 22.sp)
                 Spacer(Modifier.height(2.dp))
-                Text(LocalStrings.current.rogueSurrenderMsg, color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
+                Text(LocalStrings.current.rogueSurrenderMsg, color = DialogTextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlainButton(
-                        text = LocalStrings.current.stay, textColor = TealLight, fontSize = 13.sp,
+                        text = LocalStrings.current.stay, buttonRes = R.drawable.button_bronze, textColor = BronzeButtonText, fontSize = 13.sp,
                         paddingH = 20.dp, paddingV = 8.dp,
                         onClick = { showExitConfirm = false }
                     )
                     PlainButton(
-                        text = LocalStrings.current.surrender, textColor = Crimson, fontSize = 13.sp,
+                        text = LocalStrings.current.surrender, buttonRes = R.drawable.button_iron, textColor = HpRed, fontSize = 13.sp,
                         paddingH = 20.dp, paddingV = 8.dp,
                         onClick = { showExitConfirm = false; onExit() }
                     )
@@ -273,14 +286,13 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
  */
 @Composable
 private fun RewardCardRow(cards: List<Card>, modifier: Modifier = Modifier, onPick: (Card) -> Unit) {
-    // Podklad pod kartami = stejný rámeček jako Složení balíčku a Mana křivka v panelu vpravo
-    val shape = RoundedCornerShape(8.dp)
+    // Podklad pod kartami = stejný obsidiánový panel jako Složení balíčku a Mana křivka vpravo
     BoxWithConstraints(
         modifier
             .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clip(shape)
-            .background(Color.Black.copy(alpha = 0.50f))
-            .border(1.dp, Gold.copy(alpha = 0.22f), shape)
+            .obsidianSurface(8.dp, alpha = 0.82f)
+            .bronzeRim(8.dp)
+            .bronzeCorners()
             .padding(horizontal = 12.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -397,7 +409,8 @@ private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String,
         modifier = Modifier
             .width(96.dp)
             .height(108.dp)
-            .buttonTexture(R.drawable.plain_button_mini)
+            .obsidianSurface(8.dp, alpha = 0.95f)
+            .bronzeRim(8.dp, level = 0.9f)
             .clickable { SoundManager.playMenuTap(); onClick() }
             .padding(vertical = 12.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -406,7 +419,7 @@ private fun RogueBonusCard(@DrawableRes icon: Int, value: String, label: String,
         Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(24.dp))
         Spacer(Modifier.height(4.dp))
         Text(value, color = accent, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-        Text(label, color = TextMuted, fontSize = 7.5.sp, textAlign = TextAlign.Center)
+        Text(label.uppercase(), style = obsLabelStyle(7.5.sp, ObsTextMuted, 0.5.sp))
     }
 }
 
@@ -430,14 +443,12 @@ fun RogueDifficultyDialog(
     GameDialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
             modifier = Modifier
-                .clip(shape)
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.3f), shape)
-                .padding(horizontal = 18.dp, vertical = 14.dp),
+                .dialogFrame()
+                .padding(horizontal = 24.dp, vertical = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampaignTitle(s.rogueChooseDifficulty, fontSize = 24.sp)
+            DialogTitle(s.rogueChooseDifficulty, fontSize = 22.sp)
             Row(
                 Modifier.height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)

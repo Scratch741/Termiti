@@ -26,8 +26,24 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.termiti.BuildConfig
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // Paleta barev → GameColors.kt
+
+/**
+ * Úvod menu jen jednou za běh aplikace: po spuštění hry chvíli svítí v okně jen Temný
+ * mág (boční sloupce jsou vidět hned), pak se pomalu vynoří logo a tlačítka. Při návratu z jiné
+ * obrazovky se menu ukáže hned.
+ */
+private var menuIntroPlayed = false
 
 @Composable
 fun MenuScreen(
@@ -42,13 +58,26 @@ fun MenuScreen(
     val s       = LocalStrings.current
     val profile = PlayerProfileManager.profile
 
+    // 0 = mág bez loga a tlačítek, 1 = celé menu. Klepnutí kamkoli úvod přeskočí.
+    val reveal = remember { Animatable(if (menuIntroPlayed) 1f else 0f) }
+    val scope  = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        if (!menuIntroPlayed) {
+            menuIntroPlayed = true
+            delay(1000)
+            reveal.animateTo(1f, tween(1600, easing = FastOutSlowInEasing))
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val W = maxWidth
         val H = maxHeight
 
         // ── Pozadí ────────────────────────────────────────────────────────────
+        // menu_bg s Temným mágem v prostředním okně (rám, pochodně i panely pixelově
+        // stejné jako menu_bg – souřadnice pochodní níže platí beze změny)
         Image(
-            painter            = painterResource(R.drawable.menu_bg),
+            painter            = painterResource(R.drawable.menu_bg_mage),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop
@@ -108,8 +137,9 @@ fun MenuScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
+                // Bez statusBars/navigationBars paddingu: hra je přes celou obrazovku, ale
+                // při startu systémové lišty chvíli svítí a padding by po jejich skrytí
+                // posunul boční sloupce (viditelné „doskočení“).
                 .padding(vertical = H * 0.02f),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -131,7 +161,10 @@ fun MenuScreen(
 
             // ── Střed – titulek + 4 tlačítka (pevná šířka) ───────────────────
             Box(
-                modifier         = Modifier.fillMaxHeight().width(centerW).offset(x = centerShift),
+                modifier         = Modifier
+                    .fillMaxHeight().width(centerW).offset(x = centerShift)
+                    // Úvod: jen prostředek (logo + tlačítka) se pomalu vynoří, boční sloupce svítí hned
+                    .graphicsLayer { alpha = reveal.value; translationY = (1f - reveal.value) * 10.dp.toPx() },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -173,13 +206,24 @@ fun MenuScreen(
         }
 
         // ── Verze v pravém dolním rohu ────────────────────────────────────────
+        // Během úvodu: klepnutí kamkoli zobrazí menu hned (nespustí žádné tlačítko)
+        if (reveal.value < 1f) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        indication = null
+                    ) { scope.launch { reveal.snapTo(1f) } }
+            )
+        }
+
         Text(
             text     = "v${BuildConfig.VERSION_NAME}",
             color    = TextPrimary.copy(alpha = 0.75f),
             fontSize = 10.sp,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
                 .padding(end = 10.dp, bottom = 6.dp)
         )
     }

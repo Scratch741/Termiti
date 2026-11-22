@@ -3,6 +3,7 @@
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.SolidColor
@@ -70,49 +71,11 @@ import kotlinx.coroutines.launch
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SectionSeparator(modifier: Modifier = Modifier) {
-    Image(
-        painter      = painterResource(R.drawable.bg_separator),
-        contentDescription = null,
-        modifier     = modifier.fillMaxWidth(),
-        contentScale = ContentScale.FillWidth
-    )
-}
+private fun SectionSeparator(modifier: Modifier = Modifier) = BronzeDivider(modifier)
 
-/**
- * Horizontální separátor otočený o 90° pomocí layout+placeWithLayer.
- * Layout modifier swapuje width↔height constraints → Image si myslí, že je
- * horizontální, ale výsledek zabere správnou výšku a šířku jako vertikální pruh.
- */
+/** Svislý oddělovač mezi katalogem a balíčkem (bronzová linka). */
 @Composable
-private fun VerticalSeparatorImage() {
-    Image(
-        painter      = painterResource(R.drawable.bg_separator),
-        contentDescription = null,
-        contentScale = ContentScale.FillWidth,
-        modifier     = Modifier
-            .fillMaxHeight()
-            .layout { measurable, constraints ->
-                val placeable = measurable.measure(
-                    Constraints(
-                        minWidth  = constraints.minHeight,
-                        maxWidth  = constraints.maxHeight,
-                        minHeight = 0,
-                        maxHeight = if (constraints.maxWidth != Constraints.Infinity)
-                            constraints.maxWidth else constraints.maxHeight
-                    )
-                )
-                layout(placeable.height, placeable.width) {
-                    placeable.placeWithLayer(
-                        x = -(placeable.width  - placeable.height) / 2,
-                        y = -(placeable.height - placeable.width)  / 2
-                    ) {
-                        rotationZ = 90f
-                    }
-                }
-            }
-    )
-}
+private fun VerticalSeparatorImage() = BronzeDividerVertical()
 
 private fun cardFrameName(costType: ResourceType) = when (costType) {
     ResourceType.MAGIC  -> "card_frame_magic"
@@ -270,14 +233,7 @@ fun DeckBuilderScreen(viewModel: GameViewModel, onBack: () -> Unit, rogue: Boole
     }
 
     Box(Modifier.fillMaxSize()) {
-        // Hnědá kůže z bg_plain (stejná rodina jako menu a profil). Zvětšení odsune
-        // kamenný rám textury za okraj obrazovky – obsah jde až do kraje.
-        Image(
-            painter = painterResource(R.drawable.bg_plain),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = 1.13f; scaleY = 1.16f },
-            contentScale = ContentScale.FillBounds
-        )
+        DbBackground()
         Row(Modifier.fillMaxSize()) {
 
             // ── Left: album katalogu (listuje se po stránkách 4×2) ────────────
@@ -569,8 +525,9 @@ private fun TopBar(
     val focusRequester = remember { FocusRequester() }
 
     Row(
-        Modifier.fillMaxWidth().height(TOP_BAR_HEIGHT).background(DbBar.copy(alpha = 0.55f))
-            .padding(horizontal = 10.dp),
+        // Vpravo víc místa: zaoblený roh displeje jinak usekává tlačítko Šablony
+        Modifier.fillMaxWidth().height(TOP_BAR_HEIGHT).background(DbBarColor)
+            .padding(start = 10.dp, end = 26.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -594,19 +551,18 @@ private fun TopBar(
                     .width(150.dp)
                     .focusRequester(focusRequester)
                     .height(28.dp)
-                    .buttonTexture(R.drawable.plain_button)
+                    .obsidianSurface(5.dp, Color(0xFF070608), Color(0xFF151216), 0.97f, sheen = false)
+                    .bronzeRim(5.dp, level = 1.1f)
                     .wrapContentHeight()
                     .padding(horizontal = 10.dp)
             )
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
-            PlainButton(
-                text      = "✓",
-                modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 30.dp),
-                textColor = Gold,
-                fontSize  = 10.sp,
-                paddingH  = 4.dp,
-                paddingV  = 3.dp,
-                onClick   = { onRename(nameInput); isEditingName = false }
+            ObsButton(
+                text     = "✓",
+                modifier = Modifier.size(26.dp),
+                fontSize = 11.sp,
+                paddingH = 0.dp,
+                onClick  = { onRename(nameInput); isEditingName = false }
             )
         } else {
             // Ikona převládající suroviny + název; klik otevře výběr balíčku
@@ -620,7 +576,7 @@ private fun TopBar(
                     ) { SoundManager.playMenuTap(); onPickDeck() },
                 contentAlignment = Alignment.Center
             ) {
-                Box(Modifier.matchParentSize().buttonTexture(R.drawable.plain_button))
+                Box(Modifier.matchParentSize().obsidianSurface(5.dp, Color(0xFF1E1A1E), Color(0xFF0E0C0F), 0.97f).bronzeRim(5.dp, level = 1.1f))
                 Row(
                     Modifier.padding(horizontal = 12.dp),
                     verticalAlignment     = Alignment.CenterVertically,
@@ -629,46 +585,38 @@ private fun TopBar(
                     Image(painterResource(deckIconRes), contentDescription = null, modifier = Modifier.size(15.dp), contentScale = ContentScale.Fit)
                     Text(
                         deckTitle(editingDeck.name),
-                        color      = TextPrimary,
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis
+                        style    = obsLabelStyle(12.sp, BronzeText),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-            PlainButton(
-                text      = "✎",
-                modifier  = Modifier.heightIn(max = 22.dp).widthIn(max = 28.dp),
-                textColor = TextMuted,
-                fontSize  = 9.sp,
-                paddingH  = 4.dp,
-                paddingV  = 3.dp,
-                onClick   = { nameInput = editingDeck.name; isEditingName = true }
+            ObsButton(
+                text     = "✎",
+                modifier = Modifier.size(26.dp),
+                fontSize = 12.sp,
+                paddingH = 0.dp,
+                onClick  = { nameInput = editingDeck.name; isEditingName = true }
             )
         }
 
         Spacer(Modifier.weight(1f))
         if (startRunEnabled != null) {
-            PlainButton(
-                text      = LocalStrings.current.rogueStartRun,
-                modifier  = Modifier.width(96.dp).height(28.dp),
-                textColor = TealLight,
-                fontSize  = 9.sp,
-                paddingH  = 4.dp,
-                paddingV  = 0.dp,
-                enabled   = startRunEnabled,
-                onClick   = onStartRun
+            ObsButton(
+                text     = LocalStrings.current.rogueStartRun,
+                modifier = Modifier.width(104.dp).height(28.dp),
+                primary  = true,
+                fontSize = 9.sp,
+                enabled  = startRunEnabled,
+                onClick  = onStartRun
             )
         } else {
-            PlainButton(
-                text      = LocalStrings.current.dbTemplates,
-                modifier  = Modifier.width(84.dp).height(28.dp),
-                textColor = Gold.copy(alpha = 0.9f),
-                fontSize  = 9.sp,
-                paddingH  = 4.dp,
-                paddingV  = 0.dp,
-                onClick   = onShowPresets
+            ObsButton(
+                text     = LocalStrings.current.dbTemplates,
+                modifier = Modifier.width(90.dp).height(28.dp),
+                primary  = true,
+                fontSize = 10.sp,
+                onClick  = onShowPresets
             )
         }
     }
@@ -703,24 +651,24 @@ private const val CARDS_PER_PAGE = 8
 private val RAIL_CHIP  = 30.dp
 /** Výška horní lišty katalogu i hlavičky balíčku – oddělovače pod nimi musí být v jedné lince. */
 private val TOP_BAR_HEIGHT = 40.dp
-/** Podklad lišt – teplá tmavá, ladí s hnědým pozadím. */
-private val DbBar = Color(0xFF0C0806)
+/** Podklad lišt – jen lehké ztmavení obsidiánu, lišty oddělují bronzové linky. */
+private val DbBar = Color(0xFF060507)
 
 // ─── Díly rozložení sdílené s obrazovkami ve stejném stylu (odměna v roguelike) ──
 internal const val DB_CATALOG_WEIGHT = CATALOG_WEIGHT
 internal const val DB_DECK_WEIGHT    = DECK_WEIGHT
 internal val DbBarHeight: Dp get() = TOP_BAR_HEIGHT
 internal val DbBarInset: Dp get() = BAR_INSET
-internal val DbBarColor: Color get() = DbBar.copy(alpha = 0.55f)
+internal val DbBarColor: Color get() = DbBar.copy(alpha = 0.35f)
 
-/** Pozadí Tvorby balíčku: hnědá kůže z bg_plain, kamenný rám odsunutý za okraj obrazovky. */
+/** Pozadí Tvorby balíčku: černé obsidiánové sklo ztmavené do krajů (styl obsidián/bronz). */
 @Composable
 internal fun DbBackground() {
     Image(
-        painter = painterResource(R.drawable.bg_plain),
+        painter = painterResource(R.drawable.db_bg_obsidian),
         contentDescription = null,
-        modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = 1.13f; scaleY = 1.16f },
-        contentScale = ContentScale.FillBounds
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
     )
 }
 
@@ -756,19 +704,16 @@ private fun ResourceTabBar(
         Modifier
             .fillMaxWidth()
             .height(TOP_BAR_HEIGHT)
-            .background(DbBar.copy(alpha = 0.55f))
+            .background(DbBarColor)
             .padding(start = BAR_INSET, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        PlainButton(
-            text      = s.back,
-            modifier  = Modifier.width(76.dp).height(30.dp),
-            textColor = TextMuted,
-            fontSize  = 9.sp,
-            paddingH  = 4.dp,
-            paddingV  = 0.dp,
-            onClick   = onBack
+        ObsButton(
+            text     = s.back,
+            modifier = Modifier.width(80.dp).height(28.dp),
+            fontSize = 10.sp,
+            onClick  = onBack
         )
         // Obě skupiny drží pevnou šířku a sedí uprostřed zbylého místa
         Spacer(Modifier.weight(1f))
@@ -803,17 +748,8 @@ private fun RarityChip(rarity: Rarity, active: Boolean, size: Dp, onClick: () ->
             ) { SoundManager.playMenuTap(); onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini, alpha = if (active) 1f else 0.6f))
-        Box(Modifier.alpha(if (active) 1f else 0.6f)) { RarityGem(rarity, size * 0.56f) }
-        if (active) {
-            androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-                drawRoundRect(
-                    color        = ChaosOrange,
-                    style        = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
-                )
-            }
-        }
+        Box(Modifier.fillMaxSize().obsidianTile(active))
+        Box(Modifier.alpha(if (active) 1f else 0.75f)) { RarityGem(rarity, size * 0.56f) }
     }
 }
 
@@ -921,22 +857,13 @@ private fun IconChip(@DrawableRes iconRes: Int, active: Boolean, size: Dp = RAIL
             ) { SoundManager.playMenuTap(); onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini, alpha = if (active) 1f else 0.6f))
+        Box(Modifier.fillMaxSize().obsidianTile(active))
         Image(
             painter            = painterResource(iconRes),
             contentDescription = null,
-            modifier           = Modifier.size(size * 0.5f).alpha(if (active) 1f else 0.55f),
+            modifier           = Modifier.size(size * 0.54f).alpha(if (active) 1f else 0.7f),
             contentScale       = ContentScale.Fit
         )
-        if (active) {
-            androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-                drawRoundRect(
-                    color        = ChaosOrange,
-                    style        = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
-                )
-            }
-        }
     }
 }
 
@@ -953,30 +880,21 @@ internal fun CostChip(
     Box(
         modifier = Modifier
             .size(width = width, height = width)
-            .alpha(if (active || !dimInactive) 1f else 0.5f)
+            .alpha(if (active || !dimInactive) 1f else 0.8f)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) { SoundManager.playMenuTap(); onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Box(Modifier.fillMaxSize().buttonTexture(R.drawable.plain_button_mini))
+        Box(Modifier.fillMaxSize().obsidianTile(active))
         Text(
             text       = label,
-            color      = if (active) Gold else if (dimInactive) TextMuted else TextPrimary,
-            fontSize   = if (dimInactive) 9.sp else 12.sp,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+            color      = if (active || !dimInactive) BronzeText else ObsTextMuted,
+            fontSize   = if (dimInactive) 10.sp else 13.sp,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
             textAlign  = TextAlign.Center
         )
-        if (active) {
-            androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-                drawRoundRect(
-                    color        = ChaosOrange,
-                    style        = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
-                )
-            }
-        }
     }
 }
 
@@ -997,7 +915,7 @@ private fun CatalogBottomBar(
         Modifier
             .fillMaxWidth()
             .height(TOP_BAR_HEIGHT)
-            .background(DbBar.copy(alpha = 0.55f))
+            .background(DbBarColor)
             .padding(start = BAR_INSET, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -1012,7 +930,7 @@ private fun CatalogBottomBar(
         IconChip(R.drawable.lock_icon, filterUnlocked, size = 27.dp, onClick = onUnlocked)
         Text(
             "$page / $pageCount",
-            color      = TextMuted,
+            color      = ObsTextMuted,
             fontSize   = 9.sp,
             textAlign  = TextAlign.End,
             modifier   = Modifier.width(38.dp)
@@ -1039,15 +957,17 @@ private fun SearchField(query: String, onChange: (String) -> Unit) {
             Row(
                 Modifier
                     .fillMaxSize()
-                    .buttonTexture(R.drawable.plain_button_longer)
+                    // vtlačené pole: tmavší nahoře, hrana tlumenější než u tlačítek
+                    .obsidianSurface(5.dp, Color(0xFF070608), Color(0xFF151216), 0.97f, sheen = false)
+                    .bronzeRim(5.dp, level = 0.75f)
                     .padding(start = 9.dp, end = 7.dp),
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                MagnifierIcon(if (active) Gold else TextMuted, Modifier.size(12.dp))
+                MagnifierIcon(if (active) BronzeText else ObsTextMuted, Modifier.size(12.dp))
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     if (!active) {
-                        Text(LocalStrings.current.dbSearchHint, color = TextMuted.copy(alpha = 0.7f), fontSize = 10.sp, maxLines = 1)
+                        Text(LocalStrings.current.dbSearchHint, color = ObsTextMuted.copy(alpha = 0.8f), fontSize = 10.sp, maxLines = 1)
                     }
                     inner()
                 }
@@ -1488,37 +1408,39 @@ private fun CardActionPanel(
     val maxCraft     = if (collectible) minOf(card.rarity.maxCopies - realOwned, if (card.rarity.craftCost > 0) dust / card.rarity.craftCost else 0) else 0
     val maxDismantle = if (collectible) realOwned else 0
 
-    // Panel je scrollovatelný – zabraňuje oříznutí obsahu na nízkých obrazovkách (landscape).
-    // Herní textura bočního panelu (bronzový rám s medailony v rozích) kreslená po částech,
-    // aby se rohy nedeformovaly – viz sidePanelBackground. Větší padding drží text mimo rám.
+    // Rám panel_obsidian (oblý hladký bronz, drahokamy nahoře a dole, obsidiánové sklo) má
+    // pevnou velikost – stejně vysoký jako náhled karty vedle (353 dp) v poměru textury,
+    // takže stojí jako pár a medailony se nedeformují. Obsah se při nedostatku místa roluje.
     Box(
         modifier = Modifier
-            .width(210.dp)
-            // Dost vysoký na nejdelší obsah (dvouřádkový název, zůstatek prachu, Vyrobit
-            // i Rozebrat), aby se vnitřek nemusel rolovat. Rolování zůstává jako pojistka
-            // pro nižší displeje.
-            .heightIn(max = 404.dp)
-            .sidePanelBackground()
+            .size(width = 214.dp, height = 353.dp)
+            .paint(painterResource(R.drawable.panel_obsidian), contentScale = ContentScale.FillBounds)
     ) {
         // Vnější sloupec: obsah (roluje se, když se nevejde) + tlačítko připnuté dole.
         // Tlačítko je mimo rolování, takže ho žádná změna obsahu neodsune z dohledu.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                // Nahoře i dole drží obsah mimo ornamenty rámu: název sedí pod horními
-                // medailony a tlačítko Hotovo nad spodními (dřív je překrývalo).
-                .padding(start = 18.dp, end = 18.dp, top = 31.dp, bottom = 31.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                // uvnitř bronzového lemu; nahoře a dole místo pro medailony a oblé rohy
+                .padding(start = 16.dp, end = 16.dp, top = 32.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
+        // Vše se musí vejít do pevné výšky rámu bez rolování (i sběratelská karta s prachem,
+        // Vyrobit a Rozebrat) – proto úsporné mezery; rolování jen jako pojistka.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            // ── Název – na střed a stejně jako na kartě (bílý, černý obrys) ────
-            OutlinedTitle(card.displayName, Modifier.fillMaxWidth())
+            // ── Název – Cinzel, zlatavý, na střed ────────────────────────────
+            Text(
+                card.displayName.uppercase(),
+                style    = obsLabelStyle(14.sp, BronzeText, 0.8.sp).copy(lineHeight = 17.sp),
+                maxLines = 2,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // ── Rarita (drahokam z rámu karty) · cena · vlastněné kopie ──────
             Row(
@@ -1554,8 +1476,8 @@ private fun CardActionPanel(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    LocalStrings.current.dbInDeck,
-                    color = TextMuted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                    LocalStrings.current.dbInDeck.uppercase(),
+                    style = obsLabelStyle(9.sp, ObsTextMuted, 1.sp)
                 )
                 DeckCountStepper(
                     count    = deckCount,
@@ -1566,20 +1488,30 @@ private fun CardActionPanel(
                 )
             }
 
-            if (!isBasic) {
+            // Ladicí „Všechny karty odemčeny“: výroba i rozebrání jsou vypnuté (není co vyrobit
+            // a rozebírat odemčené karty by bylo zadarmo) → místo nefunkčních destiček jen poznámka.
+            if (!isBasic && !collectible) {
                 PanelSeparator()
-
+                Text(
+                    LocalStrings.current.profileUnlockAll,
+                    style    = obsLabelStyle(9.sp, ObsTextMuted, 0.5.sp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                )
+            }
+            if (collectible) {
                 val dismantleAccent = Color(0xFFE57373)
-                // Zůstatek prachu – jen když se s ním dá něco dělat. Čekající výrobu / rozebrání
-                // ukazuje TADY jako „135 → 95", ne v novém řádku: řádek navíc by po kliknutí
-                // na + posunul všechno pod sebou včetně tlačítka Potvrdit.
-                if (collectible) {
+                // Zůstatek prachu uprostřed oddělovače (bez vlastního řádku – šetří výšku).
+                // Čekající výrobu / rozebrání ukazuje TADY jako „135 → 95", ne v novém řádku:
+                // řádek navíc by po kliknutí na + posunul všechno pod sebou včetně Potvrdit.
+                run {
                     val dustAfter = dust - pendingCraft * card.rarity.craftCost + pendingDismantle * card.rarity.dustValue
                     Row(
                         Modifier.fillMaxWidth(),
                         verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.End)
+                        horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally)
                     ) {
+                        Box(Modifier.weight(1f).height(1.dp).background(Brush.horizontalGradient(listOf(Color.Transparent, Bronze.copy(alpha = 0.6f)))))
+                        Spacer(Modifier.width(4.dp))
                         Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(12.dp))
                         Text("$dust", color = if (hasPending) TextMuted else DustColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         if (hasPending) {
@@ -1590,6 +1522,8 @@ private fun CardActionPanel(
                                 fontSize = 10.sp, fontWeight = FontWeight.Bold
                             )
                         }
+                        Spacer(Modifier.width(4.dp))
+                        Box(Modifier.weight(1f).height(1.dp).background(Brush.horizontalGradient(listOf(Bronze.copy(alpha = 0.6f), Color.Transparent))))
                     }
                 }
 
@@ -1619,29 +1553,17 @@ private fun CardActionPanel(
         }   // konec rolované části
 
             // ── Hotovo – aplikuje pending akci a zavře panel (připnuté dole) ──
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .buttonTexture(R.drawable.plain_button_longer)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        SoundManager.playMenuTap()
-                        repeat(pendingCraft) { onCraft() }
-                        repeat(pendingDismantle) { onDismantle() }
-                        onClose()
-                    }
-                    .padding(vertical = 8.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)
+            // Hlavní akce = plný bronz (jako Šablony)
+            ObsButton(
+                text     = if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp).height(34.dp),
+                primary  = true,
+                fontSize = 13.sp,
+                radius   = 17.dp
             ) {
-                Image(painterResource(R.drawable.check_icon), contentDescription = null, modifier = Modifier.size(13.dp))
-                Text(
-                    if (hasPending) LocalStrings.current.dbConfirm else LocalStrings.current.dbDone,
-                    color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold
-                )
+                repeat(pendingCraft) { onCraft() }
+                repeat(pendingDismantle) { onDismantle() }
+                onClose()
             }
         }
     }
@@ -1716,16 +1638,9 @@ internal fun RarityGem(rarity: Rarity, size: Dp) {
     }
 }
 
-/** Oddělovač sekcí panelu – herní textura místo čáry. */
+/** Oddělovač sekcí panelu – bronzová linka mizející do stran. */
 @Composable
-private fun PanelSeparator() {
-    Image(
-        painter            = painterResource(R.drawable.bg_separator),
-        contentDescription = null,
-        modifier           = Modifier.fillMaxWidth().height(3.dp),
-        contentScale       = ContentScale.FillBounds
-    )
-}
+private fun PanelSeparator() = BronzeDivider(alpha = 0.6f)
 
 @Composable
 private fun PanelActionBtn(
@@ -1764,22 +1679,35 @@ private fun ActionCounter(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .buttonTexture(R.drawable.plain_button_longer)
-            .padding(horizontal = 9.dp, vertical = 6.dp),
+            .alpha(if (available) 1f else 0.55f)   // nedostupná akce (vše odemčeno, nic k výrobě) = celá ztlumená
+            // vtlačená destička: tmavší nahoře, tlumená bronzová hrana (zesílí se při volbě)
+            .obsidianSurface(14.dp, Color(0xFF080709), Color(0xFF171418), 0.97f, sheen = false)
+            .bronzeRim(14.dp, level = if (active) 1.15f else 0.65f)
+            .padding(horizontal = 7.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Image(
-            painterResource(iconRes), contentDescription = null,
-            modifier = Modifier.size(18.dp).alpha(if (available) 1f else 0.45f)
-        )
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        // Ikona akce v bronzovém medailonu
+        Box(
+            Modifier.size(22.dp).alpha(if (available) 1f else 0.5f).drawBehind {
+                val r = size.minDimension / 2
+                drawCircle(Color.Black.copy(alpha = 0.8f), r)
+                drawCircle(Brush.verticalGradient(listOf(BronzeLight, BronzeDark)), r - 0.5f)
+                drawCircle(Brush.verticalGradient(listOf(Color(0xFF2A2326), Color(0xFF0C0A0C))), r - 1.5.dp.toPx())
+            },
+            contentAlignment = Alignment.Center
+        ) {
+            // Ikony mají různé barvy (tmavé kladivo, barevný výbuch) – v medailonu jednotně bronzové
+            Image(
+                painterResource(iconRes), contentDescription = null, modifier = Modifier.size(13.dp),
+                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(BronzeLight)
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(0.dp)) {
             Text(
                 label,
-                color      = if (available) accent else TextMuted,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines   = 1
+                style    = obsLabelStyle(9.sp, if (available) accent else ObsTextMuted, 0.2.sp).copy(textAlign = TextAlign.Start),
+                maxLines = 1
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 Image(painterResource(R.drawable.dust_icon), contentDescription = null, modifier = Modifier.size(10.dp))
@@ -2102,7 +2030,8 @@ private fun CopyDots(
 
 @Composable
 private fun CountBtn(label: String, enabled: Boolean, onClick: () -> Unit) {
-    CostChip(label = label, active = enabled, width = 26.dp, onClick = { if (enabled) onClick() })
+    // Kulaté tlačítko; vypnuté (nic nejde přidat / ubrat) je výrazně ztlumené
+    ObsButton(text = label, modifier = Modifier.size(24.dp), enabled = enabled, fontSize = 13.sp, paddingH = 0.dp, radius = 12.dp, onClick = onClick)
 }
 
 /**
@@ -2160,8 +2089,6 @@ private fun DeckPanel(
     val groups = remember(deckCards) { deckCards.groupBy { it.costType } }
 
     Box(modifier) {
-        // Bez vlastní textury: rám bg_side_panels těsně vedle dělicí čáry ji zdvojoval.
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.28f)))
         Column(
             Modifier.fillMaxSize().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -2178,28 +2105,20 @@ private fun DeckPanel(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = 2.dp, bottom = 3.dp)
+                        .padding(top = 4.dp, bottom = 3.dp, start = 2.dp, end = 2.dp)
                         .height(IntrinsicSize.Min)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.50f))
-                        .border(1.dp, Gold.copy(alpha = 0.22f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                        .obsidianPanel(8.dp)
+                        .padding(horizontal = 12.dp, vertical = 9.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     DeckStats(deck, deckCards, Modifier.weight(1f), deckSize, complete, budget)
-                    Box(
-                        Modifier
-                            .fillMaxHeight()
-                            .width(1.dp)
-                            .background(Gold.copy(alpha = 0.18f))
-                    )
+                    BronzeDividerVertical(alpha = 0.55f)
                     ManaCurveChart(deck, deckCards, Modifier.weight(1f))
                 }
             }
             ResourceType.entries.forEach { type ->
                 val cards = groups[type] ?: return@forEach
                 item(key = "header_$type") {
-                    val typeColor = resColor(type)
                     Row(
                         Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 1.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -2213,16 +2132,15 @@ private fun DeckPanel(
                                 ResourceType.ATTACK -> LocalStrings.current.resAttack
                                 ResourceType.STONES -> LocalStrings.current.resStone
                                 ResourceType.CHAOS  -> LocalStrings.current.resChaos
-                            }.uppercase()} ($groupCount)",
-                            color = typeColor.copy(alpha = 0.85f),
-                            fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                            }.uppercase()}  ($groupCount)",
+                            style = obsLabelStyle(9.sp, BronzeText, 1.sp)
                         )
-                        // Gradient fade line — od barvy typu do průhledna
+                        // Bronzová linka mizející doprava; barvu suroviny nese ikona a proužky řádků
                         Box(
                             Modifier.weight(1f).height(1.dp)
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(typeColor.copy(alpha = 0.45f), Color.Transparent)
+                                        listOf(Bronze.copy(alpha = 0.55f), Color.Transparent)
                                     )
                                 )
                         )
@@ -2305,6 +2223,9 @@ private fun CardCostBadge(card: Card, size: Dp = 20.dp) {
     }
 }
 
+/** Obsidián řádku seznamu – stejná barva jako přechod, do kterého mizí art. */
+private val RowObsidian = Color(0xFF1A161A)
+
 @Composable
 internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
     val costColor = resColor(card.costType)
@@ -2315,8 +2236,7 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             .fillMaxWidth()
             .height(28.dp)
             .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF18121E))
-            .border(1.dp, costColor.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .obsidianSurface(4.dp, RowObsidian, ObsBottom, 1f, sheen = false)
             .clickable { onRemove() }
     ) {
         // ── Art peek: uprostřed vpravo, fade doleva ──────────────────────────
@@ -2348,22 +2268,34 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF18121E), Color.Transparent)))
+                    .background(Brush.horizontalGradient(listOf(RowObsidian, Color.Transparent)))
             )
         }
+        // Barva suroviny: tenký proužek u levého okraje
+        Box(
+            Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 3.dp)
+                .width(2.dp)
+                .fillMaxHeight(0.62f)
+                .clip(RoundedCornerShape(1.dp))
+                .background(Brush.verticalGradient(listOf(costColor, costColor.copy(alpha = 0.45f))))
+        )
+        // Bronzová hrana až nad artem, ať ji obrázek nepřekryje
+        Box(Modifier.matchParentSize().bronzeRim(4.dp, level = 0.7f))
 
         // ── Cost badge + název ────────────────────────────────────────────────
         Row(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 4.dp),
+                .padding(start = 8.dp, end = 4.dp),
             verticalAlignment    = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            CardCostBadge(card, size = 20.dp)
+            BronzeMedallion(if (card.isXCost) "X" else "${card.effectiveCost}", size = 19.dp)
             Text(
                 card.displayName,
-                color    = Color.White,
+                color    = ObsText,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -2379,15 +2311,14 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
                 .padding(end = 3.dp)
                 .height(16.dp)
                 .widthIn(min = 26.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color(0xFF0D0A0E))
-                .border(1.dp, Gold.copy(alpha = 0.7f), RoundedCornerShape(3.dp))
+                .obsidianSurface(3.dp, Color(0xFF141014), Color(0xFF0A080A), 1f, sheen = false)
+                .bronzeRim(3.dp, level = 0.9f)
                 .padding(horizontal = 3.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "x$count",
-                color      = Gold,
+                "×$count",
+                color      = BronzeText,
                 fontSize   = 8.sp,
                 fontWeight = FontWeight.ExtraBold,
                 style = TextStyle(
@@ -2404,14 +2335,13 @@ internal fun DeckCardRow(card: Card, count: Int, onRemove: () -> Unit) {
 
 /** Nadpis sekce statistik balíčku – stejný styl pro složení i mana křivku. */
 @Composable
-private fun StatsHeader(text: String) {
+private fun StatsHeader(text: String, modifier: Modifier = Modifier) {
     Text(
         text.uppercase(),
-        color         = Gold,
-        fontSize      = 9.sp,
-        fontWeight    = FontWeight.Bold,
-        letterSpacing = 1.2.sp,
-        maxLines      = 1
+        style    = obsLabelStyle(9.sp, BronzeText, 0.6.sp).copy(textAlign = TextAlign.Start),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
     )
 }
 
@@ -2424,6 +2354,15 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
         }.sumOf { deck.cardCounts[it.id] ?: 0 }
     }
     val maxCount = buckets.maxOrNull()?.coerceAtLeast(1) ?: 1
+    // Rozpad sloupce podle suroviny: kolik karet dané ceny je magie / útok / kámen / chaos
+    val byType = (0..7).map { bucket ->
+        ResourceType.entries.map { type ->
+            deckCards.filter { card ->
+                card.costType == type &&
+                    (if (bucket < 7) card.effectiveCost == bucket else card.effectiveCost >= 7)
+            }.sumOf { deck.cardCounts[it.id] ?: 0 }
+        }
+    }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
         StatsHeader(LocalStrings.current.dbManaCurve)
@@ -2434,7 +2373,7 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            buckets.forEach { count ->
+            buckets.forEachIndexed { bucketIdx, count ->
                 val fillFraction = if (count > 0) (count.toFloat() / maxCount).coerceAtLeast(0.06f) else 0f
                 Column(
                     Modifier.weight(1f).fillMaxHeight(),
@@ -2443,7 +2382,7 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
                     Spacer(Modifier.weight((1f - fillFraction).coerceAtLeast(0.001f)))
                     Text(
                         if (count > 0) "$count" else "",
-                        color    = Color.White,
+                        color    = ObsText,
                         maxLines = 1,
                         modifier = Modifier.padding(bottom = 2.dp),
                         style    = TextStyle(
@@ -2457,17 +2396,32 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
                             )
                         )
                     )
-                    if (count > 0) Box(
+                    // Sloupec složený z úseků v barvách surovin (zdola magie, útok, kámen, chaos),
+                    // mezi úseky tenká tmavá spára, nahoře jemný lesk – celek v černém obrysu.
+                    if (count > 0) Canvas(
                         Modifier
                             .fillMaxWidth()
                             .weight(fillFraction)
-                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Gold, Gold.copy(alpha = 0.55f))
-                                )
+                            .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                            .border(0.5.dp, Color.Black.copy(alpha = 0.7f), RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                    ) {
+                        var bottom = size.height
+                        val gapPx  = 1.dp.toPx()
+                        ResourceType.entries.forEachIndexed { ti, type ->
+                            val n = byType[bucketIdx][ti]
+                            if (n == 0) return@forEachIndexed
+                            val h   = size.height * n / count
+                            val top = bottom - h
+                            val c   = resColor(type)
+                            drawRect(
+                                Brush.horizontalGradient(listOf(c.copy(alpha = 0.95f), c.copy(alpha = 0.7f))),
+                                topLeft = Offset(0f, top), size = Size(size.width, h)
                             )
-                    )
+                            if (top > 0f) drawRect(Color.Black.copy(alpha = 0.75f), Offset(0f, top), Size(size.width, gapPx))
+                            bottom = top
+                        }
+                        drawRect(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.22f), Color.Transparent), endY = size.height * 0.5f))
+                    }
                 }
             }
         }
@@ -2480,7 +2434,7 @@ private fun ManaCurveChart(deck: Deck, deckCards: List<Card>, modifier: Modifier
                 Text(
                     if (i < 7) "$i" else "7+",
                     modifier   = Modifier.weight(1f),
-                    color      = if (buckets[i] > 0) Color.White.copy(alpha = 0.85f) else TextMuted,
+                    color      = if (buckets[i] > 0) ObsText.copy(alpha = 0.85f) else ObsTextMuted.copy(alpha = 0.7f),
                     fontSize   = 8.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign  = TextAlign.Center
@@ -2507,7 +2461,7 @@ private fun DeckStats(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
-            StatsHeader(LocalStrings.current.dbComposition)
+            StatsHeader(LocalStrings.current.dbComposition, Modifier.weight(1f, fill = false).padding(end = 6.dp))
             Text(
                 "${deck.totalCards}/$deckSize",
                 color      = if (complete) HpGreen else AttackRed,
@@ -2525,7 +2479,7 @@ private fun DeckStats(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                StatsHeader(label.substringBefore(':'))
+                StatsHeader(label.substringBefore(':'), Modifier.weight(1f, fill = false).padding(end = 6.dp))
                 Text(
                     label.substringAfter(':', label).trim(),
                     color      = if (budget.first > budget.second) AttackRed else HpGreen,
@@ -2559,20 +2513,21 @@ private fun DeckStats(
                             )
                             Text(
                                 "$count",
-                                color      = if (count > 0) Color.White else TextMuted,
+                                color      = if (count > 0) ObsText else ObsTextMuted,
                                 fontSize   = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                        // Drážka v obsidiánu s tlumenou bronzovou hranou, výplň v barvě suroviny
                         Box(
                             Modifier.fillMaxWidth().height(5.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(Color.White.copy(alpha = 0.08f))
+                                .obsidianSurface(3.dp, Color(0xFF060507), Color(0xFF141114), 1f, sheen = false)
+                                .bronzeRim(3.dp, width = 0.5.dp, level = 0.5f)
                         ) {
                             Box(
                                 Modifier.fillMaxWidth(count / total).fillMaxHeight()
                                     .clip(RoundedCornerShape(3.dp))
-                                    .background(color)
+                                    .background(Brush.horizontalGradient(listOf(color.copy(alpha = 0.55f), color)))
                             )
                         }
                     }

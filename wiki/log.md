@@ -1447,3 +1447,115 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Všech 27 skinů (`castle_player`, `castle_player_2`–`13`, `castle_hory/drak/baziny/citadela`, `wall_player2`–`6`, `wall_hory/goblin/drak/baziny/citadela`) přemalováno přes Qwen Image Edit („repaint this exact castle with higher quality while keeping its exact shape, silhouette… and original colour scheme: richer stone, moss, warm candle light in windows, subtle rim light, deeper shadows“, `enhance` false), pozadí odstraněno BiRefNetem, oříznuto přesně na původní rámování → stejný poměr i okraje, vyšší rozlišení (výška 460 px místo ~250–360). Kód beze změny.
 - Nástroj `tools/castle_skin.py` (`prep` = šedé plátno 512×512 pro edit, `final` = ořez na původní rámování a uložení do drawable). Výchozí hrad: varianta „c“ (drží šedomodrý kámen), hradba „b“. Ostatní skiny trochu zteplaly do hnědošedé; `castle_player_2` přišel o zelené světlo v okně.
 - Sestaveno a nainstalováno do telefonu; na bojišti v telefonu neověřeno (telefon zamčený).
+
+## [2026-11-22] ui | Nový rám dialogů „kámen + pergamen, začernalý bronz“
+
+- Z návrhu UI (`design/ui_redesign/`, kolo 3) se uživateli líbil rám dialogu a mulligan → nasazeno všude. Nové textury (vyřezané z AI náhledu přes Qwen Edit, BiRefNet): `dialog_frame.png` (1110×698, pergamen ztmavený a oteplený kvůli čitelnosti), `dialog_title_plaque.png`, `button_bronze.png`, `button_iron.png` (výška 107 px jako `plain_button`, takže sedí na `buttonTexture`).
+- `PlainButton.kt`: `Modifier.frameTexture()` (devítidílný rám s pevnými rohy – nic se neořezává ani nedeformuje) a `Modifier.dialogFrame()`; barvy `BronzeButtonText` (tmavý text na bronzu) a `DialogTextMuted` (ztlumený text čitelný na pergamenu).
+- Mulligan (`GameOverlay.kt`): rám, nadpis na kamenné desce přes horní lem, „Hrát bez výměny“ železné, „Vyměnit“ bronzové; vybraná karta = zlatý obrys + bronzový medailon ⇄ (místo červeného nádechu s křížkem).
+- `mulligan_background` nahrazen `dialogFrame()` ve všech 11 dialozích: rozhodovací karty, log, ztracené karty, změna limitů, konec hry (offline i online), opuštění hry, online menu, roguelike vzdání a výběr obtížnosti. U potvrzovacích dialogů „Zůstat“ bronzové a „Odejít/Vzdát“ železné s červeným textem. `mulligan_background` zůstal jen jako podklad dlaždic v Tvorbě balíčku a online lobby.
+- Ověřeno v telefonu: mulligan, Opustit hru?, herní log. Ostatní dialogy jen sestaveny.
+- Doplněno: nadpisy všech dialogů na kamenné desce jako u mulliganu – `DialogTitle()` v `PlainButton.kt` (deska `dialog_title_plaque` třídílně: konce 165 px se jen škálují podle výšky, natahuje se rovný střed; první verze přes 9-slice s rohy 75 px rozsekla ozdobné konce – uživatel: „nadpisy máš v rozbitém rámečku“). Použito v rozhodovacích kartách, logu, ztracených kartách, změně limitů, konci hry (offline i online), opuštění hry, online menu, roguelike vzdání a výběru obtížnosti.
+
+## [2026-11-22] ui | Tvorba balíčku ve stylu „obsidián a bronz“
+
+- Návrhy Tvorby balíčku v `design/ui_redesign/deck/`. Uživatel odmítl tyto směry:
+  - 1–8: AI překreslení (kámen, grimoár, knihovna, truhla, runy, jiné rozložení).
+  - 9–11: rámy dialogu.
+  - A–D: jen nové pozadí a tlačítka.
+- Chtěl „decentně v barvách obsidián/bronz“. Vybraný návrh je `obsidian_bronz.png` (skript `podklady/obsidian.py`).
+- Nový `ObsidianBronze.kt`, vše kreslené v Compose (žádné textury):
+  - `obsidianSurface()`: svislý přechod a slabý lesk.
+  - `bronzeRim()`: černá linka, bronz světlý nahoře a tmavý dole, vlasový odlesk.
+  - `bronzeCorners()`: kosočtverce v rozích.
+  - `obsidianPanel()`.
+  - `obsidianTile()`: filtry; aktivní má teplejší sklo, jasnou hranu a záři.
+  - `ObsButton` (`primary` = plný bronz s tmavým textem).
+  - `BronzeDivider`, `BronzeDividerVertical`.
+  - `BronzeMedallion`, font `ObsCinzel`.
+- Pozadí `db_bg_obsidian.jpg` (1700×925): krea + darkmage, odbarveno z modrozelené na neutrální černé sklo a ztmaveno do krajů.
+- Úpravy v `DeckBuilderScreen.kt`:
+  - `DbBackground()` je nově obsidián (dřív `bg_plain`). Oddělovače jsou bronzové linky místo `bg_separator`.
+  - Lišty: Zpět, filtry surovin, dolů a vzácnosti, ceny, hledání a zámek.
+  - Hlavička balíčku: název Cinzelem, ✎. Šablony a roguelike „Zahájit běh“ jsou bronzová hlavní tlačítka.
+  - Panel složení a mana křivky: obsidiánový panel, Cinzel nadpisy, bronzové sloupce, drážky pruhů.
+  - Řádky seznamu: obsidián, proužek v barvě suroviny vlevo, cena v bronzovém medailonu (místo výřezu z rámu karty), ×počet v bronzovém rámečku.
+  - Roguelike odměna (`RogueScreens.kt`) používá stejné díly, takže styl dostala taky.
+- Ověřeno v telefonu: hlavní obrazovka Tvorby balíčku, aktivní filtry.
+- Neověřeno v telefonu: přejmenování balíčku, výběr balíčku, šablony, roguelike odměna.
+- Doplněno: hlavička balíčku má vpravo odsazení 26 dp (bylo 10 dp). Zaoblený roh displeje usekával tlačítko Šablony; ověřeno v telefonu.
+- Doplněno: panel vedle detailu karty (`CardActionPanel`) je ve stylu obsidián/bronz.
+  - Obsidiánový panel s bronzovou hranou a rohy místo textury `bg_side_panels`.
+  - Název Cinzelem, oddělovače bronzové.
+  - Vyrobit/Rozebrat na vtlačených destičkách; vybraná akce má jasnější hranu.
+  - Hotovo/Potvrdit je bronzové hlavní tlačítko.
+  - `sidePanelBackground()` zůstává pro úvod online zápasu. Ověřeno v telefonu.
+- Doplněno: panel u detailu karty (uživatel: „vypadá to docela cheap“) má nový rám.
+  - Rám je textura `panel_obsidian.png` (597×970): obsidián v kovaném bronzu s gotickým filigránem. Krea + darkmage, odbarveno z modrozelené na neutrální čerň a teplý bronz.
+  - Panel má pevně 240×353 dp, stejně vysoký jako náhled karty.
+  - Vyrobit/Rozebrat mají ikonu v bronzovém medailonu, ikony obarvené do bronzu.
+  - Hotovo je bez zelené fajfky.
+  - `ObsButton(primary)` má kovaný bronz: tři tóny, linky reliéfu a ražené písmo. Týká se i Šablon a Zahájit běh. Ověřeno v telefonu.
+- Doplněno: panel u detailu karty předělán podruhé (uživatel: „oblejší strany, celkově nesedí“).
+  - `panel_obsidian.png` (526×925, s průhledností) je teď oblý rám: hladký tmavý bronz s rytou linkou, medailony s drahokamem nahoře a dole, obsidiánové sklo. Krea + darkmage + BiRefNet, střed odbarven z modrozelené.
+  - Panel má 214×353 dp, v poměru textury.
+  - Destičky Vyrobit/Rozebrat mají oblé rohy (14 dp). Hotovo je pilulka.
+  - `ObsButton` umí `radius`. Tlačítka −/+ jsou kulatá ObsButton místo `CostChip`.
+- Oprava: tlačítka „nefungovala“.
+  - Ve skutečnosti byla správně vypnutá (plný balíček, vše odemčeno), ale vypnutý `CostChip` měl po přestylování průhlednost 0,8 a vypadal jako zapnutý.
+  - Vypnuté `ObsButton` má teď průhlednost 0,32. Nedostupná destička Vyrobit/Rozebrat je celá ztlumená.
+  - Ověřeno v telefonu: + a − u „V balíčku“ (0/1 → 1/1 → 0/1) a Hotovo zavře panel. Balíček vrácen do původního stavu.
+- Výroba/rozebrání „nešly“: v profilu je zapnutý ladicí přepínač „Všechny karty odemčeny“ (`allCardsUnlocked: true`). Hra pak výrobu i rozebrání záměrně vypíná, tato logika je beze změny.
+- Panel teď v tom režimu destičky Vyrobit/Rozebrat skryje a místo nich ukáže poznámku `profileUnlockAll`. Destičky jsou vidět jen u sběratelných karet. Ověřeno v telefonu.
+- Doplněno: panel u detailu se vejde bez rolování i u sběratelské karty.
+  - Zůstatek prachu je uprostřed oddělovače (bez vlastního řádku).
+  - Mezery 8 → 5 dp, název 14 sp, nižší destičky Vyrobit/Rozebrat (medailon 22 dp).
+  - Ověřeno v telefonu na Obranném valu (prach, Vyrobit i Rozebrat).
+  - Dvouřádkový název („Nepodařený experiment“) jen dopočten ze zbylého místa (~25 dp), v telefonu nevyzkoušen.
+
+- Obrazovka odměny v roguelike (`RogueScreens.kt`) převedena do stylu obsidián/bronz.
+  - Menu, Vzdát se, Nová nabídka a Přeskočit jsou `ObsButton`. Vypnutá Nová nabídka je zřetelně ztlumená.
+  - Hrad a hradby jsou v obsidiánové destičce bez zalamování; text o běhu se zkracuje (dřív se „30 / 30“ rozpadlo na dva řádky).
+  - Výzva je napsaná Cinzelem.
+  - Podklad nabídky karet je obsidiánový panel s bronzovými rohy.
+  - Hlavička „Tvůj balíček“ a bonusové karty po bossovi jsou na obsidiánu s bronzovou hranou.
+  - Sestaveno, v telefonu neověřeno (je potřeba vyhrát bitvu v roguelike).
+- Mulligan: medailon výměny na vybrané kartě je `SwapMedallion()` v `ObsidianBronze.kt`.
+  - Kovaný bronzový prstenec, obsidiánový střed, dvě kreslené zahnuté šipky do kruhu.
+  - Nahrazuje znak „⇄“ z písma, který nebyl na středu (uživatel: „mega cheap“).
+  - Ověřeno v telefonu.
+- Lišta odměny v roguelike: text o běhu je ve dvou řádcích („obtížnost · akt“ a pod tím „následuje Bitva X / 12“ bronzově). Na jeden řádek se nevešel a končil „následuj…“.
+- Mana křivka (`ManaCurveChart`): sloupce jsou složené z úseků v barvách surovin (zdola magie, útok, kámen, chaos) s tmavou spárou a leskem nahoře. Bronzový přechod je pryč. Nápad uživatele, ověřeno v telefonu.
+- Dotaz „vrátilo se to bez odměny?“: ze save (`termiti_rogue.xml`) plyne, že bonus za bosse vybraný byl (bonusový důl chaosu +1), poté začala Bitva 9. Uložení a obnovení fáze odměny je v pořádku.
+
+## [2026-11-22] fix | Konec hry „oba přeskočili“ po zahrané kartě AI
+
+- Hlášení uživatele (roguelike, prohraná hra): oba balíčky prázdné, hráč 50 : AI 46, hráč čekal. AI zahrála Chaotickou šipku (combo) → 47 : 49, pak zvolila „čekat“. Hra to vyhodnotila jako „oba přeskočili kolo“ a `resolveByHp()` dal prohru.
+- Příčina:
+  - Větev `AiAction.Wait` ve `finishTurn` brala jakékoli čekání AI jako pas kola, i po zahrané kartě. Čekání po combu ale jen ukončuje tah.
+  - `AiEngine` (endgame `bothDecksEmpty`) navíc při `playerWaited` a vyšším hradu čeká záměrně, takže po zahrané kartě to zneužila.
+- Oprava (`GameViewModel.kt`):
+  - Nová proměnná `aiPlayedThisTurn`. Konec hry porovnáním hradů nastane jen při `playerWaited && !aiPlayedThisTurn`.
+  - Do `aiChooseAction` jde `playerWaited` jen do první zahrané karty (u nakouknutí comba `false`). AI po kartě nevolí „čekat kvůli výhře“.
+- Sestaveno, nainstalováno; scénář v telefonu nepřehrán. Server (`engine.js`) je PvP bez AI, netýká se ho.
+- Mulligan: označení karty k výměně je malovaný ohnivý křížek (`mulligan_x.png`) místo medailonu se šipkami.
+  - Krea + darkmage (`x_fire`), alfa podle rudé barvy, vycentrováno na těžiště tahů.
+  - `MulliganCross()` v `ObsidianBronze.kt`: rudá záře, „vražení“ při objevení (zvětšení 1,7 → 1 se zákmitem, prolnutí).
+  - Uprostřed celé karty (`centerY = 0.5`), karta je ztmavená jen o 18 %.
+  - Kreslené varianty (medailon `SwapMedallion`, kovaný kříž) uživatel odmítl; `SwapMedallion` zůstává v souboru, ale nepoužívá se.
+  - Ověřeno v telefonu.
+
+## [2026-11-22] ui | Hlavní menu s Temným mágem
+
+- Z návrhu UI (`design/ui_redesign/po_menu.jpg`, uživateli se líbil) nasazen Temný mág do středového okna hlavního menu.
+- Malba: Qwen Image Edit z `art_darkmage.png` („close-up wide landscape“: mág od hrudi nahoru, kápě uprostřed, svatozář z run za hlavou, ruce s ohnivou magií u okrajů), vygenerováno přímo v rozměru okna 1003×744 (`menu_mage_close_v3`).
+  - První verze (mág celý na trůnu, menší) byla schovaná za logem a tlačítky. Uživatel: „přes tlačítka a nadpis to není moc vidět“.
+  - Teď je svatozář kolem loga, kápě v mezeře nad HRÁT a ohnivé ruce po stranách tlačítek.
+- `menu_bg_mage.jpg` = `menu_bg.png` s malbou vloženou do okna (x 368–1371, y 87–831, zkosené rohy, vnitřní stín). Rám, pochodně a boční panely jsou pixelově stejné, souřadnice pochodní v `MenuScreen.kt` platí beze změny. Skript `tools/menu_mage.py`.
+- Jen hlavní menu (`MenuScreen.kt`). Obchod, profil, nastavení a výběr módu dál používají prázdný `menu_bg`.
+- Ověřeno v telefonu.
+- Úvod menu (`MenuScreen.kt`): po spuštění hry je 1 s v okně jen mág. Boční sloupce (profil, obchod…) jsou vidět hned. Pak se během 1,6 s vynoří logo a tlačítka (průhlednost + posun 10 dp).
+  - Jen jednou za běh aplikace (`menuIntroPlayed`); při návratu do menu se ukáže hned. Klepnutí kamkoli úvod přeskočí a nespustí tlačítko.
+  - Varianta „průhledná tlačítka, dokud neklepneš“ zamítnuta: tlačítka by vypadala vypnutě.
+  - Ověřeno v telefonu záznamem obrazovky (`design/ui_redesign/menu_uvod.png`).
+- Hlavní menu: odstraněn `statusBarsPadding`/`navigationBarsPadding`. Při startu jsou systémové lišty chvíli vidět a po přepnutí na celou obrazovku se boční sloupce posouvaly. Sestaveno a nainstalováno, v telefonu zatím neověřeno.

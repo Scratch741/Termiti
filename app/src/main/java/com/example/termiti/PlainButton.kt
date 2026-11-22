@@ -78,6 +78,102 @@ fun Modifier.buttonTexture(
 }
 
 /**
+ * Pozadí panelu z textury rámu (dialog_frame) bez deformace a bez ořezu rohů.
+ *
+ * Devítidílně jako [buttonTexture], ale rohy mají pevnou velikost [corner] nezávisle na
+ * velikosti panelu a výřez rohu v textuře je [srcCornerPx] px – rám tak vypadá stejně na
+ * malém i velkém panelu (ContentScale.Crop dřív u jiných poměrů stran usekl rohové ozdoby).
+ */
+@Composable
+fun Modifier.frameTexture(
+    @DrawableRes res: Int,
+    srcCornerPx: Int,
+    corner: Dp
+): Modifier {
+    val bmp = ImageBitmap.imageResource(res)
+    return drawBehind {
+        val w = size.width.roundToInt(); val h = size.height.roundToInt()
+        if (w <= 0 || h <= 0) return@drawBehind
+        val c  = srcCornerPx.coerceAtMost(minOf(bmp.width, bmp.height) / 2)
+        val cd = corner.toPx().roundToInt().coerceAtMost(minOf(w, h) / 2)
+        val srcX = intArrayOf(0, c, bmp.width - c, bmp.width)
+        val srcY = intArrayOf(0, c, bmp.height - c, bmp.height)
+        val dstX = intArrayOf(0, cd, w - cd, w)
+        val dstY = intArrayOf(0, cd, h - cd, h)
+        for (iy in 0..2) for (ix in 0..2) {
+            val dw = dstX[ix + 1] - dstX[ix]; val dh = dstY[iy + 1] - dstY[iy]
+            if (dw <= 0 || dh <= 0) continue
+            drawImage(
+                image     = bmp,
+                srcOffset = IntOffset(srcX[ix], srcY[iy]),
+                srcSize   = IntSize(srcX[ix + 1] - srcX[ix], srcY[iy + 1] - srcY[iy]),
+                dstOffset = IntOffset(dstX[ix], dstY[iy]),
+                dstSize   = IntSize(dw, dh)
+            )
+        }
+    }
+}
+
+/**
+ * Společný rám dialogů: tmavý kámen + pergamen, začernalý bronz s gotickými rohy
+ * (návrh UI 2026-11-21). Rohy 40 dp → boční lem ~22 dp, horní ~14 dp; obsah dialogu
+ * proto potřebuje odsazení aspoň ~22 dp do stran a ~16 dp nahoru/dolů.
+ */
+@Composable
+fun Modifier.dialogFrame(corner: Dp = 40.dp): Modifier =
+    frameTexture(R.drawable.dialog_frame, srcCornerPx = 170, corner = corner)
+
+/**
+ * Nadpis dialogu na kamenné desce s gotickými konci (dialog_title_plaque). Deska se natahuje
+ * jen uprostřed (konce mají pevnou velikost), takže pojme krátký i dlouhý nadpis.
+ */
+@Composable
+internal fun DialogTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = 22.sp,
+    gradient: List<Color> = TitleGold
+) {
+    // Třídílně: levý a pravý konec (165 px textury) se jen škálují podle výšky desky,
+    // natahuje se pouze rovný střed – konce s ozdobami a oválným lícem zůstanou celé.
+    val bmp = ImageBitmap.imageResource(R.drawable.dialog_title_plaque)
+    Box(
+        modifier = modifier
+            .widthIn(min = 200.dp)
+            .height(52.dp)
+            .drawBehind {
+                val w = size.width.roundToInt(); val h = size.height.roundToInt()
+                if (w <= 0 || h <= 0) return@drawBehind
+                val cap  = 165
+                val capD = (cap * h / bmp.height.toFloat()).roundToInt().coerceAtMost(w / 2)
+                val srcX = intArrayOf(0, cap, bmp.width - cap, bmp.width)
+                val dstX = intArrayOf(0, capD, w - capD, w)
+                for (i in 0..2) {
+                    val dw = dstX[i + 1] - dstX[i]
+                    if (dw <= 0) continue
+                    drawImage(
+                        image     = bmp,
+                        srcOffset = IntOffset(srcX[i], 0),
+                        srcSize   = IntSize(srcX[i + 1] - srcX[i], bmp.height),
+                        dstOffset = IntOffset(dstX[i], 0),
+                        dstSize   = IntSize(dw, h)
+                    )
+                }
+            }
+            .padding(horizontal = 50.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CampaignTitle(text, fontSize = fontSize, gradient = gradient, modifier = Modifier.padding(top = 2.dp))
+    }
+}
+
+/** Ztlumený text na pergamenu rámu dialogu (TextMuted je tam málo čitelný). */
+internal val DialogTextMuted = Color(0xFFC9B48A)
+
+/** Text na bronzovém tlačítku (button_bronze) – tmavý, na zlatém podkladu jinak nejde číst. */
+internal val BronzeButtonText = Color(0xFF140B02)
+
+/**
  * Herní tlačítko s texturou plain_button.png (nebo plain_button_longer.png pro širší variantu).
  *
  * @param selected     false → 50 % alpha (toggle stav). Ignorováno pokud outlineColor != null.

@@ -1560,6 +1560,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             var pendingAiChoice: AiAction? = null
             // Zahození je 1× za kolo a tah NEukončuje – stejně jako u hráče (discardCard).
             var aiDiscardUsed = false
+            // Zahrála AI v tomto tahu už nějakou kartu? Pak její „čekat" jen ukončuje tah
+            // (konec comba), NENÍ to přeskočení kola – viz větev AiAction.Wait níže.
+            var aiPlayedThisTurn = false
             while (aiContinues) {
                 // Transformuj Shapeshiftery líznuté uprostřed tahu (DrawCard, Decision apod.)
                 // onlyNew = true → nemění formu již transformovaných instancí
@@ -1567,10 +1570,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                 val aiChoice = pendingAiChoice
                     ?: tutorialAiChoice(ai)
                     ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
-                                      canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
+                                      canDiscard = !aiDiscardUsed, playerWaited = playerWaited && !aiPlayedThisTurn)
                 pendingAiChoice = null
                 when (aiChoice) {
                     is AiAction.Play -> {
+                        aiPlayedThisTurn = true
                         val aiCard = aiChoice.card
                         // Snapshot zdrojů PŘED zaplacením – viz hráčův playCard.
                         ai.preCostResources = ai.resources.toMap()
@@ -1834,7 +1838,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                             // aiChooseAction() volání na začátku příští iterace (viz pendingAiChoice výš).
                             val nextChoice = tutorialAiChoice(ai)
                                 ?: aiChooseAction(ai, player, old.aiWinTarget, old.playerWinTarget,
-                                                            canDiscard = !aiDiscardUsed, playerWaited = playerWaited)
+                                                            canDiscard = !aiDiscardUsed, playerWaited = false)
                             pendingAiChoice = nextChoice
                             // Další karta comba přijde → 1s, aby ji hráč stihl přečíst.
                             // Tahle byla poslední → jen 0,5s, není na co čekat.
@@ -1849,7 +1853,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
                         aiContinues = false
                         // Oba přeskočili kolo a oba mají prázdný balíček → rozhodne hrad.
                         // Stačí prázdné BALÍČKY – hráč mohl projít s kartami v ruce a zvolit čekat.
-                        if (playerWaited && player.deck.isEmpty() && ai.deck.isEmpty())
+                        // AI ale kolo NEpřeskočila, pokud už v něm zahrála kartu (např. combo
+                        // Chaotická šipka a pak „čekat") – dřív to hru ukončilo porovnáním hradů,
+                        // které si AI tou kartou právě otočila ve svůj prospěch.
+                        if (playerWaited && !aiPlayedThisTurn && player.deck.isEmpty() && ai.deck.isEmpty())
                         {
                             val finalState = old.copy(playerState = player, aiState = ai)
                             val result = finalState.resolveByHp()

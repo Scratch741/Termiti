@@ -1534,16 +1534,14 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
         Column(
             modifier = Modifier
                 .clickable(enabled = false, onClick = {})
-                .clip(RoundedCornerShape(12.dp))
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
-                .padding(18.dp)
+                .dialogFrame()
+                .padding(horizontal = 24.dp, vertical = 18.dp)
                 .widthIn(max = 360.dp)
                 .heightIn(max = 400.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CampaignTitle(LocalStrings.current.gameLog, fontSize = 20.sp)
+            DialogTitle(LocalStrings.current.gameLog, fontSize = 20.sp)
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))
             LogPanel(log = log, modifier = Modifier.weight(1f).fillMaxWidth(), scrollable = true)
             if (lostCards.isNotEmpty() && onShowLostCards != null) {

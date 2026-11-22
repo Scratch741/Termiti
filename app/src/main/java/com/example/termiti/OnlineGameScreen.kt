@@ -684,18 +684,16 @@ private fun OnlineGameplay(
         GameDialog(onDismissRequest = { showMenu = false }) {
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                    .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    .dialogFrame()
                     .padding(horizontal = 28.dp, vertical = 22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CampaignTitle("Menu", fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
+                DialogTitle("Menu", fontSize = 22.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(
                     LocalStrings.current.onlineSurrenderMsg,
-                    color = TextMuted, fontSize = 13.sp, textAlign = TextAlign.Center
+                    color = DialogTextMuted, fontSize = 13.sp, textAlign = TextAlign.Center
                 )
                 HorizontalDivider(color = TextMuted.copy(alpha = 0.3f))
                 MenuButton(
@@ -708,7 +706,8 @@ private fun OnlineGameplay(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     PlainButton(
                         text      = LocalStrings.current.stay,
-                        textColor = TealLight,
+                        buttonRes = R.drawable.button_bronze,
+                        textColor = BronzeButtonText,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
                         paddingV  = 8.dp,
@@ -716,7 +715,8 @@ private fun OnlineGameplay(
                     )
                     PlainButton(
                         text      = LocalStrings.current.surrender,
-                        textColor = Crimson,
+                        buttonRes = R.drawable.button_iron,
+                        textColor = HpRed,
                         fontSize  = 13.sp,
                         paddingH  = 20.dp,
                         paddingV  = 8.dp,
@@ -818,10 +818,8 @@ private fun OnlineGameOverOverlay(
             modifier = Modifier
                 .widthIn(max = 420.dp)
                 .padding(horizontal = 24.dp, vertical = 6.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 28.dp, vertical = 12.dp),
+                .dialogFrame()
+                .padding(horizontal = 28.dp, vertical = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -833,7 +831,7 @@ private fun OnlineGameOverOverlay(
                 result!!.youWin           -> Triple(TitleGold, LocalStrings.current.onlineVictory, LocalStrings.current.onlineYouBeat.format(vm.matchInfo.value?.opponentName ?: LocalStrings.current.opponentAcc))
                 else                      -> Triple(TitleBlood, LocalStrings.current.onlineDefeat, LocalStrings.current.onlineWinnerWon.format(result!!.winnerName ?: LocalStrings.current.opponentDefault))
             }
-            CampaignTitle(headline, fontSize = 26.sp, gradient = gradient)
+            DialogTitle(headline, fontSize = 24.sp, gradient = gradient)
             if (subline.isNotEmpty()) {
                 Text(
                     text      = subline,

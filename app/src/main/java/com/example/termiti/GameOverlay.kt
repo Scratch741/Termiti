@@ -306,15 +306,11 @@ fun MulliganOverlay(
         Column(
             modifier = Modifier
                 .scale(MULL_PANEL_SCALE)
-                .clip(RoundedCornerShape(16.dp))
-                .then(
-                    Modifier.paint(
-                        painterResource(R.drawable.mulligan_background),
-                        contentScale = ContentScale.Crop
-                    )
-                )
-                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-                .padding(horizontal = 28.dp, vertical = 22.dp),
+                // Rám „kámen + pergamen, začernalý bronz“ (návrh UI 2026-11-21) –
+                // devítidílně, rohy pevné, takže se ozdoby neořezávají.
+                .frameTexture(R.drawable.dialog_frame, srcCornerPx = 170, corner = 54.dp)
+                // Nahoře jen malé odsazení: deska s nadpisem schválně přesahuje přes horní lem rámu
+                .padding(start = 36.dp, end = 36.dp, top = 6.dp, bottom = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -329,7 +325,7 @@ fun MulliganOverlay(
                 if (secondsLeft != null) {
                     Text("${secondsLeft}s", color = Color.Transparent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
-                CampaignTitle(s.mulliganTitle, fontSize = 26.sp, modifier = Modifier.padding(top = 6.dp))
+                DialogTitle(s.mulliganTitle, fontSize = 22.sp, modifier = Modifier.widthIn(min = 248.dp))
                 if (secondsLeft != null) {
                     // Po odeslání se timer jen ZPRŮHLEDNÍ, nemizí – jinak by se
                     // panel po potvrzení zúžil a vycentrovaný obsah poskočil.
@@ -466,30 +462,25 @@ fun MulliganOverlay(
                     ) {
                         CardView(
                             card        = card,
-                            canPlay     = !isSelected && !submitted,
-                            discardMode = isSelected,
-                            onClick     = { if (!submitted && !busy) onToggle(card.id) },
+                            canPlay     = !submitted,
+                            discardMode = false,
+                            onClick    = { if (!submitted && !busy) onToggle(card.id) },
                             showGlow    = false
                         )
                         // Tutoriál: karta, kterou je třeba vyměnit
                         if (forcedCardBaseId != null && card.baseId == forcedCardBaseId && !isSelected && !busy) {
                             Box(Modifier.matchParentSize().tutorialGlow(true))
                         }
-                        // Overlay na vybrané kartě
+                        // Vybraná k výměně: přes kartu se „vrazí" kovaný rudý kříž (karta zůstává
+                        // čitelná – jen lehce ztmavená, kříž prosvítá obrázek i název)
                         if (isSelected) {
                             Box(
                                 Modifier
                                     .matchParentSize()
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(DiscardRed.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter            = painterResource(R.drawable.cross_icon),
-                                    contentDescription = null,
-                                    modifier           = Modifier.size(28.dp)
-                                )
-                            }
+                                    .background(Color.Black.copy(alpha = 0.18f))
+                            )
+                            MulliganCross(Modifier.matchParentSize(), centerY = 0.5f)
                         }
                         // Ztmavení karet po odeslání
                         if (submitted) {
@@ -513,6 +504,7 @@ fun MulliganOverlay(
                 val canSkip = !locked && forcedCardBaseId == null
                 PlainButton(
                     text      = s.mulliganPlayNoSwap,
+                    buttonRes = R.drawable.button_iron,
                     textColor = if (canSkip) Gold else TextMuted.copy(alpha = 0.3f),
                     fontSize  = 11.sp,
                     enabled   = canSkip,
@@ -528,7 +520,9 @@ fun MulliganOverlay(
                 PlainButton(
                     text      = if (canConfirm) "${s.mulliganSwap} (${selectedIds.size})" else s.mulliganSwap,
                     modifier  = Modifier.tutorialGlow(forcedCardBaseId != null && canConfirm, corner = 5.dp),
-                    textColor = if (canConfirm) TealLight else TextMuted.copy(alpha = 0.3f),
+                    buttonRes = R.drawable.button_bronze,
+                    // Bronzové hlavní tlačítko: tmavý text; dokud není co měnit, je celé ztlumené (enabled=false → 35 %)
+                    textColor = BronzeButtonText,
                     fontSize  = 11.sp,
                     enabled   = canConfirm,
                     paddingH  = 22.dp,
@@ -584,19 +578,12 @@ fun CardLimitChangeOverlay(
     ) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .then(
-                    Modifier.paint(
-                        painterResource(R.drawable.mulligan_background),
-                        contentScale = ContentScale.Crop
-                    )
-                )
-                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .dialogFrame()
                 .padding(horizontal = 28.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            CampaignTitle(s.limitChangeTitle, fontSize = 24.sp, modifier = Modifier.padding(top = 6.dp))
+            DialogTitle(s.limitChangeTitle, fontSize = 21.sp)
             Text(
                 s.limitChangeSubtitle,
                 color = TextPrimary, fontSize = 10.sp,
@@ -691,16 +678,14 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
                 .offset(y = (-18).dp)
                 .clickable(enabled = false, onClick = {})
                 .widthIn(max = 420.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                .dialogFrame()
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Nadpis
             Spacer(Modifier.height(4.dp))
-            CampaignTitle(LocalStrings.current.lostCardsTitle, fontSize = 18.sp, modifier = Modifier.padding(top = 6.dp))
+            DialogTitle(LocalStrings.current.lostCardsTitle, fontSize = 18.sp)
             Text(
                 LocalStrings.current.lostCardsSubtitle,
                 color = TextMuted, fontSize = 10.sp
@@ -785,17 +770,15 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
     GameDialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .dialogFrame()
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez poháru/lebky
             val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD
-            CampaignTitle(
+            DialogTitle(
                 title,
-                fontSize = 30.sp,
+                fontSize = 25.sp,
                 gradient = when { isWin -> TitleGold; isDraw -> TitleSilver; else -> TitleBlood }
             )
             Spacer(Modifier.height(8.dp))
@@ -862,17 +845,15 @@ fun ArenaGameOverDialog(
     GameDialog(onDismissRequest = {}) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .paint(painterResource(R.drawable.mulligan_background), contentScale = ContentScale.Crop)
-                .border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .dialogFrame()
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD
-            CampaignTitle(
+            DialogTitle(
                 title,
-                fontSize = 28.sp,
+                fontSize = 24.sp,
                 gradient = when { isPlayerWin -> TitleGold; isDraw -> TitleSilver; else -> TitleBlood }
             )
             Text(sub, color = TextPrimary, fontSize = 12.sp, textAlign = TextAlign.Center)
