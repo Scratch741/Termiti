@@ -58,6 +58,12 @@ data class CampaignOpponent(
     val displayTitle: String get() = LanguageManager.campaignOpponentTitle(id, title)
     /** Localized display description — active language pack (by [id]) → built-in Czech [description] fallback. */
     val displayDescription: String get() = LanguageManager.campaignOpponentDesc(id, description)
+    /**
+     * Portrét soupeře do hry (horní lišta, log, záznam hry). [avatar] bývá jen emoji nebo
+     * sdílená ikona (player_icon_10), skutečný obrázek soupeře je [cardArt]. Výjimka: samostatný
+     * portrét pro avatar (*_profil – Goblin král má v cardArt celou scénu na trůnu).
+     */
+    val portrait: String get() = if (avatar.endsWith("_profil")) avatar else cardArt ?: avatar
 }
 
 // ── Lokace = skupina soupeřů zakončená bossem ─────────────────────────────────

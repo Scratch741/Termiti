@@ -51,7 +51,11 @@ private val AVATARS = listOf(
     "player_icon_13" to 1,
     "player_icon_14" to 1,
     "player_icon_15" to 1,
-    "player_icon_16" to 1
+    "player_icon_16" to 1,
+    "player_icon_17" to 1,
+    "player_icon_18" to 1,
+    "player_icon_19" to 1,
+    "player_icon_20" to 1
 )
 
 private val ENEMY_AVATARS = listOf("enemy_icon_1", "enemy_icon_2", "enemy_icon_3")
@@ -77,12 +81,17 @@ fun avatarResId(avatar: String): Int? = when (avatar) {
     "player_icon_14" -> R.drawable.player_icon_14
     "player_icon_15" -> R.drawable.player_icon_15
     "player_icon_16" -> R.drawable.player_icon_16
+    "player_icon_17" -> R.drawable.player_icon_17
+    "player_icon_18" -> R.drawable.player_icon_18
+    "player_icon_19" -> R.drawable.player_icon_19
+    "player_icon_20" -> R.drawable.player_icon_20
     "enemy_icon_1"   -> R.drawable.enemy_icon_1
     "enemy_icon_2"   -> R.drawable.enemy_icon_2
     "enemy_icon_3"   -> R.drawable.enemy_icon_3
     "hammer_icon"    -> R.drawable.hammer_icon
     "goblin_kral_profil" -> R.drawable.goblin_kral_profil
-    else             -> null
+    // portréty soupeřů kampaně (goblin_*, hory_*, bazina_*, citadela_*, draci_*)
+    else             -> avatarDrawableRes(avatar)
 }
 
 /**

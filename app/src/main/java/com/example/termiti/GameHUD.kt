@@ -158,7 +158,7 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A2010), Color(0xFF5C3010))))
                     .border(1.5.dp, Gold.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { AvatarDisplay(playerAvatar, sizeDp = 20f) }
+            ) { AvatarDisplay(playerAvatar, sizeDp = if (avatarResId(playerAvatar) != null) 26f else 20f) }
 
             Text(playerLabel, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
@@ -277,7 +277,7 @@ fun NewTopBar(
                     .background(Brush.linearGradient(listOf(Color(0xFF3A0A0A), Color(0xFF5C1010))))
                     .border(1.5.dp, Crimson.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
-            ) { AvatarDisplay(opponentAvatar, sizeDp = 20f) }
+            ) { AvatarDisplay(opponentAvatar, sizeDp = if (avatarResId(opponentAvatar) != null) 26f else 20f) }
         }
     }
 }

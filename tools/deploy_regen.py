@@ -58,16 +58,20 @@ EXTRA = [
  ('enemy_icon_2/enemy_icon_2_ostatni_a_v4.png', 'enemy_icon_2.png', (400, 400)),
  # zbylé avatary (dávka avatary_zbytek)
  ('player_icon_3/player_icon_3_avatary_zbytek_v2.png', 'player_icon_3.png', (400, 400)),
- ('player_icon_4/player_icon_4_avatary_zbytek_v1.png', 'player_icon_4.png', (400, 400)),
+ ('player_icon_4/player_icon_4_avatary_zbytek_v3.png', 'player_icon_4.png', (400, 400)),
  ('player_icon_6/player_icon_6_avatary_zbytek_v1.png', 'player_icon_6.png', (400, 400)),
  ('player_icon_9/player_icon_9_avatary_zbytek_v1.png', 'player_icon_9.png', (400, 400)),
- ('player_icon_11/player_icon_11_avatary_zbytek_v3.png', 'player_icon_11.png', (400, 400)),
- ('enemy_icon_3/enemy_icon_3_avatary_zbytek_v2.png', 'enemy_icon_3.png', (400, 400)),
+ ('player_icon_11/player_icon_11_karty_v3_v1.png', 'player_icon_11.png', (400, 400)),   # karty přemalované na herní (Qwen Edit + card_back_frame)
+ ('enemy_icon_3/enemy_icon_3_avatary_zbytek_v3.png', 'enemy_icon_3.png', (400, 400)),
  # nové avatary navíc
  ('player_icon_2/player_icon_2_ostatni_a_v3.png', 'player_icon_13.png', (400, 400)),
  ('player_icon_8/player_icon_8_ostatni_c_v2.png', 'player_icon_14.png', (400, 400)),
  ('player_icon_12/player_icon_12_ostatni_c_v2.png', 'player_icon_15.png', (400, 400)),
  ('enemy_icon_1/enemy_icon_1_ostatni_c_v1.png', 'player_icon_16.png', (400, 400)),
+ ('player_icon_3/player_icon_3_avatary_zbytek_v3.png', 'player_icon_17.png', (400, 400)),
+ ('player_icon_4/player_icon_4_avatary_zbytek_v2.png', 'player_icon_18.png', (400, 400)),
+ ('player_icon_9/player_icon_9_avatary_zbytek_v2.png', 'player_icon_19.png', (400, 400)),
+ ('player_icon_11/player_icon_11_karty_v2_v1.png', 'player_icon_20.png', (400, 400)),
  # ruby karet: celá karta, vyříznutá z bílého pozadí (tools/cutout_white.py … 512 832 48 0 1)
  ('card_back_goblin/card_back_goblin_cela_v2_cut.png', 'card_back_goblin.png', None),
  ('card_back_citadela/card_back_citadela_cela_v2_cut.png', 'card_back_citadela.png', None),

@@ -191,7 +191,7 @@ fun GameScreen(
                 playerAvatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
                 playerLevel    = PlayerProfileManager.profile?.level  ?: -1,
                 opponentLabel  = campaignOpponent?.displayName ?: LocalStrings.current.enemy,
-                opponentAvatar = campaignOpponent?.avatar ?: viewModel.randomOpponentAvatar.value,
+                opponentAvatar = campaignOpponent?.portrait ?: viewModel.randomOpponentAvatar.value,
                 onMenu         = {
                     when {
                         reviewMode && onExitReview != null -> onExitReview()

@@ -2058,7 +2058,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             playerName      = profile?.name   ?: ls.logActorPlayer,
             playerAvatar    = profile?.avatar ?: "player_icon_1",
             opponentName    = opp?.name       ?: ls.enemy,
-            opponentAvatar  = opp?.avatar     ?: randomEnemyAvatar(),
+            opponentAvatar  = opp?.portrait   ?: randomEnemyAvatar(),
             result          = result,
             playerWinTarget = snapshot.playerWinTarget,
             aiWinTarget     = snapshot.aiWinTarget
@@ -2273,8 +2273,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private fun logStartAbilities() {
         val profile = PlayerProfileManager.profile
         val playerAbilities = profile?.activeAbilities?.mapNotNull { PassiveAbility.fromId(it) } ?: emptyList()
-        // V kampani portrét soupeře (cardArt) – jeho avatar bývá jen emoji; jinak ikona z top baru.
-        val opponentAvatar = activeCampaignOpponent.value?.let { it.cardArt ?: it.avatar }
+        // V kampani portrét soupeře – jeho avatar bývá jen emoji; jinak ikona z top baru.
+        val opponentAvatar = activeCampaignOpponent.value?.portrait
             ?: randomOpponentAvatar.value
         val playerAvatar = profile?.avatar ?: "player_icon_1"
         val entries = aiPassiveAbilities.value.map {

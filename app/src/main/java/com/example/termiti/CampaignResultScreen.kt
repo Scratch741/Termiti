@@ -238,15 +238,13 @@ private fun RewardBadge(@DrawableRes iconRes: Int, value: String, color: Color) 
 }
 
 /**
- * Kulatý portrét soupeře: ilustrace z karty soupeře (cardArt – goblin_*, hory_*, bazina_*),
+ * Kulatý portrét soupeře ([CampaignOpponent.portrait] – goblin_*, hory_*, bazina_*, citadela_*, draci_*),
  * jinak jeho avatar; soupeři bez obrázku (starší emoji avatary) dostanou ikonu nepřítele.
  * Rámeček v barvě výsledku (zlatá výhra / červená prohra).
  */
 @Composable
 private fun OpponentPortrait(opponent: CampaignOpponent, ringColor: Color) {
-    val resId = opponent.cardArt?.let { avatarDrawableRes(it) }
-        ?: avatarDrawableRes(opponent.avatar)
-        ?: avatarResId(opponent.avatar)
+    val resId = avatarResId(opponent.portrait)   // zná ikony i portréty kampaně
         ?: R.drawable.enemy_icon_1
     Image(
         painter            = painterResource(resId),

@@ -1636,3 +1636,22 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Tlačítko „Vyměnit“ má pevnou šířku: `rememberTextMeasurer` změří „{mulliganSwap} (88)“ a přičte paddingy. Dřív se po výběru karty přidalo „(1)“, tlačítko se rozšířilo a řada tlačítek poskočila.
   - `widthIn(min)` nestačil, zůstal posun 2 px; proto `width`.
   - Ověřeno v telefonu porovnáním snímků (0 karet / 1 / 2): posun 0 px.
+
+## [2026-11-22] art | Výběr zbylých avatarů uživatelem, avatary 17–20
+
+- Podle výběru: `player_icon_4` → v3, `enemy_icon_3` → v3. `player_icon_3/6/9` zůstaly (v2/v1/v1).
+- Goblin (`player_icon_11`) měl v ruce obyčejné hrací karty se symboly barev. Přes Qwen Edit s referencí `card_back_frame.png` jsou teď herní karty s naším rubem.
+- **Nové avatary `player_icon_17–20`** (obsidiánová lebka v3, beraní lebka v2, runový mág s runou v dlani v2, goblin vějířem herních karet v2) přidány do `AVATARS` a `avatarResId` v `ProfileScreen.kt`. V profilu je teď 20 avatarů.
+- Ruby Bažin (v3) a Trpaslíků (v1) nasazené už v `98c83bf`, uživatel výběr nechal na mně.
+- Ověřeno v telefonu (Profil → Vzhled → Ikona).
+
+## [2026-11-22] fix | Ikona soupeře v kampani ukazuje jeho portrét
+
+- Hlášení: v kampaňové hře měl soupeř v horní liště starou nebo náhodnou ikonu (Krysí Zaklínač: emoji krysy).
+- Příčina: horní lišta (`GameScreen`) a záznam hry (`GameViewModel`) braly `CampaignOpponent.avatar`. To je u většiny soupeřů emoji nebo sdílená `player_icon_10`. `avatarResId()` navíc portréty kampaně neznal.
+- Oprava:
+  - nová vlastnost `CampaignOpponent.portrait` = `cardArt`, výjimka je samostatný `*_profil` (Goblin král);
+  - používá se v horní liště, záznamu hry, logu schopností a na výsledkové obrazovce;
+  - `avatarResId()` padá na `avatarDrawableRes()`, takže zná `goblin_*`, `hory_*`, `bazina_*`, `citadela_*`, `draci_*`;
+  - v `GameHUD` obrázkový avatar vyplní celý kruh (26 dp), emoji zůstává 20 dp.
+- Ověřeno v telefonu: Dračí Šaman má v horní liště svůj portrét, který vyplní celý kruh.
