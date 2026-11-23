@@ -200,6 +200,23 @@
   }
   .card-tile:hover { border-color: var(--gold-dim); background: #231d16; }
   .card-tile.selected { border-color: var(--gold); background: rgba(201,150,58,.1); }
+  .card-tile.snd-bad { box-shadow: inset 3px 0 0 #b03a2e; }
+
+  /* ── Zvuk karty ── */
+  .snd-btns { display: inline-flex; gap: 3px; }
+  .snd-btn {
+    border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+    font-size: 11px; line-height: 1; padding: 2px 4px; cursor: pointer; border-radius: 3px;
+  }
+  .snd-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .snd-btn.snd-mark { filter: grayscale(1); opacity: .55; }
+  .snd-btn.snd-mark.bad { filter: none; opacity: 1; border-color: #b03a2e; background: rgba(176,58,46,.25); }
+  #snd-toast {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 9999;
+    max-width: min(90vw, 640px); padding: 7px 14px; background: #1a140e; color: var(--gold);
+    border: 1px solid var(--gold-dim); font-size: 12px; opacity: 0; transition: opacity .25s;
+    pointer-events: none;
+  }
 
   .card-tile-header { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
   .cost-badge {
@@ -476,6 +493,7 @@
     <span class="card-source-info" id="sourceInfo">výchozí karty</span>
     <span class="card-source-info loaded" id="artCacheInfo" style="display:none"></span>
     <button class="btn-load-src" onclick="clearArtCache()" style="font-size:10px;padding:2px 7px;opacity:0.5" title="Vymazat cache obrázků">✕ art</button>
+    <button class="btn-load-src" onclick="copyBadSounds()" title="Zkopírovat seznam zvuků označených 👎">👎 Špatné zvuky: <span id="badSoundsCount">0</span></button>
   </div>
 </header>
 
@@ -494,6 +512,7 @@
         <button class="filter-btn" onclick="setFilter('MINE')">⛏ Důl</button>
         <button class="filter-btn" onclick="setFilter('COMBO')">🔗 Combo</button>
         <button class="filter-btn" onclick="setFilter('DECISION')">❓ Rozhodnutí</button>
+        <button class="filter-btn" onclick="setFilter('BADSND')" title="Jen karty se zvukem označeným 👎">👎 Zvuk</button>
       </div>
       <div class="card-grid" id="cardGrid"></div>
     </div>
@@ -623,6 +642,7 @@
 
         <div class="control-group" id="card-controls" style="opacity:0.5;pointer-events:none">
           <h3>Nastavení karty: <span id="selected-card-id" style="color:var(--gold)">---</span></h3>
+          <div id="designer-sound" style="margin:-2px 0 8px;display:flex;align-items:center;gap:6px"></div>
           <div class="slider-row">
             <div class="slider-label"><span>Měřítko (Scale)</span><span id="v-c-scale">1.0</span></div>
             <input type="range" id="c-scale" min="-3" max="3" step="0.05" value="1.0" oninput="updateArt()">
@@ -1128,6 +1148,298 @@ const ART_MAP = {
   "L01":"art_darkmage"
 };
 
+// ─── Zvuky karet ─────────────────────────────────────────────────────────────
+// Mapování ID karty → soubor v app/src/main/res/raw (soundResId v CardPresentation.kt).
+// Generováno z CardPresentation.kt; při změně zvuku karty uprav i tento řádek.
+// Stránka leží v app/src/main/java/com/example/termiti/, zvuky se proto načítají
+// relativně – funguje to, když je stránka otevřená přímo z repozitáře (file://).
+const SOUND_DIR = '../../../../res/raw/';
+const SOUND_MAP = {
+  "001":"rychly_utok.wav",
+  "008":"arrow_hit.wav",
+  "003":"fireball.mp3",
+  "007":"silny_uder.wav",
+  "006":"prevaha_sily.wav",
+  "017":"valecny_sekyrnik.wav",
+  "002":"kamenna_zed.wav",
+  "010":"palisada.wav",
+  "005":"posila_hradu.wav",
+  "009":"pevne_zaklady.wav",
+  "018":"mohutna_vez.wav",
+  "004":"magie.wav",
+  "011":"zasoby_kamene.wav",
+  "012":"mobilizace.wav",
+  "013":"magicky_pramen.wav",
+  "014":"kamenolom.wav",
+  "015":"vycvikovy_tabor.wav",
+  "016":"velky_pramen.wav",
+  "019":"arrow_hit.wav",
+  "020":"beranidlo.wav",
+  "021":"delostrelectvo.wav",
+  "022":"primy_zasah.wav",
+  "023":"dvojity_uder.wav",
+  "024":"berserk.wav",
+  "025":"protiutok.wav",
+  "026":"ostrelovac.wav",
+  "027":"drums_of_war.wav",
+  "028":"zaplata.wav",
+  "029":"opevneni.wav",
+  "030":"kamenny_val.wav",
+  "031":"renovace.wav",
+  "032":"citadela.wav",
+  "033":"zemni_val.wav",
+  "034":"opravar.wav",
+  "035":"zakladni_kamen.wav",
+  "036":"hradni_prikop.wav",
+  "037":"rychla_magie.wav",
+  "038":"vojensky_rozkaz.wav",
+  "039":"stavebni_boom.wav",
+  "040":"alchymie.wav",
+  "041":"magicke_trio.wav",
+  "042":"velky_kamenolom.wav",
+  "043":"vycvikove_centrum.wav",
+  "044":"trifekta_dolu.wav",
+  "045":"ocarovane_doly.wav",
+  "046":"goblin.wav",
+  "047":"ogr.wav",
+  "048":"upir.wav",
+  "T48":"upir.wav",
+  "049":"jed.wav",
+  "050":"podkopani_hradeb.wav",
+  "051":"dragon_breath.mp3",
+  "052":"demon_laugh.mp3",
+  "053":"plamenomet.wav",
+  "054":"valecny_pochod.wav",
+  "055":"posledni_vzdor.wav",
+  "056":"najezdnik.wav",
+  "057":"basta.wav",
+  "058":"obranny_val.wav",
+  "059":"pevnostni_hrad.wav",
+  "060":"chram.wav",
+  "061":"tunely.wav",
+  "062":"obranna_aliance.wav",
+  "063":"vez_strazni.wav",
+  "064":"zasobnik.wav",
+  "065":"lupic.wav",
+  "066":"kamenna_dan.wav",
+  "067":"saboter.wav",
+  "068":"demoralizace.wav",
+  "069":"dvojity_agent.wav",
+  "070":"krize_zasobovani.wav",
+  "071":"spion.wav",
+  "072":"zbrojnice.wav",
+  "073":"skola_magie.wav",
+  "074":"trziste.wav",
+  "075":"rozmach_tezby.wav",
+  "076":"vojenska_zakladna.wav",
+  "077":"premena_magie.wav",
+  "078":"dragon_breath.mp3",
+  "079":"oblehani.wav",
+  "080":"velkovyroba.wav",
+  "131":"invaze.wav",
+  "130":"rabovani.wav",
+  "129":"priprava.wav",
+  "081":"rychla_hradba.wav",
+  "082":"masivni_zed.wav",
+  "083":"nouzove_opevneni.wav",
+  "084":"velka_oprava.wav",
+  "085":"kralovska_obnova.wav",
+  "086":"zednicka_rota.wav",
+  "087":"pevnost.wav",
+  "088":"zesilene_hradby.wav",
+  "089":"architekt.wav",
+  "090":"rozsireni_tezby.wav",
+  "091":"barikady.wav",
+  "092":"strategicka_vystavba.wav",
+  "093":"cihla_na_cihlu.wav",
+  "094":"sklad_materialu.wav",
+  "095":"obchod_s_kamenem.wav",
+  "096":"nedobytna_pevnost.wav",
+  "097":"obnova_kralovstvi.wav",
+  "098":"hod_cihlou.wav",
+  "099":"temny_prenos.wav",
+  "100":"krvavy_uder.wav",
+  "101":"nahla_smrt.wav",
+  "102":"kamenny_prival.wav",
+  "103":"magicke_rozdeleni.wav",
+  "132":"zoufaly_zold.wav",
+  "133":"zamorene_krysy.wav",
+  "134":"zamorena_krysa.wav",
+  "135":"osudova_mince.wav",
+  "136":"posledni_vypad.wav",
+  "137":"zapomenuta_poznamka.wav",
+  "138":"podkopane_valy.wav",
+  "139":"pohlceni_hradeb.wav",
+  "140":"prastary_kolos.wav",
+  "141":"probuzeni_kolosu.wav",
+  "142":"uder_kolosu.wav",
+  "143":"velke_zemetreseni.wav",
+  "108":"likvidace.wav",
+  "109":"rekrut.wav",
+  "112":"stavitel.wav",
+  "110":"vzpominka.wav",
+  "111":"intuice.wav",
+  "104":"valecny_trenink.wav",
+  "107":"prokleti.wav",
+  "C01":"chaoticka_jiskra.wav",
+  "C02":"entropie.wav",
+  "C03":"chaoticky_dul.wav",
+  "C04":"kradez_chaosu.wav",
+  "C05":"chaoticky_vybuch.wav",
+  "C06":"boure_chaosu.wav",
+  "C07":"chaoticky_stit.wav",
+  "C08":"zazrak_chaosu.wav",
+  "C09":"chaoticka_krize.wav",
+  "C10":"dragon_breath.mp3",
+  "C11":"chaos_a_rad.wav",
+  "C12":"anarchie.wav",
+  "C13":"sabotaz.wav",
+  "C14":"niceni_kamenolomu.wav",
+  "C15":"zakernost.wav",
+  "C16":"velka_sabotaz.wav",
+  "C17":"telekineze.wav",
+  "C18":"kradez_osudu.wav",
+  "C19":"spalena_knihovna.wav",
+  "C20":"prazdna_mysl.wav",
+  "C21":"bezedny_toulec.wav",
+  "C22":"chaos_manufaktura.wav",
+  "C23":"nepodareny_experiment.wav",
+  "C24":"temny_ritual.wav",
+  "C25":"nestabilni_vir.wav",
+  "C26":"krvava_obet.wav",
+  "C27":"odraz_magie.wav",
+  "C28":"chaoticka_trofej.wav",
+  "C44":"dan_z_chaosu.wav",
+  "C45":"chaoticka_sipka.wav",
+  "C29":"bourliva_mysl.wav",
+  "C30":"chram_chaosu.wav",
+  "C31":"chaoticky_vymenik.wav",
+  "C32":"vzajemna_zkaza.wav",
+  "C33":"kradez_identity.wav",
+  "C34":"shapeshifter.wav",
+  "C35":"chaoticka_premena.wav",
+  "C36":"skryta_bomba.wav",
+  "C37":"bomba.wav",
+  "C38":"explodovana_bomba.wav",
+  "C39":"velky_zmatek.wav",
+  "D01":"pruzkumnik.wav",
+  "D02":"vestba.wav",
+  "D03":"kronika.wav",
+  "D04":"bojova_taktika.wav",
+  "D05":"stavebni_plany.wav",
+  "D06":"elitni_zved.wav",
+  "D07":"tajna_knihovna.wav",
+  "D08":"vize.wav",
+  "D09":"inspirace.wav",
+  "113":"goblin_saman.wav",
+  "114":"chaoticky_mudrc.wav",
+  "115":"studna_vedomosti.wav",
+  "116":"chaoticka_replikace.wav",
+  "117":"pruzkum_dolu.wav",
+  "118":"magicky_zolik.wav",
+  "120":"hromadna_sleva.wav",
+  "121":"kletba_cen.wav",
+  "123":"momentum.wav",
+  "124":"alchymistova_volba.wav",
+  "125":"valecny_zapal.wav",
+  "126":"magicky_proud.wav",
+  "127":"pyroblast.wav",
+  "128":"archmag.wav",
+  "C43":"najezd.wav",
+  "C42":"klon.wav",
+  "C41":"zrcadlo.wav",
+  "C40":"zakerny_speh.wav",
+  "119":"valecny_pokrik.wav",
+  "122":"stavebni_posila.wav",
+  "L01":"temny_mag.wav"
+};
+
+let _sndAudio = null;
+let _sndPlayingId = null;
+let badSounds = {};   // id -> true; uživatelem označené špatné zvuky (localStorage)
+try { badSounds = JSON.parse(localStorage.getItem('termiti_bad_sounds') || '{}') || {}; } catch (e) { badSounds = {}; }
+
+function playCardSound(id, ev) {
+  if (ev) ev.stopPropagation();
+  const file = SOUND_MAP[id];
+  if (!file) return;
+  if (_sndAudio) { _sndAudio.pause(); _sndAudio = null; }
+  const a = new Audio(SOUND_DIR + file);
+  _sndAudio = a; _sndPlayingId = id;
+  a.onended = () => { if (_sndAudio === a) { _sndAudio = null; _sndPlayingId = null; } };
+  a.onerror = () => {
+    sndToast('Zvuk ' + file + ' se nenačetl. Otevři stránku přímo z repozitáře (app/src/main/java/com/example/termiti/deckbuilder.html).');
+  };
+  a.play().catch(() => {});
+  const name = CARD_MAP && CARD_MAP[id] ? CARD_MAP[id].name : id;
+  sndToast('🔊 ' + id + ' ' + name + ' – ' + file, 1800);
+}
+
+function toggleBadSound(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (badSounds[id]) delete badSounds[id]; else badSounds[id] = true;
+  try { localStorage.setItem('termiti_bad_sounds', JSON.stringify(badSounds)); } catch (e) {}
+  updateBadSoundsInfo();
+  renderBrowser();
+  if (selectedCardId === id) updateDesignerSound();
+}
+
+function badSoundsList() {
+  return Object.keys(badSounds).filter(id => SOUND_MAP[id]).map(id => {
+    const c = CARD_MAP && CARD_MAP[id];
+    return id + ' ' + (c ? c.name : '?') + ' (' + SOUND_MAP[id] + ')';
+  });
+}
+
+function updateBadSoundsInfo() {
+  const el = document.getElementById('badSoundsCount');
+  if (el) el.textContent = badSoundsList().length;
+}
+
+function copyBadSounds() {
+  const list = badSoundsList();
+  if (!list.length) { sndToast('Žádný zvuk není označený jako špatný (👎 u karty).'); return; }
+  const text = 'Špatné zvuky karet (' + list.length + '):\n' + list.join('\n');
+  const done = () => sndToast('Zkopírováno do schránky: ' + list.length + ' zvuků. Vlož to Claudovi.');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => prompt('Zkopíruj seznam:', text));
+  } else {
+    prompt('Zkopíruj seznam:', text);
+  }
+}
+
+function soundButtonsHTML(id) {
+  if (!SOUND_MAP[id]) return '';
+  const bad = !!badSounds[id];
+  return `<span class="snd-btns">
+      <button class="snd-btn" title="Přehrát zvuk (${SOUND_MAP[id]})" onclick="playCardSound('${id}', event)">🔊</button>
+      <button class="snd-btn snd-mark ${bad ? 'bad' : ''}" title="${bad ? 'Zrušit označení' : 'Označit zvuk jako špatný'}" onclick="toggleBadSound('${id}', event)">👎</button>
+    </span>`;
+}
+
+function updateDesignerSound() {
+  const box = document.getElementById('designer-sound');
+  if (!box) return;
+  const id = selectedCardId;
+  box.innerHTML = id && SOUND_MAP[id]
+    ? soundButtonsHTML(id) + ` <span style="color:var(--text-muted);font-size:10px">${SOUND_MAP[id]}</span>`
+    : '';
+}
+
+let _sndToastTimer = null;
+function sndToast(msg, ms) {
+  let t = document.getElementById('snd-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'snd-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(_sndToastTimer);
+  _sndToastTimer = setTimeout(() => { t.style.opacity = '0'; }, ms || 4000);
+}
+
 // Default Global
 let globalScale = 1.1;
 let globalBX = 0.0;
@@ -1141,6 +1453,7 @@ const EMBEDDED_CARDS = [{"id":"001","name":"Rychlý útok","cost":2,"costType":"
 // <</EMBEDDED_CARDS>>
 
 async function init() {
+  updateBadSoundsInfo();
   // 1) Vestavěné karty jako PRVNÍ – nesmí záviset na úložišti prohlížeče.
   if (typeof EMBEDDED_CARDS !== 'undefined' && EMBEDDED_CARDS.length) {
     CARDS    = parseJsonCards(JSON.stringify(EMBEDDED_CARDS));
@@ -1208,7 +1521,7 @@ function setFilter(f) {
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.className = 'filter-btn';
     const map = { ALL:'all', ATTACK:'attack', STONES:'stones', MAGIC:'magic', CHAOS:'chaos',
-                  MINE:'mine', COMBO:'combo', DECISION:'decision' };
+                  MINE:'mine', COMBO:'combo', DECISION:'decision', BADSND:'chaos' };
     if (btn.getAttribute('onclick') === `setFilter('${f}')`) {
       btn.classList.add('active-' + (map[f] || 'all'));
     }
@@ -1500,6 +1813,8 @@ function renderBrowser() {
       if (!hasMine) return false;
     } else if (filter === 'COMBO') {
       if (!db.combo) return false;
+    } else if (filter === 'BADSND') {
+      if (!badSounds[c.id]) return false;
     } else if (filter === 'DECISION') {
       // Decision efekty jsou uloženy jako { t:'?', raw:'Decision...' }
       const hasDecision = fx.some(f =>
@@ -1528,7 +1843,7 @@ function renderBrowser() {
     const atMax = mode === 'builder' && inDeck >= cap;
     const col = rarityColor[c.rarity] || 'var(--common)';
     return `
-      <div class="card-tile ${selectedCardId === c.id ? 'selected' : ''} ${atMax ? 'at-max' : ''}"
+      <div class="card-tile ${selectedCardId === c.id ? 'selected' : ''} ${atMax ? 'at-max' : ''} ${badSounds[c.id] ? 'snd-bad' : ''}"
            onclick="selectCard('${c.id}')"
            style="border-color:${atMax ? col : ''};opacity:${atMax ? '0.55' : '1'}">
         <div class="card-tile-header">
@@ -1541,6 +1856,7 @@ function renderBrowser() {
           ${mode === 'builder'  ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">${inDeck}/${cap}</span>` : ''}
           ${mode === 'campaign' ? `<span style="color:${inDeck > 0 ? col : 'var(--text-muted)'}">×${inDeck}</span>` : ''}
           ${isAdjusted ? '<span style="color:var(--gold);font-weight:bold">MOD</span>' : ''}
+          ${soundButtonsHTML(c.id)}
         </div>
       </div>
     `;
@@ -1561,6 +1877,7 @@ function selectCard(id) {
     document.getElementById('preview-name').textContent = card.name;
     document.getElementById('preview-desc').textContent = String(card.desc || '').replace(/\*\*/g, '');
     document.getElementById('selected-card-id').textContent = id;
+    updateDesignerSound();
 
     // Load adjustments
     const adj = cardAdjustments[id] || {scale: 1.0, bx: 0.0, by: 0.0};

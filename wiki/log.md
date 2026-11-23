@@ -1655,3 +1655,48 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
   - `avatarResId()` padá na `avatarDrawableRes()`, takže zná `goblin_*`, `hory_*`, `bazina_*`, `citadela_*`, `draci_*`;
   - v `GameHUD` obrázkový avatar vyplní celý kruh (26 dp), emoji zůstává 20 dp.
 - Ověřeno v telefonu: Dračí Šaman má v horní liště svůj portrét, který vyplní celý kruh.
+
+## [2026-11-22] sound | Vlastní zvuk zahrání pro 178 karet
+
+- Hlášení: plno karet nemělo vlastní zvuk, hrály jen obecné `card_attack*`, `build`, `card_resource`, `card_play`. Vlastní zvuk mělo 18 z 197 karet.
+- Uživatel chtěl 1–1,5 s, kvalitně a podle obrázku i textu karty.
+- 178 zvuků vygeneroval lokálně Stable Audio 3 Small-SFX přes `comfy_sound` (rozšíření „Ollama + ComfyUI (LAN)“).
+  - Prompty jsou psané anglicky podle názvu, popisu a artu karty.
+  - Na kartu vznikly 3 varianty, u 28 karet s krátkým nebo řídkým výsledkem další 4–8 s hutnějším promptem.
+- Výběr a úprava skriptem:
+  - skóre = délka znění + hustota − přebuzení;
+  - ořez od nástupu na 1,0–1,5 s, fade-in 5 ms, fade-out 200 ms;
+  - hlasitost: nejhlasitější 400 ms na −14 dBFS RMS (medián starších zvuků karet), špička ≤ −1 dBFS, měkký limiter max. 4 dB.
+- Formát: WAV 16 bit stereo 44,1 kHz jako `arrow_hit.wav`, celkem ~39 MB. APK debug má 250 MB.
+- `CardPresentation.kt`: `soundResId = R.raw.<nazev>` doplněn do 179 záznamů (`"T48"` Upír zlatý sdílí `upir.wav`). Všech 197 karet má teď vlastní zvuk.
+- Nová stránka [[systems/card-sounds]]: postup a tabulka karta → zvuk. Zvuky k poslechu jsou v `C:\Users\Scratch\Pictures\Generated\zvuky\karty\vybrane\`.
+- Sestaveno a nainstalováno do telefonu, aplikace se spustí. Zvuky ve hře uživatel zatím neposlouchal.
+
+## [2026-11-22] tool | deckbuilder.html: poslech zvuků karet a označení špatných
+
+- Uživatel chtěl zvuky karet poslouchat ve stránce, protože „některé jsou opravdu zlé“.
+- Každá dlaždice karty má 🔊 (přehraje zvuk z `res/raw`, `stopPropagation`, takže v Deck Builderu kartu nepřidá) a 👎 (označí zvuk jako špatný, `localStorage` `termiti_bad_sounds`, červený proužek na dlaždici).
+- V hlavičce je „👎 Špatné zvuky: N“, kliknutí zkopíruje seznam do schránky. Přibyl filtr „👎 Zvuk“. V Designer módu jsou tlačítka u vybrané karty.
+- `SOUND_MAP` (197 karet, ID → soubor včetně `.mp3`) je vygenerovaný z `CardPresentation.kt`. Cesta je relativní `../../../../res/raw/`.
+- Ověřeno v prohlížeči přes lokální HTTP server se stejnou strukturou složek: všech 197 zvuků se načte, přehrání nezmění balíček, označení, počítadlo a filtr fungují. Přes `file://` jsem to netestoval, panel prohlížeče otevírá soubory jako `data:` URL.
+
+## [2026-11-22] sound | Zvuky karet z knihoven nahrávek místo Stable Audio
+
+- Uživatel: většina vygenerovaných zvuků je „hrozná“, Magický pramen „uši rvoucí“. Dobré jsou Berserk a Nestabilní vír.
+- Příčina:
+  - 54 ze 178 zvuků mělo přes 10 % energie nad 6 kHz (syčení), dobré zvuky kolem 1 %;
+  - normalizace podle RMS je ještě zesílila: Magický pramen −8,3 LUFS proti mediánu −12,1;
+  - výběr variant byl naslepo.
+- Uživatel stáhl Sonniss GDC 2024 (23,5 GB) a GDC 2026 (7,5 GB). Weby Sonnissu a Kenneyho blokují automatické stahování Cloudflarem. K tomu RPG Sound Pack (CC0) z dřívějška.
+- 436 relevantních WAV je rozbaleno mimo repozitář do `C:\Users\Scratch\Pictures\Generated\zvuky\knihovny\` a rozřezáno na události.
+- Ke každé ze 176 karet je v `map.tsv` 1–3 vrstvy (zdroj, událost nebo čas, posun, zesílení).
+- `render.py`:
+  - míchá, převzorkuje na 44,1 kHz a ořízne na max 1,5 s;
+  - K-vážená hlasitost −12,5 LUFS;
+  - u jasných zvuků low-pass 10 kHz a −1,5 dB;
+  - limiter −1 dBFS.
+- Kontroly: zesílení nad +15 dB (šum) a pozdní nástup (nad 0,3 s) vedly k výměně zdroje nebo výřezu u 23 karet.
+- Berserk, Nestabilní vír a starší nahrané zvuky zůstaly. Kód se neměnil, soubory mají stejná jména.
+- Sestaveno (`assembleDebug`). Instalace do telefonu neproběhla, adb telefon neviděl.
+- Licence Sonniss zakazuje šířit zvuky jako zvuky, a repozitář je veřejný. Uživatel 2026-11-23 rozhodl pushnout i tak, na vlastní riziko.
+- Lokální Ollama má jen `gemma4:12b`, ta audio neumí.
