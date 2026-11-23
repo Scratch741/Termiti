@@ -1,5 +1,7 @@
 package com.example.termiti
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.CircleShape
@@ -123,7 +125,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Column(
-                    modifier            = Modifier.width(centerW).padding(horizontal = 20.dp, vertical = 16.dp),
+                    modifier            = Modifier.width(centerW).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -150,6 +152,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                         currentPack = currentPack,
                         allPacks    = LanguageManager.availablePacks,
                         onSelect    = { pack -> LanguageManager.setLanguage(pack) }
+                    )
+                    PlayStyleToggle(
+                        dragToPlay = GameSettings.dragToPlay,
+                        onSelect   = { GameSettings.updateDragToPlay(it) }
                     )
                 }
             }
@@ -218,6 +224,38 @@ private fun LanguageToggle(
                 )
             }
         }
+    }
+}
+
+/** Způsob hraní karet: klepnutím (výchozí) nebo tažením nad bojiště (viz [GameSettings.dragToPlay]). */
+@Composable
+private fun PlayStyleToggle(dragToPlay: Boolean, onSelect: (Boolean) -> Unit) {
+    val s = LocalStrings.current
+    SettingsPlate {
+        Text(s.playStyleLabel, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(false to s.playStyleTap, true to s.playStyleDrag).forEach { (drag, label) ->
+                val selected = dragToPlay == drag
+                PlainButton(
+                    text         = label,
+                    modifier     = Modifier.weight(1f).height(30.dp),
+                    textColor    = if (selected) StGold else StTextPrimary,
+                    fontSize     = 11.sp,
+                    selected     = selected,
+                    outlineColor = StGold,
+                    paddingH     = 4.dp,
+                    paddingV     = 0.dp,
+                    onClick      = { onSelect(drag) }
+                )
+            }
+        }
+        Text(
+            if (dragToPlay) s.playStyleDragHint else s.playStyleTapHint,
+            color = StTextPrimary.copy(alpha = 0.7f), fontSize = 9.sp, lineHeight = 12.sp
+        )
     }
 }
 

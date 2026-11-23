@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
         CrashReporter.init(this)
         SoundManager.initSounds(this)
+        GameSettings.init(this)
         SoundManager.startBackgroundMusic(this)
         CardRepository.init(this)
         PlayerProfileManager.init(this)

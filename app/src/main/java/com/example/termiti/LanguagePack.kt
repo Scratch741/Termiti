@@ -102,6 +102,11 @@ data class LanguagePack(
                 "music" to str("music",         "🎵  Hudba"),
                 "soundEffects" to str("soundEffects",  "🔊  Efekty"),
                 "languageLabel" to str("languageLabel", "🌐  Jazyk"),
+                "playStyleLabel" to str("playStyleLabel", "🃏  Hraní karet"),
+                "playStyleTap" to str("playStyleTap", "Klepnutím"),
+                "playStyleDrag" to str("playStyleDrag", "Tažením"),
+                "playStyleTapHint" to str("playStyleTapHint", "Klepnutím kartu zahraješ, tahem nahoru zahodíš."),
+                "playStyleDragHint" to str("playStyleDragHint", "Kartu přetáhni nad bojiště a pusť. Zahodíš ji tahem dolů mimo obrazovku."),
 
                 "play" to str("play",         "HRÁT"),
                 "buildDeck" to str("buildDeck",    "TVORBA BALÍČKU"),

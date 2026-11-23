@@ -72,7 +72,24 @@ data class LossGhost(
     val id        : Long
 )
 
+/**
+ * Karta, kterou hráč právě táhne z ruky (režim „Tažením“, [GameSettings.dragToPlay]).
+ * Kreslí se ve vrstvě letu, aby ji neořízla ruka (clipToBounds, LazyRow).
+ * [rect] = aktuální pozice v okenních souřadnicích, [zone] = kam by puštění vedlo.
+ */
+data class DragGhost(val card: Card, val rect: Rect, val zone: DragZone)
+
+enum class DragZone { NONE, PLAY, DISCARD }
+
 class FlightOverlayState {
+    /** Tažená karta (null = nic se netáhne). */
+    var dragGhost: DragGhost? by mutableStateOf(null)
+    /**
+     * Karty, jejichž [sources] nastavilo puštění tažené karty: let zahrání má začít tam,
+     * kde hráč kartu pustil, a [trackFlightSource] ho nesmí přepsat pozicí v ruce.
+     */
+    val pinnedSources: SnapshotStateMap<String, Boolean> = mutableStateMapOf()
+
     /** Poslední známý bounds každé karty v ruce (okenní souřadnice). */
     val sources: SnapshotStateMap<String, Rect> = mutableStateMapOf()
     /** Bounds cíle (slot poslední zahrané karty uprostřed bojiště). */
@@ -123,7 +140,7 @@ val LocalFlightOverlay = compositionLocalOf<FlightOverlayState?> { null }
 fun Modifier.trackFlightSource(cardId: String): Modifier = composed {
     val flight = LocalFlightOverlay.current ?: return@composed this
     this.onGloballyPositioned { coords ->
-        flight.sources[cardId] = coords.boundsInRoot()
+        if (cardId !in flight.pinnedSources) flight.sources[cardId] = coords.boundsInRoot()
     }
 }
 
@@ -145,6 +162,7 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
     flight.lossGhosts.forEach { ghost ->
         key(ghost.id) { LossGhostView(flight, ghost) }
     }
+    flight.dragGhost?.let { DragGhostView(flight, it) }
     val job = flight.flying ?: return
     val progress = remember(job.id) { Animatable(0f) }
 
@@ -201,6 +219,40 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
                 }
         ) {
             CardView(card = job.card, canPlay = false, discardMode = false, onClick = {})
+        }
+    }
+}
+
+// ─── Tažená karta (režim „Tažením“) ──────────────────────────────────────────
+
+@Composable
+private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
+    // Nad bojištěm se karta mírně zvětší (zahraje se), dole zčervená (zahodí se)
+    val scale = if (ghost.zone == DragZone.PLAY) 1.08f else 1f
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .offset {
+                    IntOffset(
+                        x = (ghost.rect.left - flight.origin.x).roundToInt(),
+                        y = (ghost.rect.top  - flight.origin.y).roundToInt()
+                    )
+                }
+                .requiredSize(100.dp, 140.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0.5f, 0.5f)
+                }
+        ) {
+            CardView(
+                card        = ghost.card,
+                canPlay     = ghost.zone == DragZone.PLAY,
+                discardMode = ghost.zone == DragZone.DISCARD,
+                showFade    = false,
+                showGlow    = false,
+                onClick     = {}
+            )
         }
     }
 }

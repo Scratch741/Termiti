@@ -1,5 +1,11 @@
 ﻿package com.example.termiti
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.geometry.Rect
 import com.example.termiti.R
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.Animatable
@@ -801,7 +807,14 @@ fun HandPanel(
     // clipToBounds: karta tažená nahoru k zahození (a přilétající líznutá karta) mizí
     // pod dělicí čárou nad rukou, nekreslí se přes herní plán. LazyRow ořezává jen
     // do stran. Zahrání karty letí ve vlastní vrstvě (FlightOverlay), ořez ho neomezí.
-    Column(modifier = modifier.clipToBounds().padding(vertical = 6.dp)) {
+    // Režim „Tažením“ (Nastavení → Hraní karet): mimo tutoriál a jen na tahu hráče.
+    // Tutoriál vede hráče klepnutím, proto v něm zůstává klepání.
+    val dragMode   = GameSettings.dragToPlay && tutorialCardBaseId == null && LocalFlightOverlay.current != null
+    val flightState = LocalFlightOverlay.current
+    var handRect by remember { mutableStateOf<Rect?>(null) }
+    Column(modifier = modifier
+        .onGloballyPositioned { handRect = it.boundsInRoot() }
+        .clipToBounds().padding(vertical = 6.dp)) {
 
         // ── Záhlaví ruky ─────────────────────────────────────────────────────
         if (showHeader) {
@@ -854,6 +867,9 @@ fun HandPanel(
         ) {
             itemsIndexed(hand, key = { index, _ -> handKeys[index] }) { _, card ->
                 val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.effectiveCost
+                val playable   = isPlayerTurn && affordable &&
+                                 (tutorialCardBaseId == null || card.baseId == tutorialCardBaseId)
+                val discardOk  = isPlayerTurn && canDiscard
                 // Pořadí mezi nově líznutými (latch při vstupu do kompozice); -1 = stará karta
                 val appearIdx = remember(card.id) { newIds.indexOf(card.id) }
                 val flyIn     = remember(card.id) { Animatable(if (appearIdx >= 0) 1f else 0f) }
@@ -871,6 +887,16 @@ fun HandPanel(
                         // začátek příletu (karta by byla průhledná až skoro do ruky)
                         .animateItem(fadeInSpec = null)
                         .trackFlightSource(card.id)
+                        // Tažení: karta v ruce se skryje, táhne se její kopie ve vrstvě letu
+                        .then(if (dragMode && isPlayerTurn) Modifier.cardDragToPlay(
+                            card       = card,
+                            canPlay    = playable,
+                            canDiscard = discardOk,
+                            handBounds = { handRect },
+                            onPlay     = { onPlayCard(card) },
+                            onDiscard  = { onDiscardCard(card) }
+                        ) else Modifier)
+                        .graphicsLayer { if (flightState?.isHiddenByDrag(card.id) == true) alpha = 0f }
                         .onGloballyPositioned { c ->
                             flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
                         }
@@ -885,12 +911,12 @@ fun HandPanel(
                 ) {
                     CardView(
                         card          = card,
-                        canPlay       = isPlayerTurn && affordable &&
-                                        (tutorialCardBaseId == null || card.baseId == tutorialCardBaseId),
+                        canPlay       = playable,
                         isComboCard   = card.isCombo,
                         discardMode   = false,
-                        onClick       = { onPlayCard(card) },
-                        onDiscard     = if (isPlayerTurn && canDiscard) { { onDiscardCard(card) } } else null,
+                        // Režim tažením: klepnutí kartu nezahraje a tah nahoru ji nezahodí
+                        onClick       = { if (!dragMode) onPlayCard(card) },
+                        onDiscard     = if (discardOk && !dragMode) { { onDiscardCard(card) } } else null,
                         onLongPress   = if (onLongPressCard != null) { { onLongPressCard(card) } } else null,
                         xPreview      = if (card.isXCost) (playerResources[card.costType] ?: 0) else null,
                         conditionMet  = cardConditionMet(

@@ -46,6 +46,11 @@ class AppStrings(
     val music: String by values
     val soundEffects: String by values
     val languageLabel: String by values
+    val playStyleLabel: String by values
+    val playStyleTap: String by values
+    val playStyleDrag: String by values
+    val playStyleTapHint: String by values
+    val playStyleDragHint: String by values
 
     // ── Main menu ────────────────────────────────────────────────────────────
     val play: String by values

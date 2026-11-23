@@ -1752,3 +1752,16 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Příčina: `Text` v `Box(contentAlignment = Center)` centruje celý řádek písma, tedy i rezervu na diakritiku nahoře, dotažnice dole a `letterSpacing` za posledním písmenem. Verzálky ve štítku 58×20 dp pak opticky nesedí.
 - `PackOpening.kt`: štítek kreslí text přes `TextMeasurer`/`drawText`. Střed výšky verzálek (0,711 em, Roboto) je na středu štítku a šířka je bez mezery za posledním písmenem.
 - Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku).
+
+## [2026-11-23] ingest | Nastavení: hraní karet tažením
+- Uživatel: druhá možnost hraní karet. Výchozí zůstává klepnutí (zahrát) a tah nahoru (zahodit). Nově lze kartu přetáhnout na střed obrazovky jako ve skutečnosti a zahodit ji tahem dolů mimo obrazovku.
+- Nastavení → „🃏 Hraní karet“: Klepnutím / Tažením, s nápovědou pod volbou. Ukládá `GameSettings.dragToPlay` (nový `GameSettings.kt`, klíč `drag_to_play` v `termiti_settings`, init v `MainActivity`). Texty jsou v `cs.json`, `en.json` a `LanguagePack`. Střed nastavení se teď dá posouvat, protože volba přidala výšku.
+- `HandDrag.kt`, `Modifier.cardDragToPlay` na kartě v ruce (`GameHUD.HandPanel`):
+  - gesto začne jen převážně svislým tahem, vodorovný tah dál posouvá ruku;
+  - tažená karta se kreslí ve vrstvě letu (`FlightOverlayState.dragGhost`, `DragGhostView`), protože ruka ořezává obsah (`clipToBounds`, `LazyRow`). Karta v ruce je mezitím skrytá;
+  - zóny podle panelu ruky: střed karty nad horní hranou = zahrát (karta se zvětší na 108 %), pod spodní hranou = zahodit (karta zčervená). Jinde se karta vrátí do ruky;
+  - při zahrání a zahození se pozice puštění zapíše do `flight.sources` a připíchne (`pinnedSources`). Let do slotu tak začne odtud a `trackFlightSource` ho nepřepíše. Po 1,5 s se připíchnutí uvolní (odmítnuté zahrání online → karta se v ruce znovu ukáže).
+  - Nehratelná karta (suroviny, ne na tahu) nebo už použité zahození se jen vrátí.
+- V režimu tažením klepnutí kartu nezahraje a tah nahoru ji nezahodí. Podržení (náhled karty) funguje dál. Tutoriál používá vždy klepnutí.
+- Platí pro offline i online hru (obě používají `HandPanel` a `LocalFlightOverlay`).
+- Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku). Na telefonu vyzkoušet hlavně posouvání plné ruky do stran a zahození tahem dolů.
