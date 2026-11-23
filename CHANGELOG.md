@@ -17,6 +17,26 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.1] – 2026-11-23
+
+Nový vzhled „obsidián a bronz“ ve stylu Darkmage a nová grafika skoro všech karet.
+
+### Nová grafika
+- Nové obrázky karet: všechny chaos, stavební, magické a důlní karty a různorodější karty Útoku.
+- Přemalované hrady a hradby, avatary hráčů i soupeřů a karty z balíčků v obchodě.
+- Kampaň: noví soupeři, bossové a lokace. Dračí impérium má poprvé vlastní portréty a obrázek lokace. Soupeř má ve hře svůj portrét.
+- Hlavní menu s Temným mágem a úvodním vynořením loga. Pozadí s mágem mají i všechna sub-menu.
+
+### Vylepšeno
+- Dialogy (mulligan, konec hry, výsledek kampaně, konec roguelike běhu, opuštění hry, rozhodovací karty a další) mají rám z černého bronzu, uvnitř malovanou bronzovou desku a nadpis na desce v horním okraji rámu.
+- Tlačítka menu: písmo Cinzel se zlatým přechodem, HRÁT se zvýrazňuje bronzovou září, tlačítko se při stisku zmáčkne.
+- Tvorba balíčku a roguelike odměna ve stylu obsidián a bronz.
+- Vlastní zvuk zahrání pro všech 197 karet.
+- Supernáhodný a vlastní balíček: AI soupeř má náhodný rub karet.
+
+### Opraveno
+- Čekání AI po zahrané kartě už neukončí hru porovnáním hradů, když mají oba hráči prázdný balíček.
+
 ## [0.7.0] – 2026-11-17
 
 Začíná práce na nové grafice: obrázky karet se postupně přegenerovávají v jednotném
