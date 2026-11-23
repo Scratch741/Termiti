@@ -17,6 +17,14 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.2] – 2026-11-23
+
+### Nové
+- **Nastavení → Hraní karet:** druhý způsob hraní. Kartu přetáhneš nad bojiště a pustíš, zahodíš ji tahem dolů mimo obrazovku. Výchozí zůstává klepnutí.
+
+### Opraveno
+- Obchod: text „NOVÁ“ nad novou kartou při otevírání balíčků je na středu štítku.
+
 ## [0.7.1] – 2026-11-23
 
 Nový vzhled „obsidián a bronz“ ve stylu Darkmage a nová grafika skoro všech karet.
