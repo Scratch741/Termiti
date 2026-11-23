@@ -18,6 +18,7 @@
 | Okraje | fade-in 2 ms (u výřezu z plochy 20 ms), fade-out 150 ms (kosinový) |
 | Hlasitost | nejhlasitějších 400 ms na **−12,5 LUFS** (K-vážení podle ITU-R BS.1770). Medián zvuků, které se uživateli líbí (Berserk, Nestabilní vír) a starších nahrávek, je −12,1 LUFS |
 | Jasné zvuky | pokud je víc než 40 % energie nad 6 kHz (mince, sklo), low-pass 10 kHz a cíl o 1,5 dB níž |
+| ⚠️ Slabina | hlasitost se měří v celém pásmu, takže dunivé zvuky jsou na reproduktoru telefonu skoro neslyšné (Telekineze, Krádež chaosu, Prastarý kolos…). Viz `design/zvuky_revize.md` |
 | Limiter | měkký (tanh), strop −1 dBFS, smí stlačit špičky nejvýš o 6 dB. Řídká ťuknutí proto zůstávají kolem −16 LUFS |
 
 **Proč ne RMS:** první verze (Stable Audio) srovnávala RMS. Syčivé zvuky měly přes 10 % energie nad 6 kHz, ucho je tam nejcitlivější, takže zněly o 4+ dB hlasitěji (Magický pramen −8,3 LUFS) a „rvaly uši“.
@@ -150,7 +151,7 @@ Z knihoven (2026-11-22, 176 karet):
 | `"098"` | Hod cihlou | `hod_cihlou.wav` | GDC2026 Cinematic Sound Design - Ultra Transitions & Impacts – Woosh Sweep Slide Infographics Basic<br>GDC2024 BluezoneCorp - Stone Impact – Bluezone_BC0297_stone_impact_041<br>GDC2024 Sonic Bat - Videogame Foley Essentials Vol. II – SBvfe2_Medium Rock Dropping 011 | 0,9 s |
 | `"099"` | Temný přenos | `temny_prenos.wav` | GDC2026 Cinematic Sound Design - Ultra Transitions & Impacts – Transition Braam Slow Dark Creepy | 1,5 s |
 | `"100"` | Krvavý úder | `krvavy_uder.wav` | RPG Sound Pack (CC0) – sword-unsheathe<br>GDC2024 Justsoundeffects - Melee Weapons – WEAPAxe_Long Two-Handed Axe Flesh Hit_JSE_MW<br>GDC2024 Justsoundeffects - Gore Mini Pack – GORESplt_Gore Splatter 01_JSE_GMP | 1,0 s |
-| `"101"` | Náhlá smrt | `nahla_smrt.wav` | GDC2024 Rescopic Sound - Distinct Whooshes – WHSH_Deviant-Whoosh Flabby Slow 09_RSCPC_DW<br>GDC2026 Ivo Vicic - Church Bells – 04 Church Bells, Near Distance, In Church Tower-3 Different  | 1,5 s |
+| `"101"` | Náhlá smrt | `nahla_smrt.wav` | První úder z původního mixu (Church Bells „3 Different“, nástup 0,343 s) zahraný 2× po 0,75 s, oba doznívají; tóny druhého zvonu (F5 a partiály) jsou z dozvuku vyfiltrované (2026-11-23, `tools/nahla_smrt_2x.py`). Celý mix zněl jako svatba, výřez jen do 0,92 s zněl useknutě | 1,93 s (výjimka z 1,5 s) |
 | `"102"` | Kamenný příval | `kamenny_prival.wav` | GDC2024 The Soundcatcher - Seismic Activities – Staircase_Metal_Rumble_Rattling_Vibrate_Debris_D100_Seismic_<br>GDC2024 BluezoneCorp - Stone Impact – Bluezone_BC0297_stone_impact_041<br>GDC2024 BluezoneCorp - Stone Impact – Bluezone_BC0297_stone_impact_015 | 1,4 s |
 | `"103"` | Magické rozdělení | `magicke_rozdeleni.wav` | GDC2026 Epic Stock Media - Elemental Mutation Whooshes and Impacts – ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Gli | 1,5 s |
 | `"132"` | Zoufalý žold | `zoufaly_zold.wav` | RPG Sound Pack (CC0) – coin3<br>GDC2024 UberDuo - Game Night Audio Props – GAMEBoard_Chess, Contact, King Takes_UberDuo_Game<br>RPG Sound Pack (CC0) – coin2 | 1,0 s |
@@ -255,6 +256,7 @@ Z knihoven (2026-11-22, 176 karet):
 - [[cards/types]] – typy karet (Útok, Stavba, Magie, Důl, Chaos)
 
 ## Changelog
+- 2026-11-23: Náhlá smrt: první úder zvonu z původního zvuku zahraný 2× (syntetický zvon uživatel odmítl). Magické rozdělení uživatel označil za „špatné Star Wars“ (elektrický sci-fi zdroj). Revize podezřelých zvuků je v `design/zvuky_revize.md`: zvony různé výšky, veselé UI zvuky, nesedící zdroje, pozdní nástupy, nadužívané zdroje.
 - 2026-11-22: Zvuky ze Stable Audio nahrazeny sestavami z knihoven nahrávek (Sonniss GDC 2024/2026, RPG Sound Pack). Hlasitost srovnána podle K-vážení na −12,5 LUFS. Berserk a Nestabilní vír zůstaly.
 - 2026-11-22: deckbuilder.html: přehrání zvuku karty (🔊), označení špatných (👎), filtr a kopírování seznamu.
 - 2026-11-22: Stránka založena; 178 karet dostalo vlastní zvuk (Stable Audio 3 v ComfyUI), všech 197 karet má `soundResId`.
