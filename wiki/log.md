@@ -1746,3 +1746,9 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
   - stisk: tlačítko se zmáčkne na 97 % a rozjasní (Screen 14 %). Obdélníkový ripple se zaoblenými rohy, který na tvar textury neseděl, je pryč (`indication = null`).
 - `CinzelBold` v `CampaignMapScreen.kt` je nově `internal`.
 - Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku). Náhled vykreslený skriptem ze stejných textur: `design/ui_redesign/menu_tlacitka_srovnani.jpg`.
+
+## [2026-11-23] ingest | Otevírání balíčků: „NOVÁ“ na středu štítku
+- Uživatel: v obchodě při otevírání karet není text „NOVÁ“ nad kartou vystředěný ve štítku.
+- Příčina: `Text` v `Box(contentAlignment = Center)` centruje celý řádek písma, tedy i rezervu na diakritiku nahoře, dotažnice dole a `letterSpacing` za posledním písmenem. Verzálky ve štítku 58×20 dp pak opticky nesedí.
+- `PackOpening.kt`: štítek kreslí text přes `TextMeasurer`/`drawText`. Střed výšky verzálek (0,711 em, Roboto) je na středu štítku a šířka je bez mezery za posledním písmenem.
+- Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku).

@@ -27,6 +27,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -847,17 +850,32 @@ private fun PackCard(
         // Štítky: NOVÁ nahoře, prach za duplikát dole
         if (badge.value > 0.01f) {
             if (gain.isNew) {
+                // Text se kreslí ručně, vycentrovaný podle velkých písmen: Text v Boxu
+                // centruje celý řádek písma (rezerva na diakritiku nahoře, na dotažnice
+                // dole, mezera z letterSpacing za posledním písmenem) a „NOVÁ“ pak ve
+                // štítku nesedělo na střed.
+                val badgeMeasurer = rememberTextMeasurer()
+                val badgeStyle = TextStyle(color = PkGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Box(
                     Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-11).dp)
                         .graphicsLayer { scaleX = badge.value; scaleY = badge.value; alpha = badge.value.coerceIn(0f, 1f) }
                         .size(width = 58.dp, height = 20.dp)
-                        .buttonTexture(R.drawable.plain_button),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(s.packNew, color = PkGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                }
+                        .buttonTexture(R.drawable.plain_button)
+                        .drawBehind {
+                            val layout  = badgeMeasurer.measure(s.packNew, badgeStyle)
+                            val capH    = 10.sp.toPx() * 0.711f          // výška verzálek (Roboto)
+                            val spacing = 1.sp.toPx()                     // letterSpacing za posledním písmenem
+                            drawText(
+                                layout,
+                                topLeft = Offset(
+                                    (size.width - (layout.size.width - spacing)) / 2f,
+                                    size.height / 2f + capH / 2f - layout.firstBaseline
+                                )
+                            )
+                        }
+                )
             }
             if (gain.isDuplicate) {
                 Row(
