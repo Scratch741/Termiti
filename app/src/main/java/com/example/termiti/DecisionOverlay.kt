@@ -89,13 +89,10 @@ fun DecisionOverlay(
         ) {
             // Šířka před zvětšením: po scale(1.15) nesmí přesáhnout 96 % obrazovky
             val maxPanelW = maxWidth * 0.96f / 1.15f
-            Column(
+            DialogPanel(
                 modifier = Modifier
                     .scale(1.15f)
-                    .widthIn(max = maxPanelW)
-                    .dialogFrame()
-                    .padding(horizontal = 28.dp, vertical = 22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .widthIn(max = maxPanelW),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // Nadpis + timer

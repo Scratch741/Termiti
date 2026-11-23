@@ -91,11 +91,14 @@ fun CampaignResultScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ── Výsledek – stejný nadpis jako na ostatních obrazovkách kampaně ─────
-            CampaignTitle(
+          // Celý výsledek v rámu dialogů s bronzovou deskou (jako mulligan, konec hry)
+          DialogPanel(horizontalPadding = 32.dp, bottomPadding = 24.dp) {
+            // ── Výsledek – nadpis na desce v horním lemu rámu ─────────────────
+            DialogTitle(
                 if (playerWon) s.campaignVictory else s.campaignDefeat,
-                fontSize = 36.sp,
-                gradient = if (playerWon) TitleGold else TitleBlood
+                fontSize = 26.sp,
+                gradient = if (playerWon) TitleGold else TitleBlood,
+                modifier = Modifier.widthIn(min = 260.dp)
             )
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -221,6 +224,7 @@ fun CampaignResultScreen(
                     )
                 }
             }
+          }
         }
 
     }

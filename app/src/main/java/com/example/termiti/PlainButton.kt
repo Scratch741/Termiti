@@ -5,7 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -148,17 +154,58 @@ fun Modifier.frameTextureFilled(
 }
 
 /**
- * Společný rám dialogů: tmavý kámen + pergamen, začernalý bronz s gotickými rohy
- * (návrh UI 2026-11-21). Rohy 40 dp → boční lem ~22 dp, horní ~14 dp; obsah dialogu
- * proto potřebuje odsazení aspoň ~22 dp do stran a ~16 dp nahoru/dolů.
+ * Společný rám dialogů: začernalý bronz s gotickými rohy (návrh UI 2026-11-21) a uvnitř
+ * malovaná béžovo-bronzová deska s runami (mulligan_bronz) – stejná jako u mulliganu.
+ * Rohy 40 dp → boční lem ~22 dp, horní ~14 dp; obsah dialogu proto potřebuje odsazení
+ * aspoň ~22 dp do stran a ~16 dp dolů. Nahoru jen [DialogTitleTop]: deska s nadpisem
+ * leží přímo na horním lemu rámu (viz [DialogPanel]).
  */
 @Composable
 fun Modifier.dialogFrame(corner: Dp = 40.dp): Modifier =
-    frameTexture(R.drawable.dialog_frame, srcCornerPx = 170, corner = corner)
+    frameTextureFilled(R.drawable.dialog_frame_open, R.drawable.mulligan_bronz, srcCornerPx = 170, corner = corner)
+
+/**
+ * Horní odsazení obsahu dialogu, jehož prvním prvkem je [DialogTitle]. Deska nadpisu tak
+ * začíná těsně pod horní hranou rámu a překrývá jeho horní lem – splývá s rámem jako
+ * v návrhu (po_dialog.jpg), místo aby visela jako tlačítko uprostřed pergamenu.
+ */
+internal val DialogTitleTop = 3.dp
+
+/** Stín textů na bronzové desce dialogů – na malované desce s runami by světlý text splýval. */
+internal val DialogTextShadow = Shadow(Color.Black.copy(alpha = 0.9f), Offset(0f, 2f), 6f)
+
+/**
+ * Panel dialogu: rám [dialogFrame], obsah na střed, nahoře odsazení jen [DialogTitleTop]
+ * (první prvek má být [DialogTitle]) a všem textům bez vlastního stylu přidá [DialogTextShadow].
+ */
+@Composable
+internal fun DialogPanel(
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 28.dp,
+    bottomPadding: Dp = 22.dp,
+    corner: Dp = 40.dp,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = modifier
+            .dialogFrame(corner)
+            .padding(start = horizontalPadding, end = horizontalPadding, top = DialogTitleTop, bottom = bottomPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = verticalArrangement
+    ) {
+        val scope = this
+        CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.merge(TextStyle(shadow = DialogTextShadow))) {
+            scope.content()
+        }
+    }
+}
 
 /**
  * Nadpis dialogu na kamenné desce s gotickými konci (dialog_title_plaque). Deska se natahuje
  * jen uprostřed (konce mají pevnou velikost), takže pojme krátký i dlouhý nadpis.
+ * Patří na horní lem rámu (odsazení [DialogTitleTop]); měkký stín pod deskou ji usadí
+ * do rámu, aby nepůsobila jako samostatné tlačítko položené na pergamenu.
  */
 @Composable
 internal fun DialogTitle(
@@ -174,6 +221,18 @@ internal fun DialogTitle(
         modifier = modifier
             .widthIn(min = 200.dp)
             .height(52.dp)
+            .drawBehind {
+                // Vržený stín pod deskou (desku „nese“ rám, ne pergamen pod ní)
+                val sh = 12.dp.toPx()
+                drawRect(
+                    brush   = Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.55f), 1f to Color.Transparent,
+                        startY = size.height * 0.80f, endY = size.height * 0.80f + sh
+                    ),
+                    topLeft = Offset(size.height * 0.45f, size.height * 0.80f),
+                    size    = Size(size.width - size.height * 0.9f, sh)
+                )
+            }
             .drawBehind {
                 val w = size.width.roundToInt(); val h = size.height.roundToInt()
                 if (w <= 0 || h <= 0) return@drawBehind

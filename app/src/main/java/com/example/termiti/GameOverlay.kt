@@ -595,11 +595,8 @@ fun CardLimitChangeOverlay(
             .pointerInput(Unit) { detectTapGestures {} },
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier
-                .dialogFrame()
-                .padding(horizontal = 28.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        DialogPanel(
+            bottomPadding = 20.dp,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             DialogTitle(s.limitChangeTitle, fontSize = 21.sp)
@@ -692,18 +689,16 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.Center
     ) {
-        Column(
+        DialogPanel(
             modifier = Modifier
                 .offset(y = (-18).dp)
                 .clickable(enabled = false, onClick = {})
-                .widthIn(max = 420.dp)
-                .dialogFrame()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .widthIn(max = 420.dp),
+            horizontalPadding = 24.dp,
+            bottomPadding = 16.dp,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Nadpis
-            Spacer(Modifier.height(4.dp))
+            // Nadpis na horním lemu rámu
             DialogTitle(LocalStrings.current.lostCardsTitle, fontSize = 18.sp)
             Text(
                 LocalStrings.current.lostCardsSubtitle,
@@ -787,12 +782,7 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
     val isWin = result.isPlayerWin()
 
     GameDialog(onDismissRequest = {}) {
-        Column(
-            modifier = Modifier
-                .dialogFrame()
-                .padding(28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        DialogPanel(bottomPadding = 28.dp) {
             // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez poháru/lebky
             val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD
             DialogTitle(
@@ -862,11 +852,8 @@ fun ArenaGameOverDialog(
     }
 
     GameDialog(onDismissRequest = {}) {
-        Column(
-            modifier = Modifier
-                .dialogFrame()
-                .padding(28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        DialogPanel(
+            bottomPadding = 28.dp,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             val isDraw = result == GameResult.DRAW || result == GameResult.DRAW_BOTH_DEAD

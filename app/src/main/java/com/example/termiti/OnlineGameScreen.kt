@@ -682,13 +682,7 @@ private fun OnlineGameplay(
     // ── Menu dialog ───────────────────────────────────────────────────────────
     if (showMenu) {
         GameDialog(onDismissRequest = { showMenu = false }) {
-            Column(
-                modifier = Modifier
-                    .dialogFrame()
-                    .padding(horizontal = 28.dp, vertical = 22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            DialogPanel(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 DialogTitle("Menu", fontSize = 22.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -814,13 +808,11 @@ private fun OnlineGameOverOverlay(
             .verticalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center
     ) {
-        Column(
+        DialogPanel(
             modifier = Modifier
                 .widthIn(max = 420.dp)
-                .padding(horizontal = 24.dp, vertical = 6.dp)
-                .dialogFrame()
-                .padding(horizontal = 28.dp, vertical = 18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp, vertical = 6.dp),
+            bottomPadding = 18.dp,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // Nadpis výsledku stejně jako v kampani (Cinzel + přechod), bez ikon

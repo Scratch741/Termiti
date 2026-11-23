@@ -250,13 +250,7 @@ fun RogueRewardScreen(viewModel: GameViewModel, onExit: () -> Unit, onMenu: () -
 
     if (showExitConfirm) {
         GameDialog(onDismissRequest = { showExitConfirm = false }) {
-            Column(
-                modifier = Modifier
-                    .dialogFrame()
-                    .padding(horizontal = 28.dp, vertical = 22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            DialogPanel(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 DialogTitle(LocalStrings.current.surrenderQ, fontSize = 22.sp)
                 Spacer(Modifier.height(2.dp))
                 Text(LocalStrings.current.rogueSurrenderMsg, color = DialogTextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)
@@ -441,11 +435,9 @@ fun RogueDifficultyDialog(
     val shape   = RoundedCornerShape(16.dp)
 
     GameDialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(
-            modifier = Modifier
-                .dialogFrame()
-                .padding(horizontal = 24.dp, vertical = 18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        DialogPanel(
+            horizontalPadding = 24.dp,
+            bottomPadding = 18.dp,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             DialogTitle(s.rogueChooseDifficulty, fontSize = 22.sp)
@@ -578,18 +570,21 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     bottom = campaignInsetBottom(maxHeight) + 8.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.Center
         ) {
-            CampaignTitle(
+          // Výsledek běhu v rámu dialogů s bronzovou deskou (jako mulligan, konec hry);
+          // nadpis na desce v horním lemu rámu místo volného nadpisu a oddělovače
+          DialogPanel(
+              modifier = Modifier.verticalScroll(rememberScrollState()),
+              horizontalPadding = 32.dp,
+              bottomPadding = 24.dp,
+              verticalArrangement = Arrangement.spacedBy(10.dp)
+          ) {
+            DialogTitle(
                 if (victory) s.rogueRunComplete else s.rogueRunOver,
-                fontSize = 36.sp,
-                gradient = if (victory) TitleGold else TitleBlood
-            )
-            Image(
-                painter            = painterResource(R.drawable.bg_separator),
-                contentDescription = null,
-                modifier           = Modifier.width(320.dp),
-                contentScale       = ContentScale.FillWidth
+                fontSize = 26.sp,
+                gradient = if (victory) TitleGold else TitleBlood,
+                modifier = Modifier.widthIn(min = 260.dp)
             )
             Text(
                 if (victory) s.rogueAllBattles.format(RogueConfig.TOTAL_BATTLES) else s.rogueCastleFell,
@@ -638,6 +633,7 @@ fun RogueEndScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 buttonRes = R.drawable.plain_button_longer,
                 onClick   = onBack
             )
+          }
         }
     }
 }
