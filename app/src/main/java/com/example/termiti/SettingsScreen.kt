@@ -46,7 +46,7 @@ fun SettingsScreen(onBack: () -> Unit) {
 
         // ── Pozadí – stejné jako main menu ───────────────────────────────────
         Image(
-            painter            = painterResource(R.drawable.menu_bg),
+            painter            = painterResource(R.drawable.menu_bg_mage),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop

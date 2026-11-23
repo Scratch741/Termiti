@@ -1732,3 +1732,17 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - `GameViewModel.opponentCardBackResId` se losuje jednou v `restartGame()` (jen supernáhodný a constructed). Kampaň, aréna a roguelike ho nastaví zpět na základní rub. `GameScreen` ho použije, když hra nemá `campaignOpponent`.
 - Kampaň beze změny (rub lokace), roguelike a aréna mají dál základní rub.
 - Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku).
+
+## [2026-11-23] ingest | Sub-menu s pozadím Temného mága
+- Uživatel: po prokliknutí z hlavního menu (např. „Hrát“) chybělo pozadí s mágem.
+- `PlayMenuScreen`, `OnlineMpScreen`, `ProfileScreen`, `ProfileSetupScreen`, `SettingsScreen` a `ShopScreen` používají `menu_bg_mage` místo `menu_bg`. Rám a pochodně jsou v obou obrázcích pixelově stejné, takže pozice pochodní ani rozložení se nemění. `menu_bg` teď v kódu nic nepoužívá.
+- Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku). U obsahem bohatých obrazovek (obchod, profil, nastavení) zkontrolovat čitelnost nad malbou mága.
+
+## [2026-11-23] ingest | Tlačítka hlavního menu: hierarchie, Cinzel, odezva na stisk
+- Uživatel vybral z návrhu body 1–3 (hierarchie, písmo, stisk). Body 4 (barevná záře medailonu) a 5 (popisky ikon vpravo) zatím ne.
+- `MenuScreen.kt`, `MenuButton` (platí i pro sub-menu, která ho používají):
+  - nový parametr `primary`; v hlavním menu ho má HRÁT. Kolem desky pulzuje žhavá bronzová záře (2,2 s), plocha desky je teple nasvícená a text je o 10 % větší v plném zlatě (`TitleGold`);
+  - text všech obrázkových tlačítek je Cinzel Bold verzálkami se svislým přechodem a stínem jako logo. Vedlejší tlačítka mají tlumený pergamen (`MenuTextParchment`);
+  - stisk: tlačítko se zmáčkne na 97 % a rozjasní (Screen 14 %). Obdélníkový ripple se zaoblenými rohy, který na tvar textury neseděl, je pryč (`indication = null`).
+- `CinzelBold` v `CampaignMapScreen.kt` je nově `internal`.
+- Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku). Náhled vykreslený skriptem ze stejných textur: `design/ui_redesign/menu_tlacitka_srovnani.jpg`.

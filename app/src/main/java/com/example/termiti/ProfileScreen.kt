@@ -136,7 +136,7 @@ fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
         val H = maxHeight
 
         Image(
-            painter            = painterResource(R.drawable.menu_bg),
+            painter            = painterResource(R.drawable.menu_bg_mage),
             contentDescription = null,
             modifier           = Modifier.fillMaxSize(),
             contentScale       = ContentScale.Crop

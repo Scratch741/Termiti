@@ -35,6 +35,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ColorFilter
 
 // Paleta barev → GameColors.kt
 
@@ -181,7 +195,7 @@ fun MenuScreen(
                         contentScale       = ContentScale.FillWidth
                     )
                     Spacer(modifier = Modifier.height(H * 0.01f))
-                    MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         onClick = onPlay)
+                    MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         primary = true, onClick = onPlay)
                     MenuButton(s.multiplayer,  imageRes = R.drawable.button_8, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
                     MenuButton(s.buildDeck,    imageRes = R.drawable.button_7, accent = Gold,              onClick = onBuildDeck)
                     MenuButton(s.profile,      imageRes = R.drawable.button_4, accent = Color(0xFF7EC8E3), onClick = onProfile)
@@ -346,6 +360,22 @@ fun IconMenuButton(
 
 // ── Tlačítko menu ─────────────────────────────────────────────────────────────
 
+/** Text vedlejších tlačítek menu: světlý pergamen → tlumený bronz (hlavní má [TitleGold]). */
+private val MenuTextParchment = listOf(Color(0xFFF6EBD0), Color(0xFFDCC69C), Color(0xFFA98B5A))
+
+/** Barva žhavé záře hlavního tlačítka (bronz/žár jako bronzové tlačítko v dialozích). */
+private val MenuEmber = Color(0xFFE8A83A)
+
+/**
+ * Tlačítko hlavního menu a sub-menu (textura button_* 662×107: medailon s ikonou vlevo,
+ * tmavá deska s bronzovým lemem).
+ *
+ * - [primary] = hlavní volba obrazovky: pulzující žhavá záře kolem a teplé nasvícení
+ *   desky, text v plném zlatě. Vedlejší tlačítka mají text v tlumeném pergamenu.
+ * - Text je Cinzel se svislým přechodem jako logo DARKMAGE a nadpisy.
+ * - Stisk: tlačítko se zmáčkne na 97 % a rozjasní (místo obdélníkového ripple efektu,
+ *   který na tvar textury neseděl).
+ */
 @Composable
 fun MenuButton(
     label: String,
@@ -355,26 +385,79 @@ fun MenuButton(
     @DrawableRes imageRes: Int? = null,
     /** Volitelná ikonka před textem (např. mince u ceny). */
     @DrawableRes leadingIconRes: Int? = null,
+    /** Hlavní volba obrazovky (v hlavním menu HRÁT). */
+    primary: Boolean = false,
     onClick: () -> Unit
 ) {
     val alphaVal = if (enabled) 1f else 0.4f
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(if (pressed && enabled) 0.97f else 1f, tween(90), label = "menuPress")
+    val clickMod = if (enabled) Modifier.clickable(interaction, indication = null) { SoundManager.playMenuTap(); onClick() } else Modifier
 
     if (imageRes != null) {
+        // Pomalé „dýchání“ záře hlavního tlačítka
+        val glow = if (primary && enabled) {
+            val t = rememberInfiniteTransition(label = "menuGlow")
+            t.animateFloat(
+                initialValue  = 0.55f,
+                targetValue   = 1f,
+                animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                label         = "menuGlowA"
+            ).value
+        } else 0f
+        val lighten = if (pressed && enabled) 0.14f else 0f
+
         // Varianta s obrázkem – BoxWithConstraints pro proporcionální text offset
         BoxWithConstraints(
             modifier = modifier
-                .clip(RoundedCornerShape(10.dp))
-                .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
+                .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
+                .drawBehind {
+                    if (glow <= 0f) return@drawBehind
+                    // Žhavá záře za deskou: soustředné obrysy s klesající průhledností
+                    // (deska začíná kousek od levého okraje, medailon je kulatý a vyšší)
+                    val steps = 7
+                    val reach = 9.dp.toPx()
+                    val left  = size.width * 0.07f
+                    for (i in steps downTo 1) {
+                        val g = reach * i / steps
+                        drawRoundRect(
+                            color        = MenuEmber.copy(alpha = 0.10f * glow * (1f - (i - 1f) / steps)),
+                            topLeft      = Offset(left - g, size.height * 0.06f - g),
+                            size         = Size(size.width - left + 2 * g - size.width * 0.005f, size.height * 0.88f + 2 * g),
+                            cornerRadius = CornerRadius(6.dp.toPx() + g)
+                        )
+                    }
+                }
+                .then(clickMod)
                 .alpha(alphaVal)
         ) {
             val btnW = maxWidth
-            val btnH = maxHeight
             Image(
                 painter            = painterResource(imageRes),
                 contentDescription = null,
                 modifier           = Modifier.fillMaxWidth(),
-                contentScale       = ContentScale.FillWidth
+                contentScale       = ContentScale.FillWidth,
+                colorFilter        = if (lighten > 0f) ColorFilter.tint(Color.White.copy(alpha = lighten), BlendMode.Screen) else null
             )
+            if (primary) {
+                // Teplé nasvícení tmavé plochy desky (jako by za ní žhnul oheň)
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .padding(start = btnW * 0.20f, end = btnW * 0.02f, top = btnW * 0.022f, bottom = btnW * 0.022f)
+                        .drawBehind {
+                            drawRect(
+                                Brush.radialGradient(
+                                    0f to MenuEmber.copy(alpha = 0.22f * (0.6f + 0.4f * glow)),
+                                    1f to Color.Transparent,
+                                    center = Offset(size.width * 0.35f, size.height * 0.5f),
+                                    radius = size.width * 0.6f
+                                )
+                            )
+                        }
+                )
+            }
             // Ikonka zabírá ~1/6 šířky → text začíná za ní
             Box(
                 modifier         = Modifier
@@ -394,13 +477,17 @@ fun MenuButton(
                         )
                     }
                     Text(
-                        label,
-                        color         = TextPrimary,
-                        fontSize      = (btnW.value * 0.045f).sp,
-                        fontWeight    = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        maxLines      = 1,
-                        overflow      = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        label.uppercase(),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        style    = TextStyle(
+                            fontFamily    = CinzelBold,
+                            fontWeight    = FontWeight.Bold,
+                            fontSize      = (btnW.value * (if (primary) 0.050f else 0.045f)).sp,
+                            letterSpacing = 2.sp,
+                            brush         = Brush.verticalGradient(if (primary) TitleGold else MenuTextParchment),
+                            shadow        = Shadow(Color.Black.copy(alpha = 0.9f), Offset(0f, 3f), 6f)
+                        )
                     )
                 }
             }
@@ -409,10 +496,11 @@ fun MenuButton(
         // Fallback bez obrázku
         Box(
             modifier = modifier
+                .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
                 .clip(RoundedCornerShape(10.dp))
                 .background(accent.copy(alpha = if (enabled) 0.12f else 0.05f))
                 .border(1.dp, accent.copy(alpha = if (enabled) 0.5f else 0.2f), RoundedCornerShape(10.dp))
-                .then(if (enabled) Modifier.clickable { SoundManager.playMenuTap(); onClick() } else Modifier)
+                .then(clickMod)
                 .padding(vertical = 9.dp),
             contentAlignment = Alignment.Center
         ) {

@@ -154,7 +154,7 @@ internal val TitleSilver = listOf(Color(0xFFF4F4F4), Color(0xFFC9CED6), Color(0x
  * vložený beze změny; tloušťka Bold se volí přes variationSettings (API 26+ = minSdk).
  */
 @OptIn(ExperimentalTextApi::class)
-private val CinzelBold = FontFamily(
+internal val CinzelBold = FontFamily(
     Font(
         R.font.cinzel,
         weight            = FontWeight.Bold,
