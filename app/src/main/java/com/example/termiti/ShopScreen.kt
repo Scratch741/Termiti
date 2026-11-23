@@ -74,12 +74,7 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
         val H = maxHeight
 
         // ── Pozadí – stejné jako main menu ───────────────────────────────────
-        Image(
-            painter            = painterResource(R.drawable.menu_bg_mage),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxSize(),
-            contentScale       = ContentScale.Crop
-        )
+        MenuBackground()
 
         // ── Pochodně ─────────────────────────────────────────────────────────
         val imgAR  = 1791f / 975f

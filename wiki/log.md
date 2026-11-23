@@ -1787,3 +1787,33 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 ## [2026-11-23] release | v0.7.3
 - `versionCode` 22, `versionName` 0.7.3; CHANGELOG: nové ikony, tažená karta bez zvětšení.
+
+## [2026-11-23] ui | Hlavní menu, menu Hrát a online lobby: volby jako nápisy (varianta B)
+- Uživateli se nelíbily velké tmavé desky tlačítek, které zakrývaly mága v pozadí. Ze tří náhledů z reálných prvků hry (`design/ui_redesign/menu_varianty.jpg`: A obsidiánové desky, B jen nápisy, C medailony) vybral B. Po prvním nasazení chtěl odebrat medailony s ikonami před nápisy a text trochu zvýraznit; pak totéž i pro online lobby.
+- `MenuScreen.kt`, nové prvky:
+  - `MenuTextOption`: nápis v Cinzelu na ose sloupce, případně otazník s pravidly za ním (vlevo stejně široké prázdné místo, text zůstává na ose); `enabled` ztlumí a vypne volbu, dlouhý text se zkrátí třemi tečkami.
+  - Pod písmeny je druhá vrstva textu plnou barvou s rozmazaným stínem: tmavý obrys pro čitelnost přes plameny, u HRÁT pulzující žhavá záře. Stín nesmí mít vrstva s `brush` – Android ho pak kreslí barvami přechodu, takže místo tmavého obrysu vznikla světlá mlhavá záře.
+  - `MenuHelpBadge` (kulatý bronzový otazník), `MenuOptionDivider` (bronzová linka s kosočtverečkem), `Modifier.menuVeil()` (tmavý oválný závoj za volbami).
+- Písmo: HRÁT 7,4 % výšky obrazovky v plném zlatě, ostatní 5,2 % ve světlém pergamenu (`MenuTextBright`).
+- Použito v hlavním menu, `PlayMenuScreen` (pod logem bronzová linka) a v online lobby (`LobbyPanel` v `OnlineMpScreen.kt`). `MenuButton` s deskami zůstává jinde (připojení k serveru, obchod, konec hry); nepoužívaný `ModeRow` smazán.
+- Sestaveno, nainstalováno a ověřeno v telefonu (S23): všechna tři menu, otazník otevře pravidla. Snímek: `design/ui_redesign/menu_napisy_telefon.jpg`.
+
+## [2026-11-23] ui | Nápis DARKMAGE bez desky, hlava mága je vidět
+- Uživatel: logo s deskou zakrývalo hlavu Temného mága v pozadí, chtěl z něj jen text.
+- `res/drawable/logo_darkmage_text.png` (863×170): zlatá písmena vyříznutá z `logo_darkmage.png` (oblast x 276–1112, y 120–258). Maska podle teploty barvy (R−B), ne jen jasu: spodní zkosení písmen je tmavé (jas 37–66), ale teplé (R−B 37–61), deska je jas ~10 a R−B do 10. Volnější práh platí jen do ~6 px od jasného těla písmen, nad písmeny jen jasné patky, malé oddělené skvrny se zahodí. Dřívější verze (vysoký práh jasu a zúžení masky) usekávala spodek D a G. Pod písmeny zapečený tmavý stín. Skript: `design/ui_redesign/logo_text_extract.py`.
+- `MenuTitle` (`MenuScreen.kt`): umístění se počítá z pozadí (ořez jako u pochodní), ne z vystředěného sloupce voleb – spodek písmen je těsně nad špičkou kápě (y = 225 z 925 px pozadí). Dřív nápis při přechodu do menu Hrát poskočil nahoru (menu Hrát má `statusBarsPadding` a vyšší sloupec). Ve sloupcích zůstává prázdné místo po logu (`menuTitleSpace`), volby se neposunuly. Ověřeno: oblast nápisu je v obou menu na pixel stejná. `logo_darkmage.png` dál používá první nastavení profilu.
+- Ověřeno v telefonu (S23), snímek: `design/ui_redesign/menu_napis_darkmage.jpg`.
+
+## [2026-11-23] ui | Pozadí menu: opravená ruka mága a animace (krystaly, oheň, kouř)
+- Uživatel: Temný mág měl na levé ruce (vpravo na obrázku) jen čtyři prsty; pozadí chtěl animované – kouř, oheň, levitující krystaly.
+- Ruka: `comfy_inpaint` dával velké bledé realistické ruce bez ohně (i jemný inpaint 0,35 měnil barvu do červena a ztrácel prsty). Použito zrcadlo druhé ruky (pět prstů, stejný ohnivý styl, pozice zrcadlově +10/+10 px) vložené přes měkkou eliptickou masku; maska končí u konečků prstů, jinak se do obrázku dostal kus zrcadleného rámu okna. Uloženo do `menu_bg_mage.jpg`; originál v `Pictures/Generated/ui/menu_bg/menu_bg_mage_puvodni.jpg`.
+- Animace (`MenuBackground.kt`, nahrazuje statické `menu_bg_mage` ve všech obrazovkách menu: hlavní, Hrát, lobby, profil, první nastavení, nastavení, obchod):
+  - `menu_bg_mage_clean.jpg`: pozadí bez osmi levitujících krystalů (místa doplněná `comfy_inpaint`, denoise 1, mimo krystaly originál);
+  - `menu_bg_crystals.png`: krystaly vyříznuté z originálu jako atlas 628×394 od bodu 557,86 pozadí. Maska = rozdíl originálu a čistého pozadí, bez tyrkysové mlhy, konvexní obal větších částí; krystal vpravo nahoře splývá s tmavým pozadím, má ručně zadaný obrys. Skript: `design/ui_redesign/menu_bg_crystals_extract.py`;
+  - krystaly se vznášejí ±5 px pozadí a kývají ±3° (perioda 3,6–5,7 s, každý jinak), z dlaní stoupají jiskry (26 na ruku, aditivně) a mihotá se záře, vedle rukou stoupá kouř: chuchvalce z textury `menu_smoke.png` (fraktální šum, 2×256 px, bílá s průhledností) zbarvené do světle tyrkysové, rostou, točí se a mizí (první verze z prostých kruhových přechodů na tyrkysovém pozadí skoro nebyla vidět);
+  - obrázky se načítají v původní velikosti (`inScaled = false`), `res/drawable` by je jinak zvětšil podle hustoty displeje; čas se čte jen při kreslení, menu se kvůli animaci nerekomponuje.
+- `menu_bg_mage.jpg` (s krystaly) kód už nepoužívá, zůstává jako zdroj.
+- Animace se při přepnutí menu (Hrát → Constructed, lobby…) neresetují: `rememberMenuTime()` je sdílený čas od prvního snímku po spuštění aplikace (osa Choreographeru). Používá ho pozadí i `TorchFlame` (pochodně, i na bojišti) – dřív měla každá obrazovka vlastní `rememberInfiniteTransition` od nuly. Kývání pochodně je teď −cos (dřív FastOutSlowIn tam a zpět), periody zůstaly. Obrázky pozadí se načtou jednou za běh. Sdílený čas se v nové obrazovce hned nastaví na aktuální hodnotu (System.nanoTime − počátek): s nulou první snímek po přepnutí nakreslil animace ve stavu z času 0 a pak skočily zpět – uživatel to viděl jako lehké probliknutí. Ověřeno záznamem obrazovky (118 fps, tři přepnutí menu ↔ Hrát): celkový jas stejný, skokově se mění jen obsah menu v jediném snímku, krystaly, nápis a pochodně navazují.
+
+## [2026-11-23] release | v0.7.4
+- `versionCode` 23, `versionName` 0.7.4; CHANGELOG: menu s nápisy místo desek, nápis DARKMAGE nad kápí, animované pozadí (krystaly, jiskry, kouř), opravená ruka mága, bez probliknutí při přepnutí menu. `PROTOCOL_VERSION` beze změny.

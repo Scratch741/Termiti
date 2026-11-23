@@ -49,6 +49,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.platform.LocalDensity
 
 // Paleta barev → GameColors.kt
 
@@ -90,12 +93,7 @@ fun MenuScreen(
         // ── Pozadí ────────────────────────────────────────────────────────────
         // menu_bg s Temným mágem v prostředním okně (rám, pochodně i panely pixelově
         // stejné jako menu_bg – souřadnice pochodní níže platí beze změny)
-        Image(
-            painter            = painterResource(R.drawable.menu_bg_mage),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxSize(),
-            contentScale       = ContentScale.Crop
-        )
+        MenuBackground()
 
         // ── Pochodně (menu_bg 1791×975, AR≈1.837) ────────────────────────────
         // x, y = procenta RAW obrázku; kód přepočítá ContentScale.Crop sám
@@ -186,19 +184,19 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.010f)
                 ) {
-                    Image(
-                        painter            = painterResource(R.drawable.logo_darkmage),
-                        contentDescription = "DarkMage",
-                        modifier           = Modifier
-                            .requiredWidth(centerW * 1.1f)
-                            .offset(y = -H * -0.01f),
-                        contentScale       = ContentScale.FillWidth
-                    )
+                    Spacer(Modifier.height(menuTitleSpace(centerW)))
                     Spacer(modifier = Modifier.height(H * 0.01f))
-                    MenuButton(s.play,         imageRes = R.drawable.button_1, accent = TealLight,         primary = true, onClick = onPlay)
-                    MenuButton(s.multiplayer,  imageRes = R.drawable.button_8, accent = Color(0xFF3A7BD5), onClick = onMultiplayer)
-                    MenuButton(s.buildDeck,    imageRes = R.drawable.button_7, accent = Gold,              onClick = onBuildDeck)
-                    MenuButton(s.profile,      imageRes = R.drawable.button_4, accent = Color(0xFF7EC8E3), onClick = onProfile)
+                    // Volby jako nápisy (bez desek), aby byl mág v pozadí vidět
+                    val optW = centerW * 0.95f
+                    Column(Modifier.menuVeil(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        MenuTextOption(s.play, H, optW, primary = true, onClick = onPlay)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption(s.multiplayer, H, optW, onClick = onMultiplayer)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption(s.buildDeck, H, optW, onClick = onBuildDeck)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption(s.profile, H, optW, onClick = onProfile)
+                    }
                 }
             }
 
@@ -218,6 +216,12 @@ fun MenuScreen(
                 }
             }
         }
+
+        // ── Nápis DARKMAGE nad kápí mága (pevně podle pozadí) ─────────────────
+        MenuTitle(
+            centerW, W, H, imgDispH, cropY,
+            Modifier.graphicsLayer { alpha = reveal.value; translationY = (1f - reveal.value) * 10.dp.toPx() }
+        )
 
         // ── Verze v pravém dolním rohu ────────────────────────────────────────
         // Během úvodu: klepnutí kamkoli zobrazí menu hned (nespustí žádné tlačítko)
@@ -525,4 +529,174 @@ fun MenuButton(
             }
         }
     }
+}
+
+// ── Menu „jen nápisy“ (varianta B, 2026-11-23) ───────────────────────────────
+// Volby bez desek: mág v pozadí zůstává celý vidět. Nápis v Cinzelu s tmavým obrysem,
+// mezi volbami bronzová linka.
+
+/**
+ * Tmavý oválný závoj za seznamem voleb, aby byl text čitelný i přes světlé plameny.
+ * Kreslí se i mimo hranice prvku a do stran mizí.
+ */
+internal fun Modifier.menuVeil(): Modifier = drawBehind {
+    val r = size.height * 0.62f
+    scale(scaleX = size.width / size.height * 0.95f, scaleY = 1f, pivot = center) {
+        drawCircle(
+            Brush.radialGradient(
+                0f to Color(0xB0060406), 0.55f to Color(0x80060406), 1f to Color.Transparent,
+                center = center, radius = r
+            ),
+            radius = r, center = center
+        )
+    }
+}
+
+/** Kulatý bronzový otazník (pravidla režimu) – větší dotyková plocha než kresba. */
+@Composable
+internal fun MenuHelpBadge(size: Dp, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .requiredSize(size * 1.6f)
+            .clickable(remember { MutableInteractionSource() }, indication = null) { SoundManager.playMenuTap(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            Modifier.size(size).drawBehind {
+                val r = this.size.minDimension / 2f
+                drawCircle(Color.Black.copy(alpha = 0.85f), r)
+                val w = 1.5.dp.toPx()
+                drawCircle(Brush.verticalGradient(listOf(BronzeLight, BronzeDark)), r - w / 2f - 1f, style = Stroke(w))
+                drawCircle(Color(0xFF141012), r - w - 1.5f)
+            },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "?",
+                style = TextStyle(
+                    fontFamily = CinzelBold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize   = (size.value * 0.6f).sp,
+                    brush      = Brush.verticalGradient(TitleGold)
+                )
+            )
+        }
+    }
+}
+
+/** Oddělovač mezi volbami: bronzová linka mizející do stran s kosočtverečkem uprostřed. */
+@Composable
+internal fun MenuOptionDivider(width: Dp) {
+    BronzeDivider(Modifier.width(width), alpha = 0.6f)
+}
+
+/** Text vedlejších voleb menu: světlejší pergamen než u desek, aby nápis bez desky vynikl. */
+private val MenuTextBright = listOf(Color(0xFFFFF6E2), Color(0xFFF3E0B6), Color(0xFFCFAE74))
+
+/**
+ * Volba menu jako nápis na ose sloupce, za ním případně otazník s pravidly
+ * (vlevo je stejně široké prázdné místo, aby text zůstal na ose).
+ *
+ * - Pod písmeny je rozmazaný tmavý obrys, takže nápis vynikne i přes plameny v pozadí.
+ * - [primary] (HRÁT): větší písmo v plném zlatě a místo tmavého obrysu pulzující žhavá záře.
+ * - Stisk zmáčkne volbu na 96 %.
+ */
+@Composable
+internal fun MenuTextOption(
+    label: String,
+    H: Dp,
+    width: Dp,
+    primary: Boolean = false,
+    /** Vypnutá volba je ztlumená a nereaguje (např. výběr balíčku bez platného balíčku). */
+    enabled: Boolean = true,
+    onHelp: (() -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(if (pressed && enabled) 0.96f else 1f, tween(90), label = "optPress")
+    val glow = if (primary) {
+        rememberInfiniteTransition(label = "optGlow").animateFloat(
+            initialValue  = 0.55f,
+            targetValue   = 1f,
+            animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label         = "optGlowA"
+        ).value
+    } else 0f
+    val density  = LocalDensity.current
+    val glowBlur = with(density) { 14.dp.toPx() }
+    val haloBlur = with(density) { 8.dp.toPx() }
+    val slot = H * 0.075f
+    val base = TextStyle(
+        fontFamily    = CinzelBold,
+        fontWeight    = FontWeight.Bold,
+        fontSize      = (H.value * (if (primary) 0.074f else 0.052f)).sp,
+        letterSpacing = (H.value * 0.004f).sp,
+        brush         = Brush.verticalGradient(if (primary) TitleGold else MenuTextBright)
+    )
+    val text = label.uppercase()
+
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(H * 0.12f)
+            .then(if (enabled) Modifier.clickable(interaction, indication = null) { SoundManager.playMenuTap(); onClick() } else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier              = Modifier.graphicsLayer { scaleX = pressScale; scaleY = pressScale; alpha = if (enabled) 1f else 0.4f },
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(H * 0.02f)
+        ) {
+            if (onHelp != null) Spacer(Modifier.width(slot))
+            Box(contentAlignment = Alignment.Center) {
+                // Spodní vrstva: stejný text plnou barvou s rozmazaným stínem té barvy
+                // (žhavá záře u HRÁT, jinak tmavý obrys pro čitelnost). Stín musí mít
+                // vrstva bez brush – Android kreslí stín textu s přechodem barvami přechodu.
+                val halo = if (primary) MenuEmber.copy(alpha = 0.9f * glow) else Color.Black.copy(alpha = 0.95f)
+                // Dlouhý text (název balíčku v lobby) se zkrátí třemi tečkami, obě vrstvy stejně
+                Text(
+                    text, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    style = TextStyle(
+                        fontFamily    = base.fontFamily,
+                        fontWeight    = base.fontWeight,
+                        fontSize      = base.fontSize,
+                        letterSpacing = base.letterSpacing,
+                        color         = halo,
+                        shadow        = Shadow(halo, Offset.Zero, if (primary) glowBlur else haloBlur)
+                    )
+                )
+                Text(text, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = base)
+            }
+            if (onHelp != null) Box(Modifier.size(slot), contentAlignment = Alignment.Center) { MenuHelpBadge(H * 0.052f, onHelp) }
+        }
+    }
+}
+
+/** Výška místa po dřívějším logu s deskou – volby pod ním zůstávají tam, kde byly. */
+internal fun menuTitleSpace(centerW: Dp): Dp = centerW * 1.1f * 377f / 1400f
+
+/**
+ * Nápis DARKMAGE: jen zlatá písmena vyříznutá z loga (logo_darkmage_text 863×170, písmena
+ * v řádcích 24–145, s tmavým stínem). Umístění se počítá z pozadí menu_bg_mage, ne z
+ * vystředěného sloupce voleb: spodek písmen je těsně nad špičkou kápě Temného mága
+ * (y = 225 z 925 px obrázku). Hlavní menu i nabídka Hrát volají totéž, takže nápis při
+ * přechodu mezi nimi neposkočí. Kreslí se do BoxWithConstraints celé obrazovky (zarovnání vlevo nahoře).
+ *
+ * @param imgDispH výška pozadí po ContentScale.Crop, [cropY] jeho ořez nahoře (jako u pochodní)
+ */
+@Composable
+internal fun MenuTitle(centerW: Dp, W: Dp, H: Dp, imgDispH: Dp, cropY: Dp, modifier: Modifier = Modifier) {
+    val tw    = centerW * 1.1f * 863f / 1400f
+    val th    = tw * 170f / 863f
+    val tipY  = imgDispH * (225f / 925f) - cropY
+    val top   = tipY - H * 0.012f - th * (145f / 170f)
+    Image(
+        painter            = painterResource(R.drawable.logo_darkmage_text),
+        contentDescription = "DarkMage",
+        modifier           = modifier
+            .offset(x = (W - tw) / 2 + 9.dp, y = top)
+            .width(tw),
+        contentScale       = ContentScale.FillWidth
+    )
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.sin
 
 private val TAU = (2f * PI).toFloat()
@@ -37,28 +38,26 @@ fun TorchFlame(
     size     : Dp       = 28.dp,
     seed     : Float    = 0f
 ) {
-    val inf = rememberInfiniteTransition(label = "flame_$seed")
-
-    // Tři časové osy s nesoudělnými periodami (ms): 479, 557, 673
-    // → fazové rozložení se nikdy přesně nezopakuje ve slyšitelném čase
-    val t1 by inf.animateFloat(seed, TAU + seed,
-        infiniteRepeatable(tween(479, easing = LinearEasing)), label = "t1")
-    val t2 by inf.animateFloat(seed * 1.3f, TAU + seed * 1.3f,
-        infiniteRepeatable(tween(557, easing = LinearEasing)), label = "t2")
-    val t3 by inf.animateFloat(seed * 0.7f, TAU + seed * 0.7f,
-        infiniteRepeatable(tween(673, easing = LinearEasing)), label = "t3")
-
-    // Celkové kývání: pomalé, sinusové, 0.58 Hz
-    val sway by inf.animateFloat(-1f, 1f,
-        infiniteRepeatable(tween(1723, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "sway")
-
-    // Záblesky jasu: 3.1 Hz, mírná amplituda aby nebylo křečovité
-    val flicker by inf.animateFloat(0.74f, 1f,
-        infiniteRepeatable(tween(322, easing = LinearEasing), RepeatMode.Reverse),
-        label = "flicker")
+    // Sdílené hodiny menu: plamen při přepnutí obrazovky pokračuje, nezačíná znovu
+    val clock = rememberMenuTime()
 
     Canvas(modifier = modifier.size(size)) {
+        val tt = clock.value
+        fun cycle(periodS: Float) = (tt / periodS) % 1f
+
+        // Tři časové osy s nesoudělnými periodami (ms): 479, 557, 673
+        // → fazové rozložení se nikdy přesně nezopakuje ve slyšitelném čase
+        val t1 = seed + TAU * cycle(0.479f)
+        val t2 = seed * 1.3f + TAU * cycle(0.557f)
+        val t3 = seed * 0.7f + TAU * cycle(0.673f)
+
+        // Celkové kývání: pomalé tam a zpět (−1..1) s měkkými konci, 1,723 s na jednu stranu
+        val sway = -cos(PI.toFloat() * (tt / 1.723f + seed))
+
+        // Záblesky jasu: 3.1 Hz, mírná amplituda aby nebylo křečovité (trojúhelník 0,74..1)
+        val fp = (tt / 0.322f + seed) % 2f
+        val flicker = 0.74f + 0.26f * (if (fp < 1f) fp else 2f - fp)
+
         val w     = this.size.width
         val h     = this.size.height
         val cx    = w / 2f

@@ -49,12 +49,7 @@ fun PlayMenuScreen(
         val H = maxHeight
 
         // ── Pozadí ───────────────────────────────────────────────────────────
-        Image(
-            painter            = painterResource(R.drawable.menu_bg_mage),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxSize(),
-            contentScale       = ContentScale.Crop
-        )
+        MenuBackground()
 
         // ── Pochodně ─────────────────────────────────────────────────────────
         val imgAR  = 1791f / 975f
@@ -125,28 +120,20 @@ fun PlayMenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.010f)
                 ) {
-                    Image(
-                        painter            = painterResource(R.drawable.logo_darkmage),
-                        contentDescription = "DarkMage",
-                        modifier           = Modifier
-                            .requiredWidth(centerW * 1.1f)
-                            .offset(y = -H * -0.01f),
-                        contentScale       = ContentScale.FillWidth
-                    )
+                    Spacer(Modifier.height(menuTitleSpace(centerW)))
                     Spacer(Modifier.height(H * 0.01f))
-                    val helpSize = H * 0.075f
-                    ModeRow(helpSize, onHelp = { rules = s.ownDeck to s.rulesConstructed }) {
-                        MenuButton(s.ownDeck,     imageRes = R.drawable.button_14, accent = TealLight,         onClick = onOwnDeck)
-                    }
-                    ModeRow(helpSize, onHelp = { rules = s.superRandom to s.rulesSuperRandom }) {
-                        MenuButton(s.superRandom, imageRes = R.drawable.button_10, accent = Color(0xFFE57373), onClick = onSuperRandom)
-                    }
+                    // Volby jako nápisy jako v hlavním menu; otazník s pravidly za nápisem.
                     // Aréna dočasně skryta (nevejde se; ponechána jako záloha – onArena/routing zůstává)
-                    ModeRow(helpSize, onHelp = { rules = "ROGUELIKE" to s.rulesRoguelike }) {
-                        MenuButton("ROGUELIKE",   imageRes = R.drawable.button_13, accent = Color(0xFFB388FF), onClick = onRoguelike)
-                    }
-                    ModeRow(helpSize, onHelp = { rules = s.campaign to s.rulesCampaign }) {
-                        MenuButton(s.campaign,    imageRes = R.drawable.button_12, accent = Color(0xFF7EC8E3), onClick = onCampaign)
+                    val optW = centerW * 0.95f
+                    Column(Modifier.menuVeil(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        MenuOptionDivider(centerW * 0.6f)
+                        MenuTextOption(s.ownDeck, H, optW, onHelp = { rules = s.ownDeck to s.rulesConstructed }, onClick = onOwnDeck)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption(s.superRandom, H, optW, onHelp = { rules = s.superRandom to s.rulesSuperRandom }, onClick = onSuperRandom)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption("ROGUELIKE", H, optW, onHelp = { rules = "ROGUELIKE" to s.rulesRoguelike }, onClick = onRoguelike)
+                        MenuOptionDivider(centerW * 0.55f)
+                        MenuTextOption(s.campaign, H, optW, onHelp = { rules = s.campaign to s.rulesCampaign }, onClick = onCampaign)
                     }
                 }
             }
@@ -168,28 +155,10 @@ fun PlayMenuScreen(
             }
         }
 
-        rules?.let { (mode, text) -> RulesOverlay(s.rulesTitle.format(mode), text, s.close) { rules = null } }
-    }
-}
+        // Nápis DARKMAGE na stejném místě jako v hlavním menu (nezávisle na sloupci voleb)
+        MenuTitle(centerW, W, H, imgDispH, cropY)
 
-/**
- * Řádek režimu: tlačítko uprostřed jako dřív a vpravo VEDLE něj otazník s pravidly.
- * Otazník je posunutý za okraj sloupce, takže tlačítka zůstávají stejně široká a vystředěná.
- */
-@Composable
-internal fun ModeRow(helpSize: Dp, onHelp: () -> Unit, button: @Composable () -> Unit) {
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        button()
-        PlainButton(
-            text      = "?",
-            modifier  = Modifier.align(Alignment.CenterEnd).offset(x = helpSize * 0.8f).size(helpSize),
-            textColor = Gold,
-            fontSize  = (helpSize.value * 0.5f).sp,
-            paddingH  = 0.dp,
-            paddingV  = 0.dp,
-            buttonRes = R.drawable.plain_button_mini,
-            onClick   = onHelp
-        )
+        rules?.let { (mode, text) -> RulesOverlay(s.rulesTitle.format(mode), text, s.close) { rules = null } }
     }
 }
 

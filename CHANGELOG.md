@@ -17,6 +17,17 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.4] – 2026-11-23
+
+### Změněno
+- **Hlavní menu, menu Hrát a online lobby:** volby jsou zlaté nápisy bez tmavých desek, takže je vidět Temný mág v pozadí. HRÁT září, otazníky s pravidly jsou hned za názvem režimu.
+- Nápis DARKMAGE bez desky, nad kápí mága; při přechodu do menu Hrát už neposkočí.
+- **Animované pozadí menu:** levitující krystaly se vznášejí, z dlaní mága stoupají jiskry a vedle rukou kouř. Animace při přepínání menu plynule pokračují.
+
+### Opraveno
+- Temný mág v pozadí měl na levé ruce jen čtyři prsty.
+- Krátké probliknutí animací při přepnutí obrazovky menu.
+
 ## [0.7.3] – 2026-11-23
 
 ### Změněno

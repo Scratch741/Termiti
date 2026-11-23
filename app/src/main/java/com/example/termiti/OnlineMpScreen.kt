@@ -140,12 +140,7 @@ internal fun MenuFrame(
         val W = maxWidth
         val H = maxHeight
 
-        Image(
-            painter            = painterResource(R.drawable.menu_bg_mage),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxSize(),
-            contentScale       = ContentScale.Crop
-        )
+        MenuBackground()
 
         // Pochodně (stejná matematika jako MenuScreen)
         val imgAR  = 1791f / 975f
@@ -520,21 +515,21 @@ private fun LobbyPanel(
             if (errorMsg.isNotBlank()) HeaderNote(errorMsg, H, OnRed)
         }
         MenuBody(centerW, H) {
-            // Názvy módů i otazníky s pravidly stejně jako v nabídce Hrát
-            val helpSize = H * 0.075f
-            ModeRow(helpSize, onHelp = { rules = s.ownDeck to s.rulesOnlineConstructed }) {
-                MenuButton(s.ownDeck,     imageRes = R.drawable.button_14, accent = TealLight, onClick = { vm.joinQueue(superRandom = false) })
+            // Volby jako nápisy a otazníky s pravidly stejně jako v hlavním menu a v nabídce Hrát
+            val optW = centerW * 0.95f
+            Column(Modifier.menuVeil(), horizontalAlignment = Alignment.CenterHorizontally) {
+                MenuTextOption(s.ownDeck, H, optW, onHelp = { rules = s.ownDeck to s.rulesOnlineConstructed }, onClick = { vm.joinQueue(superRandom = false) })
+                MenuOptionDivider(centerW * 0.55f)
+                MenuTextOption(s.superRandom, H, optW, onHelp = { rules = s.superRandom to s.rulesOnlineSuperRandom }, onClick = { vm.joinQueue(superRandom = true) })
+                MenuOptionDivider(centerW * 0.55f)
+                MenuTextOption(
+                    "${s.mpDeckLabel} · ${deckName.uppercase()}", H, optW,
+                    enabled = decks.any { it.isValid },
+                    onClick = { pickingDeck = true }
+                )
+                MenuOptionDivider(centerW * 0.55f)
+                MenuTextOption(s.mpLeaderboard, H, optW, onClick = onLeaderboard)
             }
-            ModeRow(helpSize, onHelp = { rules = s.superRandom to s.rulesOnlineSuperRandom }) {
-                MenuButton(s.superRandom, imageRes = R.drawable.button_10, accent = TealLight, onClick = { vm.joinQueue(superRandom = true) })
-            }
-            MenuButton(
-                "${s.mpDeckLabel} · ${deckName.uppercase()}",
-                imageRes = R.drawable.button_7, accent = Gold,
-                enabled  = decks.any { it.isValid },
-                onClick  = { pickingDeck = true }
-            )
-            MenuButton(s.mpLeaderboard, imageRes = R.drawable.button_11, accent = Gold, onClick = onLeaderboard)
         }
     }
 }
