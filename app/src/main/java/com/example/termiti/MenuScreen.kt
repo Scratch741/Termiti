@@ -30,6 +30,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.graphicsLayer
@@ -49,6 +52,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.platform.LocalDensity
@@ -56,11 +62,21 @@ import androidx.compose.ui.platform.LocalDensity
 // Paleta barev → GameColors.kt
 
 /**
- * Úvod menu jen jednou za běh aplikace: po spuštění hry chvíli svítí v okně jen Temný
- * mág (boční sloupce jsou vidět hned), pak se pomalu vynoří logo a tlačítka. Při návratu z jiné
- * obrazovky se menu ukáže hned.
+ * Úvod menu jen jednou za běh aplikace. Fáze se počítá z času od začátku úvodu ([menuIntroStartNs],
+ * pro celý proces), ne z animací vázaných na obrazovku: po spuštění Android přepne na šířku
+ * a aktivitu vytvoří znovu – dřív se úvod rozběhl v první (neviditelné) verzi a ve viditelné
+ * už byl „přehraný“. Začátek se nastaví až v prvním snímku na šířku. Při návratu z jiné
+ * obrazovky je úvod dávno hotový a menu se ukáže hned.
  */
-private var menuIntroPlayed = false
+private var menuIntroStartNs = -1L
+private const val MENU_INTRO_LEN = 4f
+
+/** Měkké dobrzdění nájezdu nápisu (ease-out quint): rychle se rozjede, dlouho a jemně dosedá. */
+private val MenuIntroEasing = androidx.compose.animation.core.CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
+
+/** Průběh 0..1 úseku úvodu od [start] s délkou [len] (s), s křivkou [easing]. */
+private fun introPhase(t: Float, start: Float, len: Float, easing: androidx.compose.animation.core.Easing = FastOutSlowInEasing): Float =
+    easing.transform(((t - start) / len).coerceIn(0f, 1f))
 
 @Composable
 fun MenuScreen(
@@ -75,20 +91,32 @@ fun MenuScreen(
     val s       = LocalStrings.current
     val profile = PlayerProfileManager.profile
 
-    // 0 = mág bez loga a tlačítek, 1 = celé menu. Klepnutí kamkoli úvod přeskočí.
-    val reveal = remember { Animatable(if (menuIntroPlayed) 1f else 0f) }
-    val scope  = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        if (!menuIntroPlayed) {
-            menuIntroPlayed = true
-            delay(1000)
-            reveal.animateTo(1f, tween(1600, easing = FastOutSlowInEasing))
-        }
+    // Úvod (sekundy od začátku): nápis DARKMAGE se snese nad kápi (0,7 s + 2,2 s), volby se vynoří
+    // (1,8 s + 1,4 s), truhla se otevře a zůstane otevřená (1,2 s + 0,38 s), kolo se otočí (1,5 s + 1,9 s),
+    // dveře se ze zavřených pootevřou (2,0 s + 0,65 s). Klepnutí kamkoli úvod přeskočí.
+    val introT = remember {
+        mutableFloatStateOf(if (menuIntroStartNs < 0) 0f else (System.nanoTime() - menuIntroStartNs) / 1e9f)
     }
+    val scope = rememberCoroutineScope()
+    fun titleIn()   = introPhase(introT.floatValue, 0.7f, 2.2f, MenuIntroEasing)
+    fun reveal()    = introPhase(introT.floatValue, 1.8f, 1.4f)
+    fun chestOpen() = introPhase(introT.floatValue, 1.2f, 0.38f)   // po úvodu zůstává otevřená
+    fun gearTurn()  = introPhase(introT.floatValue, 1.5f, 1.9f)
+    fun doorOpen()  = introPhase(introT.floatValue, 2.0f, 0.65f)
+    // Jen ano/ne – čtení času přímo by přepočítávalo celé menu v každém snímku úvodu
+    val introRunning by remember { derivedStateOf { introT.floatValue < MENU_INTRO_LEN } }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val W = maxWidth
         val H = maxHeight
+        val landscape = W > H
+        LaunchedEffect(landscape) {
+            if (!landscape) return@LaunchedEffect
+            if (menuIntroStartNs < 0) menuIntroStartNs = System.nanoTime()
+            while (introT.floatValue < MENU_INTRO_LEN) withFrameNanos {
+                introT.floatValue = (System.nanoTime() - menuIntroStartNs) / 1e9f
+            }
+        }
 
         // ── Pozadí ────────────────────────────────────────────────────────────
         // menu_bg s Temným mágem v prostředním okně (rám, pochodně i panely pixelově
@@ -176,7 +204,7 @@ fun MenuScreen(
                 modifier         = Modifier
                     .fillMaxHeight().width(centerW).offset(x = centerShift)
                     // Úvod: jen prostředek (logo + tlačítka) se pomalu vynoří, boční sloupce svítí hned
-                    .graphicsLayer { alpha = reveal.value; translationY = (1f - reveal.value) * 10.dp.toPx() },
+                    .graphicsLayer { alpha = reveal(); translationY = (1f - reveal()) * 10.dp.toPx() },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -210,9 +238,14 @@ fun MenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
-                    IconMenuButton(imageRes = R.drawable.button_3, label = s.shop,     size = iconSize, onClick = onShop)
-                    IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
-                    IconMenuButton(imageRes = R.drawable.button_6, label = s.exit,     size = iconSize, onClick = onExit)
+                    // Úvod: truhla se otevře a zavře, kolo se otočí, dveře se pootevřou
+                    IconMenuButton(imageRes = R.drawable.button_3, label = s.shop, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_chest_open, alpha = { chestOpen() }) }, onClick = onShop)
+                    IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_gear_disk, alpha = { if (gearTurn() in 0.001f..0.999f) 1f else 0f }, rotation = { gearTurn() * 360f }, pivotTexX = 74f, pivotTexY = 52.5f) },
+                        onClick = onSettings)
+                    IconMenuButton(imageRes = R.drawable.button_6, label = s.exit, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_door_closed, alpha = { 1f - doorOpen() }) }, onClick = onExit)
                 }
             }
         }
@@ -220,19 +253,26 @@ fun MenuScreen(
         // ── Nápis DARKMAGE nad kápí mága (pevně podle pozadí) ─────────────────
         MenuTitle(
             centerW, W, H, imgDispH, cropY,
-            Modifier.graphicsLayer { alpha = reveal.value; translationY = (1f - reveal.value) * 10.dp.toPx() }
+            Modifier.graphicsLayer {
+                // shora se snese na místo, rozsvítí se v první polovině a dosedne z mírného zvětšení
+                val k = titleIn()
+                alpha        = (k * 1.8f).coerceAtMost(1f)
+                translationY = -(1f - k) * 30.dp.toPx()
+                scaleX       = 1.05f - 0.05f * k
+                scaleY       = 1.05f - 0.05f * k
+            }
         )
 
         // ── Verze v pravém dolním rohu ────────────────────────────────────────
         // Během úvodu: klepnutí kamkoli zobrazí menu hned (nespustí žádné tlačítko)
-        if (reveal.value < 1f) {
+        if (introRunning) {
             Box(
                 Modifier
                     .fillMaxSize()
                     .clickable(
                         interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                         indication = null
-                    ) { scope.launch { reveal.snapTo(1f) } }
+                    ) { menuIntroStartNs = System.nanoTime() - 100_000_000_000L; introT.floatValue = 100f }
             )
         }
 
@@ -327,6 +367,8 @@ fun IconMenuButton(
     @DrawableRes imageRes: Int,
     label: String,
     size: Dp,
+    /** Vrstva přes medailon (animace v úvodu menu: truhla, kolo, dveře – viz [MedallionLayer]). */
+    overlay: @Composable BoxScope.() -> Unit = {},
     onClick: () -> Unit
 ) {
     Column(
@@ -351,6 +393,7 @@ fun IconMenuButton(
                     .offset(x = -(size * -2.4f)),
                 contentScale       = ContentScale.FillBounds
             )
+            overlay()
         }
         Text(
             label,
@@ -699,4 +742,38 @@ internal fun MenuTitle(centerW: Dp, W: Dp, H: Dp, imgDispH: Dp, cropY: Dp, modif
             .width(tw),
         contentScale       = ContentScale.FillWidth
     )
+}
+
+/**
+ * Vrstva přes medailon [IconMenuButton]: obrázek 106×107 = výřez textury button_* kolem
+ * medailonu (x 23–129, střed medailonu x 76, y 53,5), jen vnitřní kruh. V boxu ikony je
+ * textura posunutá tak, že výřez začíná na 2 % šířky a střed medailonu je na 51,5 %.
+ * [alpha] a [rotation] se čtou až při kreslení (animace nepřekreslují menu).
+ */
+@Composable
+internal fun BoxScope.MedallionLayer(
+    @DrawableRes res: Int,
+    alpha: () -> Float,
+    rotation: () -> Float = { 0f },
+    /** Střed otáčení v pixelech textury button_* (kolo na ikoně nastavení má střed 74 / 52,5, ne střed medailonu). */
+    pivotTexX: Float = 76f,
+    pivotTexY: Float = 53.5f
+) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val img = remember(res) { decodeRaw(ctx.resources, res) }
+    Canvas(Modifier.matchParentSize()) {
+        val a = alpha()
+        if (a <= 0.003f) return@Canvas
+        val sz = this.size.height
+        val pivot = Offset((0.020f + (pivotTexX - 23f) / 107f) * sz, pivotTexY / 107f * sz)
+        rotate(rotation(), pivot) {
+            drawImage(
+                img,
+                dstOffset     = androidx.compose.ui.unit.IntOffset((0.020f * sz).toInt(), 0),
+                dstSize       = androidx.compose.ui.unit.IntSize((sz * 106f / 107f).toInt(), sz.toInt()),
+                alpha         = a.coerceIn(0f, 1f),
+                filterQuality = FilterQuality.High
+            )
+        }
+    }
 }

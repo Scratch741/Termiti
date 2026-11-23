@@ -1817,3 +1817,24 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 ## [2026-11-23] release | v0.7.4
 - `versionCode` 23, `versionName` 0.7.4; CHANGELOG: menu s nápisy místo desek, nápis DARKMAGE nad kápí, animované pozadí (krystaly, jiskry, kouř), opravená ruka mága, bez probliknutí při přepnutí menu. `PROTOCOL_VERSION` beze změny.
+
+## [2026-11-23] ui | Úvod menu: nápis DARKMAGE plynule najede
+- Uživatel: při prvním spuštění má nápis plynule najet.
+- `MenuScreen.kt`: nápis má vlastní nájezd `titleIn` (start 0,7 s, 2,2 s, `MenuIntroEasing` = ease-out quint `CubicBezierEasing(0.22, 1, 0.36, 1)`): snese se o 30 dp shora, rozsvítí se v první polovině a dosedne ze zvětšení 105 %. Volby se vynoří až po něm (start 1,8 s, 1,4 s). Klepnutí úvod přeskočí jako dřív.
+- Ověřeno záznamem obrazovky: nápis se objeví ~1 s po vykreslení menu, za 1,2 s plynule sjede o 21 px na místo nad kápí, snímky po ≤ 17 ms, bez zaškobrtnutí.
+- Plynulost: podmínka „úvod běží“ (vrstva pro přeskočení klepnutím) četla animovanou hodnotu přímo při skládání, takže se celé hlavní menu během úvodu přepočítávalo v každém snímku. Teď `derivedStateOf` – přepočet jen na začátku a na konci.
+
+## [2026-11-23] ui | Rudé oči Temného mága, tmavé spuštění
+- Uživatel: ať mág občas rudě zažhne očima (zhruba jednou za 15 s, mrkne); pak „o něco větší a pomalejší mrknutí“.
+- `MenuBackground.kt`: oči pod kápí (pozadí x 853 a 887, y 331; obličej je tmavý ovál se středem x = 870), mírně skloněné dovnitř (mračí se). Každých 15 s jednou, v cyklu pokaždé jindy (2–11 s, `hash01`): náběh 0,5 s, svítí s jemným mihotáním, pomalé mrknutí 1,3–1,9 s (víčko oko svisle zúží až do zavření a zase otevře), doznění 0,7 s. Rudá záře kolem + žhavé jádro (aditivně). Řídí se sdíleným časem, při přepnutí menu se neresetují. Snímky mrknutí z telefonu: `design/ui_redesign/menu_oci_mrknuti.png`.
+- Spuštění: `Theme.Material.Light` mělo bílé pozadí okna, takže před vykreslením hry ~0,4 s svítila bílá obrazovka (i systémová úvodní obrazovka Androidu 12+). `windowBackground` a `windowSplashScreenBackground` (values-v31) jsou teď `@color/launch_background` (#0E0B0C). Ověřeno záznamem: jas od spuštění nepřekročí 35.
+
+## [2026-11-23] ui | Pohyb prstů mága, úvod ikon: truhla, kolo, dveře
+- Uživatel: ať mág nepatrně hýbe prsty; při prvním spuštění ať se truhla (Obchod) otevře, kolo (Nastavení) zatočí a dveře (Konec) pootevřou – dnešní pootevřené dveře jsou konečný stav, animace začíná ze zavřených.
+- Prsty (`MenuBackground.kt`): oblasti rukou (pozadí x 370 / 1170, y 555 / 565, 170×160) se kreslí přes `drawBitmapMesh` se sítí 10×10; okraje stojí, uvnitř posun nejvýš ~2 px pozadí, fáze se mění napříč rukou (každý prst jinak), periody ~3,3 a ~4 s. Výřezy rukou z `menu_bg_mage_clean` se vytvoří jednou za běh.
+- Ikony: `menu_icon_chest_open.png` (Qwen Image Edit z medailonu `button_3`, varianta 2), `menu_icon_door_closed.png` (z `button_6`, varianta 4, barvy srovnané s originálem – Qwen ji dal světlejší), `menu_icon_gear_disk.png` (vnitřní kotouč `button_5`). Všechny 106×107 = výřez textury kolem medailonu, jen vnitřní kruh (poloměr 41 / 36 px). Zdroje v `Pictures/Generated/ui/menu_ikony/`.
+- `IconMenuButton(overlay = …)` + `MedallionLayer` (`MenuScreen.kt`): vrstva přes medailon, alfa a natočení se čtou až při kreslení. Úvod hlavního menu (jen při prvním zobrazení za běh): truhla se v 1,2 s otevře (0,38 s), drží 1,5 s, zavře; kolo se od 1,5 s jednou otočí (1,9 s); dveře jsou od začátku zavřené a v 2,0 s se pootevřou (0,65 s). Klepnutí úvod přeskočí do konečného stavu.
+- Oprava po prvním vyzkoušení (uživatel: „truhla je zavřená“, „kolečko se netočilo kolem své osy“):
+  - úvod se nespouštěl: hra po spuštění přepne na šířku a Android aktivitu vytvoří znovu; úvod se rozběhl v první (neviditelné) verzi, ve viditelné už byl označený jako přehraný. Teď je úvod jedna časová osa pro celý proces (`menuIntroStartNs`), začíná v prvním snímku na šířku a všechny fáze (nápis, volby, truhla, kolo, dveře) se z ní počítají (`introPhase`), takže znovuvytvoření aktivity úvod nepřeruší;
+  - kolo se točilo kolem středu medailonu (76 / 53,5), ale kolo na ikoně má střed 74 / 52,5 → `MedallionLayer(pivotTexX, pivotTexY)`. Ověřeno záznamem: fitovaný střed otáčení leží ve středu díry kola (odchylka ≤ 1 px obrazovky), truhla se otevře v 1,6–2,8 s, dveře se pootevřou kolem 2,4 s.
+- Uživatel: truhla má po úvodu zůstat otevřená. `chestOpen` = jen otevření v 1,2 s (0,38 s), bez zavření; i při návratu do menu a po přeskočení úvodu je otevřená.
