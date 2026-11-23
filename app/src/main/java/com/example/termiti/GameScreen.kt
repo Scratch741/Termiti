@@ -182,7 +182,7 @@ fun GameScreen(
             NewTopBar(
                 playerDeckSize = state.playerState.deck.size,
                 aiDeckSize     = state.aiState.deck.size,
-                opponentCardBackResId = cardBackSkinDrawable(campaignOpponent?.aiCardBackSkin ?: "card_back_frame"),
+                opponentCardBackResId = campaignOpponent?.let { cardBackSkinDrawable(it.aiCardBackSkin) } ?: viewModel.opponentCardBackResId.value,
                 isPlayerTurn   = state.activePlayer == ActivePlayer.PLAYER,
                 isComboTurn    = isComboTurn,
                 currentTurn    = state.currentTurn,
@@ -263,8 +263,9 @@ fun GameScreen(
                         ?: viewModel.opponentCastleResId.value,
                     opponentWallResId = campaignOpponent?.let { wallSkinDrawable(it.aiWallSkin) }
                         ?: viewModel.opponentWallResId.value,
-                    // Rub karet soupeře podle lokace kampaně; mimo kampaň (a v roguelike) základní
-                    opponentCardBackResId = cardBackSkinDrawable(campaignOpponent?.aiCardBackSkin ?: "card_back_frame"),
+                    // Rub karet soupeře podle lokace kampaně (roguelike základní); mimo kampaň náhodný
+                    // vybraný jednou při startu hry (viewModel.opponentCardBackResId)
+                    opponentCardBackResId = campaignOpponent?.let { cardBackSkinDrawable(it.aiCardBackSkin) } ?: viewModel.opponentCardBackResId.value,
                     tutorialTargets = tutorialTargets,
                     backgroundResId = viewModel.battleBackgroundResId.value
                 )
@@ -397,13 +398,7 @@ fun GameScreen(
 
         if (showMenuConfirm) {
             GameDialog(onDismissRequest = { showMenuConfirm = false }) {
-                Column(
-                    modifier = Modifier
-                        .dialogFrame()
-                        .padding(horizontal = 28.dp, vertical = 22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                DialogPanel(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     DialogTitle(LocalStrings.current.leaveGameQ, fontSize = 22.sp)
                     Spacer(Modifier.height(2.dp))
                     Text(LocalStrings.current.leaveGameMsg, color = DialogTextMuted, fontSize = 13.sp, textAlign = TextAlign.Center)

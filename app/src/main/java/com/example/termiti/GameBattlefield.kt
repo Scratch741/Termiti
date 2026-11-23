@@ -1287,6 +1287,19 @@ private val RANDOM_OPPONENT_WALL_SKIN_IDS = listOf(
     "wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6"
 )
 
+/**
+ * Ruby karet pro AI soupeře mimo kampaň (supernáhodný a vlastní balíček): obecné rámy
+ * i ruby lokací kampaně (goblin, bažiny, trpaslík, citadela, drak) – přání uživatele 2026-11-23.
+ */
+private val RANDOM_OPPONENT_CARD_BACK_SKIN_IDS = listOf(
+    "card_back_frame", "card_back_frame_2", "card_back_frame_3", "card_back_frame_4",
+    "card_back_frame_5", "card_back_frame_6", "card_back_frame_7",
+    "card_back_goblin", "card_back_baziny", "card_back_trpaslik", "card_back_citadela", "card_back_drak"
+)
+
+/** Náhodně vybere rub karet soupeře mimo kampaň. Volat JEDNOU na začátku hry a uložit. */
+fun randomOpponentCardBackResId(): Int = cardBackSkinDrawable(RANDOM_OPPONENT_CARD_BACK_SKIN_IDS.random())
+
 /** Náhodně vybere ID vzhledu soupeřova hradu mimo kampaň. */
 fun randomOpponentCastleSkinId(): String = RANDOM_OPPONENT_CASTLE_SKIN_IDS.random()
 /** Náhodně vybere ID vzhledu soupeřovy hradby mimo kampaň. */
@@ -1531,15 +1544,14 @@ fun LogOverlay(log: List<LogEntry>, onDismiss: () -> Unit, lostCards: List<CardH
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.Center
     ) {
-        Column(
+        DialogPanel(
             modifier = Modifier
                 .clickable(enabled = false, onClick = {})
-                .dialogFrame()
-                .padding(horizontal = 24.dp, vertical = 18.dp)
-                .widthIn(max = 360.dp)
-                .heightIn(max = 400.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .widthIn(max = 408.dp)
+                .heightIn(max = 421.dp),
+            horizontalPadding = 24.dp,
+            bottomPadding = 18.dp,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             DialogTitle(LocalStrings.current.gameLog, fontSize = 20.sp)
             HorizontalDivider(color = Gold.copy(alpha = 0.20f))

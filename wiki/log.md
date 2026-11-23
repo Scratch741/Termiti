@@ -1700,3 +1700,35 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Sestaveno (`assembleDebug`). Instalace do telefonu neproběhla, adb telefon neviděl.
 - Licence Sonniss zakazuje šířit zvuky jako zvuky, a repozitář je veřejný. Uživatel 2026-11-23 rozhodl pushnout i tak, na vlastní riziko.
 - Lokální Ollama má jen `gemma4:12b`, ta audio neumí.
+
+## [2026-11-23] ingest | Revize zvuků karet, Náhlá smrt
+- Uživatel: Náhlá smrt má být dvojí úder zvonu stejné hloubky, zněla „skoro jak na svatbě“. Rozbor potvrdil dva různé zvony (E6 → F5) ze zdroje Church Bells „3 Different“.
+- Syntetický zvon uživatel odmítl („odporný“). Výsledek: první úder z původního `nahla_smrt.wav` (0,32–0,92 s, před nástupem zvonu F5) zahraný 2×, 1,2 s, −12,5 LUFS, `tools/nahla_smrt_2x.py`.
+- Magické rozdělení `"103"`: uživatel „zní jak špatné Star Wars“ (zdroj ELECMisc Impact Electric). V revizi přidán seznam dalších sci-fi/elektrických zdrojů.
+- Magie `"004"`: uživatel „odporně, nemagicky“ (zdroj MAGAngl Magic Light Spell, vrchol až v 1,0 s).
+- Chaotická jiskra `"C01"`: uživatel „jak starý rozbitý CRT televizor“ (zdroj ArcDesign15 + praskání ohně). Elektrické zdroje jsou zatím 3 ze 3 špatně.
+- Krádež chaosu `"C04"`: „není nic slyšet“. Příčina systémová: `render.py` srovnává hlasitost v celém pásmu, u dunivých zvuků je tak slyšitelná část na telefonu o 15–30 dB tišší (měřeno po high-passu 300 Hz; nejhorší Telekineze −43,8 LUFS). Seznam 14 karet v `design/zvuky_revize.md`.
+- Chaotická trofej `"C28"`: „bouchnutí do stolu s příbory“ (chainmail + pilník o železo).
+- Zásoby kamene `"011"`: „jak prolítající UFO“ (RPG Sound Pack „spell“ + stone impact).
+- Posila hradu `"005"`: „skřípající dveře“ (Creaking Door + kámen až v 0,58 s).
+- Náhlá smrt podruhé: výřez do 0,92 s zněl „useknutě“. Nově oba údery doznívají (1,93 s), druhý zvon F5 je z dozvuku vyfiltrovaný notch filtry.
+- Závěr: zdroje z 2026-11-22 byly vybrány podle názvů souborů bez poslechu, 8 z 8 poslechnutých karet nesedí. Nové zdroje vybírat jen s poslechem (MiMo-Audio nebo uživatel).
+- Rozbor všech 193 WAVů (výška úderů, nástupy, vrchol) + porovnání zdrojů s kartami: `design/zvuky_revize.md`. Nikdo to zatím neposlouchal; opravy s novými zdroji patří na PC se zdroji.
+
+## [2026-11-23] ingest | Dialogy: bronzová deska jako mulligan, nadpis na lemu rámu
+- Uživatel: textura mulliganu (malovaná deska `mulligan_bronz.jpg`) se líbí, chce ji i v ostatních dialozích; nadpis má splývat s okrajem rámu jako v návrhu (`design/ui_redesign/po_dialog.jpg`), ne viset jako tlačítko uprostřed pergamenu.
+- `PlainButton.kt`:
+  - `dialogFrame()` kreslí `frameTextureFilled(dialog_frame_open, mulligan_bronz)` místo `dialog_frame` s natahovaným pergamenem;
+  - nový `DialogPanel` = rám, horní odsazení jen `DialogTitleTop` (3 dp), takže deska nadpisu leží na horním lemu rámu, a stín pod texty (`DialogTextShadow`, jako `MullTextStyle` mulliganu);
+  - `DialogTitle` má měkký vržený stín pod deskou.
+- Přes `DialogPanel` jdou: konec hry (výhra, prohra, remíza), konec arény, online konec hry a online menu, opuštění hry, log, ztracené karty, změna limitu, rozhodovací karty (`DecisionOverlay`), vzdání a volba obtížnosti roguelike.
+- Výsledek kampaně (`CampaignResultScreen`) a konec roguelike běhu (`RogueEndScreen`): obsah je nově v tomto panelu, velký volný nadpis nahradila deska na lemu (26 sp); oddělovač pod nadpisem konce běhu zmizel.
+- Beze změny: mulligan (už to tak měl), roguelike odměna (`RogueRewardScreen`, obsidiánová obrazovka jako Tvorba balíčku, není to dialog na pergamenu).
+- Sestaveno (`assembleDebug`). Emulátor nešel spustit (málo místa na disku pro userdata) a telefon nebyl připojený. Srovnání s návrhem je proto vykreslené skriptem ze stejných textur a geometrie: `design/ui_redesign/dialog_nadpis_srovnani.jpg`. Ve hře zatím neověřeno.
+
+## [2026-11-23] ingest | Náhodný rub karet AI v supernáhodném a constructed
+- Uživatel: v supernáhodném a vlastním balíčku (constructed) má AI soupeř náhodný cardback.
+- `GameBattlefield.kt`: `randomOpponentCardBackResId()` losuje ze všech 12 rubů: obecné `card_back_frame` až `card_back_frame_7` i ruby lokací kampaně (goblin, bažiny, trpaslík, citadela, drak). Ruby lokací uživatel výslovně chtěl přidat, i když jsou odměnou za bosse (u náhodných hradů zůstávají skiny lokací vynechané).
+- `GameViewModel.opponentCardBackResId` se losuje jednou v `restartGame()` (jen supernáhodný a constructed). Kampaň, aréna a roguelike ho nastaví zpět na základní rub. `GameScreen` ho použije, když hra nemá `campaignOpponent`.
+- Kampaň beze změny (rub lokace), roguelike a aréna mají dál základní rub.
+- Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku).

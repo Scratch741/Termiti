@@ -526,6 +526,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         private set
     var opponentWallResId = androidx.compose.runtime.mutableStateOf(R.drawable.wall_player2)
         private set
+    /**
+     * Rub karet AI soupeře MIMO kampaň/roguelike (ty mají aiCardBackSkin). Náhodný
+     * v supernáhodném a vlastním balíčku (restartGame), jinak základní; vybráno JEDNOU při startu.
+     */
+    var opponentCardBackResId = androidx.compose.runtime.mutableStateOf(R.drawable.card_back_frame)
+        private set
 
     // ── Mulligan ──────────────────────────────────────────────────────────────
     var isMulligan = androidx.compose.runtime.mutableStateOf(true)
@@ -2235,6 +2241,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         // volají restartGame() (nikoli campaign), takže sem spadá vždy mimo kampaň.
         opponentCastleResId.value = randomOpponentCastleResId()
         opponentWallResId.value   = randomOpponentWallResId()
+        opponentCardBackResId.value = randomOpponentCardBackResId()
         gameOver.value          = null
         log.value               = emptyList()
         lastCard.value          = null
@@ -2348,6 +2355,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         activeCampaignOpponent.value = opponent
         // Goblinský tábor, Magické bažiny, Trpasličí hory a Temná citadela mají vlastní
         // vzhled bojiště; Dračí impérium zatím výchozí (žádné vlastní pozadí zatím nemá).
+        opponentCardBackResId.value = R.drawable.card_back_frame
         battleBackgroundResId.value = when {
             opponent.id.startsWith("gob_") -> R.drawable.castle_background_goblin
             opponent.id.startsWith("swp_") -> R.drawable.castle_background_swamp
@@ -2535,6 +2543,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         activeCampaignOpponent.value = null
         randomOpponentAvatar.value   = randomEnemyAvatar()
         battleBackgroundResId.value  = randomBattleBackground()
+        opponentCardBackResId.value  = R.drawable.card_back_frame
         replayFrames.clear()
         val ps = PlayerState().also {
             it.deck.addAll(arenaDraft.toList().withUniqueIds().shuffled())
@@ -2748,6 +2757,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         activeCampaignOpponent.value = enemy       // → top bar ukáže jméno/avatar, potlačí obecný dialog
         // Roguelike soupeři jsou procedurální, ne vázaní na konkrétní kampaňovou lokaci → náhodné pozadí.
         battleBackgroundResId.value = randomBattleBackground()
+        opponentCardBackResId.value = R.drawable.card_back_frame
         aiPassiveAbilities.value = emptyList()
         gameOver.value          = null
         log.value               = emptyList()
