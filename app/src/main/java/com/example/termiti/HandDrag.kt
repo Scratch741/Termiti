@@ -88,12 +88,12 @@ internal fun Modifier.cardDragToPlay(
             val base = flight.sources[card.id] ?: return@awaitEachGesture
 
             var off = slop.position - down.position
-            flight.dragGhost = DragGhost(card, base.translate(off), zoneOf(base.translate(off)))
+            flight.dragGhost = DragGhost(card, base.translate(off), zoneOf(base.translate(off)), playOk)
             val finished = drag(slop.id) { ch ->
                 off += ch.positionChange()
                 ch.consume()
                 val r = base.translate(off)
-                flight.dragGhost = DragGhost(card, r, zoneOf(r))
+                flight.dragGhost = DragGhost(card, r, zoneOf(r), playOk)
             }
 
             val rect = base.translate(off)
@@ -112,7 +112,7 @@ internal fun Modifier.cardDragToPlay(
                     // Návrat do ruky
                     val a = Animatable(off, Offset.VectorConverter)
                     a.animateTo(Offset.Zero, tween(200, easing = FastOutSlowInEasing)) {
-                        flight.dragGhost = DragGhost(card, base.translate(value), DragZone.NONE)
+                        flight.dragGhost = DragGhost(card, base.translate(value), DragZone.NONE, playOk)
                     }
                     if (flight.dragGhost?.card?.id == card.id) flight.dragGhost = null
                 }

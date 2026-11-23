@@ -1765,3 +1765,22 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - V režimu tažením klepnutí kartu nezahraje a tah nahoru ji nezahodí. Podržení (náhled karty) funguje dál. Tutoriál používá vždy klepnutí.
 - Platí pro offline i online hru (obě používají `HandPanel` a `LocalFlightOverlay`).
 - Sestaveno (`assembleDebug`), ve hře neověřeno (emulátor nemá místo na disku). Na telefonu vyzkoušet hlavně posouvání plné ruky do stran a zahození tahem dolů.
+
+## [2026-11-23] design | Návrhy nových malých UI ikon (ComfyUI)
+- V ComfyUI (krea, 512×512, průhledné pozadí přes BiRefNet) vygenerovány návrhy: hvězda, prach, diamant, zlato, k tomu hodiny, fajfka a kladivo. U hvězdy, prachu, diamantu a zlata jsou dva koncepty (A, B), u ostatních jeden; od každého 4 varianty.
+  - hvězda A tlumené kované zlato, B zářivé zlato;
+  - prach A hromádka fialového třpytu, B víření (tmavý okraj);
+  - diamant A z boku 3/4, B souměrný zepředu;
+  - zlato A mince s věží (tlumená, nazelenalá), B sloupek zářivých mincí s korunou;
+  - hodiny jako přesýpací hodiny, fajfka ze smaragdu se zlatým okrajem, kladivo kovářské.
+- U prachu dal styl `darkmage` celou scénu s pochodněmi. Pro malé ikony je lepší ho vynechat a štětcový styl psát rovnou do promptu („painterly hand-painted… isolated on a plain flat background, no scene“).
+- Srovnání se současnými ikonami (velký náhled a skutečná velikost): `design/ui_redesign/ikony_navrhy.png`. Originály jsou v `Pictures/ComfyUI-Claude/ui_ikony/<ikona>/`. Zatím nic nenasazeno, čeká na výběr.
+
+## [2026-11-23] design | Nasazeny nové malé UI ikony
+- Výběr uživatele z `design/ui_redesign/ikony_navrhy.png`: hvězda B1, prach A4, diamant B3, zlato A1 (mince s věží), hodiny A1 (přesýpací hodiny), fajfka A3, kladivo A4.
+- Uloženy přes stávající `star_icon`, `dust_icon`, `diamond_icon`, `goldcoin_icon`, `clock_icon`, `check_icon`, `hammer_icon` (`res/drawable`). Oříznuté na obsah, delší strana 128 px (dřív asi 50 px), průhledné pozadí. Kód se neměnil, ikony se všude kreslí do čtverce a zmenšují se, aby se vešly.
+- Náhled vedle čísel (před a po): `design/ui_redesign/ikony_nasazene.png`. Sestaveno (`assembleDebug`).
+
+## [2026-11-23] fix | Tažení karty: bez zvětšení na hraně ruky
+- Režim „Tažením“: karta už se při přechodu z ruky nad bojiště nezvětšuje (dřív skokem na 108 %, hráč to vnímal jako rušivé). Velikost zůstává stejná, zónu pro zahrání ukazuje jen zlatý okraj (`DragGhostView` ve `FlightOverlay.kt`).
+- Zlatý okraj se ukáže jen u karty, kterou lze zahrát (`DragGhost.playable` plní `cardDragToPlay` z `canPlay`). Dřív se rozsvítil i u nehratelné karty.

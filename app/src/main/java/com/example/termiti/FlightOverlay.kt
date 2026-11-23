@@ -77,7 +77,7 @@ data class LossGhost(
  * Kreslí se ve vrstvě letu, aby ji neořízla ruka (clipToBounds, LazyRow).
  * [rect] = aktuální pozice v okenních souřadnicích, [zone] = kam by puštění vedlo.
  */
-data class DragGhost(val card: Card, val rect: Rect, val zone: DragZone)
+data class DragGhost(val card: Card, val rect: Rect, val zone: DragZone, val playable: Boolean = true)
 
 enum class DragZone { NONE, PLAY, DISCARD }
 
@@ -227,8 +227,8 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
 
 @Composable
 private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
-    // Nad bojištěm se karta mírně zvětší (zahraje se), dole zčervená (zahodí se)
-    val scale = if (ghost.zone == DragZone.PLAY) 1.08f else 1f
+    // Nad bojištěm dostane karta zlatý okraj (zahraje se), dole zčervená (zahodí se).
+    // Velikost se nemění – skokové zvětšení na hraně ruky působilo rušivě (hráč, 2026-11-23).
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -239,15 +239,10 @@ private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
                     )
                 }
                 .requiredSize(100.dp, 140.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    transformOrigin = TransformOrigin(0.5f, 0.5f)
-                }
         ) {
             CardView(
                 card        = ghost.card,
-                canPlay     = ghost.zone == DragZone.PLAY,
+                canPlay     = ghost.zone == DragZone.PLAY && ghost.playable,
                 discardMode = ghost.zone == DragZone.DISCARD,
                 showFade    = false,
                 showGlow    = false,
