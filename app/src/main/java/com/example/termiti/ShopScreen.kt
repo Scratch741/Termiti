@@ -2,6 +2,7 @@ package com.example.termiti
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.animation.core.*
 import androidx.compose.animation.core.RepeatMode
@@ -19,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -67,6 +69,15 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
         SoundManager.playPackBuy()
         profile = PlayerProfileManager.profile
         return true
+    }
+
+    // Systémové Zpět: zavře dotaz na nákup / otevírání, jinak zpět do menu (dřív zavřelo celou hru)
+    androidx.activity.compose.BackHandler {
+        when {
+            pendingBuy != null -> pendingBuy = null
+            opening            -> { opening = false; profile = PlayerProfileManager.profile }
+            else               -> onBack()
+        }
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -137,90 +148,77 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                 modifier         = Modifier.fillMaxHeight().width(centerW).offset(x = centerShift),
                 contentAlignment = Alignment.Center
             ) {
+                // Rozložení „Oltář“: balíček se vznáší mezi rukama mága pod kápí, pod ním
+                // kované tlačítko a menší železná pro nákup více balíčků do zásoby
                 Column(
-                    modifier            = Modifier.width(centerW),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(H * 0.012f)
+                    modifier            = Modifier.width(centerW).fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Titulek + oddělovač (stejný jako v lobby multiplayeru)
-                    CampaignTitle(LocalStrings.current.shopPacks, fontSize = 28.sp)
-                    Image(
-                        painter            = painterResource(R.drawable.bg_separator),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxWidth(),
-                        contentScale       = ContentScale.FillWidth
-                    )
-
-                    // Police s neotevřenými balíčky – klepnutím se jde otevírat
+                    Spacer(Modifier.height(H * 0.03f))
+                    CampaignTitle(s.shopPacks, fontSize = 28.sp)
+                    BronzeDivider(Modifier.fillMaxWidth(0.85f))
+                    Spacer(Modifier.weight(1f))
                     PackShelf(
                         packs  = packs,
-                        size   = H * 0.32f,
+                        size   = H * 0.23f,
                         onOpen = { if (packs > 0) { SoundManager.playMenuTap(); opening = true } }
                     )
-
-                    // Hlavní tlačítko: otevřít ze zásoby, nebo (bez zásoby) koupit jeden a rovnou otevírat
+                    Spacer(Modifier.height(H * 0.025f))
                     if (packs > 0) {
-                        MenuButton(
-                            label    = s.shopOpenPack.format(packs),
-                            accent   = ShGold,
-                            imageRes = R.drawable.button_7,
+                        ForgedButton(
+                            text     = s.shopOpen,
+                            modifier = Modifier.width(centerW * 0.58f).height(H * 0.105f),
+                            fontSize = 21.sp,
+                            glow     = true,
                             onClick  = { opening = true }
                         )
                     } else {
-                        MenuButton(
-                            label    = "$cost   ${s.shopBuyPack}",
-                            accent   = if (canAfford) ShGold else ShMuted,
-                            imageRes = R.drawable.button_7,
-                            leadingIconRes = R.drawable.goldcoin_icon,
+                        ForgedButton(
+                            text     = "${s.shopBuy.uppercase()}  ·  $cost",
+                            modifier = Modifier.width(centerW * 0.58f).height(H * 0.105f),
+                            fontSize = 19.sp,
+                            coin     = true,
+                            glow     = canAfford,
                             enabled  = canAfford,
                             onClick  = { pendingBuy = 1 to true }
                         )
                     }
-
-                    // Nákup do zásoby: 1 / 5 / 10 balíčků
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(0.9f),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        listOf(1, 5, 10).forEach { n ->
-                            val can = gold >= n * cost
-                            PlainButtonWithIcon(
-                                text      = s.shopBuyN.format(n, n * cost),
-                                iconRes   = R.drawable.goldcoin_icon,
-                                modifier  = Modifier.weight(1f).height(30.dp),
-                                textColor = if (can) ShGold else ShMuted,
-                                fontSize  = 10.sp,
-                                enabled   = can,
-                                paddingH  = 4.dp,
-                                paddingV  = 0.dp,
-                                onClick   = { pendingBuy = n to false }
+                    Spacer(Modifier.height(H * 0.018f))
+                    // Nákup do zásoby (se zásobou i 1×, jinak 5× a 10×)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        (if (packs > 0) listOf(1, 5, 10) else listOf(5, 10)).forEach { n ->
+                            ForgedButton(
+                                text     = "$n×  ${n * cost}",
+                                // Se zásobou tři tlačítka – široká tak, aby se „10× 1000“ s mincí vešlo
+                                modifier = Modifier.width(centerW * (if (packs > 0) 0.285f else 0.285f)).height(H * 0.075f),
+                                fontSize = if (packs > 0) 11.sp else 12.sp,
+                                coin     = true,
+                                iron     = true,
+                                enabled  = gold >= n * cost,
+                                onClick  = { pendingBuy = n to false }
                             )
                         }
                     }
-
-                    // Šance na vzácnost + záruka legendární
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(0.9f),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
+                    Spacer(Modifier.height(H * 0.03f))
+                    // Šance na vzácnost
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Rarity.entries.forEach { r ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                RarityGem(r, 11.dp)
-                                Text("${r.packWeight} %", color = shRarityColor(r), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                RarityGem(r, 13.dp)
+                                Text("${r.packWeight} %", style = obsLabelStyle(11.sp, shRarityColor(r).lighten()).copy(shadow = TextShadowDark))
                             }
                         }
                     }
+                    Spacer(Modifier.height(5.dp))
                     val untilPity = (CardCollectionManager.PITY_PACKS - (profile?.packsSinceLegendary ?: 0))
                         .coerceIn(1, CardCollectionManager.PITY_PACKS)
+                    Text(s.shopPackInfo.uppercase(), style = obsLabelStyle(8.sp, ObsText, letterSpacing = 0.6.sp).copy(shadow = TextShadowDark))
+                    Spacer(Modifier.height(2.dp))
                     Text(
-                        if (untilPity <= 1) s.shopPityNext else "${s.shopPackInfo}  •  ${s.shopPity.format(untilPity)}",
-                        color = if (untilPity <= 1) ShGold else ShMuted, fontSize = 9.sp,
-                        textAlign = TextAlign.Center
+                        (if (untilPity <= 1) s.shopPityNext else s.shopPity.format(untilPity)).uppercase(),
+                        style = obsLabelStyle(8.sp, if (untilPity <= 1) BronzeLight else BronzeText, letterSpacing = 0.6.sp).copy(shadow = TextShadowDark)
                     )
+                    Spacer(Modifier.height(H * 0.035f))
                 }
             }
 
@@ -235,7 +233,8 @@ fun ShopScreen(allCards: List<Card>, onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
-                        IconMenuButton(imageRes = R.drawable.button_3, label = LocalStrings.current.shop, size = iconSize, onClick = {})
+                        IconMenuButton(imageRes = R.drawable.button_3, label = LocalStrings.current.shop, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_chest_open, alpha = { 1f }) }, onClick = {})
                     }
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
                         IconMenuButton(imageRes = R.drawable.button_5, label = LocalStrings.current.settings, size = iconSize, onClick = {})
@@ -292,31 +291,16 @@ private fun BuyConfirmOverlay(count: Int, price: Int, goldAfter: Int, onCancel: 
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             CampaignTitle(s.shopBuyConfirmTitle, fontSize = 24.sp)
+            BronzeDivider(Modifier.width(260.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(s.shopBuyConfirmCount.format(count), color = ShText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(15.dp))
-                Text("$price", color = ShGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(s.shopBuyConfirmCount.format(count).uppercase(), style = obsLabelStyle(13.sp, ObsText, letterSpacing = 1.sp))
+                Image(painterResource(R.drawable.goldcoin_icon), contentDescription = null, modifier = Modifier.size(16.dp))
+                Text("$price", style = obsLabelStyle(14.sp, BronzeText))
             }
-            Text(s.shopBuyConfirmLeft.format(goldAfter), color = ShMuted, fontSize = 11.sp)
+            Text(s.shopBuyConfirmLeft.format(goldAfter), color = ObsTextMuted, fontSize = 11.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PlainButton(
-                    text      = s.cancel,
-                    modifier  = Modifier.width(120.dp).height(34.dp),
-                    textColor = ShMuted,
-                    fontSize  = 11.sp,
-                    paddingH  = 6.dp,
-                    paddingV  = 0.dp,
-                    onClick   = onCancel
-                )
-                PlainButton(
-                    text      = s.shopBuy,
-                    modifier  = Modifier.width(120.dp).height(34.dp),
-                    textColor = ShGold,
-                    fontSize  = 11.sp,
-                    paddingH  = 6.dp,
-                    paddingV  = 0.dp,
-                    onClick   = onConfirm
-                )
+                ObsButton(text = s.cancel.uppercase(), modifier = Modifier.width(130.dp).height(38.dp), fontSize = 12.sp, onClick = onCancel)
+                ObsButton(text = s.shopBuy.uppercase(), modifier = Modifier.width(130.dp).height(38.dp), primary = true, fontSize = 13.sp, onClick = onConfirm)
             }
         }
     }
@@ -347,7 +331,7 @@ private fun PackShelf(packs: Int, size: Dp, onOpen: () -> Unit) {
 
     Box(
         Modifier
-            .size(width = size * 1.9f, height = size)
+            .size(width = size * 1.25f, height = size * 1.15f)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -379,26 +363,126 @@ private fun PackShelf(packs: Int, size: Dp, onOpen: () -> Unit) {
                     rotationZ    = d * 9f
                     val sc = bump.value * (1f - 0.08f * kotlin.math.abs(d))
                     scaleX = sc; scaleY = sc
-                    alpha  = if (packs > 0) 1f else 0.30f
+                    alpha  = 1f
                 }
             )
         }
-        if (packs > 0) {
-            Box(
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = size * 0.22f)
-                    .graphicsLayer { scaleX = bump.value; scaleY = bump.value }
-                    .size(width = 46.dp, height = 24.dp)
-                    .buttonTexture(R.drawable.plain_button),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("× $packs", color = ShGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        // Počet v zásobě vždy (i „× 0“) – balíček sám je vždy plně vidět
+        Box(
+            Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = size * 0.02f, bottom = size * 0.02f)
+                .graphicsLayer { scaleX = bump.value; scaleY = bump.value }
+                .size(width = 52.dp, height = 26.dp)
+                .obsidianSurface(13.dp).bronzeRim(13.dp, level = 1.1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("× $packs", style = obsLabelStyle(14.sp, if (packs > 0) BronzeText else ObsTextMuted))
+        }
+    }
+}
+
+// ── Nákup do zásoby ───────────────────────────────────────────────────────────
+
+/** Tmavý stín textu přímo na pozadí (bez desky). */
+private val TextShadowDark = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f)
+
+/** Obsidiánová dlaždice „n× · cena“: počet Cinzelem nahoře, cena s mincí pod ním. */
+@Composable
+private fun BuyTile(n: Int, price: Int, enabled: Boolean, H: Dp, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Column(
+        modifier
+            .height(H * 0.14f)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.38f }
+            .obsidianSurface(6.dp).bronzeRim(6.dp, level = 0.95f)
+            .clickable(remember { MutableInteractionSource() }, indication = null, enabled = enabled) { SoundManager.playMenuTap(); onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("$n×", style = obsLabelStyle(17.sp, ObsText))
+        Spacer(Modifier.height(3.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Image(painterResource(R.drawable.goldcoin_icon), null, Modifier.size(12.dp))
+            Text("$price", style = obsLabelStyle(11.sp, BronzeText))
+        }
+    }
+}
+
+/** Žhavá záře kolem hlavního tlačítka obchodu (jako HRÁT v menu). */
+private fun Modifier.shopGlow(): Modifier = drawBehind {
+    val g = 10.dp.toPx()
+    for (i in 6 downTo 1) {
+        val e = g * i / 6
+        drawRoundRect(
+            Color(0xFFE8A83A).copy(alpha = 0.06f * (1f - (i - 1) / 6f)),
+            topLeft = androidx.compose.ui.geometry.Offset(-e, -e),
+            size = androidx.compose.ui.geometry.Size(size.width + 2 * e, size.height + 2 * e),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx() + e)
+        )
+    }
+}
+
+/** Světlejší odstín barvy vzácnosti (procenta na tmavém pozadí). */
+private fun Color.lighten(k: Float = 0.25f) = Color(red + (1f - red) * k, green + (1f - green) * k, blue + (1f - blue) * k, alpha)
+
+// ── Kované tlačítko ───────────────────────────────────────────────────────────
+
+/** Ražený text na bronzu (tmavý přechod, světlý odlesk pod hranou) a světlý text na železe. */
+private val ForgedInk  = listOf(Color(0xFF4A2E0E), Color(0xFF1E1206))
+private val ForgedSilver = listOf(Color(0xFFF6EBD0), Color(0xFFDCC69C), Color(0xFFA98B5A))
+
+/**
+ * Tlačítko z kované textury dialogů: [iron] = false → button_bronze (hlavní akce, ražený tmavý
+ * text, volitelně žhavá záře), true → button_iron (vedlejší, světlý text). [coin] = mince před textem.
+ * Stisk zmáčkne tlačítko na 96 %.
+ */
+@Composable
+private fun ForgedButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    fontSize: androidx.compose.ui.unit.TextUnit = 16.sp,
+    coin: Boolean = false,
+    iron: Boolean = false,
+    glow: Boolean = false,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed && enabled) 0.96f else 1f, tween(90), label = "forgedPress")
+    val pulse = if (glow && enabled) rememberInfiniteTransition(label = "forgedGlow").animateFloat(
+        0.55f, 1f, infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "forgedGlowA"
+    ).value else 0f
+    Box(
+        modifier
+            .graphicsLayer { scaleX = scale; scaleY = scale; alpha = if (enabled) 1f else 0.4f }
+            .drawBehind {
+                if (pulse <= 0f) return@drawBehind
+                val g = 12.dp.toPx()
+                for (i in 7 downTo 1) {
+                    val e = g * i / 7
+                    drawRoundRect(
+                        Color(0xFFE8A83A).copy(alpha = 0.075f * pulse * (1f - (i - 1) / 7f)),
+                        topLeft = androidx.compose.ui.geometry.Offset(-e, -e),
+                        size = androidx.compose.ui.geometry.Size(size.width + 2 * e, size.height + 2 * e),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx() + e)
+                    )
+                }
             }
-        } else {
+            .buttonTexture(if (iron) R.drawable.button_iron else R.drawable.button_bronze)
+            .clickable(interaction, indication = null, enabled = enabled) { SoundManager.playMenuTap(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (coin) Image(painterResource(R.drawable.goldcoin_icon), null, Modifier.size(fontSize.value.dp * 1.15f))
             Text(
-                s.shopNoPacks, color = ShMuted, fontSize = 10.sp, textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.BottomCenter)
+                text,
+                maxLines = 1,
+                style = obsLabelStyle(fontSize, Color.Unspecified, letterSpacing = 1.5.sp).copy(
+                    brush  = Brush.verticalGradient(if (iron) ForgedSilver else ForgedInk),
+                    shadow = if (iron) androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 4f)
+                             else androidx.compose.ui.graphics.Shadow(Color(0x80FFE7B0), androidx.compose.ui.geometry.Offset(0f, 1.5f), 0.5f)
+                )
             )
         }
     }

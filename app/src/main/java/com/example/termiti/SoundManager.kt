@@ -61,6 +61,10 @@ object SoundManager {
     private var soundPool: SoundPool? = null
     private var sndCardDraw1: Int = 0
     private var sndCardDraw2: Int = 0
+    // Otevírání balíčků (nahrávky, viz pack_render.py)
+    private var sndPackBuy = 0; private var sndPackCharge = 0; private var sndPackBurst = 0
+    private var sndPackFlip = IntArray(3); private var sndPackTensionShort = 0; private var sndPackTensionLong = 0
+    private var sndPackRare = 0; private var sndPackEpic = 0; private var sndPackLegend = 0; private var sndPackDust = 0
     private var sndCardPlayFile: Int = 0
     private var sndCardAttack1: Int = 0
     private var sndCardAttack2: Int = 0
@@ -106,6 +110,18 @@ object SoundManager {
         sndWinBattle    = soundPool!!.load(context, R.raw.win_battle,              1)
         sndLostBattle   = soundPool!!.load(context, R.raw.lost_battle,             1)
         sndResource     = soundPool!!.load(context, R.raw.card_resource,           1)
+        soundPool!!.let { sp ->
+            sndPackBuy          = sp.load(context, R.raw.pack_buy, 1)
+            sndPackCharge       = sp.load(context, R.raw.pack_charge, 1)
+            sndPackBurst        = sp.load(context, R.raw.pack_burst, 1)
+            sndPackFlip         = intArrayOf(sp.load(context, R.raw.pack_flip_1, 1), sp.load(context, R.raw.pack_flip_2, 1), sp.load(context, R.raw.pack_flip_3, 1))
+            sndPackTensionShort = sp.load(context, R.raw.pack_tension_short, 1)
+            sndPackTensionLong  = sp.load(context, R.raw.pack_tension_long, 1)
+            sndPackRare         = sp.load(context, R.raw.pack_reveal_rare, 1)
+            sndPackEpic         = sp.load(context, R.raw.pack_reveal_epic, 1)
+            sndPackLegend       = sp.load(context, R.raw.pack_reveal_legend, 1)
+            sndPackDust         = sp.load(context, R.raw.pack_dust, 1)
+        }
     }
 
     fun releaseSounds() {
@@ -336,84 +352,46 @@ object SoundManager {
     }
 
     // ── Otevírání balíčků ────────────────────────────────────────────────────
-    // Vše procedurální (zvonky + šum), dokud hra nemá vlastní nahrávky. Každá funkce je
-    // samostatná, takže ji půjde jednotlivě vyměnit za soubor z res/raw.
+    // Nahrávky (400 Sounds Pack CC0 + Sonniss GDC), sestavené skriptem pack_render.py
+    // (wiki/systems/card-sounds.md). Dřív syntetické zvonky a šum, které do hry neseděly.
 
-    /** Koupě balíčku – krátké cinknutí mince. */
-    fun playPackBuy() = playAsync {
-        mix(0f to bell(1175f, 0.22f, sfx(0.22f), decay = 14f), 0.07f to bell(1568f, 0.30f, sfx(0.20f), decay = 11f))
-    }
-
-    /** Nabíjení balíčku při podržení – [step] 1..3, každý krok o něco výš. */
-    fun playPackCharge(step: Int) = playAsync {
-        val f = 196f * 2f.pow(step.coerceIn(1, 3) * 4f / 12f)
-        mix(0f to bell(f, 0.28f, sfx(0.20f), decay = 9f), 0f to sweep(f * 0.5f, f, 0.20f, sfx(0.10f)))
-    }
-
-    /** Roztržení balíčku – úder, šum a rozezněný akord. */
-    fun playPackBurst() = playAsync {
-        mix(
-            0f    to noiseBurst(0.45f, sfx(0.40f), decay = 8f),
-            0f    to sweep(170f, 45f, 0.40f, sfx(0.45f)),
-            0.04f to bell(523f, 0.9f, sfx(0.14f), decay = 4f),
-            0.07f to bell(659f, 0.9f, sfx(0.12f), decay = 4f),
-            0.10f to bell(784f, 1.0f, sfx(0.12f), decay = 4f)
-        )
-    }
-
-    /** Otočení karty – svist lízané karty, o něco výš. */
-    fun playPackFlip() {
-        if (!enabled) return
+    private fun packPlay(id: Int, vol: Float = 1f, rate: Float = 1f) {
+        if (!enabled || id == 0) return
         val pool = soundPool ?: return
-        val id = if (Random.nextBoolean()) sndCardDraw1 else sndCardDraw2
-        pool.play(id, sfx(0.6f), sfx(0.6f), 1, 0, 1.25f)
+        pool.play(id, sfx(vol), sfx(vol), 1, 0, rate)
     }
 
-    /** Napětí před otočením epické / legendární karty – stoupající tón délky [seconds]. */
-    fun playPackAnticipation(seconds: Float, legendary: Boolean) = playAsync {
-        val top = if (legendary) 740f else 520f
-        mix(0f to sweep(150f, top, seconds, sfx(0.14f)), 0f to sweep(225f, top * 1.5f, seconds, sfx(0.07f)))
-    }
+    /** Koupě balíčku – cinknutí mincí. */
+    fun playPackBuy() = packPlay(sndPackBuy)
+
+    /** Nabíjení balíčku při podržení – [step] 1..3, šustnutí obalu, každý krok o něco výš. */
+    fun playPackCharge(step: Int) = packPlay(sndPackCharge, rate = 1f + 0.12f * (step.coerceIn(1, 3) - 1))
+
+    /** Roztržení balíčku – trhnutí obalu a uvolněné kouzlo. */
+    fun playPackBurst() = packPlay(sndPackBurst)
+
+    /** Otočení karty – lízání karty, náhodně jedna ze tří nahrávek. */
+    fun playPackFlip() = packPlay(sndPackFlip[Random.nextInt(sndPackFlip.size)], rate = 0.96f + Random.nextFloat() * 0.08f)
+
+    /** Napětí před otočením epické / legendární karty – konec kovového riseru (délka podle [seconds]). */
+    fun playPackAnticipation(seconds: Float, legendary: Boolean) =
+        packPlay(if (legendary || seconds > 0.5f) sndPackTensionLong else sndPackTensionShort)
 
     /**
-     * Odhalení karty podle vzácnosti ([Rarity.ordinal]): běžná tiše, vzácná dva tóny,
-     * epická arpeggio, legendární fanfára s dlouhým dozvukem (a ztlumenou hudbou).
+     * Odhalení karty podle vzácnosti ([Rarity.ordinal]): běžná jen zvuk otočení, vzácná krátký
+     * akord cembala, epická cembalo s kouzlem, legendární žestě s úderem (a ztlumenou hudbou).
      */
     fun playPackReveal(rarityOrdinal: Int) {
         when (rarityOrdinal) {
-            0 -> playAsync { bell(440f, 0.16f, sfx(0.08f), decay = 16f) }
-            1 -> playAsync {
-                mix(0f to bell(659f, 0.45f, sfx(0.20f), decay = 7f), 0.09f to bell(988f, 0.55f, sfx(0.20f), decay = 6f))
-            }
-            2 -> playAsync {
-                val notes = listOf(587f, 740f, 880f, 1175f)
-                mix(*(notes.mapIndexed { i, f -> i * 0.075f to bell(f, 0.8f, sfx(0.20f), decay = 5f) } +
-                      (0f to sweep(110f, 55f, 0.35f, sfx(0.30f)))).toTypedArray())
-            }
-            else -> {
-                duckMusic(duckFrac = 0.25f, durationMs = 2600L)
-                playAsync {
-                    val notes = listOf(523f, 659f, 784f, 1047f, 1319f, 1568f, 2093f)
-                    mix(*(notes.mapIndexed { i, f -> i * 0.07f to bell(f, 1.9f, sfx(0.19f), decay = 2.6f) } + listOf(
-                        0f    to sweep(140f, 40f, 0.55f, sfx(0.50f)),          // úder
-                        0f    to noiseBurst(0.6f, sfx(0.22f), decay = 6f),      // záblesk
-                        0.50f to bell(1047f, 1.6f, sfx(0.14f), decay = 2.2f),   // dozvuk – kvinta
-                        0.50f to bell(1568f, 1.6f, sfx(0.10f), decay = 2.2f)
-                    )).toTypedArray())
-                }
-            }
+            0 -> {}
+            1 -> packPlay(sndPackRare)
+            2 -> packPlay(sndPackEpic)
+            else -> { duckMusic(duckFrac = 0.25f, durationMs = 3000L); packPlay(sndPackLegend) }
         }
     }
 
-    /** Duplikát se rozpadl na prach – tiché sypání a klesající zvonky. */
-    fun playPackDust() = playAsync {
-        mix(
-            0f    to noiseBurst(0.30f, sfx(0.10f), decay = 10f),
-            0f    to bell(1760f, 0.25f, sfx(0.09f), decay = 12f),
-            0.06f to bell(1568f, 0.25f, sfx(0.08f), decay = 12f),
-            0.12f to bell(1319f, 0.30f, sfx(0.08f), decay = 10f)
-        )
-    }
+    /** Duplikát se rozpadl na prach – tiché třpytivé rozsypání. */
+    fun playPackDust() = packPlay(sndPackDust)
 
     // ── Interní generátory ───────────────────────────────────────────────────
 

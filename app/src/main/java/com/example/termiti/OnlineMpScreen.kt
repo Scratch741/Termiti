@@ -523,7 +523,8 @@ private fun LobbyPanel(
                 MenuTextOption(s.superRandom, H, optW, onHelp = { rules = s.superRandom to s.rulesOnlineSuperRandom }, onClick = { vm.joinQueue(superRandom = true) })
                 MenuOptionDivider(centerW * 0.55f)
                 MenuTextOption(
-                    "${s.mpDeckLabel} · ${deckName.uppercase()}", H, optW,
+                    "${s.mpDeckLabel} · ", H, optW,
+                    highlight = deckName,
                     enabled = decks.any { it.isValid },
                     onClick = { pickingDeck = true }
                 )

@@ -246,7 +246,8 @@ fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
                         verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                     ) {
                         Box(Modifier.graphicsLayer { alpha = 0f }) {
-                            IconMenuButton(imageRes = R.drawable.button_3, label = s.shop, size = iconSize, onClick = {})
+                            IconMenuButton(imageRes = R.drawable.button_3, label = s.shop, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_chest_open, alpha = { 1f }) }, onClick = {})
                         }
                         Box(Modifier.graphicsLayer { alpha = 0f }) {
                             IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = {})

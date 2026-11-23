@@ -351,18 +351,15 @@ fun PackOpeningOverlay(allCards: List<Card>, onProfileChanged: () -> Unit, onClo
                     )
                 }
                 Text(
-                    s.packHoldHint,
-                    color = PkMuted, fontSize = 12.sp, textAlign = TextAlign.Center,
+                    s.packHoldHint.uppercase(),
+                    style = obsLabelStyle(11.sp, ObsText, letterSpacing = 1.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, Offset(0f, 2f), 6f)),
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp)
                 )
-                PlainButton(
-                    text      = s.back2,
-                    modifier  = Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 12.dp).width(92.dp).height(30.dp),
-                    textColor = PkMuted,
-                    fontSize  = 10.sp,
-                    paddingH  = 4.dp,
-                    paddingV  = 0.dp,
-                    onClick   = { onClose() }
+                ObsButton(
+                    text     = s.back2.uppercase(),
+                    modifier = Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 12.dp).width(96.dp).height(30.dp),
+                    fontSize = 11.sp,
+                    onClick  = { onClose() }
                 )
             }
 
@@ -455,22 +452,22 @@ fun PackOpeningOverlay(allCards: List<Card>, onProfileChanged: () -> Unit, onClo
                             .onGloballyPositioned { dustChipPos = it.boundsInRoot().center }
                             .graphicsLayer { scaleX = pulse.value; scaleY = pulse.value }
                             .height(30.dp)
-                            .buttonTexture(R.drawable.plain_button)
-                            .padding(horizontal = 12.dp),
+                            .obsidianSurface(15.dp).bronzeRim(15.dp)
+                            .padding(horizontal = 14.dp),
                         horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Image(painterResource(R.drawable.dust_icon), null, Modifier.size(14.dp))
-                        Text("+$shownDust", color = PkDust, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("+$shownDust", style = obsLabelStyle(13.sp, PkDust))
                     }
                 }
                 Row(
-                    Modifier.height(30.dp).buttonTexture(R.drawable.plain_button).padding(horizontal = 12.dp),
+                    Modifier.height(30.dp).obsidianSurface(15.dp).bronzeRim(15.dp).padding(horizontal = 14.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Image(painterResource(R.drawable.card_icon), null, Modifier.size(14.dp))
-                    Text("× $packsLeft", color = PkText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("× $packsLeft", style = obsLabelStyle(13.sp, ObsText))
                 }
             }
 
@@ -486,16 +483,13 @@ fun PackOpeningOverlay(allCards: List<Card>, onProfileChanged: () -> Unit, onClo
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment     = Alignment.CenterVertically
                         ) {
-                            Text(s.packTapHint, color = PkMuted, fontSize = 11.sp)
+                            Text(s.packTapHint, style = obsLabelStyle(10.sp, ObsTextMuted, letterSpacing = 0.8.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, Offset(0f, 2f), 6f)))
                             if (!revealingAll && requested.size < r.cards.size) {
-                                PlainButton(
-                                    text      = s.packRevealAll,
-                                    modifier  = Modifier.width(120.dp).height(30.dp),
-                                    textColor = PkText,
-                                    fontSize  = 10.sp,
-                                    paddingH  = 4.dp,
-                                    paddingV  = 0.dp,
-                                    onClick   = { revealAll() }
+                                ObsButton(
+                                    text     = s.packRevealAll,
+                                    modifier = Modifier.width(130.dp).height(32.dp),
+                                    fontSize = 11.sp,
+                                    onClick  = { revealAll() }
                                 )
                             }
                         }
@@ -862,7 +856,7 @@ private fun PackCard(
                         .offset(y = (-11).dp)
                         .graphicsLayer { scaleX = badge.value; scaleY = badge.value; alpha = badge.value.coerceIn(0f, 1f) }
                         .size(width = 58.dp, height = 20.dp)
-                        .buttonTexture(R.drawable.plain_button)
+                        .obsidianSurface(4.dp).bronzeRim(4.dp, level = 1.25f)
                         .drawBehind {
                             val layout  = badgeMeasurer.measure(s.packNew, badgeStyle)
                             val capH    = 10.sp.toPx() * 0.711f          // výška verzálek (Roboto)
@@ -884,12 +878,12 @@ private fun PackCard(
                         .offset(y = 11.dp)
                         .graphicsLayer { scaleX = badge.value; scaleY = badge.value; alpha = badge.value.coerceIn(0f, 1f) }
                         .height(22.dp)
-                        .buttonTexture(R.drawable.plain_button)
+                        .obsidianSurface(11.dp).bronzeRim(11.dp)
                         .padding(horizontal = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Text("+${gain.dustGained}", color = PkDust, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("+${gain.dustGained}", style = obsLabelStyle(12.sp, PkDust))
                     Image(painterResource(R.drawable.dust_icon), null, Modifier.size(13.dp))
                 }
             }
@@ -924,7 +918,7 @@ private fun PackSummary(
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Row(
-            Modifier.height(30.dp).buttonTexture(R.drawable.plain_button_longer).padding(horizontal = 18.dp),
+            Modifier.height(32.dp).obsidianSurface(6.dp).bronzeRim(6.dp).bronzeCorners().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             verticalAlignment     = Alignment.CenterVertically
         ) {
@@ -932,7 +926,7 @@ private fun PackSummary(
             fun Stat(iconRes: Int, text: String, color: Color) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Image(painterResource(iconRes), null, Modifier.size(13.dp))
-                    Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text, style = obsLabelStyle(12.sp, color))
                 }
             }
             Stat(R.drawable.star_icon, s.packSummaryNew.format(newCards), if (newCards > 0) PkGold else PkMuted)
@@ -945,39 +939,30 @@ private fun PackSummary(
                 untilPity <= 1  -> s.shopPityNext
                 else            -> s.shopPity.format(untilPity)
             },
-            color = if (result.pityUsed || untilPity <= 1) PkGold else PkMuted, fontSize = 9.sp
+            style = obsLabelStyle(9.sp, if (result.pityUsed || untilPity <= 1) BronzeLight else BronzeText, letterSpacing = 0.8.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, Offset(0f, 2f), 6f))
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            PlainButton(
-                text      = s.shopFinish,
-                modifier  = Modifier.width(110.dp).height(34.dp),
-                textColor = PkMuted,
-                fontSize  = 11.sp,
-                paddingH  = 4.dp,
-                paddingV  = 0.dp,
-                onClick   = onDone
+            ObsButton(
+                text     = s.shopFinish,
+                modifier = Modifier.width(120.dp).height(36.dp),
+                fontSize = 12.sp,
+                onClick  = onDone
             )
             when {
-                packsLeft > 0 -> PlainButton(
-                    text      = s.packOpenNext.format(packsLeft),
-                    modifier  = Modifier.width(210.dp).height(34.dp),
-                    textColor = PkGreen,
-                    fontSize  = 12.sp,
-                    paddingH  = 4.dp,
-                    paddingV  = 0.dp,
-                    buttonRes = R.drawable.plain_button_longer,
-                    onClick   = onNext
+                packsLeft > 0 -> ObsButton(
+                    text     = s.packOpenNext.format(packsLeft),
+                    modifier = Modifier.width(220.dp).height(36.dp),
+                    primary  = true,
+                    fontSize = 13.sp,
+                    onClick  = onNext
                 )
-                canBuy -> PlainButtonWithIcon(
-                    text      = s.packBuyNext.format(CardCollectionManager.PACK_COST_GOLD),
-                    iconRes   = R.drawable.goldcoin_icon,
-                    modifier  = Modifier.width(210.dp).height(34.dp),
-                    textColor = PkGold,
-                    fontSize  = 12.sp,
-                    paddingH  = 4.dp,
-                    paddingV  = 0.dp,
-                    buttonRes = R.drawable.plain_button_longer,
-                    onClick   = onBuyNext
+                canBuy -> ObsButton(
+                    text     = s.packBuyNext.format(CardCollectionManager.PACK_COST_GOLD),
+                    modifier = Modifier.width(220.dp).height(36.dp),
+                    primary  = true,
+                    iconRes  = R.drawable.goldcoin_icon,
+                    fontSize = 12.sp,
+                    onClick  = onBuyNext
                 )
             }
         }

@@ -250,12 +250,19 @@ Z knihoven (2026-11-22, 176 karet):
 - filtr „👎 Zvuk“ ukáže jen označené karty. V Designer módu jsou 🔊/👎 i u vybrané karty;
 - `SOUND_MAP` (ID → soubor v `res/raw`) je generovaný z `CardPresentation.kt` stejně jako `ART_MAP`. Při změně `soundResId` ho uprav taky. Zvuky se načítají relativně (`../../../../res/raw/`), proto stránka musí ležet na svém místě v repozitáři.
 
+## Zvuky otevírání balíčků
+Od 2026-11-23 nahrávky místo syntetických tónů (`SoundManager.playPack*`, vše v SoundPoolu):
+- zdroje: 400 Sounds Pack (Chequered Ink, **CC0**, https://ci.itch.io/400-sounds-pack) + Sonniss GDC (g031 úder, g069 kovový riser, g294 jasné kouzlo);
+- skript `C:\Users\Scratch\Pictures\Generated\zvuky\knihovny\_postup\pack_render.py`, poslech `…\zvuky\balicky\`;
+- `pack_buy` mince · `pack_charge` šustnutí obalu (kroky 1–3 rychlostí přehrávání) · `pack_burst` trhnutí + kouzlo · `pack_flip_1..3` lízání karty · `pack_tension_short/long` riser před epickou/legendární · `pack_reveal_rare` cembalo · `pack_reveal_epic` cembalo + kouzlo · `pack_reveal_legend` žestě + úder (ztlumí hudbu) · `pack_dust` třpyt. Běžná karta jen zvuk otočení.
+
 ## Related pages
 - [[systems/art-pipeline]] – grafika karet; „každá karta jiná“ platí i pro zvuky
 - [[architecture]] – `CardPresentation.kt`, `CardRepository.kt`, `SoundManager.kt`
 - [[cards/types]] – typy karet (Útok, Stavba, Magie, Důl, Chaos)
 
 ## Changelog
+- 2026-11-23: Zvuky otevírání balíčků z nahrávek (400 Sounds Pack CC0 + Sonniss).
 - 2026-11-23: Náhlá smrt: první úder zvonu z původního zvuku zahraný 2× (syntetický zvon uživatel odmítl). Magické rozdělení uživatel označil za „špatné Star Wars“ (elektrický sci-fi zdroj). Revize podezřelých zvuků je v `design/zvuky_revize.md`: zvony různé výšky, veselé UI zvuky, nesedící zdroje, pozdní nástupy, nadužívané zdroje.
 - 2026-11-22: Zvuky ze Stable Audio nahrazeny sestavami z knihoven nahrávek (Sonniss GDC 2024/2026, RPG Sound Pack). Hlasitost srovnána podle K-vážení na −12,5 LUFS. Berserk a Nestabilní vír zůstaly.
 - 2026-11-22: deckbuilder.html: přehrání zvuku karty (🔊), označení špatných (👎), filtr a kopírování seznamu.

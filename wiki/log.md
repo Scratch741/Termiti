@@ -1838,3 +1838,34 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
   - úvod se nespouštěl: hra po spuštění přepne na šířku a Android aktivitu vytvoří znovu; úvod se rozběhl v první (neviditelné) verzi, ve viditelné už byl označený jako přehraný. Teď je úvod jedna časová osa pro celý proces (`menuIntroStartNs`), začíná v prvním snímku na šířku a všechny fáze (nápis, volby, truhla, kolo, dveře) se z ní počítají (`introPhase`), takže znovuvytvoření aktivity úvod nepřeruší;
   - kolo se točilo kolem středu medailonu (76 / 53,5), ale kolo na ikoně má střed 74 / 52,5 → `MedallionLayer(pivotTexX, pivotTexY)`. Ověřeno záznamem: fitovaný střed otáčení leží ve středu díry kola (odchylka ≤ 1 px obrazovky), truhla se otevře v 1,6–2,8 s, dveře se pootevřou kolem 2,4 s.
 - Uživatel: truhla má po úvodu zůstat otevřená. `chestOpen` = jen otevření v 1,2 s (0,38 s), bez zavření; i při návratu do menu a po přeskočení úvodu je otevřená.
+
+## [2026-11-23] ui | Nadpisy s tmavým obrysem, bronzový název balíčku v lobby
+- Uživatel: nadpisy mimo hlavní menu splývají s pozadím; v multiplayeru označit název balíčku bronzově.
+- `CampaignTitle` (`CampaignMapScreen.kt`, používají ho nadpisy všech obrazovek menu, kampaně, žebříčku, arény, dialogů i `PlainButton` s nadpisem): tři vrstvy se stejnou sazbou – měkký tmavý závoj (rozmazaný stín, ~35 % velikosti písma), tenký tmavý obrys (`Stroke`, ~5,5 % velikosti písma, min. 1 dp, kulatá spojení; 10 % bylo na uživatele moc tlusté) a zlatý přechod navrch. Dřív jen jemný stín.
+- `MenuTextOption(highlight = …)`: část textu za popiskem bronzovým přechodem (`MenuTextBronze`); v online lobby „BALÍČEK · “ pergamenově a název balíčku bronzově.
+- Ověřeno v telefonu (online lobby).
+- Otevřená truhla (`MedallionLayer(menu_icon_chest_open)`) i na ikoně Obchodu v menu Hrát, profilu, nastavení a obchodu – dřív tam byla původní zavřená (uživatel).
+
+## [2026-11-23] sound | Zvuky otevírání balíčků z nahrávek
+- Uživatel: proces otevírání balíčků se líbí, zvuky ne. Byly syntetické (zvonky, šum, sweep v `SoundManager`).
+- Nahrávky z „400 Sounds Pack“ (Chequered Ink, CC0, https://ci.itch.io/400-sounds-pack; zip v Downloads) a Sonniss GDC, sestavené skriptem `Pictures/Generated/zvuky/knihovny/_postup/pack_render.py` (K-vážená hlasitost jako zvuky karet, UI tišší): `pack_buy` (mince, −19 LUFS), `pack_charge` (šustnutí obalu, krok 1–3 výš přes rychlost SoundPoolu), `pack_burst` (trhnutí papíru + jasné kouzlo g294, −13), `pack_flip_1..3` (lízání karty), `pack_tension_short/long` (konec kovového riseru g069), `pack_reveal_rare` (cembalo), `pack_reveal_epic` (cembalo + kouzlo), `pack_reveal_legend` (žestě + úder g031 + kouzlo, −13,8, ztlumí hudbu), `pack_dust` (třpyt). Běžná karta má jen zvuk otočení. Poslech: `Pictures/Generated/zvuky/balicky/`.
+- `SoundManager`: všechny se načtou do SoundPoolu (`packPlay`), API funkcí `playPack*` se nezměnilo.
+
+## [2026-11-23] ui | Úvod ikon postupně, návrh Obchodu a Nastavení
+- Ikony v úvodu hlavního menu jedou za sebou shora dolů (uživatel): truhla 1,2 s (0,45 s), kolo 1,85 s (1,3 s), dveře 3,3 s (0,7 s).
+- Uživatel: Obchod (otevírání balíčků) a Nastavení vypadají proti hlavnímu menu špatně. Náhled nového vzhledu z reálných prvků (obsidián + bronz, Cinzel, art balíčku, drahokamy vzácnosti): `design/ui_redesign/obchod_nastaveni_navrh.jpg`. Schváleno a nasazeno (záznam níže).
+
+## [2026-11-23] ui | Obchod, Nastavení a otevírání balíčků ve stylu obsidián a bronz
+- Podle schváleného návrhu `design/ui_redesign/obchod_nastaveni_navrh.jpg`; prvky z `ObsidianBronze.kt` (`ObsButton`, `obsidianSurface`, `bronzeRim`, `obsidianPanel`, `BronzeDivider`, `obsLabelStyle`).
+- `ShopScreen.kt`: střed rozdělený – vlevo zásoba balíčků (`PackShelf`, větší, odznak počtu jako obsidiánová pilulka, prázdná zásoba ztlumená s nápisem „ZÁSOBA JE PRÁZDNÁ“), vpravo bronzové hlavní tlačítko „OTEVŘÍT“ (se žhavou září) nebo „KOUPIT · 100“, „DO ZÁSOBY“ s obsidiánovými dlaždicemi 1× / 5× / 10× (`BuyTile`), drahokamy vzácnosti s procenty a záruka legendární karty Cinzelem. Nové texty `shopToStock`, `shopOpen`; `shopNoPacks` je „Zásoba je prázdná“ / „No packs in stock“.
+- `SettingsScreen.kt`: jeden obsidiánový panel; popisky sekcí zlatým Cinzelem (emoji z jazykového souboru se při zobrazení odstraní), posuvníky kreslené (tmavá drážka s bronzovou hranou, bronzová výplň, jezdec bronzový kosočtverec se září), jazyk a hraní karet jako dvojice desek (`ObsButton`, vybraná bronzová).
+- `PackOpening.kt`: proces beze změny; tlačítka Zpět / Otočit vše / Dokončit / Otevřít další / Koupit a otevřít jako `ObsButton`, ukazatele prachu a balíčků, štítky NOVÁ a prachu a řádek souhrnu jako obsidián s bronzovou hranou, nápovědy Cinzelem.
+- Systémové Zpět v obchodě (zavře dotaz na nákup / otevírání, jinak menu) a v nastavení – dřív zavřelo celou hru (`BackHandler`).
+
+## [2026-11-23] ui | Obchod: rozložení „Oltář“, šance na vzácnost
+- Uživatel: první předělaný Obchod (balíček vlevo, akce vpravo) se nelíbil; z variant `design/ui_redesign/obchod_rozlozeni_varianty.jpg` vybral A „Oltář“ a hezčí tlačítko KOUPIT.
+- `ShopScreen.kt`: sloupec na ose – nadpis, balíček mezi rukama mága pod kápí (`PackShelf`, vždy plně viditelný, odznak „× n“ i „× 0“ – uživatel: balíček nesmí být průsvitný), kované tlačítko `ForgedButton` (textura `button_bronze` z dialogů, ražený tmavý Cinzel, mince, pulzující záře; vedlejší `button_iron` se světlým textem): „KOUPIT · 100“ / „OTEVŘÍT“, pod ním 5× / 10× (se zásobou 1× / 5× / 10×), drahokamy šancí a dva řádky záruk. Dotaz na nákup s `ObsButton`.
+- `Rarity.packWeight` (standardní sloty balíčku a údaje v Obchodě): běžná 55, vzácná 28, epická 15, legendární 2 (dřív 60 / 25 / 10 / 5) – zadání uživatele. Garantovaný slot `RARE_PLUS_WEIGHTS` (70 / 25 / 5) a záruka legendární za `PITY_PACKS` = 10 beze změny.
+
+## [2026-11-23] release | v0.7.5
+- `versionCode` 24, `versionName` 0.7.5; CHANGELOG: úvod menu (nápis, ikony), oči a prsty mága, Obchod Oltář, šance 55/28/15/2, zvuky otevírání, Nastavení, obrysy nadpisů, tmavé spuštění, systémové Zpět. `PROTOCOL_VERSION` beze změny (šance balíčků jsou jen v klientu).

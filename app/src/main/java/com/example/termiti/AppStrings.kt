@@ -424,6 +424,8 @@ class AppStrings(
     val shopBuyConfirmCount: String by values
     val shopBuyConfirmLeft: String by values
     val shopNoPacks: String by values
+    val shopToStock: String by values
+    val shopOpen: String by values
     val shopPity: String by values
     val shopPityNext: String by values
     val packHoldHint: String by values

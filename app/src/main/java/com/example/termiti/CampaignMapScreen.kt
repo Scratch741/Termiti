@@ -163,8 +163,10 @@ internal val CinzelBold = FontFamily(
 )
 
 /**
- * Nadpis kampaně ve stylu loga DARKMAGE z hlavního menu: římské verzálky (Cinzel),
- * zlatý přechod (světlá horní hrana → bronzový spodek) a tmavý stín.
+ * Nadpis ve stylu loga DARKMAGE: římské verzálky (Cinzel), zlatý přechod (světlá horní
+ * hrana → bronzový spodek). Aby nesplýval s pozadím (kámen, mág, pergamen), je pod písmeny
+ * tenký tmavý obrys (Stroke) a měkký tmavý závoj; tři vrstvy se stejnou sazbou, takže sedí
+ * přesně na sebe i u zalomeného nadpisu.
  */
 @Composable
 internal fun CampaignTitle(
@@ -173,22 +175,32 @@ internal fun CampaignTitle(
     gradient: List<Color> = TitleGold,
     modifier: Modifier = Modifier
 ) {
+    val upper   = text.uppercase()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val fsPx    = with(density) { fontSize.toPx() }
+    val outline = (fsPx * 0.055f).coerceAtLeast(with(density) { 1.dp.toPx() })
+    val halo    = (fsPx * 0.35f).coerceAtLeast(6f)
+    fun style(brush: Brush?, color: Color, shadow: Shadow?, drawStyle: androidx.compose.ui.graphics.drawscope.DrawStyle?) = TextStyle(
+        fontFamily    = CinzelBold,
+        fontWeight    = FontWeight.Bold,
+        fontSize      = fontSize,
+        letterSpacing = 3.sp,
+        // Dlouhý nadpis se zalomí – i druhý řádek musí být na střed, ne zarovnaný doleva
+        textAlign     = androidx.compose.ui.text.style.TextAlign.Center,
+        shadow        = shadow,
+        drawStyle     = drawStyle
+    ).let { if (brush != null) it.copy(brush = brush) else it.copy(color = color) }
     // letterSpacing přidává mezeru i ZA poslední písmeno → padding(start) o stejnou
     // hodnotu vrací glyfy přesně na osu.
-    Text(
-        text.uppercase(),
-        modifier = modifier.padding(start = 3.dp),
-        style = TextStyle(
-            fontFamily    = CinzelBold,
-            fontWeight    = FontWeight.Bold,
-            fontSize      = fontSize,
-            letterSpacing = 3.sp,
-            // Dlouhý nadpis se zalomí – i druhý řádek musí být na střed, ne zarovnaný doleva
-            textAlign     = androidx.compose.ui.text.style.TextAlign.Center,
-            brush         = Brush.verticalGradient(gradient),
-            shadow        = Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 3f), blurRadius = 8f)
-        )
-    )
+    Box(modifier.padding(start = 3.dp), contentAlignment = Alignment.Center) {
+        // 1) měkký tmavý závoj (rozmazaný stín plné tmavé vrstvy)
+        Text(upper, style = style(null, Color(0xE6000000), Shadow(Color.Black, Offset(0f, 2f), halo), null))
+        // 2) tenký tmavý obrys (tah je napůl uvnitř písmen, zlatá vrstva vnitřní půlku zakryje)
+        Text(upper, style = style(null, Color(0xFF140B04), null,
+            androidx.compose.ui.graphics.drawscope.Stroke(width = outline * 2f, join = androidx.compose.ui.graphics.StrokeJoin.Round)))
+        // 3) zlatý přechod
+        Text(upper, style = style(Brush.verticalGradient(gradient), Color.Unspecified, null, null))
+    }
 }
 
 // Odsazení obsahu od kamenného rámu v bg_campaign.png (sdílí výběr lokace i detail lokace).

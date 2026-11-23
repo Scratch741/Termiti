@@ -69,7 +69,7 @@ import androidx.compose.ui.platform.LocalDensity
  * obrazovky je úvod dávno hotový a menu se ukáže hned.
  */
 private var menuIntroStartNs = -1L
-private const val MENU_INTRO_LEN = 4f
+private const val MENU_INTRO_LEN = 4.2f
 
 /** Měkké dobrzdění nájezdu nápisu (ease-out quint): rychle se rozjede, dlouho a jemně dosedá. */
 private val MenuIntroEasing = androidx.compose.animation.core.CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
@@ -92,17 +92,17 @@ fun MenuScreen(
     val profile = PlayerProfileManager.profile
 
     // Úvod (sekundy od začátku): nápis DARKMAGE se snese nad kápi (0,7 s + 2,2 s), volby se vynoří
-    // (1,8 s + 1,4 s), truhla se otevře a zůstane otevřená (1,2 s + 0,38 s), kolo se otočí (1,5 s + 1,9 s),
-    // dveře se ze zavřených pootevřou (2,0 s + 0,65 s). Klepnutí kamkoli úvod přeskočí.
+    // (1,8 s + 1,4 s); ikony vpravo postupně shora dolů: truhla se otevře a zůstane otevřená
+    // (1,2 s + 0,45 s), pak se otočí kolo (1,85 s + 1,3 s), nakonec se pootevřou dveře (3,3 s + 0,7 s). Klepnutí kamkoli úvod přeskočí.
     val introT = remember {
         mutableFloatStateOf(if (menuIntroStartNs < 0) 0f else (System.nanoTime() - menuIntroStartNs) / 1e9f)
     }
     val scope = rememberCoroutineScope()
     fun titleIn()   = introPhase(introT.floatValue, 0.7f, 2.2f, MenuIntroEasing)
     fun reveal()    = introPhase(introT.floatValue, 1.8f, 1.4f)
-    fun chestOpen() = introPhase(introT.floatValue, 1.2f, 0.38f)   // po úvodu zůstává otevřená
-    fun gearTurn()  = introPhase(introT.floatValue, 1.5f, 1.9f)
-    fun doorOpen()  = introPhase(introT.floatValue, 2.0f, 0.65f)
+    fun chestOpen() = introPhase(introT.floatValue, 1.2f, 0.45f)   // po úvodu zůstává otevřená
+    fun gearTurn()  = introPhase(introT.floatValue, 1.85f, 1.3f)
+    fun doorOpen()  = introPhase(introT.floatValue, 3.3f, 0.7f)
     // Jen ano/ne – čtení času přímo by přepočítávalo celé menu v každém snímku úvodu
     val introRunning by remember { derivedStateOf { introT.floatValue < MENU_INTRO_LEN } }
 
@@ -635,6 +635,8 @@ internal fun MenuOptionDivider(width: Dp) {
 
 /** Text vedlejších voleb menu: světlejší pergamen než u desek, aby nápis bez desky vynikl. */
 private val MenuTextBright = listOf(Color(0xFFFFF6E2), Color(0xFFF3E0B6), Color(0xFFCFAE74))
+/** Bronzový přechod zvýrazněné části volby (název balíčku v lobby). */
+private val MenuTextBronze = listOf(Color(0xFFF6C985), Color(0xFFD99A52), Color(0xFF9C6630))
 
 /**
  * Volba menu jako nápis na ose sloupce, za ním případně otazník s pravidly
@@ -652,6 +654,8 @@ internal fun MenuTextOption(
     primary: Boolean = false,
     /** Vypnutá volba je ztlumená a nereaguje (např. výběr balíčku bez platného balíčku). */
     enabled: Boolean = true,
+    /** Část textu za [label] zvýrazněná bronzem (název balíčku v online lobby). */
+    highlight: String? = null,
     onHelp: (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
@@ -677,7 +681,15 @@ internal fun MenuTextOption(
         letterSpacing = (H.value * 0.004f).sp,
         brush         = Brush.verticalGradient(if (primary) TitleGold else MenuTextBright)
     )
-    val text = label.uppercase()
+    val text = label.uppercase() + (highlight?.uppercase() ?: "")
+    val styled = androidx.compose.ui.text.buildAnnotatedString {
+        append(label.uppercase())
+        if (highlight != null) {
+            pushStyle(androidx.compose.ui.text.SpanStyle(brush = Brush.verticalGradient(MenuTextBronze)))
+            append(highlight.uppercase())
+            pop()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -709,7 +721,7 @@ internal fun MenuTextOption(
                         shadow        = Shadow(halo, Offset.Zero, if (primary) glowBlur else haloBlur)
                     )
                 )
-                Text(text, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = base)
+                Text(styled, maxLines = 1, softWrap = false, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = base)
             }
             if (onHelp != null) Box(Modifier.size(slot), contentAlignment = Alignment.Center) { MenuHelpBadge(H * 0.052f, onHelp) }
         }

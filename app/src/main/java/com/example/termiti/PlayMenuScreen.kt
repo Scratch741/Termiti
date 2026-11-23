@@ -148,7 +148,8 @@ fun PlayMenuScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
-                    IconMenuButton(imageRes = R.drawable.button_3, label = s.shop,     size = iconSize, onClick = onShop)
+                    IconMenuButton(imageRes = R.drawable.button_3, label = s.shop,     size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_chest_open, alpha = { 1f }) }, onClick = onShop)
                     IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = onSettings)
                     IconMenuButton(imageRes = R.drawable.button_6, label = s.back.removePrefix("← "), size = iconSize, onClick = { onBack() })
                 }

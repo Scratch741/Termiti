@@ -1,5 +1,6 @@
 package com.example.termiti
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -39,6 +40,9 @@ fun SettingsScreen(onBack: () -> Unit) {
     var sfxVol   by remember { mutableFloatStateOf(SoundManager.sfxVolume) }
     val s           = LocalStrings.current
     val currentPack by LanguageManager.currentPackState
+
+    // Systémové Zpět: zpět do menu (dřív zavřelo celou hru)
+    androidx.activity.compose.BackHandler { onBack() }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -120,38 +124,39 @@ fun SettingsScreen(onBack: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 Column(
-                    modifier            = Modifier.width(centerW).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
+                    modifier            = Modifier.width(centerW).verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     CampaignTitle(s.settings, fontSize = 26.sp)
-                    // Podtržení nadpisu – stejný oddělovač jako v profilu
-                    Image(
-                        painter            = painterResource(R.drawable.bg_separator),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxWidth(),
-                        contentScale       = ContentScale.FillWidth
-                    )
-                    SettingsSlider(
-                        label = s.music,
-                        value = musicVol,
-                        onValueChange = { v -> musicVol = v; SoundManager.setMusicVolume(v) }
-                    )
-                    SettingsSlider(
-                        label = s.soundEffects,
-                        value = sfxVol,
-                        onValueChange = { v -> sfxVol = v; SoundManager.setSfxVolume(v) }
-                    )
-                    LanguageToggle(
-                        label       = s.languageLabel,
-                        currentPack = currentPack,
-                        allPacks    = LanguageManager.availablePacks,
-                        onSelect    = { pack -> LanguageManager.setLanguage(pack) }
-                    )
-                    PlayStyleToggle(
-                        dragToPlay = GameSettings.dragToPlay,
-                        onSelect   = { GameSettings.updateDragToPlay(it) }
-                    )
+                    BronzeDivider(Modifier.fillMaxWidth(0.85f))
+                    // Jeden obsidiánový panel s bronzovou hranou (styl Tvorby balíčku a obchodu)
+                    Column(
+                        modifier            = Modifier.fillMaxWidth().obsidianPanel(10.dp).padding(horizontal = 18.dp, vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        SettingsSlider(
+                            label = s.music,
+                            value = musicVol,
+                            onValueChange = { v -> musicVol = v; SoundManager.setMusicVolume(v) }
+                        )
+                        SettingsSlider(
+                            label = s.soundEffects,
+                            value = sfxVol,
+                            onValueChange = { v -> sfxVol = v; SoundManager.setSfxVolume(v) }
+                        )
+                        BronzeDivider(Modifier.fillMaxWidth(), alpha = 0.55f)
+                        LanguageToggle(
+                            label       = s.languageLabel,
+                            currentPack = currentPack,
+                            allPacks    = LanguageManager.availablePacks,
+                            onSelect    = { pack -> LanguageManager.setLanguage(pack) }
+                        )
+                        PlayStyleToggle(
+                            dragToPlay = GameSettings.dragToPlay,
+                            onSelect   = { GameSettings.updateDragToPlay(it) }
+                        )
+                    }
                 }
             }
 
@@ -166,7 +171,8 @@ fun SettingsScreen(onBack: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(H * 0.005f)
                 ) {
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
-                        IconMenuButton(imageRes = R.drawable.button_3, label = s.shop, size = iconSize, onClick = {})
+                        IconMenuButton(imageRes = R.drawable.button_3, label = s.shop, size = iconSize,
+                        overlay = { MedallionLayer(R.drawable.menu_icon_chest_open, alpha = { 1f }) }, onClick = {})
                     }
                     Box(Modifier.graphicsLayer { alpha = 0f }) {
                         IconMenuButton(imageRes = R.drawable.button_5, label = s.settings, size = iconSize, onClick = {})
@@ -179,16 +185,30 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 /** Herní destička (plain_button_longer) pod jednou položkou nastavení. */
+/** Popisek sekce: emoji z jazykového souboru pryč (🎵 Hudba → HUDBA), zlatý Cinzel. */
 @Composable
-private fun SettingsPlate(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .buttonTexture(R.drawable.plain_button_longer)
-            .padding(horizontal = 16.dp, vertical = 9.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-        content = content
+private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text.replace(Regex("^[^\\p{L}]+"), "").uppercase(),
+        modifier = modifier,
+        style    = obsLabelStyle(13.sp, BronzeText, letterSpacing = 2.sp)
     )
+}
+
+/** Přepínač z desek: vybraná je bronzová (jako hlavní tlačítko), ostatní obsidiánové. */
+@Composable
+private fun <T> Segmented(options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { (value, label) ->
+            ObsButton(
+                text     = label.uppercase(),
+                modifier = Modifier.weight(1f).height(34.dp),
+                primary  = value == selected,
+                fontSize = 12.sp,
+                onClick  = { if (value != selected) onSelect(value) }
+            )
+        }
+    }
 }
 
 @Composable
@@ -198,27 +218,13 @@ private fun LanguageToggle(
     allPacks:    List<LanguagePack>,
     onSelect:    (LanguagePack) -> Unit
 ) {
-    SettingsPlate {
-        Text(label, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            allPacks.forEach { pack ->
-                val selected = currentPack?.language?.code == pack.language.code
-                PlainButton(
-                    text         = "${pack.language.flag}  ${pack.language.name}",
-                    modifier     = Modifier.weight(1f).height(30.dp),
-                    textColor    = if (selected) StGold else StTextPrimary,
-                    fontSize     = 11.sp,
-                    selected     = selected,
-                    outlineColor = StGold,      // vybraný jazyk = zlatý obrys, ostatní plně čitelné
-                    paddingH     = 4.dp,
-                    paddingV     = 0.dp,
-                    onClick      = { onSelect(pack) }
-                )
-            }
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        SectionLabel(label)
+        Segmented(
+            options  = allPacks.map { it to it.language.name },
+            selected = allPacks.firstOrNull { it.language.code == currentPack?.language?.code } ?: allPacks.first(),
+            onSelect = onSelect
+        )
     }
 }
 
@@ -226,30 +232,12 @@ private fun LanguageToggle(
 @Composable
 private fun PlayStyleToggle(dragToPlay: Boolean, onSelect: (Boolean) -> Unit) {
     val s = LocalStrings.current
-    SettingsPlate {
-        Text(s.playStyleLabel, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            listOf(false to s.playStyleTap, true to s.playStyleDrag).forEach { (drag, label) ->
-                val selected = dragToPlay == drag
-                PlainButton(
-                    text         = label,
-                    modifier     = Modifier.weight(1f).height(30.dp),
-                    textColor    = if (selected) StGold else StTextPrimary,
-                    fontSize     = 11.sp,
-                    selected     = selected,
-                    outlineColor = StGold,
-                    paddingH     = 4.dp,
-                    paddingV     = 0.dp,
-                    onClick      = { onSelect(drag) }
-                )
-            }
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        SectionLabel(s.playStyleLabel)
+        Segmented(listOf(false to s.playStyleTap, true to s.playStyleDrag), dragToPlay, onSelect)
         Text(
             if (dragToPlay) s.playStyleDragHint else s.playStyleTapHint,
-            color = StTextPrimary.copy(alpha = 0.7f), fontSize = 9.sp, lineHeight = 12.sp
+            color = ObsTextMuted, fontSize = 9.sp, lineHeight = 12.sp
         )
     }
 }
@@ -260,33 +248,28 @@ private fun SettingsSlider(
     value: Float,
     onValueChange: (Float) -> Unit
 ) {
-    SettingsPlate {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(label, color = StTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text(
-                "${(value * 100).roundToInt()} %",
-                color = StGold,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+            SectionLabel(label)
+            Text("${(value * 100).roundToInt()} %", style = obsLabelStyle(13.sp, ObsText))
         }
         GameSlider(value, onValueChange)
     }
 }
 
 /**
- * Posuvník z herních textur místo Material Slideru: drážka = plain_button_longer,
- * jezdec = plain_button_mini, výplň zlatá. Ovládá se klepnutím i tažením kdekoli v řádku.
+ * Posuvník ve stylu obsidián/bronz: tmavá drážka s bronzovou hranou, bronzová výplň
+ * a jezdec jako bronzový kosočtverec se žhavou září. Klepnutí i tažení kdekoli v řádku.
  */
 @Composable
 private fun GameSlider(value: Float, onValueChange: (Float) -> Unit) {
-    val thumb    = 22.dp
+    val thumb    = 24.dp
     val onChange by rememberUpdatedState(onValueChange)
-    BoxWithConstraints(
+    Canvas(
         modifier = Modifier
             .fillMaxWidth()
             .height(thumb)
@@ -301,24 +284,34 @@ private fun GameSlider(value: Float, onValueChange: (Float) -> Unit) {
                 detectHorizontalDragGestures(
                     onDragStart = { onChange(at(it.x)) }
                 ) { change, _ -> change.consume(); onChange(at(change.position.x)) }
-            },
-        contentAlignment = Alignment.CenterStart
+            }
     ) {
-        val travel = maxWidth - thumb
-        val v      = value.coerceIn(0f, 1f)
-        // Drážka
-        Box(Modifier.fillMaxWidth().height(12.dp).buttonTexture(R.drawable.plain_button_longer))
-        // Výplň od začátku drážky po střed jezdce
-        Box(
-            Modifier
-                .padding(start = 4.dp)
-                .width((travel * v + thumb / 2 - 4.dp).coerceAtLeast(0.dp))
-                .height(4.dp)
-                .background(Brush.horizontalGradient(listOf(StGold.copy(alpha = 0.45f), StGold)))
+        val t   = thumb.toPx()
+        val cy  = size.height / 2
+        val x0  = t / 2; val x1 = size.width - t / 2
+        val xv  = x0 + (x1 - x0) * value.coerceIn(0f, 1f)
+        val th  = 7.dp.toPx()
+        val r   = androidx.compose.ui.geometry.CornerRadius(th / 2)
+        // drážka
+        drawRoundRect(Color(0xFF0A080A), androidx.compose.ui.geometry.Offset(x0 - th / 2, cy - th / 2),
+            androidx.compose.ui.geometry.Size(x1 - x0 + th, th), r)
+        // bronzová výplň
+        if (xv > x0) drawRoundRect(
+            Brush.verticalGradient(listOf(Color(0xFFECBE78), Color(0xFF8C5C28)), startY = cy - th / 2, endY = cy + th / 2),
+            androidx.compose.ui.geometry.Offset(x0 - th / 2 + 1f, cy - th / 2 + 1f),
+            androidx.compose.ui.geometry.Size(xv - x0 + th / 2, th - 2f), r
         )
-        // Jezdec
-        Box(Modifier.offset(x = travel * v).size(thumb).buttonTexture(R.drawable.plain_button_mini)) {
-            Box(Modifier.align(Alignment.Center).size(6.dp).background(StGold, CircleShape))
-        }
+        drawRoundRect(Brush.verticalGradient(listOf(BronzeLight, BronzeDark)), androidx.compose.ui.geometry.Offset(x0 - th / 2, cy - th / 2),
+            androidx.compose.ui.geometry.Size(x1 - x0 + th, th), r, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+        // záře a kosočtverec
+        drawCircle(Brush.radialGradient(listOf(Color(0x66E8A83A), Color.Transparent), center = androidx.compose.ui.geometry.Offset(xv, cy), radius = t),
+            radius = t, center = androidx.compose.ui.geometry.Offset(xv, cy))
+        fun diamond(sz: Float, brush: Brush) = drawPath(androidx.compose.ui.graphics.Path().apply {
+            moveTo(xv, cy - sz); lineTo(xv + sz, cy); lineTo(xv, cy + sz); lineTo(xv - sz, cy); close()
+        }, brush)
+        val sz = t * 0.46f
+        diamond(sz + 1.5f, Brush.linearGradient(listOf(Color.Black, Color.Black)))
+        diamond(sz, Brush.verticalGradient(listOf(Color(0xFFF2D49A), BronzeLight, BronzeDark), startY = cy - sz, endY = cy + sz))
+        diamond(sz * 0.45f, Brush.verticalGradient(listOf(Color(0xFFFFF0C8), Bronze), startY = cy - sz, endY = cy + sz))
     }
 }

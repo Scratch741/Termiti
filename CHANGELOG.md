@@ -17,6 +17,23 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.5] – 2026-11-23
+
+### Nové
+- **Úvod hlavního menu:** nápis DARKMAGE se plynule snese nad kápi, truhla (Obchod) se otevře a zůstane otevřená, kolo (Nastavení) se otočí a dveře (Konec) se pootevřou – postupně shora dolů.
+- **Temný mág ožil:** zhruba jednou za 15 s rudě zažhne očima a pomalu mrkne, prsty se nepatrně hýbou.
+
+### Změněno
+- **Obchod:** nové rozložení – balíček se vznáší mezi rukama mága, kované tlačítko Koupit / Otevřít, nákup 5× a 10× do zásoby, šance jako drahokamy.
+- **Šance na vzácnost v balíčku:** běžná 55 %, vzácná 28 %, epická 15 %, legendární 2 % (dřív 60 / 25 / 10 / 5). Garantovaný slot (vzácná nebo lepší) a záruka legendární za 10 balíčků beze změny.
+- **Otevírání balíčků:** nové zvuky z nahrávek (trhání obalu, karty, cembalo a žestě podle vzácnosti) místo syntetických tónů; tlačítka a souhrn ve stylu obsidián a bronz.
+- **Nastavení:** jeden obsidiánový panel, bronzové posuvníky a přepínače.
+- Nadpisy obrazovek mají tenký tmavý obrys, v online lobby je název balíčku bronzově.
+- Při spuštění už nebliká bílá obrazovka.
+
+### Opraveno
+- Systémové tlačítko Zpět v Obchodě a Nastavení zavřelo celou hru.
+
 ## [0.7.4] – 2026-11-23
 
 ### Změněno
