@@ -17,6 +17,12 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.3] – 2026-11-23
+
+### Změněno
+- Nové ručně malované ikony: hvězda, prach, diamant, zlato, přesýpací hodiny, fajfka a kladivo (ostřejší, ve stylu Darkmage).
+- Hraní karet tažením: karta se nad bojištěm už nezvětšuje, zónu zahrání ukazuje zlatý okraj (jen u karty, kterou lze zahrát).
+
 ## [0.7.2] – 2026-11-23
 
 ### Nové

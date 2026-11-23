@@ -1784,3 +1784,6 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 ## [2026-11-23] fix | Tažení karty: bez zvětšení na hraně ruky
 - Režim „Tažením“: karta už se při přechodu z ruky nad bojiště nezvětšuje (dřív skokem na 108 %, hráč to vnímal jako rušivé). Velikost zůstává stejná, zónu pro zahrání ukazuje jen zlatý okraj (`DragGhostView` ve `FlightOverlay.kt`).
 - Zlatý okraj se ukáže jen u karty, kterou lze zahrát (`DragGhost.playable` plní `cardDragToPlay` z `canPlay`). Dřív se rozsvítil i u nehratelné karty.
+
+## [2026-11-23] release | v0.7.3
+- `versionCode` 22, `versionName` 0.7.3; CHANGELOG: nové ikony, tažená karta bez zvětšení.
