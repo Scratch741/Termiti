@@ -454,7 +454,7 @@ private val CASTLE_SKINS = listOf(
 private val WALL_SKINS = listOf("wall_player2", "wall_player3", "wall_player4", "wall_player5", "wall_player6")
 private val CARD_BACK_SKINS = listOf(
     "card_back_frame", "card_back_frame_2", "card_back_frame_3",
-    "card_back_frame_4", "card_back_frame_5", "card_back_frame_6", "card_back_frame_7",
+    "card_back_frame_4", "card_back_frame_5", "card_back_frame_6", "card_back_frame_7", "card_back_frame_8",
     "card_back_goblin", "card_back_baziny", "card_back_trpaslik", "card_back_citadela", "card_back_drak"
 )
 

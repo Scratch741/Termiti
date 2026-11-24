@@ -125,7 +125,10 @@ fun GameScreen(
         if (!lastCardIsPlayer) return@LaunchedEffect
         val from = flight.sources[c.id]
         val to   = flight.target
-        if (from == null || to == null) {
+        // Zahození tažením dolů: karta „odešla“ dolů z ruky, let zpět nahoru do slotu by
+        // působil divně → objeví se v odhazovacím slotu rovnou (teleport)
+        val draggedDiscard = lastCardAction == CardAction.DISCARDED && c.id in flight.pinnedSources
+        if (from == null || to == null || draggedDiscard) {
             // Let nelze odstartovat → rovnou "dopadni" (ukaž statiku hned)
             flight.landedPlayerCardId = c.id
             return@LaunchedEffect
@@ -168,6 +171,159 @@ fun GameScreen(
         )
         Box(Modifier.fillMaxSize().background(Color(0x88000000)))
 
+        // TEST rozložení „Aréna“ (Nastavení → Bojiště (test)); tutoriál zůstává klasický
+        val arenaUi = GameSettings.arenaLayout && tutorialStep == null
+        if (arenaUi) {
+            val isPlayerActive = state.activePlayer == ActivePlayer.PLAYER && gameOver == null
+            val active         = isPlayerActive || isComboTurn
+            val viewingOppHand = gameOver != null && showOppHand
+            val displayHand = when {
+                isMulligan     -> emptyList()
+                viewingOppHand -> state.aiState.hand
+                else           -> state.playerState.hand
+            }
+            val handOwner = if (viewingOppHand) state.aiState else state.playerState
+            val handOpp   = if (viewingOppHand) state.playerState else state.aiState
+            // Přiblížení ruky: klepnutí na ruku ji zvětší (karty jdou líp číst), klepnutí jinam
+            // nebo začátek tažení karty ji vrátí zpět
+            var handZoom by remember { mutableStateOf(false) }
+            val dragging = flight.dragGhost != null
+            LaunchedEffect(dragging) { if (dragging) handZoom = false }
+            val handScale by androidx.compose.animation.core.animateFloatAsState(
+                targetValue   = if (handZoom && !dragging) 1.2f else 0.95f,
+                animationSpec = androidx.compose.animation.core.tween(200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                label         = "handZoom"
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    // Jen sleduje doteky (Initial, nic nekonzumuje): dotyk v oblasti ruky = přiblížit,
+                    // jinde = oddálit. Oblast ruky: dolních 175 dp, ±290 dp od středu.
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val ev = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                                val down = ev.changes.firstOrNull { it.pressed && !it.previousPressed } ?: continue
+                                val p = down.position
+                                val inHand = p.y > size.height - 175.dp.toPx() &&
+                                             kotlin.math.abs(p.x - size.width / 2f) < 290.dp.toPx()
+                                handZoom = inHand
+                            }
+                        }
+                    }
+            ) {
+                // Bojiště přes celou obrazovku: malba, ruka soupeře, hrady, zahraná karta
+                NewBattlefield(
+                    playerState       = state.playerState,
+                    aiState           = state.aiState,
+                    lastCard          = lastCard,
+                    lastCardAction    = lastCardAction,
+                    lastCardIsPlayer  = lastCardIsPlayer,
+                    animateDraws      = gameOver == null,
+                    revealedAiCard    = revealedAiCard,
+                    revealedAiCardIdx = revealedAiCardIdx,
+                    oppLossQueue      = aiHandLossLog,
+                    modifier          = Modifier.fillMaxSize(),
+                    playerWinTarget   = state.playerWinTarget,
+                    aiWinTarget       = state.aiWinTarget,
+                    playerMaxHand     = state.playerMaxHand,
+                    aiMaxHand         = state.aiMaxHand,
+                    playerCastleResId = castleSkinDrawable(PlayerProfileManager.profile?.castleSkin ?: "castle_player"),
+                    playerWallResId   = wallSkinDrawable(PlayerProfileManager.profile?.wallSkin ?: "wall_player"),
+                    opponentCastleResId = campaignOpponent?.let { castleSkinDrawable(it.aiCastleSkin) } ?: viewModel.opponentCastleResId.value,
+                    opponentWallResId   = campaignOpponent?.let { wallSkinDrawable(it.aiWallSkin) } ?: viewModel.opponentWallResId.value,
+                    opponentCardBackResId = campaignOpponent?.let { cardBackSkinDrawable(it.aiCardBackSkin) } ?: viewModel.opponentCardBackResId.value,
+                    backgroundResId   = viewModel.battleBackgroundResId.value,
+                    arena             = true
+                )
+                // Ztmavení okrajů – rohové panely a ruka se čtou líp, střed zůstává světlý
+                Box(
+                    Modifier.fillMaxSize().background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            0f to Color.Black.copy(alpha = 0.45f), 0.2f to Color.Transparent,
+                            0.72f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.6f)
+                        )
+                    )
+                )
+                ArenaInfoStack(
+                    currentTurn  = state.currentTurn,
+                    isPlayerTurn = state.activePlayer == ActivePlayer.PLAYER,
+                    isComboTurn  = isComboTurn,
+                    deckSize     = state.playerState.deck.size,
+                    onMenu       = {
+                        when {
+                            reviewMode && onExitReview != null -> onExitReview()
+                            reviewMode                         -> reviewMode = false
+                            else                               -> showMenuConfirm = true
+                        }
+                    },
+                    onLog        = { showLog = true },
+                    modifier     = Modifier.align(Alignment.BottomStart).padding(start = 10.dp, bottom = 12.dp)
+                )
+                ArenaOpponentCorner(
+                    state    = state.aiState,
+                    avatar   = campaignOpponent?.portrait ?: viewModel.randomOpponentAvatar.value,
+                    name     = campaignOpponent?.displayName ?: LocalStrings.current.enemy,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(end = 10.dp, top = 8.dp)
+                )
+                ArenaPlayerCorner(
+                    state    = state.playerState,
+                    avatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
+                    name     = PlayerProfileManager.profile?.name ?: LocalStrings.current.logActorPlayer,
+                    modifier = Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp)
+                )
+                // Ruka v oblouku mezi mým rohem a tlačítkem tahu, spodek karet zajede za okraj
+                HandPanel(
+                    hand             = displayHand,
+                    isPlayerTurn     = state.activePlayer == ActivePlayer.PLAYER && gameOver == null,
+                    isComboTurn      = if (gameOver != null) false else isComboTurn,
+                    playerResources  = handOwner.resources,
+                    onPlayCard       = { viewModel.playCard(it) },
+                    onDiscardCard    = { viewModel.discardCard(it) },
+                    onWait           = { viewModel.waitTurn() },
+                    onEndTurn        = { viewModel.endPlayerTurn() },
+                    showHeader       = false,
+                    playerWallHp     = handOwner.wallHP,
+                    playerCastleHp   = handOwner.castleHP,
+                    oppResources     = handOpp.resources,
+                    lastPlayedType   = handOwner.lastPlayedType,
+                    onLongPressCard  = { cardPreview = it },
+                    animateDraws     = gameOver == null && !skipHandDeal,
+                    canDiscard       = !viewModel.playerDiscardUsed.value,
+                    tutorialCardBaseId = null,
+                    arena            = true,
+                    // Celá šířka (žádný boční ořez krajních karet), zmenšeno na 95 % od spodku,
+                    // ruka přesně uprostřed obrazovky (hráč, 2026-11-24)
+                    modifier         = Modifier.align(Alignment.BottomCenter)
+                                               .fillMaxWidth()
+                                               .offset(y = (-2).dp)
+                                               .height(170.dp)
+                                               .graphicsLayer {
+                                                   scaleX = handScale; scaleY = handScale
+                                                   transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
+                                               }
+                )
+                // Ukončit tah / v review přepínač rukou – vpravo dole
+                val s = LocalStrings.current
+                if (gameOver != null) {
+                    ArenaEndTurnButton(
+                        label    = if (showOppHand) s.viewMyHand else s.viewOpponentHand,
+                        active   = true,
+                        onClick  = { showOppHand = !showOppHand },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 12.dp)
+                    )
+                } else {
+                    val isGameEnding = active && state.playerState.hand.isEmpty() &&
+                                       state.playerState.deck.isEmpty() && state.aiState.deck.isEmpty()
+                    ArenaEndTurnButton(
+                        label    = when { isComboTurn -> s.endCombo; isGameEnding -> s.endGame; else -> s.endTurn },
+                        active   = active,
+                        onClick  = if (active) { { if (isComboTurn) viewModel.endPlayerTurn() else viewModel.waitTurn() } } else null,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 12.dp)
+                    )
+                }
+            }
+        } else
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ── Separátor – horní okraj obrazovky (oddělení od letterbox pruhu) ──

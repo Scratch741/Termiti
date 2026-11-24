@@ -1026,63 +1026,151 @@ private fun DeckPickerOverlay(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampaignTitle(s.dbPickDeck, fontSize = 24.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                decks.forEachIndexed { i, deck ->
-                    val iconRes = remember(deck.cardCounts) { deckIconRes(deck, allCards) }
-                    val shape   = RoundedCornerShape(8.dp)
-                    Box(
-                        Modifier
-                            .size(width = 184.dp, height = 124.dp)
-                            .then(if (i == editingIdx) Modifier.border(2.dp, Gold, shape) else Modifier)
-                            .clip(shape)
-                            .clickable { SoundManager.playMenuTap(); onPick(i) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter            = painterResource(R.drawable.mulligan_background),
-                            contentDescription = null,
-                            modifier           = Modifier.matchParentSize(),
-                            contentScale       = ContentScale.FillBounds
+            DialogTitle(s.dbPickDeck, fontSize = 22.sp)
+            // Mřížka 3 × 2: obsidiánové dlaždice s bronzovým lemem. Každá ukáže ikonu převládající
+            // suroviny, název, počet karet, pruh složení podle surovin a štítek „aktivní".
+            decks.chunked(3).forEachIndexed { rowIdx, row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    row.forEachIndexed { col, deck ->
+                        val i = rowIdx * 3 + col
+                        DeckSlotTile(
+                            deck      = deck,
+                            allCards  = allCards,
+                            deckSize  = deckSize,
+                            editing   = i == editingIdx,
+                            active    = i == activeIdx,
+                            onClick   = { SoundManager.playMenuTap(); onPick(i) }
                         )
-                        // Pevné výšky řádků: výchozí řádkování Textu je vyšší než písmo a obsah
-                        // pak přetekl přes zdobený rám (ikona nahoře, „aktivní" dole).
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit)
-                            Text(
-                                deckTitle(deck.name),
-                                color = TextPrimary, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 130.dp)
-                            )
-                            Text(
-                                "${deck.totalCards} / $deckSize",
-                                color = if (deck.totalCards == deckSize) HpGreen else Gold.copy(alpha = 0.8f),
-                                fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold
-                            )
-                            // Řádek drží místo i u neaktivních balíčků, ať jsou všechny dlaždice stejně rozložené
-                            Text(
-                                if (i == activeIdx) s.dbActiveShort else " ",
-                                color = TealLight, fontSize = 8.sp, lineHeight = 10.sp
-                            )
-                        }
                     }
                 }
             }
             PlainButton(
                 text      = s.back2,
                 modifier  = Modifier.width(110.dp).height(32.dp),
-                textColor = TextMuted,
-                fontSize  = 10.sp,
+                textColor = DialogTextMuted,
+                fontSize  = 11.sp,
                 paddingH  = 6.dp,
                 paddingV  = 0.dp,
+                buttonRes = R.drawable.button_iron,
                 onClick   = onDismiss
             )
+        }
+    }
+}
+
+
+/** Dlaždice slotu balíčku ve výběru (obsidián, bronzový lem; upravovaný slot zlatě, aktivní štítek). */
+@Composable
+private fun DeckSlotTile(
+    deck: Deck,
+    allCards: List<Card>,
+    deckSize: Int,
+    editing: Boolean,
+    active: Boolean,
+    onClick: () -> Unit
+) {
+    val s       = LocalStrings.current
+    val empty   = deck.totalCards == 0
+    val full    = deck.totalCards == deckSize
+    val iconRes = remember(deck.cardCounts) { deckIconRes(deck, allCards) }
+    // Počty karet podle suroviny (pořadí jako ResourceType) – pro pruh složení
+    val split = remember(deck.cardCounts, allCards) {
+        val byId = allCards.associateBy { it.id }
+        ResourceType.entries.map { t ->
+            t to deck.cardCounts.entries.sumOf { (id, n) -> if (byId[id]?.costType == t) n else 0 }
+        }.filter { it.second > 0 }
+    }
+    val shape  = RoundedCornerShape(10.dp)
+    val border = when {
+        editing -> Gold
+        active  -> TealLight.copy(alpha = 0.7f)
+        else    -> Color(0xFF8A6A3A).copy(alpha = 0.55f)
+    }
+    Box(
+        Modifier
+            .size(width = 196.dp, height = 100.dp)
+            .clip(shape)
+            // Textura obsidiánové desky (deck_slot_bg, ComfyUI) – prázdný slot ztmavený víc
+            .paint(painterResource(R.drawable.deck_slot_bg), contentScale = ContentScale.Crop)
+            .background(Color.Black.copy(alpha = if (empty) 0.45f else 0.2f))
+            // Lesk obsidiánu přes celou horní část (dřív byl uvnitř odsazení → světlý obdélník)
+            .drawBehind {
+                drawRect(Brush.verticalGradient(0f to Color.White.copy(alpha = 0.07f), 0.45f to Color.Transparent))
+            }
+            .border(if (editing) 2.dp else 1.dp, border, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        if (active) {
+            Text(
+                s.dbActiveShort,
+                color = TealLight, fontSize = 9.sp, lineHeight = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.TopEnd)
+            )
+        }
+        if (empty) {
+            // Prázdný slot: tlumený název a velké „+“ uprostřed – pozvánka k sestavení
+            Text(
+                deckTitle(deck.name),
+                color = TextMuted.copy(alpha = 0.7f), fontSize = 12.sp, lineHeight = 15.sp,
+                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+            Box(
+                Modifier.align(Alignment.Center).padding(top = 8.dp).size(36.dp)
+                    .clip(RoundedCornerShape(50))
+                    .border(1.dp, Color(0xFF8A6A3A).copy(alpha = 0.5f), RoundedCornerShape(50)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("+", color = Color(0xFFC9A46A).copy(alpha = 0.8f), fontSize = 22.sp, lineHeight = 22.sp)
+            }
+            return@Box
+        }
+        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    Modifier.size(34.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = 0.5f))
+                        .border(1.dp, Color(0xFF8A6A3A).copy(alpha = 0.6f), RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(20.dp), contentScale = ContentScale.Fit)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Text(
+                        deckTitle(deck.name),
+                        color = TextPrimary, fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 118.dp)
+                    )
+                    Text(
+                        "${deck.totalCards} / $deckSize",
+                        color = if (full) HpGreen else Gold.copy(alpha = 0.85f),
+                        fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            // Počty karet podle surovin (ikona + číslo) – zaplní střed dlaždice užitečnou informací
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                split.forEach { (t, n) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Image(painterResource(resourceIconRes(t)), contentDescription = null, modifier = Modifier.size(13.dp))
+                        Text("$n", color = resourceColor(t), fontSize = 11.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            // Pruh složení: podíl surovin; nedoplněná část zůstane tmavá
+            Row(
+                Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+            ) {
+                split.forEach { (t, n) ->
+                    Box(Modifier.fillMaxHeight().weight(n.toFloat()).background(resourceColor(t)))
+                }
+                val rest = deckSize - deck.totalCards
+                if (rest > 0) Spacer(Modifier.weight(rest.toFloat()))
+            }
         }
     }
 }

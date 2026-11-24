@@ -1,0 +1,70 @@
+---
+# Style LoRA of the Termiti card art for Krea 2 Turbo (ai-toolkit 7a5fe1a, arch krea2:turbo).
+# Run on the ComfyUI server:  cd ~/ai-toolkit && source venv/bin/activate && python run.py config/darkmage_krea2_v1.yaml
+# Dataset = the same one as darkmage_zimage_v1 (captions already start with "dkmg style"), see tools/lora/darkmage_cards.json.
+job: extension
+config:
+  name: "darkmage_krea2_v1"
+  process:
+    - type: "sd_trainer"
+      training_folder: "output"
+      device: cuda:0
+      network:
+        type: "lora"
+        linear: 16
+        linear_alpha: 16
+      save:
+        dtype: float16
+        save_every: 250
+        max_step_saves_to_keep: 6
+      datasets:
+        - folder_path: "/home/ubuntu/ai-toolkit/datasets/darkmage_cards"
+          caption_ext: "txt"
+          caption_dropout_rate: 0.05
+          shuffle_tokens: false
+          cache_latents_to_disk: true
+          resolution: [512]
+      train:
+        batch_size: 1
+        steps: 1500
+        gradient_accumulation: 1
+        train_unet: true
+        train_text_encoder: false
+        gradient_checkpointing: true
+        noise_scheduler: "flowmatch"
+        timestep_type: "linear"
+        optimizer: "adamw8bit"
+        lr: 1e-4
+        dtype: bf16
+        # text embeddings cached once, then the 4B text encoder leaves VRAM/RAM
+        cache_text_embeddings: true
+      model:
+        name_or_path: "krea/Krea-2-Turbo"
+        arch: "krea2:turbo"
+        assistant_lora_path: "ostris/krea2_turbo_training_adapter/krea2_turbo_training_adapter_v1.safetensors"
+        quantize: true
+        qtype: "qfloat8"          # becomes float8 with layer_offloading
+        quantize_te: true
+        qtype_te: "qfloat8"
+        low_vram: true
+        # ~13B transformer = ~13 GB even in 8 bit -> does not fit 12 GB, part of the layers lives in RAM
+        layer_offloading: true
+        layer_offloading_transformer_percent: 0.6
+        layer_offloading_text_encoder_percent: 1.0
+      sample:
+        sampler: "flowmatch"
+        sample_every: 250
+        width: 768
+        height: 768
+        prompts:
+          - "dkmg style, still life of a cracked glass vial of glowing blue mana on a stone altar, blue glow"
+          - "dkmg style, a lone knight standing on castle battlements at night holding a torch, full figure"
+          - "dkmg style, a young sorceress casting a swirling purple spell from her hands in a ruined temple"
+        neg: ""
+        seed: 42
+        walk_seed: true
+        guidance_scale: 1
+        sample_steps: 9
+meta:
+  name: "[name]"
+  version: "1.0"

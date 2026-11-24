@@ -416,7 +416,9 @@ private fun OnlineGameplay(
         if (!lastCardByMe) return@LaunchedEffect
         val from = flight.sources[c.id]
         val to   = flight.target
-        if (from == null || to == null) {
+        // Zahození tažením dolů → bez letu, karta se v slotu objeví rovnou (teleport)
+        val draggedDiscard = lastCardAction == CardAction.DISCARDED && c.id in flight.pinnedSources
+        if (from == null || to == null || draggedDiscard) {
             flight.landedPlayerCardId = c.id
             return@LaunchedEffect
         }

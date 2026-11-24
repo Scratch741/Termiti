@@ -40,6 +40,7 @@
 | [[systems/art-pipeline]] | Card art: ComfyUI + Claude extension (MCP) tools, darkmage/card style, readability fix (comfy_art_light), file locations | 2026-11-18 |
 | [[systems/card-sounds]] | Card play sounds: all 197 cards have `soundResId`; 176 built from sound libraries (Sonniss GDC 2024/2026, RPG Sound Pack CC0), K-weighted loudness −12.5 LUFS, layer map + render script, Sonniss licence vs. public repo, card → source table | 2026-11-22 |
 | [[systems/golden-cards]] | Golden animated cards: code effects + layered art (prototype T48 Upír), user decisions, procedure; on hold | 2026-11-18 |
+| [[systems/lora-training]] | LoRA training in AI Toolkit on the ComfyUI server: style LoRAs `darkmage_krea2_v1` (Krea 2) and `darkmage_zimage_v1` (Z-Image), dataset, configs, tests, Krea licence, cuDNN fix | 2026-11-20 |
 | [[systems/card-animation]] | Card animation: Wan 2.2 I2V 14B in ComfyUI, `tools/animate_card.py`, ping-pong loops; on hold, not in the game | 2026-11-20 |
 | [[systems/desk-display]] | ESP32 CYD desk display: `/status` + leaderboards, LVGL UI, build, fonts with Czech diacritics | 2026-10-31 |
 | [[systems/roadmap-accounts-monetization]] | Future plan: Google Play identity → server-side progress → paid packs/gold; open decisions, known server gaps | 2026-10-06 |

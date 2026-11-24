@@ -75,6 +75,11 @@ import kotlinx.coroutines.launch
 
 // ─── New Battlefield ──────────────────────────────────────────────────────────
 
+/** Aréna (test): výška pásu dole, který patří ruce a rohovým panelům – hrady stojí nad ním. */
+internal val ARENA_HAND_ZONE = 140.dp
+/** Aréna: přibližná výška hradu – štítek životů visí nad ním. */
+internal val ARENA_CASTLE_H = 100.dp
+
 @Composable
 fun NewBattlefield(
     playerState: PlayerState,
@@ -110,7 +115,14 @@ fun NewBattlefield(
      * není vidět. Když hra skončí přesně v tom okně, zůstane rub navždy za krajem:
      * hráč vidí v soupeřově ruce o kartu míň, než kolik jich ukáže „Prohlédnout hru".
      */
-    animateDraws: Boolean = true
+    animateDraws: Boolean = true,
+    /**
+     * TEST rozložení „Aréna“ ([GameSettings.arenaLayout]): bojiště přes celou obrazovku.
+     * Ruka soupeře nahoře uprostřed v obráceném oblouku (větší ruby, bez tmavého pruhu),
+     * hrady zvednuté nad pás ruky hráče ([ARENA_HAND_ZONE]), štítky hradu/hradeb pod hrady,
+     * zahraná karta menší ve volném středu.
+     */
+    arena: Boolean = false
 ) {
     BoxWithConstraints(
         modifier = modifier
@@ -133,7 +145,7 @@ fun NewBattlefield(
         val cardAvailW = maxWidth  - 24.dp      // 12dp margin na každé straně
         val cardScaleH = (cardAvailH / cardNatH).coerceIn(0.4f, 1.35f)
         val cardScaleW = (cardAvailW / cardNatW).coerceIn(0.4f, 1.35f)
-        val cardScale  = minOf(cardScaleH, cardScaleW)
+        val cardScale  = minOf(cardScaleH, cardScaleW).let { if (arena) it.coerceAtMost(0.95f) else it }
         val scaledH    = cardNatH * cardScale
         val scaledW    = cardNatW * cardScale
 
@@ -292,15 +304,26 @@ fun NewBattlefield(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .height(aiStripH)
-                .background(
-                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))
+                .height(if (arena) 84.dp else aiStripH)
+                .then(
+                    if (arena) Modifier.padding(start = 230.dp, end = 300.dp, top = 6.dp)
+                    else Modifier.background(
+                        Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))
+                    )
                 )
                 .padding(horizontal = 8.dp),
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment     = if (arena) Alignment.Top else Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
         ) {
-            items(stripItems, key = { it.first }) { item ->
+            itemsIndexed(stripItems, key = { _, it -> it.first }) { stripIdx, item ->
+                // Aréna: soupeř „drží“ karty naproti – obrácený oblouk (střed nejníž), větší ruby
+                val arcK = stripIdx - (stripItems.size - 1) / 2f
+                val arenaArc = if (arena) Modifier.graphicsLayer {
+                    scaleX = 1.6f; scaleY = 1.6f
+                    transformOrigin = TransformOrigin(0.5f, 0f)
+                    rotationZ    = -arcK * 3.5f
+                    translationY = (4f - arcK * arcK * 1.2f).dp.toPx()
+                } else Modifier
                 if (item.second) {
                     // Odhalená zahraná karta – pop na své původní pozici v ruce, klidový
                     // stav 1.15× (o 15 % větší než okolní ruby) → jasně vyčnívá jako
@@ -314,6 +337,7 @@ fun NewBattlefield(
                     Box(
                         Modifier
                             .animateItem()
+                            .then(if (arena) Modifier.padding(top = 6.dp) else Modifier)
                             .graphicsLayer {
                                 scaleX = pop.value; scaleY = pop.value
                                 transformOrigin = TransformOrigin(0.5f, 0f)
@@ -349,6 +373,7 @@ fun NewBattlefield(
                                 translationX = p * startX
                                 rotationZ    = p * 10f
                             }
+                            .then(arenaArc)
                     ) { CardBack(skinResId = opponentCardBackResId) }
                 }
             }
@@ -429,7 +454,7 @@ fun NewBattlefield(
             glowWall    = TutTarget.PLAYER_WALL in tutorialTargets,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 8.dp)
+                .padding(start = if (arena) 36.dp else 8.dp, bottom = if (arena) ARENA_HAND_ZONE else 0.dp)
         )
         NewCastleStructure(
             castleHp    = aiState.castleHP,
@@ -442,7 +467,7 @@ fun NewBattlefield(
             glowCastle  = TutTarget.ENEMY_CASTLE in tutorialTargets,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 8.dp)
+                .padding(end = if (arena) 36.dp else 8.dp, bottom = if (arena) ARENA_HAND_ZONE else 0.dp)
         )
 
         // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
@@ -455,7 +480,11 @@ fun NewBattlefield(
             handSize    = playerState.hand.size,
             maxHandSize = playerMaxHand,
             cardBackResId = playerCardBackResId(),
-            modifier    = Modifier
+            // Aréna: štítek pod hradem (hrad stojí nad pásem ruky)
+            modifier    = if (arena) Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 20.dp, bottom = ARENA_HAND_ZONE + ARENA_CASTLE_H)
+            else Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)
         )
@@ -470,13 +499,18 @@ fun NewBattlefield(
             handSize    = aiState.hand.size,
             maxHandSize = aiMaxHand,
             cardBackResId = opponentCardBackResId,
-            modifier    = Modifier
+            modifier    = if (arena) Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = ARENA_HAND_ZONE + ARENA_CASTLE_H)
+            else Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
         )
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
-        val cardTopY = aiStripH + (maxHeight - aiStripH - scaledH) / 2
+        // Aréna: střed volného prostoru mezi rukou soupeře a pásem ruky hráče
+        val cardTopY = if (arena) (maxHeight - ARENA_HAND_ZONE + 40.dp - scaledH) / 2 + 10.dp
+                       else aiStripH + (maxHeight - aiStripH - scaledH) / 2
         // Statický slot drží STABILNÍ zobrazení – aktualizuje se jen když karta
         // skutečně "dopadne" (u hráče po letu, u soupeře hned). Bez toho by
         // vznikala díra v discardu po dobu letu nové karty.
@@ -533,7 +567,13 @@ fun NewBattlefield(
                                   flight.isFlying(lastCard?.id ?: "") &&
                                   lastCardIsPlayer
         val fp         = if (activePlayerFlight) flight!!.flightProgress else 0f
+        // Hráčova nová karta už je zahraná, ale slot ještě ukazuje tu starou (let běží, nebo
+        // skončil a LaunchedEffect výš slot přepne až o snímek později). Dřív se v tom
+        // mezisnímku stará karta znovu ukázala naplno → probliknutí staré a nové karty.
+        val pendingSwap = lastCardIsPlayer && lastCard != null && displayCard?.id != lastCard.id &&
+                          flight?.landedPlayerCardId == lastCard.id
         val slotAlpha  = when {
+            pendingSwap && !activePlayerFlight -> 0f
             fp <= 0.55f -> 1f
             fp <= 0.88f -> 1f - (fp - 0.55f) / 0.33f
             else        -> 0f
@@ -1293,7 +1333,7 @@ private val RANDOM_OPPONENT_WALL_SKIN_IDS = listOf(
  */
 private val RANDOM_OPPONENT_CARD_BACK_SKIN_IDS = listOf(
     "card_back_frame", "card_back_frame_2", "card_back_frame_3", "card_back_frame_4",
-    "card_back_frame_5", "card_back_frame_6", "card_back_frame_7",
+    "card_back_frame_5", "card_back_frame_6", "card_back_frame_7", "card_back_frame_8",
     "card_back_goblin", "card_back_baziny", "card_back_trpaslik", "card_back_citadela", "card_back_drak"
 )
 

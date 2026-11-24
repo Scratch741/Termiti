@@ -76,13 +76,20 @@ Battlefield skins (`castle_*`, `wall_*` in `res/drawable`) are repainted, not re
 ### Reflektor C (what `comfy_art_light` / `Reflektor_C` do)
 gamma 0.80 → S-curve around 0.45 (×1.18) → saturation ×1.15 → elliptical light (half-axes 0.42 × 0.50 of the image) centred on the character: inside brightness ×(1 + 0.28·(1−d²)) and a warm tint, outside darkening up to 22 %. The centre is the centroid of the BiRefNet character mask shifted 0.06 up (legs and cloaks pull the centroid down); a manual centre can be given. Pure GLSL in ComfyUI core (`GLSLShader`), ~1 s per image, deterministic – style and details stay.
 
+### LoRA
+- `darkmage_krea2_v1` – style LoRA of these arts for **Krea 2 Turbo**: workflow `krea`, `lora: false`, `loras: [{"name": "aitk/darkmage_krea2_v1/darkmage_krea2_v1.safetensors", "strength": 1.0}]`, prompt `dkmg style, …` + style `darkmage`. Mild boost (contrast, warm accents, detail), but it bakes in the dark teal background. **Not used for now** (user 2026-11-21: results nearly identical to Krea without it) – arts stay Krea + `darkmage` without LoRA. Training, test, licence: [[systems/lora-training]].
+- `darkmage_zimage_v1` – the same for **Z-Image Turbo**; Z-Image was deleted from the server (2026-11-20), unusable until re-downloaded.
+- `krea2_darkbrush` – older sketchy LoRA for Krea (`comfy_generate` `lora: true`).
+
 ## Related pages
+- [[systems/lora-training]] — training LoRAs for the card style
 - [[architecture]] — where card data and art references live
 - [[overview]] — the game
 
 ## Changelog
 - 2026-11-21: Castle and wall skins section (`tools/castle_skin.py`).
 - 2026-11-21: Chaos card rules (orange chaos magic, warm or alternating teal background, no humans unless the card names one); style `herolight` missing on the LAN PC – write its text into the prompt.
+- 2026-11-20: LoRA section (`darkmage_zimage_v1`, link to [[systems/lora-training]]).
 - 2026-11-19: Batch script `tools/art_batch.py`.
 - 2026-11-19: Variety rules (framing, colour, fewer figures) after player feedback.
 - 2026-11-18: Page created – tools, style, steps, reflector C, MCP 2.6.0.

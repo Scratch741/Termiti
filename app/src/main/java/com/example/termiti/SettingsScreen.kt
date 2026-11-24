@@ -156,6 +156,13 @@ fun SettingsScreen(onBack: () -> Unit) {
                             dragToPlay = GameSettings.dragToPlay,
                             onSelect   = { GameSettings.updateDragToPlay(it) }
                         )
+                        // TEST: rozložení bojiště (texty natvrdo česky – jen na vyzkoušení návrhu)
+                        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                            SectionLabel("Bojiště (test)")
+                            Segmented(listOf(false to "Klasické", true to "Aréna"), GameSettings.arenaLayout) {
+                                GameSettings.updateArenaLayout(it)
+                            }
+                        }
                     }
                 }
             }

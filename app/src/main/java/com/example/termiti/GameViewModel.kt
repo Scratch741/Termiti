@@ -98,7 +98,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     val decks = androidx.compose.runtime.mutableStateListOf(
         Deck(0, "Balíček 1"),
         Deck(1, "Balíček 2"),
-        Deck(2, "Balíček 3")
+        Deck(2, "Balíček 3"),
+        Deck(3, "Balíček 4"),
+        Deck(4, "Balíček 5"),
+        Deck(5, "Balíček 6")
     )
     var activeDeckIndex = androidx.compose.runtime.mutableStateOf(0)
         private set
@@ -111,7 +114,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
      *  Také PŘED init{}: loadRoguePresets() do něj zapisuje. */
     val rogueSlot = androidx.compose.runtime.mutableStateOf(0)
     val roguePresets = androidx.compose.runtime.mutableStateListOf(
-        RoguePreset("Balíček 1"), RoguePreset("Balíček 2"), RoguePreset("Balíček 3")
+        RoguePreset("Balíček 1"), RoguePreset("Balíček 2"), RoguePreset("Balíček 3"),
+        RoguePreset("Balíček 4"), RoguePreset("Balíček 5"), RoguePreset("Balíček 6")
     )
 
     /**

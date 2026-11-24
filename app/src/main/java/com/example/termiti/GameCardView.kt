@@ -171,6 +171,7 @@ fun cardBackSkinDrawable(skinId: String): Int = when (skinId) {
     "card_back_frame_5"  -> R.drawable.card_back_frame_5
     "card_back_frame_6"  -> R.drawable.card_back_frame_6
     "card_back_frame_7"  -> R.drawable.card_back_frame_7
+    "card_back_frame_8"  -> R.drawable.card_back_frame_8
     "card_back_goblin"   -> R.drawable.card_back_goblin
     "card_back_baziny"   -> R.drawable.card_back_baziny
     "card_back_trpaslik" -> R.drawable.card_back_trpaslik

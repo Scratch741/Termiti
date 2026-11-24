@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Bojiště návrhy</title>
+<style>
+@font-face { font-family: Cinzel; src: url(../../../app/src/main/res/font/cinzel.ttf); }
+:root {
+  --d: ../../../app/src/main/res/drawable/;
+  --bronze: #b98a4e; --bronze-dim: rgba(185,138,78,.45); --gold: #e9c77b;
+  --glass: rgba(10,8,14,.55); --glass-strong: rgba(8,6,12,.78);
+  --text: #efe4cc; --muted: #a99878;
+  --magic: #4f8cff; --attack: #e0453a; --stone: #c9c0ae; --chaos: #ff8a2a;
+  --teal: #5fd6c4; --hp: #e05a4a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1170px; height: 540px; overflow: hidden; background: #000; font-family: Roboto, "Segoe UI", sans-serif; color: var(--text); }
+.screen { position: relative; width: 1170px; height: 540px; overflow: hidden; }
+.bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.abs { position: absolute; }
+.cinzel { font-family: Cinzel, serif; letter-spacing: .06em; }
+
+/* ── kouřové sklo s bronzovou hranou ── */
+.glass { background: var(--glass); backdrop-filter: blur(6px); border: 1px solid var(--bronze-dim); border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+.glass.strong { background: var(--glass-strong); }
+
+/* ── karta ── */
+.card { position: absolute; width: 100px; height: 140px; transform-origin: 50% 110%; filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+.card .art { position: absolute; left: 5%; top: 4%; width: 90%; height: 56%; background-size: cover; background-position: center; }
+.card .frame { position: absolute; inset: 0; background-size: 100% 100%; }
+.card .name { position: absolute; left: 0; right: 0; top: 57.5%; text-align: center; font-family: Cinzel, serif; font-size: 7.2px; font-weight: 700; color: #f5ead2; text-shadow: 0 1px 2px #000; }
+.card .txt  { position: absolute; left: 12%; right: 12%; top: 70%; text-align: center; font-size: 6.4px; line-height: 1.3; color: #e6dcc6; text-shadow: 0 1px 1px #000; }
+.card .cost { position: absolute; left: 1.5%; top: 1%; width: 22%; height: 15.7%; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700; font-size: 11px; color: #fff; text-shadow: 0 0 4px #000, 0 1px 1px #000; }
+.card.playable { filter: drop-shadow(0 0 6px rgba(95,214,196,.85)) drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+.back { position: absolute; width: 34px; height: 54px; background-size: cover; border-radius: 3px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.7)); }
+
+/* ── portrét ── */
+.portrait { position: absolute; border-radius: 50%; background-size: cover; background-position: center;
+  border: 2px solid var(--bronze); box-shadow: 0 0 0 3px rgba(0,0,0,.6), 0 0 18px rgba(0,0,0,.8); }
+.portrait.mine  { box-shadow: 0 0 0 3px rgba(0,0,0,.6), 0 0 16px rgba(95,214,196,.45); }
+.portrait.enemy { box-shadow: 0 0 0 3px rgba(0,0,0,.6), 0 0 16px rgba(224,69,58,.45); }
+
+/* ── suroviny ── */
+.res { display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 15px; }
+.res img { width: 18px; height: 18px; object-fit: contain; }
+.res .gen { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+/* ── hrad + HP ── */
+.castle { position: absolute; background-size: contain; background-repeat: no-repeat; background-position: bottom center; filter: drop-shadow(0 10px 16px rgba(0,0,0,.7)); }
+.hpplate { display: flex; gap: 10px; align-items: center; padding: 4px 10px; font-weight: 700; font-size: 14px; }
+.hpplate img { width: 15px; height: 15px; }
+.bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
+.bar > i { display: block; height: 100%; }
+
+/* ── tlačítko ukončit tah ── */
+.endturn { position: absolute; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700;
+  color: #1a0f04; background: url(../../../app/src/main/res/drawable/button_bronze.png) center/100% 100%; letter-spacing: .08em;
+  filter: drop-shadow(0 0 10px rgba(233,168,58,.55)) drop-shadow(0 4px 6px rgba(0,0,0,.6)); }
+
+.label { position: absolute; left: 10px; bottom: 8px; font: 700 11px Cinzel, serif; color: rgba(255,255,255,.55); letter-spacing: .1em; }
+.vign { position: absolute; inset: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="screen" id="s"></div>
+<script>
+const D = '../../../app/src/main/res/drawable/';
+const ICON = { m: D+'magie_icon.png', a: D+'utok_icon.png', s: D+'kamen_icon2.png', c: D+'chaos_icon.png' };
+const FRAME = { m: 'card_frame_magic', a: 'card_frame_attack', s: 'card_frame_stones', c: 'card_frame_chaos' };
+const HAND = [
+  { n: 'Ohnivá koule',   t: 'Poškodí hrad −6.', c: 4, k: 'm', art: 'art_ohniva_koule', ok: true },
+  { n: 'Ogr',            t: 'Útok 9 na hradby.', c: 6, k: 'a', art: 'art_ogr', ok: true },
+  { n: 'Kamenná zeď',    t: 'Hradby +8.',        c: 5, k: 's', art: 'art_kamenna_zed', ok: true },
+  { n: 'Chaotický drak', t: 'Poškodí hrad −12.', c: 9, k: 'c', art: 'art_chaoticky_drak', ok: false },
+  { n: 'Magický pramen', t: 'Důl magie +1.',     c: 3, k: 'm', art: 'art_magicky_pramen', ok: true },
+  { n: 'Beranidlo',      t: 'Hradby soupeře −7.', c: 4, k: 'a', art: 'art_beranidlo', ok: true },
+];
+const s = document.getElementById('s');
+const v = (new URLSearchParams(location.search)).get('v') || 'A';
+const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
+const add = (html) => s.appendChild(el(html));
+
+function card(c, x, y, rot = 0, scale = 1, extra = '') {
+  return `<div class="card ${c.ok ? 'playable' : ''}" style="left:${x}px;top:${y}px;transform:rotate(${rot}deg) scale(${scale});${extra}">
+    <div class="art" style="background-image:url(${D}${c.art}.png)"></div>
+    <div class="frame" style="background-image:url(${D}${FRAME[c.k]}.png)"></div>
+    <div class="cost">${c.c}</div><div class="name">${c.n}</div><div class="txt">${c.t}</div></div>`;
+}
+function fan(cx, baseY, spread, step, scale) {
+  const n = HAND.length;
+  HAND.forEach((c, i) => {
+    const k = i - (n - 1) / 2;
+    const rot = k * spread, x = cx - 50 + k * step, y = baseY + Math.abs(k) * Math.abs(k) * 4;
+    add(card(c, x, y, rot, scale));
+  });
+}
+function resRow(vals, gap = 14, size = 15) {
+  return `<div style="display:flex;gap:${gap}px">` + Object.entries(vals).map(([k, [n, g]]) =>
+    `<div class="res" style="font-size:${size}px;color:var(--${{m:'magic',a:'attack',s:'stone',c:'chaos'}[k]})"><img src="${ICON[k]}">${n}<span class="gen">+${g}</span></div>`).join('') + `</div>`;
+}
+function hp(castle, wall, max, align = 'left') {
+  return `<div class="glass hpplate" style="justify-content:${align}">
+    <span style="display:flex;gap:4px;align-items:center;color:var(--hp)"><img src="${D}castle_icon.png">${castle}<span style="color:var(--muted);font-size:10px">/${max}</span></span>
+    <span style="display:flex;gap:4px;align-items:center;color:#9fb6c8"><img src="${D}hammer_icon.png">${wall}</span></div>`;
+}
+const ME  = { m:[21,4], a:[28,4], s:[38,5], c:[0,0] };
+const OPP = { m:[2,4],  a:[2,7],  s:[4,2],  c:[0,0] };
+
+// ═══ A – Aréna (Hearthstone): malba přes celou obrazovku, ruka v oblouku, hrdinové nahoře/dole ═══
+if (v === 'A') {
+  add(`<div class="bg" style="background-image:url(${D}castle_background_vulcan.png);background-position:center 35%"></div>`);
+  add(`<div class="vign" style="background:radial-gradient(ellipse 70% 65% at 50% 48%, transparent 40%, rgba(0,0,0,.75) 100%), linear-gradient(to bottom, rgba(0,0,0,.55), transparent 22%, transparent 70%, rgba(0,0,0,.7))"></div>`);
+  // hrady na stranách, stojí na zemi malby
+  add(`<div class="castle" style="left:70px;top:150px;width:200px;height:250px;background-image:url(${D}castle_player.png)"></div>`);
+  add(`<div class="castle" style="right:70px;top:150px;width:200px;height:250px;background-image:url(${D}castle_drak.png)"></div>`);
+  add(`<div class="abs" style="left:85px;top:398px;width:170px">${hp(58,10,100)}<div class="bar" style="margin-top:4px"><i style="width:58%;background:var(--teal)"></i></div></div>`);
+  add(`<div class="abs" style="right:85px;top:398px;width:170px">${hp(31,0,100)}<div class="bar" style="margin-top:4px"><i style="width:31%;background:var(--hp)"></i></div></div>`);
+  // soupeř: portrét nahoře uprostřed + ruka rubem + suroviny
+  add(`<div class="portrait enemy" style="left:548px;top:8px;width:74px;height:74px;background-image:url(${D}enemy_icon_1.png)"></div>`);
+  add(`<div class="abs cinzel" style="left:0;right:0;top:86px;text-align:center;font-size:12px;color:#e7b7a8">Nepřítel</div>`);
+  add(`<div class="abs glass" style="left:640px;top:22px;padding:6px 12px">${resRow(OPP,12,13)}</div>`);
+  for (let i = 0; i < 5; i++) add(`<div class="back" style="left:${410 + i*20}px;top:${10 + Math.abs(i-2)*3}px;transform:rotate(${(i-2)*8}deg);background-image:url(${D}card_back_frame_8.png)"></div>`);
+  // střed: poslední zahraná karta – volný prostor
+  add(card(HAND[2], 535, 170, 0, 1.15, 'filter:drop-shadow(0 0 14px rgba(233,199,123,.5))'));
+  add(`<div class="abs cinzel" style="left:0;right:0;top:330px;text-align:center;font-size:10px;color:var(--muted)">Soupeř zahrál</div>`);
+  // hráč: portrét vlevo dole se surovinami v kouřovém skle
+  add(`<div class="portrait mine" style="left:18px;top:452px;width:72px;height:72px;background-image:url(${D}player_icon_1.png)"></div>`);
+  add(`<div class="abs glass" style="left:98px;top:470px;padding:8px 14px">${resRow(ME)}</div>`);
+  fan(660, 392, 7, 66, 1.05);
+  // ukončit tah vpravo dole
+  add(`<div class="endturn" style="right:22px;top:470px;width:150px;height:46px;font-size:14px">UKONČIT TAH</div>`);
+  add(`<div class="abs glass cinzel" style="left:14px;top:12px;padding:5px 12px;font-size:12px">Kolo 25 · <span style="color:var(--teal)">tvůj tah</span></div>`);
+  add(`<div class="label">A · Aréna</div>`);
+}
+
+// ═══ A2 – Aréna, soupeř zrcadlově: portrét v pravém horním rohu, suroviny diagonálně
+//          k mým (vpravo nahoře × vlevo dole), soupeřova ruka uprostřed nahoře ═══
+if (v === 'A2') {
+  add(`<div class="bg" style="background-image:url(${D}castle_background_vulcan.png);background-position:center 35%"></div>`);
+  add(`<div class="vign" style="background:radial-gradient(ellipse 70% 65% at 50% 48%, transparent 40%, rgba(0,0,0,.75) 100%), linear-gradient(to bottom, rgba(0,0,0,.6), transparent 24%, transparent 70%, rgba(0,0,0,.7))"></div>`);
+  add(`<div class="castle" style="left:70px;top:150px;width:200px;height:250px;background-image:url(${D}castle_player.png)"></div>`);
+  add(`<div class="castle" style="right:70px;top:150px;width:200px;height:250px;background-image:url(${D}castle_drak.png)"></div>`);
+  add(`<div class="abs" style="left:85px;top:398px;width:170px">${hp(58,10,100)}<div class="bar" style="margin-top:4px"><i style="width:58%;background:var(--teal)"></i></div></div>`);
+  add(`<div class="abs" style="right:85px;top:398px;width:170px">${hp(31,0,100)}<div class="bar" style="margin-top:4px"><i style="width:31%;background:var(--hp)"></i></div></div>`);
+  // soupeř: portrét v pravém horním rohu, suroviny vlevo od něj (zrcadlo mého rohu)
+  add(`<div class="portrait enemy" style="right:18px;top:16px;width:72px;height:72px;background-image:url(${D}enemy_icon_1.png)"></div>`);
+  add(`<div class="abs cinzel" style="right:12px;top:92px;width:84px;text-align:center;font-size:11px;color:#e7b7a8">Nepřítel</div>`);
+  add(`<div class="abs glass" style="right:98px;top:34px;padding:8px 14px">${resRow(OPP)}</div>`);
+  // soupeřova ruka: rubem uprostřed nahoře, oblouk obrácený dolů (drží je „naproti")
+  const n = 6;
+  for (let i = 0; i < n; i++) {
+    const k = i - (n - 1) / 2;
+    add(`<div class="back" style="left:${585 - 24 + k*36}px;top:${-4 - k*k*3}px;width:48px;height:76px;transform:rotate(${-k*6}deg);transform-origin:50% -80%;background-image:url(${D}card_back_frame_8.png)"></div>`);
+  }
+  // střed: poslední zahraná karta
+  add(card(HAND[2], 535, 170, 0, 1.15, 'filter:drop-shadow(0 0 14px rgba(233,199,123,.5))'));
+  add(`<div class="abs cinzel" style="left:0;right:0;top:330px;text-align:center;font-size:10px;color:var(--muted)">Soupeř zahrál</div>`);
+  // já: portrét vlevo dole, suroviny vpravo od něj
+  add(`<div class="portrait mine" style="left:18px;top:452px;width:72px;height:72px;background-image:url(${D}player_icon_1.png)"></div>`);
+  add(`<div class="abs glass" style="left:98px;top:470px;padding:8px 14px">${resRow(ME)}</div>`);
+  fan(660, 392, 7, 66, 1.05);
+  add(`<div class="endturn" style="right:22px;top:470px;width:150px;height:46px;font-size:14px">UKONČIT TAH</div>`);
+  add(`<div class="abs glass cinzel" style="left:14px;top:12px;padding:5px 12px;font-size:12px">Kolo 25 · <span style="color:var(--teal)">tvůj tah</span></div>`);
+  add(`<div class="label" style="bottom:auto;top:44px">A2 · Aréna</div>`);
+}
+
+// ═══ B – Otevřený prostor: žádné panely, vše plove; velké hrady, rovná ruka ═══
+if (v === 'B') {
+  add(`<div class="bg" style="background-image:url(${D}bg_game.jpg);background-position:center 60%"></div>`);
+  add(`<div class="vign" style="background:linear-gradient(to bottom, rgba(0,0,0,.5), transparent 18%, transparent 62%, rgba(0,0,0,.85))"></div>`);
+  // tenká horní linka: hráč vlevo, soupeř vpravo
+  add(`<div class="abs" style="left:16px;top:12px;display:flex;align-items:center;gap:12px">
+        <div class="portrait mine" style="position:relative;width:46px;height:46px;background-image:url(${D}player_icon_1.png)"></div>
+        <div><div class="cinzel" style="font-size:13px">Scrrr</div><div style="margin-top:3px">${resRow(ME,12,13)}</div></div></div>`);
+  add(`<div class="abs" style="right:16px;top:12px;display:flex;align-items:center;gap:12px;flex-direction:row-reverse;text-align:right">
+        <div class="portrait enemy" style="position:relative;width:46px;height:46px;background-image:url(${D}enemy_icon_1.png)"></div>
+        <div><div class="cinzel" style="font-size:13px;color:#e7b7a8">Nepřítel</div><div style="margin-top:3px">${resRow(OPP,12,13)}</div></div></div>`);
+  add(`<div class="abs cinzel" style="left:0;right:0;top:18px;text-align:center;font-size:12px;color:var(--muted)">KOLO 25<div style="color:var(--teal);font-size:10px;margin-top:2px">tvůj tah</div></div>`);
+  // velké hrady
+  add(`<div class="castle" style="left:40px;top:80px;width:260px;height:300px;background-image:url(${D}castle_player.png)"></div>`);
+  add(`<div class="castle" style="right:40px;top:80px;width:260px;height:300px;background-image:url(${D}castle_drak.png)"></div>`);
+  // HP jako velká čísla bez rámečku
+  const big = (c, w, col, side) => `<div class="abs" style="${side}:110px;top:300px;text-align:center;text-shadow:0 2px 8px #000">
+      <div class="cinzel" style="font-size:30px;font-weight:700;color:${col}">${c}</div>
+      <div style="font-size:11px;color:#9fb6c8;font-weight:700">hradby ${w}</div></div>`;
+  add(big(58, 10, 'var(--teal)', 'left')); add(big(31, 0, 'var(--hp)', 'right'));
+  // střed: zahraná karta + tenká linka „balíček"
+  add(card(HAND[0], 535, 120, 0, 1.25));
+  add(`<div class="abs" style="left:430px;right:430px;top:330px;height:1px;background:linear-gradient(90deg,transparent,var(--bronze-dim),transparent)"></div>`);
+  // rovná ruka, mírně zasunutá pod okraj
+  fan(585, 392, 7, 66, 1.05);
+  add(`<div class="endturn" style="right:24px;bottom:22px;width:130px;height:40px;font-size:13px">KONEC TAHU</div>`);
+  add(`<div class="abs glass" style="left:24px;bottom:22px;padding:6px 12px;font-size:11px;color:var(--muted)">Balíček 18 · Ruka 6/7</div>`);
+  add(`<div class="label" style="bottom:auto;top:70px">B · Otevřený prostor</div>`);
+}
+
+// ═══ C – Duelový stůl: obsidiánový stůl uprostřed, hráči v diagonále ═══
+if (v === 'C') {
+  add(`<div class="bg" style="background-image:url(${D}castle_background.png);background-position:center 40%"></div>`);
+  add(`<div class="vign" style="background:radial-gradient(ellipse 60% 55% at 50% 52%, transparent 30%, rgba(0,0,0,.8) 100%)"></div>`);
+  // stůl
+  add(`<div class="abs" style="left:300px;top:110px;width:570px;height:250px;border-radius:50%;
+        background:radial-gradient(ellipse at 50% 35%, rgba(40,32,48,.75), rgba(6,5,8,.88) 70%);
+        border:1px solid var(--bronze-dim);box-shadow:0 0 0 6px rgba(0,0,0,.35), 0 20px 40px rgba(0,0,0,.6), inset 0 0 40px rgba(0,0,0,.8)"></div>`);
+  add(`<div class="abs" style="left:310px;top:120px;width:550px;height:230px;border-radius:50%;border:1px dashed rgba(185,138,78,.25)"></div>`);
+  // hrady za stolem
+  add(`<div class="castle" style="left:60px;top:120px;width:200px;height:240px;background-image:url(${D}castle_player.png)"></div>`);
+  add(`<div class="castle" style="right:60px;top:120px;width:200px;height:240px;background-image:url(${D}castle_drak.png)"></div>`);
+  // na stole: zahraná karta + rub balíčku + odhoz
+  add(card(HAND[1], 600, 160, 4, 1.05));
+  add(card(HAND[4], 520, 168, -6, 1.0, 'opacity:.55'));
+  add(`<div class="back" style="left:420px;top:200px;width:50px;height:80px;background-image:url(${D}card_back_frame_8.png)"></div>`);
+  add(`<div class="abs cinzel" style="left:408px;top:288px;font-size:9px;color:var(--muted)">balíček 18</div>`);
+  // karta hráče: vlevo dole
+  add(`<div class="abs glass strong" style="left:14px;top:380px;width:250px;padding:10px 12px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="portrait mine" style="position:relative;width:44px;height:44px;background-image:url(${D}player_icon_1.png)"></div>
+          <div style="flex:1"><div class="cinzel" style="font-size:12px">Scrrr</div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-top:3px"><span style="color:var(--teal)">Hrad 58/100</span><span style="color:#9fb6c8">Hradby 10</span></div>
+            <div class="bar" style="margin-top:4px"><i style="width:58%;background:var(--teal)"></i></div></div></div>
+        <div style="margin-top:9px">${resRow(ME,13,14)}</div></div>`);
+  // karta soupeře: vpravo nahoře
+  add(`<div class="abs glass strong" style="right:14px;top:12px;width:250px;padding:10px 12px">
+        <div style="display:flex;gap:10px;align-items:center;flex-direction:row-reverse;text-align:right">
+          <div class="portrait enemy" style="position:relative;width:44px;height:44px;background-image:url(${D}enemy_icon_1.png)"></div>
+          <div style="flex:1"><div class="cinzel" style="font-size:12px;color:#e7b7a8">Nepřítel</div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-top:3px"><span style="color:#9fb6c8">Hradby 0</span><span style="color:var(--hp)">Hrad 31/100</span></div>
+            <div class="bar" style="margin-top:4px;direction:rtl"><i style="width:31%;background:var(--hp)"></i></div></div></div>
+        <div style="margin-top:9px;display:flex;justify-content:flex-end">${resRow(OPP,13,14)}</div></div>`);
+  for (let i = 0; i < 5; i++) add(`<div class="back" style="left:${560 + i*22}px;top:${-22 + Math.abs(i-2)*3}px;transform:rotate(${(i-2)*-7}deg);background-image:url(${D}card_back_frame_8.png)"></div>`);
+  add(`<div class="abs glass cinzel" style="left:14px;top:12px;padding:5px 12px;font-size:12px">Kolo 25 · <span style="color:var(--teal)">tvůj tah</span></div>`);
+  fan(650, 398, 6, 70, 1.05);
+  add(`<div class="endturn" style="right:24px;top:476px;width:140px;height:44px;font-size:13px">UKONČIT TAH</div>`);
+  add(`<div class="label" style="left:auto;right:12px;bottom:auto;top:150px">C · Duelový stůl</div>`);
+}
+</script>
+</body>
+</html>

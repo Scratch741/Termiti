@@ -100,7 +100,7 @@
     "dbDustCost": "−%d dust",
     "dbBadgeNew": "NEW",
     "dbTemplates": "Templates",
-    "dbPickDeck": "Choose a deck",
+    "dbPickDeck": "Deck selection",
     "dbIncompleteTitle": "Deck is not complete",
     "dbIncompleteMsg": "The deck “%1$s” has %2$d of 30 cards, so it cannot be played. Fill it automatically?",
     "dbIncompleteFill": "Fill",

@@ -954,7 +954,7 @@ wss.on('connection', (ws, req) => {
         // Skin rubu karty – přijmi jen povolené hodnoty
         const KNOWN_CARD_BACKS = new Set([
           'card_back_frame', 'card_back_frame_2', 'card_back_frame_3',
-          'card_back_frame_4', 'card_back_frame_5', 'card_back_frame_6', 'card_back_frame_7',
+          'card_back_frame_4', 'card_back_frame_5', 'card_back_frame_6', 'card_back_frame_7', 'card_back_frame_8',
           'card_back_goblin', 'card_back_baziny', 'card_back_trpaslik', 'card_back_citadela', 'card_back_drak'
         ]);
         const cardBackSkin = KNOWN_CARD_BACKS.has(msg.cardBackSkin) ? msg.cardBackSkin : 'card_back_frame';

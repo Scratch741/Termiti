@@ -100,7 +100,7 @@
     "dbDustCost": "−%d prachu",
     "dbBadgeNew": "NOVÉ",
     "dbTemplates": "Šablony",
-    "dbPickDeck": "Vyber balíček",
+    "dbPickDeck": "Výběr balíčku",
     "dbIncompleteTitle": "Balíček není kompletní",
     "dbIncompleteMsg": "V balíčku „%1$s“ je %2$d z 30 karet, takže se s ním nedá hrát. Doplnit ho automaticky?",
     "dbIncompleteFill": "Doplnit",

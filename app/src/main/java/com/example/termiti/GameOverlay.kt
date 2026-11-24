@@ -796,11 +796,11 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
             PlainButton(
                 text      = s.resultPlayAgain.uppercase(),
                 modifier  = Modifier.fillMaxWidth(),
-                textColor = if (isWin) TealLight else Crimson,
-                fontSize  = 12.sp,
+                textColor = BronzeButtonText,
+                fontSize  = 13.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
-                buttonRes = R.drawable.plain_button_longer,
+                buttonRes = R.drawable.button_bronze,
                 onClick   = onRestart
             )
             Spacer(Modifier.height(8.dp))
@@ -808,21 +808,21 @@ fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit
                 text      = LocalStrings.current.inspectGameCaps,
                 modifier  = Modifier.fillMaxWidth(),
                 textColor = TextPrimary,
-                fontSize  = 12.sp,
+                fontSize  = 13.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
-                buttonRes = R.drawable.plain_button_longer,
+                buttonRes = R.drawable.button_iron,
                 onClick   = onReview
             )
             Spacer(Modifier.height(8.dp))
             PlainButton(
                 text      = s.resultBackToMenu.uppercase(),
                 modifier  = Modifier.fillMaxWidth(),
-                textColor = TextMuted,
-                fontSize  = 12.sp,
+                textColor = DialogTextMuted,
+                fontSize  = 13.sp,
                 paddingH  = 0.dp,
                 paddingV  = 10.dp,
-                buttonRes = R.drawable.plain_button_longer,
+                buttonRes = R.drawable.button_iron,
                 onClick   = onMenu
             )
         }

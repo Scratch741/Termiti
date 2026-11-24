@@ -198,7 +198,7 @@ data class LanguagePack(
                 "dbDustCost" to str("dbDustCost",       "−%d prachu"),
                 "dbBadgeNew" to str("dbBadgeNew",       "NOVÉ"),
                 "dbTemplates" to str("dbTemplates",      "Šablony"),
-                "dbPickDeck" to str("dbPickDeck", "Vyber balíček"),
+                "dbPickDeck" to str("dbPickDeck", "Výběr balíčku"),
                 "dbIncompleteTitle" to str("dbIncompleteTitle", "Balíček není kompletní"),
                 "dbIncompleteMsg" to str("dbIncompleteMsg", "V balíčku „%1\$s“ je %2\$d z 30 karet, takže se s ním nedá hrát. Doplnit ho automaticky?"),
                 "dbIncompleteFill" to str("dbIncompleteFill", "Doplnit"),

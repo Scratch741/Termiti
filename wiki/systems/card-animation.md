@@ -12,6 +12,8 @@ Where it stands:
 
 ComfyUI `http://192.168.125.140:8188` (RTX 3080 Ti 12 GB, 32 GB RAM). Chosen by the user: **Wan 2.2 I2V 14B fp8** (better motion than 5B; supports first+last frame, so seamless loops are possible).
 
+> **2026-11-20: the two Wan 2.2 14B diffusion models were deleted from the server** (disk space for the Krea LoRA training, [[systems/lora-training]]). `umt5_xxl` and the VAE stayed. Re-install both experts through ComfyUI-Manager before using `tools/animate_card.py` again.
+
 | File | ComfyUI folder |
 |---|---|
 | `wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors` | `diffusion_models/Wan2.2/` |

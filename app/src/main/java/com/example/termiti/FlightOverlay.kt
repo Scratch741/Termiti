@@ -225,10 +225,59 @@ fun FlightOverlayBox(flight: FlightOverlayState) {
 
 // ─── Tažená karta (režim „Tažením“) ──────────────────────────────────────────
 
+/** true = původní náklon (do strany + v rovině + překlápění, se zhoupnutím);
+ *  false = jen otočení do strany bez houpání. Hráč obě porovnává (2026-11-24). */
+private const val DRAG_TILT_FULL = true
+
 @Composable
 private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
     // Nad bojištěm dostane karta zlatý okraj (zahraje se), dole zčervená (zahodí se).
     // Velikost se nemění – skokové zvětšení na hraně ruky působilo rušivě (hráč, 2026-11-23).
+    //
+    // Náklon za pohybem (jako v Hearthstone): z rychlosti prstu se počítá cílový náklon –
+    // do strany (rotationZ + rotationY) a při tahu nahoru/dolů překlopení (rotationX).
+    // Úhly za cílem dobíhají jako tlumená pružina, takže se karta po zastavení lehce zhoupne.
+    val density = LocalDensity.current.density
+    val rect by androidx.compose.runtime.rememberUpdatedState(ghost.rect)
+    var tiltZ by remember { mutableFloatStateOf(0f) }
+    var tiltX by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        var prev  = rect
+        var prevT = 0L
+        var vZ = 0f; var vX = 0f        // úhlové rychlosti pružin
+        var smVx = 0f; var smVy = 0f    // vyhlazená rychlost prstu (dp/s)
+        while (true) {
+            androidx.compose.runtime.withFrameNanos { t ->
+                val dt = if (prevT == 0L) 0.016f else ((t - prevT) / 1e9f).coerceIn(0.001f, 0.05f)
+                prevT = t
+                val r = rect
+                val vx = (r.left - prev.left) / dt / density
+                val vy = (r.top  - prev.top)  / dt / density
+                prev = r
+                val targetZ: Float; val targetX: Float; val k: Float; val c: Float
+                if (DRAG_TILT_FULL) {
+                    // Původní varianta: rychlé vyhlazení, náklon i překlápění, pružina se zhoupne
+                    val a = 1f - kotlin.math.exp(-dt * 18f)
+                    smVx += (vx - smVx) * a
+                    smVy += (vy - smVy) * a
+                    targetZ = (smVx * 0.018f).coerceIn(-13f, 13f)
+                    targetX = (-smVy * 0.012f).coerceIn(-10f, 10f)
+                    k = 170f; c = 14f      // ~0,55 kritického tlumení → jedno mírné zhoupnutí
+                } else {
+                    // Jen do strany: silné vyhlazení, mrtvá zóna, kritické tlumení (bez houpání)
+                    val a = 1f - kotlin.math.exp(-dt * 9f)
+                    smVx += (vx - smVx) * a
+                    smVy += (vy - smVy) * a
+                    val sx = if (kotlin.math.abs(smVx) < 60f) 0f else smVx - kotlin.math.sign(smVx) * 60f
+                    targetZ = (sx * 0.02f).coerceIn(-13f, 13f)
+                    targetX = 0f
+                    k = 170f; c = 26f
+                }
+                vZ += (k * (targetZ - tiltZ) - c * vZ) * dt; tiltZ += vZ * dt
+                vX += (k * (targetX - tiltX) - c * vX) * dt; tiltX += vX * dt
+            }
+        }
+    }
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -239,6 +288,17 @@ private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
                     )
                 }
                 .requiredSize(100.dp, 140.dp)
+                .graphicsLayer {
+                    if (DRAG_TILT_FULL) {
+                        rotationZ = tiltZ
+                        rotationY = tiltZ * 0.8f
+                        rotationX = tiltX
+                        transformOrigin = TransformOrigin(0.5f, 0.35f)   // „drží" se za horní část jako za prst
+                    } else {
+                        rotationY = tiltZ * 1.4f                          // jen otočení kolem svislé osy
+                    }
+                    cameraDistance = 10f * density
+                }
         ) {
             CardView(
                 card        = ghost.card,

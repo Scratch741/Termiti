@@ -1162,6 +1162,21 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Návrat z druhého běhu se lokálně liší (sytost, obloha, kresba) – histogram nestačí. Hledání bodu smyčky v 5s klipu nenašlo shodu (12,7 vs. krok 3,2). Nabídnuta varianta tam a zpět z jednoho běhu (spoj 0,4); čeká na verdikt uživatele.
 - Uživatel práci odložil („ulož tu možnost, vrátíme se k tomu“). Skript má režimy `--mode pingpong` (výchozí, tam a zpět – pro Draka kvůli couvajícímu ohni ne ideální, pro jiné karty OK), `free` a `return` (pokus se 2 běhy). Do hry nic nezapojeno.
 
+## [2026-11-20] tool | LoRA stylu artů darkmage_zimage_v1 (Z-Image Turbo)
+
+- Uživatel vybral LoRA stylu artů pro Z-Image (jediný model, který `lora_train` v rozšíření umí). Dataset `darkmage_cards`: 42 artů v novém stylu (bez Krvavého úderu a Přímého zásahu), ruční anglické popisky obsahu/záběru/světla, trigger `dkmg style` → `tools/lora/darkmage_cards.json`.
+- Trénink: rank 16, lr 1e-4, 2000 kroků, 512 px, layer offloading; ~2 s/krok, ~65 min. První pokus OOM (bez offloadingu), druhý `CUDNN_STATUS_SUBLIBRARY_VERSION_MISMATCH` – systémové cuDNN 9.21.1 z apt vs. pip 9.20 ve venv ai-toolkitu; uživatel povýšil `nvidia-cudnn-cu13` na 9.21.1.3.
+- Test 4 prompty × (bez LoRA / LoRA 1.0 / 0.7, seed 4242): LoRA dává čitelné siluety a kartový vzhled; samotný trigger u makra předmětu sklouzl do fotky → používat s textem stylu `darkmage`; táhne oblohu do teal. Přehled `design/art_review/lora_darkmage_zimage_v1.png`, popis `wiki/systems/lora-training.md`.
+
+## [2026-11-20] tool | LoRA stylu artů darkmage_krea2_v1 (Krea 2 Turbo)
+
+- AI Toolkit na serveru umí Krea 2 (`krea2:turbo` s training adapterem); rozšíření ne → ruční config `tools/lora/darkmage_krea2_v1.yaml`, spouští uživatel (`run.py` přes nohup), sleduje se log a checkpointy v ComfyUI.
+- Místo na disku: uživatel smazal Z-Image (ComfyUI + HF cache) a Wan 2.2 14B high/low (animace odložené) → 70 GB volno. Workflow `zimage` a LoRA `darkmage_zimage_v1` do znovustažení nefungují.
+- Uživatel přijal licenci Krea 2 Community License (shrnutí ve wiki: výstupy patří uživateli, komerčně do obratu 1 M USD); přihlášení `hf auth login` (první pokus s `read -s … &` poslal prázdný token).
+- Trénink: stejný dataset `darkmage_cards`, 1500 kroků, float8 + 60 % vrstev v RAM, 2,4 s/krok, ~60 min + ~10 min stahování 36 GB.
+- Test 4 prompty × (bez LoRA / nová LoRA / krea2_darkbrush) + bez textu stylu: s `darkmage` jemné zlepšení (kontrast, teplé akcenty, detail), bez textu nese styl u postav, ne u makra předmětů; darkbrush je jiný (tušová skica). Přehled `design/art_review/lora_darkmage_krea2_v1.png`, popis `wiki/systems/lora-training.md`.
+- 2026-11-21: Test chaos magie (čaroděj, oranžová/fialová, „no teal“, stejné seedy) s LoRA + `darkmage`, s LoRA bez `darkmage` a bez LoRA. Teal pozadí drží LoRA sama; bez LoRA víc fialové a pestrý hábit. Uživatel: výsledky skoro stejné → arty zatím bez LoRA (Krea + `darkmage`). Obrázky `Pictures/Generated/chaos_magie/`.
+
 ## [2026-11-21] art | Chaos karty – sada 1 (nejlevnější), pravidla pro chaos
 
 - Seznam nepředělaných artů (151, z toho 43 chaos karet / 42 artů) v `design/art_review/nepredelane_arty.md`; chaos karty se dělají od nejlevnější po sadách 5. Karta „Chaos“ neexistuje – `art_chaos.png` je nepoužitý bonusový obrázek.
@@ -1893,3 +1908,41 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
   - ukazatel postupu lokace v tmavé drážce s bronzovou hranou, výplň bronzová (vyčištěná zlatá) místo zelené / tyrkysové.
 - Ověřeno v telefonu (mapa kampaně i lokace Temná citadela).
 - Oprava (uživatel: BOJUJ / PORAŽEN nebylo na středu štítku): Cinzel bez odsazení písma je nižší než Roboto, stav soupeře posunut o 6 dp níž (offset 206 dp) a na mapě o 5 dp, písmo 9–9,5 sp s menším prostrkáním, aby se vešlo do štítku. Ověřeno na kartě soupeře, na mapě kampaně po posunu neověřeno.
+
+## [2026-11-24] art | Ruby karet Styl 2–7 v novém stylu
+
+- Poslední staré ruby `card_back_frame_2` až `_7` (256×416, čistě digitální styl) přemalovány malířsky jako ostatní ruby: dávka `tools/art_batches/ruby_styly.json` (Krea 2:3, celá karta se zaoblenými rohy na bílém pozadí), vyříznuto `tools/cutout_white.py … 512 832 48 0 1` → RGBA 512×832.
+- Každý styl drží motiv a barvu originálu: 2 zlatá kompasová hvězda (navy + krémová, v1), 3 smaragd ve zelené gotické filigránu (v3; v rohu zbylo pár tmavých pixelů – alfa rohů převzata z rubu 2), 4 safírová koule se zlatými paprsky (v1), 5 ametystová koule ve stříbrném půlměsíci na fialovém sametu (2. kolo, v1; první pojetí „atom“ uživatel zamítl), 6 azurový krystal v mrazu (v1), 7 listový smaragd s dubovým listím (v1).
+- Ruby nebyly stejně velké (uživatel v Profilu): `card_back_baziny`, `_citadela` a `_drak` měly kartu menší než plátno (okraj 20–40 px, rozměr obrysu zkreslovaly zbloudilé pixely na hraně), `_frame_3` měl useknutých horních 35 px. Všechny čtyři oříznuty podle řádků/sloupců s >50 % plných pixelů, roztaženy na 512×832 a rohy sjednoceny podle alfy `card_back_frame_2`. Teď všech 12 rubů vyplňuje plátno shodně (okraj 2–5 px).
+- Nový 13. rub `card_back_frame_8` („Styl 8", dračí vejce): stříbrně černý, uprostřed dračí vejce s černostříbrnými šupinami ve stříbrném držáku, kolem černé ornamenty. Krea (varianta 4 z prvního kola), Qwen Edit světlejší pozadí a okraj v barvě vejce (varianta 2); další úpravy (okrajový ornament, jen pozadí) uživatel nevzal. Vyříznuto jako ostatní ruby (512×812 → 512×832, rohy podle `card_back_frame_2`). Přidán do `cardBackSkinDrawable` (GameCardView), `CARD_BACK_SKINS` (Profil, popisek „Styl 8" automaticky), náhodného rubu AI (`RANDOM_OPPONENT_CARD_BACK_SKIN_IDS`) a serverového `KNOWN_CARD_BACKS` (online ho soupeř uvidí až po nasazení serveru).
+
+## [2026-11-24] fix | Zahození tažením bez letu, bez probliknutí slotu
+- Karta zahozená tažením dolů se v odhazovacím slotu objeví rovnou (žádný let zpět nahoru) – GameScreen.kt, OnlineGameScreen.kt.
+- GameBattlefield.kt: po dopadu letu se stará karta v slotu už neukáže na mezisnímek (pendingSwap → alpha 0), odstraněno probliknutí staré a nové karty.
+
+## [2026-11-24] ui | Dialog konce hry: textura nadpisu, kovaná tlačítka
+- dialog_title_plaque.png: líc desky s texturou obsidiánu (Qwen edit v2, původní alfa zachována; stará verze v design/ui_redesign/dialog_title_plaque_old.png) – platí pro nadpisy všech dialogů.
+- GameOverDialog: Hrát znovu = button_bronze (tmavý text), Prohlédnout hru a Zpět do menu = button_iron.
+
+## [2026-11-24] ui | 6 slotů balíčků, nový výběr balíčku
+- GameViewModel.decks: 6 slotů (deck_3..deck_5 v prefs, staré 3 sloty beze změny).
+- DeckBuilderScreen DeckPickerOverlay: mřížka 3×2, DeckSlotTile = obsidiánová dlaždice s bronzovým lemem, ikona převládající suroviny v medailonu, název, počet karet, pruh složení podle surovin, štítek aktivní; nadpis na desce DialogTitle, Zpět = button_iron.
+- Doladění DeckSlotTile: lesk přes celou dlaždici (zmizel světlý obdélník), řádek počtů karet podle surovin, prázdný slot = tlumený název + „+“, výška 100 dp.
+- DeckSlotTile: pozadí textura deck_slot_bg.webp (obsidián, Krea, ui_deckslot/slot_bg_2), prázdný slot ztmavený. Nadpis dbPickDeck → „Výběr balíčku“ / „Deck selection“.
+- Roguelike: roguePresets také 6 slotů (rogue_preset_3..5), sdílí nový výběr balíčku.
+
+## [2026-11-24] ui | Náklon tažené karty (režim Tažením)
+- FlightOverlay.kt DragGhostView: náklon podle rychlosti prstu – do strany rotationZ + rotationY, nahoru/dolů rotationX; úhly dobíhají tlumenou pružinou (k 170, c 14), max 13° / 10°.
+- Náklon zúžen jen na rotationY (do strany, max ~18°); rotace v rovině a rotationX odstraněny.
+- Náklon bez náhodnosti: silnější vyhlazení rychlosti, mrtvá zóna 60 dp/s, kriticky tlumená pružina (bez houpání), jen vodorovný pohyb.
+- Náklon: přepínač DRAG_TILT_FULL (true = původní varianta Z+Y+X se zhoupnutím, false = jen do strany); nastaveno zpět na původní.
+
+## [2026-11-24] ui | TEST rozložení bojiště „Aréna“
+- Nastavení → Bojiště (test): Klasické / Aréna (GameSettings.arenaLayout, pref arena_layout). Jen offline GameScreen mimo tutoriál; online beze změny.
+- Aréna: NewBattlefield(arena = true) přes celou obrazovku – ruka soupeře nahoře v obráceném oblouku (ruby 1,6×), hrady nad pásem ARENA_HAND_ZONE, štítky hradu pod hrady, menší zahraná karta ve středu.
+- ArenaLayout.kt: rohy z kouřového skla – já vlevo nahoře, soupeř vpravo nahoře (portrét + suroviny 2×2 s přírůstkem dolu), vlevo dole ArenaInfoStack (kolo, tah, balíček, menu, Log), vpravo dole ArenaEndTurnButton (bronz/železo).
+- HandPanel(arena = true): překrývání podle rozpětí 430 dp, oblouk (5°/kartu, pokles k²·1,8 dp), panel zmenšený na 82 %, celé karty nad spodním okrajem.
+- Návrh: design/ui_redesign/bojiste2/ (navrh.html, navrh_A2.png).
+- Aréna: ARENA_HAND_ZONE 112 → 150 dp (štítek hradu se překrýval s blokem kolo/tah vlevo dole).
+- Aréna: štítky životů nad hrady (ARENA_CASTLE_H 100 dp), ARENA_HAND_ZONE 140 dp, ruka 95 %.
+- Aréna: přiblížení ruky – klepnutí na ruku 0,95 → 1,2 (200 ms), tažení karty nebo klepnutí jinam vrátí zpět (pointerInput Initial na kořeni, nic nekonzumuje).
