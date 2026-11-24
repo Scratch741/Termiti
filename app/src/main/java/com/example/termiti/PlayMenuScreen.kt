@@ -90,8 +90,9 @@ fun PlayMenuScreen(
         val centerShift      = 9.dp
 
         Row(
-            modifier          = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
-                                    .padding(vertical = H * 0.02f),
+            // Bez statusBars/navigationBars paddingu, stejně jako hlavní menu – jinak by
+            // se sloupce při přechodu z menu posunuly
+            modifier          = Modifier.fillMaxSize().padding(vertical = H * 0.02f),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // ── Levý sloupec – profil ─────────────────────────────────────────
@@ -126,7 +127,8 @@ fun PlayMenuScreen(
                     // Aréna dočasně skryta (nevejde se; ponechána jako záloha – onArena/routing zůstává)
                     val optW = centerW * 0.95f
                     Column(Modifier.menuVeil(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        MenuOptionDivider(centerW * 0.6f)
+                        // Oddělovače jen mezi volbami, stejně jako v hlavním menu – sloupec je pak
+                        // stejně vysoký a oddělovače leží na stejných místech
                         MenuTextOption(s.ownDeck, H, optW, onHelp = { rules = s.ownDeck to s.rulesConstructed }, onClick = onOwnDeck)
                         MenuOptionDivider(centerW * 0.55f)
                         MenuTextOption(s.superRandom, H, optW, onHelp = { rules = s.superRandom to s.rulesSuperRandom }, onClick = onSuperRandom)

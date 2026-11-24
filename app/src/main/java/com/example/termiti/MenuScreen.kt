@@ -251,17 +251,8 @@ fun MenuScreen(
         }
 
         // ── Nápis DARKMAGE nad kápí mága (pevně podle pozadí) ─────────────────
-        MenuTitle(
-            centerW, W, H, imgDispH, cropY,
-            Modifier.graphicsLayer {
-                // shora se snese na místo, rozsvítí se v první polovině a dosedne z mírného zvětšení
-                val k = titleIn()
-                alpha        = (k * 1.8f).coerceAtMost(1f)
-                translationY = -(1f - k) * 30.dp.toPx()
-                scaleX       = 1.05f - 0.05f * k
-                scaleY       = 1.05f - 0.05f * k
-            }
-        )
+        // Úvod: sjede svisle od horního okraje obrazovky na své místo
+        MenuTitle(centerW, W, H, imgDispH, cropY, enter = { titleIn() })
 
         // ── Verze v pravém dolním rohu ────────────────────────────────────────
         // Během úvodu: klepnutí kamkoli zobrazí menu hned (nespustí žádné tlačítko)
@@ -741,7 +732,11 @@ internal fun menuTitleSpace(centerW: Dp): Dp = centerW * 1.1f * 377f / 1400f
  * @param imgDispH výška pozadí po ContentScale.Crop, [cropY] jeho ořez nahoře (jako u pochodní)
  */
 @Composable
-internal fun MenuTitle(centerW: Dp, W: Dp, H: Dp, imgDispH: Dp, cropY: Dp, modifier: Modifier = Modifier) {
+internal fun MenuTitle(
+    centerW: Dp, W: Dp, H: Dp, imgDispH: Dp, cropY: Dp,
+    /** Průběh nájezdu 0→1 (čte se až při kreslení); 1 = nápis stojí na svém místě. */
+    enter: () -> Float = { 1f }
+) {
     val tw    = centerW * 1.1f * 863f / 1400f
     val th    = tw * 170f / 863f
     val tipY  = imgDispH * (225f / 925f) - cropY
@@ -749,9 +744,21 @@ internal fun MenuTitle(centerW: Dp, W: Dp, H: Dp, imgDispH: Dp, cropY: Dp, modif
     Image(
         painter            = painterResource(R.drawable.logo_darkmage_text),
         contentDescription = "DarkMage",
-        modifier           = modifier
+        modifier           = Modifier
             .offset(x = (W - tw) / 2 + 9.dp, y = top)
-            .width(tw),
+            .width(tw)
+            // Vrstva až za offsetem: přiblížení a posun se počítají od středu nápisu.
+            // (Dřív byla před offsetem → střed zmenšení byl u levého okraje obrazovky
+            // a nápis při dosedání ujížděl do strany.)
+            .graphicsLayer {
+                val k = enter()
+                if (k >= 1f) return@graphicsLayer
+                // start celý nad horním okrajem obrazovky, svisle dolů na místo
+                translationY = -(1f - k) * (top.toPx() + size.height + 8.dp.toPx())
+                alpha        = (k * 2.5f).coerceIn(0f, 1f)
+                scaleX       = 1.04f - 0.04f * k
+                scaleY       = 1.04f - 0.04f * k
+            },
         contentScale       = ContentScale.FillWidth
     )
 }

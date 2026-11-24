@@ -1869,3 +1869,13 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 
 ## [2026-11-23] release | v0.7.5
 - `versionCode` 24, `versionName` 0.7.5; CHANGELOG: úvod menu (nápis, ikony), oči a prsty mága, Obchod Oltář, šance 55/28/15/2, zvuky otevírání, Nastavení, obrysy nadpisů, tmavé spuštění, systémové Zpět. `PROTOCOL_VERSION` beze změny (šance balíčků jsou jen v klientu).
+
+## [2026-11-24] fix | Úvod menu: nápis DARKMAGE sjede shora
+- Nápis při spuštění působil, že přijíždí z boku. Příčina: `graphicsLayer` byl v řetězci před `offset`, takže střed zmenšení (1,05 → 1) byl u levého okraje obrazovky a nápis při dosedání ujížděl do strany. Svislý posun byl navíc jen 30 dp.
+- `MenuTitle` má teď parametr `enter: () -> Float` a vrstvu za `offset`. Nápis začíná celý nad horním okrajem obrazovky, sjíždí svisle dolů na své místo (stejné dobrzdění `MenuIntroEasing`, 0,7 s + 2,2 s) a během první části se rozsvítí. Nabídka Hrát volá `MenuTitle` bez animace.
+- Sestaveno (`assembleDebug`), na telefonu neověřeno.
+
+## [2026-11-24] fix | Nabídka Hrát: oddělovače na stejných místech jako v hlavním menu
+- Odebrán nadbytečný oddělovač nad první volbou (Constructed). Sloupec voleb byl o něj vyšší, po vystředění se posunul a oddělovače neseděly s hlavním menu.
+- Rozložení už nepočítá s okraji pro systémové lišty (`statusBarsPadding`/`navigationBarsPadding`), stejně jako hlavní menu.
+- Obě obrazovky mají teď stejnou stavbu: 4 volby (výška `H*0.12`), mezi nimi 3 oddělovače široké `centerW*0.55`. Sestaveno, na telefonu neověřeno.
