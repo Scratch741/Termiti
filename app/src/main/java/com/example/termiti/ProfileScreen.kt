@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -127,6 +128,8 @@ private enum class LookTab { AVATAR, CASTLE, WALL, CARD_BACK }
 
 @Composable
 fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
+    // Systémové Zpět: zpět do menu
+    androidx.activity.compose.BackHandler { onBack() }
     var profile by remember { mutableStateOf(PlayerProfileManager.profile) }
     var tab     by remember { mutableStateOf(ProfileTab.OVERVIEW) }
     val s = LocalStrings.current
@@ -198,17 +201,12 @@ fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     CampaignTitle(s.profileTitle, fontSize = 28.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
-                    // Stejný oddělovač jako v lobby multiplayeru
-                    Image(
-                        painter            = painterResource(R.drawable.bg_separator),
-                        contentDescription = null,
-                        modifier           = Modifier.fillMaxWidth(),
-                        contentScale       = ContentScale.FillWidth
-                    )
+                    BronzeDivider(Modifier.fillMaxWidth(0.85f).align(Alignment.CenterHorizontally))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ProfileTab.entries.forEach { t ->
                             val selected = t == tab
-                            PlainButton(
+                            // Záložky jako desky v Nastavení: vybraná bronzová, ostatní obsidiánové
+                            ObsButton(
                                 text = when (t) {
                                     ProfileTab.OVERVIEW  -> s.profileTabOverview
                                     ProfileTab.LOOK      -> s.profileTabLook
@@ -216,15 +214,10 @@ fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
                                     ProfileTab.DEBUG     -> s.profileTabDebug
                                 }.uppercase(),
                                 modifier  = Modifier.weight(1f).height(30.dp),
-                                textColor = when {
-                                    t == ProfileTab.DEBUG -> PrDebug
-                                    selected              -> PrGold
-                                    else                  -> PrText
-                                },
-                                fontSize  = 10.sp,
-                                selected  = selected,
-                                paddingH  = 4.dp,
-                                onClick   = { tab = t }
+                                primary   = selected,
+                                textColor = if (t == ProfileTab.DEBUG && !selected) PrDebug else null,
+                                fontSize  = 11.sp,
+                                onClick   = { if (!selected) tab = t }
                             )
                         }
                     }
@@ -270,8 +263,9 @@ private fun TexturedPanel(
     contentAlignment: Alignment = Alignment.Center,
     content: @Composable BoxScope.() -> Unit
 ) {
+    // Obsidián s bronzovou hranou (styl Tvorby balíčku a Nastavení); textureRes zůstává kvůli volajícím
     Box(modifier, contentAlignment = contentAlignment) {
-        Box(Modifier.matchParentSize().buttonTexture(textureRes))
+        Box(Modifier.matchParentSize().obsidianSurface(6.dp).bronzeRim(6.dp))
         content()
     }
 }
@@ -284,15 +278,10 @@ private fun SectionHeader(title: String, trailing: String? = null, trailingColor
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.Bottom
         ) {
-            Text(title.uppercase(), color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(title.uppercase(), style = obsLabelStyle(12.sp, BronzeText, letterSpacing = 2.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f)))
             if (trailing != null) Text(trailing, color = trailingColor, fontSize = 9.sp)
         }
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxWidth(),
-            contentScale       = ContentScale.FillWidth
-        )
+        BronzeDivider(Modifier.fillMaxWidth(), alpha = 0.6f)
     }
 }
 
@@ -303,14 +292,14 @@ private fun ProgressBar(fraction: Float, color: Color, modifier: Modifier = Modi
         modifier
             .height(height)
             .clip(shape)
-            .background(Color(0xFF14100C))
-            .border(0.5.dp, color.copy(alpha = 0.35f), shape)
+            .background(Color(0xFF0A080A))
+            .border(1.dp, Brush.verticalGradient(listOf(BronzeLight, BronzeDark)), shape)
     ) {
         Box(
             Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(fraction.coerceIn(0f, 1f))
-                .background(Brush.horizontalGradient(listOf(color.copy(alpha = 0.55f), color)))
+                .background(Brush.verticalGradient(listOf(lerp(color, Color.White, 0.25f), lerp(color, Color.Black, 0.35f))))
         )
     }
 }
@@ -332,11 +321,11 @@ private fun OverviewTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
         ) {
             CampaignTitle(profile.name, fontSize = 17.sp)
             Text(
-                "${s.profileLevel.format(profile.level)}  ·  ${profile.xp} / ${profile.xpNeeded()} XP",
-                color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                "${s.profileLevel.format(profile.level)}  ·  ${profile.xp} / ${profile.xpNeeded()} XP".uppercase(),
+                style = obsLabelStyle(11.sp, BronzeText, letterSpacing = 1.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f))
             )
         }
-        ProgressBar(profile.xp.toFloat() / profile.xpNeeded(), PrGold, Modifier.fillMaxWidth())
+        ProgressBar(profile.xp.toFloat() / profile.xpNeeded(), Bronze, Modifier.fillMaxWidth(), height = 8.dp)
 
         // Statistiky
         val wins    = profile.winsOffline + profile.winsOnline
@@ -354,7 +343,7 @@ private fun OverviewTab(profile: PlayerProfile, onProfileChanged: () -> Unit) {
 
 @Composable
 private fun StatTile(@DrawableRes iconRes: Int, value: String, label: String, modifier: Modifier = Modifier) {
-    TexturedPanel(R.drawable.plain_button, modifier.height(46.dp)) {
+    TexturedPanel(R.drawable.plain_button, modifier.height(50.dp)) {
         Row(
             modifier              = Modifier.padding(horizontal = 10.dp),
             verticalAlignment     = Alignment.CenterVertically,
@@ -362,8 +351,9 @@ private fun StatTile(@DrawableRes iconRes: Int, value: String, label: String, mo
         ) {
             Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(20.dp), contentScale = ContentScale.Fit)
             Column {
-                Text(value, color = PrText, fontSize = 13.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                Text(label, color = PrMuted, fontSize = 8.sp, lineHeight = 10.sp, maxLines = 1)
+                Text(value, style = obsLabelStyle(16.sp, ObsText).copy(textAlign = TextAlign.Start), maxLines = 1)
+                Spacer(Modifier.height(2.dp))
+                Text(label.uppercase(), style = obsLabelStyle(7.5.sp, ObsTextMuted, letterSpacing = 0.6.sp).copy(textAlign = TextAlign.Start), maxLines = 1)
             }
         }
     }
@@ -418,10 +408,10 @@ private fun QuestRow(quest: DailyQuest, canReroll: Boolean, onClaim: () -> Unit,
             Image(painterResource(quest.iconRes()), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit)
 
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(quest.label(), color = PrText, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(quest.label(), color = ObsText, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ProgressBar(quest.progress.toFloat() / quest.target, accent, Modifier.weight(1f), height = 5.dp)
-                    Text("${quest.progress.coerceAtMost(quest.target)} / ${quest.target}", color = PrMuted, fontSize = 8.sp)
+                    Text("${quest.progress.coerceAtMost(quest.target)} / ${quest.target}", style = obsLabelStyle(9.sp, ObsTextMuted))
                 }
             }
 
@@ -432,13 +422,12 @@ private fun QuestRow(quest: DailyQuest, canReroll: Boolean, onClaim: () -> Unit,
             }
 
             when {
-                quest.canClaim -> PlainButton(
-                    text = LocalStrings.current.questClaim, modifier = Modifier.width(72.dp).height(26.dp),
-                    textColor = PrGreen, fontSize = 9.sp, paddingH = 4.dp, onClick = onClaim
+                quest.canClaim -> ObsButton(
+                    text = LocalStrings.current.questClaim.uppercase(), modifier = Modifier.width(80.dp).height(28.dp),
+                    primary = true, fontSize = 10.sp, onClick = onClaim
                 )
-                canReroll -> PlainButton(
-                    text = "↺", modifier = Modifier.size(26.dp), buttonRes = R.drawable.plain_button_mini,
-                    textColor = PrMuted, fontSize = 12.sp, paddingH = 0.dp, paddingV = 0.dp, onClick = onReroll
+                canReroll -> ObsButton(
+                    text = "↺", modifier = Modifier.size(28.dp), fontSize = 13.sp, paddingH = 0.dp, radius = 14.dp, onClick = onReroll
                 )
             }
         }
@@ -449,7 +438,7 @@ private fun QuestRow(quest: DailyQuest, canReroll: Boolean, onClaim: () -> Unit,
 private fun Reward(@DrawableRes iconRes: Int, text: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
         Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(11.dp))
-        Text(text, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(text, style = obsLabelStyle(10.sp, color))
     }
 }
 
@@ -498,29 +487,21 @@ private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) ->
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             LookTab.entries.forEach { t ->
-                PlainButton(
+                ObsButton(
                     text = when (t) {
                         LookTab.AVATAR    -> s.profileLookAvatar
                         LookTab.CASTLE    -> s.profileLookCastle
                         LookTab.WALL      -> s.profileLookWall
                         LookTab.CARD_BACK -> s.profileLookCardBack
-                    },
-                    modifier  = Modifier.weight(1f).height(24.dp),
-                    textColor = if (t == look) PrGold else PrText,
-                    fontSize  = 9.sp,
-                    selected  = t == look,
-                    paddingH  = 4.dp,
-                    paddingV  = 2.dp,
-                    onClick   = { look = t }
+                    }.uppercase(),
+                    modifier = Modifier.weight(1f).height(26.dp),
+                    primary  = t == look,
+                    fontSize = 10.sp,
+                    onClick  = { look = t }
                 )
             }
         }
-        Image(
-            painter            = painterResource(R.drawable.bg_separator),
-            contentDescription = null,
-            modifier           = Modifier.fillMaxWidth(),
-            contentScale       = ContentScale.FillWidth
-        )
+        BronzeDivider(Modifier.fillMaxWidth(), alpha = 0.6f)
 
         BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
             val gap   = 6.dp
@@ -591,7 +572,7 @@ private fun LookGrid(
                     R.drawable.plain_button_mini,
                     Modifier
                         .size(tileW, tileH)
-                        .then(if (selected) Modifier.border(1.5.dp, PrGold, shape) else Modifier)
+                        .then(if (selected) Modifier.border(2.dp, Brush.verticalGradient(listOf(Color(0xFFF2D49A), Bronze)), shape) else Modifier)
                         .clip(shape)
                         .clickable(enabled = !selected) { SoundManager.playMenuTap(); onPick(id) }
                 ) {
@@ -619,7 +600,7 @@ private fun SkinImage(@DrawableRes resId: Int) {
 
 @Composable
 private fun SelectedLabel(label: String) {
-    Text(label, color = PrGold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    Text(label.uppercase(), style = obsLabelStyle(11.sp, BronzeText, letterSpacing = 1.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f)))
 }
 
 @Composable
@@ -688,11 +669,11 @@ private fun AbilityRow(ability: PassiveAbility, profile: PlayerProfile, onChange
     val canUnlock  = profile.level >= ability.unlockLevel
     val slotsLeft  = profile.activeAbilities.size < PassiveAbility.MAX_ACTIVE
     val shape      = RoundedCornerShape(6.dp)
-    val btn        = Modifier.width(66.dp).height(26.dp)
+    val btn        = Modifier.width(72.dp).height(28.dp)
 
     TexturedPanel(
         R.drawable.plain_button_longer,
-        Modifier.fillMaxWidth().then(if (isActive) Modifier.border(1.5.dp, PrGreen.copy(alpha = 0.8f), shape) else Modifier)
+        Modifier.fillMaxWidth().then(if (isActive) Modifier.border(1.5.dp, Brush.verticalGradient(listOf(Color(0xFFF2D49A), Bronze)), shape) else Modifier)
     ) {
         Row(
             modifier              = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp),
@@ -706,35 +687,33 @@ private fun AbilityRow(ability: PassiveAbility, profile: PlayerProfile, onChange
                 contentScale       = ContentScale.Fit
             )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                Text(ability.localizedTitle(), color = if (canUnlock) PrText else PrMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                Text(ability.localizedDescription(), color = PrMuted, fontSize = 8.sp, lineHeight = 11.sp)
+                Text(ability.localizedTitle(), color = if (canUnlock) ObsText else ObsTextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(ability.localizedDescription(), color = ObsTextMuted, fontSize = 9.sp, lineHeight = 12.sp)
             }
             when {
-                !canUnlock -> PlainButton(
-                    text = "Lv. ${ability.unlockLevel}", modifier = btn, enabled = false,
-                    textColor = PrMuted, fontSize = 9.sp, paddingH = 4.dp
+                !canUnlock -> ObsButton(
+                    text = "LV. ${ability.unlockLevel}", modifier = btn, enabled = false, fontSize = 10.sp, onClick = {}
                 )
                 !isUnlocked -> {
                     val canAfford = profile.gold >= ability.goldCost
-                    PlainButtonWithIcon(
+                    ObsButton(
                         text = "${ability.goldCost}", iconRes = R.drawable.goldcoin_icon, modifier = btn,
-                        enabled = canAfford, textColor = PrGold, fontSize = 9.sp, paddingH = 4.dp,
+                        enabled = canAfford, fontSize = 10.sp,
                         onClick = {
                             if (PlayerProfileManager.buyAbility(ability.id)) onChanged(PlayerProfileManager.profile!!)
                         }
                     )
                 }
-                isActive -> PlainButton(
-                    text = LocalStrings.current.toggleOn, modifier = btn,
-                    textColor = PrGreen, fontSize = 9.sp, paddingH = 4.dp,
+                isActive -> ObsButton(
+                    text = LocalStrings.current.toggleOn, modifier = btn, primary = true, fontSize = 10.sp,
                     onClick = {
                         PlayerProfileManager.setActiveAbilities(profile.activeAbilities - ability.id)
                         onChanged(PlayerProfileManager.profile!!)
                     }
                 )
-                else -> PlainButton(
+                else -> ObsButton(
                     text = if (slotsLeft) LocalStrings.current.toggleOff else LocalStrings.current.slotFull, modifier = btn,
-                    enabled = slotsLeft, textColor = PrText, fontSize = 9.sp, paddingH = 4.dp,
+                    enabled = slotsLeft, fontSize = 10.sp,
                     onClick = {
                         PlayerProfileManager.setActiveAbilities(profile.activeAbilities + ability.id)
                         onChanged(PlayerProfileManager.profile!!)
@@ -803,14 +782,13 @@ private fun DebugToggleRow(label: String, checked: Boolean, onToggle: () -> Unit
             modifier          = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(label, color = PrText, fontSize = 10.sp, modifier = Modifier.weight(1f))
-            PlainButton(
-                text      = if (checked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
-                modifier  = Modifier.width(66.dp).height(26.dp),
-                textColor = if (checked) PrGreen else PrMuted,
-                fontSize  = 9.sp,
-                paddingH  = 4.dp,
-                onClick   = onToggle
+            Text(label, color = ObsText, fontSize = 10.sp, modifier = Modifier.weight(1f))
+            ObsButton(
+                text     = if (checked) LocalStrings.current.toggleOn else LocalStrings.current.toggleOff,
+                modifier = Modifier.width(72.dp).height(28.dp),
+                primary  = checked,
+                fontSize = 10.sp,
+                onClick  = onToggle
             )
         }
     }

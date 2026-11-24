@@ -3,6 +3,7 @@ package com.example.termiti
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.graphicsLayer
@@ -113,18 +114,14 @@ fun CampaignLocationScreen(
                     ) {
                         Text(
                             location.displayDescription,
-                            color         = ClMuted,
-                            fontSize      = 11.sp,
-                            letterSpacing = 0.5.sp,
-                            maxLines      = 1,
-                            overflow      = TextOverflow.Ellipsis,
-                            modifier      = Modifier.weight(1f, fill = false)
+                            style    = obsLabelStyle(11.sp, ObsText, letterSpacing = 0.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
                         )
                         Text(
                             "$defeated / $total",
-                            color      = if (defeated == total) ClGreen else ClTeal,
-                            fontSize   = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            style = obsLabelStyle(12.sp, if (defeated == total) BronzeLight else BronzeText).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f))
                         )
                     }
                 }
@@ -347,10 +344,11 @@ private fun OpponentCard(
         }
 
         // ── Vrstva 5: status – stejné místo jako typ karty ─────────────────────
+        // Cinzel bez odsazení písma je nižší než dřív Roboto → o 4 dp níž, na střed štítku
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .offset(y = 200.dp)
+                .offset(y = 206.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment     = Alignment.CenterVertically
@@ -370,14 +368,12 @@ private fun OpponentCard(
                     defeated  -> LocalStrings.current.campaignDefeated
                     !unlocked -> LocalStrings.current.campaignOppLocked
                     else      -> LocalStrings.current.campaignFight
-                },
-                color      = when {
-                    defeated  -> ClGreen
-                    !unlocked -> ClMuted
-                    else      -> ClTeal
-                },
-                fontSize   = 9.sp,
-                fontWeight = FontWeight.Bold
+                }.uppercase(),
+                style = obsLabelStyle(9.sp, when {
+                    defeated  -> BronzeLight
+                    !unlocked -> ObsTextMuted
+                    else      -> ObsText
+                }, letterSpacing = 0.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f))
             )
         }
     }
@@ -392,7 +388,7 @@ private fun RewardChip(iconRes: Int, value: String, color: Color) {
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Image(painterResource(iconRes), null, Modifier.size(10.dp))
-        Text(value, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+        Text(value, style = obsLabelStyle(9.sp, color))
     }
 }
 

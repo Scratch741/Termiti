@@ -1879,3 +1879,17 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Odebrán nadbytečný oddělovač nad první volbou (Constructed). Sloupec voleb byl o něj vyšší, po vystředění se posunul a oddělovače neseděly s hlavním menu.
 - Rozložení už nepočítá s okraji pro systémové lišty (`statusBarsPadding`/`navigationBarsPadding`), stejně jako hlavní menu.
 - Obě obrazovky mají teď stejnou stavbu: 4 volby (výška `H*0.12`), mezi nimi 3 oddělovače široké `centerW*0.55`. Sestaveno, na telefonu neověřeno.
+
+## [2026-11-24] ui | Profil ve stylu obsidián a bronz
+- Uživatel: Profil by chtělo předělat (byly v něm texturové desky s rohy „X“, tlačítka `PlainButton`, Roboto, malé texty).
+- `ProfileScreen.kt`, struktura beze změny (Přehled / Vzhled / Schopnosti / Debug), převedeno na prvky `ObsidianBronze.kt` jako schválené Nastavení: záložky a podzáložky vzhledu jako `ObsButton` (vybraná bronzová), `TexturedPanel` kreslí obsidián s bronzovou hranou (dlaždice statistik, řádky úkolů a schopností, mřížka vzhledu), nadpisy sekcí zlatým Cinzelem s `BronzeDivider`, ukazatele postupu v tmavé drážce s bronzovou hranou, tlačítka Převzít / ↺ / cena / ZAP / VYP jako `ObsButton`, vybraný vzhled s bronzovým rámečkem. Systémové Zpět vrací do menu.
+- Ověřeno v telefonu (všechny tři hlavní záložky).
+
+## [2026-11-24] ui | Kampaň: dorovnání do stylu obsidián a bronz
+- Uživatel: „mrkni na kampaň“. Karty lokací a soupeřů zůstaly (jsou ve stylu karet), dorovnány prvky, které zůstaly ve starém stylu:
+  - `CampaignBackButton` (obě obrazovky kampaně) jako `ObsButton` „← ZPĚT“;
+  - podnadpis mapy Cinzelem s tmavým stínem a bronzovou linkou, popis lokace Cinzelem a počet „4 / 10“ bronzově;
+  - stav pod kartou (VYČIŠTĚNO / n / 10 / ZAMČENO, PORAŽEN / BOJUJ!) Cinzelem, splněné bronzově světle místo zelené, odměny Cinzelem;
+  - ukazatel postupu lokace v tmavé drážce s bronzovou hranou, výplň bronzová (vyčištěná zlatá) místo zelené / tyrkysové.
+- Ověřeno v telefonu (mapa kampaně i lokace Temná citadela).
+- Oprava (uživatel: BOJUJ / PORAŽEN nebylo na středu štítku): Cinzel bez odsazení písma je nižší než Roboto, stav soupeře posunut o 6 dp níž (offset 206 dp) a na mapě o 5 dp, písmo 9–9,5 sp s menším prostrkáním, aby se vešlo do štítku. Ověřeno na kartě soupeře, na mapě kampaně po posunu neověřeno.

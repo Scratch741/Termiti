@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.rememberScrollState
@@ -106,14 +107,12 @@ fun CampaignMapScreen(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     CampaignTitle(LocalStrings.current.campaign)
+                    BronzeDivider(Modifier.width(320.dp), alpha = 0.6f)
                     Text(
-                        LocalStrings.current.campaignPickHint,
-                        color         = CmMuted,
-                        fontSize      = 11.sp,
-                        letterSpacing = 1.sp,
-                        textAlign     = TextAlign.Center,
-                        maxLines      = 1,
-                        modifier      = Modifier.padding(start = 1.dp)
+                        LocalStrings.current.campaignPickHint.uppercase(),
+                        style    = obsLabelStyle(10.sp, ObsText, letterSpacing = 1.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, Offset(0f, 2f), 6f)),
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 1.dp)
                     )
                 }
 
@@ -213,16 +212,15 @@ internal fun campaignInsetBottom(height: Dp): Dp = height * 0.075f + 8.dp
 /** Tlačítko Zpět v levém horním rohu uvnitř rámu – stejné místo na obou obrazovkách kampaně. */
 @Composable
 internal fun BoxScope.CampaignBackButton(insetX: Dp, insetTop: Dp, onBack: () -> Unit) {
-    PlainButton(
-        text      = LocalStrings.current.backShort,
-        modifier  = Modifier
+    ObsButton(
+        text     = LocalStrings.current.backShort.uppercase(),
+        modifier = Modifier
             .align(Alignment.TopStart)
-            .padding(start = insetX + 8.dp, top = insetTop + 16.dp),
-        textColor = CmMuted,
-        fontSize  = 12.sp,
-        paddingH  = 14.dp,
-        paddingV  = 8.dp,
-        onClick   = onBack
+            .padding(start = insetX + 8.dp, top = insetTop + 16.dp)
+            .height(34.dp),
+        fontSize = 12.sp,
+        paddingH = 16.dp,
+        onClick  = onBack
     )
 }
 
@@ -392,8 +390,9 @@ private fun LocationCard(location: CampaignLocation, order: Int, scale: Float, o
         ) {
             LocationProgressBar(defeatedCount, location.opponents.size, cleared)
 
+            // Cinzel bez odsazení písma je nižší než dřív Roboto → posun dolů na střed štítku
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier              = Modifier.fillMaxWidth().offset(y = 5.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
@@ -409,17 +408,15 @@ private fun LocationCard(location: CampaignLocation, order: Int, scale: Float, o
                 Spacer(Modifier.width(4.dp))
                 Text(
                     when {
-                        cleared  -> LocalStrings.current.campaignCleared
+                        cleared  -> LocalStrings.current.campaignCleared.uppercase()
                         unlocked -> "$defeatedCount / ${location.opponents.size}"
-                        else     -> LocalStrings.current.campaignLocked
+                        else     -> LocalStrings.current.campaignLocked.uppercase()
                     },
-                    color      = when {
-                        cleared  -> CmGreen
-                        unlocked -> CmTeal
-                        else     -> CmMuted
-                    },
-                    fontSize   = 10.sp,
-                    fontWeight = FontWeight.Bold
+                    style = obsLabelStyle(9.5.sp, when {
+                        cleared  -> BronzeLight
+                        unlocked -> ObsText
+                        else     -> ObsTextMuted
+                    }, letterSpacing = 0.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, Offset(0f, 2f), 6f))
                 )
             }
         }
@@ -451,19 +448,24 @@ internal fun DrawScope.drawStatusGlow(color: Color, spread: Float, corner: Float
 @Composable
 private fun LocationProgressBar(current: Int, total: Int, cleared: Boolean) {
     val fraction = if (total > 0) current.toFloat() / total else 0f
+    // Tmavá drážka s bronzovou hranou, výplň bronzová (vyčištěná lokace světlejší, zlatá)
+    val shape = RoundedCornerShape(3.dp)
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(5.dp)
-            .clip(RoundedCornerShape(3.dp))
-            .background(CmMuted.copy(alpha = 0.2f))
+            .height(6.dp)
+            .clip(shape)
+            .background(Color(0xFF0A080A))
+            .border(1.dp, Brush.verticalGradient(listOf(BronzeLight, BronzeDark)), shape)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(fraction)
                 .fillMaxHeight()
-                .clip(RoundedCornerShape(3.dp))
-                .background(if (cleared) CmGreen else CmTeal)
+                .clip(shape)
+                .background(Brush.verticalGradient(
+                    if (cleared) listOf(Color(0xFFFFE6A8), Color(0xFFC8962E)) else listOf(Color(0xFFECBE78), Color(0xFF8C5C28))
+                ))
         )
     }
 }
