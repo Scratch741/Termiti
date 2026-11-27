@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -595,15 +596,23 @@ private fun DragHintsContent(flight: FlightOverlayState, g: DragGhost, shown: Fl
                 )
             }
         }
-        // ── Zahození: rudý pruh u spodní hrany ──
+        // ── Zahození: nízká rudá záře jen pod kartami (eliptická, do stran a nahoru se ztrácí) ──
+        // Dřív pruh 84 dp přes celou šířku obrazovky – přehlušoval ruku.
         val discCol = if (canDiscard) Color(0xFFD23C2E) else Color(0xFF6E6A66)
-        Box(
+        Canvas(
             Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(84.dp)
-                .background(Brush.verticalGradient(listOf(Color.Transparent, discCol.copy(alpha = if (inDisc) 0.55f + 0.15f * pulse else 0.22f))))
-        )
+                .fillMaxWidth(0.66f)
+                .height(34.dp)
+        ) {
+            val a = if (inDisc) 0.6f + 0.15f * pulse else 0.24f
+            val c = Offset(size.width / 2f, size.height)
+            val rx = size.width / 2f
+            // Kruhová záře zploštělá na elipsu: šířka pod kartami, výška jen 34 dp
+            scale(scaleX = 1f, scaleY = size.height / rx, pivot = c) {
+                drawCircle(Brush.radialGradient(listOf(discCol.copy(alpha = a), Color.Transparent), c, rx), rx, c)
+            }
+        }
         if (!inPlay && !inDisc) Text(
             if (canDiscard) s.arenaDragDiscard else s.arenaDiscardUsed,
             style = obsLabelStyle(11.sp, if (canDiscard) Color(0xFFFFC2B8) else ObsTextMuted, 1.sp)
