@@ -788,6 +788,114 @@ fun LostCardsOverlay(lostCards: List<CardHistoryEntry>, onDismiss: () -> Unit) {
     }
 }
 
+// ─── Statistiky hráče (online, klepnutí na avatar v horní liště) ──────────────
+/**
+ * Malé okno se statistikami hráče nebo soupeře v online zápase – stejný rám jako
+ * [LostCardsOverlay]. Data přišla se zahájením zápasu (MATCH_FOUND), nic se nenačítá.
+ *
+ * @param stats  výsledky v módu tohoto zápasu (null = první zápas v módu / neznámé)
+ * @param rating hodnocení v módu zápasu (null = neznámé)
+ */
+@Composable
+fun OnlinePlayerStatsOverlay(
+    name: String,
+    avatar: String,
+    level: Int,
+    isMe: Boolean,
+    modeLabel: String,
+    rating: Int?,
+    stats: OnlineModeStats?,
+    abilities: List<PassiveAbility>,
+    onDismiss: () -> Unit
+) {
+    val s = LocalStrings.current
+    val accent = if (isMe) Gold else Crimson
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xD8000000))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        DialogPanel(
+            modifier = Modifier
+                .offset(y = (-18).dp)
+                .clickable(enabled = false, onClick = {})
+                .widthIn(min = 300.dp, max = 380.dp),
+            horizontalPadding = 24.dp,
+            bottomPadding = 16.dp,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            DialogTitle(s.playerStatsTitle, fontSize = 18.sp)
+
+            // Avatar, jméno, úroveň a mód zápasu
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color(0xFF2A1810))
+                        .border(1.5.dp, accent.copy(alpha = 0.7f), RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center
+                ) { AvatarDisplay(avatar, sizeDp = if (avatarResId(avatar) != null) 44f else 32f) }
+                Column {
+                    Text(name, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(
+                        listOfNotNull(if (level >= 0) s.profileLevel.format(level) else null, modeLabel).joinToString("  ·  "),
+                        color = TextMuted, fontSize = 10.sp
+                    )
+                }
+            }
+
+            // Hodnocení a výsledky v tomto módu
+            if (stats == null || stats.games == 0) {
+                Text(s.vsFirstGame, color = TextMuted, fontSize = 11.sp, textAlign = TextAlign.Center)
+                if (rating != null) StatRow(s.statRating, "$rating", Gold)
+            } else {
+                Column(Modifier.widthIn(min = 220.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (rating != null) StatRow(s.statRating, "$rating", Gold)
+                    StatRow(s.profileGames, "${stats.games}", TextPrimary)
+                    StatRow(s.profileWins, "${stats.wins}", Color(0xFF6FCF73))
+                    StatRow(s.profileLosses, "${stats.losses}", Color(0xFFCF4A4A))
+                    if (stats.draws > 0) StatRow(s.statDraws, "${stats.draws}", TextMuted)
+                    StatRow(s.profileWinRate, "${stats.winRate} %", Gold)
+                }
+            }
+
+            // Pasivní schopnosti
+            Text(s.statAbilities, color = TextMuted, fontSize = 10.sp)
+            if (abilities.isEmpty()) {
+                Text(s.vsNoAbilities, color = TextMuted.copy(alpha = 0.7f), fontSize = 10.sp)
+            } else {
+                abilities.forEach { a ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Image(painterResource(a.iconRes), contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text(a.localizedTitle(), color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            PlainButton(
+                text      = s.close,
+                textColor = TextMuted,
+                fontSize  = 11.sp,
+                paddingH  = 28.dp,
+                paddingV  = 9.dp,
+                buttonRes = R.drawable.plain_button_longer,
+                onClick   = onDismiss
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatRow(label: String, value: String, valueColor: Color) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = TextMuted, fontSize = 11.sp, modifier = Modifier.weight(1f))
+        Text(value, color = valueColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
 // ─── Game Over ────────────────────────────────────────────────────────────────
 @Composable
 fun GameOverDialog(result: GameResult, onRestart: () -> Unit, onMenu: () -> Unit, onReview: () -> Unit = {}, onReplay: () -> Unit = {}) {

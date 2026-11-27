@@ -124,10 +124,16 @@ fun NewTopBar(
     playerPassives: List<PassiveAbility> = emptyList(),
     aiPassives: List<PassiveAbility> = emptyList(),
     /** Rub karet soupeře u jeho počítadla balíčku (kampaň podle lokace, online podle soupeřova profilu). */
-    @DrawableRes opponentCardBackResId: Int = R.drawable.card_back_frame
+    @DrawableRes opponentCardBackResId: Int = R.drawable.card_back_frame,
+    /** Klepnutí na vlastní avatar / jméno (online: statistiky hráče). Null = neklikatelné. */
+    onPlayerAvatarClick: (() -> Unit)? = null,
+    /** Klepnutí na soupeřův avatar / jméno (online: statistiky soupeře). Null = neklikatelné. */
+    onOpponentAvatarClick: (() -> Unit)? = null
 ) {
     val s          = LocalStrings.current
     val activeTurn = isPlayerTurn || isComboTurn
+    val playerTap   = if (onPlayerAvatarClick != null) Modifier.clickable(onClick = onPlayerAvatarClick) else Modifier
+    val opponentTap = if (onOpponentAvatarClick != null) Modifier.clickable(onClick = onOpponentAvatarClick) else Modifier
     val dotColor = if (activeTurn) TealLight else Crimson
     val turnText = when {
         isComboTurn   -> "COMBO"
@@ -161,12 +167,13 @@ fun NewTopBar(
                 Modifier
                     .size(26.dp)
                     .clip(RoundedCornerShape(50))
+                    .then(playerTap)
                     .background(Brush.linearGradient(listOf(Color(0xFF3A2010), Color(0xFF5C3010))))
                     .border(1.5.dp, Gold.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center
             ) { AvatarDisplay(playerAvatar, sizeDp = if (avatarResId(playerAvatar) != null) 26f else 20f) }
 
-            Text(playerLabel, color = TextPrimary, fontSize = 13.sp,
+            Text(playerLabel, modifier = playerTap, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
 
             if (playerLevel >= 0) {
@@ -273,13 +280,14 @@ fun NewTopBar(
                 )
             }
 
-            Text(opponentLabel, color = TextPrimary, fontSize = 13.sp,
+            Text(opponentLabel, modifier = opponentTap, color = TextPrimary, fontSize = 13.sp,
                 fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
 
             Box(
                 Modifier
                     .size(26.dp)
                     .clip(RoundedCornerShape(50))
+                    .then(opponentTap)
                     .background(Brush.linearGradient(listOf(Color(0xFF3A0A0A), Color(0xFF5C1010))))
                     .border(1.5.dp, Crimson.copy(alpha = 0.65f), RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center

@@ -323,6 +323,8 @@ private fun OnlineGameplay(
 
     var showLog        by remember { mutableStateOf(false) }
     var showLostCards  by remember { mutableStateOf(false) }
+    /** Statistiky hráče z klepnutí na avatar: true = já, false = soupeř, null = zavřeno. */
+    var statsForMe     by remember { mutableStateOf<Boolean?>(null) }
     var showMenu       by remember { mutableStateOf(false) }
     var showSettings   by remember { mutableStateOf(false) }
     var showOppHand by remember { mutableStateOf(false) }
@@ -490,7 +492,9 @@ private fun OnlineGameplay(
                 oppTimerText     = timerText(isMe = false),
                 oppTimerColor    = timerColor(isMe = false),
                 playerPassives   = playerPassives,
-                aiPassives       = opponentPassives
+                aiPassives       = opponentPassives,
+                onPlayerAvatarClick   = { statsForMe = true },
+                onOpponentAvatarClick = { statsForMe = false }
             )
 
             // ── Separátor – dolní okraj top baru ─────────────────────────────
@@ -739,6 +743,37 @@ private fun OnlineGameplay(
             lostCards = lostToOpponent,
             onDismiss = { showLostCards = false }
         )
+    }
+
+    // ── Statistiky hráče (klepnutí na avatar v horní liště) ───────────────────
+    statsForMe?.let { me ->
+        val s = LocalStrings.current
+        val modeLabel = if (matchInfo?.mode == "super_random") s.mpSuperRandom else s.mpQuickMatch
+        if (me) {
+            OnlinePlayerStatsOverlay(
+                name      = PlayerProfileManager.profile?.name ?: s.lbPlayer,
+                avatar    = PlayerProfileManager.profile?.avatar ?: "player_icon_1",
+                level     = PlayerProfileManager.profile?.level ?: -1,
+                isMe      = true,
+                modeLabel = modeLabel,
+                rating    = vm.myRating.value,
+                stats     = matchInfo?.myStats,
+                abilities = playerPassives,
+                onDismiss = { statsForMe = null }
+            )
+        } else {
+            OnlinePlayerStatsOverlay(
+                name      = opponentName,
+                avatar    = matchInfo?.opponentAvatar ?: "enemy_icon_1",
+                level     = matchInfo?.opponentLevel ?: -1,
+                isMe      = false,
+                modeLabel = modeLabel,
+                rating    = vm.opponentRating.value,
+                stats     = matchInfo?.opponentStats,
+                abilities = opponentPassives,
+                onDismiss = { statsForMe = null }
+            )
+        }
     }
 
     // ── Nastavení overlay ─────────────────────────────────────────────────────

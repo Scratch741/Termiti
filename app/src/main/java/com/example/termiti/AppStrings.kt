@@ -216,6 +216,10 @@ class AppStrings(
     val profileLookCardBack: String by values
     val profileWinsOnline: String by values
     val profileWinRate: String by values
+    val playerStatsTitle: String by values
+    val statRating: String by values
+    val statDraws: String by values
+    val statAbilities: String by values
     val questsAllDone: String by values
     val profileLosses: String by values
     val profileGames: String by values
