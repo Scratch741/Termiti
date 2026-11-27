@@ -260,7 +260,7 @@ data class LanguagePack(
                 "profileLookWall" to str("profileLookWall", "Hradby"),
                 "profileLookCardBack" to str("profileLookCardBack", "Rub karet"),
                 "profileLookBanner" to str("profileLookBanner", "Prapor"),
-                "bannerBlue" to str("bannerBlue", "Tyrkysový"),
+                "bannerBlue" to str("bannerBlue", "Modrý"),
                 "bannerRed" to str("bannerRed", "Rudý"),
                 "bannerGreen" to str("bannerGreen", "Dub"),
                 "bannerPurple" to str("bannerPurple", "Půlměsíc"),

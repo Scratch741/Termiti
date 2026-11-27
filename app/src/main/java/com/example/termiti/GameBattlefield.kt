@@ -361,16 +361,16 @@ fun NewBattlefield(
             if (nItems > 0) Canvas(
                 Modifier
                     .align(Alignment.TopCenter)
-                    .offset(y = (-40).dp)
-                    .size(width = 380.dp, height = 150.dp)
+                    .offset(y = (-46).dp)
+                    .size(width = 430.dp, height = 175.dp)
                     .graphicsLayer()
             ) {
                 val r = size.width / 2f
                 scale(scaleX = 1f, scaleY = size.height / size.width, pivot = center) {
                     drawCircle(
                         brush = Brush.radialGradient(
-                            0f to Color.Black.copy(alpha = 0.72f),
-                            0.45f to Color.Black.copy(alpha = 0.42f),
+                            0f to Color.Black.copy(alpha = 0.92f),
+                            0.5f to Color.Black.copy(alpha = 0.62f),
                             1f to Color.Transparent,
                             center = center, radius = r
                         ),

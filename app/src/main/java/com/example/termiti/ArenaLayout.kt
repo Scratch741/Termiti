@@ -159,13 +159,16 @@ fun playerBannerSkin(): String =
  */
 fun randomOpponentBannerSkin(): String = (BANNER_BASE - playerBannerSkin()).random()
 
-/** Šířka a výška praporu za portrétem (obrázky 256 × 512, tyč nahoře). */
-private val BANNER_W = 66.dp
-private val BANNER_H = 132.dp
+/** Šířka a výška praporu pod portrétem (obrázky 256 × 512, tyč nahoře). */
+private val BANNER_W = 62.dp
+private val BANNER_H = 124.dp
+/** Horní okraj praporu od vrchu rohu: tyč je schovaná za spodkem prstence a jmenovkou. */
+private val BANNER_TOP = 50.dp
 
 /**
- * Prapor visící od horního okraje obrazovky za portrétem. Kreslí se mimo rozměry rohu
- * (wrapContentSize bez omezení), rozložení rohu se tím nemění. Soupeřův je zrcadlený.
+ * Prapor visící zpod portrétu (tyč za jmenovkou, znak je vidět pod ní – shora ho zakrýval
+ * avatar). Kreslí se mimo rozměry rohu (wrapContentSize bez omezení), rozložení rohu se tím
+ * nemění. Soupeřův je zrcadlený.
  */
 @Composable
 private fun ArenaBanner(@DrawableRes resId: Int, mirrored: Boolean, modifier: Modifier = Modifier) {
@@ -173,7 +176,7 @@ private fun ArenaBanner(@DrawableRes resId: Int, mirrored: Boolean, modifier: Mo
     Box(
         modifier
             .wrapContentSize(Alignment.TopCenter, unbounded = true)
-            .offset(y = (-22).dp)
+            .offset(y = BANNER_TOP)
             .size(BANNER_W, BANNER_H)
             .graphicsLayer { if (mirrored) scaleX = -1f }
             .drawBehind {
@@ -269,7 +272,7 @@ private fun ArenaPortrait(avatar: String, name: String, isPlayer: Boolean, activ
 // ─── Suroviny ─────────────────────────────────────────────────────────────────
 
 /**
- * Suroviny 2 × 2 na obsidiánové desce: ikona, zásoba (velké číslo v barvě suroviny)
+ * Suroviny 2 × 2 na kamenné desce (arenaPlaque): ikona, zásoba (velké číslo v barvě suroviny)
  * a přírůstek dolu (+N, zablokovaný důl rudě). Buňky odděluje bronzový kříž s kosočtvercem.
  */
 @Composable
@@ -281,9 +284,8 @@ private fun ArenaResources(
 ) {
     Box(
         Modifier
-            .obsidianSurface(8.dp, alpha = 0.92f)
-            .bronzeRim(8.dp)
-            .bronzeCorners(3.5.dp)
+            // Bez vlastního rámu – podkladem je kamenná deska (arenaPlaque); zůstává jen
+            // bronzový kříž mezi buňkami
             .drawBehind {
                 // bronzový kříž mezi buňkami
                 val cx = size.width / 2; val cy = size.height / 2
