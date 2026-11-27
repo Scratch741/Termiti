@@ -17,6 +17,16 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.7] – 2026-11-27
+
+### Nové
+- **Online statistiky hráče:** klepnutí na svůj nebo soupeřův avatar v horní liště ukáže hodnocení, hry, výhry, prohry, remízy, % výher a pasivní schopnosti.
+- **Prapory:** v Aréně visí pod portrétem prapor. 14 praporů (9 základních a 5 lokací kampaně) na výběr v Profil → Vzhled → Prapor; soupeři v kampani mají prapor své lokace.
+- **Nastavení → Ikony stavu karty:** vlevo nebo vpravo (vlevo je v ruce nepřekryje další karta).
+
+### Změněno
+- **Aréna:** ruka leží na kamenné zdi přes spodek obrazovky, karty v ruce mají stín, pod rukou soupeře je stín; suroviny a řádek pod nimi jsou na kamenné desce.
+
 ## [0.7.6] – 2026-11-27
 
 ### Nové
