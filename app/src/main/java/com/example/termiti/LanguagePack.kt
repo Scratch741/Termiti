@@ -120,7 +120,7 @@ data class LanguagePack(
                 "arena" to str("arena",       "Aréna"),
                 "campaign" to str("campaign",    "KAMPAŇ"),
 
-                "yourTurn" to str("yourTurn",      "VÁŠ TAH"),
+                "yourTurn" to str("yourTurn",      "TVŮJ TAH"),
                 "arenaDropPlay" to str("arenaDropPlay", "Pusť – zahrát"),
                 "arenaNoResources" to str("arenaNoResources", "Nedostatek surovin"),
                 "arenaDropDiscard" to str("arenaDropDiscard", "Pusť – zahodit"),

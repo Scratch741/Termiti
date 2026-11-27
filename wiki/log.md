@@ -1983,3 +1983,5 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Oživení pozadí (BackgroundAmbience, Canvas překreslovaný každý snímek) bez vlastní vrstvy – s ním se každý snímek znovu nahrávalo celé bojiště pod ním, v Aréně přes celou obrazovku. Nově `graphicsLayer()` (platí i pro klasické bojiště).
 - Portréty: pulz záře běžel u obou stran pořád; nově jen u strany na tahu a plátno má vlastní vrstvu. Tlačítko Konec tahu: pulz jen na mém tahu, vlastní vrstva.
 - Další kandidát, pokud to nestačí: softGroundEdge u velkých hradů a hradeb (4× CompositingStrategy.Offscreen ve zvětšení 1,45×).
+- [2026-11-27] Aréna – nápověda při tažení: rudá záře zahození byla pruh 84 dp přes celou šířku obrazovky (uživatel: moc). Nově nízká eliptická záře jen pod kartami (66 % šířky, 34 dp, do stran a nahoru se ztrácí); v zóně zahození pulzuje jako dřív. Sestaveno; na telefonu neviděno.
+- [2026-11-27] Text „VÁŠ TAH“ → „TVŮJ TAH“ (cs.json + výchozí v LanguagePack; tyká se jako jinde ve hře). Platí pro banner v Aréně i horní lištu klasického bojiště; anglicky beze změny (YOUR TURN).
