@@ -276,6 +276,14 @@ fun GameScreen(
                         )
                     )
                 )
+                // Kamenná zeď (parapet) přes celou šířku dole – ruka na ní „leží“ (bez ní karty
+                // visely ve vzduchu nad krajinou). Výška podle šířky (~75 dp na 800 dp).
+                Image(
+                    painter            = painterResource(R.drawable.arena_stone_edge),
+                    contentDescription = null,
+                    modifier           = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                    contentScale       = ContentScale.FillWidth
+                )
                 ArenaPlayerCorner(
                     state    = state.playerState,
                     avatar   = PlayerProfileManager.profile?.avatar ?: "player_icon_1",

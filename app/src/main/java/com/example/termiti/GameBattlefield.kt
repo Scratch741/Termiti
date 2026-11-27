@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.Path
@@ -356,6 +357,27 @@ fun NewBattlefield(
             val oHalfW  = with(dens) { (backW / 2).toPx() }
             val oHalfH  = with(dens) { (backH / 2).toPx() }
             val fanSpec = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
+            // Stín pod rukou soupeře (měkká tmavá elipsa) – ruby pak nevisí ve vzduchu
+            if (nItems > 0) Canvas(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-40).dp)
+                    .size(width = 380.dp, height = 150.dp)
+                    .graphicsLayer()
+            ) {
+                val r = size.width / 2f
+                scale(scaleX = 1f, scaleY = size.height / size.width, pivot = center) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            0f to Color.Black.copy(alpha = 0.72f),
+                            0.45f to Color.Black.copy(alpha = 0.42f),
+                            1f to Color.Transparent,
+                            center = center, radius = r
+                        ),
+                        radius = r, center = center
+                    )
+                }
+            }
             for (stripIdx in stripItems.indices.reversed()) {
                 val item = stripItems[stripIdx]
                 key(item.first) {

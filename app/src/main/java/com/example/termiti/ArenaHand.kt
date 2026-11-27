@@ -71,6 +71,10 @@ internal fun fanSlot(i: Int, n: Int, step: Float, radius: Float, centerX: Float,
            else      FanSlot(centerX + dx, centerY - dy, -deg)
 }
 
+/** Stín karet v ruce (výška nad stolem) a jeho tvar. */
+private val CARD_SHADOW       = 10.dp
+private val CARD_SHADOW_SHAPE = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
+
 // Velikosti karty v ruce (násobek přirozených 100 × 140 dp)
 private const val HAND_SCALE      = 0.95f   // v klidu
 private const val HAND_ZOOM_SCALE = 1.30f   // přiblížená ruka
@@ -236,6 +240,10 @@ fun ArenaHand(
                                 flight?.isHiddenByDrag(card.id) == true -> 0f     // táhne se kopie
                                 else -> 1f
                             }
+                            // Stín pod kartou – karta pak leží nad okrajem stolu, ne ve vzduchu
+                            shadowElevation = if (alpha > 0f) CARD_SHADOW.toPx() else 0f
+                            shape = CARD_SHADOW_SHAPE
+                            clip  = false
                         }
                         // Dotyk = zaměřit (v přiblížené ruce), klepnutí = přiblížit a zaměřit.
                         // Jen sleduje (Initial), nic nekonzumuje – tažení a dlouhý stisk běží dál.
