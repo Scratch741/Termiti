@@ -116,7 +116,8 @@ fun ArenaHand(
     var handRect by remember { mutableStateOf<Rect?>(null) }
     val pressCard by rememberUpdatedState(onPressCard)
     val tapCard   by rememberUpdatedState(onTapCard)
-    val dragging = flight?.dragGhost != null
+    // Jen „táhne se / netáhne“ – samotný dragGhost se mění každý snímek tažení
+    val dragging by remember(flight) { androidx.compose.runtime.derivedStateOf { flight?.dragGhost != null } }
     var pressedKey by remember { mutableStateOf<String?>(null) }
     val zoom     = zoomed && !dragging
     val bandPx   = with(density) { ARENA_HAND_BAND.toPx() }

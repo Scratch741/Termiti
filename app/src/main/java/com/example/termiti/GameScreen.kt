@@ -192,13 +192,25 @@ fun GameScreen(
             // karty přepne zaměření, klepnutí jinam ruku vrátí, tažení karty ji vrátí hned.
             var handZoom by remember { mutableStateOf(false) }
             var handFocus by remember { mutableStateOf<String?>(null) }
-            val dragging = flight.dragGhost != null
+            var cardTouched by remember { mutableStateOf(false) }
+            // dragGhost se při tažení mění každý snímek (nová poloha) – přímé čtení by celou
+            // obrazovku překomponovalo při každém pohybu prstu. derivedStateOf propustí jen změnu
+            // „táhne se / netáhne“ a tažené karty.
+            val dragging by remember(flight) { derivedStateOf { flight.dragGhost != null } }
+            val dragCard by remember(flight) { derivedStateOf { flight.dragGhost?.card } }
             LaunchedEffect(dragging) { if (dragging) { handZoom = false; handFocus = null } }
             val s = LocalStrings.current
             // „Váš tah“ přes střed na začátku mého tahu (ne při mulliganu a po konci hry)
+            // Jen jednou za kolo: během lízání po [Combo] (a u rozhodovacích karet) se activePlayer
+            // dočasně přepne na AI a zpět – to není nový tah, banner se nesmí opakovat.
             var turnBanner by remember { mutableIntStateOf(0) }
+            var bannerShownForTurn by remember { mutableIntStateOf(-1) }
             LaunchedEffect(state.activePlayer, state.currentTurn, isMulligan) {
-                if (state.activePlayer == ActivePlayer.PLAYER && gameOver == null && !isMulligan) turnBanner++
+                if (state.activePlayer == ActivePlayer.PLAYER && gameOver == null && !isMulligan &&
+                    state.currentTurn != bannerShownForTurn) {
+                    bannerShownForTurn = state.currentTurn
+                    turnBanner++
+                }
             }
             // Nemám co zahrát → Konec tahu výrazněji pulzuje
             val noMoves = active && state.playerState.hand.none { c ->
@@ -214,13 +226,17 @@ fun GameScreen(
                             val down = awaitFirstDown(
                                 requireUnconsumed = false, pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial
                             )
+                            // Karta v ruce si dotyk zaznamená (onPressCard) až po nás – při puštění
+                            // tak víme, jestli šlo o kartu. Na kartu nikdy neoddalovat: zaměřená karta
+                            // se pod prstem posune, karta pak klepnutí nepozná a ruka by se zavřela.
+                            cardTouched = false
                             var moved = false
                             while (true) {
                                 val ev = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                                 val ch = ev.changes.firstOrNull { it.id == down.id } ?: break
                                 if ((ch.position - down.position).getDistance() > viewConfiguration.touchSlop) moved = true
                                 if (!ch.pressed) {
-                                    if (!moved && ch.uptimeMillis - down.uptimeMillis < 350) { handZoom = false; handFocus = null }
+                                    if (!moved && !cardTouched && ch.uptimeMillis - down.uptimeMillis < 350) { handZoom = false; handFocus = null }
                                     break
                                 }
                             }
@@ -270,7 +286,7 @@ fun GameScreen(
                     passives = playerPassives,
                     // Zaměřená nebo tažená karta → v panelu se rozsvítí surovina, kterou stojí
                     inspected = if (viewingOppHand) null
-                                else flight.dragGhost?.card
+                                else dragCard
                                     ?: handFocus?.takeIf { handZoom }?.let { k -> displayHand.firstOrNull { it.id == k.substringBefore("#dup") } },
                     modifier = Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 10.dp)
                 )
@@ -346,8 +362,9 @@ fun GameScreen(
                     canDiscard      = !viewModel.playerDiscardUsed.value,
                     zoomed          = handZoom,
                     focusKey        = handFocus,
-                    onPressCard     = { if (handZoom) handFocus = it },
-                    onTapCard       = { handZoom = true; handFocus = it },
+                    onPressCard     = { cardTouched = true; if (handZoom) handFocus = it },
+                    // První klepnutí ruku jen přiblíží (bez vybrané karty); kartu vybírá až další
+                    onTapCard       = { if (!handZoom) { handZoom = true; handFocus = null } else handFocus = it },
                     modifier        = Modifier.align(Alignment.BottomCenter)
                                               .fillMaxWidth()
                                               .height(ARENA_HAND_BOX)

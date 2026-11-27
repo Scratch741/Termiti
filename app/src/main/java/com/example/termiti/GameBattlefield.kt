@@ -376,6 +376,8 @@ fun NewBattlefield(
                                 .graphicsLayer {
                                     val s = 1.6f * pop.value
                                     scaleX = s; scaleY = s
+                                    // Stejný náklon jako rub na tom místě vějíře
+                                    rotationZ = ar
                                 }
                         ) { PlayedCardSlot(revealedAiCard!!) }
                     } else {
@@ -1007,7 +1009,9 @@ private fun BackgroundAmbience(@DrawableRes bgRes: Int, modifier: Modifier, scen
     val bg = ImageBitmap.imageResource(bgRes)
     val context = LocalContext.current
     val coarse = remember { isLowEndDevice(context) }
-    Canvas(modifier) { AmbienceScope(this, bg, t, coarse).scene() }
+    // Vlastní vrstva: plátno se překresluje každý snímek – bez ní by se s ním každý snímek
+    // znovu nahrávalo i celé bojiště pod ním (obrázek pozadí přes celou obrazovku v Aréně).
+    Canvas(modifier.graphicsLayer()) { AmbienceScope(this, bg, t, coarse).scene() }
 }
 
 /**

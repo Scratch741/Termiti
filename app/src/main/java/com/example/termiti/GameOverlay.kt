@@ -218,6 +218,8 @@ private const val MULL_LEAVE_MS     = 420L
 private const val MULL_HANDOFF_MS   = 460L
 /** Zvětšení celého panelu – musí sedět s .scale() níž (viz výpočet doletu). */
 private const val MULL_PANEL_SCALE  = 1.15f
+/** Plynulé objevení overlaye (ztmavení + panel). */
+private const val MULL_APPEAR_MS    = 650
 
 @Composable
 fun MulliganOverlay(
@@ -296,10 +298,26 @@ fun MulliganOverlay(
 
     val busy = phase != MulliganAnim.IDLE
 
+    // Plynulý příchod a odchod: ztmavení a panel se rozplynou dovnitř (~0,7 s, panel se
+    // lehce přiblíží) a při předání do ruky zase ven – dřív overlay naskočil a zmizel naráz.
+    val appear = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(Unit) {
+        appear.animateTo(1f, androidx.compose.animation.core.tween(MULL_APPEAR_MS, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+    // Odchod: rám a ztmavení mizí až ve druhé půlce předání, aby bylo vidět, kam karty letí
+    // (karty samy blednou až v poslední třetině – viz toHand níž).
+    val leave = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(phase) {
+        if (phase == MulliganAnim.HANDOFF) {
+            leave.animateTo(1f, androidx.compose.animation.core.tween(MULL_HANDOFF_MS.toInt(), easing = androidx.compose.animation.core.LinearEasing))
+        }
+    }
+    val fadeOut = { (1f - (leave.value - 0.4f) / 0.6f).coerceIn(0f, 1f) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0x73000000))
+            .drawBehind { drawRect(Color.Black, alpha = 0.45f * appear.value * fadeOut()) }
             // Blokuje dotyky pod overlayem na pozadí (ne na kartách/tlačítkách).
             // detectTapGestures čeká jen na NEkonsumovaný DOWN — pokud karta DOWN
             // pohltí dřív (child = Main pass dříve), outer Box čeká dál a gesto
@@ -311,6 +329,13 @@ fun MulliganOverlay(
         Column(
             modifier = Modifier
                 .scale(MULL_PANEL_SCALE)
+                .graphicsLayer {
+                    alpha = appear.value * fadeOut()
+                    // Přiblížení jen při příchodu – při odchodu se panel nesmí zmenšovat,
+                    // dolet karet do ruky počítá s pevným měřítkem panelu (MULL_PANEL_SCALE).
+                    val s = 0.92f + 0.08f * appear.value
+                    scaleX = s; scaleY = s
+                }
                 // Rám „kámen + pergamen, začernalý bronz“ (návrh UI 2026-11-21) –
                 // devítidílně, rohy pevné, takže se ozdoby neořezávají. Střed není roztažený
                 // pergamen rámu, ale samostatná malovaná bronzová deska (mulligan_bronz, ořez Crop).

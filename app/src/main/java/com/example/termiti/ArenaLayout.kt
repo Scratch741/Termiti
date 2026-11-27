@@ -117,14 +117,16 @@ private fun arenaText(size: TextUnit, color: Color, weight: FontWeight = FontWei
 @Composable
 private fun ArenaPortrait(avatar: String, name: String, isPlayer: Boolean, active: Boolean) {
     val side = arenaSideColor(isPlayer)
-    val pulse by rememberInfiniteTransition(label = "portraitGlow").animateFloat(
+    // Pulz běží jen u strany na tahu (dřív obě strany pořád → nekonečné snímky navíc)
+    val pulse = if (active) rememberInfiniteTransition(label = "portraitGlow").animateFloat(
         initialValue = 0.55f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(1100), RepeatMode.Reverse), label = "pulse"
-    )
+    ).let { st -> { st.value } } else { { 1f } }
     val ring = 64.dp
     Box(Modifier.size(width = 84.dp, height = ring + 12.dp), contentAlignment = Alignment.TopCenter) {
-        // Záře a prstenec
-        Canvas(Modifier.size(ring + 20.dp).offset(y = (-10).dp)) {
+        // Záře a prstenec – vlastní vrstva, ať pulz nepřekresluje okolí
+        Canvas(Modifier.size(ring + 20.dp).offset(y = (-10).dp).graphicsLayer()) {
+            val pulse = pulse()
             val c = center
             val r = (ring / 2).toPx()
             val glowA = if (active) 0.55f * pulse else 0.16f
@@ -204,7 +206,7 @@ private fun ArenaResources(
                         val hlCol = if (affordable) BronzeLight else Color(0xFFFF6A5E)
                         Row(
                             Modifier
-                                .width(72.dp).height(27.dp)
+                                .width(ARENA_RES_CELL_W).height(30.dp)
                                 .drawBehind {
                                     if (hlA > 0.01f) {
                                         val r = CornerRadius(6.dp.toPx())
@@ -215,15 +217,15 @@ private fun ArenaResources(
                                 .padding(horizontal = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(painterResource(resourceIconRes(t)), contentDescription = null, modifier = Modifier.size(18.dp))
+                            Image(painterResource(resourceIconRes(t)), contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(5.dp))
-                            ValueWithDelta(amount, arenaText(17.sp, resourceColor(t)))
+                            ValueWithDelta(amount, arenaText(19.sp, resourceColor(t)))
                             Spacer(Modifier.weight(1f))
                             // Přírůstek dolu za kolo: zeleně (příjem), zablokovaný důl rudě, nulový tlumeně
                             Text(
                                 "+$mine", maxLines = 1,
                                 style = arenaText(
-                                    11.sp,
+                                    12.sp,
                                     when { blocked -> HpRed; mine > 0 -> MineIncome; else -> ObsTextMuted },
                                     FontWeight.ExtraBold
                                 )
@@ -252,7 +254,13 @@ private fun HandFanIcon(modifier: Modifier = Modifier) {
     }
 }
 
-/** Řádek pod surovinami: balíček, ruka (počet / maximum) a pasivní schopnosti. */
+/** Šířka buňky suroviny (2 buňky vedle sebe + okraje = šířka panelu i řádku pod ním). */
+private val ARENA_RES_CELL_W = 80.dp
+
+/**
+ * Řádek pod surovinami: ruka (počet / maximum), balíček a pasivní schopnosti.
+ * Zrcadlově u obou hráčů – od portrétu ven: ruka, balíček, pasivky.
+ */
 @Composable
 private fun ArenaStatLine(
     deckSize: Int, handSize: Int, maxHand: Int,
@@ -263,7 +271,7 @@ private fun ArenaStatLine(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp, if (alignEnd) Alignment.End else Alignment.Start),
-        modifier = Modifier.width(152.dp).padding(horizontal = 4.dp)
+        modifier = Modifier.width(ARENA_RES_CELL_W * 2 + 8.dp).padding(horizontal = 4.dp)
     ) {
         @Composable fun Passives() = passives.forEach { p ->
             Box(
@@ -275,13 +283,20 @@ private fun ArenaStatLine(
                 contentAlignment = Alignment.Center
             ) { Image(painterResource(p.iconRes), contentDescription = null, modifier = Modifier.size(12.dp)) }
         }
-        if (alignEnd) Passives()
-        CardBackMini(cardBackResId, Modifier.size(width = 10.dp, height = 14.dp))
-        Text("$deckSize", style = arenaText(11.sp, ObsText))
-        Spacer(Modifier.width(2.dp))
-        HandFanIcon()
-        Text("$handSize/$maxHand", style = arenaText(11.sp, if (handSize >= maxHand) Color(0xFFE0A050) else ObsText))
-        if (!alignEnd) Passives()
+        @Composable fun Hand() {
+            HandFanIcon()
+            Text("$handSize/$maxHand", style = arenaText(11.sp, if (handSize >= maxHand) Color(0xFFE0A050) else ObsText))
+        }
+        @Composable fun Deck() {
+            CardBackMini(cardBackResId, Modifier.size(width = 10.dp, height = 14.dp))
+            Text("$deckSize", style = arenaText(11.sp, ObsText))
+        }
+        // Soupeř (vpravo, portrét vpravo): pasivky · balíček · ruka │ já (vlevo): ruka · balíček · pasivky
+        if (alignEnd) {
+            Passives(); Deck(); Spacer(Modifier.width(2.dp)); Hand()
+        } else {
+            Hand(); Spacer(Modifier.width(2.dp)); Deck(); Passives()
+        }
     }
 }
 
@@ -415,17 +430,19 @@ fun ArenaEndTurnButton(
     /** Hráč už nemá co zahrát → tlačítko výrazněji pulzuje (napověda jako v HS). */
     hint: Boolean = false
 ) {
-    val pulse by rememberInfiniteTransition(label = "endTurnGlow").animateFloat(
+    // Pulz jen na mém tahu – na tahu soupeře je záře 0 a nekonečná animace by jen pálila snímky
+    val pulseSt = if (active) rememberInfiniteTransition(label = "endTurnGlow").animateFloat(
         initialValue = 0f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(if (hint) 700 else 1400), RepeatMode.Reverse), label = "pulse"
-    )
+    ) else null
     val glowA by androidx.compose.animation.core.animateFloatAsState(
         if (!active) 0f else if (hint) 1f else 0.45f, tween(300), label = "glowA"
     )
     // Pevný rozměr v obou stavech – tlačítko se při střídání tahů neposouvá
     Box(modifier.size(width = 196.dp, height = 78.dp), contentAlignment = Alignment.Center) {
-            Canvas(Modifier.matchParentSize()) {
+            Canvas(Modifier.matchParentSize().graphicsLayer()) {
                 if (glowA <= 0.01f) return@Canvas
+                val pulse = pulseSt?.value ?: 0f
                 // Měkká záře kolem pilulky: soustředné obrysy s klesající sytostí (bez ořezu, bez zubů)
                 val bw = 164.dp.toPx(); val bh = 48.dp.toPx()
                 val steps = 12
@@ -479,10 +496,20 @@ private fun ValueWithDelta(value: Int, style: TextStyle) {
             bump.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 500f))
         }
     }
-    Box(contentAlignment = Alignment.Center) {
-        Text("$value", style = style, maxLines = 1, modifier = Modifier.graphicsLayer { scaleX = bump.value; scaleY = bump.value })
-        floats.forEach { (id, d) ->
-            key(id) { DeltaFloat(d) { floats.removeAll { it.first == id } } }
+    // Pevná šířka (dvě číslice) a číslice stejné šířky – hodnota ani při změně (9 → 10) ani
+    // při letícím rozdílu neuhne do strany. Rozdíl je ve vrstvě nulové velikosti, rozměry nemění.
+    Box(Modifier.width(26.dp), contentAlignment = Alignment.CenterStart) {
+        Text(
+            "$value", style = style.copy(fontFeatureSettings = "tnum"), maxLines = 1, softWrap = false,
+            modifier = Modifier.graphicsLayer {
+                scaleX = bump.value; scaleY = bump.value
+                transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0.5f)
+            }
+        )
+        Box(Modifier.size(0.dp).align(Alignment.CenterStart)) {
+            floats.forEach { (id, d) ->
+                key(id) { DeltaFloat(d) { floats.removeAll { it.first == id } } }
+            }
         }
     }
 }
@@ -501,7 +528,7 @@ private fun DeltaFloat(delta: Int, onDone: () -> Unit) {
         modifier = Modifier
             .wrapContentSize(unbounded = true)
             .graphicsLayer {
-                translationX = 16.dp.toPx()
+                translationX = 24.dp.toPx()   // od levého okraje hodnoty (vrstva nulové velikosti)
                 translationY = -(6.dp.toPx() + 20.dp.toPx() * p.value)
                 alpha = if (p.value < 0.7f) 1f else 1f - (p.value - 0.7f) / 0.3f
             }
