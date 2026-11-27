@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlin.math.sin
@@ -28,10 +29,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
@@ -75,10 +78,46 @@ import kotlinx.coroutines.launch
 
 // ─── New Battlefield ──────────────────────────────────────────────────────────
 
-/** Aréna (test): výška pásu dole, který patří ruce a rohovým panelům – hrady stojí nad ním. */
-internal val ARENA_HAND_ZONE = 140.dp
-/** Aréna: přibližná výška hradu – štítek životů visí nad ním. */
-internal val ARENA_CASTLE_H = 100.dp
+/**
+ * Aréna: spodní okraj vynořující se stavby se rozplyne do země (místo ostrého vodorovného řezu,
+ * který vypadal, jako by byl hrad useknutý). Maska DstIn na vlastní vrstvě.
+ */
+private fun Modifier.softGroundEdge(fade: Dp = 16.dp): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val f = fade.toPx()
+        drawRect(
+            Brush.verticalGradient(
+                0f to Color.Black, 1f to Color.Transparent,
+                startY = size.height - f, endY = size.height
+            ),
+            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn
+        )
+    }
+
+/** Aréna: stavba, které klesly životy, se krátce otřese do stran (zásah je vidět i bez čtení čísel). */
+private fun Modifier.hitShake(hp: Int, enabled: Boolean): Modifier = if (!enabled) this else composed {
+    val shake = remember { Animatable(0f) }
+    var prev by remember { mutableIntStateOf(hp) }
+    LaunchedEffect(hp) {
+        val hit = hp < prev
+        prev = hp
+        if (hit) {
+            shake.snapTo(0f)
+            shake.animateTo(0f, keyframes {
+                durationMillis = 360
+                -6f at 40; 6f at 100; -4f at 160; 3f at 230; -1.5f at 300
+            })
+        }
+    }
+    graphicsLayer { translationX = shake.value.dp.toPx() }
+}
+
+/** Aréna (test): výška paty hradů nad spodní hranou – pod nimi jsou medailony životů a ovládání. */
+internal val ARENA_GROUND = 128.dp
+/** Aréna: zvětšení hradů a hradeb oproti klasickému bojišti (je na ně celá výška obrazovky). */
+private const val ARENA_CASTLE_SCALE = 1.45f
 
 @Composable
 fun NewBattlefield(
@@ -118,9 +157,9 @@ fun NewBattlefield(
     animateDraws: Boolean = true,
     /**
      * TEST rozložení „Aréna“ ([GameSettings.arenaLayout]): bojiště přes celou obrazovku.
-     * Ruka soupeře nahoře uprostřed v obráceném oblouku (větší ruby, bez tmavého pruhu),
-     * hrady zvednuté nad pás ruky hráče ([ARENA_HAND_ZONE]), štítky hradu/hradeb pod hrady,
-     * zahraná karta menší ve volném středu.
+     * Ruka soupeře nahoře přesně uprostřed jako obrácený vějíř (viz [fanSlot]), velké hrady
+     * stojí po stranách ve výšce [ARENA_GROUND] s medailony životů u paty, zahraná karta
+     * ve volném středu mezi rukama.
      */
     arena: Boolean = false
 ) {
@@ -300,30 +339,90 @@ fun NewBattlefield(
             if (showReveal && none { it.second }) add(revealKey as Any to true)
         }
 
+        if (arena) {
+            // ── Aréna: ruka soupeře jako obrácený vějíř přesně uprostřed nahoře ──
+            // Soupeř „drží“ karty naproti nám: bod otáčení je nad obrazovkou, krajní karty
+            // stoupají a jejich spodky se rozevírají do stran. Zrcadlo mé ruky → navrchu je
+            // karta nejvíc vlevo (u soupeře nejvíc vpravo), proto se skládají odzadu.
+            val dens    = LocalDensity.current
+            val backW   = 46.dp
+            val backH   = 74.dp
+            val nItems  = stripItems.size
+            val oStepDp = if (nItems <= 1) 0.dp else ((250.dp - backW) / (nItems - 1)).coerceIn(20.dp, 34.dp)
+            val oStep   = with(dens) { oStepDp.toPx() }
+            val oRadius = with(dens) { 520.dp.toPx() }
+            val oCx     = with(dens) { maxWidth.toPx() } / 2f
+            val oCy     = with(dens) { (backH / 2 - 8.dp).toPx() }      // horních 8 dp za okrajem
+            val oHalfW  = with(dens) { (backW / 2).toPx() }
+            val oHalfH  = with(dens) { (backH / 2).toPx() }
+            val fanSpec = spring<Float>(dampingRatio = 0.86f, stiffness = Spring.StiffnessMediumLow)
+            for (stripIdx in stripItems.indices.reversed()) {
+                val item = stripItems[stripIdx]
+                key(item.first) {
+                    val slot = fanSlot(stripIdx, nItems, oStep, oRadius, oCx, oCy, down = false)
+                    val ax by animateFloatAsState(slot.x, fanSpec, label = "oppFanX")
+                    val ay by animateFloatAsState(slot.y, fanSpec, label = "oppFanY")
+                    val ar by animateFloatAsState(slot.rot, fanSpec, label = "oppFanRot")
+                    if (item.second) {
+                        // Zahraná karta: líc na svém místě ve vějíři, vysune se dolů a zvětší
+                        val pop = remember { Animatable(0.6f) }
+                        LaunchedEffect(Unit) { pop.animateTo(1f, tween(260, easing = FastOutSlowInEasing)) }
+                        val faceHalfW = with(dens) { 14.75.dp.toPx() }
+                        val faceHalfH = with(dens) { 21.dp.toPx() }
+                        Box(
+                            Modifier
+                                .zIndex(1f)
+                                .offset { IntOffset((ax - faceHalfW).roundToInt(), (ay - faceHalfH + 14.dp.toPx() * pop.value).roundToInt()) }
+                                .graphicsLayer {
+                                    val s = 1.6f * pop.value
+                                    scaleX = s; scaleY = s
+                                }
+                        ) { PlayedCardSlot(revealedAiCard!!) }
+                    } else {
+                        val slotKey   = item.first as Int
+                        val appearIdx = remember(slotKey) {
+                            if (animateDraws && slotKey in aiNewSlotIds) aiNewSlotIds.sorted().indexOf(slotKey) else -1
+                        }
+                        val flyIn = remember(slotKey) { Animatable(if (appearIdx >= 0) 1f else 0f) }
+                        var flyStartPx by remember(slotKey) { mutableFloatStateOf(0f) }
+                        if (appearIdx >= 0) LaunchedEffect(slotKey) {
+                            delay(200L * appearIdx)
+                            flyIn.animateTo(0f, tween(400, easing = FastOutSlowInEasing))
+                        }
+                        LaunchedEffect(animateDraws) { if (!animateDraws) flyIn.snapTo(0f) }
+                        ArenaCardBack(
+                            resId    = opponentCardBackResId,
+                            modifier = Modifier
+                                .offset { IntOffset((ax - oHalfW).roundToInt(), (ay - oHalfH).roundToInt()) }
+                                .size(backW, backH)
+                                .onGloballyPositioned { c ->
+                                    flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
+                                    aiSlotRects[slotKey] = c.boundsInRoot()
+                                }
+                                .graphicsLayer {
+                                    val p = flyIn.value
+                                    val startX = if (flyStartPx > 0f) flyStartPx else 600.dp.toPx()
+                                    translationX = p * startX
+                                    rotationZ    = ar + p * 10f
+                                }
+                        )
+                    }
+                }
+            }
+        } else
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .height(if (arena) 84.dp else aiStripH)
-                .then(
-                    if (arena) Modifier.padding(start = 230.dp, end = 300.dp, top = 6.dp)
-                    else Modifier.background(
-                        Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))
-                    )
+                .height(aiStripH)
+                .background(
+                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent))
                 )
                 .padding(horizontal = 8.dp),
-            verticalAlignment     = if (arena) Alignment.Top else Alignment.CenterVertically,
+            verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
         ) {
             itemsIndexed(stripItems, key = { _, it -> it.first }) { stripIdx, item ->
-                // Aréna: soupeř „drží“ karty naproti – obrácený oblouk (střed nejníž), větší ruby
-                val arcK = stripIdx - (stripItems.size - 1) / 2f
-                val arenaArc = if (arena) Modifier.graphicsLayer {
-                    scaleX = 1.6f; scaleY = 1.6f
-                    transformOrigin = TransformOrigin(0.5f, 0f)
-                    rotationZ    = -arcK * 3.5f
-                    translationY = (4f - arcK * arcK * 1.2f).dp.toPx()
-                } else Modifier
                 if (item.second) {
                     // Odhalená zahraná karta – pop na své původní pozici v ruce, klidový
                     // stav 1.15× (o 15 % větší než okolní ruby) → jasně vyčnívá jako
@@ -337,7 +436,6 @@ fun NewBattlefield(
                     Box(
                         Modifier
                             .animateItem()
-                            .then(if (arena) Modifier.padding(top = 6.dp) else Modifier)
                             .graphicsLayer {
                                 scaleX = pop.value; scaleY = pop.value
                                 transformOrigin = TransformOrigin(0.5f, 0f)
@@ -373,7 +471,6 @@ fun NewBattlefield(
                                 translationX = p * startX
                                 rotationZ    = p * 10f
                             }
-                            .then(arenaArc)
                     ) { CardBack(skinResId = opponentCardBackResId) }
                 }
             }
@@ -452,9 +549,11 @@ fun NewBattlefield(
             wallResId   = playerWallResId,
             glowCastle  = TutTarget.PLAYER_CASTLE in tutorialTargets,
             glowWall    = TutTarget.PLAYER_WALL in tutorialTargets,
+            scale       = if (arena) ARENA_CASTLE_SCALE else 1f,
+            medallions  = arena,
             modifier    = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = if (arena) 36.dp else 8.dp, bottom = if (arena) ARENA_HAND_ZONE else 0.dp)
+                .padding(start = if (arena) 18.dp else 8.dp, bottom = if (arena) ARENA_GROUND else 0.dp)
         )
         NewCastleStructure(
             castleHp    = aiState.castleHP,
@@ -465,13 +564,15 @@ fun NewBattlefield(
             castleResId = opponentCastleResId,
             wallResId   = opponentWallResId,
             glowCastle  = TutTarget.ENEMY_CASTLE in tutorialTargets,
+            scale       = if (arena) ARENA_CASTLE_SCALE else 1f,
+            medallions  = arena,
             modifier    = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = if (arena) 36.dp else 8.dp, bottom = if (arena) ARENA_HAND_ZONE else 0.dp)
+                .padding(end = if (arena) 18.dp else 8.dp, bottom = if (arena) ARENA_GROUND else 0.dp)
         )
 
-        // ── HP badge hráče – vlevo nahoře ───────────────────────────────────────
-        CastleHpBadge(
+        // ── HP badge hráče – vlevo nahoře (Aréna: medailony u hradu, viz NewCastleStructure) ──
+        if (!arena) CastleHpBadge(
             castleHp    = playerState.castleHP,
             wallHp      = playerState.wallHP,
             isPlayer    = true,
@@ -480,17 +581,13 @@ fun NewBattlefield(
             handSize    = playerState.hand.size,
             maxHandSize = playerMaxHand,
             cardBackResId = playerCardBackResId(),
-            // Aréna: štítek pod hradem (hrad stojí nad pásem ruky)
-            modifier    = if (arena) Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 20.dp, bottom = ARENA_HAND_ZONE + ARENA_CASTLE_H)
-            else Modifier
+            modifier    = Modifier
                 .align(Alignment.TopStart)
                 .padding(start = 8.dp, top = 4.dp)
         )
 
         // ── HP badge AI – vpravo nahoře ──────────────────────────────────────────
-        CastleHpBadge(
+        if (!arena) CastleHpBadge(
             castleHp    = aiState.castleHP,
             wallHp      = aiState.wallHP,
             isPlayer    = false,
@@ -499,17 +596,14 @@ fun NewBattlefield(
             handSize    = aiState.hand.size,
             maxHandSize = aiMaxHand,
             cardBackResId = opponentCardBackResId,
-            modifier    = if (arena) Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = ARENA_HAND_ZONE + ARENA_CASTLE_H)
-            else Modifier
+            modifier    = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = 8.dp, top = 4.dp)
         )
 
         // ── Poslední zahraná karta – vycentrovaná ve volné ploše pod AI stripem ──
-        // Aréna: střed volného prostoru mezi rukou soupeře a pásem ruky hráče
-        val cardTopY = if (arena) (maxHeight - ARENA_HAND_ZONE + 40.dp - scaledH) / 2 + 10.dp
+        // Aréna: střed volného prostoru mezi vějířem soupeře (spodek ~78 dp) a horní hranou mé ruky
+        val cardTopY = if (arena) (78.dp + maxHeight - 154.dp) / 2 - scaledH / 2
                        else aiStripH + (maxHeight - aiStripH - scaledH) / 2
         // Statický slot drží STABILNÍ zobrazení – aktualizuje se jen když karta
         // skutečně "dopadne" (u hráče po letu, u soupeře hned). Bez toho by
@@ -710,6 +804,18 @@ fun NewBattlefield(
                             }
                         }
                     }
+                }
+            } else if (arena) {
+                Canvas(Modifier.size(scaledW, scaledH)) {
+                    val r = CornerRadius(8.dp.toPx())
+                    drawRoundRect(Color.Black.copy(alpha = 0.12f), cornerRadius = r)
+                    drawRoundRect(
+                        BronzeLight.copy(alpha = 0.38f), cornerRadius = r,
+                        style = Stroke(1.5.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(9.dp.toPx(), 6.dp.toPx())))
+                    )
+                    val c = center; val d = 6.dp.toPx()
+                    val path = Path().apply { moveTo(c.x, c.y - d); lineTo(c.x + d, c.y); lineTo(c.x, c.y + d); lineTo(c.x - d, c.y); close() }
+                    drawPath(path, BronzeLight.copy(alpha = 0.35f))
                 }
             } else {
                 Box(
@@ -1400,6 +1506,10 @@ private fun NewCastleStructure(
     wallResId: Int = R.drawable.wall_player2,
     glowCastle: Boolean = false,   // tutoriál: zlatý rám kolem hradu
     glowWall: Boolean = false,     // tutoriál: zlatý rám kolem hradeb
+    /** Zvětšení hradu i hradby (Aréna má na hrady celou výšku obrazovky). */
+    scale: Float = 1f,
+    /** Aréna: medailony životů u paty hradu a hradby. */
+    medallions: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val accentColor = if (isPlayer) Teal    else Crimson
@@ -1412,27 +1522,55 @@ private fun NewCastleStructure(
     )
     val wallBlocks = (10f * wallFrac).roundToInt().coerceIn(0, 10)
 
+    // Aréna: stavba se vynoří víc i při malých životech (jinak by hrad na startu byl pahýl)
+    val minFrac = if (medallions) 0.3f else 0.15f
+    val castleTarget = if (winTarget >= 999) null else winTarget
     Row(
-        modifier              = modifier,
+        modifier              = modifier.then(
+            // Aréna: měkký stín na zemi pod hradem a hradbou – stavby stojí, nevznášejí se
+            if (medallions) Modifier.drawBehind {
+                val c = Offset(size.width / 2f, size.height - 2.dp.toPx())
+                val r = size.width * 0.62f
+                withTransform({ scale(1f, 0.13f, c) }) {
+                    drawCircle(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.75f), Color.Transparent), c, r), r, c)
+                }
+            } else Modifier
+        ),
         verticalAlignment     = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(3.dp)
+        horizontalArrangement = Arrangement.spacedBy(3.dp * scale)
     ) {
         if (isPlayer) {
             Box(Modifier.tutorialGlow(glowCastle)) {
-                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId)
+                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = true,  winTarget = winTarget, castleResId = castleResId, scale = scale, minFrac = minFrac)
+                if (medallions) BaseMedallion(castleHp, castleTarget, isPlayer, R.drawable.castle_icon, 48.dp)
             }
             Box(Modifier.tutorialGlow(glowWall)) {
-                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true, wallResId = wallResId, maxWall = maxWall)
+                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = true, wallResId = wallResId, maxWall = maxWall, scale = scale, minFrac = minFrac)
+                if (medallions) BaseMedallion(wallHp, maxWall, isPlayer, R.drawable.wall_icon, 38.dp)
             }
         } else {
             Box(Modifier.tutorialGlow(glowWall)) {
-                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false, wallResId = wallResId, maxWall = maxWall)
+                WallBlock(wallHp, wallBlocks, accentColor, isPlayer = false, wallResId = wallResId, maxWall = maxWall, scale = scale, minFrac = minFrac)
+                if (medallions) BaseMedallion(wallHp, maxWall, isPlayer, R.drawable.wall_icon, 38.dp)
             }
             Box(Modifier.tutorialGlow(glowCastle)) {
-                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId)
+                CastleTowerBlock(castleHp, accentColor, accentLight, isPlayer = false, winTarget = winTarget, castleResId = castleResId, scale = scale, minFrac = minFrac)
+                if (medallions) BaseMedallion(castleHp, castleTarget, isPlayer, R.drawable.castle_icon, 48.dp)
             }
         }
     }
+}
+
+/**
+ * Aréna: medailon životů visí celý POD patou stavby (horní okraj 3 dp pod zemí), mimo rozměr –
+ * nemění rozložení a nic ze stavby nezakrývá.
+ */
+@Composable
+private fun BoxScope.BaseMedallion(value: Int, max: Int?, isPlayer: Boolean, @DrawableRes icon: Int, size: Dp) {
+    ArenaHpMedallion(
+        value, max, isPlayer, icon, size,
+        Modifier.align(Alignment.BottomCenter).offset(y = size + 3.dp)
+    )
 }
 
 @Composable
@@ -1442,14 +1580,16 @@ private fun CastleTowerBlock(
     accentLight: Color,
     isPlayer: Boolean,
     winTarget: Int = 60,
-    castleResId: Int = R.drawable.castle_player
+    castleResId: Int = R.drawable.castle_player,
+    scale: Float = 1f,
+    minFrac: Float = 0.15f
 ) {
-    val castleFullH = 165.dp
-    val castleFullW = 110.dp
+    val castleFullH = 165.dp * scale
+    val castleFullW = 110.dp * scale
     // Při winTarget ≥ 999 (výstavba zakázána) použij vizuální strop 60,
     // jinak by hrad při 30 HP vypadal skoro zahrabaný pod zemí.
     val visualMaxHp = if (winTarget >= 999) 60f else winTarget.toFloat()
-    val hpFrac = hpToVisualFrac(castleHp, maxHp = visualMaxHp)
+    val hpFrac = hpToVisualFrac(castleHp, maxHp = visualMaxHp, minFrac = minFrac)
 
     val offsetY by animateDpAsState(
         targetValue   = castleFullH * (1f - hpFrac),
@@ -1458,12 +1598,13 @@ private fun CastleTowerBlock(
     )
 
     // Vnější Box: bez clipu → plovoucí čísla mohou přesahovat nahoru
-    Box(modifier = Modifier.size(castleFullW, castleFullH)) {
+    Box(modifier = Modifier.size(castleFullW, castleFullH).hitShake(castleHp, enabled = scale != 1f)) {
         // Clip box – pouze obrázek hradu bez badge (badge je nahoře v rohu)
         Box(
             modifier = Modifier
                 .size(castleFullW, castleFullH)
                 .clip(androidx.compose.ui.graphics.RectangleShape)
+                .then(if (scale != 1f) Modifier.softGroundEdge() else Modifier)
         ) {
             Image(
                 painter            = painterResource(castleResId),
@@ -1478,16 +1619,20 @@ private fun CastleTowerBlock(
         }
         // zIndex(1f) zajistí vykreslení čísla NAVRCH textury hradu
         Box(Modifier.fillMaxSize().zIndex(1f)) {
-            HpFloats(castleHp, sizeSp = 17f, startOffsetY = offsetY)
+            HpFloats(castleHp, sizeSp = 17f * scale, startOffsetY = offsetY)
         }
     }
 }
 
 @Composable
-private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true, wallResId: Int = R.drawable.wall_player2, maxWall: Int = MAX_WALL) {
-    val wallFullW = 42.dp
-    val wallFullH = 58.dp
-    val wallFrac  = hpToVisualFrac(wallHp, maxHp = maxWall.toFloat())
+private fun WallBlock(
+    wallHp: Int, blockCount: Int, accentColor: Color, isPlayer: Boolean = true,
+    wallResId: Int = R.drawable.wall_player2, maxWall: Int = MAX_WALL,
+    scale: Float = 1f, minFrac: Float = 0.15f
+) {
+    val wallFullW = 42.dp * scale
+    val wallFullH = 58.dp * scale
+    val wallFrac  = hpToVisualFrac(wallHp, maxHp = maxWall.toFloat(), minFrac = minFrac)
 
     val offsetY by animateDpAsState(
         targetValue   = wallFullH * (1f - wallFrac),
@@ -1496,11 +1641,12 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
     )
 
     // Vnější Box: bez clipu → plovoucí čísla mohou přesahovat nahoru
-    Box(modifier = Modifier.size(wallFullW, wallFullH)) {
+    Box(modifier = Modifier.size(wallFullW, wallFullH).hitShake(wallHp, enabled = scale != 1f)) {
         Box(
             modifier = Modifier
                 .size(wallFullW, wallFullH)
                 .clip(androidx.compose.ui.graphics.RectangleShape)
+                .then(if (scale != 1f) Modifier.softGroundEdge() else Modifier)
         ) {
             Image(
                 painter            = painterResource(wallResId),
@@ -1514,7 +1660,7 @@ private fun WallBlock(wallHp: Int, blockCount: Int, accentColor: Color, isPlayer
         }
         // zIndex(1f) zajistí vykreslení čísla NAVRCH textury hradby
         Box(Modifier.fillMaxSize().zIndex(1f)) {
-            HpFloats(wallHp, sizeSp = 13f, startOffsetY = offsetY)
+            HpFloats(wallHp, sizeSp = 13f * scale, startOffsetY = offsetY)
         }
     }
 }

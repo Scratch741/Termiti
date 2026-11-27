@@ -77,7 +77,7 @@ data class LossGhost(
  * Kreslí se ve vrstvě letu, aby ji neořízla ruka (clipToBounds, LazyRow).
  * [rect] = aktuální pozice v okenních souřadnicích, [zone] = kam by puštění vedlo.
  */
-data class DragGhost(val card: Card, val rect: Rect, val zone: DragZone, val playable: Boolean = true)
+data class DragGhost(val card: Card, val rect: Rect, val zone: DragZone, val playable: Boolean = true, val rot0: Float = 0f)
 
 enum class DragZone { NONE, PLAY, DISCARD }
 
@@ -239,7 +239,8 @@ private fun DragGhostView(flight: FlightOverlayState, ghost: DragGhost) {
     // Úhly za cílem dobíhají jako tlumená pružina, takže se karta po zastavení lehce zhoupne.
     val density = LocalDensity.current.density
     val rect by androidx.compose.runtime.rememberUpdatedState(ghost.rect)
-    var tiltZ by remember { mutableFloatStateOf(0f) }
+    // Karta z vějíře (Aréna) začne natočená jako v ruce a pružina ji narovná
+    var tiltZ by remember { mutableFloatStateOf(ghost.rot0) }
     var tiltX by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(Unit) {
         var prev  = rect

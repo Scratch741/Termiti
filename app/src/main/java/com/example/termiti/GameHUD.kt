@@ -75,7 +75,7 @@ import kotlinx.coroutines.launch
  * Vrátí null pokud karta žádnou podmínku nemá.
  * Prochází všechny efekty, ne jen první (podmínka může být i na 2. místě).
  */
-private fun cardConditionMet(
+internal fun cardConditionMet(
     card: Card,
     resources: Map<ResourceType, Int>,
     wallHp: Int,
@@ -802,9 +802,7 @@ fun HandPanel(
      * vypadá jako hratelná. Prázdný řetězec = krok žádnou kartu nečeká (nehratelné jsou všechny).
      * null = tutoriál neběží.
      */
-    tutorialCardBaseId: String? = null,
-    /** TEST rozložení „Aréna“: karty se překrývají a drží v oblouku jako v ruce. */
-    arena: Boolean = false
+    tutorialCardBaseId: String? = null
 ) {
     // clipToBounds: karta tažená nahoru k zahození (a přilétající líznutá karta) mizí
     // pod dělicí čárou nad rukou, nekreslí se přes herní plán. LazyRow ořezává jen
@@ -862,21 +860,12 @@ fun HandPanel(
         val newIds   = if (animateDraws) hand.map { it.id }.filter { it !in dealtIds.value }
                        else emptyList()
         LaunchedEffect(handKeys) { dealtIds.value = hand.map { it.id }.toSet() }
-        // Aréna: rozestup podle šířky – všechny karty se vejdou, při plné ruce se překrývají
-        val density = LocalDensity.current
-        val handGap = if (!arena) 8.dp else run {
-            // Rozpětí celé ruky (v jednotkách rozložení, panel je zmenšený na 82 %)
-            val span = 430.dp
-            val n = hand.size
-            if (n <= 1) 0.dp else ((span - 100.dp * n) / (n - 1)).coerceIn(-58.dp, -22.dp)
-        }
         LazyRow(
             modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(handGap, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             contentPadding        = PaddingValues(horizontal = 10.dp)
         ) {
-            itemsIndexed(hand, key = { index, _ -> handKeys[index] }) { handIdx, card ->
-                val arcK = handIdx - (hand.size - 1) / 2f
+            itemsIndexed(hand, key = { index, _ -> handKeys[index] }) { _, card ->
                 val affordable = card.isXCost || (playerResources[card.costType] ?: 0) >= card.effectiveCost
                 val playable   = isPlayerTurn && affordable &&
                                  (tutorialCardBaseId == null || card.baseId == tutorialCardBaseId)
@@ -911,12 +900,6 @@ fun HandPanel(
                         .onGloballyPositioned { c ->
                             flyStartPx = c.findRootCoordinates().size.width - c.positionInRoot().x
                         }
-                        // Aréna: oblouk – natočení kolem bodu hluboko pod kartou, krajní karty níž
-                        .then(if (arena) Modifier.graphicsLayer {
-                            rotationZ       = (arcK * 5f).coerceIn(-18f, 18f)
-                            translationY    = arcK * arcK * 1.8.dp.toPx()
-                            transformOrigin = TransformOrigin(0.5f, 1.8f)
-                        } else Modifier)
                         .graphicsLayer {
                             val p = flyIn.value
                             val startX = if (flyStartPx > 0f) flyStartPx else 700.dp.toPx()

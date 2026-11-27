@@ -1946,3 +1946,28 @@ Podle pravidel Variety: každá karta jiný záběr a jiná barva světla, žád
 - Aréna: ARENA_HAND_ZONE 112 → 150 dp (štítek hradu se překrýval s blokem kolo/tah vlevo dole).
 - Aréna: štítky životů nad hrady (ARENA_CASTLE_H 100 dp), ARENA_HAND_ZONE 140 dp, ruka 95 %.
 - Aréna: přiblížení ruky – klepnutí na ruku 0,95 → 1,2 (200 ms), tažení karty nebo klepnutí jinam vrátí zpět (pointerInput Initial na kořeni, nic nekonzumuje).
+
+## [2026-11-26] ui | Aréna 2: vějíře, velké hrady, obsidián a bronz
+- Hráč: „otřesné na gameplay“ – soupeřova ruka mimo střed a divně natočená, ruka se přibližovala při každém dotyku, karty šly chytit jen za levou část, malé hrady, „vibe coded“ boxy.
+- Příčina chytání za levou část: oblouk ruky byl graphicsLayer UVNITŘ gesta (cardDragToPlay) → dotyková plocha zůstala nenatočená na původním místě. LazyRow navíc bral vodorovný pohyb jako posun ruky.
+- ArenaHand.kt (nové): moje ruka jako skutečný vějíř – fanSlot() dává polohu i natočení na kružnici (R 900 dp), rozestup 44–80 dp, natočení vně gesta (sahá se na to, co je vidět), zdroj letu = nenatočená poloha. Karta jde vytáhnout libovolným směrem (cardDragToPlay anyDirection). Posun karet pružinou při zahrání/líznutí.
+- Přiblížení ruky jako v HS: jen krátké klepnutí na kartu (< 300 ms, bez pohybu) → 1,28×; klepnutí jinam vrátí 0,95×; začátek tažení zmenší hned. Jen v režimu Tažením.
+- Tažená kopie má vždy přirozenou velikost se středem na kartě v ruce (i z přiblížené ruky) a začne natočená jako ve vějíři (DragGhost.rot0), pružina ji narovná.
+- Ruka soupeře (NewBattlefield arena): obrácený vějíř přesně uprostřed nahoře (R 520 dp, ruby 46×74 celé – ArenaCardBack), navrchu karta nejvíc vlevo (zrcadlo soupeřovy ruky), horních 8 dp za okrajem. Odhalená zahraná karta 1,6× na svém místě ve vějíři.
+- Hrady 1,45× (ARENA_CASTLE_SCALE), pata ve výšce ARENA_GROUND 118 dp, min. vynoření 30 % (start hry už není pahýl), stín na zemi. Životy jako bronzové medailony u paty hradu (48 dp, cíl výhry) a hradby (38 dp) – ArenaHpMedallion; štítek CastleHpBadge v Aréně není.
+- ArenaLayout.kt přepsán do stylu Obsidián a bronz (ObsidianBronze.kt): portrét v kovaném prstenci se jmenovkou, pulzující záře strany na tahu; suroviny 2×2 na obsidiánu s bronzovým křížem; řádek balíček / ruka n/max / pasivní schopnosti (bronzové mince); vlevo dole kulatá tlačítka ☰ a Log; vpravo dole Konec tahu (bronz s pulzující září, na tahu soupeře obsidián „Tah soupeře“, číslo kola jako druhý řádek – ObsButton subText).
+- HandPanel: odstraněn parametr arena (oblouk přešel do ArenaHand).
+
+## [2026-11-26] ui | Aréna 3: čitelná ruka, nápovědy, zpětná vazba
+- Hráč: v přiblížené ruce nešly číst popisky, medailony zakrývaly hrad/hradbu, přírůstek dolů nevýrazný, Konec tahu a Tah soupeře neseděly na sebe, záře tlačítka „glitchovala“.
+- ArenaHand přepsán (jako HS): plocha ruky ARENA_HAND_BOX 250 dp (bez gest, dotyky mimo karty projdou), pás pro zóny tažení ARENA_HAND_BAND 150 dp. Klepnutí na kartu = přiblížení (karty 1,30×, téměř rovná řada přes celou šířku, mezera 4 dp) a ZAMĚŘENÍ klepnuté karty (1,62×, rovně, vyjede, sousedé uhnou) – celý text jde přečíst. Dotyk jiné karty v přiblížené ruce přepne zaměření; klepnutí jinam vrátí; tažení vrátí hned. Za přiblíženou rukou ztmavení. Stisknutá karta v klidu se nadzvedne (16 dp, 1,06×). Animace pozic/natočení/velikosti pružinou.
+- Medailony životů celé POD patou stavby (offset size + 3 dp), ikona dole na prstenci; ARENA_GROUND 128 dp. Číslo při změně poskočí.
+- Spodek vynořující se stavby se rozplývá do země (softGroundEdge – maska DstIn), místo ostrého řezu.
+- Přírůstek dolu: zelená MineIncome, ExtraBold 11 sp (zablokovaný rudě, nulový tlumeně). Zásoba suroviny při změně poskočí a vypustí letící +N / −N (ValueWithDelta).
+- Konec tahu: pevný rozměr 196 × 78 dp v obou stavech (dřív se rámeček záře objevoval jen na mém tahu → tlačítko poskočilo), záře ze soustředných obrysů (dřív radiální přechod oříznutý do pilulky = zubatý okraj). Bez hratelné karty pulzuje výrazněji (hint).
+- ArenaDragHints: při tažení rámeček nad slotem (zlatý = zahraje se, rudý = málo surovin, přerušovaný mimo zónu), dole rudý pruh zahození (šedý po zahození v kole), destička nad taženou kartou „Pusť – zahrát / Nedostatek surovin / Pusť – zahodit / Zahodit lze jednou za kolo“. Nové řetězce arenaDropPlay, arenaNoResources, arenaDropDiscard, arenaDragDiscard, arenaDiscardUsed (cs/en/LanguagePack/AppStrings).
+- ArenaTurnBanner: „Váš tah“ přes střed na začátku mého tahu (pod rukou). Pozor: předčasný `return` v composable po čtení Animatable způsobil, že se nápis nevykreslil – v ArenaLayout.kt bez early return.
+- Zaměřená / tažená karta zvýrazní v mém panelu surovinu, kterou stojí (zlatě = stačí, rudě = nestačí).
+- Prázdný slot uprostřed: přerušovaný bronzový obrys s kosočtvercem. ObsButton: stisk = zmáčknutí 0,95× (platí i pro Tvorbu balíčku), volitelný subText.
+- Ověřeno na emulátoru v rozlišení S23 (2340×1080, 420 dpi): přiblížení 4 i 7 karet, tažení a zóny, hraní klepnutím, celá hra do konce, Prohlédnout hru.
+- Aréna: stavba, které klesly životy, se krátce otřese (hitShake, keyframes 360 ms).

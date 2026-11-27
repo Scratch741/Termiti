@@ -5,6 +5,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -174,10 +176,19 @@ internal fun ObsButton(
     paddingH: Dp = 8.dp,
     /** Zaoblení rohů; polovina výšky = oblé konce (pilulka, kulaté tlačítko). */
     radius: Dp = 5.dp,
+    /** Volitelný drobný druhý řádek pod textem (např. číslo kola na tlačítku Konec tahu). */
+    subText: String? = null,
     onClick: () -> Unit
 ) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by androidx.compose.animation.core.animateFloatAsState(
+        if (pressed && enabled) 0.95f else 1f,
+        androidx.compose.animation.core.spring(dampingRatio = 0.6f, stiffness = 900f), label = "obsPress"
+    )
     Box(
         modifier
+            .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
             // vypnuté tlačítko musí být na první pohled poznat
             .alpha(if (enabled) 1f else 0.32f)
             .then(
@@ -201,13 +212,14 @@ internal fun ObsButton(
                 else Modifier.obsidianSurface(radius, Color(0xFF1E1A1E), Color(0xFF0E0C0F), 0.97f).bronzeRim(radius, level = 0.95f)
             )
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interaction,
                 indication = null,
                 enabled = enabled
             ) { SoundManager.playMenuTap(); onClick() }
             .padding(horizontal = paddingH),
         contentAlignment = Alignment.Center
     ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             if (iconRes != null) Image(painterResource(iconRes), null, Modifier.size(fontSize.value.dp * 1.4f), contentScale = ContentScale.Fit)
             Text(
@@ -220,6 +232,13 @@ internal fun ObsButton(
                              else Shadow(Color.Black.copy(alpha = 0.8f), Offset(0f, 2f), 3f)
                 )
             )
+        }
+        if (subText != null) Text(
+            subText, maxLines = 1,
+            style = obsLabelStyle(fontSize * 0.68f, (textColor ?: if (primary) BronzeInk else BronzeText).copy(alpha = 0.75f), 1.sp)
+                .copy(fontFamily = null, fontWeight = FontWeight.Bold),
+            modifier = Modifier.padding(top = 2.dp)
+        )
         }
     }
 }

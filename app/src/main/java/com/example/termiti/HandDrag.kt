@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
 /**
@@ -43,9 +44,18 @@ internal fun Modifier.cardDragToPlay(
     canDiscard: Boolean,
     handBounds: () -> Rect?,
     onPlay: () -> Unit,
-    onDiscard: () -> Unit
+    onDiscard: () -> Unit,
+    /** true = gesto začne pohybem libovolným směrem (ruka, která nejde posouvat – Aréna). */
+    anyDirection: Boolean = false,
+    /** Natočení karty v ruce (vějíř Arény) – tažená kopie se z něj narovná. */
+    rotation: () -> Float = { 0f }
 ): Modifier = composed {
     val flight = LocalFlightOverlay.current ?: return@composed this
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // Tažená karta má vždy přirozenou velikost (100 × 140 dp) se středem tam, kde je karta
+    // v ruce – i když je ruka zmenšená nebo přiblížená. Let zahrání pak začíná ve stejné velikosti.
+    val natW = with(density) { 100.dp.toPx() }
+    val natH = with(density) { 140.dp.toPx() }
     val scope  = rememberCoroutineScope()
     val play     by rememberUpdatedState(onPlay)
     val discard  by rememberUpdatedState(onDiscard)
@@ -83,12 +93,13 @@ internal fun Modifier.cardDragToPlay(
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             val slop = awaitTouchSlopOrCancellation(down.id) { change, over ->
-                if (abs(over.y) > abs(over.x)) change.consume()
+                if (anyDirection || abs(over.y) > abs(over.x)) change.consume()
             } ?: return@awaitEachGesture
-            val base = flight.sources[card.id] ?: return@awaitEachGesture
+            val src  = flight.sources[card.id] ?: return@awaitEachGesture
+            val base = Rect(src.center.x - natW / 2f, src.center.y - natH / 2f, src.center.x + natW / 2f, src.center.y + natH / 2f)
 
             var off = slop.position - down.position
-            flight.dragGhost = DragGhost(card, base.translate(off), zoneOf(base.translate(off)), playOk)
+            flight.dragGhost = DragGhost(card, base.translate(off), zoneOf(base.translate(off)), playOk, rotation())
             val finished = drag(slop.id) { ch ->
                 off += ch.positionChange()
                 ch.consume()

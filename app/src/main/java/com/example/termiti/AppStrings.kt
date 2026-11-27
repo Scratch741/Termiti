@@ -68,6 +68,11 @@ class AppStrings(
 
     // ── Game HUD ─────────────────────────────────────────────────────────────
     val yourTurn: String by values
+    val arenaDropPlay: String by values
+    val arenaNoResources: String by values
+    val arenaDropDiscard: String by values
+    val arenaDragDiscard: String by values
+    val arenaDiscardUsed: String by values
     val opponentTurn: String by values
     val endTurn: String by values
     val endCombo: String by values

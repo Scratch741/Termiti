@@ -121,6 +121,11 @@ data class LanguagePack(
                 "campaign" to str("campaign",    "KAMPAŇ"),
 
                 "yourTurn" to str("yourTurn",      "VÁŠ TAH"),
+                "arenaDropPlay" to str("arenaDropPlay", "Pusť – zahrát"),
+                "arenaNoResources" to str("arenaNoResources", "Nedostatek surovin"),
+                "arenaDropDiscard" to str("arenaDropDiscard", "Pusť – zahodit"),
+                "arenaDragDiscard" to str("arenaDragDiscard", "Dolů – zahodit"),
+                "arenaDiscardUsed" to str("arenaDiscardUsed", "Zahodit lze jednou za kolo"),
                 "opponentTurn" to str("opponentTurn",  "TAH SOUPEŘE"),
                 "endTurn" to str("endTurn",       "Ukončit tah"),
                 "endCombo" to str("endCombo",      "Konec combo"),
