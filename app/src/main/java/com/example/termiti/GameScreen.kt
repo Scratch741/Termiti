@@ -187,6 +187,7 @@ fun GameScreen(
             val handOwner = if (viewingOppHand) state.aiState else state.playerState
             val handOpp   = if (viewingOppHand) state.playerState else state.aiState
             val oppCardBack = campaignOpponent?.let { cardBackSkinDrawable(it.aiCardBackSkin) } ?: viewModel.opponentCardBackResId.value
+            val oppBanner = remember(campaignOpponent) { campaignOpponent?.aiBannerSkin ?: randomOpponentBannerSkin() }
             // Přiblížení ruky jako v HS: klepnutí na kartu ruku rozprostře a zvětší a klepnutou
             // kartu zaměří (vyjede, narovná se, zvětší se – jde přečíst celý popis). Dotyk jiné
             // karty přepne zaměření, klepnutí jinam ruku vrátí, tažení karty ji vrátí hned.
@@ -307,6 +308,7 @@ fun GameScreen(
                     maxHand  = state.aiMaxHand,
                     cardBackResId = oppCardBack,
                     passives = if (campaignOpponent == null) aiPassives else emptyList(),
+                    bannerSkin = oppBanner,
                     modifier = Modifier.align(Alignment.TopEnd).padding(end = 10.dp, top = 10.dp)
                 )
                 ArenaMenuButtons(

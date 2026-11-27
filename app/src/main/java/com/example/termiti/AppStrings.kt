@@ -214,12 +214,31 @@ class AppStrings(
     val profileLookCastle: String by values
     val profileLookWall: String by values
     val profileLookCardBack: String by values
+    val profileLookBanner: String by values
+    val bannerBlue: String by values
+    val bannerRed: String by values
+    val bannerGreen: String by values
+    val bannerPurple: String by values
+    val bannerBlack: String by values
+    val bannerGold: String by values
+    val bannerWhite: String by values
+    val bannerOrange: String by values
+    val bannerWolf: String by values
+    val bannerGoblins: String by values
+    val bannerSwamp: String by values
+    val bannerDwarves: String by values
+    val bannerCitadel: String by values
+    val bannerDragon: String by values
     val profileWinsOnline: String by values
     val profileWinRate: String by values
     val playerStatsTitle: String by values
     val statRating: String by values
     val statDraws: String by values
     val statAbilities: String by values
+    val cardBadgesLabel: String by values
+    val cardBadgesRight: String by values
+    val cardBadgesLeft: String by values
+    val cardBadgesHint: String by values
     val questsAllDone: String by values
     val profileLosses: String by values
     val profileGames: String by values
@@ -235,10 +254,6 @@ class AppStrings(
     val tutSkip: String by values
     val tutWaitingYou: String by values
     val tutWaitingOpponent: String by values
-    val cardBadgesLabel: String by values
-    val cardBadgesRight: String by values
-    val cardBadgesLeft: String by values
-    val cardBadgesHint: String by values
     val tutGoal: String by values
     val tutCastle: String by values
     val tutResources: String by values

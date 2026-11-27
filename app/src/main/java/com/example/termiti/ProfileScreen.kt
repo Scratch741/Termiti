@@ -124,7 +124,7 @@ fun AvatarDisplay(avatar: String, sizeDp: Float, modifier: Modifier = Modifier) 
 //   DEBUG       – testovací tlačítka
 
 private enum class ProfileTab { OVERVIEW, LOOK, ABILITIES, DEBUG }
-private enum class LookTab { AVATAR, CASTLE, WALL, CARD_BACK }
+private enum class LookTab { AVATAR, CASTLE, WALL, CARD_BACK, BANNER }
 
 @Composable
 fun ProfileScreen(onBack: () -> Unit, onStartTutorial: () -> Unit = {}) {
@@ -493,6 +493,7 @@ private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) ->
                         LookTab.CASTLE    -> s.profileLookCastle
                         LookTab.WALL      -> s.profileLookWall
                         LookTab.CARD_BACK -> s.profileLookCardBack
+                        LookTab.BANNER    -> s.profileLookBanner
                     }.uppercase(),
                     modifier = Modifier.weight(1f).height(26.dp),
                     primary  = t == look,
@@ -545,6 +546,14 @@ private fun LookTabContent(profile: PlayerProfile, onChanged: (PlayerProfile) ->
                             )
                         }
                         SelectedLabel(cardBackLabel(profile.cardBackSkin))
+                    }
+
+                    LookTab.BANNER -> {
+                        val banner = profile.bannerSkin.takeIf { it in BANNER_SKINS } ?: BANNER_SKINS.first()
+                        LookGrid(BANNER_SKINS, banner, tileW, tileW * 1.6f, gap,
+                            onPick = { save(profile.copy(bannerSkin = it)) }
+                        ) { id -> SkinImage(bannerSkinDrawable(id)) }
+                        SelectedLabel(bannerLabel(banner))
                     }
                 }
             }
@@ -601,6 +610,27 @@ private fun SkinImage(@DrawableRes resId: Int) {
 @Composable
 private fun SelectedLabel(label: String) {
     Text(label.uppercase(), style = obsLabelStyle(11.sp, BronzeText, letterSpacing = 1.5.sp).copy(shadow = androidx.compose.ui.graphics.Shadow(Color.Black, androidx.compose.ui.geometry.Offset(0f, 2f), 6f)))
+}
+
+@Composable
+private fun bannerLabel(id: String): String {
+    val s = LocalStrings.current
+    return when (id) {
+        "banner_red"    -> s.bannerRed
+        "banner_green"  -> s.bannerGreen
+        "banner_purple" -> s.bannerPurple
+        "banner_black"  -> s.bannerBlack
+        "banner_gold"   -> s.bannerGold
+        "banner_white"  -> s.bannerWhite
+        "banner_orange" -> s.bannerOrange
+        "banner_wolf"   -> s.bannerWolf
+        "banner_goblins" -> s.bannerGoblins
+        "banner_swamp"   -> s.bannerSwamp
+        "banner_dwarves" -> s.bannerDwarves
+        "banner_citadel" -> s.bannerCitadel
+        "banner_dragon"  -> s.bannerDragon
+        else            -> s.bannerBlue
+    }
 }
 
 @Composable

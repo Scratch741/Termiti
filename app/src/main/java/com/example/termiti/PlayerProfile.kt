@@ -22,6 +22,9 @@ data class PlayerProfile(
     // ── Skin rubu karty ───────────────────────────────────────────────────────
     val cardBackSkin: String = "card_back_frame",  // ID drawablu rubu karty
 
+    // ── Prapor (Aréna: visí za portrétem) ─────────────────────────────────────
+    val bannerSkin: String = "banner_blue",        // ID z BANNER_SKINS
+
     // ── Progress ─────────────────────────────────────────────────────────────
     val level: Int = 1,
     val xp: Int = 0,           // aktuální XP v rámci levelu

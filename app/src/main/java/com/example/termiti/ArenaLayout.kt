@@ -59,6 +59,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -108,6 +110,104 @@ private fun arenaText(size: TextUnit, color: Color, weight: FontWeight = FontWei
     shadow     = Shadow(Color.Black, Offset(0f, 1.5f), 3f),
     platformStyle   = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false)
 )
+
+// ─── Prapory ──────────────────────────────────────────────────────────────────
+
+/** Základní prapory (z nich se losuje prapor soupeře mimo kampaň). */
+private val BANNER_BASE = listOf(
+    "banner_blue", "banner_red", "banner_green", "banner_purple", "banner_black",
+    "banner_gold", "banner_white", "banner_orange", "banner_wolf"
+)
+
+/** Prapory lokací kampaně (soupeři v lokaci, viz CampaignOpponent.aiBannerSkin). */
+private val BANNER_CAMPAIGN = listOf(
+    "banner_goblins", "banner_swamp", "banner_dwarves", "banner_citadel", "banner_dragon"
+)
+
+/**
+ * Prapory volitelné v Profilu → Vzhled → Prapor. V Aréně visí za portrétem. Prapory lokací
+ * jsou zatím odemčené všem (jako ruby lokací – viz CARD_BACK_BOSS_REWARDS).
+ */
+val BANNER_SKINS = BANNER_BASE + BANNER_CAMPAIGN
+
+/** Mapuje ID praporu na drawable (neznámé → výchozí tyrkysový). */
+@DrawableRes
+fun bannerSkinDrawable(id: String): Int = when (id) {
+    "banner_red"    -> R.drawable.arena_banner_red
+    "banner_green"  -> R.drawable.arena_banner_green
+    "banner_purple" -> R.drawable.arena_banner_purple
+    "banner_black"  -> R.drawable.arena_banner_black
+    "banner_gold"   -> R.drawable.arena_banner_gold
+    "banner_white"  -> R.drawable.arena_banner_white
+    "banner_orange" -> R.drawable.arena_banner_orange
+    "banner_wolf"   -> R.drawable.arena_banner_wolf
+    "banner_goblins" -> R.drawable.arena_banner_goblins
+    "banner_swamp"   -> R.drawable.arena_banner_swamp
+    "banner_dwarves" -> R.drawable.arena_banner_dwarves
+    "banner_citadel" -> R.drawable.arena_banner_citadel
+    "banner_dragon"  -> R.drawable.arena_banner_dragon
+    else            -> R.drawable.arena_banner_blue
+}
+
+/** Prapor hráče z profilu. */
+fun playerBannerSkin(): String =
+    PlayerProfileManager.profile?.bannerSkin?.takeIf { it in BANNER_SKINS } ?: BANNER_SKINS.first()
+
+/**
+ * Prapor soupeře mimo kampaň: náhodný ze základních, vždy jiný než hráčův, aby šly strany
+ * rozeznat. Volat jednou za hru (remember). V kampani má prapor lokace (aiBannerSkin).
+ */
+fun randomOpponentBannerSkin(): String = (BANNER_BASE - playerBannerSkin()).random()
+
+/** Šířka a výška praporu za portrétem (obrázky 256 × 512, tyč nahoře). */
+private val BANNER_W = 66.dp
+private val BANNER_H = 132.dp
+
+/**
+ * Prapor visící od horního okraje obrazovky za portrétem. Kreslí se mimo rozměry rohu
+ * (wrapContentSize bez omezení), rozložení rohu se tím nemění. Soupeřův je zrcadlený.
+ */
+@Composable
+private fun ArenaBanner(@DrawableRes resId: Int, mirrored: Boolean, modifier: Modifier = Modifier) {
+    val painter = painterResource(resId)
+    Box(
+        modifier
+            .wrapContentSize(Alignment.TopCenter, unbounded = true)
+            .offset(y = (-22).dp)
+            .size(BANNER_W, BANNER_H)
+            .graphicsLayer { if (mirrored) scaleX = -1f }
+            .drawBehind {
+                // měkký stín: tmavá kopie posunutá dolů
+                translate(top = 4.dp.toPx(), left = 2.dp.toPx()) {
+                    with(painter) { draw(size, alpha = 0.5f, colorFilter = ColorFilter.tint(Color.Black)) }
+                }
+                with(painter) { draw(size) }
+            }
+    )
+}
+
+/**
+ * Kamenná deska za surovinami a řádkem pod nimi (kreslí se přes okraje obsahu,
+ * rozložení se nemění) a pod ní měkký stín.
+ */
+@Composable
+private fun Modifier.arenaPlaque(): Modifier {
+    val plaque = painterResource(R.drawable.arena_res_plaque)
+    return drawBehind {
+        val mx = 12.dp.toPx(); val mt = 10.dp.toPx(); val mb = 9.dp.toPx()
+        val w = size.width + 2 * mx; val h = size.height + mt + mb
+        scale(scaleX = 1f, scaleY = (h * 0.62f) / (w / 2f), pivot = Offset(size.width / 2f, size.height / 2f + 4.dp.toPx())) {
+            drawCircle(
+                Brush.radialGradient(
+                    0f to Color.Black.copy(alpha = 0.6f), 0.55f to Color.Black.copy(alpha = 0.35f), 1f to Color.Transparent,
+                    center = Offset(size.width / 2f, size.height / 2f + 4.dp.toPx()), radius = w / 2f
+                ),
+                radius = w / 2f, center = Offset(size.width / 2f, size.height / 2f + 4.dp.toPx())
+            )
+        }
+        translate(left = -mx, top = -mt) { with(plaque) { draw(Size(w, h)) } }
+    }
+}
 
 // ─── Portrét ──────────────────────────────────────────────────────────────────
 
@@ -308,11 +408,16 @@ fun ArenaPlayerCorner(
     deckSize: Int, maxHand: Int, passives: List<PassiveAbility>,
     modifier: Modifier = Modifier,
     /** Karta, kterou hráč právě zkoumá nebo táhne – její surovina se v panelu zvýrazní. */
-    inspected: Card? = null
+    inspected: Card? = null,
+    /** Prapor za portrétem (Profil → Vzhled → Prapor). */
+    bannerSkin: String = playerBannerSkin()
 ) {
     Row(modifier, verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        ArenaPortrait(avatar, name, isPlayer = true, active = active)
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Box {
+            ArenaBanner(bannerSkinDrawable(bannerSkin), mirrored = false, modifier = Modifier.align(Alignment.TopCenter))
+            ArenaPortrait(avatar, name, isPlayer = true, active = active)
+        }
+        Column(Modifier.arenaPlaque(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             ArenaResources(
                 state,
                 highlight  = inspected?.costType,
@@ -329,14 +434,19 @@ fun ArenaPlayerCorner(
 fun ArenaOpponentCorner(
     state: PlayerState, avatar: String, name: String, active: Boolean,
     deckSize: Int, maxHand: Int, @DrawableRes cardBackResId: Int, passives: List<PassiveAbility>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Prapor soupeře za portrétem (zrcadlený). */
+    bannerSkin: String = "banner_red"
 ) {
     Row(modifier, verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp), horizontalAlignment = Alignment.End) {
+        Column(Modifier.arenaPlaque(), verticalArrangement = Arrangement.spacedBy(3.dp), horizontalAlignment = Alignment.End) {
             ArenaResources(state)
             ArenaStatLine(deckSize, state.hand.size, maxHand, cardBackResId, passives, alignEnd = true)
         }
-        ArenaPortrait(avatar, name, isPlayer = false, active = active)
+        Box {
+            ArenaBanner(bannerSkinDrawable(bannerSkin), mirrored = true, modifier = Modifier.align(Alignment.TopCenter))
+            ArenaPortrait(avatar, name, isPlayer = false, active = active)
+        }
     }
 }
 
