@@ -156,6 +156,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                             dragToPlay = GameSettings.dragToPlay,
                             onSelect   = { GameSettings.updateDragToPlay(it) }
                         )
+                        CardBadgesToggle(
+                            left     = GameSettings.cardBadgesLeft,
+                            onSelect = { GameSettings.updateCardBadgesLeft(it) }
+                        )
                         // TEST: rozložení bojiště (texty natvrdo česky – jen na vyzkoušení návrhu)
                         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             SectionLabel("Bojiště (test)")
@@ -246,6 +250,17 @@ private fun PlayStyleToggle(dragToPlay: Boolean, onSelect: (Boolean) -> Unit) {
             if (dragToPlay) s.playStyleDragHint else s.playStyleTapHint,
             color = ObsTextMuted, fontSize = 9.sp, lineHeight = 12.sp
         )
+    }
+}
+
+/** Strana ikon stavu na kartě (viz [GameSettings.cardBadgesLeft]). */
+@Composable
+private fun CardBadgesToggle(left: Boolean, onSelect: (Boolean) -> Unit) {
+    val s = LocalStrings.current
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        SectionLabel(s.cardBadgesLabel)
+        Segmented(listOf(true to s.cardBadgesLeft, false to s.cardBadgesRight), left, onSelect)
+        Text(s.cardBadgesHint, color = ObsTextMuted, fontSize = 9.sp, lineHeight = 12.sp)
     }
 }
 

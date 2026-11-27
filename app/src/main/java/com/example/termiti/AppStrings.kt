@@ -235,6 +235,10 @@ class AppStrings(
     val tutSkip: String by values
     val tutWaitingYou: String by values
     val tutWaitingOpponent: String by values
+    val cardBadgesLabel: String by values
+    val cardBadgesRight: String by values
+    val cardBadgesLeft: String by values
+    val cardBadgesHint: String by values
     val tutGoal: String by values
     val tutCastle: String by values
     val tutResources: String by values

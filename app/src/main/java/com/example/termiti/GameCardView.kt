@@ -826,12 +826,18 @@ private fun CardViewTextured(
             )
         }
 
-        // Vrstva 5b: ikony stavu (generováno / splněno / combo) – vpravo nahoře
+        // Vrstva 5b: ikony stavu (generováno / splněno / combo) – vpravo nahoře, nebo podle
+        // nastavení vlevo pod cenou (v ruce kartu zprava překrývá další karta)
+        val badgesLeft = GameSettings.cardBadgesLeft
         Column(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 8.dp, end = 8.dp),
-            horizontalAlignment = Alignment.End,
+                .align(if (badgesLeft) Alignment.TopStart else Alignment.TopEnd)
+                .padding(
+                    top   = if (badgesLeft) 23.dp else 8.dp,
+                    start = if (badgesLeft) 4.dp else 0.dp,
+                    end   = if (badgesLeft) 0.dp else 8.dp
+                ),
+            horizontalAlignment = if (badgesLeft) Alignment.Start else Alignment.End,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             if (card.isGenerated) {
