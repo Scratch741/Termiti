@@ -17,6 +17,23 @@ Hra je v **beta fázi** (verze `0.x`) — API a obsah se mohou měnit.
 
 ---
 
+## [0.7.6] – 2026-11-27
+
+### Nové
+- **Rozložení bojiště Aréna (test):** Nastavení → Bojiště (test), zatím jen offline. Ruka jako vějíř (klepnutí přiblíží, další klepnutí zvětší kartu), soupeřova ruka jako obrácený vějíř, velké hrady a hradby s medailony životů, panely surovin s letícím +N/−N, nápověda při tažení a nápis „Váš tah“.
+- **6 slotů balíčků** (constructed i roguelike) s novým výběrem 3×2.
+- **Nové ruby karet:** styly 2–7 přegenerované, nový styl 8 (dračí vejce).
+
+### Změněno
+- **Profil a kampaň** ve stylu obsidián a bronz; dialog konce hry s kovaným nadpisem.
+- **Mulligan** se objeví a zmizí plynule (místo naskočení naráz).
+- **Tažení karty:** náklon za pohybem, zahození tažením bez letu.
+- **Aréna:** řádek pod surovinami je u obou hráčů zrcadlový (ruka · balíček · pasivky), větší panel surovin, zahraná karta soupeře má náklon jako rub ve vějíři.
+
+### Opraveno
+- **Aréna:** „Váš tah“ se ukazoval i po líznutí karty z [Combo]; klepnutí na kartu v přiblížené ruce ji občas zavřelo; čísla surovin při změně uhýbala do strany.
+- **Plynulost Arény:** tažení karty už nepřekresluje celou obrazovku, animace pozadí a pulzující záře mají vlastní vrstvy a běží jen když je potřeba.
+
 ## [0.7.5] – 2026-11-23
 
 ### Nové
